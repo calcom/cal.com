@@ -64,7 +64,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
-          calLink: `${pro.username}/30-min`,
+          calLink: `${pro.username}/multiple-duration`,
         });
       });
 
@@ -102,7 +102,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
-          calLink: `${pro.username}/30-min`,
+          calLink: `${pro.username}/multiple-duration`,
         });
       });
 
@@ -140,7 +140,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
-          calLink: `${pro.username}/30-min`,
+          calLink: `${pro.username}/multiple-duration`,
         });
       });
     });
@@ -238,7 +238,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
-          calLink: `${user.username}/30-min`,
+          calLink: `${user.username}/multiple-duration`,
           bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });
@@ -279,7 +279,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
-          calLink: `${user.username}/30-min`,
+          calLink: `${user.username}/multiple-duration`,
           bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });
@@ -319,7 +319,7 @@ test.describe("Embed Code Generator Tests", () => {
         await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
-          calLink: `${user.username}/30-min`,
+          calLink: `${user.username}/multiple-duration`,
           bookerUrl: getOrgFullOrigin(org?.slug ?? ""),
         });
       });

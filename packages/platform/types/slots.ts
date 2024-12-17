@@ -1,6 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsArray, IsBoolean, IsDateString, IsInt, IsNumber, IsOptional, IsString } from "class-validator";
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min,
+  IsEnum,
+} from "class-validator";
+
+import { SlotFormat } from "@calcom/platform-enums";
 
 export class GetAvailableSlotsInput {
   @IsDateString()
@@ -43,6 +55,7 @@ export class GetAvailableSlotsInput {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
+  @Min(1, { message: "Duration must be a positive number" })
   @ApiProperty({ description: "Only for dynamic events - length of returned slots." })
   duration?: number;
 
@@ -57,6 +70,22 @@ export class GetAvailableSlotsInput {
   @IsString()
   @IsOptional()
   orgSlug?: string;
+
+  @IsString()
+  @IsEnum(SlotFormat, {
+    message: "slotFormat must be either 'range' or 'time'",
+  })
+  @Transform(({ value }) => {
+    if (!value) return undefined;
+    return value.toLowerCase();
+  })
+  @IsOptional()
+  @ApiPropertyOptional({
+    description: "Format of slot times in response. Use 'range' to get start and end times.",
+    example: "range",
+    enum: SlotFormat,
+  })
+  slotFormat?: SlotFormat;
 }
 
 export class RemoveSelectedSlotInput {

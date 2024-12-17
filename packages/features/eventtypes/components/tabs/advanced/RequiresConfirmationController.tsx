@@ -7,12 +7,24 @@ import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
-import type { EventTypeSetup } from "@calcom/features/eventtypes/lib/types";
+import type { EventTypeSetup, SettingsToggleClassNames } from "@calcom/features/eventtypes/lib/types";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Input, SettingsToggle, RadioField, Select, CheckboxField } from "@calcom/ui";
+
+export type RequiresConfirmationCustomClassNames = SettingsToggleClassNames & {
+  radioGroupContainer?: string;
+  alwaysConfirmationRadio?: string;
+  conditionalConfirmationRadio?: {
+    container?: string;
+    timeInput?: string;
+    timeUnitSelect?: string;
+    checkbox?: string;
+    checkboxDescription?: string;
+  };
+};
 
 type RequiresConfirmationControllerProps = {
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
@@ -21,6 +33,7 @@ type RequiresConfirmationControllerProps = {
   onRequiresConfirmation: Dispatch<SetStateAction<boolean>>;
   seatsEnabled: boolean;
   eventType: EventTypeSetup;
+  customClassNames?: RequiresConfirmationCustomClassNames;
 };
 
 export default function RequiresConfirmationController({
@@ -29,6 +42,7 @@ export default function RequiresConfirmationController({
   requiresConfirmation,
   onRequiresConfirmation,
   seatsEnabled,
+  customClassNames,
 }: RequiresConfirmationControllerProps) {
   const { t } = useLocale();
   const [requiresConfirmationSetup, setRequiresConfirmationSetup] = useState(
@@ -67,13 +81,15 @@ export default function RequiresConfirmationController({
           control={formMethods.control}
           render={() => (
             <SettingsToggle
-              labelClassName="text-sm"
+              labelClassName={classNames("text-sm", customClassNames?.label)}
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                requiresConfirmation && "rounded-b-none"
+                requiresConfirmation && "rounded-b-none",
+                customClassNames?.container
               )}
-              childrenClassName="lg:ml-0"
+              childrenClassName={classNames("lg:ml-0", customClassNames?.children)}
+              descriptionClassName={customClassNames?.description}
               title={t("requires_confirmation")}
               data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
@@ -116,7 +132,11 @@ export default function RequiresConfirmationController({
                       );
                     }
                   }}>
-                  <div className="flex flex-col flex-wrap justify-start gap-y-2">
+                  <div
+                    className={classNames(
+                      "flex flex-col flex-wrap justify-start gap-y-2",
+                      customClassNames?.radioGroupContainer
+                    )}>
                     {(requiresConfirmationSetup === undefined ||
                       !requiresConfirmationLockedProps.disabled) && (
                       <RadioField
@@ -124,6 +144,7 @@ export default function RequiresConfirmationController({
                         disabled={requiresConfirmationLockedProps.disabled}
                         id="always"
                         value="always"
+                        className={customClassNames?.alwaysConfirmationRadio}
                       />
                     )}
                     {(requiresConfirmationSetup !== undefined ||
@@ -131,7 +152,10 @@ export default function RequiresConfirmationController({
                       <>
                         <RadioField
                           disabled={requiresConfirmationLockedProps.disabled}
-                          className="items-center"
+                          className={classNames(
+                            "items-center",
+                            customClassNames?.conditionalConfirmationRadio?.container
+                          )}
                           label={
                             <>
                               <Trans
@@ -158,7 +182,10 @@ export default function RequiresConfirmationController({
                                             { shouldDirty: true }
                                           );
                                         }}
-                                        className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
+                                        className={classNames(
+                                          "border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                          customClassNames?.conditionalConfirmationRadio?.timeInput
+                                        )}
                                         defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
                                       />
                                       <label
@@ -170,6 +197,9 @@ export default function RequiresConfirmationController({
                                           options={options}
                                           isSearchable={false}
                                           isDisabled={requiresConfirmationLockedProps.disabled}
+                                          className={
+                                            customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
+                                          }
                                           innerClassNames={{ control: "rounded-l-none bg-subtle" }}
                                           onChange={(opt) => {
                                             setRequiresConfirmationSetup({
@@ -200,6 +230,10 @@ export default function RequiresConfirmationController({
                           checked={requiresConfirmationWillBlockSlot}
                           descriptionAsLabel
                           description={t("requires_confirmation_will_block_slot_description")}
+                          className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                          descriptionClassName={
+                            customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                          }
                           onChange={(e) => {
                             // We set should dirty to properly detect when we can submit the form
                             formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {

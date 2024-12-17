@@ -13,10 +13,11 @@ type ScheduleNoShowTriggersArgs = {
   eventTypeId: number | null;
   teamId?: number | null;
   orgId?: number | null;
+  oAuthClientId?: string | null;
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
-  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId } = args;
+  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId, oAuthClientId } = args;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
@@ -27,6 +28,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     triggerEvent: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
+    oAuthClientId,
   });
 
   noShowPromises.push(
@@ -56,6 +58,7 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     triggerEvent: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
     teamId,
     orgId,
+    oAuthClientId,
   });
 
   noShowPromises.push(

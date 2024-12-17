@@ -237,7 +237,16 @@ type SingleFormComponentProps = {
 };
 
 type MembersMatchResultType = {
+  isUsingAttributeWeights: boolean;
+  eventTypeRedirectUrl: string | null;
+  contactOwnerEmail: string | null;
   teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
+  perUserData: {
+    bookingsCount: Record<number, number>;
+    bookingShortfalls: Record<number, number> | null;
+    calibrations: Record<number, number> | null;
+    weights: Record<number, number> | null;
+  } | null;
   checkedFallback: boolean;
   mainWarnings: string[] | null;
   fallbackWarnings: string[] | null;
@@ -273,7 +282,7 @@ const TeamMembersMatchResult = ({
     return !membersMatchResult.checkedFallback ? t("yes") : t("no");
   };
 
-  const renderMatchingMembers = () => {
+  const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
       if (membersMatchResult.checkedFallback) {
         return (
@@ -291,12 +300,48 @@ const TeamMembersMatchResult = ({
       );
     }
 
-    const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic.map(
-      (member) => member.email
-    );
+    const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic;
 
-    if (matchingMembers.length) {
-      return <span className="font-semibold">{matchingMembers.join(", ")}</span>;
+    if (matchingMembers.length && membersMatchResult.perUserData) {
+      const perUserData = membersMatchResult.perUserData;
+      return (
+        <span className="font-semibold">
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-4">#</th>
+                  <th className="py-2 pr-4">Email</th>
+                  <th className="py-2 pr-4">Bookings</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  {membersMatchResult.perUserData.bookingShortfalls ? (
+                    <th className="border-l py-2 pl-2">Shortfall</th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody>
+                {matchingMembers.map((member, index) => (
+                  <tr key={member.id} className="border-b">
+                    <td className="py-2 pr-4">{index + 1}</td>
+                    <td className="py-2 pr-4">{member.email}</td>
+                    <td className="py-2">{perUserData.bookingsCount[member.id] ?? 0}</td>
+                    {perUserData.weights ? (
+                      <td className="py-2">{perUserData.weights[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.calibrations ? (
+                      <td className="py-2">{perUserData.calibrations[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.bookingShortfalls ? (
+                      <td className="border-l py-2 pl-2">{perUserData.bookingShortfalls[member.id] ?? 0}</td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </span>
+      );
     }
 
     return (
@@ -328,8 +373,23 @@ const TeamMembersMatchResult = ({
           />
         )}
       </div>
-      <div data-testid="matching-members">
-        {t("matching_members")}: {renderMatchingMembers()}
+      <div className="mt-4">
+        {membersMatchResult.contactOwnerEmail ? (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}:{" "}
+            <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
+          </div>
+        ) : (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}: <span className="font-semibold">Not found</span>
+          </div>
+        )}
+        <div className="mt-2" data-testid="matching-members">
+          {membersMatchResult.isUsingAttributeWeights
+            ? t("matching_members_queue_using_attribute_weights")
+            : t("matching_members_queue_using_event_assignee_weights")}
+          {renderQueue()}
+        </div>
       </div>
     </div>
   );
@@ -362,7 +422,7 @@ export const TestFormDialog = ({
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [eventTypeUrl, setEventTypeUrl] = useState("");
+  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
   const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
@@ -371,10 +431,14 @@ export const TestFormDialog = ({
     setMembersMatchResult(null);
   };
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
         setMembersMatchResult({
-          teamMembersMatchingAttributeLogic: data.result,
+          isUsingAttributeWeights: data.isUsingAttributeWeights,
+          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
+          contactOwnerEmail: data.contactOwnerEmail,
+          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
+          perUserData: data.result ? data.result.perUserData : null,
           checkedFallback: data.checkedFallback,
           mainWarnings: data.mainWarnings,
           fallbackWarnings: data.fallbackWarnings,
@@ -391,27 +455,30 @@ export const TestFormDialog = ({
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
+    let eventTypeRedirectUrl: string | null = null;
+
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      setEventTypeUrl(
-        getAbsoluteEventTypeRedirectUrl({
-          eventTypeRedirectUrl: route.action.value,
-          form,
-          allURLSearchParams: new URLSearchParams(),
-        })
-      );
+      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+        eventTypeRedirectUrl: route.action.value,
+        form,
+        allURLSearchParams: new URLSearchParams(),
+      });
+      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
     }
 
     setChosenRoute(route || null);
 
     if (!route) return;
 
-    findTeamMembersMatchingAttributeLogicMutation.mutate({
-      formId: form.id,
-      response,
-      route,
-      isPreview: true,
-      _enablePerf: searchParams.get("enablePerf") === "true",
-    });
+    if (isTeamForm) {
+      findTeamMembersMatchingAttributeLogicMutation.mutate({
+        formId: form.id,
+        response,
+        route,
+        isPreview: true,
+        _enablePerf: searchParams.get("enablePerf") === "true",
+      });
+    }
   }
 
   const renderTestResult = () => {
@@ -461,7 +528,14 @@ export const TestFormDialog = ({
           ) : (
             <div className="flex flex-col space-y-2">
               <span className="text-default underline">
-                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
+                <a
+                  target="_blank"
+                  className={cn(
+                    findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
+                  )}
+                  href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
+                  rel="noreferrer"
+                  data-testid="test-routing-result">
                   {chosenRoute.action.value}
                 </a>
               </span>
@@ -486,7 +560,7 @@ export const TestFormDialog = ({
 
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-      <DialogContent enableOverflow>
+      <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
           <form
@@ -554,7 +628,6 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
   const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
-
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast(t("form_updated_successfully"), "success");
@@ -635,6 +708,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
                             label: member.name || member.email,

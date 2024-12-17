@@ -68,7 +68,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 }));
 
 let findTeamMembersMatchingAttributeLogicResponse: {
-  result: { email: string }[] | null;
+  result: { users: { email: string }[] } | null;
   checkedFallback: boolean;
   mainWarnings?: string[] | null;
   fallbackWarnings?: string[] | null;
@@ -97,8 +97,8 @@ function mockFindTeamMembersMatchingAttributeLogicResponse(
 vi.mock("@calcom/trpc/react", () => ({
   trpc: {
     viewer: {
-      appRoutingForms: {
-        findTeamMembersMatchingAttributeLogic: {
+      routingForms: {
+        findTeamMembersMatchingAttributeLogicOfRoute: {
           useMutation: vi.fn(({ onSuccess }) => {
             return {
               mutate: vi.fn(() => {
@@ -161,20 +161,44 @@ describe("TestFormDialog", () => {
   });
 
   it("renders the dialog when open", () => {
-    render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+    render(
+      <TestFormDialog
+        form={mockTeamForm}
+        isTestPreviewOpen={true}
+        setIsTestPreviewOpen={() => {
+          return;
+        }}
+      />
+    );
 
     expect(screen.getByText("test_routing_form")).toBeInTheDocument();
     expect(screen.getByText("test_preview_description")).toBeInTheDocument();
   });
 
   it("doesn't render the dialog when closed", () => {
-    render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={false} setIsTestPreviewOpen={() => {}} />);
+    render(
+      <TestFormDialog
+        form={mockTeamForm}
+        isTestPreviewOpen={false}
+        setIsTestPreviewOpen={() => {
+          return;
+        }}
+      />
+    );
 
     expect(screen.queryByText("test_routing_form")).not.toBeInTheDocument();
   });
 
   it("renders form fields", () => {
-    render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+    render(
+      <TestFormDialog
+        form={mockTeamForm}
+        isTestPreviewOpen={true}
+        setIsTestPreviewOpen={() => {
+          return;
+        }}
+      />
+    );
 
     expect(screen.getByTestId("form-field-name")).toBeInTheDocument();
   });
@@ -182,7 +206,15 @@ describe("TestFormDialog", () => {
   describe("Team Form", () => {
     it("submits the form and shows test results for Custom Page", async () => {
       mockCustomPageMessageMatchingRoute();
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
 
@@ -193,7 +225,15 @@ describe("TestFormDialog", () => {
 
     it("submits the form and shows test results for Event Type", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
       expect(screen.getByText("route_to:")).toBeInTheDocument();
@@ -210,10 +250,20 @@ describe("TestFormDialog", () => {
     it("suggests to add fallback when matching members is empty and fallback is not checked", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       mockFindTeamMembersMatchingAttributeLogicResponse({
-        result: [],
+        result: {
+          users: [],
+        },
         checkedFallback: false,
       });
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
       expect(screen.getByText("route_to:")).toBeInTheDocument();
@@ -235,7 +285,15 @@ describe("TestFormDialog", () => {
         mainWarnings: ["Main-Error-1", "Main-Error-2"],
         fallbackWarnings: ["Fallback-Error-1", "Fallback-Error-2"],
       });
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
       screen.logTestingPlaygroundURL();
@@ -253,7 +311,15 @@ describe("TestFormDialog", () => {
         mainWarnings: null,
         fallbackWarnings: null,
       });
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
       screen.logTestingPlaygroundURL();
@@ -264,12 +330,22 @@ describe("TestFormDialog", () => {
     it("should show No in main and fallback matched", async () => {
       mockEventTypeRedirectUrlMatchingRoute();
       mockFindTeamMembersMatchingAttributeLogicResponse({
-        result: [],
+        result: {
+          users: [],
+        },
         checkedFallback: true,
         mainWarnings: null,
         fallbackWarnings: null,
       });
-      render(<TestFormDialog form={mockTeamForm} isTestPreviewOpen={true} setIsTestPreviewOpen={() => {}} />);
+      render(
+        <TestFormDialog
+          form={mockTeamForm}
+          isTestPreviewOpen={true}
+          setIsTestPreviewOpen={() => {
+            return;
+          }}
+        />
+      );
       fireEvent.change(screen.getByTestId("form-field-name"), { target: { value: "John Doe" } });
       fireEvent.click(screen.getByText("test_routing"));
       expect(screen.getByTestId("attribute-logic-matched")).toHaveTextContent("no");

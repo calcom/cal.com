@@ -229,7 +229,7 @@ const WebhookForm = (props: {
         {showTimeSection && (
           <div className="mt-5">
             <Label>{t("how_long_after_user_no_show_minutes")}</Label>
-            <TimeTimeUnitInput disabled={false} />
+            <TimeTimeUnitInput disabled={false} defaultTime={5} />
           </div>
         )}
 
@@ -346,6 +346,7 @@ const WebhookForm = (props: {
         </Button>
         <Button
           type="submit"
+          data-testid="create_webhook"
           disabled={!formMethods.formState.isDirty && !changeSecret}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}

@@ -5,7 +5,6 @@ import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { test, todo } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookTimeSlot,
   confirmReschedule,
@@ -16,10 +15,8 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-testBothFutureAndLegacyRoutes.describe("Teams A/B tests", (routeVariant) => {
+test.describe("Teams tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
-    // TODO: Revert until OOM issue is resolved
-    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
 
     await user.apiLogin();
@@ -34,7 +31,7 @@ testBothFutureAndLegacyRoutes.describe("Teams A/B tests", (routeVariant) => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
+test.describe("Teams - NonOrg", () => {
   test.afterEach(({ users }) => users.deleteAll());
 
   test("Can create a booking for Collective EventType", async ({ page, users }) => {
@@ -120,7 +117,6 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
   });
 
   test("Non admin team members cannot create team in org", async ({ page, users }) => {
-    test.skip(routeVariant === "future", "Future route not ready yet");
     const teamMateName = "teammate-1";
 
     const owner = await users.create(undefined, {
@@ -155,7 +151,6 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
   });
 
   test("Can create team with same name as user", async ({ page, users }) => {
-    test.skip(routeVariant === "future", "Future route not ready yet");
     const user = await users.create();
     // Name to be used for both user and team
     const uniqueName = user.username!;

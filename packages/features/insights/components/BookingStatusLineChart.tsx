@@ -60,9 +60,9 @@ export const BookingStatusLineChart = () => {
       <LineChart
         className="linechart mt-4 h-80"
         data={eventsTimeLine ?? []}
-        categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)"]}
+        categories={["Created", "Completed", "Rescheduled", "Cancelled", "No-Show (Host)", "No-Show (Guest)"]}
         index="Month"
-        colors={["purple", "green", "blue", "red", "slate"]}
+        colors={["purple", "green", "blue", "red", "slate", "orange"]}
         valueFormatter={valueFormatter}
       />
     </CardInsights>

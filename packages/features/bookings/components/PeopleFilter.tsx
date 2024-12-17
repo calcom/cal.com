@@ -80,12 +80,13 @@ export const PeopleFilter = () => {
             icon={<Avatar alt={`${member?.id} avatar`} imageSrc={member.avatarUrl} size="xs" />}
           />
         ))}
-        <div className="text-default text-center" ref={observerRef}>
+        <div className="text-default text-center" ref={observerRef} data-testid="people-filter">
           <Button
             color="minimal"
             loading={queryMembers.isFetchingNextPage}
             disabled={!queryMembers.hasNextPage}
-            onClick={() => queryMembers.fetchNextPage()}>
+            onClick={() => queryMembers.fetchNextPage()}
+            data-testid="people-filter">
             {queryMembers.hasNextPage ? t("load_more_results") : t("no_more_results")}
           </Button>
         </div>

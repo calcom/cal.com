@@ -8,7 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Meta } from "@calcom/ui";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
@@ -17,7 +16,7 @@ import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitat
 import MemberList from "../components/MemberList";
 import TeamInviteList from "../components/TeamInviteList";
 
-const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const MembersView = () => {
   const { t } = useLocale();
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
@@ -62,9 +61,6 @@ const MembersView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <>
-      {!isAppDir ? (
-        <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
-      ) : null}
       {!isPending && (
         <>
           <div>

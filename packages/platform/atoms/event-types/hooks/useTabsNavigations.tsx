@@ -1,7 +1,6 @@
 "use client";
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "next-i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -114,8 +113,8 @@ export const useTabsNavigations = ({
         }`,
       });
     }
-    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
-    if (showWebhooks) {
+    const showInstant = !(isManagedEventType || isChildrenManagedEventType);
+    if (showInstant) {
       if (team) {
         navigation.push({
           name: "instant_tab_title",
@@ -124,13 +123,13 @@ export const useTabsNavigations = ({
           info: `instant_event_tab_description`,
         });
       }
-      navigation.push({
-        name: "webhooks",
-        href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
-        icon: "webhook",
-        info: `${activeWebhooksNumber} ${t("active")}`,
-      });
     }
+    navigation.push({
+      name: "webhooks",
+      href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
+      icon: "webhook",
+      info: `${activeWebhooksNumber} ${t("active")}`,
+    });
     const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
     if (team && hidden) {
       navigation.push({

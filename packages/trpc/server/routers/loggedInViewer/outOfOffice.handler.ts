@@ -10,12 +10,12 @@ import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayl
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
-import { WebhookTriggerEvents } from ".prisma/client";
 
 type TBookingRedirect = {
   ctx: {
@@ -30,20 +30,19 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
   }
 
-  const inputStartTime = dayjs(startDate).startOf("day");
-  const inputEndTime = dayjs(endDate).endOf("day");
+  const startTimeUtc = dayjs.utc(startDate).add(input.offset, "minute").startOf("day");
+  const endTimeUtc = dayjs.utc(endDate).add(input.offset, "minute").endOf("day");
 
   // If start date is after end date throw error
-  if (inputStartTime.isAfter(inputEndTime)) {
+  if (startTimeUtc.isAfter(endTimeUtc)) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_before_end_date" });
   }
 
-  // If start date is before to today throw error
-  if (inputStartTime.isBefore(dayjs().startOf("day").subtract(1, "day"))) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
-  }
-
   let toUserId: number | null = null;
+
+  if (input.toTeamUserId === ctx.user.id) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "cannot_redirect_to_self" });
+  }
 
   if (input.toTeamUserId) {
     const user = await prisma.user.findUnique({
@@ -73,51 +72,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     toUserId = user?.id;
   }
 
-  // Validate if OOO entry for these dates already exists
-  const outOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
-    where: {
-      AND: [
-        { userId: ctx.user.id },
-        {
-          uuid: {
-            not: input.uuid ?? "",
-          },
-        },
-        {
-          OR: [
-            {
-              start: {
-                lt: inputEndTime.toISOString(), //existing start is less than or equal to input end time
-              },
-              end: {
-                gt: inputStartTime.toISOString(), //existing end is greater than or equal to input start time
-              },
-            },
-            {
-              //existing start is within the new input range
-              start: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-            {
-              //existing end is within the new input range
-              end: {
-                gt: inputStartTime.toISOString(),
-                lt: inputEndTime.toISOString(),
-              },
-            },
-          ],
-        },
-      ],
-    },
-  });
-
-  // don't allow overlapping entries
-  if (outOfOfficeEntry) {
-    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
-  }
-
   if (!input.reasonId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "reason_id_required" });
   }
@@ -135,17 +89,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       OR: [
         // Outside of range
         {
-          AND: [
-            { start: { lte: inputEndTime.toISOString() } },
-            { end: { gte: inputStartTime.toISOString() } },
-          ],
+          AND: [{ start: { lte: endTimeUtc.toISOString() } }, { end: { gte: startTimeUtc.toISOString() } }],
         },
         // Inside of range
         {
-          AND: [
-            { start: { gte: inputStartTime.toISOString() } },
-            { end: { lte: inputEndTime.toISOString() } },
-          ],
+          AND: [{ start: { gte: startTimeUtc.toISOString() } }, { end: { lte: endTimeUtc.toISOString() } }],
         },
       ],
     },
@@ -155,8 +103,18 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
   }
-  const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
-  const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
+
+  const isDuplicateOutOfOfficeEntry = await prisma.outOfOfficeEntry.findFirst({
+    where: {
+      userId: ctx.user.id,
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
+    },
+  });
+
+  if (isDuplicateOutOfOfficeEntry && isDuplicateOutOfOfficeEntry?.uuid !== input.uuid) {
+    throw new TRPCError({ code: "CONFLICT", message: "out_of_office_entry_already_exists" });
+  }
 
   // Get the existing redirected user from existing out of office entry to send that user appropriate email.
   const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
@@ -178,11 +136,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const createdOrUpdatedOutOfOffice = await prisma.outOfOfficeEntry.upsert({
     where: {
       uuid: input.uuid ?? "",
+      userId: ctx.user.id,
     },
     create: {
       uuid: uuidv4(),
-      start: startDateUtc.startOf("day").toISOString(),
-      end: endDateUtc.endOf("day").toISOString(),
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,
@@ -191,8 +150,8 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       updatedAt: new Date(),
     },
     update: {
-      start: startDateUtc.startOf("day").toISOString(),
-      end: endDateUtc.endOf("day").toISOString(),
+      start: startTimeUtc.toISOString(),
+      end: endTimeUtc.toISOString(),
       notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,

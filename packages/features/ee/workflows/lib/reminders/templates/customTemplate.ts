@@ -109,14 +109,14 @@ const customTemplate = (
       variable.startsWith("START_TIME_")
     ) {
       const dateFormat = variable.substring(11, text.length);
-      const formattedDate = variables.eventDate?.format(dateFormat);
+      const formattedDate = variables.eventDate?.locale(locale).format(dateFormat);
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
       return;
     }
 
     if (variable.startsWith("EVENT_END_TIME_")) {
       const dateFormat = variable.substring(15, text.length);
-      const formattedDate = variables.eventEndTime?.format(dateFormat);
+      const formattedDate = variables.eventEndTime?.locale(locale).format(dateFormat);
       dynamicText = dynamicText.replace(`{${variable}}`, formattedDate || "");
       return;
     }

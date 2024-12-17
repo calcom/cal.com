@@ -35,6 +35,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   sendNoShowAttendeeDataField: z.string().optional(),
   onBookingWriteToRecord: z.boolean().optional(),
   onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
+  ignoreGuests: z.boolean().optional(),
 });
 
 export const appKeysSchema = z.object({

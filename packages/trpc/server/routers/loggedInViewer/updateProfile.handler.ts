@@ -16,7 +16,6 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
-import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -281,9 +280,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       },
     });
   }
-
-  // Sync Services
-  await syncServicesUpdateWebUser(updatedUser);
 
   // Notify stripe about the change
   if (updatedUser && updatedUser.metadata && hasKeyInMetadata(updatedUser, "stripeCustomerId")) {

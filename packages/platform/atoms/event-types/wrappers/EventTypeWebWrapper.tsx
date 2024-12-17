@@ -250,7 +250,14 @@ const EventTypeWeb = ({
         teamMembers={teamMembers}
       />
     ),
-    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    team: (
+      <EventTeamAssignmentTab
+        orgId={orgBranding?.id ?? null}
+        teamMembers={teamMembers}
+        team={team}
+        eventType={eventType}
+      />
+    ),
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: (
       <EventAdvancedTab

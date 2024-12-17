@@ -4,20 +4,33 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import handleGroupEvents from "@calcom/features/ee/dsync/lib/handleGroupEvents";
 import handleUserEvents from "@calcom/features/ee/dsync/lib/handleUserEvents";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+
+const log = logger.getSubLogger({ prefix: ["[scim]"] });
 
 // This is the handler for the SCIM API requests
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const log = logger.getSubLogger({ prefix: ["[scim]"] });
   const { dsyncController } = await jackson();
 
   const { method, query, body } = req;
 
   const [directoryId, path, resourceId] = query.directory as string[];
-
+  const shouldLog = DIRECTORY_IDS_TO_LOG.includes(directoryId);
+  if (shouldLog) {
+    console.log(
+      "SCIM API request",
+      safeStringify({
+        method: req.method,
+        url: req.url,
+        query: req.query,
+        body: req.body,
+      })
+    );
+  }
   let responseBody: object | undefined = undefined;
-
   if (body) {
     try {
       responseBody = JSON.parse(body);
@@ -43,6 +56,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { status, data } = await dsyncController.requests.handle(request, handleEvents);
 
+  if (shouldLog) {
+    console.log(
+      "Response to SCIM",
+      safeStringify({
+        status,
+        data,
+      })
+    );
+  }
+
   res.status(status).json(data);
 }
 
@@ -55,6 +78,7 @@ export const extractAuthToken = (req: NextApiRequest): string | null => {
 
 // Handle the SCIM events
 const handleEvents = async (event: DirectorySyncEvent) => {
+  log.debug("handleEvents", safeStringify(event));
   const dSyncData = await prisma.dSyncData.findFirst({
     where: {
       directoryId: event.directory_id,

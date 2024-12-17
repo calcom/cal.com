@@ -8,6 +8,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -41,7 +42,14 @@ type ConfirmOptions = {
 
 export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   const { user } = ctx;
-  const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
+  const {
+    bookingId,
+    recurringEventId,
+    reason: rejectionReason,
+    confirmed,
+    emailsEnabled,
+    platformClientParams,
+  } = input;
 
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
@@ -214,6 +222,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           members: [],
         }
       : undefined,
+    ...(platformClientParams ? platformClientParams : {}),
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
@@ -269,6 +278,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       prisma,
       bookingId,
       booking,
+      emailsEnabled,
+      platformClientParams,
     });
   } else {
     evt.rejectionReason = rejectionReason;
@@ -368,7 +379,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
+    if (emailsEnabled) {
+      await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
+    }
 
     const teamId = await getTeamIdFromEventType({
       eventType: {
@@ -380,12 +393,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
     // send BOOKING_REJECTED webhooks
-    const subscriberOptions = {
+    const subscriberOptions: GetSubscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       teamId,
       orgId,
+      oAuthClientId: platformClientParams?.platformClientId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {

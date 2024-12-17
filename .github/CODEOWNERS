@@ -1,0 +1,11 @@
+/packages/app-store/applecalendar/**/* @calcom/Foundation
+/packages/app-store/caldavcalendar/**/* @calcom/Foundation
+/packages/app-store/exchange2013calendar/**/* @calcom/Foundation
+/packages/app-store/exchange2016calendar/**/* @calcom/Foundation
+/packages/app-store/exchangecalendar/**/* @calcom/Foundation
+/packages/app-store/feishucalendar/**/* @calcom/Foundation
+/packages/app-store/googlecalendar/**/* @calcom/Foundation
+/packages/app-store/ics-feedcalendar/**/* @calcom/Foundation
+/packages/app-store/larkcalendar/**/* @calcom/Foundation
+/packages/app-store/office365calendar/**/* @calcom/Foundation
+/packages/app-store/zohocalendar/**/* @calcom/Foundation

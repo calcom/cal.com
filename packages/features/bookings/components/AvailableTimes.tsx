@@ -64,7 +64,7 @@ const SlotItem = ({
   const { t } = useLocale();
 
   const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+    getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);

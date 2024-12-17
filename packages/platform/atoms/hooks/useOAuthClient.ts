@@ -8,27 +8,35 @@ import type { ApiResponse } from "@calcom/platform-types";
 import http from "../lib/http";
 
 export interface useOAuthClientProps {
+  isEmbed?: boolean;
   clientId: string;
   apiUrl?: string;
   refreshUrl?: string;
   onError: (error: string) => void;
   onSuccess: (data: { client: string; organizationId: number; name: string }) => void;
 }
-export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError, onSuccess }: useOAuthClientProps) => {
+export const useOAuthClient = ({
+  isEmbed,
+  clientId,
+  apiUrl,
+  refreshUrl,
+  onError,
+  onSuccess,
+}: useOAuthClientProps) => {
   const prevClientId = usePrevious(clientId);
   const [isInit, setIsInit] = useState<boolean>(false);
   useEffect(() => {
-    if (apiUrl && http.getUrl() !== apiUrl) {
+    if (apiUrl) {
       http.setUrl(apiUrl);
       setIsInit(true);
     }
-    if (refreshUrl && http.getRefreshUrl() !== refreshUrl) {
+    if (refreshUrl) {
       http.setRefreshUrl(refreshUrl);
     }
   }, [apiUrl, refreshUrl]);
 
   useEffect(() => {
-    if (clientId && http.getUrl() && prevClientId !== clientId) {
+    if (!isEmbed && clientId && http.getUrl() && prevClientId !== clientId) {
       try {
         http
           .get<ApiResponse<{ client: string; organizationId: number; name: string }>>(`/provider/${clientId}`)
@@ -47,7 +55,7 @@ export const useOAuthClient = ({ clientId, apiUrl, refreshUrl, onError, onSucces
         console.error(err);
       }
     }
-  }, [clientId, onError, prevClientId, onSuccess]);
+  }, [isEmbed, clientId, onError, prevClientId, onSuccess]);
 
   return { isInit };
 };

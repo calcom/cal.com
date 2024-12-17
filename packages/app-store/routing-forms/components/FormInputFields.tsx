@@ -9,6 +9,7 @@ import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, FormResponse } from "../types/types";
+import { ConfigFor, withRaqbSettingsAndWidgets } from "./react-awesome-query-builder/config/uiConfig";
 
 export type FormInputFieldsProps = {
   form: Pick<SerializableForm<App_RoutingForms_Form>, "fields">;
@@ -26,7 +27,10 @@ export type FormInputFieldsProps = {
 export default function FormInputFields(props: FormInputFieldsProps) {
   const { form, response, setResponse, disabledFields = [] } = props;
 
-  const formFieldsQueryBuilderConfig = getQueryBuilderConfigForFormFields(form);
+  const formFieldsQueryBuilderConfig = withRaqbSettingsAndWidgets({
+    config: getQueryBuilderConfigForFormFields(form),
+    configFor: ConfigFor.FormFields,
+  });
 
   return (
     <>
@@ -66,6 +70,7 @@ export default function FormInputFields(props: FormInputFieldsProps) {
                     ...response,
                     [field.id]: {
                       label: field.label,
+                      identifier: field?.identifier,
                       value: getFieldResponseForJsonLogic({ field, value }),
                     },
                   };

@@ -21,7 +21,8 @@ import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } 
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
-  seatedBooking: SeatedBooking
+  seatedBooking: SeatedBooking,
+  metadata?: Record<string, string>
 ) => {
   const {
     tAttendees,
@@ -92,6 +93,7 @@ const createNewSeat = async (
                 description: additionalNotes,
                 responses,
               },
+              metadata,
               booking: {
                 connect: {
                   id: seatedBooking.id,

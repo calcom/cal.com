@@ -95,7 +95,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails
     );
   } else {
-    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking);
+    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking

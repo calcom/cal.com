@@ -1,4 +1,4 @@
-import type { CalendarEvent } from "./Calendar";
+import type { CalendarEvent, CalEventResponses } from "./Calendar";
 
 export interface CrmData {
   id: string;
@@ -18,10 +18,16 @@ export interface Contact {
   email: string;
   ownerId?: string;
   ownerEmail?: string;
+  recordType?: string;
 }
 
 export interface CrmEvent {
   id: string;
+  uid?: string;
+  type?: string;
+  password?: string;
+  url?: string;
+  additionalInfo?: any;
 }
 
 export interface CRM {
@@ -37,7 +43,11 @@ export interface CRM {
     includeOwner?: boolean;
     forRoundRobinSkip?: boolean;
   }) => Promise<Contact[]>;
-  createContacts: (contactsToCreate: ContactCreateInput[], organizerEmail?: string) => Promise<Contact[]>;
+  createContacts: (
+    contactsToCreate: ContactCreateInput[],
+    organizerEmail?: string,
+    calEventResponses?: CalEventResponses | null
+  ) => Promise<Contact[]>;
   getAppOptions: () => any;
   handleAttendeeNoShow?: (
     bookingUid: string,

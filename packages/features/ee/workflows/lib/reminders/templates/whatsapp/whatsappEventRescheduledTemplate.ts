@@ -4,6 +4,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 export const whatsappEventRescheduledTemplate = (
   isEditingMode: boolean,
+  locale: string,
   action?: WorkflowActions,
   timeFormat?: TimeFormat,
   startTime?: string,
@@ -25,8 +26,8 @@ export const whatsappEventRescheduledTemplate = (
     attendee = action === WorkflowActions.WHATSAPP_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.WHATSAPP_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
-    startTime = dayjs(startTime).tz(timeZone).format(currentTimeFormat);
+    eventDate = dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D");
+    startTime = dayjs(startTime).tz(timeZone).locale(locale).format(currentTimeFormat);
   }
 
   const templateOne = `Hi${

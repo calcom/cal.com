@@ -7,6 +7,7 @@ import { PriceIcon } from "@calcom/features/bookings/components/event-meta/Price
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
@@ -49,8 +50,9 @@ export const EventTypeDescription = ({
               "text-subtle line-clamp-3 break-words py-1 text-sm sm:max-w-[650px] [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600",
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
-              __html: eventType.descriptionAsSafeHTML || "",
+              __html: markdownToSafeHTML(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}

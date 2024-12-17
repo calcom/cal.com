@@ -77,6 +77,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const templateFunction = getWhatsappTemplateFunction(reminder.workflowStep.template);
       const message = templateFunction(
         false,
+        reminder.booking.user?.locale || "en",
         reminder.workflowStep.action,
         getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
         reminder.booking?.startTime.toISOString() || "",

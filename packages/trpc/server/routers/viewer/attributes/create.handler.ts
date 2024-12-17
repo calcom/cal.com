@@ -39,6 +39,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
         slug,
         name: input.name,
         type: input.type,
+        isLocked: input.isLocked,
         teamId: org.id,
       },
     });

@@ -1,5 +1,6 @@
 import { useFormContext } from "react-hook-form";
 
+import type { EventAvailabilityTabCustomClassNames } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import { EventAvailabilityTab } from "@calcom/features/eventtypes/components/tabs/availability/EventAvailabilityTab";
 import type { EventTypeSetup, FormValues } from "@calcom/features/eventtypes/lib/types";
 import type { User } from "@calcom/prisma/client";
@@ -16,6 +17,7 @@ type EventAvailabilityTabPlatformWrapperProps = {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
   teamId?: number;
+  customClassNames?: EventAvailabilityTabCustomClassNames;
 };
 
 const EventAvailabilityTabPlatformWrapper = ({
@@ -27,7 +29,7 @@ const EventAvailabilityTabPlatformWrapper = ({
   const scheduleId = formMethods.watch("schedule");
 
   const { isLoading: isSchedulePending, data: scheduleQueryData } = useSchedule(
-    scheduleId || user?.defaultScheduleId || undefined
+    scheduleId || (!props.isTeamEvent ? user?.defaultScheduleId : undefined) || undefined
   );
 
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();

@@ -37,6 +37,7 @@ export const BookingRedirectEmailNotification = (
             eventOwner: props.eventOwner,
             dates: props.dates,
             oldDates: props.oldDates ?? "",
+            interpolation: { escapeValue: false },
           }
         )}
         <br />

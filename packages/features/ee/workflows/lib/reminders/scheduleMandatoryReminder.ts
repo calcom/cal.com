@@ -16,8 +16,10 @@ export async function scheduleMandatoryReminder(
   workflows: Workflow[],
   requiresConfirmation: boolean,
   hideBranding: boolean,
-  seatReferenceUid: string | undefined
+  seatReferenceUid: string | undefined,
+  isPlatformNoEmail = false
 ) {
+  if (isPlatformNoEmail) return;
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
       return (

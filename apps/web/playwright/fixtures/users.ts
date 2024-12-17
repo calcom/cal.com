@@ -29,6 +29,8 @@ export function hashPassword(password: string) {
 
 type UserFixture = ReturnType<typeof createUserFixture>;
 
+export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
+
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
   workflows: true,
@@ -244,7 +246,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
@@ -878,7 +880,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -944,6 +947,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({

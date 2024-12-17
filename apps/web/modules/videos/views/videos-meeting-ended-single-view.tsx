@@ -14,7 +14,7 @@ export default function MeetingUnavailable(props: PageProps) {
 
   return (
     <div>
-      <HeadSeo title="Meeting Unavailable" description="Meeting Unavailable" />
+      <HeadSeo title={t("meeting_unavailable")} description={t("meeting_unavailable")} />
       <main className="mx-auto my-24 max-w-3xl">
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">

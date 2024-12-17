@@ -4,6 +4,7 @@ import { WorkflowActions } from "@calcom/prisma/enums";
 
 const smsReminderTemplate = (
   isEditingMode: boolean,
+  locale: string,
   action?: WorkflowActions,
   timeFormat?: TimeFormat,
   startTime?: string,
@@ -24,8 +25,8 @@ const smsReminderTemplate = (
     attendee = action === WorkflowActions.SMS_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.SMS_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
   } else {
-    eventDate = dayjs(startTime).tz(timeZone).format("YYYY MMM D");
-    startTime = dayjs(startTime).tz(timeZone).format(currentTimeFormat);
+    eventDate = dayjs(startTime).tz(timeZone).locale(locale).format("YYYY MMM D");
+    startTime = dayjs(startTime).tz(timeZone).locale(locale).format(currentTimeFormat);
   }
 
   const templateOne = `Hi${

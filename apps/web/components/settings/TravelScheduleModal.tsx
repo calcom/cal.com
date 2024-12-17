@@ -102,7 +102,7 @@ const TravelScheduleModal = ({
               <DateRangePicker
                 dates={{
                   startDate,
-                  endDate: endDate ?? startDate,
+                  endDate,
                 }}
                 onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
                   // If newStartDate does become undefined - we resort back to to-todays date
@@ -150,6 +150,7 @@ const TravelScheduleModal = ({
         <DialogFooter showDivider className="relative">
           <DialogClose />
           <Button
+            disabled={!endDate}
             onClick={() => {
               createNewSchedule();
             }}>

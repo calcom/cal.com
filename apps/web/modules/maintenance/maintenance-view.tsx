@@ -1,17 +1,11 @@
 "use client";
 
-import Head from "next/head";
-
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
 
 export default function MaintenancePage() {
   return (
     <div className="bg-subtle flex h-screen">
-      <Head>
-        <title>Under Maintenance | {APP_NAME}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <div className="bg-default m-auto rounded-md p-10 text-right ltr:text-left">
         <h1 className="text-emphasis text-2xl font-medium">Down for maintenance</h1>
         <p className="text-default mb-6 mt-4 max-w-2xl text-sm">

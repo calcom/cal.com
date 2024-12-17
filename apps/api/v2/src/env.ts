@@ -28,6 +28,8 @@ export type Environment = {
   RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN: number;
   RATE_LIMIT_DEFAULT_LIMIT: number;
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: number;
+  AXIOM_DATASET: string;
+  AXIOM_TOKEN: string;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {

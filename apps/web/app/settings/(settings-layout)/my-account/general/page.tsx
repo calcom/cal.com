@@ -1,8 +1,7 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
+import { getTranslate } from "app/_utils";
 import { revalidatePath } from "next/cache";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 import GeneralQueryView from "~/settings/my-account/general-view";
@@ -14,9 +13,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
   const revalidatePage = async () => {
     "use server";
     revalidatePath("settings/my-account/general");

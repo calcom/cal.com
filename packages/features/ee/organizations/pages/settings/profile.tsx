@@ -14,6 +14,7 @@ import SectionBottomActions from "@calcom/features/settings/SectionBottomActions
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -27,7 +28,6 @@ import {
   ImageUploader,
   Label,
   LinkIconButton,
-  Meta,
   showToast,
   SkeletonAvatar,
   SkeletonButton,
@@ -57,18 +57,9 @@ type FormValues = {
   calVideoLogo: string | null;
 };
 
-const SkeletonLoader = ({
-  title,
-  description,
-  isAppDir,
-}: {
-  title: string;
-  description: string;
-  isAppDir?: boolean;
-}) => {
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      {!isAppDir ? <Meta title={title} description={description} borderInShellHeader={true} /> : null}
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -84,7 +75,7 @@ const SkeletonLoader = ({
   );
 };
 
-const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
+const OrgProfileView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -110,9 +101,7 @@ const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {
-    return (
-      <SkeletonLoader isAppDir={isAppDir} title={t("profile")} description={t("profile_org_description")} />
-    );
+    return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
   const isOrgAdminOrOwner =
@@ -138,9 +127,6 @@ const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
 
   return (
     <LicenseRequired>
-      {!isAppDir ? (
-        <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
-      ) : null}
       <>
         {isOrgAdminOrOwner ? (
           <>
@@ -159,7 +145,10 @@ const OrgProfileView = ({ isAppDir }: { isAppDir?: boolean }) => {
                   <Label className="text-emphasis mt-5">{t("about")}</Label>
                   <div
                     className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                    dangerouslySetInnerHTML={{ __html: md.render(currentOrganisation.bio || "") }}
+                    // eslint-disable-next-line react/no-danger
+                    dangerouslySetInnerHTML={{
+                      __html: markdownToSafeHTML(currentOrganisation.bio || ""),
+                    }}
                   />
                 </>
               )}

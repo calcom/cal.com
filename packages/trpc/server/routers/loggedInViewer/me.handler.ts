@@ -72,36 +72,6 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     identityProviderEmail = account?.providerEmail || "";
   }
 
-  const additionalUserInfo = await prisma.user.findFirst({
-    where: {
-      id: user.id,
-    },
-    select: {
-      bookings: {
-        select: { id: true },
-      },
-      selectedCalendars: true,
-      teams: {
-        select: {
-          team: {
-            select: {
-              id: true,
-              eventTypes: true,
-            },
-          },
-        },
-      },
-      eventTypes: {
-        select: { id: true },
-      },
-    },
-  });
-  let sumOfTeamEventTypes = 0;
-  for (const team of additionalUserInfo?.teams || []) {
-    for (const _eventType of team.team.eventTypes) {
-      sumOfTeamEventTypes++;
-    }
-  }
   const userMetadataPrased = userMetadata.parse(user.metadata);
 
   // Destructuring here only makes it more illegible
@@ -121,6 +91,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
         username: user.profile?.username ?? user.username ?? null,
         profile: user.profile ?? null,
         profiles: allUserEnrichedProfiles,
+        organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
   return {
@@ -159,12 +130,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     receiveMonthlyDigestEmail: user.receiveMonthlyDigestEmail,
     ...profileData,
     secondaryEmails,
-    sumOfBookings: additionalUserInfo?.bookings.length,
-    sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
-    sumOfTeams: additionalUserInfo?.teams.length,
-    sumOfEventTypes: additionalUserInfo?.eventTypes.length,
     isPremium: userMetadataPrased?.isPremium,
-    sumOfTeamEventTypes,
     ...(passwordAdded ? { passwordAdded } : {}),
   };
 };

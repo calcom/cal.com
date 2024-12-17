@@ -1,0 +1,8 @@
+undecided:
+  - calcom-monorepo
+  - "@calcom/app-store-cli"
+  - "@calcom/platform-constants"
+  - "@calcom/platform-enums"
+  - "@calcom/platform-types"
+  - "@calcom/platform-utils"
+  - "@calcom/prisma"

@@ -1,11 +1,19 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class CancelBookingInput_2024_08_13 {
   @IsString()
   @IsOptional()
   @ApiProperty({ example: "User requested cancellation" })
   cancellationReason?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiProperty({
+    description:
+      "For recurring non-seated booking - if true, cancel booking with the bookingUid of the individual recorrence and all recurrences that come after it.",
+  })
+  cancelSubsequentBookings?: boolean;
 }
 
 export class CancelSeatedBookingInput_2024_08_13 {

@@ -4,6 +4,7 @@ import { v4 } from "uuid";
 
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -31,6 +32,29 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   // Add userId if platform, eventTypeId, and teamId are not provided
   if (!input.platform && !input.eventTypeId && !input.teamId) {
     webhookData.user = { connect: { id: user.id } };
+  }
+
+  if (input.eventTypeId) {
+    const parentManagedEvt = await prisma.eventType.findFirst({
+      where: {
+        id: input.eventTypeId,
+        parentId: {
+          not: null,
+        },
+      },
+      select: {
+        parentId: true,
+        metadata: true,
+      },
+    });
+
+    if (parentManagedEvt?.parentId) {
+      const isLocked = !EventTypeMetaDataSchema.parse(parentManagedEvt.metadata)?.managedEventConfig
+        ?.unlockedFields?.webhooks;
+      if (isLocked) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+    }
   }
 
   let newWebhook: Webhook;

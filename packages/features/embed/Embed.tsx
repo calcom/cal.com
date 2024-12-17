@@ -17,7 +17,7 @@ import { useTimePreferences } from "@calcom/features/bookings/lib/timePreference
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,10 +41,17 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EmbedDialogProps = {
+  types: EmbedTypes;
+  tabs: EmbedTabs;
+  eventTypeHideOptionDisabled: boolean;
+  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+};
 
 const enum Theme {
   auto = "auto",
@@ -525,13 +532,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   namespace,
   eventTypeHideOptionDisabled,
   types,
-}: {
+  defaultBrandColor,
+}: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
-  tabs: EmbedTabs;
   namespace: string;
   eventTypeHideOptionDisabled: boolean;
-  types: EmbedTypes;
 }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
@@ -578,6 +584,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
   };
+
+  const paletteDefaultValue = (paletteName: string) => {
+    if (paletteName === "brandColor") {
+      return defaultBrandColor?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR;
+    }
+
+    if (paletteName === "darkBrandColor") {
+      return defaultBrandColor?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR;
+    }
+
+    return "#000000";
+  };
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
@@ -594,7 +613,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
-      brandColor: "#000000",
+      brandColor: defaultBrandColor?.brandColor ?? null,
+      darkBrandColor: defaultBrandColor?.darkBrandColor ?? null,
     },
   });
 
@@ -614,7 +634,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return null;
   }
 
-  const addToPalette = (update: (typeof previewState)["palette"]) => {
+  const addToPalette = (update: Partial<(typeof previewState)["palette"]>) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -657,11 +677,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      styles: {
-        branding: {
-          ...previewState.palette,
-        },
-      },
+      cssVarsPerTheme: buildCssVarsPerTheme({
+        brandColor: previewState.palette.brandColor,
+        darkBrandColor: previewState.palette.darkBrandColor,
+      }),
     },
   });
 
@@ -994,7 +1013,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {[
-                        { name: "brandColor", title: "Brand Color" },
+                        { name: "brandColor", title: "light_brand_color" },
+                        { name: "darkBrandColor", title: "dark_brand_color" },
                         // { name: "lightColor", title: "Light Color" },
                         // { name: "lighterColor", title: "Lighter Color" },
                         // { name: "lightestColor", title: "Lightest Color" },
@@ -1002,12 +1022,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         // { name: "medianColor", title: "Median Color" },
                       ].map((palette) => (
                         <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{palette.title}</div>
+                          <div className="mb-2">{t(palette.title)}</div>
                           <div className="w-full">
                             <ColorPicker
                               popoverAlign="start"
                               container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
+                              defaultValue={paletteDefaultValue(palette.name)}
                               onChange={(color) => {
                                 addToPalette({
                                   [palette.name as keyof (typeof previewState)["palette"]]: color,
@@ -1164,11 +1184,8 @@ export const EmbedDialog = ({
   types,
   tabs,
   eventTypeHideOptionDisabled,
-}: {
-  types: EmbedTypes;
-  tabs: EmbedTabs;
-  eventTypeHideOptionDisabled: boolean;
-}) => {
+  defaultBrandColor,
+}: EmbedDialogProps) => {
   const searchParams = useCompatSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
   const namespace = (searchParams?.get("namespace") || "") as string;
@@ -1184,6 +1201,7 @@ export const EmbedDialog = ({
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
         />
       )}
     </Dialog>

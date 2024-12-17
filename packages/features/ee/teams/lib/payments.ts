@@ -76,7 +76,7 @@ export const generateTeamCheckoutSession = async ({
       enabled: IS_PRODUCTION,
     },
     subscription_data: {
-      trial_period_days: 30, // Add a 30-day trial
+      trial_period_days: 14, // Add a 14-day trial
     },
     metadata: {
       teamName,

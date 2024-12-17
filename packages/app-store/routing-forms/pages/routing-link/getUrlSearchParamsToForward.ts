@@ -20,7 +20,7 @@ type GetUrlSearchParamsToForwardOptions = {
     "id" | "type" | "options" | "identifier" | "label"
   >[];
   searchParams: URLSearchParams;
-  formResponseId: number;
+  formResponseId: number | null;
   teamMembersMatchingAttributeLogic: number[] | null;
   attributeRoutingConfig: AttributeRoutingConfig | null;
   reroutingFormResponses?: FormResponseValueOnly;
@@ -150,5 +150,28 @@ export function getUrlSearchParamsToForwardForReroute({
     teamMembersMatchingAttributeLogic,
     attributeRoutingConfig,
     reroutingFormResponses,
+  });
+}
+
+export function getUrlSearchParamsToForwardForTestPreview({
+  formResponse,
+  fields,
+  attributeRoutingConfig,
+  teamMembersMatchingAttributeLogic,
+}: Pick<
+  GetUrlSearchParamsToForwardOptions,
+  "formResponse" | "fields" | "attributeRoutingConfig" | "teamMembersMatchingAttributeLogic"
+>) {
+  // There are no existing query params to forward in test preview. These are available only when doing the actual form submission
+  const searchParams = new URLSearchParams();
+  searchParams.set("cal.isTestPreviewLink", "true");
+  return getUrlSearchParamsToForward({
+    formResponse,
+    fields,
+    attributeRoutingConfig,
+    teamMembersMatchingAttributeLogic,
+    // There is no form response being stored in test preview
+    formResponseId: null,
+    searchParams,
   });
 }

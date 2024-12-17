@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { showToast } from "@calcom/ui";
 
 import type { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
@@ -71,7 +72,8 @@ function SingleAppPage(props: PageProps) {
       //   privacy="https://zoom.us/privacy"
       body={
         <>
-          <div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />
+          {/* eslint-disable-next-line react/no-danger */}
+          <div dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(source.content) }} />
         </>
       }
     />

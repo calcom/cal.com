@@ -33,8 +33,8 @@ export default function UpgradePage() {
       <div className="max-w-screen-lg">
         {doesUserHaveOrgToUpgrade.data ? (
           <EmptyScreen
-            headline="Your upgrade is here"
-            description="Improve your scheduling experience by upgrading to the new plan and enjoy the new features."
+            headline={t("your_upgrade_is_here")}
+            description={t("your_upgrade_is_here_description")}
             Icon="circle-arrow-up"
             buttonRaw={
               <Button
@@ -47,8 +47,8 @@ export default function UpgradePage() {
           />
         ) : (
           <EmptyScreen
-            headline="You are all set"
-            description="You are already on the latest plan. Nothing to upgrade. Enjoy the new features and reach out to us with any questions!"
+            headline={t("you_are_all_set")}
+            description={t("you_are_all_set_description")}
             Icon="circle-check"
             buttonRaw={<Button href="mailto:support@cal.com">{t("contact_support")}</Button>}
           />

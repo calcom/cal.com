@@ -48,3 +48,9 @@ export class ConferencingAppOutputResponseDto {
   @Type(() => ConferencingAppsOutputDto)
   data!: ConferencingAppsOutputDto;
 }
+
+export class DisconnectConferencingAppOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+}

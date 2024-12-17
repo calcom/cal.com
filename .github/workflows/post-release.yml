@@ -1,0 +1,25 @@
+name: Post release
+on:
+  workflow_dispatch:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - "*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+      - run: git push origin +main:production

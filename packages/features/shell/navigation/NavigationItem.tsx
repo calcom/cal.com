@@ -21,6 +21,7 @@ export type NavigationItemType = {
   pro?: true;
   onlyMobile?: boolean;
   onlyDesktop?: boolean;
+  moreOnMobile?: boolean;
   isCurrent?: ({
     item,
     isChild,

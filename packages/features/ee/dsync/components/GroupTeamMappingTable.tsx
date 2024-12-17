@@ -2,9 +2,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
 import { useRef, useState } from "react";
 
+import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DataTable, DataTableToolbar } from "@calcom/ui";
 
 import CreateTeamDialog from "./CreateTeamDialog";
 import GroupNameCell from "./GroupNameCell";
@@ -28,6 +28,7 @@ const GroupTeamMappingTable = () => {
     {
       id: "name",
       header: t("team"),
+      size: 200,
       cell: ({ row }) => {
         const { name } = row.original;
 
@@ -37,6 +38,7 @@ const GroupTeamMappingTable = () => {
     {
       id: "group",
       header: t("group_name"),
+      size: 200,
       cell: ({ row }) => {
         const { id, groupNames, directoryId } = row.original;
 

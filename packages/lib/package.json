@@ -17,7 +17,7 @@
     "@formbricks/api": "^1.7.0",
     "@formbricks/js": "^2.1.0",
     "@sendgrid/client": "^7.7.0",
-    "@vercel/og": "^0.5.0",
+    "@vercel/og": "^0.6.3",
     "bcryptjs": "^2.4.3",
     "city-timezones": "^1.2.1",
     "i18next": "^23.2.3",

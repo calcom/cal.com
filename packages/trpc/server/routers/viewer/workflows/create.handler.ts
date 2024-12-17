@@ -68,6 +68,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
     const renderedEmailTemplate = emailReminderTemplate(
       true,
+      ctx.user.locale,
       WorkflowActions.EMAIL_ATTENDEE,
       getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
     );

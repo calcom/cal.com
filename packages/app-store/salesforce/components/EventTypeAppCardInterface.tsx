@@ -39,6 +39,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
+  const ignoreGuests = getAppData("ignoreGuests") ?? false;
 
   const { t } = useLocale();
 
@@ -54,6 +55,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const fieldTypeOptions = [
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
+    { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -93,6 +95,20 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     value: "",
   });
 
+  // Used when creating events under leads or contacts under account
+  const CreateContactUnderAccount = () => {
+    return (
+      <Switch
+        label={t("salesforce_create_new_contact_under_account")}
+        labelOnLeading
+        checked={createNewContactUnderAccount}
+        onCheckedChange={(checked) => {
+          setAppData("createNewContactUnderAccount", checked);
+        }}
+      />
+    );
+  };
+
   return (
     <AppCard
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
@@ -120,6 +136,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             }}
           />
         </div>
+        <div className="mb-4">
+          <Switch
+            label={t("salesforce_ignore_guests")}
+            labelOnLeading
+            checked={ignoreGuests}
+            onCheckedChange={(checked) => {
+              setAppData("ignoreGuests", checked);
+            }}
+          />
+        </div>
         {createEventOnSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
           <div>
             <Switch
@@ -142,19 +168,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
+            <div className="mt-4">
+              <CreateContactUnderAccount />
+            </div>
           </div>
         ) : null}
         {createEventOnSelectedOption.value === SalesforceRecordEnum.ACCOUNT ? (
           <>
             <div className="mb-4">
-              <Switch
-                label={t("salesforce_create_new_contact_under_account")}
-                labelOnLeading
-                checked={createNewContactUnderAccount}
-                onCheckedChange={(checked) => {
-                  setAppData("createNewContactUnderAccount", checked);
-                }}
-              />
+              <CreateContactUnderAccount />
             </div>
             <div>
               <Switch

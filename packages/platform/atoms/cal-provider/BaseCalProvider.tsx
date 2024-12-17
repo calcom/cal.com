@@ -39,6 +39,7 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  isEmbed,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -63,6 +64,7 @@ export function BaseCalProvider({
   useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
+    isEmbed,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,

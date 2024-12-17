@@ -27,10 +27,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { Prisma } from "@prisma/client";
 import { Request } from "express";
-import { google } from "googleapis";
-import { z } from "zod";
 
 import { APPS_READ, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -103,7 +100,7 @@ export class GcalController {
     }
 
     if (gcalCredentials.invalid) {
-      throw new BadRequestException("Invalid google oauth credentials.");
+      throw new BadRequestException("Invalid google OAuth credentials.");
     }
 
     const { connectedCalendars } = await this.calendarsService.getCalendars(userId);

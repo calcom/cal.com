@@ -13,11 +13,10 @@ import LegacyPage from "~/team/team-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
-  const teamName = props.team.name || "Nameless Team";
 
   return await _generateMetadata(
-    () => teamName,
-    () => teamName
+    (t) => props.team.name || t("nameless_team"),
+    (t) => props.team.name || t("nameless_team")
   );
 };
 

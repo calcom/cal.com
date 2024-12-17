@@ -4,16 +4,15 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
 import { IS_CALCOM, IS_VISUAL_REGRESSION_TESTING, ENABLE_PROFILE_SWITCHER } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications, ButtonState } from "@calcom/lib/hooks/useNotifications";
+import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import {
   Avatar,
   Button,
@@ -62,16 +61,11 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 export function SideBar({ bannersHeight, user }: SideBarProps) {
   const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
-  const orgBranding = useOrgBranding();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const [isReferalLoading, setIsReferalLoading] = useState(false);
 
-  const publicPageUrl = useMemo(() => {
-    if (!user?.org?.id) return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user?.username}`;
-    const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
-    return publicPageUrl;
-  }, [orgBranding?.slug, user?.username, user?.org?.id]);
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
@@ -140,17 +134,17 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
-            {orgBranding ? (
+            {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
                   <div className="flex items-center gap-2 font-medium">
                     <Avatar
-                      alt={`${orgBranding.name} logo`}
-                      imageSrc={getPlaceholderAvatar(orgBranding.logoUrl, orgBranding.name)}
+                      alt={`${user.org.name} logo`}
+                      imageSrc={getPlaceholderAvatar(user.org.logoUrl, user.org.name)}
                       size="xsm"
                     />
                     <p className="text line-clamp-1 text-sm">
-                      <span>{orgBranding.name}</span>
+                      <span>{user.org.name}</span>
                     </p>
                   </div>
                 </Link>
@@ -186,7 +180,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
                 />
               </button>
-              {!!orgBranding && (
+              {!!user?.org && (
                 <div data-testid="user-dropdown-trigger" className="flex items-center">
                   <UserDropdown small />
                 </div>
@@ -312,7 +306,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {props.heading === "Bookings" && buttonToShow && (
+              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
                 <Button
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
@@ -328,7 +322,7 @@ export function ShellMain(props: LayoutProps) {
                       : "allow_browser_notifications"
                   )}
                 </Button>
-              )}
+              )} */}
             </header>
           )}
         </div>

@@ -12,7 +12,7 @@ export class OutputTeamEventTypesResponsePipe implements PipeTransform {
   private async transformEventType(item: DatabaseTeamEventType): Promise<TeamEventTypeOutput_2024_06_14> {
     return plainToClass(
       TeamEventTypeOutput_2024_06_14,
-      await this.outputOrganizationsEventTypesService.getResponseTeamEventType(item),
+      await this.outputOrganizationsEventTypesService.getResponseTeamEventType(item, true),
       { strategy: "exposeAll" }
     );
   }

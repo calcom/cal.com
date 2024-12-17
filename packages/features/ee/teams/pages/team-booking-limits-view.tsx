@@ -140,8 +140,6 @@ const BookingLimitsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
-  const { t } = useLocale();
-
   const {
     data: team,
     isPending,
@@ -162,13 +160,7 @@ const BookingLimitsViewWrapper = () => {
     [error]
   );
 
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader
-        title={t("booking_limits")}
-        description={t("booking_limits_team_description")}
-      />
-    );
+  if (isPending) return <AppearanceSkeletonLoader />;
 
   if (!team) return null;
 

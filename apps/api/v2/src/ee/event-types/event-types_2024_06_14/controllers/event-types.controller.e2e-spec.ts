@@ -10,10 +10,12 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Schedule } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Schedule, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -75,18 +77,22 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
-
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
     const userEmail = "event-types-test-e2e@api.com";
     const falseTestEmail = "false-event-types@api.com";
     const name = "bob-the-builder";
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
+    let orgUser: User;
     let falseTestUser: User;
     let firstSchedule: Schedule;
     let secondSchedule: Schedule;
     let falseTestSchedule: Schedule;
-
+    let orgUserEventType1: EventType;
+    let orgUserEventType2: EventType;
+    let orgUserEventType3: EventType;
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -109,13 +115,60 @@ describe("Event types Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepostoryFixture = new SchedulesRepositoryFixture(moduleRef);
-
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      organization = await teamRepositoryFixture.create({
+        name: "organization",
+        slug: "event-type-2024-06-14-org-slug",
+      });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
         email: userEmail,
         name,
         username,
+      });
+
+      orgUser = await userRepositoryFixture.create({
+        email: "event-types-2024-06-14-org-user@example.com",
+        name: "event-types-2024-06-14-org-user",
+        username: "event-types-2024-06-14-org-user",
+      });
+
+      profileRepositoryFixture.create({
+        uid: `usr-${orgUser.id}`,
+        username: orgUser.username as string,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: orgUser.id,
+          },
+        },
+      });
+
+      orgUserEventType1 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType1", slug: "org-event-type-1", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      orgUserEventType2 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType2", slug: "org-event-type-2", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      orgUserEventType3 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType3", slug: "org-event-type-3", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: orgUser.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -342,7 +395,7 @@ describe("Event types Endpoints", () => {
         });
     });
 
-    it(`/GET/even-types by username`, async () => {
+    it(`/GET/event-types by username`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${username}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
@@ -384,6 +437,61 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+    });
+
+    it(`/GET/event-types by username and orgSlug`, async () => {
+      console.log(organization);
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(3);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType2.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType3.id)?.id).toBeDefined();
+    });
+
+    it(`/GET/event-types by username and orgSlug and eventSlug`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(
+          `/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}&eventSlug=${orgUserEventType1.slug}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+    });
+
+    it(`/GET/event-types by username and orgId`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${orgUser.username}&orgId=${organization.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(3);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType2.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType3.id)?.id).toBeDefined();
     });
 
     it("should return an error when creating an event type with seats enabled and multiple locations", async () => {
@@ -919,6 +1027,12 @@ describe("Event types Endpoints", () => {
       } catch (e) {
         // User might have been deleted by the test
       }
+
+      try {
+        await userRepositoryFixture.delete(orgUser.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });
@@ -1316,6 +1430,73 @@ describe("Event types Endpoints", () => {
               type: "unknown",
               slug: "unknown",
               bookingField: JSON.stringify(unknownSystemField),
+            },
+          ]);
+        });
+    });
+
+    it("should return event type with default bookingFields if they are not defined", async () => {
+      const eventTypeInput = {
+        title: "undefined booking fields",
+        description: "undefined booking fields",
+        length: 40,
+        hidden: false,
+        slug: "undefined-booking-fields",
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      };
+      const eventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          expect(fetchedEventType.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: true,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
             },
           ]);
         });

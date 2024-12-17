@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { TimeFormat, detectBrowserTimeFormat, setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 
@@ -24,7 +24,7 @@ export const timePreferencesStore = create<TimePreferencesStore>((set) => ({
     setIs24hClockInLocalStorage(format === TimeFormat.TWENTY_FOUR_HOUR);
     set({ timeFormat: format });
   },
-  timezone: localStorage.getItem(timezoneLocalStorageKey) || dayjs.tz.guess() || "Europe/London",
+  timezone: localStorage.getItem(timezoneLocalStorageKey) || CURRENT_TIMEZONE,
   setTimezone: (timezone: string) => {
     localStorage.setItem(timezoneLocalStorageKey, timezone);
     set({ timezone });
