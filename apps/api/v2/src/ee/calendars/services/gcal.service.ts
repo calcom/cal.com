@@ -116,7 +116,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
   ) {
     // User chose not to authorize your app or didn't authorize your app
     // redirect directly without oauth code
-    if (!code) {
+    if (!code || code === "undefined") {
       return { url: redir || origin };
     }
 
