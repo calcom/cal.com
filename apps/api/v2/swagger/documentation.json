@@ -10884,41 +10884,6 @@
           "name"
         ]
       },
-      "EventTypeTeam": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "slug": {
-            "type": "string"
-          },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id"
-        ]
-      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -11196,9 +11161,6 @@
               "COLLECTIVE",
               "MANAGED"
             ]
-          },
-          "team": {
-            "$ref": "#/components/schemas/EventTypeTeam"
           }
         },
         "required": [
@@ -11219,10 +11181,8 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
-          "teamId",
           "hosts",
-          "schedulingType",
-          "team"
+          "schedulingType"
         ]
       },
       "GetTeamEventTypeOutput": {

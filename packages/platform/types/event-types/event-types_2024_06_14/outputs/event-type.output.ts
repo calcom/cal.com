@@ -1,4 +1,9 @@
-import { ApiProperty as DocsProperty, ApiExtraModels, getSchemaPath } from "@nestjs/swagger";
+import {
+  ApiProperty as DocsProperty,
+  ApiPropertyOptional,
+  ApiExtraModels,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   ArrayNotEmpty,
@@ -427,9 +432,9 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
-  @IsInt()
-  @DocsProperty()
-  teamId!: number;
+  @IsOptional()
+  @ApiPropertyOptional({ nullable: true })
+  teamId?: number | null;
 
   @IsInt()
   @IsOptional()
@@ -463,9 +468,4 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsBoolean()
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
-
-  @ValidateNested()
-  @Type(() => EventTypeTeam)
-  @DocsProperty()
-  team!: EventTypeTeam;
 }
