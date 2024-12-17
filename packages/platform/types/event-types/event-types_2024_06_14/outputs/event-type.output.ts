@@ -7,7 +7,6 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
-  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -420,13 +419,14 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
 
-  @IsObject()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => EventTypeTeam)
   @DocsProperty()
-  team!: Team | null;
+  team?: EventTypeTeam | null;
 }
 
-class Team {
+class EventTypeTeam {
   @IsInt()
   @IsOptional()
   @DocsProperty()
