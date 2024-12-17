@@ -357,7 +357,7 @@ async function handler(
     platformBookingLocation,
   } = req;
 
-  const eventType = await getEventType({
+  const eventType = await monitorCallbackAsync(getEventType, {
     eventTypeId: req.body.eventTypeId,
     eventTypeSlug: req.body.eventTypeSlug,
   });
@@ -480,7 +480,7 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  const allHostUsers = await loadAndValidateUsers({
+  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -500,7 +500,7 @@ async function handler(
     location
   );
 
-  await checkBookingAndDurationLimits({
+  await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
