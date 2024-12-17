@@ -133,7 +133,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
-          <header className="taurify:-mt-3 taurify:flex-col-reverse taurify:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
+          <header className="taurify:-mt-3 taurify:flex-col-reverse items-center justify-between md:hidden lg:flex">
             {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
@@ -161,7 +161,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 </span>
               </div>
             )}
-            <div className="flex w-full justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse" data-tauri-drag-region>
               <button
                 color="minimal"
                 onClick={() => window.history.back()}

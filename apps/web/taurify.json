@@ -17,7 +17,7 @@
         "minWidth": 1000.0,
         "minHeight": 800.0,
         "hiddenTitle": true,
-        "titleBarStyle": "Transparent"
+        "titleBarStyle": "Overlay"
       }
     ],
     "singleInstance": true,
