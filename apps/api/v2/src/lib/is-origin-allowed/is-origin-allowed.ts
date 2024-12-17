@@ -1,17 +1,10 @@
 export function isOriginAllowed(origin: string, allowedOrigins: string[]): boolean {
-  for (const allowedOrigin of allowedOrigins) {
+  return allowedOrigins.some((allowedOrigin) => {
     if (allowedOrigin.includes("*")) {
-      const regex = wildcardToRegex(allowedOrigin);
-      if (regex.test(origin)) {
-        return true;
-      }
-    } else {
-      if (origin === allowedOrigin) {
-        return true;
-      }
+      return wildcardToRegex(allowedOrigin).test(origin);
     }
-  }
-  return false;
+    return origin === allowedOrigin;
+  });
 }
 
 function wildcardToRegex(pattern: string): RegExp {
