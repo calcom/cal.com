@@ -15,7 +15,7 @@ export class UpdateOAuthClientInput {
   @IsArray()
   @IsOptional()
   @IsString({ each: true })
-  @ApiPropertyOptional({ type: [String], default: [] })
+  @ApiPropertyOptional({ type: [String] })
   redirectUris?: string[] = [];
 
   @IsOptional()

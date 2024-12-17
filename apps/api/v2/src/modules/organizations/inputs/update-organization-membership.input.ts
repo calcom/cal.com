@@ -1,20 +1,20 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { IsBoolean, IsOptional, IsEnum } from "class-validator";
 
 export class UpdateOrgMembershipDto {
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
-  readonly accepted?: boolean = false;
+  @ApiPropertyOptional()
+  readonly accepted?: boolean;
 
   @IsOptional()
   @IsEnum(MembershipRole)
-  @ApiPropertyOptional({ enum: ["MEMBER", "OWNER", "ADMIN"], default: "MEMBER" })
-  readonly role?: MembershipRole = MembershipRole.MEMBER;
+  @ApiPropertyOptional({ enum: ["MEMBER", "OWNER", "ADMIN"] })
+  readonly role?: MembershipRole;
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
-  readonly disableImpersonation?: boolean = false;
+  @ApiPropertyOptional()
+  readonly disableImpersonation?: boolean;
 }

@@ -5,8 +5,8 @@ import { IsBoolean, IsOptional, IsEnum } from "class-validator";
 export class UpdateTeamMembershipInput {
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
-  readonly accepted?: boolean = false;
+  @ApiPropertyOptional({ type: Boolean })
+  readonly accepted?: boolean;
 
   @IsOptional()
   @IsEnum(MembershipRole)
@@ -15,6 +15,6 @@ export class UpdateTeamMembershipInput {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
-  readonly disableImpersonation?: boolean = false;
+  @ApiPropertyOptional({ type: Boolean })
+  readonly disableImpersonation?: boolean;
 }

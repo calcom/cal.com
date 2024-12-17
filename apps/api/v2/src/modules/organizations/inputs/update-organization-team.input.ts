@@ -43,8 +43,8 @@ export class UpdateOrgTeamDto {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional({ type: Boolean, default: false })
-  readonly hideBranding?: boolean = false;
+  @ApiPropertyOptional()
+  readonly hideBranding?: boolean;
 
   @IsOptional()
   @IsBoolean()
@@ -96,18 +96,16 @@ export class UpdateOrgTeamDto {
     type: String,
     example: "America/New_York",
     description: `Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed.`,
-    default: "Europe/London",
   })
-  readonly timeZone?: string = "Europe/London";
+  readonly timeZone?: string;
 
   @IsOptional()
   @IsString()
   @ApiPropertyOptional({
     type: String,
     example: "Monday",
-    default: "Sunday",
   })
-  readonly weekStart?: string = "Sunday";
+  readonly weekStart?: string;
 
   @IsOptional()
   @IsString()
