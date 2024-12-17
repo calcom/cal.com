@@ -265,7 +265,7 @@ export const bookingCreateBodySchema = z.object({
    * Used to identify if the booking is a dry run.
    */
   _isDryRun: z.boolean().optional(),
-  /** Wether to override the cache */
+  /** Whether to override the cache */
   _shouldServeCache: z.boolean().optional(),
 });
 
