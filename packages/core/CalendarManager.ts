@@ -8,7 +8,6 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { performance } from "@calcom/lib/server/perfObserver";
 import type {
   CalendarEvent,
   EventBusyDate,
@@ -136,51 +135,6 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
-// here I will fetch the page json file.
-export const getCachedResults = async (
-  withCredentials: CredentialPayload[],
-  dateFrom: string,
-  dateTo: string,
-  selectedCalendars: SelectedCalendar[]
-): Promise<EventBusyDate[][]> => {
-  const calendarCredentials = withCredentials.filter((credential) => credential.type.endsWith("_calendar"));
-  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
-  performance.mark("getBusyCalendarTimesStart");
-  const results = calendars.map(async (c, i) => {
-    /** Filter out nulls */
-    if (!c) return [];
-    /** We rely on the index so we can match credentials with calendars */
-    const { type, appId } = calendarCredentials[i];
-    /** We just pass the calendars that matched the credential type,
-     * TODO: Migrate credential type or appId
-     */
-    const passedSelectedCalendars = selectedCalendars.filter((sc) => sc.integration === type);
-    if (!passedSelectedCalendars.length) return [];
-    /** We extract external Ids so we don't cache too much */
-    const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
-    /** If we don't then we actually fetch external calendars (which can be very slow) */
-    performance.mark("eventBusyDatesStart");
-    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
-    performance.mark("eventBusyDatesEnd");
-    performance.measure(
-      `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
-      "eventBusyDatesStart",
-      "eventBusyDatesEnd"
-    );
-
-    return eventBusyDates.map((a: object) => ({ ...a, source: `${appId}` }));
-  });
-  const awaitedResults = await Promise.all(results);
-  performance.mark("getBusyCalendarTimesEnd");
-  performance.measure(
-    `getBusyCalendarTimes took $1 for creds ${calendarCredentials.map((cred) => cred.id)}`,
-    "getBusyCalendarTimesStart",
-    "getBusyCalendarTimesEnd"
-  );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return awaitedResults as any;
-};
-
 /**
  * Get months between given dates
  * @returns ["2023-04", "2024-05"]
@@ -203,7 +157,8 @@ export const getBusyCalendarTimes = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  shouldServeCache?: boolean
 ) => {
   let results: EventBusyDate[][] = [];
   // const months = getMonths(dateFrom, dateTo);
@@ -212,7 +167,13 @@ export const getBusyCalendarTimes = async (
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+    results = await getCalendarsEvents(
+      withCredentials,
+      startDate,
+      endDate,
+      selectedCalendars,
+      shouldServeCache
+    );
   } catch (e) {
     log.warn(safeStringify(e));
   }
