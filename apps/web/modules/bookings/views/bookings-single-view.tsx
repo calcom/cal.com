@@ -648,13 +648,17 @@ export default function Success(props: PageProps) {
                         )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
-                        {Object.entries(bookingInfo.responses).map(([name, response]) => {
-                          const field = eventType.bookingFields.find((field) => field.name === name);
+                        {eventType.bookingFields.map((field) => {
+                          if (!field) return null;
+
+                          if (!bookingInfo.responses[field.name]) return null;
+
+                          const response = bookingInfo.responses[field.name];
                           // We show location in the "where" section
                           // We show Booker Name, Emails and guests in Who section
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
-                          if (!field) return null;
+
                           const isSystemField = SystemField.safeParse(field.name);
                           // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
                           // TITLE is also an identifier for booking question "What is this meeting about?"
