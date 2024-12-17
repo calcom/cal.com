@@ -11161,6 +11161,9 @@
               "COLLECTIVE",
               "MANAGED"
             ]
+          },
+          "bannerUrl": {
+            "type": "string"
           }
         },
         "required": [

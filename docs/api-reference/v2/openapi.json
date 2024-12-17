@@ -10188,6 +10188,9 @@
             "type": "string",
             "nullable": true,
             "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
+          },
+          "bannerUrl": {
+            "type": "string"
           }
         },
         "required": [
