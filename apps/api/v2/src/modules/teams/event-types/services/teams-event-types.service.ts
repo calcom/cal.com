@@ -12,7 +12,7 @@ import { InputTeamEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class TeamsEventTypesService {
-  private readonly logger = new Logger("OrganizationsEventTypesService");
+  private readonly logger = new Logger("TeamsEventTypesService");
 
   constructor(
     private readonly eventTypesService: EventTypesService_2024_06_14,
