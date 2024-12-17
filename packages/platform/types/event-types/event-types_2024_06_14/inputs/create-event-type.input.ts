@@ -40,7 +40,7 @@ import {
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
-import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimitsCount } from "./booking-limits-count.input";
 import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
 import {
   BaseBookingLimitsDuration_2024_06_14,
@@ -232,7 +232,7 @@ export class CreateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @ValidateBookingLimistsCount()
+  @ValidateBookingLimitsCount()
   @DocsPropertyOptional({
     description: "Limit how many times this event can be booked",
     oneOf: [

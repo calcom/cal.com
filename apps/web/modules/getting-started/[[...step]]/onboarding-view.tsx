@@ -4,32 +4,30 @@ import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
-import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import type { TRPCClientErrorLike } from "@calcom/trpc/react";
-import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, showToast, StepCard, Steps } from "@calcom/ui";
+import { Button, StepCard, Steps } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import type { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { ConnectedVideoStep } from "@components/getting-started/steps-views/ConnectedVideoStep";
+import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const BASE_STEPS = ["user-settings", "user-profile"] as const;
+const BASE_STEPS = ["user-settings", "setup-availability", "user-profile"] as const;
 const EXTRA_STEPS = ["connected-calendar", "connected-video"] as const;
 type StepType = (typeof BASE_STEPS)[number] | (typeof EXTRA_STEPS)[number];
 
@@ -42,6 +40,13 @@ const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunct
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
       subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+    },
+    {
+      title: t("set_availability"),
+      subtitle: [
+        t("set_availability_getting_started_subtitle_1"),
+        t("set_availability_getting_started_subtitle_2"),
+      ],
     },
     {
       title: t("nearly_there"),
@@ -81,7 +86,9 @@ const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunct
 
 const stepRouteSchema = z.object({
   step: z
-    .array(z.enum(["user-settings", "user-profile", "connected-calendar", "connected-video"]))
+    .array(
+      z.enum(["user-settings", "setup-availability", "user-profile", "connected-calendar", "connected-video"])
+    )
     .default([INITIAL_STEP]),
   from: z.string().optional(),
 });
@@ -90,15 +97,10 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 const OnboardingPage = (props: PageProps) => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
+
   const router = useRouter();
-  const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
-  const scheduleMutationOptions = {
-    onError: (error: TRPCClientErrorLike<AppRouter>) => {
-      showToast(error.message, "error");
-    },
-  };
-  const createSchedule = trpc.viewer.availability.schedule.create.useMutation(scheduleMutationOptions);
+  const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse({
     ...params,
@@ -134,20 +136,6 @@ const OnboardingPage = (props: PageProps) => {
     const newStep = steps[nextIndex];
     router.push(`/getting-started/${stepTransform(newStep)}`);
   };
-
-  useEffect(() => {
-    if (!user || user.completedOnboarding) {
-      return;
-    }
-    const createDefaultSchedule = async () => {
-      await createSchedule.mutateAsync({
-        name: t("default_schedule_name"),
-        ...DEFAULT_SCHEDULE,
-      });
-    };
-
-    createDefaultSchedule();
-  }, []);
 
   return (
     <div
@@ -190,6 +178,9 @@ const OnboardingPage = (props: PageProps) => {
 
                 {currentStep === "connected-video" && <ConnectedVideoStep nextStep={goToNextStep} />}
 
+                {currentStep === "setup-availability" && (
+                  <SetupAvailability nextStep={goToNextStep} defaultScheduleId={user.defaultScheduleId} />
+                )}
                 {currentStep === "user-profile" && <UserProfile />}
               </Suspense>
             </StepCard>
