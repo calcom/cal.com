@@ -29,7 +29,18 @@ export class TeamsEventTypesRepository {
         schedule: true,
         hosts: true,
         destinationCalendar: true,
-        team: { select: { bannerUrl: true } },
+        team: {
+          select: {
+            bannerUrl: true,
+            name: true,
+            logoUrl: true,
+            slug: true,
+            weekStart: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
+          },
+        },
       },
     });
   }
@@ -44,7 +55,18 @@ export class TeamsEventTypesRepository {
         schedule: true,
         hosts: true,
         destinationCalendar: true,
-        team: { select: { bannerUrl: true } },
+        team: {
+          select: {
+            bannerUrl: true,
+            name: true,
+            logoUrl: true,
+            slug: true,
+            weekStart: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
+          },
+        },
       },
     });
   }
