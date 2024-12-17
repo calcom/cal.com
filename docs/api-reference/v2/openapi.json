@@ -10223,12 +10223,7 @@
             "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
           },
           "team": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/EventTypeTeam"
-              }
-            ]
+            "$ref": "#/components/schemas/EventTypeTeam"
           }
         },
         "required": [
@@ -10250,7 +10245,8 @@
           "isInstantEvent",
           "scheduleId",
           "hosts",
-          "schedulingType"
+          "schedulingType",
+          "team"
         ]
       },
       "GetTeamEventTypeOutput": {
