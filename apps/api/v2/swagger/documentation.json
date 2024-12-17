@@ -10884,7 +10884,7 @@
           "name"
         ]
       },
-      "Team": {
+      "EventTypeTeam": {
         "type": "object",
         "properties": {
           "id": {
@@ -11199,7 +11199,7 @@
             "nullable": true,
             "allOf": [
               {
-                "$ref": "#/components/schemas/Team"
+                "$ref": "#/components/schemas/EventTypeTeam"
               }
             ]
           }
@@ -11223,8 +11223,7 @@
           "isInstantEvent",
           "scheduleId",
           "hosts",
-          "schedulingType",
-          "team"
+          "schedulingType"
         ]
       },
       "GetTeamEventTypeOutput": {
