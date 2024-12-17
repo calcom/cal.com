@@ -1,4 +1,4 @@
-import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
+import type { Frame, Locator, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -174,6 +174,31 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
     return url.pathname !== "/event-types";
   });
 };
+
+export async function setupManagedEvent({
+  users,
+  unlockedFields,
+}: {
+  users: Fixtures["users"];
+  unlockedFields?: Record<string, boolean>;
+}) {
+  const teamMateName = "teammate-1";
+  const teamEventTitle = "Managed";
+  const adminUser = await users.create(null, {
+    hasTeam: true,
+    teammates: [{ name: teamMateName }],
+    teamEventTitle,
+    teamEventSlug: "managed",
+    schedulingType: "MANAGED",
+    addManagedEventToTeamMates: true,
+    managedEventUnlockedFields: unlockedFields,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const memberUser = users.get().find((u) => u.name === teamMateName)!;
+  const { team } = await adminUser.getFirstTeamMembership();
+  const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
+  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
+}
 
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
@@ -512,4 +537,21 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
+}
+
+export async function clickUntilDialogVisible(
+  dialogOpenButton: Locator,
+  visibleLocatorOnDialog: Locator,
+  retries = 3,
+  delay = 500
+) {
+  for (let i = 0; i < retries; i++) {
+    await dialogOpenButton.click();
+    try {
+      await visibleLocatorOnDialog.waitFor({ state: "visible", timeout: delay });
+      return;
+    } catch {
+      if (i === retries - 1) throw new Error("Dialog did not appear after multiple attempts.");
+    }
+  }
 }

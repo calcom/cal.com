@@ -29,7 +29,7 @@ import {
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
 
 export function transformApiEventTypeForAtom(
-  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
+  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
@@ -110,7 +110,7 @@ export function transformApiTeamEventTypeForAtom(
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, team, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -131,15 +131,16 @@ export function transformApiTeamEventTypeForAtom(
     isDefault,
     isDynamic: false,
     profile: {
-      username: "team",
-      name: "team",
-      weekStart: "Sunday",
-      image: "",
-      brandColor: null,
-      darkBrandColor: null,
-      theme: null,
+      username: team?.slug ?? "team",
+      name: team?.name,
+      weekStart: team?.weekStart ?? "Sunday",
+      image: team?.logoUrl,
+      brandColor: team?.brandColor ?? null,
+      darkBrandColor: team?.darkBrandColor ?? null,
+      theme: team?.theme ?? null,
       bookerLayouts,
     },
+    bannerUrl: team?.bannerUrl,
     entity: entity
       ? {
           ...entity,
@@ -153,9 +154,9 @@ export function transformApiTeamEventTypeForAtom(
           fromRedirectOfNonOrgLink: true,
           considerUnpublished: false,
           orgSlug: null,
-          teamSlug: null,
-          name: null,
-          logoUrl: undefined,
+          teamSlug: team?.slug,
+          name: team?.name,
+          logoUrl: team?.logoUrl,
         },
     hosts: hosts.map((host) => ({
       user: {
@@ -171,6 +172,7 @@ export function transformApiTeamEventTypeForAtom(
       },
     })),
     users: hosts.map((host) => ({
+      ...host,
       metadata: undefined,
       bookerUrl: getBookerBaseUrlSync(null),
       profile: {

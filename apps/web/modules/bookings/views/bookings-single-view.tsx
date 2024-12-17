@@ -31,7 +31,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -43,6 +43,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -257,9 +258,7 @@ export default function Success(props: PageProps) {
   }, [telemetry]); */
 
   useEffect(() => {
-    setDate(
-      date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
-    );
+    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
@@ -650,13 +649,17 @@ export default function Success(props: PageProps) {
                         )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
-                        {Object.entries(bookingInfo.responses).map(([name, response]) => {
-                          const field = eventType.bookingFields.find((field) => field.name === name);
+                        {eventType.bookingFields.map((field) => {
+                          if (!field) return null;
+
+                          if (!bookingInfo.responses[field.name]) return null;
+
+                          const response = bookingInfo.responses[field.name];
                           // We show location in the "where" section
                           // We show Booker Name, Emails and guests in Who section
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
-                          if (!field) return null;
+
                           const isSystemField = SystemField.safeParse(field.name);
                           // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
                           // TITLE is also an identifier for booking question "What is this meeting about?"
@@ -673,8 +676,9 @@ export default function Success(props: PageProps) {
                             <>
                               <div
                                 className="text-emphasis mt-4 font-medium"
+                                // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
-                                  __html: label,
+                                  __html: markdownToSafeHTML(label),
                                 }}
                               />
                               <p
@@ -727,7 +731,7 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && (
+                              {!props.recurringBookings && !isBookingInPast && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link

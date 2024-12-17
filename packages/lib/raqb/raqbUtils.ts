@@ -6,8 +6,13 @@ import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-fo
 import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
-import type { Attribute, AttributesQueryValue } from "@calcom/lib/raqb/types";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type {
+  AttributeOptionValueWithType,
+  AttributeOptionValue,
+  Attribute,
+} from "@calcom/lib/service/attribute/server/getAttributes";
 import { AttributeType } from "@calcom/prisma/enums";
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/raqbUtils"] });
@@ -194,31 +199,54 @@ const replaceFieldTemplateVariableWithOptionLabel = ({
   });
 };
 
+export function getValueOfAttributeOption(
+  attributeOptions:
+    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
+    | Pick<AttributeOptionValue, "isGroup" | "contains" | "value">[]
+) {
+  if (!(attributeOptions instanceof Array)) {
+    return transformAttributeOption(attributeOptions);
+  }
+  return attributeOptions
+    .map(transformAttributeOption)
+    .flat()
+    .filter((value, index, self) => self.indexOf(value) === index);
+
+  function transformAttributeOption(
+    attributeOption: Pick<AttributeOptionValue, "isGroup" | "contains" | "value">
+  ) {
+    if (attributeOption.isGroup) {
+      const subOptions = attributeOption.contains.map((option) => option.value);
+      console.log("A group option found. Using all its sub-options instead", safeStringify(subOptions));
+      return subOptions;
+    }
+    return attributeOption.value;
+  }
+}
+
 function getAttributesData({
   attributesData,
 }: {
-  attributesData: Record<
-    string,
-    {
-      value: string | string[];
-      type: Attribute["type"];
-    }
-  >;
+  attributesData: Record<string, AttributeOptionValueWithType>;
   attributesQueryValue: NonNullable<LocalRoute["attributesQueryValue"]>;
 }) {
-  return Object.entries(attributesData).reduce((acc, [attributeId, { value, type: attributeType }]) => {
-    const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(value);
+  return Object.entries(attributesData).reduce(
+    (acc, [attributeId, { type: attributeType, attributeOption }]) => {
+      const compatibleValueForAttributeAndFormFieldMatching = caseInsensitive(
+        getValueOfAttributeOption(attributeOption)
+      );
 
-    // Right now we can't trust ensureAttributeValueToBeOfRaqbFieldValueType to give us the correct value
-    acc[attributeId] =
-      // multiselect attribute's value must be an array as all the operators multiselect_some_in, multiselect_all_in and their respective not operators expect an array
-      // If we add an operator that doesn't expect an array, we need to somehow make it operator based.
-      attributeType === AttributeType.MULTI_SELECT
-        ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
-        : compatibleValueForAttributeAndFormFieldMatching;
+      acc[attributeId] =
+        // multiselect attribute's value must be an array as all the operators multiselect_some_in, multiselect_all_in and their respective not operators expect an array
+        // If we add an operator that doesn't expect an array, we need to somehow make it operator based.
+        attributeType === AttributeType.MULTI_SELECT
+          ? ensureArray(compatibleValueForAttributeAndFormFieldMatching)
+          : compatibleValueForAttributeAndFormFieldMatching;
 
-    return acc;
-  }, {} as Record<string, string | string[]>);
+      return acc;
+    },
+    {} as Record<string, string | string[]>
+  );
 }
 /** Gets the attributes that were used to generate the chosen route and their values */
 function getAttributesQueryValue({

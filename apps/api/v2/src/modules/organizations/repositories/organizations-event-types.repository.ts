@@ -24,7 +24,24 @@ export class OrganizationsEventTypesRepository {
           slug: eventTypeSlug,
         },
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: {
+          select: {
+            bannerUrl: true,
+            name: true,
+            logoUrl: true,
+            slug: true,
+            weekStart: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
+          },
+        },
+      },
     });
   }
 
@@ -33,7 +50,24 @@ export class OrganizationsEventTypesRepository {
       where: {
         teamId,
       },
-      include: { users: true, schedule: true, hosts: true, destinationCalendar: true },
+      include: {
+        users: true,
+        schedule: true,
+        hosts: true,
+        destinationCalendar: true,
+        team: {
+          select: {
+            bannerUrl: true,
+            name: true,
+            logoUrl: true,
+            slug: true,
+            weekStart: true,
+            brandColor: true,
+            darkBrandColor: true,
+            theme: true,
+          },
+        },
+      },
     });
   }
 
