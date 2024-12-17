@@ -4,6 +4,6 @@ VALUES
   (
     'calendar-cache-serve',
     false,
-    'Wether to serve calendar cache by default or not per team/user basis.',
+    'Whether to serve calendar cache by default or not on a team/user basis.',
     'OPERATIONAL'
   ) ON CONFLICT (slug) DO NOTHING;
