@@ -724,9 +724,9 @@ export default class GoogleCalendarService implements Calendar {
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
     const parsedArgs = {
       /** Expand the start date to the start of the month */
-      timeMin: getTimeMax(),
+      timeMin: getTimeMin(),
       /** Expand the end date to the end of the month */
-      timeMax: getTimeMin(),
+      timeMax: getTimeMax(),
       items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
     };
     const data = await this.fetchAvailability(parsedArgs);
