@@ -292,4 +292,26 @@ export class SelectedCalendarRepository {
       },
     });
   }
+
+  static async upsertManyEventTypeIds({
+    data,
+    eventTypeIds,
+  }: {
+    data: Prisma.SelectedCalendarUncheckedCreateInput;
+    eventTypeIds: (number | null)[];
+  }) {
+    const userId = data.userId;
+    return await Promise.all(
+      eventTypeIds.map((eventTypeId) =>
+        SelectedCalendarRepository.upsert({
+          ...data,
+          eventTypeId,
+          userId,
+          integration: data.integration,
+          externalId: data.externalId,
+          credentialId: data.credentialId,
+        })
+      )
+    );
+  }
 }

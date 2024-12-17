@@ -12,6 +12,7 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import type CalendarService from "@calcom/lib/CalendarService";
+import { uniqueBy } from "@calcom/lib/array";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
   CREDENTIAL_SYNC_ENDPOINT,
@@ -641,8 +642,10 @@ export default class GoogleCalendarService implements Calendar {
     channels: { googleChannelResourceId: string | null; googleChannelId: string | null }[]
   ) {
     const calendar = await this.authedCalendar();
+    logger.debug(`Unsubscribing from calendars ${channels.map((c) => c.googleChannelId).join(", ")}`);
+    const uniqueChannels = uniqueBy(channels, ["googleChannelId", "googleChannelResourceId"]);
     await Promise.allSettled(
-      channels.map(({ googleChannelResourceId, googleChannelId }) =>
+      uniqueChannels.map(({ googleChannelResourceId, googleChannelId }) =>
         calendar.channels
           .stop({
             requestBody: {
@@ -659,7 +662,7 @@ export default class GoogleCalendarService implements Calendar {
 
   private async startWatchingCalendarsInGoogle({ calendarId }: { calendarId: string }) {
     const calendar = await this.authedCalendar();
-    logger.debug(`Watching calendar ${calendarId}`);
+    logger.debug(`Subscribing to calendar ${calendarId}`);
 
     const res = await calendar.events.watch({
       // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
@@ -679,56 +682,59 @@ export default class GoogleCalendarService implements Calendar {
     return res.data;
   }
 
-  async watchCalendar({
-    calendarId,
-    eventTypeId,
-  }: {
-    calendarId: string;
-    eventTypeId: number | null;
-  }): Promise<void> {
-    await this.watchCalendars({ calendarId, eventTypeIds: [eventTypeId] });
-  }
-
-  async watchCalendars({
-    calendarId,
-    eventTypeIds,
-  }: {
-    calendarId: string;
-    eventTypeIds: (number | null)[];
-  }) {
+  /**
+   * It doesn't check if the subscription has expired or not.
+   * It just creates a new subscription.
+   */
+  async watchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: (number | null)[] }) {
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
     }
 
-    const existingCalendarWithChannel = await SelectedCalendarRepository.findFirst({
+    const allExistingCalendars = await SelectedCalendarRepository.findMany({
       where: {
         credentialId: this.credential.id,
         externalId: calendarId,
+        integration: this.integrationName,
         googleChannelId: {
           not: null,
         },
       },
     });
 
-    if (existingCalendarWithChannel) {
+    const calendarsAlreadyBeingWatched = allExistingCalendars.filter(
+      (sc) => !eventTypeIds?.includes(sc.eventTypeId)
+    );
+
+    if (calendarsAlreadyBeingWatched.length) {
       logger.info(
-        `Calendar ${calendarId} is already being watched for event type ${existingCalendarWithChannel.eventTypeId}. So, not watching again and instead reusing the existing channel`
+        `Calendar ${calendarId} is already being watched for event types ${calendarsAlreadyBeingWatched.map(
+          (sc) => sc.eventTypeId
+        )}. So, not watching again and instead reusing the existing channel`
       );
+
+      const alreadyWatchedCalendar = calendarsAlreadyBeingWatched[0];
 
       // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
       await this.upsertSelectedCalendarsForEventTypeIds(
         {
           externalId: calendarId,
-          googleChannelId: existingCalendarWithChannel.googleChannelId,
-          googleChannelKind: existingCalendarWithChannel.googleChannelKind,
-          googleChannelResourceId: existingCalendarWithChannel.googleChannelResourceId,
-          googleChannelResourceUri: existingCalendarWithChannel.googleChannelResourceUri,
-          googleChannelExpiration: existingCalendarWithChannel.googleChannelExpiration,
+          googleChannelId: alreadyWatchedCalendar.googleChannelId,
+          googleChannelKind: alreadyWatchedCalendar.googleChannelKind,
+          googleChannelResourceId: alreadyWatchedCalendar.googleChannelResourceId,
+          googleChannelResourceUri: alreadyWatchedCalendar.googleChannelResourceUri,
+          googleChannelExpiration: alreadyWatchedCalendar.googleChannelExpiration,
         },
         eventTypeIds
       );
-      return;
+      return {
+        kind: alreadyWatchedCalendar.googleChannelKind,
+        id: alreadyWatchedCalendar.googleChannelId,
+        resourceId: alreadyWatchedCalendar.googleChannelResourceId,
+        resourceUri: alreadyWatchedCalendar.googleChannelResourceUri,
+        expiration: alreadyWatchedCalendar.googleChannelExpiration,
+      };
     }
 
     const response = await this.startWatchingCalendarsInGoogle({ calendarId });
@@ -737,11 +743,11 @@ export default class GoogleCalendarService implements Calendar {
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
-        googleChannelId: response?.id,
-        googleChannelKind: response?.kind,
-        googleChannelResourceId: response?.resourceId,
-        googleChannelResourceUri: response?.resourceUri,
-        googleChannelExpiration: response?.expiration,
+        googleChannelId: response.id,
+        googleChannelKind: response.kind,
+        googleChannelResourceId: response.resourceId,
+        googleChannelResourceUri: response.resourceUri,
+        googleChannelExpiration: response.expiration,
       },
       eventTypeIds
     );
@@ -749,11 +755,11 @@ export default class GoogleCalendarService implements Calendar {
     return response;
   }
 
-  async unwatchCalendar({ calendarId, eventTypeId }: { calendarId: string; eventTypeId: number | null }) {
-    await this.unwatchCalendars({ calendarId, eventTypeIds: [eventTypeId] });
-  }
-
-  async unwatchCalendars({
+  /**
+   * Specify eventTypeIds optionally to unwatch only those eventTypeIds. null is for User level selected calendar.
+   * GoogleChannel subscripttion is only stopped when all selectedCalendars are un-watched.
+   */
+  async unwatchCalendar({
     calendarId,
     eventTypeIds,
   }: {
@@ -801,8 +807,6 @@ export default class GoogleCalendarService implements Calendar {
       return;
     }
 
-    // All selected calendars with same credentialId and externalId should have same channelId and resourceId. So, use the first one
-    // TODO: It is possible that the channelId is not the same for all calendars with the same externalId. We should stop all
     const allChannels = calendarsWithSameExternalIdThatHaveChannelId.map((sc) => ({
       googleChannelResourceId: sc.googleChannelResourceId,
       googleChannelId: sc.googleChannelId,
@@ -873,21 +877,19 @@ export default class GoogleCalendarService implements Calendar {
     eventTypeIds: (number | null)[]
   ) {
     if (!this.credential.userId) {
-      logger.error("upsertSelectedCalendarsForEventTypeIds failed. userId is missing.");
+      logger.error("upsertAllSelectedCalendars failed. userId is missing.");
       return;
     }
-    const userId = this.credential.userId;
-    return await Promise.all(
-      eventTypeIds.map((eventTypeId) =>
-        SelectedCalendarRepository.upsert({
-          ...data,
-          eventTypeId,
-          integration: this.integrationName,
-          credentialId: this.credential.id,
-          userId,
-        })
-      )
-    );
+
+    await SelectedCalendarRepository.upsertManyEventTypeIds({
+      data: {
+        ...data,
+        integration: this.integrationName,
+        credentialId: this.credential.id,
+        userId: this.credential.userId,
+      },
+      eventTypeIds,
+    });
   }
 
   async getAllCalendars(

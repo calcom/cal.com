@@ -5,10 +5,13 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
+import { makeWhereClause } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
 type RoutingFormInsightsTeamFilter = {
+  userId?: number | null;
   teamId?: number | null;
   isAll: boolean;
   organizationId?: number | null;
@@ -18,17 +21,19 @@ type RoutingFormInsightsTeamFilter = {
 type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
-  userId?: number | null;
+  memberUserId?: number | null;
   searchQuery?: string | null;
   bookingStatus?: BookingStatus | "NO_BOOKING" | null;
   fieldFilter?: {
     fieldId: string;
     optionId: string;
   } | null;
+  columnFilters: ColumnFilter[];
 };
 
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
+    userId,
     teamId,
     isAll,
     organizationId,
@@ -52,22 +57,20 @@ class RoutingEventsInsights {
 
     // Base where condition for forms
     const formsWhereCondition: Prisma.App_RoutingForms_FormWhereInput = {
-      ...(teamIds.length > 0 && {
-        teamId: {
-          in: teamIds,
-        },
-      }),
+      ...(teamIds.length > 0
+        ? {
+            teamId: {
+              in: teamIds,
+            },
+          }
+        : {
+            userId: userId ?? -1,
+            teamId: null,
+          }),
       ...(routingFormId && {
         id: routingFormId,
       }),
     };
-
-    if (teamIds.length === 0 && !routingFormId) {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      formsWhereCondition.teamId = organizationId;
-    }
 
     return formsWhereCondition;
   }
@@ -80,12 +83,14 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    memberUserId,
     searchQuery,
     bookingStatus,
     fieldFilter,
-  }: RoutingFormInsightsFilter) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters">) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -101,13 +106,13 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus || searchQuery
+      ...(memberUserId || bookingStatus || searchQuery
         ? {
             ...(bookingStatus === "NO_BOOKING"
               ? { routedToBooking: null }
               : {
                   routedToBooking: {
-                    ...(userId && { userId }),
+                    ...(memberUserId && { userId: memberUserId }),
                     ...(searchQuery && {
                       user: {
                         OR: [
@@ -163,16 +168,23 @@ class RoutingEventsInsights {
   }
 
   static async getRoutingFormsForFilters({
+    userId,
     teamId,
     isAll,
     organizationId,
   }: {
+    userId?: number;
     teamId?: number;
     isAll: boolean;
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({ teamId, isAll, organizationId });
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+    });
     return await prisma.app_RoutingForms_Form.findMany({
       where: formsWhereCondition,
       select: {
@@ -197,15 +209,53 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    fieldFilter,
-    bookingStatus,
-  }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
+    memberUserId,
+    columnFilters,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & { cursor?: number; limit?: number }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
       routingFormId,
     });
+
+    const bookingStatusFilter = columnFilters.find((filter) => filter.id === "bookingStatus");
+    const assignmentReasonFilter = columnFilters.find((filter) => filter.id === "assignmentReason") as
+      | TypedColumnFilter<"text">
+      | undefined;
+    const fieldFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatus" && filter.id !== "assignmentReason"
+    );
+
+    let bookingWhereInput: Prisma.BookingWhereInput = {};
+    if (memberUserId) {
+      bookingWhereInput.userId = memberUserId;
+    }
+    if (bookingStatusFilter) {
+      bookingWhereInput = {
+        ...bookingWhereInput,
+        ...makeWhereClause({ columnName: "status", filterValue: bookingStatusFilter.value }),
+      };
+    }
+    if (assignmentReasonFilter) {
+      const operator = assignmentReasonFilter.value.data.operator;
+      if (operator === "isEmpty") {
+        bookingWhereInput.assignmentReason = { none: {} };
+      } else if (operator === "isNotEmpty") {
+        bookingWhereInput.assignmentReason = {
+          some: {
+            reasonString: {
+              not: "",
+            },
+          },
+        };
+      } else {
+        bookingWhereInput.assignmentReason = {
+          some: makeWhereClause({ columnName: "reasonString", filterValue: assignmentReasonFilter.value }),
+        };
+      }
+    }
 
     const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
       ...(startDate &&
@@ -215,26 +265,21 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus
-        ? {
-            ...(bookingStatus === "NO_BOOKING"
-              ? { routedToBooking: null }
-              : {
-                  routedToBooking: {
-                    ...(userId && { userId }),
-                    ...(bookingStatus && { status: bookingStatus }),
-                  },
-                }),
-          }
-        : {}),
-      ...(fieldFilter && {
-        response: {
-          path: [fieldFilter.fieldId, "value"],
-          array_contains: [fieldFilter.optionId],
-        },
-      }),
+      ...(Object.keys(bookingWhereInput).length > 0 ? { routedToBooking: bookingWhereInput } : {}),
       form: formsTeamWhereCondition,
     };
+
+    if (fieldFilters.length > 0) {
+      responsesWhereCondition.AND = fieldFilters.map((fieldFilter) => {
+        // NOTE: We cannot perform case-insensitive search on `response` column,
+        // until we normalize this table, use raw sql, or filter at the application level.
+        return makeWhereClause({
+          columnName: "response",
+          filterValue: fieldFilter.value,
+          json: { path: [fieldFilter.id, "value"] },
+        });
+      });
+    }
 
     const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
       where: responsesWhereCondition,
@@ -295,12 +340,14 @@ class RoutingEventsInsights {
   }
 
   static async getRoutingFormFieldOptions({
+    userId,
     teamId,
     isAll,
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       routingFormId,
@@ -321,12 +368,14 @@ class RoutingEventsInsights {
   }
 
   static async getFailedBookingsByRoutingFormGroup({
+    userId,
     teamId,
     isAll,
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -339,6 +388,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f.userId = '${userId}'`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -452,12 +505,14 @@ class RoutingEventsInsights {
   }
 
   static async getRoutingFormHeaders({
+    userId,
     teamId,
     isAll,
     organizationId,
     routingFormId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -478,6 +533,7 @@ class RoutingEventsInsights {
       return {
         id: f.id,
         label: f.label,
+        type: f.type,
         options: f.options,
       };
     });
@@ -493,12 +549,14 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    memberUserId,
     bookingStatus,
     fieldFilter,
     take,
     skip,
-  }: RoutingFormInsightsFilter & { take?: number; skip?: number }) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters"> & { take?: number; skip?: number }) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -552,13 +610,13 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus
+      ...(memberUserId || bookingStatus
         ? {
             ...(bookingStatus === "NO_BOOKING"
               ? { routedToBooking: null }
               : {
                   routedToBooking: {
-                    ...(userId && { userId }),
+                    ...(memberUserId && { userId: memberUserId }),
                     ...(bookingStatus && { status: bookingStatus }),
                   },
                 }),
@@ -663,6 +721,7 @@ class RoutingEventsInsights {
   }
 
   static async routedToPerPeriod({
+    userId,
     teamId,
     isAll,
     organizationId,
@@ -695,6 +754,7 @@ class RoutingEventsInsights {
 
     // Build the team conditions for the WHERE clause
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -707,6 +767,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f.userId = '${userId}'`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -918,6 +982,7 @@ class RoutingEventsInsights {
   }
 
   static async routedToPerPeriodCsv({
+    userId,
     teamId,
     isAll,
     organizationId,
@@ -944,6 +1009,7 @@ class RoutingEventsInsights {
 
     // Build the team conditions for the WHERE clause
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -956,6 +1022,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f.userId = '${userId}'`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);

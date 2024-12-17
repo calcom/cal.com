@@ -76,8 +76,9 @@ function expectGoogleUnsubscriptionToHaveOccurredAndClearMock() {
   calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
 }
 
-function expectGoogleUnsubscriptionToNotHaveOccurred() {
+function expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock() {
   expect(calendarMock.calendar_v3.Calendar().channels.stop).not.toHaveBeenCalled();
+  calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
 }
 
 async function expectSelectedCalendarToHaveGoogleChannelProps(selectedCalendarId: number) {
@@ -302,14 +303,14 @@ describe("Watching and unwatching calendar", () => {
 
     await calendarCache.unwatchCalendar({
       calendarId: userLevelCalendar.externalId,
-      eventTypeId: userLevelCalendar.eventTypeId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
     });
-    expectGoogleUnsubscriptionToNotHaveOccurred();
+    expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock();
     await expectSelectedCalendarToNotHaveGoogleChannelProps(userLevelCalendar.id);
 
     await calendarCache.unwatchCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
-      eventTypeId: eventTypeLevelCalendar.eventTypeId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
     expectGoogleUnsubscriptionToHaveOccurredAndClearMock();
     await expectSelectedCalendarToNotHaveGoogleChannelProps(eventTypeLevelCalendar.id);

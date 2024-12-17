@@ -269,10 +269,8 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string; eventTypeId: number | null }): Promise<unknown>;
-  watchCalendars?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<unknown>;
-  unwatchCalendar?(options: { calendarId: string; eventTypeId: number | null }): Promise<void>;
-  unwatchCalendars?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<void>;
+  watchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<unknown>;
+  unwatchCalendar?(options: { calendarId: string; eventTypeIds: (number | null)[] }): Promise<void>;
 }
 
 /**

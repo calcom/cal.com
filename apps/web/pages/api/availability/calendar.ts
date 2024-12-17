@@ -60,7 +60,10 @@ async function deleteHandler(req: CustomNextApiRequest) {
     req.query
   );
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  await calendarCacheRepository.unwatchCalendar({ calendarId: externalId, eventTypeId: eventTypeId ?? null });
+  await calendarCacheRepository.unwatchCalendar({
+    calendarId: externalId,
+    eventTypeIds: [eventTypeId ?? null],
+  });
   await SelectedCalendarRepository.delete({
     where: {
       userId: user.id,

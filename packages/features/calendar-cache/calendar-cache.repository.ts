@@ -6,7 +6,6 @@ import prisma from "@calcom/prisma";
 import type { Calendar } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
-import { watchCalendarSchema } from "./calendar-cache.repository.schema";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
@@ -51,68 +50,26 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchCalendar(args: { calendarId: string; eventTypeId: number | null }) {
-    const { calendarId, eventTypeId } = args;
+  async watchCalendar(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+    const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
         '[handleWatchCalendar] Skipping watching calendar due to calendar not having "watchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.watchCalendar({ calendarId, eventTypeId });
-    const parsedResponse = watchCalendarSchema.safeParse(response);
-    if (!parsedResponse.success) {
-      log.info(
-        "[handleWatchCalendar] Received invalid response from calendar.watchCalendar, skipping watching calendar"
-      );
-      log.error(parsedResponse.error);
-      return;
-    }
-
-    return parsedResponse.data;
+    await this.calendar?.watchCalendar({ calendarId, eventTypeIds });
   }
 
-  async unwatchCalendar(args: { calendarId: string; eventTypeId: number | null }) {
-    const { calendarId, eventTypeId } = args;
+  async unwatchCalendar(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+    const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(
         '[unwatchCalendar] Skipping unwatching calendar due to calendar not having "unwatchCalendar" method'
       );
       return;
     }
-    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeId });
-    return response;
-  }
-
-  async watchCalendars(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
-    const { calendarId, eventTypeIds } = args;
-    if (typeof this.calendar?.watchCalendars !== "function") {
-      log.info(
-        '[handleWatchCalendars] Skipping watching calendars due to calendar not having "watchCalendars" method'
-      );
-      return;
-    }
-    const response = await this.calendar?.watchCalendars({ calendarId, eventTypeIds });
-    const parsedResponse = watchCalendarSchema.safeParse(response);
-    if (!parsedResponse.success) {
-      log.info(
-        "[handleWatchCalendars] Received invalid response from calendar.watchCalendars, skipping watching calendars"
-      );
-      return;
-    }
-
-    return parsedResponse.data;
-  }
-
-  async unwatchCalendars(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
-    const { calendarId, eventTypeIds } = args;
-    if (typeof this.calendar?.unwatchCalendars !== "function") {
-      log.info(
-        '[unwatchCalendars] Skipping unwatching calendars due to calendar not having "unwatchCalendars" method'
-      );
-      return;
-    }
-    const response = await this.calendar?.unwatchCalendars({ calendarId, eventTypeIds });
+    const response = await this.calendar?.unwatchCalendar({ calendarId, eventTypeIds });
     return response;
   }
 

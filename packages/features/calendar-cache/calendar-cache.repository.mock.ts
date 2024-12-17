@@ -8,9 +8,6 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
   async watchCalendar() {
     log.info(`Skipping watchCalendar due to calendar-cache being disabled`);
   }
-  async watchCalendars() {
-    log.info(`Skipping watchCalendars due to calendar-cache being disabled`);
-  }
   async upsertCachedAvailability() {
     log.info(`Skipping upsertCachedAvailability due to calendar-cache being disabled`);
   }
@@ -18,12 +15,7 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
     log.info(`Skipping getCachedAvailability due to calendar-cache being disabled`);
     return null;
   }
-
   async unwatchCalendar() {
     log.info(`Skipping unwatchCalendar due to calendar-cache being disabled`);
-  }
-
-  async unwatchCalendars() {
-    log.info(`Skipping unwatchCalendars due to calendar-cache being disabled`);
   }
 }

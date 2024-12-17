@@ -2880,6 +2880,7 @@
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "google_meet": "Google Meet",
   "zoom": "Zoom",
+  "office_365_video": "MS Teams Video",
   "lock_attribute_for_assignment": "Lock for assignment",
   "lock_attribute_for_assignment_description": "Locking would only allow assignments from Directory Sync",
   "attribute_edited_successfully": "Attribute edited successfully",

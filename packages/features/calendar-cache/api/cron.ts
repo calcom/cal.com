@@ -53,7 +53,7 @@ const handleCalendarsToUnwatch = async () => {
       async ([externalId, { eventTypeIds, credentialId }]) => {
         if (!credentialId) return;
         const cc = await CalendarCache.initFromCredentialId(credentialId);
-        await cc.unwatchCalendars({ calendarId: externalId, eventTypeIds });
+        await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )
   );
@@ -67,10 +67,10 @@ const handleCalendarsToWatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { eventTypeIds, credentialId }]) => {
+      async ([externalId, { credentialId, eventTypeIds }]) => {
         if (!credentialId) return;
         const cc = await CalendarCache.initFromCredentialId(credentialId);
-        await cc.watchCalendars({ calendarId: externalId, eventTypeIds });
+        await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )
   );

@@ -1,11 +1,3 @@
-This is to be deleted before merging
-## TODO
-- [x] Google Calendar Cache handling for duplicate selected-calendars now for different eventTypes
-
-
-## Bugs
-- Show disabled state like in Troubleshooter when in eventType but user settings are selected
-
 ## Tests
 - Booking Page(User Event Type):
   - [x] Verify that slots shown are as per eventType setting if enabled
@@ -42,9 +34,7 @@ This is to be deleted before merging
   - [ ] Verify endpoints
 - Calendar Cache:
 
-
 - Why do we need to use `Suspense` in `CalendarListContainer` now? Compare with main. We were earling also using useSuspense:true but it was working fine
-
 
 Unit Tests
 - eventTypeId in CalendarSwitch was passed as NaN and no error was thrown by TS. We need some tests for this
