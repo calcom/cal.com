@@ -70,8 +70,7 @@ export class FeaturesRepository implements IFeaturesRepository {
       const teamFeature = await db.teamFeatures.findUnique({
         where: { teamId_featureId: { teamId, featureId } },
       });
-      if (teamFeature) return true;
-      return false;
+      return !!teamFeature;
     } catch (err) {
       captureException(err);
       throw err;
