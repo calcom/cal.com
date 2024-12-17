@@ -8826,8 +8826,7 @@
             "type": "string"
           },
           "hideBranding": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "isPrivate": {
             "type": "boolean"
@@ -8857,13 +8856,11 @@
           },
           "timeZone": {
             "type": "string",
-            "default": "Europe/London",
             "example": "America/New_York",
             "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
           },
           "weekStart": {
             "type": "string",
-            "default": "Sunday",
             "example": "Monday"
           },
           "bookingLimits": {
@@ -9630,17 +9627,14 @@
         "type": "object",
         "properties": {
           "accepted": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
@@ -10767,20 +10761,16 @@
         "type": "object",
         "properties": {
           "accepted": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
-        },
-        "required": ["role"]
+        }
       },
       "CreateOrgTeamMembershipDto": {
         "type": "object",
@@ -13458,16 +13448,14 @@
         "type": "object",
         "properties": {
           "accepted": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "role": {
             "type": "string",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
