@@ -306,7 +306,6 @@ const BookerComponent = ({
                     extraDays={layout === BookerLayouts.COLUMN_VIEW ? columnViewExtraDays.current : extraDays}
                     isMobile={isMobile}
                     nextSlots={nextSlots}
-                    hasSession={hasSession}
                     renderOverlay={() =>
                       isEmbed ? (
                         <></>

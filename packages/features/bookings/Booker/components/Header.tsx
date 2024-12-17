@@ -21,7 +21,6 @@ export function Header({
   eventSlug,
   isMyLink,
   renderOverlay,
-  hasSession,
 }: {
   extraDays: number;
   isMobile: boolean;
@@ -30,7 +29,6 @@ export function Header({
   eventSlug: string;
   isMyLink: boolean;
   renderOverlay?: () => JSX.Element | null;
-  hasSession: boolean;
 }) {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -49,10 +47,6 @@ export function Header({
   const onLayoutToggle = useCallback(
     (newLayout: string) => {
       if (layout === newLayout || !newLayout) return;
-      // Enable calendar overlay by default for signed in users
-      if (hasSession) {
-        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
-      }
       setLayout(newLayout as BookerLayout);
     },
     [setLayout, layout]
