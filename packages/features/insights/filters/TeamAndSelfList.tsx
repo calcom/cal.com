@@ -12,7 +12,13 @@ import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
-export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
+export const TeamAndSelfList = ({
+  omitOrg = false,
+  className = "",
+}: {
+  omitOrg?: boolean;
+  className?: string;
+}) => {
   const { t } = useLocale();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
@@ -79,20 +85,22 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
   };
 
   const text = getTextPopover();
+  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
 
   return (
-    <AnimatedPopover text={text}>
+    <AnimatedPopover text={text} popoverTriggerClassNames={className}>
       <FilterCheckboxFieldsContainer>
-        {isSuccess && data?.length > 0 && data[0].isOrg && (
+        {isOrgDataAvailable && (
           <FilterCheckboxField
             id="all"
             icon={<Icon name="layers" className="h-4 w-4" />}
             checked={isAll}
             onChange={(e) => {
               setConfigFilters({
-                selectedTeamId: data[0].isOrg ? data[0].id : null,
+                selectedTeamId: data[0].id,
                 selectedUserId: null,
                 selectedTeamName: null,
+                selectedRoutingFormId: null,
                 isAll: true,
               });
             }}
@@ -120,12 +128,14 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
                     selectedEventTypeId: null,
                     selectedMemberUserId: null,
                     selectedFilter: null,
+                    selectedRoutingFormId: null,
                   });
                 } else if (!e.target.checked) {
                   setConfigFilters({
-                    selectedTeamId: null,
+                    selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                     selectedTeamName: null,
-                    isAll: true,
+                    selectedRoutingFormId: null,
+                    isAll: isOrgDataAvailable,
                   });
                 }
               }}
@@ -148,14 +158,19 @@ export const TeamAndSelfList = ({ omitOrg = false }: { omitOrg?: boolean }) => {
           onChange={(e) => {
             if (e.target.checked) {
               setConfigFilters({
+                selectedRoutingFormId: null,
                 selectedUserId: session.data?.user.id,
+                selectedMemberUserId: null,
                 selectedTeamId: null,
                 isAll: false,
               });
             } else if (!e.target.checked) {
               setConfigFilters({
+                selectedTeamId: isOrgDataAvailable ? data[0].id : null,
                 selectedUserId: null,
-                isAll: false,
+                selectedTeamName: null,
+                selectedRoutingFormId: null,
+                isAll: isOrgDataAvailable,
               });
             }
           }}

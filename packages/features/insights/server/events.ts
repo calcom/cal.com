@@ -422,10 +422,12 @@ class EventsInsights {
           select: {
             name: true,
             email: true,
+            noShow: true,
           },
         },
       },
     });
+
     const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
 
     return csvData.map((bookingTimeStatus) => {
@@ -442,6 +444,7 @@ class EventsInsights {
 
       return {
         ...bookingTimeStatus,
+        noShowGuest: booker.noShow,
         bookerEmail: booker.email,
         bookerName: booker.name,
       };
@@ -480,7 +483,6 @@ class EventsInsights {
 
     // Obtain the where conditional
     let whereConditional: Prisma.BookingTimeStatusWhereInput = {};
-    let teamConditional: Prisma.TeamWhereInput = {};
 
     if (startDate && endDate) {
       whereConditional.createdAt = {
@@ -519,14 +521,12 @@ class EventsInsights {
       if (teamsFromOrg.length === 0) {
         return {};
       }
-      teamConditional = {
-        id: {
-          in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
-        },
-      };
+      const teamIds: number[] = [organizationId, ...teamsFromOrg.map((t) => t.id)];
       const usersFromOrg = await prisma.membership.findMany({
         where: {
-          team: teamConditional,
+          teamId: {
+            in: teamIds,
+          },
           accepted: true,
         },
         select: {
@@ -545,7 +545,7 @@ class EventsInsights {
           },
           {
             teamId: {
-              in: [organizationId, ...teamsFromOrg.map((t) => t.id)],
+              in: teamIds,
             },
             isTeamBooking: true,
           },

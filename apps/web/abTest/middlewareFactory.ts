@@ -20,18 +20,11 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/auth/error", process.env.APP_ROUTER_AUTH_ERROR_ENABLED === "1"] as const,
   ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
   ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
-  ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,
   ["/getting-started/:step", process.env.APP_ROUTER_GETTING_STARTED_STEP_ENABLED === "1"] as const,
   ["/bookings/:status", process.env.APP_ROUTER_BOOKINGS_STATUS_ENABLED === "1"] as const,
   ["/booking/:path*", process.env.APP_ROUTER_BOOKING_ENABLED === "1"] as const,
-  ["/video/:path*", process.env.APP_ROUTER_VIDEO_ENABLED === "1"] as const,
   ["/team", process.env.APP_ROUTER_TEAM_ENABLED === "1"] as const,
   ["/teams", process.env.APP_ROUTER_TEAMS_ENABLED === "1"] as const,
-  ["/more", process.env.APP_ROUTER_MORE_ENABLED === "1"] as const,
-  ["/maintenance", process.env.APP_ROUTER_MAINTENANCE_ENABLED === "1"] as const,
-  ["/upgrade", process.env.APP_ROUTER_UPGRADE_ENABLED === "1"] as const,
-  ["/connect-and-join", process.env.APP_ROUTER_CONNECT_AND_JOIN_ENABLED === "1"] as const,
-  ["/availability", process.env.APP_ROUTER_AVAILABILITY_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,
