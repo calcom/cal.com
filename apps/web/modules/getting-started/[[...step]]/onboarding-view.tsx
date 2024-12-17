@@ -103,7 +103,7 @@ const OnboardingPage = (props: PageProps) => {
 
   const result = stepRouteSchema.safeParse({
     ...params,
-    step: Array.isArray(params?.step) ? params.step : [params?.step],
+    step: Array.isArray(params.step) ? params.step : [params.step],
   });
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
