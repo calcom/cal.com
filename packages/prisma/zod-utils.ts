@@ -265,6 +265,8 @@ export const bookingCreateBodySchema = z.object({
    * Used to identify if the booking is a dry run.
    */
   _isDryRun: z.boolean().optional(),
+  /** Whether to override the cache */
+  _shouldServeCache: z.boolean().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -453,7 +455,8 @@ export const bookingMetadataSchema = z
     videoCallUrl: z.string().optional(),
   })
   .and(z.record(z.string()))
-  .nullable();
+  .nullable()
+  .describe("BookingMetadata");
 
 export const customInputOptionSchema = z.array(
   z.object({
