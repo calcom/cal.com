@@ -1,5 +1,6 @@
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
+import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
@@ -176,7 +177,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("OAuth client not found given the access token");
     }
 
-    if (origin && !client.redirectUris.some((uri) => uri.startsWith(origin))) {
+    if (origin && !isOriginAllowed(origin, client.redirectUris)) {
       throw new UnauthorizedException(
         `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${origin}' to the 'Redirect uris' of your OAuth client.`
       );

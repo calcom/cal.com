@@ -1,5 +1,5 @@
 // handles logic related to user clock display using 24h display / timeZone options.
-import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import {
   getIs24hClockFromLocalStorage,
   isBrowserLocale24h,
@@ -26,8 +26,7 @@ const initClock = () => {
   // This only sets browser locale if there's no preference on localStorage.
   if (getIs24hClockFromLocalStorage() === null) set24hClock(isBrowserLocale24h());
   timeOptions.is24hClock = !!getIs24hClockFromLocalStorage();
-  timeOptions.inviteeTimeZone =
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London";
+  timeOptions.inviteeTimeZone = localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE;
 };
 
 const is24h = (is24hClock?: boolean) => {
