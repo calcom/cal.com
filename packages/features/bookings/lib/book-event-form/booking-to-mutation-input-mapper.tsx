@@ -53,7 +53,7 @@ export const mapBookingToMutationInput = ({
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   const isBookingDryRun = searchParams.get("cal.isBookingDryRun") === "true";
-  const _cacheParam = searchParams.get("cal.cache");
+  const _cacheParam = searchParams?.get("cal.cache");
   const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
 
   return {
