@@ -9978,6 +9978,39 @@
         },
         "required": ["userId", "name"]
       },
+      "EventTypeTeam": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          }
+        },
+        "required": ["id"]
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -10224,8 +10257,7 @@
             "type": "boolean"
           },
           "teamId": {
-            "type": "number",
-            "nullable": true
+            "type": "number"
           },
           "ownerId": {
             "type": "number",
@@ -10250,8 +10282,8 @@
             "nullable": true,
             "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
           },
-          "bannerUrl": {
-            "type": "string"
+          "team": {
+            "$ref": "#/components/schemas/EventTypeTeam"
           }
         },
         "required": [
@@ -10272,8 +10304,10 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "teamId",
           "hosts",
-          "schedulingType"
+          "schedulingType",
+          "team"
         ]
       },
       "GetTeamEventTypeOutput": {
