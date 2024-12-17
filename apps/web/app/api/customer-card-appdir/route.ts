@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const requestBody = await request.json();
   const incomingSignature = headersList.get("plain-request-signature");
   const expectedSignature = createHmac("sha-256", process.env.HMAC_SECRET_KEY!)
-    .update(requestBody)
+    .update(JSON.stringify(requestBody))
     .digest("hex");
 
   if (incomingSignature !== expectedSignature) {
