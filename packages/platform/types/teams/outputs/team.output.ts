@@ -11,6 +11,7 @@ export class TeamOutputDto {
   @IsInt()
   @IsOptional()
   @Expose()
+  @ApiPropertyOptional()
   readonly parentId?: number;
 
   @IsString()

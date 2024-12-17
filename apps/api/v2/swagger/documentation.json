@@ -9649,6 +9649,9 @@
           "id": {
             "type": "number"
           },
+          "parentId": {
+            "type": "number"
+          },
           "name": {
             "type": "string",
             "minLength": 1
@@ -9709,9 +9712,6 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
-          },
-          "parentId": {
-            "type": "number"
           }
         },
         "required": [
@@ -12958,6 +12958,9 @@
           "id": {
             "type": "number"
           },
+          "parentId": {
+            "type": "number"
+          },
           "name": {
             "type": "string",
             "minLength": 1
@@ -13018,9 +13021,6 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
-          },
-          "parentId": {
-            "type": "number"
           }
         },
         "required": [
