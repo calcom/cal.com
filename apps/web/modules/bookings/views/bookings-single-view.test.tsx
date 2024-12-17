@@ -103,6 +103,13 @@ describe("Success Component", () => {
     vi.mocked(useRouterQuery).mockReturnValue({
       uid: "uid",
     });
+    vi.mock("@calcom/lib/constants", async (importOriginal) => {
+      const actual = await importOriginal<any>();
+      return {
+        ...actual,
+        CURRENT_TIMEZONE: "Europe/London",
+      };
+    });
     vi.mocked(useSession).mockReturnValue({
       update: vi.fn(),
       status: "authenticated",
