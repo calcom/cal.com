@@ -67,6 +67,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
           break;
         case "P2003": // Foreign key constraint failed
           errorCode = BAD_REQUEST;
+          statusCode = HttpStatus.BAD_REQUEST;
           message = "Invalid input: The referenced data does not exist.";
           break;
         default:
