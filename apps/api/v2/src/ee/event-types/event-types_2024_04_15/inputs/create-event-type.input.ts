@@ -1,5 +1,5 @@
 import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
-import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
+import { ApiProperty as DocsProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -36,7 +36,10 @@ export class CreateEventTypeInput_2024_04_15 {
 
   @IsOptional()
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })
+  @ApiPropertyOptional({
+    type: String,
+    example: CREATE_EVENT_DESCRIPTION_EXAMPLE,
+  })
   description?: string;
 
   @IsOptional()
@@ -48,30 +51,38 @@ export class CreateEventTypeInput_2024_04_15 {
   @ValidateNested({ each: true })
   @Type(() => EventTypeLocation_2024_04_15)
   @IsArray()
+  @ApiPropertyOptional({
+    type: [EventTypeLocation_2024_04_15],
+  })
   locations?: EventTypeLocation_2024_04_15[];
 
-  @IsBoolean()
   @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional()
   disableGuests?: boolean;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IsOptional()
+  @ApiPropertyOptional()
   slotInterval?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IsOptional()
+  @ApiPropertyOptional()
   minimumBookingNotice?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IsOptional()
+  @ApiPropertyOptional()
   beforeEventBuffer?: number;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IsOptional()
+  @ApiPropertyOptional()
   afterEventBuffer?: number;
 
   // @ApiHideProperty()

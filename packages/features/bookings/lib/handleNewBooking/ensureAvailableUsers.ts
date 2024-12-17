@@ -52,7 +52,8 @@ export async function ensureAvailableUsers(
     users: IsFixedAwareUser[];
   },
   input: { dateFrom: string; dateTo: string; timeZone: string; originalRescheduledBooking?: BookingType },
-  loggerWithEventDetails: Logger<unknown>
+  loggerWithEventDetails: Logger<unknown>,
+  shouldServeCache?: boolean
   // ReturnType hint of at least one IsFixedAwareUser, as it's made sure at least one entry exists
 ): Promise<[IsFixedAwareUser, ...IsFixedAwareUser[]]> {
   const availableUsers: IsFixedAwareUser[] = [];
@@ -91,6 +92,7 @@ export async function ensureAvailableUsers(
       beforeEventBuffer: eventType.beforeEventBuffer,
       afterEventBuffer: eventType.afterEventBuffer,
       bypassBusyCalendarTimes: false,
+      shouldServeCache,
     },
     initialData: {
       eventType,
