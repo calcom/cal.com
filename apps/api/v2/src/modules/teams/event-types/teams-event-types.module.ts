@@ -9,11 +9,19 @@ import { RedisModule } from "@/modules/redis/redis.module";
 import { TeamsEventTypesController } from "@/modules/teams/event-types/controllers/teams-event-types.controller";
 import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, MembershipsModule, EventTypesModule_2024_06_14, UsersModule],
+  imports: [
+    PrismaModule,
+    RedisModule,
+    MembershipsModule,
+    EventTypesModule_2024_06_14,
+    UsersModule,
+    TeamsModule,
+  ],
   providers: [
     TeamsEventTypesRepository,
     TeamsEventTypesService,
