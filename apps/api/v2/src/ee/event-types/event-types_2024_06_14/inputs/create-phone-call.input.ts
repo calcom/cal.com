@@ -1,4 +1,4 @@
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsString, IsBoolean, IsOptional, IsEnum, Matches } from "class-validator";
 
@@ -38,34 +38,34 @@ export class CreatePhoneCallInput {
 
   @IsOptional()
   @IsString()
-  @DocsProperty({ description: "Scheduler name" })
+  @ApiPropertyOptional({ description: "Scheduler name" })
   schedulerName?: string;
 
   @IsOptional()
   @IsString()
   @Transform(({ value }) => (value ? value : undefined))
-  @DocsProperty({ description: "Guest name" })
+  @ApiPropertyOptional({ description: "Guest name" })
   guestName?: string;
 
   @IsOptional()
   @IsString()
   @Transform(({ value }) => (value ? value : undefined))
-  @DocsProperty({ description: "Guest email" })
+  @ApiPropertyOptional({ description: "Guest email" })
   guestEmail?: string;
 
   @IsOptional()
   @IsString()
   @Transform(({ value }) => (value ? value : undefined))
-  @DocsProperty({ description: "Guest company" })
+  @ApiPropertyOptional({ description: "Guest company" })
   guestCompany?: string;
 
   @IsOptional()
   @IsString()
-  @DocsProperty({ description: "Begin message" })
+  @ApiPropertyOptional({ description: "Begin message" })
   beginMessage?: string;
 
   @IsOptional()
   @IsString()
-  @DocsProperty({ description: "General prompt" })
+  @ApiPropertyOptional({ description: "General prompt" })
   generalPrompt?: string;
 }

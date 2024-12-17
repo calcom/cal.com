@@ -8,9 +8,11 @@ import { IsYearMonthDays } from "./validators/isYearMonthDays";
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
+  @ApiProperty()
   credentialId!: number;
 
   @IsString()
+  @ApiProperty()
   externalId!: string;
 }
 
@@ -27,6 +29,7 @@ export class CalendarBusyTimesInput {
     required: false,
     description: "The starting date for the busy times query",
     example: "2023-10-01",
+    nullable: true,
   })
   @IsString()
   @IsOptional()
@@ -37,6 +40,7 @@ export class CalendarBusyTimesInput {
     required: false,
     description: "The ending date for the busy times query",
     example: "2023-10-31",
+    nullable: true,
   })
   @IsString()
   @IsOptional()
@@ -44,6 +48,7 @@ export class CalendarBusyTimesInput {
   dateTo?: string | null;
 
   @ApiProperty({
+    type: [Calendar],
     required: true,
     description: "An array of Calendar objects representing the calendars to be loaded",
     example: `[{ credentialId: "1", externalId: "AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA" }, { credentialId: "2", externalId: "AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB" }]`,

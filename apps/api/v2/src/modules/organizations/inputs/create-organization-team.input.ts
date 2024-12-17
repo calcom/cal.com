@@ -9,7 +9,7 @@ export class CreateOrgTeamDto {
 
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional({ type: String, description: "Team slug", example: "caltel", required: false })
+  @ApiPropertyOptional({ type: String, description: "Team slug", example: "caltel" })
   readonly slug?: string;
 
   @IsOptional()
@@ -18,52 +18,62 @@ export class CreateOrgTeamDto {
     type: String,
     example: "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
     description: `URL of the teams logo image`,
-    required: false,
   })
   readonly logoUrl?: string;
 
   @IsOptional()
   @IsUrl()
+  @ApiPropertyOptional()
   readonly calVideoLogo?: string;
 
   @IsOptional()
   @IsUrl()
+  @ApiPropertyOptional()
   readonly appLogo?: string;
 
   @IsOptional()
   @IsUrl()
+  @ApiPropertyOptional()
   readonly appIconLogo?: string;
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly bio?: string;
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional({ type: Boolean, default: false })
   readonly hideBranding?: boolean = false;
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional()
   readonly isPrivate?: boolean;
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional()
   readonly hideBookATeamMember?: boolean;
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly metadata?: string; // Assuming metadata is a JSON string. Adjust accordingly if it's a nested object.
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly theme?: string;
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly brandColor?: string;
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly darkBrandColor?: string;
 
   @IsOptional()
@@ -78,6 +88,7 @@ export class CreateOrgTeamDto {
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional()
   readonly timeFormat?: number;
 
   @IsOptional()
@@ -96,12 +107,12 @@ export class CreateOrgTeamDto {
   @ApiPropertyOptional({
     type: String,
     example: "Monday",
-    required: false,
     default: "Sunday",
   })
   readonly weekStart?: string = "Sunday";
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional({ type: Boolean, default: true })
   readonly autoAcceptCreator?: boolean = true;
 }
