@@ -76,7 +76,6 @@ import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPay
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
-import { getCalEventResponses } from "./getCalEventResponses";
 import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
 import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
@@ -1819,10 +1818,7 @@ async function handler(
     if (booking && booking.status === BookingStatus.ACCEPTED) {
       const bookingWithCalEventResponses = {
         ...booking,
-        ...getCalEventResponses({
-          bookingFields: eventType?.bookingFields ?? null,
-          booking,
-        }),
+        responses: reqBody.calEventResponses,
       };
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
