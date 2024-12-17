@@ -102,7 +102,6 @@ export function TrayIconComponent() {
     }
 
     if (typeof window !== "undefined" && "__TAURIFY__" in window && user?.id) {
-      console.info("Taurify is available on this page");
       updateTray().catch(console.error);
     }
   }, [t, router, upcoming10Today, user]);
