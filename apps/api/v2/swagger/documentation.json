@@ -6431,7 +6431,6 @@
             "type": "string"
           },
           "redirectUris": {
-            "default": [],
             "type": "array",
             "items": {
               "type": "string"
