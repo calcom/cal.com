@@ -453,9 +453,9 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 }
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
-  @IsOptional()
-  @ApiPropertyOptional({ nullable: true })
-  teamId?: number | null;
+  @IsInt()
+  @DocsProperty()
+  teamId!: number;
 
   @IsInt()
   @IsOptional()
@@ -491,8 +491,8 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
 
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional()
-  bannerUrl?: string;
+  @ValidateNested()
+  @Type(() => EventTypeTeam)
+  @DocsProperty()
+  team!: EventTypeTeam;
 }
