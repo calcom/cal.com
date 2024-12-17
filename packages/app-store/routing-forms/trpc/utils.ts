@@ -168,7 +168,7 @@ export async function onFormSubmission(
   });
 
   const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
-    const scheduledAt = dayjs().add(60, "minute").toDate();
+    const scheduledAt = dayjs().add(15, "minute").toDate();
 
     return tasker.create(
       "triggerFormSubmittedNoEventWebhook",
@@ -205,7 +205,7 @@ export async function onFormSubmission(
 }
 
 export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name">,
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
   toAddresses: string[]
 ) => {

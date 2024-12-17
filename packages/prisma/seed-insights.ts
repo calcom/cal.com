@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
@@ -67,7 +68,8 @@ const shuffle = (
   booking.uid = uuidv4();
 
   if (usersIdsToPick && usersIdsToPick.length > 0) {
-    booking.userId = Math.random() > 0.5 ? usersIdsToPick[0] : usersIdsToPick[1];
+    // Pick a random user from all available users instead of just two
+    booking.userId = usersIdsToPick[Math.floor(Math.random() * usersIdsToPick.length)];
   } else {
     booking.userId = randomEvent.userId;
   }
@@ -83,6 +85,23 @@ const shuffle = (
 
   return booking;
 };
+
+async function createAttendees(bookings: any[]) {
+  for (const booking of bookings) {
+    await prisma.attendee.createMany({
+      data: Array(Math.floor(Math.random() * 4))
+        .fill(null)
+        .map(() => {
+          return {
+            bookingId: booking.id,
+            timeZone: faker.location.timeZone(),
+            email: faker.internet.email(),
+            name: faker.person.fullName(),
+          };
+        }),
+    });
+  }
+}
 
 const prisma = new PrismaClient();
 async function main() {
@@ -208,6 +227,15 @@ async function main() {
     });
   }
 
+  const insightsMembers = await prisma.membership.findMany({
+    where: {
+      teamId: insightsTeam.id,
+    },
+    include: {
+      user: true,
+    },
+  });
+
   // Create bookings for the team events
   const baseBooking = {
     uid: "demoUID",
@@ -215,7 +243,7 @@ async function main() {
     description: "Team Meeting Should be changed in shuffle",
     startTime: dayjs().toISOString(),
     endTime: dayjs().toISOString(),
-    userId: orgMembers[0].id, // Use first org member as default
+    userId: insightsMembers[0].user.id, // Use first org member as default
   };
 
   // Create past bookings -2y, -1y, -0y
@@ -226,7 +254,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 2,
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -239,7 +267,7 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y") - 1,
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
@@ -252,11 +280,13 @@ async function main() {
           { ...baseBooking },
           dayjs().get("y"),
           teamEvents,
-          orgMembers.map((m) => m.id)
+          insightsMembers.map((m) => m.user.id)
         )
       ),
     ],
   });
+
+  await createAttendees(await prisma.booking.findMany());
 
   // Find owner of the organization
   const owner = orgMembers.find((m) => m.role === "OWNER" || m.role === "ADMIN");
@@ -268,7 +298,7 @@ async function main() {
   }
   const seededForm = await seedRoutingForms(
     insightsTeam.id,
-    owner?.user.id ?? orgMembers[0].user.id,
+    owner?.user.id ?? insightsMembers[0].user.id,
     attributes
   );
 

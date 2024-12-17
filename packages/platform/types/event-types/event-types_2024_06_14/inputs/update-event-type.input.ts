@@ -15,6 +15,7 @@ import {
   IsArray,
   ArrayNotEmpty,
   ArrayUnique,
+  IsUrl,
 } from "class-validator";
 
 import { BookerLayouts_2024_06_14 } from "./booker-layouts.input";
@@ -382,6 +383,14 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @DocsPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "A valid URL where the booker will redirect to, once the booking is completed successfully",
+    example: "https://masterchief.com/argentina/flan/video/9129412",
+  })
+  successRedirectUrl?: string;
 }
 
 export class UpdateTeamEventTypeInput_2024_06_14 extends UpdateEventTypeInput_2024_06_14 {

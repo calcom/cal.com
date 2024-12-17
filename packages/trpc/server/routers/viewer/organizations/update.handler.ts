@@ -41,6 +41,14 @@ const updateOrganizationSettings = async ({
     data.adminGetsNoSlotsNotification = input.adminGetsNoSlotsNotification;
   }
 
+  if (input.hasOwnProperty("allowSEOIndexing")) {
+    data.allowSEOIndexing = input.allowSEOIndexing;
+  }
+
+  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
+    data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
+  }
+
   // If no settings values have changed lets skip this update
   if (Object.keys(data).length === 0) return;
 
@@ -131,7 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevOrganisation) throw new TRPCError({ code: "NOT_FOUND", message: "Organisation not found." });
 
-  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata);
+  const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), prevOrganisation.metadata ?? {});
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     logoUrl: input.logoUrl,
