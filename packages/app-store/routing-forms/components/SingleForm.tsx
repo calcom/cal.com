@@ -410,15 +410,7 @@ type UptoDateForm = Brand<
   "UptoDateForm"
 >;
 
-export const TestFormDialog = ({
-  form,
-  isTestPreviewOpen,
-  setIsTestPreviewOpen,
-}: {
-  form: UptoDateForm;
-  isTestPreviewOpen: boolean;
-  setIsTestPreviewOpen: (value: boolean) => void;
-}) => {
+export const TestForm = ({ form, onClose }: { form: UptoDateForm | RoutingForm; onClose?: () => void }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
@@ -458,12 +450,15 @@ export const TestFormDialog = ({
     let eventTypeRedirectUrl: string | null = null;
 
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-        eventTypeRedirectUrl: route.action.value,
-        form,
-        allURLSearchParams: new URLSearchParams(),
-      });
-      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      // only needed in routing form testing (type UptoDateForm)
+      if ("team" in form) {
+        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: route.action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        });
+        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      }
     }
 
     setChosenRoute(route || null);
@@ -559,35 +554,56 @@ export const TestFormDialog = ({
   };
 
   return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        resetMembersMatchResult();
+        testRouting();
+      }}>
+      <div className="px-1">
+        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+      </div>
+      <div>{renderTestResult()}</div>
+      <DialogFooter>
+        <DialogClose
+          color="secondary"
+          onClick={() => {
+            if (onClose) onClose();
+            setChosenRoute(null);
+            setResponse({});
+          }}>
+          {t("close")}
+        </DialogClose>
+        <Button type="submit" data-testid="test-routing">
+          {t("test_routing")}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+};
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: UptoDateForm;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
+
+  return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              resetMembersMatchResult();
-              testRouting();
-            }}>
-            <div className="px-1">
-              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-            </div>
-            <div>{renderTestResult()}</div>
-            <DialogFooter>
-              <DialogClose
-                color="secondary"
-                onClick={() => {
-                  setIsTestPreviewOpen(false);
-                  setChosenRoute(null);
-                  setResponse({});
-                }}>
-                {t("close")}
-              </DialogClose>
-              <Button type="submit" data-testid="test-routing">
-                {t("test_routing")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <TestForm
+            form={form}
+            onClose={() => {
+              setIsTestPreviewOpen(false);
+            }}
+          />
         </div>
       </DialogContent>
     </Dialog>
