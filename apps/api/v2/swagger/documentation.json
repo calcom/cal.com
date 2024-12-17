@@ -10888,8 +10888,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
-            "nullable": true
+            "type": "number"
           },
           "slug": {
             "type": "string"
@@ -10915,7 +10914,10 @@
           "theme": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "id"
+        ]
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -11217,6 +11219,7 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "teamId",
           "hosts",
           "schedulingType",
           "team"
