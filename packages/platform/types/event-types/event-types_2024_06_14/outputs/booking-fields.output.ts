@@ -611,6 +611,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     const slugs: string[] = [];
     for (const field of bookingFields) {
       const { type, slug } = field;
+      console.log("validate.field", field);
       if (!type) {
         throw new BadRequestException(`Each booking field must have a 'type' property.`);
       }
@@ -658,12 +659,16 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   }
 
   async validateDefaultField(field: DefaultFieldOutput_2024_06_14) {
+    console.log("Validating default field:", field);
+
     const ClassType = this.defaultOutputNameMap[field.slug];
+    console.log("ClassType", ClassType);
     if (!ClassType) {
       throw new BadRequestException(`Unsupported default booking field slug '${field.slug}'.`);
     }
 
     const instance = plainToInstance(ClassType, field);
+    console.log("instance", instance);
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
@@ -672,12 +677,15 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   }
 
   async validateCustomField(field: CustomFieldOutput_2024_06_14) {
+    console.log("validateCustomField.field", field);
     const ClassType = this.customOutputTypeMap[field.type];
+    console.log("ClassType", ClassType);
     if (!ClassType) {
       throw new BadRequestException(`Unsupported booking field type '${field.type}'.`);
     }
 
     const instance = plainToInstance(ClassType, field);
+    console.log("instance", instance);
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");

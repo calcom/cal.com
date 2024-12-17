@@ -58,6 +58,11 @@ export class EmailFieldInput_2024_06_14 {
   @DocsProperty()
   label?: string;
 
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty()
+  required = true;
+
   @IsString()
   @IsOptional()
   @DocsProperty()
@@ -609,7 +614,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
-  private reservedSystemSlugs = ["location", "rescheduleReason", "attendeePhoneNumber"];
+  private reservedSystemSlugs = ["location", "rescheduleReason"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {

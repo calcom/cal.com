@@ -8355,6 +8355,10 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object",
+            "default": true
+          },
           "placeholder": {
             "type": "string"
           },
@@ -8371,16 +8375,13 @@
           "slug": {
             "type": "string",
             "default": "email"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
           "type",
+          "required",
           "isDefault",
-          "slug",
-          "required"
+          "slug"
         ]
       },
       "NameDefaultFieldOutput_2024_06_14": {
@@ -9944,7 +9945,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -12346,7 +12347,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
