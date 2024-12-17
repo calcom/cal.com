@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.72"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.73"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3826,7 +3826,6 @@ __metadata:
     "@tailwindcss/forms": ^0.5.2
     "@tailwindcss/line-clamp": ^0.4.0
     "@tailwindcss/typography": ^0.5.4
-    "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
     "@typescript-eslint/eslint-plugin": ^5.52.0
     "@typescript-eslint/parser": ^5.52.0
@@ -4493,14 +4492,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.72":
-  version: 0.0.72
-  resolution: "@calcom/platform-libraries@npm:0.0.72"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.73":
+  version: 0.0.73
+  resolution: "@calcom/platform-libraries@npm:0.0.73"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 62b73b413b341a2d36f43279a5268a06af9bbd8ee2ed6279406c9f8d3d214d52bc35aa02dd8b64a13fad863164bcfc5607cff1834c0a9af984abd40e87f80d47
+  checksum: 9b35d2edcf9c928da98047c919effb9e8534d433fbd7e7a90305cbbb079eafe2113c5c78d6aff7672e8202e1ae9f35b087e4d445e22db54617dad6cf74501f59
   languageName: node
   linkType: hard
 
@@ -15476,15 +15475,6 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 3e6bc9fd53dfe2f3648190193ed2fd4bca2a1bfb47f68810df3b33f05412526e5fd5c4ef9dc5375635e0f4cdf1859916867b597eed22bda1321e04242ea6c519
-  languageName: node
-  linkType: hard
-
-"@todesktop/tailwind-variants@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "@todesktop/tailwind-variants@npm:1.0.1"
-  peerDependencies:
-    tailwindcss: ^3.4.0
-  checksum: 53dffba36455b555553cf4d1d74554b54f4a586ef6dc8f7eb66d586b935765f56a0b806c2bbba0fddb435340744fe68bb9e1bbf66a4646fdc3b18af13521e4b6
   languageName: node
   linkType: hard
 
