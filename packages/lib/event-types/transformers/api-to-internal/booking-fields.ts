@@ -56,6 +56,7 @@ function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | C
       label: field.label,
       placeholder: field.placeholder,
       disableOnPrefill: field.disableOnPrefill,
+      required: field.required,
     };
   }
 

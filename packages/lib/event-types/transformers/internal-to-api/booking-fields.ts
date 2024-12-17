@@ -341,7 +341,7 @@ const PhoneSystemFieldSchema = SystemFieldSchema.extend({
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("email"),
   type: z.literal("email"),
-  required: z.literal(true),
+  required: z.boolean(),
 });
 
 const RescheduleReasonSystemFieldSchema = SystemFieldSchema.extend({
