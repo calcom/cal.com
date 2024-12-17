@@ -97,9 +97,8 @@ class User_2024_06_14 {
 
 class EventTypeTeam {
   @IsInt()
-  @IsOptional()
   @DocsProperty()
-  id?: number | null;
+  id!: number;
 
   @IsString()
   @IsOptional()
@@ -429,9 +428,8 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsInt()
-  @IsOptional()
   @DocsProperty()
-  teamId?: number | null;
+  teamId!: number;
 
   @IsInt()
   @IsOptional()
