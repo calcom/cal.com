@@ -47,6 +47,7 @@ logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
+  id?: string;
   appId: string | null;
   userId?: number | null;
   teamId?: number | null;
@@ -54,6 +55,8 @@ type InputWebhook = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   subscriberUrl: string;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 type InputWorkflow = {
