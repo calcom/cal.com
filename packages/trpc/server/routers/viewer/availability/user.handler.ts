@@ -10,9 +10,14 @@ type UserOptions = {
   input: TUserInputSchema;
 };
 
-export const userHandler = async ({ input }: UserOptions) => {
+export const userHandler = async ({ input, ctx }: UserOptions) => {
+  let isOverlayUser = false;
+  if ("username" in ctx.user && input.username === ctx.user.username) {
+    isOverlayUser = true;
+  }
   return getUserAvailability(
     { returnDateOverrides: true, bypassBusyCalendarTimes: false, ...input },
-    undefined
+    undefined,
+    isOverlayUser
   );
 };
