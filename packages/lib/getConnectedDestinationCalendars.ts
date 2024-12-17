@@ -54,9 +54,6 @@ async function handleNoDestinationCalendar({
   if (!connectedCalendars.length) {
     throw new Error("No connected calendars");
   }
-  const updatedConnectedCalendars = connectedCalendars.map((connectedCalendar) => ({
-    ...connectedCalendar,
-  }));
 
   // This is the calendar that we will ensure is enabled for conflict check
   let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
@@ -72,15 +69,15 @@ async function handleNoDestinationCalendar({
     externalId = "",
     credentialId,
     email: primaryEmail,
-  } = updatedConnectedCalendars[0].primary ?? {};
+  } = connectedCalendars[0].primary ?? {};
 
   // Select the first calendar matching the primary by default since that will also be the destination calendar
   if (onboarding && externalId) {
-    const calendarIndex = (updatedConnectedCalendars[0].calendars || []).findIndex(
+    const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
       (item) => item.externalId === externalId && item.integration === integration
     );
-    if (calendarIndex >= 0 && updatedConnectedCalendars[0].calendars) {
-      updatedConnectedCalendars[0].calendars[calendarIndex].isSelected = true;
+    if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
+      connectedCalendars[0].calendars[calendarIndex].isSelected = true;
       calendarToEnsureIsEnabledForConflictCheck = {
         externalId,
         integration,
@@ -88,9 +85,7 @@ async function handleNoDestinationCalendar({
     }
   }
 
-  const updatedUser = { ...user };
-
-  updatedUser.destinationCalendar = await prisma.destinationCalendar.create({
+  user.destinationCalendar = await prisma.destinationCalendar.create({
     data: {
       userId: user.id,
       integration,
@@ -101,8 +96,8 @@ async function handleNoDestinationCalendar({
   });
 
   return {
-    updatedUser,
-    updatedConnectedCalendars,
+    user,
+    connectedCalendars,
     calendarToEnsureIsEnabledForConflictCheck,
   };
 }
@@ -116,26 +111,18 @@ async function handleDestinationCalendarNotInConnectedCalendars({
   connectedCalendars: ConnectedCalendarsFromGetConnectedCalendars;
   onboarding: boolean;
 }) {
-  const updatedUser = { ...user };
-  const updatedConnectedCalendars = connectedCalendars.map((connectedCalendar) => ({
-    ...connectedCalendar,
-  }));
   let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
   log.debug(
     `Destination calendar isn't in connectedCalendars, update it to the first primary connected calendar for user ${user.id}`
   );
-  const {
-    integration = "",
-    externalId = "",
-    email: primaryEmail,
-  } = updatedConnectedCalendars[0].primary ?? {};
+  const { integration = "", externalId = "", email: primaryEmail } = connectedCalendars[0].primary ?? {};
   // Select the first calendar matching the primary by default since that will also be the destination calendar
   if (onboarding && externalId) {
-    const calendarIndex = (updatedConnectedCalendars[0].calendars || []).findIndex(
+    const calendarIndex = (connectedCalendars[0].calendars || []).findIndex(
       (item) => item.externalId === externalId && item.integration === integration
     );
-    if (calendarIndex >= 0 && updatedConnectedCalendars[0].calendars) {
-      updatedConnectedCalendars[0].calendars[calendarIndex].isSelected = true;
+    if (calendarIndex >= 0 && connectedCalendars[0].calendars) {
+      connectedCalendars[0].calendars[calendarIndex].isSelected = true;
       calendarToEnsureIsEnabledForConflictCheck = {
         externalId,
         integration,
@@ -143,7 +130,7 @@ async function handleDestinationCalendarNotInConnectedCalendars({
     }
   }
 
-  updatedUser.destinationCalendar = await prisma.destinationCalendar.update({
+  user.destinationCalendar = await prisma.destinationCalendar.update({
     where: { userId: user.id },
     data: {
       integration,
@@ -153,8 +140,8 @@ async function handleDestinationCalendarNotInConnectedCalendars({
   });
 
   return {
-    updatedUser,
-    updatedConnectedCalendars,
+    user,
+    connectedCalendars,
     calendarToEnsureIsEnabledForConflictCheck,
   };
 }
@@ -238,20 +225,21 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
   // get all the connected integrations' calendars (from third party)
-  const { connectedCalendars, destinationCalendar } = await getConnectedCalendars(
+  const getConnectedCalendarsResult = await getConnectedCalendars(
     calendarCredentials,
     selectedCalendars,
     user.destinationCalendar?.externalId
   );
 
+  let connectedCalendars = getConnectedCalendarsResult.connectedCalendars;
+  const destinationCalendar = getConnectedCalendarsResult.destinationCalendar;
+
   let calendarToEnsureIsEnabledForConflictCheck: ToggledCalendarDetails | null = null;
 
-  let updatedUser: UserWithCalendars = user;
-  let updatedConnectedCalendars: ConnectedCalendarsFromGetConnectedCalendars = connectedCalendars;
-  if (updatedConnectedCalendars.length === 0) {
-    updatedUser = await handleNoConnectedCalendars(user);
+  if (connectedCalendars.length === 0) {
+    user = await handleNoConnectedCalendars(user);
   } else if (!user.destinationCalendar) {
-    ({ updatedUser, calendarToEnsureIsEnabledForConflictCheck, updatedConnectedCalendars } =
+    ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
       await handleNoDestinationCalendar({
         user,
         connectedCalendars,
@@ -265,7 +253,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 
     const destinationCal = findMatchingCalendar({ connectedCalendars, calendar: user.destinationCalendar });
     if (!destinationCal) {
-      ({ updatedUser, calendarToEnsureIsEnabledForConflictCheck, updatedConnectedCalendars } =
+      ({ user, calendarToEnsureIsEnabledForConflictCheck, connectedCalendars } =
         await handleDestinationCalendarNotInConnectedCalendars({
           user,
           connectedCalendars,
@@ -309,7 +297,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   return {
     connectedCalendars,
     destinationCalendar: {
-      ...(updatedUser.destinationCalendar as DestinationCalendar),
+      ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,
     },
   };

@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import { CalendarCache } from "../calendar-cache";
 
@@ -38,7 +39,7 @@ function getUniqueCalendarsByExternalId<
     {} as Record<
       ExternalId,
       {
-        eventTypeIds: (number | null)[];
+        eventTypeIds: SelectedCalendarEventTypeIds;
         credentialId: number | null;
       }
     >

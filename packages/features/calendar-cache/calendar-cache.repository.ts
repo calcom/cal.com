@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { Calendar } from "@calcom/types/Calendar";
+import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
 
@@ -50,7 +50,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
-  async watchCalendar(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+  async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
       log.info(
@@ -61,7 +61,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     await this.calendar?.watchCalendar({ calendarId, eventTypeIds });
   }
 
-  async unwatchCalendar(args: { calendarId: string; eventTypeIds: (number | null)[] }) {
+  async unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.unwatchCalendar !== "function") {
       log.info(

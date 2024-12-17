@@ -31,6 +31,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { invalidateCredential } from "../../_utils/invalidateCredential";
@@ -686,7 +687,13 @@ export default class GoogleCalendarService implements Calendar {
    * It doesn't check if the subscription has expired or not.
    * It just creates a new subscription.
    */
-  async watchCalendar({ calendarId, eventTypeIds }: { calendarId: string; eventTypeIds: (number | null)[] }) {
+  async watchCalendar({
+    calendarId,
+    eventTypeIds,
+  }: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }) {
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
@@ -764,7 +771,7 @@ export default class GoogleCalendarService implements Calendar {
     eventTypeIds,
   }: {
     calendarId: string;
-    eventTypeIds: (number | null)[];
+    eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
@@ -874,14 +881,14 @@ export default class GoogleCalendarService implements Calendar {
 
   async upsertSelectedCalendarsForEventTypeIds(
     data: Omit<Prisma.SelectedCalendarUncheckedCreateInput, "integration" | "credentialId" | "userId">,
-    eventTypeIds: (number | null)[]
+    eventTypeIds: SelectedCalendarEventTypeIds
   ) {
     if (!this.credential.userId) {
       logger.error("upsertAllSelectedCalendars failed. userId is missing.");
       return;
     }
 
-    await SelectedCalendarRepository.upsertManyEventTypeIds({
+    await SelectedCalendarRepository.upsertManyForEventTypeIds({
       data: {
         ...data,
         integration: this.integrationName,

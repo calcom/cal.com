@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -293,12 +294,12 @@ export class SelectedCalendarRepository {
     });
   }
 
-  static async upsertManyEventTypeIds({
+  static async upsertManyForEventTypeIds({
     data,
     eventTypeIds,
   }: {
     data: Prisma.SelectedCalendarUncheckedCreateInput;
-    eventTypeIds: (number | null)[];
+    eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
     const userId = data.userId;
     return await Promise.all(

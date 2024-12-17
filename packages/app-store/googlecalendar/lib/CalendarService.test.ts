@@ -67,8 +67,9 @@ function expectGoogleSubscriptionToHaveOccurredAndClearMock() {
   calendarMock.calendar_v3.Calendar().events.watch.mockClear();
 }
 
-function expectGoogleSubscriptionToNotHaveOccurred() {
+function expectGoogleSubscriptionToNotHaveOccurredAndClearMock() {
   expect(calendarMock.calendar_v3.Calendar().events.watch).not.toHaveBeenCalled();
+  calendarMock.calendar_v3.Calendar().events.watch.mockClear();
 }
 
 function expectGoogleUnsubscriptionToHaveOccurredAndClearMock() {
@@ -185,7 +186,10 @@ describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
     const credentialInDb1 = await createCredentialInDb();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-    await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId, eventTypeId: null });
+    await calendarCache.watchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
     const watchedCalendar = await prismock.selectedCalendar.findFirst({
       where: {
         userId: credentialInDb1.userId!,
@@ -209,7 +213,10 @@ describe("Watching and unwatching calendar", () => {
       googleChannelExpiration: "1111111111",
     });
 
-    await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId, eventTypeId: null });
+    await calendarCache.unwatchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
     const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
       where: {
         userId: credentialInDb1.userId!,
@@ -234,7 +241,7 @@ describe("Watching and unwatching calendar", () => {
     });
   });
 
-  test("watchCalendar should not do subscription if already subscribed for the same calendarId", async () => {
+  test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
     const credentialInDb1 = await createCredentialInDb();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
     const userLevelCalendar = await SelectedCalendarRepository.create({
@@ -255,7 +262,7 @@ describe("Watching and unwatching calendar", () => {
 
     await calendarCache.watchCalendar({
       calendarId: userLevelCalendar.externalId,
-      eventTypeId: userLevelCalendar.eventTypeId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
     });
 
     expectGoogleSubscriptionToHaveOccurredAndClearMock();
@@ -265,14 +272,14 @@ describe("Watching and unwatching calendar", () => {
     // Watch different selectedcalendar with same externalId and credentialId
     await calendarCache.watchCalendar({
       calendarId: eventTypeLevelCalendar.externalId,
-      eventTypeId: eventTypeLevelCalendar.eventTypeId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
 
     await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id);
-    expectGoogleSubscriptionToNotHaveOccurred();
+    expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
   });
 
-  test("unwatchCalendar should not unsubscribe if there is another selectedCalendar with same externalId and credentialId", async () => {
+  test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
     const credentialInDb1 = await createCredentialInDb();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
     const userLevelCalendar = await SelectedCalendarRepository.create({
