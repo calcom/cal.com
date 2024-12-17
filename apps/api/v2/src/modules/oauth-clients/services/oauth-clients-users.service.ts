@@ -113,7 +113,6 @@ export class OAuthClientUsersService {
 
   getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
     const [username, emailDomain] = userEmail.split("@");
-    const [_domainName, TLD] = emailDomain.split(".");
-    return `${username}${TLD}+${oAuthClientId}@${emailDomain}`;
+    return `${username}+${oAuthClientId}@${emailDomain}`;
   }
 }
