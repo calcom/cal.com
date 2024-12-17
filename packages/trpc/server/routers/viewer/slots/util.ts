@@ -12,7 +12,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import {
@@ -449,14 +449,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const teamId = eventType.team?.id;
-  const featureRepo = new FeaturesRepository();
-  const shouldServeCache =
-    /** If we set the parameter use that, else check if the team has the feature enabled */
-    typeof _shouldServeCache === "boolean" || !teamId
-      ? _shouldServeCache
-      : await featureRepo.checkIfTeamHasFeature(teamId, "calendar-cache-serve");
-
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
     logger.settings.minLevel = 2;
   }

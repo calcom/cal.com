@@ -31,6 +31,7 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -392,6 +393,7 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     _isDryRun: isDryRun = false,
+    _shouldServeCache,
     ...reqBody
   } = bookingData;
 
@@ -413,6 +415,7 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -568,7 +571,8 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
-              loggerWithEventDetails
+              loggerWithEventDetails,
+              shouldServeCache
             );
           }
         } else {
@@ -580,7 +584,8 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails
+            loggerWithEventDetails,
+            shouldServeCache
           );
         }
       }
@@ -595,7 +600,8 @@ async function handler(
           timeZone: reqBody.timeZone,
           originalRescheduledBooking,
         },
-        loggerWithEventDetails
+        loggerWithEventDetails,
+        shouldServeCache
       );
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
@@ -695,7 +701,8 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails
+                loggerWithEventDetails,
+                shouldServeCache
               );
             }
             // if no error, then lucky user is available for the next slots
