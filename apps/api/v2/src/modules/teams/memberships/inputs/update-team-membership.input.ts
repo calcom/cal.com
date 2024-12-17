@@ -10,8 +10,8 @@ export class UpdateTeamMembershipInput {
 
   @IsOptional()
   @IsEnum(MembershipRole)
-  @ApiPropertyOptional({ enum: ["MEMBER", "OWNER", "ADMIN"], default: MembershipRole.MEMBER })
-  readonly role?: MembershipRole = MembershipRole.MEMBER;
+  @ApiPropertyOptional({ enum: ["MEMBER", "OWNER", "ADMIN"] })
+  readonly role?: MembershipRole;
 
   @IsOptional()
   @IsBoolean()

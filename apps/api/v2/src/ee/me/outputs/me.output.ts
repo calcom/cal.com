@@ -28,8 +28,7 @@ export class MeOutput {
   timeFormat!: number;
 
   @IsInt()
-  @IsOptional()
-  @ApiPropertyOptional({ type: Number, nullable: true })
+  @DocsProperty({ type: Number, nullable: true })
   defaultScheduleId!: number | null;
 
   @IsString()

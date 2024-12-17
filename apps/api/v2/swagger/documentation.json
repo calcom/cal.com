@@ -10582,10 +10582,7 @@
             "type": "boolean",
             "default": false
           }
-        },
-        "required": [
-          "role"
-        ]
+        }
       },
       "UpdateOrgMembership": {
         "type": "object",
@@ -12800,6 +12797,7 @@
           "username",
           "email",
           "timeFormat",
+          "defaultScheduleId",
           "weekStart",
           "timeZone",
           "organizationId"
@@ -14858,8 +14856,7 @@
           }
         },
         "required": [
-          "userId",
-          "role"
+          "userId"
         ]
       },
       "TeamMembershipOutput": {
@@ -14966,7 +14963,6 @@
           },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": [
               "MEMBER",
               "OWNER",

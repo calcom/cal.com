@@ -8,8 +8,9 @@ export class UpdateOrgMembershipDto {
   @ApiPropertyOptional({ type: Boolean, default: false })
   readonly accepted?: boolean = false;
 
+  @IsOptional()
   @IsEnum(MembershipRole)
-  @ApiProperty({ enum: ["MEMBER", "OWNER", "ADMIN"], required: true, default: "MEMBER" })
+  @ApiPropertyOptional({ enum: ["MEMBER", "OWNER", "ADMIN"], default: "MEMBER" })
   readonly role?: MembershipRole = MembershipRole.MEMBER;
 
   @IsOptional()

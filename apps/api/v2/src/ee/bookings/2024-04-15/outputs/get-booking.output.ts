@@ -121,7 +121,7 @@ class GetBookingData_2024_04_15 {
   uid!: string;
 
   @IsString()
-  @ApiPropertyOptional({ type: String, nullable: true })
+  @ApiProperty({ type: String, nullable: true })
   description!: string | null;
 
   @IsObject()
@@ -147,7 +147,7 @@ class GetBookingData_2024_04_15 {
   endTime!: Date;
 
   @IsUrl()
-  @ApiPropertyOptional({ type: String, nullable: true })
+  @ApiProperty({ type: String, nullable: true })
   location!: string | null;
 
   @IsString()

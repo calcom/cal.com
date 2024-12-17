@@ -9642,8 +9642,7 @@
             "type": "boolean",
             "default": false
           }
-        },
-        "required": ["role"]
+        }
       },
       "UpdateOrgMembership": {
         "type": "object",
@@ -11527,7 +11526,16 @@
             "$ref": "#/components/schemas/MeOrgOutput"
           }
         },
-        "required": ["id", "username", "email", "timeFormat", "weekStart", "timeZone", "organizationId"]
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone",
+          "organizationId"
+        ]
       },
       "GetMeOutput": {
         "type": "object",
@@ -13377,7 +13385,7 @@
             "default": false
           }
         },
-        "required": ["userId", "role"]
+        "required": ["userId"]
       },
       "TeamMembershipOutput": {
         "type": "object",
@@ -13455,7 +13463,6 @@
           },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
           "disableImpersonation": {
