@@ -6,6 +6,7 @@ import type { Calendar } from "@calcom/types/Calendar";
 
 import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
 import { watchCalendarSchema } from "./calendar-cache.repository.schema";
+import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
 
@@ -14,18 +15,6 @@ const ENABLE_EXPANDED_CACHE = process.env.ENABLE_EXPANDED_CACHE !== "0";
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 const CACHING_TIME = ONE_MONTH_IN_MS;
-
-/** Expand the start date to the start of the month */
-function getTimeMin(timeMin: string) {
-  const dateMin = new Date(timeMin);
-  return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
-}
-
-/** Expand the end date to the end of the month */
-function getTimeMax(timeMax: string) {
-  const dateMax = new Date(timeMax);
-  return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
-}
 
 export function parseKeyForCache(args: FreeBusyArgs): string {
   const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
