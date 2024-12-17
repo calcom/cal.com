@@ -391,7 +391,7 @@ class RoutingEventsInsights {
     }
     // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
-      teamConditions.push(`f.userId = '${userId}'`);
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -770,7 +770,7 @@ class RoutingEventsInsights {
     }
     // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
-      teamConditions.push(`f.userId = '${userId}'`);
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -1025,7 +1025,7 @@ class RoutingEventsInsights {
     }
     // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
     if (!formsWhereCondition.teamId?.in && userId) {
-      teamConditions.push(`f.userId = '${userId}'`);
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
