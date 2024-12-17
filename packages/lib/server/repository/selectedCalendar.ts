@@ -57,6 +57,10 @@ export class SelectedCalendarRepository {
     });
   }
 
+  static async findById(id: number) {
+    return await prisma.selectedCalendar.findUnique({ where: { id } });
+  }
+
   static async create(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
 

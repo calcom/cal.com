@@ -15,6 +15,7 @@ export class CalendarCacheRepositoryMock implements ICalendarCacheRepository {
     log.info(`Skipping getCachedAvailability due to calendar-cache being disabled`);
     return null;
   }
+
   async unwatchCalendar() {
     log.info(`Skipping unwatchCalendar due to calendar-cache being disabled`);
   }

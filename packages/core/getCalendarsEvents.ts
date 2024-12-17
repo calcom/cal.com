@@ -26,9 +26,6 @@ const getCalendarsEvents = async (
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
     const { type, appId } = calendarCredentials[i];
-    console.log({
-      selectedCalendars,
-    });
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */

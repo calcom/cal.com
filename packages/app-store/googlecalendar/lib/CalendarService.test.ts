@@ -62,8 +62,17 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
-function expectGoogleSubscriptionToHaveOccurredAndClearMock() {
+function expectGoogleSubscriptionToHaveOccurredAndClearMock({ calendarId }: { calendarId: string }) {
   expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledTimes(1);
+  expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      calendarId,
+      requestBody: expect.objectContaining({
+        type: "web_hook",
+        token: process.env.GOOGLE_WEBHOOK_TOKEN,
+      }),
+    })
+  );
   calendarMock.calendar_v3.Calendar().events.watch.mockClear();
 }
 
@@ -72,8 +81,21 @@ function expectGoogleSubscriptionToNotHaveOccurredAndClearMock() {
   calendarMock.calendar_v3.Calendar().events.watch.mockClear();
 }
 
-function expectGoogleUnsubscriptionToHaveOccurredAndClearMock() {
+function expectGoogleUnsubscriptionToHaveOccurredAndClearMock(
+  channels: {
+    resourceId: string;
+    channelId: string;
+  }[]
+) {
   expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledTimes(1);
+  channels.forEach((channel) => {
+    expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledWith({
+      requestBody: {
+        resourceId: channel.resourceId,
+        id: channel.channelId,
+      },
+    });
+  });
   calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
 }
 
@@ -82,22 +104,19 @@ function expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock() {
   calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
 }
 
-async function expectSelectedCalendarToHaveGoogleChannelProps(selectedCalendarId: number) {
-  const selectedCalendar = await SelectedCalendarRepository.findFirst({
-    where: {
-      id: selectedCalendarId,
-    },
-  });
+async function expectSelectedCalendarToHaveGoogleChannelProps(
+  id: number,
+  googleChannelProps: {
+    googleChannelId: string;
+    googleChannelKind: string;
+    googleChannelResourceId: string;
+    googleChannelResourceUri: string;
+    googleChannelExpiration: string;
+  }
+) {
+  const selectedCalendar = await SelectedCalendarRepository.findById(id);
 
-  expect(selectedCalendar).toEqual(
-    expect.objectContaining({
-      googleChannelId: "mock-channel-id",
-      googleChannelKind: "api#channel",
-      googleChannelResourceId: "mock-resource-id",
-      googleChannelResourceUri: "mock-resource-uri",
-      googleChannelExpiration: "1111111111",
-    })
-  );
+  expect(selectedCalendar).toEqual(expect.objectContaining(googleChannelProps));
 }
 
 async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalendarId: number) {
@@ -265,9 +284,17 @@ describe("Watching and unwatching calendar", () => {
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
 
-    expectGoogleSubscriptionToHaveOccurredAndClearMock();
+    expectGoogleSubscriptionToHaveOccurredAndClearMock({
+      calendarId: userLevelCalendar.externalId,
+    });
 
-    await expectSelectedCalendarToHaveGoogleChannelProps(userLevelCalendar.id);
+    await expectSelectedCalendarToHaveGoogleChannelProps(userLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
 
     // Watch different selectedcalendar with same externalId and credentialId
     await calendarCache.watchCalendar({
@@ -275,43 +302,56 @@ describe("Watching and unwatching calendar", () => {
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
 
-    await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id);
+    await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
     expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
   });
 
   test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
     const credentialInDb1 = await createCredentialInDb();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-    const userLevelCalendar = await SelectedCalendarRepository.create({
-      userId: credentialInDb1.userId!,
-      externalId: "externalId@cal.com",
-      integration: "google_calendar",
-      eventTypeId: null,
-      credentialId: credentialInDb1.id,
+    const googleChannelProps = {
       googleChannelId: "test-channel-id",
       googleChannelKind: "api#channel",
       googleChannelResourceId: "test-resource-id",
       googleChannelResourceUri: "test-resource-uri",
       googleChannelExpiration: "1111111111",
+    };
+
+    const commonProps = {
+      userId: credentialInDb1.userId!,
+      externalId: "externalId@cal.com",
+      integration: "google_calendar",
+      credentialId: credentialInDb1.id,
+      ...googleChannelProps,
+    };
+
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      ...commonProps,
+      eventTypeId: null,
     });
 
     const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
-      userId: credentialInDb1.userId!,
-      externalId: "externalId@cal.com",
-      integration: "google_calendar",
+      ...commonProps,
       eventTypeId: 1,
-      credentialId: credentialInDb1.id,
-      googleChannelId: "test-channel-id",
-      googleChannelKind: "api#channel",
-      googleChannelResourceId: "test-resource-id",
-      googleChannelResourceUri: "test-resource-uri",
-      googleChannelExpiration: "1111111111",
+    });
+
+    const eventTypeLevelCalendarForSomeOtherExternalId = await SelectedCalendarRepository.create({
+      ...commonProps,
+      externalId: "externalId2@cal.com",
+      eventTypeId: 2,
     });
 
     await calendarCache.unwatchCalendar({
       calendarId: userLevelCalendar.externalId,
       eventTypeIds: [userLevelCalendar.eventTypeId],
     });
+    // There is another selectedCalendar with same externalId and credentialId, so actual unsubscription does not happen
     expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock();
     await expectSelectedCalendarToNotHaveGoogleChannelProps(userLevelCalendar.id);
 
@@ -319,8 +359,20 @@ describe("Watching and unwatching calendar", () => {
       calendarId: eventTypeLevelCalendar.externalId,
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
-    expectGoogleUnsubscriptionToHaveOccurredAndClearMock();
+
+    expectGoogleUnsubscriptionToHaveOccurredAndClearMock([
+      {
+        resourceId: "test-resource-id",
+        channelId: "test-channel-id",
+      },
+    ]);
     await expectSelectedCalendarToNotHaveGoogleChannelProps(eventTypeLevelCalendar.id);
+
+    // Some other selectedCalendar stays unaffected
+    await expectSelectedCalendarToHaveGoogleChannelProps(
+      eventTypeLevelCalendarForSomeOtherExternalId.id,
+      googleChannelProps
+    );
   });
 });
 

@@ -42,6 +42,7 @@ export class SelectedCalendarsRepository {
   }
 
   getUserSelectedCalendars(userId: number) {
+    // It would be unique result but we can't use .findUnique here because of eventTypeId being nullable
     return this.dbRead.prisma.selectedCalendar.findMany({
       where: {
         userId,

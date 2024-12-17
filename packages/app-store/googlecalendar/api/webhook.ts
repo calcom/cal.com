@@ -36,8 +36,11 @@ async function postHandler(req: NextApiRequest) {
       message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   const { selectedCalendars } = credential;
-  const uniqueSelectedCalendars = uniqueBy(selectedCalendars, ["externalId", "integration"]);
   const calendar = await getCalendar(credential);
+  const uniqueSelectedCalendars = uniqueBy(selectedCalendars, ["externalId", "integration"]);
+
+  // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
+  // Necessary to do here so that it is ensure for all calendar apps
   await calendar?.fetchAvailabilityAndSetCache?.(uniqueSelectedCalendars);
   return { message: "ok" };
 }

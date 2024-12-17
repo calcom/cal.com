@@ -3,7 +3,6 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma, availabilityUserSelect } from "@calcom/prisma";
-import type { SelectedCalendar } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
@@ -30,6 +29,10 @@ type IEventType = Ensure<
   >,
   "title" | "slug" | "length"
 >;
+
+type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }> = {
+  allSelectedCalendars: TSelectedCalendar[];
+};
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
@@ -845,11 +848,11 @@ export class EventTypeRepository {
     };
   }
 
-  static getSelectedCalendarsFromUser({
+  static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
     user,
     eventTypeId,
   }: {
-    user: { allSelectedCalendars: SelectedCalendar[] };
+    user: UserWithSelectedCalendars<TSelectedCalendar>;
     eventTypeId: number;
   }) {
     return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);

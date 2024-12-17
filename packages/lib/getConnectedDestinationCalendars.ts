@@ -6,6 +6,7 @@ import type { DestinationCalendar, SelectedCalendar, User } from "@calcom/prisma
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
+import { EventTypeRepository } from "./server/repository/eventType";
 import { SelectedCalendarRepository } from "./server/repository/selectedCalendar";
 
 const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndEnsureDefaultsInDb"] });
@@ -187,6 +188,23 @@ async function ensureSelectedCalendarIsInDb({
   });
 }
 
+function getSelectedCalendars({
+  user,
+  eventTypeId,
+}: {
+  user: UserWithCalendars;
+  eventTypeId: number | null;
+}) {
+  if (eventTypeId) {
+    return EventTypeRepository.getSelectedCalendarsFromUser({
+      user,
+      eventTypeId: eventTypeId ?? null,
+    });
+  }
+
+  return user.userLevelSelectedCalendars;
+}
+
 /**
  * Fetches the calendars for the authenticated user or the event-type if provided
  * It also takes care of updating the destination calendar in some edge cases
@@ -213,14 +231,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const eventTypeSelectedCalendars = user.allSelectedCalendars.filter(
-    (selectedCalendar) => selectedCalendar.eventTypeId === eventTypeId
-  );
-
-  const userSelectedCalendars = user.userLevelSelectedCalendars;
-
-  const selectedCalendars = eventTypeId ? eventTypeSelectedCalendars : userSelectedCalendars;
-
+  const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(userCredentials);
 
