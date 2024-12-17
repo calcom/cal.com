@@ -3420,16 +3420,19 @@
             }
           },
           {
-            "name": "calendarsToLoad",
-            "required": true,
+            "name": "credentialId",
             "in": "query",
-            "description": "An array of Calendar objects representing the calendars to be loaded",
-            "example": "[{ credentialId: \"1\", externalId: \"AQgtJE7RnHEeyisVq2ENs2gAAAgEGAAAACgtJE7RnHEeyisVq2ENs2gAAAhSDAAAA\" }, { credentialId: \"2\", externalId: \"AQM7RnHEeyisVq2ENs2gAAAhFDBBBBB\" }]",
+            "required": true,
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "type": "number"
+            }
+          },
+          {
+            "name": "externalId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -4843,7 +4846,7 @@
           },
           {
             "name": "eventTypeId",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Event Type ID for which slots are being fetched.",
             "example": 100,
@@ -4853,7 +4856,7 @@
           },
           {
             "name": "eventTypeSlug",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Slug of the event type for which slots are being fetched.",
             "schema": {
@@ -4862,7 +4865,7 @@
           },
           {
             "name": "usernameList",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
             "schema": {
@@ -4873,12 +4876,46 @@
             }
           },
           {
+            "name": "debug",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "duration",
-            "required": true,
+            "required": false,
             "in": "query",
             "description": "Only for dynamic events - length of returned slots.",
             "schema": {
               "type": "number"
+            }
+          },
+          {
+            "name": "rescheduleUid",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgSlug",
+            "required": false,
+            "in": "query",
+            "description": "Organization slug.",
+            "schema": {
+              "type": "string"
             }
           },
           {
@@ -5571,6 +5608,12 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           }
         },
         "required": [
@@ -5677,6 +5720,11 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           }
         },
         "required": ["email", "name"]
@@ -5733,16 +5781,28 @@
       "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
           "timeFormat": {
             "type": "number",
             "enum": [12, 24],
             "example": 12,
             "description": "Must be 12 or 24"
           },
+          "defaultScheduleId": {
+            "type": "number"
+          },
           "weekStart": {
             "type": "string",
             "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
             "example": "Monday"
+          },
+          "timeZone": {
+            "type": "string"
           },
           "locale": {
             "enum": [
@@ -5792,17 +5852,10 @@
             "type": "string",
             "example": "en"
           },
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "defaultScheduleId": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string"
+          "avatarUrl": {
+            "type": "string",
+            "example": "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+            "description": "URL of the user's avatar image"
           }
         }
       },
@@ -5839,7 +5892,36 @@
       },
       "CreateOAuthClientInput": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "logo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "redirectUris": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "permissions": {
+            "type": "number"
+          },
+          "bookingRedirectUri": {
+            "type": "string"
+          },
+          "bookingCancelRedirectUri": {
+            "type": "string"
+          },
+          "bookingRescheduleRedirectUri": {
+            "type": "string"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "redirectUris", "permissions"]
       },
       "DataDto": {
         "type": "object",
@@ -5961,7 +6043,6 @@
             "type": "string"
           },
           "redirectUris": {
-            "default": [],
             "type": "array",
             "items": {
               "type": "string"
@@ -6494,6 +6575,10 @@
             "type": "number",
             "description": "The number of bookings per year",
             "example": 4
+          },
+          "disabled": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
@@ -6924,6 +7009,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
@@ -6999,7 +7089,7 @@
               "unknown"
             ],
             "example": "integration",
-            "description": "only allowed value for type is `integration`"
+            "description": "Only allowed value for type is `integration`"
           },
           "integration": {
             "type": "string",
@@ -7039,10 +7129,12 @@
             "example": "cal-video"
           },
           "link": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com"
           },
           "credentialId": {
-            "type": "number"
+            "type": "number",
+            "description": "Credential ID associated with the integration"
           }
         },
         "required": ["type", "integration"]
@@ -7934,7 +8026,7 @@
             "description": "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "number"
             }
           },
           "title": {
@@ -8039,8 +8131,9 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "number",
-            "example": 60
+            "type": "object",
+            "example": 60,
+            "nullable": true
           },
           "minimumBookingNotice": {
             "type": "number",
@@ -8055,7 +8148,12 @@
             "example": 0
           },
           "recurrence": {
-            "type": "object"
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Recurrence_2024_06_14"
+              }
+            ]
           },
           "metadata": {
             "type": "object"
@@ -8070,22 +8168,27 @@
             "type": "boolean"
           },
           "seatsPerTimeSlot": {
-            "type": "object"
+            "type": "object",
+            "nullable": true
           },
           "forwardParamsSuccessRedirect": {
-            "type": "object"
+            "type": "object",
+            "nullable": true
           },
           "successRedirectUrl": {
-            "type": "object"
+            "type": "object",
+            "nullable": true
           },
           "isInstantEvent": {
             "type": "boolean"
           },
           "seatsShowAvailabilityCount": {
-            "type": "object"
+            "type": "boolean",
+            "nullable": true
           },
           "scheduleId": {
-            "type": "object"
+            "type": "number",
+            "nullable": true
           },
           "bookingLimitsCount": {
             "type": "object"
@@ -8160,43 +8263,21 @@
         "required": [
           "id",
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
           "locations",
           "bookingFields",
           "disableGuests",
-          "slotInterval",
-          "minimumBookingNotice",
-          "beforeEventBuffer",
-          "afterEventBuffer",
           "recurrence",
           "metadata",
           "price",
           "currency",
           "lockTimeZoneToggleOnBookingPage",
-          "seatsPerTimeSlot",
           "forwardParamsSuccessRedirect",
           "successRedirectUrl",
           "isInstantEvent",
-          "seatsShowAvailabilityCount",
           "scheduleId",
-          "bookingLimitsCount",
-          "onlyShowFirstAvailableSlot",
-          "bookingLimitsDuration",
-          "bookingWindow",
-          "bookerLayouts",
-          "confirmationPolicy",
-          "requiresBookerEmailVerification",
-          "hideCalendarNotes",
-          "color",
-          "seats",
-          "offsetStart",
-          "customName",
-          "destinationCalendar",
-          "useDestinationCalendarEmail",
-          "hideCalendarEventDetails",
           "ownerId",
           "users"
         ]
@@ -8485,6 +8566,11 @@
           },
           "hideCalendarEventDetails": {
             "type": "boolean"
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
         "required": ["lengthInMinutesOptions"]
@@ -8657,7 +8743,7 @@
             "default": "Sunday"
           }
         },
-        "required": ["id", "name"]
+        "required": ["id", "name", "isOrganization"]
       },
       "OrgTeamsOutputResponseDto": {
         "type": "object",
@@ -8712,13 +8798,19 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "description": "Team slug",
+            "example": "caltel"
           },
           "logoUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
           },
           "calVideoLogo": {
             "type": "string"
@@ -8733,8 +8825,7 @@
             "type": "string"
           },
           "hideBranding": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           },
           "isPrivate": {
             "type": "boolean"
@@ -8755,18 +8846,21 @@
             "type": "string"
           },
           "bannerUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
           },
           "timeFormat": {
             "type": "number"
           },
           "timeZone": {
             "type": "string",
-            "default": "Europe/London"
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
           },
           "weekStart": {
             "type": "string",
-            "default": "Sunday"
+            "example": "Monday"
           },
           "bookingLimits": {
             "type": "string"
@@ -8781,13 +8875,19 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Name of the team",
+            "example": "CalTeam"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "description": "Team slug",
+            "example": "caltel"
           },
           "logoUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+            "description": "URL of the teams logo image"
           },
           "calVideoLogo": {
             "type": "string"
@@ -8824,18 +8924,23 @@
             "type": "string"
           },
           "bannerUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
+            "description": "URL of the teams banner image which is shown on booker"
           },
           "timeFormat": {
             "type": "number"
           },
           "timeZone": {
             "type": "string",
-            "default": "Europe/London"
+            "default": "Europe/London",
+            "example": "America/New_York",
+            "description": "Timezone is used to create teams's default schedule from Monday to Friday from 9AM to 5PM. It will default to Europe/London if not passed."
           },
           "weekStart": {
             "type": "string",
-            "default": "Sunday"
+            "default": "Sunday",
+            "example": "Monday"
           },
           "autoAcceptCreator": {
             "type": "boolean",
@@ -8848,10 +8953,14 @@
         "type": "object",
         "properties": {
           "days": {
-            "type": "string",
+            "type": "array",
             "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
             "example": ["Monday", "Tuesday"],
-            "description": "Array of days when schedule is active."
+            "description": "Array of days when schedule is active.",
+            "items": {
+              "type": "string",
+              "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            }
           },
           "startTime": {
             "type": "string",
@@ -9381,15 +9490,16 @@
             "example": "https://example.com/avatar.jpg"
           },
           "organizationRole": {
-            "type": "object",
-            "default": "MEMBER"
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "ADMIN", "OWNER"]
           },
           "autoAccept": {
-            "type": "object",
+            "type": "boolean",
             "default": true
           }
         },
-        "required": ["email", "organizationRole", "autoAccept"]
+        "required": ["email"]
       },
       "GetOrganizationUserOutput": {
         "type": "object",
@@ -9412,10 +9522,6 @@
       "OrgMembershipOutputDto": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "id": {
             "type": "number"
           },
@@ -9428,11 +9534,15 @@
           "accepted": {
             "type": "boolean"
           },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted"]
+        "required": ["id", "userId", "teamId", "accepted", "role"]
       },
       "GetAllOrgMemberships": {
         "type": "object",
@@ -9451,11 +9561,6 @@
       "CreateOrgMembershipDto": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "userId": {
             "type": "number"
           },
@@ -9463,12 +9568,17 @@
             "type": "boolean",
             "default": false
           },
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean",
             "default": false
           }
         },
-        "required": ["role", "userId"]
+        "required": ["userId", "role"]
       },
       "CreateOrgMembershipOutput": {
         "type": "object",
@@ -9515,18 +9625,15 @@
       "UpdateOrgMembershipDto": {
         "type": "object",
         "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
-          "accepted": {
-            "type": "boolean",
-            "default": false
-          },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
@@ -9797,6 +9904,11 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
           "schedulingType": {
             "type": "object"
           },
@@ -9857,9 +9969,47 @@
           "name": {
             "type": "string",
             "example": "John Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png"
           }
         },
         "required": ["userId", "name"]
+      },
+      "EventTypeTeam": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          }
+        },
+        "required": ["id"]
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -9995,10 +10145,12 @@
           },
           "beforeEventBuffer": {
             "type": "number",
+            "minimum": 0,
             "example": 0
           },
           "afterEventBuffer": {
             "type": "number",
+            "minimum": 0,
             "example": 0
           },
           "recurrence": {
@@ -10105,8 +10257,7 @@
             "type": "boolean"
           },
           "teamId": {
-            "type": "number",
-            "nullable": true
+            "type": "number"
           },
           "ownerId": {
             "type": "number",
@@ -10130,6 +10281,9 @@
             "type": "string",
             "nullable": true,
             "enum": ["ROUND_ROBIN", "COLLECTIVE", "MANAGED"]
+          },
+          "team": {
+            "$ref": "#/components/schemas/EventTypeTeam"
           }
         },
         "required": [
@@ -10150,8 +10304,10 @@
           "successRedirectUrl",
           "isInstantEvent",
           "scheduleId",
+          "teamId",
           "hosts",
-          "schedulingType"
+          "schedulingType",
+          "team"
         ]
       },
       "GetTeamEventTypeOutput": {
@@ -10501,6 +10657,11 @@
           "hideCalendarEventDetails": {
             "type": "boolean"
           },
+          "successRedirectUrl": {
+            "type": "string",
+            "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
+            "example": "https://masterchief.com/argentina/flan/video/9129412"
+          },
           "hosts": {
             "type": "array",
             "items": {
@@ -10573,10 +10734,6 @@
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "id": {
             "type": "number"
           },
@@ -10589,6 +10746,10 @@
           "accepted": {
             "type": "boolean"
           },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean"
           },
@@ -10596,7 +10757,7 @@
             "$ref": "#/components/schemas/MembershipUserOutputDto"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted", "user"]
+        "required": ["id", "userId", "teamId", "accepted", "role", "user"]
       },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
@@ -10632,29 +10793,21 @@
       "UpdateOrgTeamMembershipDto": {
         "type": "object",
         "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
-          "accepted": {
-            "type": "boolean",
-            "default": false
-          },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
       "CreateOrgTeamMembershipDto": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "userId": {
             "type": "number"
           },
@@ -10662,12 +10815,17 @@
             "type": "boolean",
             "default": false
           },
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean",
             "default": false
           }
         },
-        "required": ["role", "userId"]
+        "required": ["userId", "role"]
       },
       "Attribute": {
         "type": "object",
@@ -10768,7 +10926,8 @@
             "type": "string"
           },
           "type": {
-            "type": "object"
+            "type": "string",
+            "enum": ["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]
           },
           "options": {
             "type": "array",
@@ -10806,7 +10965,8 @@
             "type": "string"
           },
           "type": {
-            "type": "object"
+            "type": "string",
+            "enum": ["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]
           },
           "enabled": {
             "type": "boolean"
@@ -11094,6 +11254,12 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
           "triggers": {
             "type": "string",
             "example": [
@@ -11127,17 +11293,11 @@
               "FORM_SUBMITTED_NO_EVENT"
             ]
           },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
-          },
           "secret": {
             "type": "string"
           }
         },
-        "required": ["triggers", "active", "subscriberUrl"]
+        "required": ["active", "subscriberUrl", "triggers"]
       },
       "TeamWebhookOutputResponseDto": {
         "type": "object",
@@ -11161,6 +11321,12 @@
             "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
             "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
           },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
           "triggers": {
             "type": "string",
             "example": [
@@ -11193,12 +11359,6 @@
               "AFTER_GUESTS_CAL_VIDEO_NO_SHOW",
               "FORM_SUBMITTED_NO_EVENT"
             ]
-          },
-          "active": {
-            "type": "boolean"
-          },
-          "subscriberUrl": {
-            "type": "string"
           },
           "secret": {
             "type": "string"
@@ -11963,7 +12123,7 @@
             }
           }
         },
-        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
+        "required": ["start", "eventTypeId", "attendee"]
       },
       "CreateInstantBookingInput_2024_08_13": {
         "type": "object",
@@ -12030,7 +12190,7 @@
             "example": true
           }
         },
-        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee", "instant"]
+        "required": ["start", "eventTypeId", "attendee", "instant"]
       },
       "CreateRecurringBookingInput_2024_08_13": {
         "type": "object",
@@ -12097,7 +12257,7 @@
             "example": 5
           }
         },
-        "required": ["start", "lengthInMinutes", "eventTypeId", "attendee"]
+        "required": ["start", "eventTypeId", "attendee"]
       },
       "BookingHost": {
         "type": "object",
@@ -12255,9 +12415,11 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
-          "attendees"
+          "attendees",
+          "bookingFieldsResponses"
         ]
       },
       "RecurringBookingOutput_2024_08_13": {
@@ -12384,9 +12546,11 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
           "attendees",
+          "bookingFieldsResponses",
           "recurringBookingUid"
         ]
       },
@@ -12396,6 +12560,10 @@
           "name": {
             "type": "string",
             "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
           },
           "timeZone": {
             "type": "string",
@@ -12471,7 +12639,7 @@
             }
           }
         },
-        "required": ["name", "timeZone", "absent", "seatUid"]
+        "required": ["name", "email", "timeZone", "absent", "seatUid", "bookingFieldsResponses"]
       },
       "CreateSeatedBookingOutput_2024_08_13": {
         "type": "object",
@@ -12583,6 +12751,7 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
           "seatUid",
@@ -12703,6 +12872,7 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
           "seatUid",
@@ -12850,6 +13020,7 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
           "attendees"
@@ -12965,6 +13136,7 @@
           "duration",
           "eventTypeId",
           "eventType",
+          "location",
           "absentHost",
           "createdAt",
           "attendees",
@@ -13125,20 +13297,12 @@
             "description": "Whether the host was absent"
           },
           "attendees": {
-            "description": "Toggle whether an attendee was absent or not.",
-            "example": [
-              {
-                "absent": true,
-                "email": "someone@gmail.com"
-              }
-            ],
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/Attendee"
             }
           }
-        },
-        "required": ["attendees"]
+        }
       },
       "MarkAbsentBookingOutput_2024_08_13": {
         "type": "object",
@@ -13227,11 +13391,6 @@
       "CreateTeamMembershipInput": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "userId": {
             "type": "number"
           },
@@ -13239,20 +13398,21 @@
             "type": "boolean",
             "default": false
           },
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean",
             "default": false
           }
         },
-        "required": ["role", "userId"]
+        "required": ["userId"]
       },
       "TeamMembershipOutput": {
         "type": "object",
         "properties": {
-          "role": {
-            "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
-          },
           "id": {
             "type": "number"
           },
@@ -13265,11 +13425,15 @@
           "accepted": {
             "type": "boolean"
           },
+          "role": {
+            "type": "string",
+            "enum": ["MEMBER", "OWNER", "ADMIN"]
+          },
           "disableImpersonation": {
             "type": "boolean"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted"]
+        "required": ["id", "userId", "teamId", "accepted", "role"]
       },
       "CreateTeamMembershipOutput": {
         "type": "object",
@@ -13316,18 +13480,15 @@
       "UpdateTeamMembershipInput": {
         "type": "object",
         "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
           "role": {
             "type": "string",
-            "default": "MEMBER",
             "enum": ["MEMBER", "OWNER", "ADMIN"]
           },
-          "accepted": {
-            "type": "boolean",
-            "default": false
-          },
           "disableImpersonation": {
-            "type": "boolean",
-            "default": false
+            "type": "boolean"
           }
         }
       },
@@ -13667,7 +13828,6 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": ["success", "error"]
           },
           "data": {
@@ -13692,7 +13852,6 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": ["success", "error"]
           },
           "data": {
