@@ -110,21 +110,7 @@ export function transformApiTeamEventTypeForAtom(
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const {
-    lengthInMinutes,
-    locations,
-    hosts,
-    bookingFields,
-    recurrence,
-    teamName,
-    logoUrl,
-    teamSlug,
-    weekStart,
-    brandColor,
-    darkBrandColor,
-    theme,
-    ...rest
-  } = eventType;
+  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, team, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -145,15 +131,16 @@ export function transformApiTeamEventTypeForAtom(
     isDefault,
     isDynamic: false,
     profile: {
-      username: "team",
-      name: teamName,
-      weekStart: weekStart ?? "Sunday",
-      image: logoUrl,
-      brandColor: brandColor ?? null,
-      darkBrandColor: darkBrandColor ?? null,
-      theme: theme ?? null,
+      username: team?.slug ?? "team",
+      name: team?.name,
+      weekStart: team?.weekStart ?? "Sunday",
+      image: team?.logoUrl,
+      brandColor: team?.brandColor ?? null,
+      darkBrandColor: team?.darkBrandColor ?? null,
+      theme: team?.theme ?? null,
       bookerLayouts,
     },
+    bannerUrl: team?.bannerUrl,
     entity: entity
       ? {
           ...entity,
@@ -167,9 +154,9 @@ export function transformApiTeamEventTypeForAtom(
           fromRedirectOfNonOrgLink: true,
           considerUnpublished: false,
           orgSlug: null,
-          teamSlug: teamSlug,
-          name: teamName,
-          logoUrl: logoUrl,
+          teamSlug: team?.slug,
+          name: team?.name,
+          logoUrl: team?.logoUrl,
         },
     hosts: hosts.map((host) => ({
       user: {

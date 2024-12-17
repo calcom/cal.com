@@ -7,6 +7,7 @@ import {
   IsBoolean,
   IsEnum,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -419,6 +420,23 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @DocsProperty()
   hideCalendarEventDetails?: boolean;
 
+  @IsObject()
+  @IsOptional()
+  @DocsProperty()
+  team!: Team | null;
+}
+
+class Team {
+  @IsInt()
+  @IsOptional()
+  @DocsProperty()
+  id?: number | null;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  slug?: string;
+
   @IsString()
   @IsOptional()
   @DocsProperty()
@@ -427,17 +445,12 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @IsString()
   @IsOptional()
   @DocsProperty()
-  teamName?: string;
+  name?: string;
 
   @IsString()
   @IsOptional()
   @DocsProperty()
   logoUrl?: string;
-
-  @IsString()
-  @IsOptional()
-  @DocsProperty()
-  teamSlug?: string;
 
   @IsString()
   @IsOptional()
