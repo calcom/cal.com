@@ -444,17 +444,15 @@ export default class SalesforceCRMService implements CRM {
           });
         }
 
-        if (ownerIds.size === 0) {
-          log.warn("No owner IDs found for records");
-          return [];
-        }
-
-        const ownersQuery = await Promise.all(
-          Array.from(ownerIds).map(async (ownerId) => {
-            const result = await this.getSalesforceUserFromUserId(ownerId);
-            return result;
-          })
-        );
+        const ownersQuery =
+          ownerIds.size > 0
+            ? await Promise.all(
+                Array.from(ownerIds).map(async (ownerId) => {
+                  const result = await this.getSalesforceUserFromUserId(ownerId);
+                  return result;
+                })
+              )
+            : [];
 
         // Filter out any undefined results and ensure records exist
         const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
@@ -466,14 +464,9 @@ export default class SalesforceCRMService implements CRM {
           );
         });
 
-        if (validOwnersQuery.length === 0) {
-          log.warn("No valid owner records found");
-          return [];
-        }
-
         return records
           .map((record) => {
-            if (!record?.Id || !record?.OwnerId) {
+            if (!record?.Id) {
               log.warn("Invalid record data", { record });
               return null;
             }
@@ -481,11 +474,6 @@ export default class SalesforceCRMService implements CRM {
             const ownerEmail = accountOwnerId
               ? validOwnersQuery[0]?.records[0]?.Email
               : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
-
-            if (!ownerEmail) {
-              log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
-              return null;
-            }
 
             return {
               id: record.Id,
