@@ -10884,6 +10884,39 @@
           "name"
         ]
       },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          }
+        }
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -11162,29 +11195,13 @@
               "MANAGED"
             ]
           },
-          "bannerUrl": {
-            "type": "string"
-          },
-          "teamName": {
-            "type": "string"
-          },
-          "logoUrl": {
-            "type": "string"
-          },
-          "teamSlug": {
-            "type": "string"
-          },
-          "weekStart": {
-            "type": "string"
-          },
-          "brandColor": {
-            "type": "string"
-          },
-          "darkBrandColor": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string"
+          "team": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Team"
+              }
+            ]
           }
         },
         "required": [
@@ -11206,7 +11223,8 @@
           "isInstantEvent",
           "scheduleId",
           "hosts",
-          "schedulingType"
+          "schedulingType",
+          "team"
         ]
       },
       "GetTeamEventTypeOutput": {
