@@ -201,6 +201,27 @@ test("Calendar Cache is being ignored on cache MISS", async () => {
   expect(cachedAvailability).toBeNull();
 });
 
+async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
+  const caches = await prismock.calendarCache.findMany({
+    where: {
+      credentialId,
+    },
+  });
+
+  expect(caches).toHaveLength(0);
+}
+
+async function expectCacheToBeSet({ credentialId }: { credentialId: number }) {
+  const caches = await prismock.calendarCache.findMany({
+    where: {
+      credentialId,
+    },
+  });
+
+  expect(caches).toHaveLength(1);
+  console.log(caches[0]);
+}
+
 describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
     const credentialInDb1 = await createCredentialInDb();
@@ -302,6 +323,8 @@ describe("Watching and unwatching calendar", () => {
       eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
     });
 
+    expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
+    // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
     await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
       googleChannelId: "mock-channel-id",
       googleChannelKind: "api#channel",
@@ -309,12 +332,30 @@ describe("Watching and unwatching calendar", () => {
       googleChannelResourceUri: "mock-resource-uri",
       googleChannelExpiration: "1111111111",
     });
-    expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
   });
 
   test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
     const credentialInDb1 = await createCredentialInDb();
     const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+
+    const concernedCache = await prismock.calendarCache.create({
+      data: {
+        key: "test-key",
+        value: "test-value",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: credentialInDb1.id,
+      },
+    });
+
+    const someOtherCache = await prismock.calendarCache.create({
+      data: {
+        key: "test-key-2",
+        value: "test-value-2",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: 999,
+      },
+    });
+
     const googleChannelProps = {
       googleChannelId: "test-channel-id",
       googleChannelKind: "api#channel",
@@ -366,6 +407,11 @@ describe("Watching and unwatching calendar", () => {
         channelId: "test-channel-id",
       },
     ]);
+
+    // Concerned cache is deleted
+    expectCacheToBeNotSet({ credentialId: concernedCache.credentialId });
+    expectCacheToBeSet({ credentialId: someOtherCache.credentialId });
+
     await expectSelectedCalendarToNotHaveGoogleChannelProps(eventTypeLevelCalendar.id);
 
     // Some other selectedCalendar stays unaffected

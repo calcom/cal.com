@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
+import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -29,8 +30,10 @@ function getTimeMax(timeMax: string) {
 
 export function parseKeyForCache(args: FreeBusyArgs): string {
   const { timeMin: _timeMin, timeMax: _timeMax, items } = args;
+  // Ensure that calendarIds are unique
+  const uniqueItems = uniqueBy(items, ["id"]);
   const { timeMin, timeMax } = handleMinMax(_timeMin, _timeMax);
-  const key = JSON.stringify({ timeMin, timeMax, items });
+  const key = JSON.stringify({ timeMin, timeMax, items: uniqueItems });
   return key;
 }
 

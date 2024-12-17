@@ -1,5 +1,4 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { uniqueBy } from "@calcom/lib/array";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -29,7 +28,8 @@ const getCalendarsEvents = async (
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
-    const passedSelectedCalendars = uniqueBy(selectedCalendars, ["externalId", "integration"])
+    // Important to have them unique so that
+    const passedSelectedCalendars = selectedCalendars
       .filter((sc) => sc.integration === type)
       // Needed to ensure cache keys are consistent
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
