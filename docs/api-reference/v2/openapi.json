@@ -5271,6 +5271,245 @@
         "tags": ["Teams"]
       }
     },
+    "/v2/teams/{teamId}/event-types": {
+      "post": {
+        "operationId": "TeamsEventTypesController_createTeamEventType",
+        "summary": "Create an event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesController_getTeamEventTypes",
+        "summary": "Get a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": false,
+            "in": "query",
+            "description": "Slug of team event type to return.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}": {
+      "get": {
+        "operationId": "TeamsEventTypesController_getTeamEventType",
+        "summary": "Get an event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      },
+      "patch": {
+        "operationId": "TeamsEventTypesController_updateTeamEventType",
+        "summary": "Update a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesController_deleteTeamEventType",
+        "summary": "Delete a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
+      "post": {
+        "operationId": "TeamsEventTypesController_createPhoneCall",
+        "summary": "Create a phone call",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhoneCallInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePhoneCallOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Teams / Event Types"]
+      }
+    },
     "/v2/teams/{teamId}/memberships": {
       "post": {
         "operationId": "TeamsMembershipsController_createTeamMembership",
