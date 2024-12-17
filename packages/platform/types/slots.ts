@@ -32,43 +32,48 @@ export class GetAvailableSlotsInput {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
-  @ApiProperty({ description: "Event Type ID for which slots are being fetched.", example: 100 })
+  @ApiPropertyOptional({ description: "Event Type ID for which slots are being fetched.", example: 100 })
   eventTypeId?: number;
 
   @IsString()
   @IsOptional()
-  @ApiProperty({ description: "Slug of the event type for which slots are being fetched." })
+  @ApiPropertyOptional({ description: "Slug of the event type for which slots are being fetched." })
   eventTypeSlug?: string;
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
+    type: [String],
     description: "Only for dynamic events - list of usernames for which slots are being fetched.",
   })
   usernameList?: string[];
 
   @IsBoolean()
   @IsOptional()
+  @ApiPropertyOptional()
   debug?: boolean;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @IsOptional()
   @Min(1, { message: "Duration must be a positive number" })
-  @ApiProperty({ description: "Only for dynamic events - length of returned slots." })
+  @ApiPropertyOptional({ description: "Only for dynamic events - length of returned slots." })
   duration?: number;
 
   @IsOptional()
   @IsString()
+  @ApiPropertyOptional({ type: String, nullable: true })
   rescheduleUid?: string | null;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional()
   timeZone?: string;
 
   @IsString()
   @IsOptional()
+  @ApiPropertyOptional({ description: "Organization slug." })
   orgSlug?: string;
 
   @IsString()

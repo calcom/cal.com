@@ -1,6 +1,6 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
@@ -15,7 +15,7 @@ import { SchedulingType } from "@calcom/prisma/client";
 export class InputOrganizationsEventTypesService {
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
@@ -167,7 +167,7 @@ export class InputOrganizationsEventTypesService {
     eventType: { children: { userId: number | null }[] } | null
   ) {
     if (inputEventType.assignAllTeamMembers) {
-      return await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+      return await this.teamsRepository.getTeamMembersIds(teamId);
     }
 
     // note(Lauris): when API user updates managed event type users
@@ -195,7 +195,7 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getAllTeamMembers(teamId: number, schedulingType: SchedulingType | null) {
-    const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+    const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
     const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
     return membersIds.map((id) => ({
@@ -227,7 +227,7 @@ export class InputOrganizationsEventTypesService {
 
   async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
     if (hosts && hosts.length) {
-      const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+      const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
       const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
       if (invalidHosts.length) {
         throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
