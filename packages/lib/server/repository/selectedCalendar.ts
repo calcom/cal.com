@@ -115,4 +115,25 @@ export class SelectedCalendarRepository {
       },
     });
   }
+  static async findByExternalId(credentialId: number, externalId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        credentialId,
+        externalId,
+      },
+      select: {
+        googleChannelResourceId: true,
+        googleChannelId: true,
+        credential: {
+          select: {
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 }
