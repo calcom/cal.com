@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "חזור והקצה",
   "leave_without_assigning": "עזוב מבלי להקצות",
   "signing_up_terms": "המשך מהווה את הסכמתך ל<1>תנאים</1> ול<2>מדיניות הפרטיות</2> שלנו.",
+  "proceeding_agreement": "בהמשך התהליך, הנך מסכים/ה ל",
+  "terms": "תנאי השימוש",
   "always_show_x_days": "תמיד {{x}} ימים זמינים",
   "unable_to_subscribe_to_the_platform": "אירעה שגיאה בעת ניסיון להירשם לתוכנית הפלטפורמה, אנא נסה שוב מאוחר יותר",
   "updating_oauth_client_error": "אירעה שגיאה בעת עדכון לקוח ה-OAuth, אנא נסה שוב מאוחר יותר",

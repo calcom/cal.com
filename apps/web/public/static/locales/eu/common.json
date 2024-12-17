@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Itzuli eta esleitu",
   "leave_without_assigning": "Irten esleitu gabe",
   "signing_up_terms": "Aurrera jarraituz gero, gure <0>Baldintzak</0> eta <1>Privacy Policy</1>-arekin ados zaude",
+  "proceeding_agreement": "Jarraituz gero, gure honekin ados zaudela adierazten duzu",
+  "terms": "Baldintzak",
   "always_show_x_days": "Beti {{x}} egun erabilgarri",
   "unable_to_subscribe_to_the_platform": "Errore bat gertatu da plataformaren planera harpidetzen saiatzean, saiatu berriro geroago",
   "updating_oauth_client_error": "Errore bat gertatu da OAuth bezeroa eguneratzean, saiatu berriro geroago",

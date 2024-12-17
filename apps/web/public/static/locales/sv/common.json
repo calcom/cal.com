@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Gå tillbaka och tilldela",
   "leave_without_assigning": "Lämna utan att tilldela",
   "signing_up_terms": "Genom att fortsätta godkänner du våra <0>användarvillkor</0> och vår <1>integritetspolicy</1>",
+  "proceeding_agreement": "Genom att fortsätta godkänner du våra",
+  "terms": "Villkor",
   "always_show_x_days": "Visa alltid {{x}} dagar tillgängliga",
   "unable_to_subscribe_to_the_platform": "Ett fel uppstod vid försök att prenumerera på plattformen, försök igen senare",
   "updating_oauth_client_error": "Ett fel uppstod vid uppdatering av OAuth-klienten, försök igen senare",

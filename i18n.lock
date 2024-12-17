@@ -2649,6 +2649,8 @@ checksums:
     go_back_and_assign: c1ee741d4d3eee36fb2d7030aa47e0b9
     leave_without_assigning: a4004aeb23a463fa1e457683470661bb
     signing_up_terms: 968882850d9c83de77906c78f1e68068
+    proceeding_agreement: ee92983ae1f9fe1ecd3fe0f5e28761db
+    terms: c531b88ecfe7dd2337a34f4a9ed18a5f
     always_show_x_days: a37d937d9387b7df0a32bcd89b9c346a
     unable_to_subscribe_to_the_platform: 13bcc85e03aff904d15b41ee85f0043f
     updating_oauth_client_error: c465cc13dac8de9dd2d4ac3f034fcc68

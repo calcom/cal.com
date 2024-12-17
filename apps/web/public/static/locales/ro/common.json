@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Întoarce-te și Atribuie",
   "leave_without_assigning": "Părăsește fără a atribui",
   "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate<1>",
+  "proceeding_agreement": "Continuând, sunteți de acord cu",
+  "terms": "Termenii",
   "always_show_x_days": "Întotdeauna {{x}} zile disponibile",
   "unable_to_subscribe_to_the_platform": "A apărut o eroare în timpul încercării de a te abona la planul platformei, te rugăm să încerci din nou mai târziu",
   "updating_oauth_client_error": "A apărut o eroare în timpul actualizării clientului OAuth, te rugăm să încerci din nou mai târziu",

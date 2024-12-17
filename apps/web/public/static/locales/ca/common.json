@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Torna i assigna",
   "leave_without_assigning": "Sortir sense assignar",
   "signing_up_terms": "En procedir, accepteu els nostres <0>Termes</0> i <1>Política de privacitat</1>",
+  "proceeding_agreement": "En continuar, acceptes les nostres",
+  "terms": "Condicions",
   "always_show_x_days": "Sempre {{x}} dies disponibles",
   "unable_to_subscribe_to_the_platform": "S'ha produït un error en intentar subscriure's al pla de la plataforma, torna-ho a provar més tard",
   "updating_oauth_client_error": "S'ha produït un error en actualitzar el client OAuth, torna-ho a provar més tard",

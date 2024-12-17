@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Geri dön ve Ata",
   "leave_without_assigning": "Atama yapmadan ayrıl",
   "signing_up_terms": "Devam ederek <0>Şartlar</0> ve <1>Gizlilik Politikası<1>'nı kabul etmiş olursunuz",
+  "proceeding_agreement": "Devam ederek",
+  "terms": "Koşullarımızı",
   "always_show_x_days": "Her zaman {{x}} gün mevcut",
   "unable_to_subscribe_to_the_platform": "Platform planına abone olmaya çalışırken bir hata oluştu, lütfen daha sonra tekrar deneyin",
   "updating_oauth_client_error": "OAuth istemcisini güncellerken bir hata oluştu, lütfen daha sonra tekrar deneyin",

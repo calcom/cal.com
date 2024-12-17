@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Volver y asignar",
   "leave_without_assigning": "Salir sin asignar",
   "signing_up_terms": "Al continuar, acepta nuestras <0>condiciones de uso</0> y nuestra <1>política de privacidad</1>.",
+  "proceeding_agreement": "Al continuar, aceptas nuestros",
+  "terms": "Términos",
   "always_show_x_days": "Siempre {{x}} días disponibles",
   "unable_to_subscribe_to_the_platform": "Ocurrió un error al intentar suscribirse al plan de la plataforma, por favor intente de nuevo más tarde",
   "updating_oauth_client_error": "Ocurrió un error al actualizar el cliente OAuth, por favor intente de nuevo más tarde",

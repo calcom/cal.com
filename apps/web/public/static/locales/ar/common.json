@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "العودة والتعيين",
   "leave_without_assigning": "اترك بدون تعيين",
   "signing_up_terms": "بالمتابعة فإنك توافق على <1>الشروط</1> و <2>سياسة الخصوصية</2> الخاصة بنا.",
+  "proceeding_agreement": "بالمتابعة، فإنك توافق على",
+  "terms": "الشروط",
   "always_show_x_days": "دائمًا {{x}} أيام متاحة",
   "unable_to_subscribe_to_the_platform": "حدث خطأ أثناء محاولة الاشتراك في خطة المنصة، يرجى المحاولة مرة أخرى لاحقًا",
   "updating_oauth_client_error": "حدث خطأ أثناء تحديث عميل OAuth، يرجى المحاولة مرة أخرى لاحقًا",

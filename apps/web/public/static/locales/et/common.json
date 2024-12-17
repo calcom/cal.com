@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Mine tagasi ja määrake",
   "leave_without_assigning": "Lahku määramata",
   "signing_up_terms": "Jätkamisel nõustute meie <0>tingimuste</0> ja <1>privaatsuspoliitikaga</1>.",
+  "proceeding_agreement": "Jätkates nõustute meie",
+  "terms": "Tingimustega",
   "always_show_x_days": "Alati {{x}} päeva saadaval",
   "unable_to_subscribe_to_the_platform": "Platvormipaketi tellimisel ilmnes viga, proovige hiljem uuesti",
   "updating_oauth_client_error": "OAuthi kliendi värskendamisel ilmnes viga, proovige hiljem uuesti",

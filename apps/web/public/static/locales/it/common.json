@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Torna indietro ed effettua assegnazione",
   "leave_without_assigning": "Esci senza assegnazioni",
   "signing_up_terms": "Proseguendo, accetti i nostri <0>Termini</0> e l'<1>Informativa sulla privacy</1>.",
+  "proceeding_agreement": "Procedendo, accetti i nostri",
+  "terms": "Termini",
   "always_show_x_days": "Sempre {{x}} giorni disponibili",
   "unable_to_subscribe_to_the_platform": "Si è verificato un errore durante il tentativo di abbonamento al piano Platform, riprova più tardi",
   "updating_oauth_client_error": "Si è verificato un errore durante l'aggiornamento del client OAuth, riprova più tardi",

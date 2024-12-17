@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "돌아가서 할당하기",
   "leave_without_assigning": "할당하지 않고 나가기",
   "signing_up_terms": "계속 진행하면 <0>약관</0> 및 <1>개인정보 보호정책<1>에 동의하는 것입니다.",
+  "proceeding_agreement": "계속 진행하시면 당사의",
+  "terms": "이용약관",
   "always_show_x_days": "항상 {{x}}일 사용 가능",
   "unable_to_subscribe_to_the_platform": "플랫폼 플랜 구독 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",
   "updating_oauth_client_error": "OAuth 클라이언트 업데이트 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.",

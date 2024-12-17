@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Vrátiť sa a priradiť",
   "leave_without_assigning": "Odísť bez priradenia",
   "signing_up_terms": "Pokračovaním súhlasíte s našimi <0>Podmienkami</0> a <1>Zásadami ochrany osobných údajov</1>.",
+  "proceeding_agreement": "Pokračovaním súhlasíte s našimi",
+  "terms": "Podmienkami",
   "always_show_x_days": "Vždy {{x}} dní dostupných",
   "unable_to_subscribe_to_the_platform": "Pri pokuse o prihlásenie na odber plánu platformy došlo k chybe, skúste to prosím neskôr",
   "updating_oauth_client_error": "Pri aktualizácii OAuth klienta došlo k chybe, skúste to prosím neskôr",

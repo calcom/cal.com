@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Geri qayıdın və Təyin edin",
   "leave_without_assigning": "Təyin etmədən çıxın",
   "signing_up_terms": "Davam etməklə, <0>Şərtlərimizə</0> və <1>Məxfilik Siyasətimizə</1> razı olduğunuzu qəbul edirsiniz.",
+  "proceeding_agreement": "Davam etməklə, bizim",
+  "terms": "Şərtlər",
   "always_show_x_days": "Həmişə {{x}} gün mövcuddur",
   "unable_to_subscribe_to_the_platform": "Platforma planına abunə olmağa çalışarkən bir səhv baş verdi, zəhmət olmasa bir az sonra yenidən cəhd edin",
   "updating_oauth_client_error": "OAuth müştərisini yeniləyərkən bir səhv baş verdi, zəhmət olmasa bir az sonra yenidən cəhd edin",

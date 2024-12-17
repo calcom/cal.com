@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Menjen vissza és rendeljen hozzá",
   "leave_without_assigning": "Elhagyás hozzárendelés nélkül",
   "signing_up_terms": "Folytatva elfogadja a <0>Felhasználási feltételeinket</0> és a <1>Adatvédelmi szabályzatunkat</1>",
+  "proceeding_agreement": "A folytatással elfogadod a",
+  "terms": "Feltételeinket",
   "always_show_x_days": "Mindig {{x}} nap áll rendelkezésre",
   "unable_to_subscribe_to_the_platform": "Hiba történt a platformcsomagra való előfizetés során. Kérjük, próbálja újra később",
   "updating_oauth_client_error": "Hiba történt az OAuth-kliens frissítésekor. Kérjük, próbálja újra később",

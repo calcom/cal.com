@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Zurück und zuweisen",
   "leave_without_assigning": "Ohne Zuordnung verlassen",
   "signing_up_terms": "Indem Sie fortfahren, stimmen Sie unseren <0>Nutzungsbedingungen</0> und unserer <1>Datenschutzerklärung</1> zu.",
+  "proceeding_agreement": "Indem Sie fortfahren, stimmen Sie unseren",
+  "terms": "Nutzungsbedingungen",
   "always_show_x_days": "Immer für {{x}} Tage verfügbar",
   "unable_to_subscribe_to_the_platform": "Beim Abonnieren des Platform-Plans ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut",
   "updating_oauth_client_error": "Beim Aktualisieren des OAuth-Clients ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut",

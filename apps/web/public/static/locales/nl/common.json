@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "Ga terug en wijs toe",
   "leave_without_assigning": "Vertrekken zonder toe te wijzen",
   "signing_up_terms": "Door verder te gaan, ga je akkoord met onze <0>Voorwaarden</0> en <1>Privacybeleid</1>.",
+  "proceeding_agreement": "Door verder te gaan ga je akkoord met onze",
+  "terms": "Voorwaarden",
   "always_show_x_days": "Altijd {{x}} dagen beschikbaar",
   "unable_to_subscribe_to_the_platform": "Er is een fout opgetreden bij het proberen te abonneren op het platformplan, probeer het later opnieuw",
   "updating_oauth_client_error": "Er is een fout opgetreden bij het bijwerken van de OAuth-client, probeer het later opnieuw",

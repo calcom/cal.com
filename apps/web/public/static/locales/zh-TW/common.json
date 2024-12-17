@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "返回並分配",
   "leave_without_assigning": "不分配就離開",
   "signing_up_terms": "继续使用，即表示您同意我们的<0>使用条款</0>和<1>隐私政策</1>",
+  "proceeding_agreement": "繼續即表示您同意我們的",
+  "terms": "條款",
   "always_show_x_days": "總是顯示 {{x}} 天的可用時間",
   "unable_to_subscribe_to_the_platform": "嘗試訂閱平台計劃時發生錯誤，請稍後再試",
   "updating_oauth_client_error": "更新 OAuth 客戶端時發生錯誤，請稍後再試",

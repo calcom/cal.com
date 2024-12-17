@@ -2647,6 +2647,8 @@
   "go_back_and_assign": "戻って割り当てる",
   "leave_without_assigning": "割り当てせずに退出",
   "signing_up_terms": "次に進むことで、<0>利用規約</0>と<1>プライバシーポリシー</1>に同意したことになります",
+  "proceeding_agreement": "続行することで、当社の",
+  "terms": "利用規約",
   "always_show_x_days": "常に{{x}}日間利用可能",
   "unable_to_subscribe_to_the_platform": "プラットフォームプランの登録中にエラーが発生しました。後でもう一度お試しください。",
   "updating_oauth_client_error": "OAuthクライアントの更新中にエラーが発生しました。後でもう一度お試しください。",
