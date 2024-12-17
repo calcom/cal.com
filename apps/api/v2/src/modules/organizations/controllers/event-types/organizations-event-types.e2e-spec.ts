@@ -235,6 +235,7 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
+        successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
         title: "Coding consultation collective",
         slug: "coding-consultation collective",
         description: "Our team will review your codebase.",
@@ -334,7 +335,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.hideCalendarEventDetails).toEqual(body.hideCalendarEventDetails);
           expect(data.lockTimeZoneToggleOnBookingPage).toEqual(body.lockTimeZoneToggleOnBookingPage);
           expect(data.color).toEqual(body.color);
-
+          expect(data.successRedirectUrl).toEqual("https://masterchief.com/argentina/flan/video/1234");
           collectiveEventType = responseBody.data;
         });
     });
@@ -496,6 +497,7 @@ describe("Organizations Event Types Endpoints", () => {
 
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success.com",
       };
 
       return request(app.getHttpServer())
@@ -507,6 +509,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const eventType = responseBody.data;
+          expect(eventType.successRedirectUrl).toEqual("https://new-url-success.com");
           expect(eventType.title).toEqual(collectiveEventType.title);
           expect(eventType.hosts.length).toEqual(1);
           evaluateHost(eventType.hosts[0], newHosts[0]);
@@ -526,6 +529,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         title: newTitle,
         hosts: newHosts,
+        successRedirectUrl: "https://new-url-success-managed.com",
       };
 
       return request(app.getHttpServer())
@@ -569,6 +573,7 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate1Event?.title).toEqual(newTitle);
 
           managedEventType = responseBody.data[0];
+          expect(managedEventType.successRedirectUrl).toEqual("https://new-url-success-managed.com");
         });
     });
 
