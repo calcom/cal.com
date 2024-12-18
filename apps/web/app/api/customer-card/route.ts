@@ -147,7 +147,7 @@ export async function handler(request: Request) {
                 rowAsideContent: [
                   {
                     componentText: {
-                      text: user.id || "Unknown",
+                      text: "Unknown",
                     },
                   },
                 ],
