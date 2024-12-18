@@ -57,7 +57,7 @@ export class SelectedCalendarRepository {
     });
   }
 
-  static async findById(id: number) {
+  static async findById(id: string) {
     return await prisma.selectedCalendar.findUnique({ where: { id } });
   }
 
