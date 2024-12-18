@@ -79,7 +79,7 @@ describe("POST /api/selected-calendars", () => {
         integration: "google",
         externalId: "ext123",
         userId: 444444,
-        id: 1,
+        id: "xxx-xxx",
         eventTypeId: null,
         domainWideDelegationCredentialId: null,
         googleChannelId: null,
@@ -112,7 +112,7 @@ describe("POST /api/selected-calendars", () => {
       req.userId = 333333;
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
-        id: 1,
+        id: "xxx-xxx",
         credentialId: 1,
         integration: "google",
         externalId: "ext123",

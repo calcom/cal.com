@@ -248,20 +248,23 @@ describe("Watching and unwatching calendar", () => {
       },
     });
 
-    expect(watchedCalendar).toEqual({
-      userId: 1,
-      eventTypeId: null,
-      id: 1,
-      integration: "google_calendar",
-      externalId: "example@cal.com",
-      credentialId: 1,
-      domainWideDelegationCredentialId: null,
-      googleChannelId: "mock-channel-id",
-      googleChannelKind: "api#channel",
-      googleChannelResourceId: "mock-resource-id",
-      googleChannelResourceUri: "mock-resource-uri",
-      googleChannelExpiration: "1111111111",
-    });
+    expect(watchedCalendar).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        domainWideDelegationCredentialId: null,
+        googleChannelId: "mock-channel-id",
+        googleChannelKind: "api#channel",
+        googleChannelResourceId: "mock-resource-id",
+        googleChannelResourceUri: "mock-resource-uri",
+        googleChannelExpiration: "1111111111",
+      })
+    );
+
+    expect(watchedCalendar?.id).toBeDefined();
 
     await calendarCache.unwatchCalendar({
       calendarId: testSelectedCalendar.externalId,
@@ -275,21 +278,22 @@ describe("Watching and unwatching calendar", () => {
       },
     });
 
-    expect(calendarAfterUnwatch).toEqual({
-      userId: 1,
-      eventTypeId: null,
-      id: 1,
-      integration: "google_calendar",
-      externalId: "example@cal.com",
-      credentialId: 1,
-      domainWideDelegationCredentialId: null,
-      googleChannelId: null,
-      googleChannelKind: null,
-      googleChannelResourceId: null,
-      googleChannelResourceUri: null,
-      googleChannelExpiration: null,
-<<<<<<< HEAD
-    });
+    expect(calendarAfterUnwatch).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        domainWideDelegationCredentialId: null,
+        googleChannelId: null,
+        googleChannelKind: null,
+        googleChannelResourceId: null,
+        googleChannelResourceUri: null,
+        googleChannelExpiration: null,
+      })
+    );
+    expect(calendarAfterUnwatch?.id).toBeDefined();
   });
 
   test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
@@ -509,12 +513,6 @@ test("fetchAvailabilityAndSetCache should fetch and cache availability for selec
     }),
     mockAvailabilityData
   );
-=======
-    })
-  );
-
-  expect(unWatchedCalendar?.id).toBeDefined();
->>>>>>> origin/chore/add-and-prefill-existing-selected-calendar-uuids
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {
