@@ -12,7 +12,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     const testOnboarding = (identityProvider: IdentityProvider) => {
-      test(`Onboarding Flow`, async ({ page, users }) => {
+      test(`Onboarding Flow - ${identityProvider} user`, async ({ page, users }) => {
         const user = await users.create({
           completedOnboarding: false,
           name: null,
