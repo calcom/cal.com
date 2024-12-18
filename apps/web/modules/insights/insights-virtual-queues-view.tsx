@@ -1,32 +1,39 @@
 "use client";
 
-//import { OrderedHostListWithData } from "@calcom/app-store/routing-forms/components/SingleForm";
+import { useState } from "react";
+
+import { TestForm } from "@calcom/app-store/routing-forms/components/SingleForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
+import { Label, Select } from "@calcom/ui";
 
 import InsightsLayout from "./layout";
 
 export default function InsightsVirtualQueuesPage() {
   const { t } = useLocale();
+  const { data: routingForms, isLoading: isRoutingFormsLoading } =
+    trpc.viewer.insights.getUserRelevantTeamRoutingForms.useQuery();
 
-  // todo: dropdown to pick routing forms
-  // const { data, isLoading: isHeadersLoading } = trpc.viewer.insights.virtualQueues.useQuery({
-  //   routingFormId: "948ae412-d995-4865-885a-48302588de03",
-  // });
+  const [selectedForm, setSelectedForm] = useState<RoutingForm>();
 
-  // if (data) {
   return (
     <InsightsLayout>
-      <>test</>
-      {/* {data.map((virtualQueue, index) => (
-          <OrderedHostListWithData
-            key={index}
-            perUserData={virtualQueue.perUserData}
-            matchingMembers={virtualQueue.matchingMembers}
-          />
-        ))} */}
+      <Label>{t("routing_form")}</Label>
+      <Select
+        placeholder="Select project"
+        options={routingForms?.map((form) => ({ label: form.name, value: form.id })) ?? []}
+        isLoading={isRoutingFormsLoading}
+        className="w-60"
+        onChange={(e) => {
+          setSelectedForm(e?.value);
+        }}
+        value={
+          routingForms ? { label: routingForms[0].name, value: routingForms[0].id } : { label: "", id: 0 }
+        }
+      />
+      {selectedForm ? <TestForm form={selectedForm} /> : <></>}
     </InsightsLayout>
   );
-  // }
 
   return <></>;
 }
