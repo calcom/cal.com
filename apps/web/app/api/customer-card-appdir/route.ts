@@ -25,7 +25,7 @@ export async function handler(request: Request) {
   // HMAC verification
   const requestBody = await request.json();
   const incomingSignature = headersList.get("plain-request-signature");
-  const expectedSignature = createHmac("sha-256", process.env.HMAC_SECRET_KEY!)
+  const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
     .update(JSON.stringify(requestBody))
     .digest("hex");
 
