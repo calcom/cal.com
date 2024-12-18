@@ -288,6 +288,7 @@ describe("Watching and unwatching calendar", () => {
       googleChannelResourceId: null,
       googleChannelResourceUri: null,
       googleChannelExpiration: null,
+<<<<<<< HEAD
     });
   });
 
@@ -508,6 +509,12 @@ test("fetchAvailabilityAndSetCache should fetch and cache availability for selec
     }),
     mockAvailabilityData
   );
+=======
+    })
+  );
+
+  expect(unWatchedCalendar?.id).toBeDefined();
+>>>>>>> origin/chore/add-and-prefill-existing-selected-calendar-uuids
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {

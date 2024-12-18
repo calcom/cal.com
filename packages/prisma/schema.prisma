@@ -710,7 +710,7 @@ model Availability {
 }
 
 model SelectedCalendar {
-  id                               Int                   @id @default(autoincrement())
+  id                               String                @id @default(uuid())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
