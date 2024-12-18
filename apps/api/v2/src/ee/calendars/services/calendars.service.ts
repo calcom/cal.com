@@ -42,11 +42,11 @@ export class CalendarsService {
       throw new NotFoundException("User not found");
     }
 
-    return getConnectedDestinationCalendars({
-      user: userWithCalendars,
-      onboarding: false,
-      prisma: this.dbWrite.prisma as unknown as PrismaClient,
-    });
+    return getConnectedDestinationCalendars(
+      userWithCalendars,
+      false,
+      this.dbWrite.prisma as unknown as PrismaClient
+    );
   }
 
   async getBusyTimes(

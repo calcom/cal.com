@@ -315,4 +315,15 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
 }
 
 // Legacy export for @calcom/platform-libraries
-export const getConnectedDestinationCalendars = getConnectedDestinationCalendarsAndEnsureDefaultsInDb;
+export async function getConnectedDestinationCalendars(
+  user: UserWithCalendars,
+  onboarding: boolean,
+  prisma: PrismaClient
+) {
+  return getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
+    user,
+    onboarding,
+    eventTypeId: null,
+    prisma,
+  });
+}
