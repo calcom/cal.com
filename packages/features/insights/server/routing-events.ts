@@ -427,18 +427,14 @@ class RoutingEventsInsights {
     };
 
     const whereClause: Prisma.RoutingFormResponseWhereInput = {
-      // formTeamId
-      ...(typeof formsTeamWhereCondition.teamId === "number" && {
-        formTeamId: formsTeamWhereCondition.teamId,
+      ...(formsTeamWhereCondition.id !== undefined && {
+        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
       }),
-      ...(typeof formsTeamWhereCondition.teamId === "object" &&
-        Array.isArray(formsTeamWhereCondition.teamId?.in) && {
-          formTeamId: { in: formsTeamWhereCondition.teamId.in },
-        }),
-
-      // formId
-      ...(formsTeamWhereCondition.id && {
-        formId: formsTeamWhereCondition.id,
+      ...(formsTeamWhereCondition.teamId !== undefined && {
+        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      }),
+      ...(formsTeamWhereCondition.userId !== undefined && {
+        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
       }),
 
       // bookingStatus

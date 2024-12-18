@@ -42,6 +42,7 @@ SELECT
   f.id as "formId",
   f.name as "formName",
   f."teamId" as "formTeamId",
+  f."userId" as "formUserId",
   b.uid as "bookingUid",
   b.status as "bookingStatus",
   CASE b.status
