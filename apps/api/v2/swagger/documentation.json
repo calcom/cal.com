@@ -3604,6 +3604,28 @@
             }
           },
           {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "The starting date for the busy times query",
+            "example": "2023-10-01",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "The ending date for the busy times query",
+            "example": "2023-10-31",
+            "schema": {
+              "nullable": true,
+              "type": "string"
+            }
+          },
+          {
             "name": "credentialId",
             "in": "query",
             "required": true,
