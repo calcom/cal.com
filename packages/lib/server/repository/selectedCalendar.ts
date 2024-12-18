@@ -47,6 +47,8 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
+        // We skip retrying calendars that have errored
+        error: null,
         OR: [
           // Either is a calendar pending to be watched
           { googleChannelExpiration: null },
@@ -59,26 +61,28 @@ export class SelectedCalendarRepository {
   }
   /** Retrieve calendars that are being watched but shouldn't be anymore */
   static async getNextBatchToUnwatch(limit = 100) {
-    const nextBatch = await prisma.selectedCalendar.findMany({
-      take: limit,
-      where: {
-        user: {
-          teams: {
-            every: {
-              team: {
-                features: {
-                  none: {
-                    featureId: "calendar-cache",
-                  },
+    const where: Prisma.SelectedCalendarWhereInput = {
+      // RN we only support google calendar subscriptions for now
+      integration: "google_calendar",
+      googleChannelExpiration: { not: null },
+      user: {
+        teams: {
+          every: {
+            team: {
+              features: {
+                none: {
+                  featureId: "calendar-cache",
                 },
               },
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
-        googleChannelExpiration: { not: null },
       },
+    };
+    // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
+    const nextBatch = await prisma.selectedCalendar.findMany({
+      take: limit,
+      where,
     });
     return nextBatch;
   }
@@ -105,6 +109,27 @@ export class SelectedCalendarRepository {
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+  static async findByExternalId(credentialId: number, externalId: string) {
+    return await prisma.selectedCalendar.findFirst({
+      where: {
+        credentialId,
+        externalId,
+      },
+      select: {
+        googleChannelResourceId: true,
+        googleChannelId: true,
+        credential: {
+          select: {
             selectedCalendars: {
               orderBy: {
                 externalId: "asc",

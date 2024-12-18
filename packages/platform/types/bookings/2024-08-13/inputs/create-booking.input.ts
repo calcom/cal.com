@@ -68,7 +68,7 @@ export class CreateBookingInput_2024_08_13 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 30,
     description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
     If not provided then event type default length will be used for the booking.`,
