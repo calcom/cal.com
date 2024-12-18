@@ -9,6 +9,7 @@ const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 type ScimUserAttributeName = string;
 type ScimUserAttributeValue = string | string[];
 
+//It avoids unnecessary warnings about attributes not defined in cal.com
 const coreUserAttributesToIgnore = [
   "userName",
   "name",

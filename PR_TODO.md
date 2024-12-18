@@ -1,6 +1,8 @@
-- Bug: When creating a new attribute, if I add OptionGroup that gets converted to a regular option
-- Ignore core user attributes when syncing to the user
+TODO:
+- Record a loom of Okta sync setup for Deel
 
 Fixes Done:
 - User update wasn't syncing custom attributes to the user
-- Calendar
+- Wrong username and name of user created through SCIM
+- Ignore core user attributes in terms of syncing as custom attributes
+- When creating a new attribute, OptionGroup was getting saved as regular Option itself.
