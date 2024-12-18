@@ -3592,6 +3592,7 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
         "parameters": [
           {
             "name": "loggedInUsersTz",
@@ -3599,6 +3600,26 @@
             "in": "query",
             "description": "The timezone of the logged in user represented as a string",
             "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "The starting date for the busy times query",
+            "example": "2023-10-01",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "The ending date for the busy times query",
+            "example": "2023-10-31",
             "schema": {
               "type": "string"
             }
