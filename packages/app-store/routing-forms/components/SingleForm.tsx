@@ -410,7 +410,13 @@ type UptoDateForm = Brand<
   "UptoDateForm"
 >;
 
-export const TestForm = ({ form, onClose }: { form: UptoDateForm | RoutingForm; onClose?: () => void }) => {
+export const TestForm = ({
+  form,
+  renderFooter,
+}: {
+  form: UptoDateForm | RoutingForm;
+  renderFooter?: (onClose: () => void) => React.ReactNode;
+}) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
@@ -553,6 +559,11 @@ export const TestForm = ({ form, onClose }: { form: UptoDateForm | RoutingForm; 
     );
   };
 
+  const onClose = () => {
+    setChosenRoute(null);
+    setResponse({});
+  };
+
   return (
     <form
       onSubmit={(e) => {
@@ -564,20 +575,7 @@ export const TestForm = ({ form, onClose }: { form: UptoDateForm | RoutingForm; 
         {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
       </div>
       <div>{renderTestResult()}</div>
-      <DialogFooter>
-        <DialogClose
-          color="secondary"
-          onClick={() => {
-            if (onClose) onClose();
-            setChosenRoute(null);
-            setResponse({});
-          }}>
-          {t("close")}
-        </DialogClose>
-        <Button type="submit" data-testid="test-routing">
-          {t("test_routing")}
-        </Button>
-      </DialogFooter>
+      {renderFooter?.(onClose)}
     </form>
   );
 };
@@ -600,9 +598,21 @@ export const TestFormDialog = ({
         <div>
           <TestForm
             form={form}
-            onClose={() => {
-              setIsTestPreviewOpen(false);
-            }}
+            renderFooter={(onClose) => (
+              <DialogFooter>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    onClose();
+                  }}>
+                  {t("close")}
+                </DialogClose>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
+              </DialogFooter>
+            )}
           />
         </div>
       </DialogContent>
