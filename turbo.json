@@ -114,7 +114,10 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID"
+        "MOTIFLAND_DOCS_PROJECT_ID",
+        "PLAIN_HMAC_SECRET_KEY",
+        "PLAIN_API_KEY",
+        "PLAIN_API_URL"
       ]
     },
     "build": {

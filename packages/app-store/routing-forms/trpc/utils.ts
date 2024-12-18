@@ -191,16 +191,18 @@ export async function onFormSubmission(
     return acc;
   }, [] as OrderedResponses);
 
-  if (form.settings?.emailOwnerOnSubmission) {
+  if (form.teamId) {
+    if (form.userWithEmails?.length) {
+      moduleLogger.debug(
+        `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
+      );
+      await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+    }
+  } else if (form.settings?.emailOwnerOnSubmission) {
     moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
-  } else if (form.userWithEmails?.length) {
-    moduleLogger.debug(
-      `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
-    );
-    await sendResponseEmail(form, orderedResponses, form.userWithEmails);
   }
 }
 
