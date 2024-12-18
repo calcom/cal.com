@@ -1,5 +1,5 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
@@ -12,7 +12,7 @@ import TeamPage from "~/team/team-view";
 import UserPage from "~/users/views/users-public-view";
 import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
 
-type OrgPageProps = UserPageProps | TeamPageProps;
+export type OrgPageProps = UserPageProps | TeamPageProps;
 const getData = withAppDirSsr<OrgPageProps>(getServerSideProps);
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
@@ -21,8 +21,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
   if ((props as TeamPageProps)?.team) {
     return await _generateMetadata(
-      (t) => props.team.name || t("nameless_team"),
-      (t) => props.team.name || t("nameless_team")
+      (t) => (props as TeamPageProps).team.name || t("nameless_team"),
+      (t) => (props as TeamPageProps).team.name || t("nameless_team")
     );
   }
   return await _generateMetadata(
@@ -31,14 +31,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-const Page = async ({ params, searchParams }: PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-
-  const props = await getData(legacyCtx);
-
+export const Page = async (props: OrgPageProps) => {
   if ((props as TeamPageProps)?.team) {
     return <TeamPage {...(props as TeamPageProps)} />;
   }
   return <UserPage {...(props as UserPageProps)} />;
 };
-export default WithLayout({ getLayout: null, getData, ServerPage: Page });
+
+export default WithLayout({ getLayout: null, getData, ServerPage: Page, isBookingPage: true });
