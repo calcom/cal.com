@@ -1021,15 +1021,15 @@ function getAverageAttributeWeights<
           );
 
           allRRHosts.forEach((rrHost) => {
-            const weight = attributeOptionWithUsers?.assignedUsers.find(
+            const assignedUser = attributeOptionWithUsers?.assignedUsers.find(
               (assignedUser) => rrHost.user.id === assignedUser.member.userId
-            )?.weight;
+            );
 
-            if (weight) {
+            if (assignedUser) {
               if (allRRHostsWeights.has(rrHost.user.id)) {
-                allRRHostsWeights.get(rrHost.user.id)?.push(weight);
+                allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser.weight ?? 100);
               } else {
-                allRRHostsWeights.set(rrHost.user.id, [weight]);
+                allRRHostsWeights.set(rrHost.user.id, [assignedUser.weight ?? 100]);
               }
             }
           });
@@ -1050,6 +1050,7 @@ function getAverageAttributeWeights<
     "getAverageAttributeWeights",
     safeStringify({ allRRHosts, attributesQueryValueChild, attributeWithWeights, averageWeightsHosts })
   );
+
   return averageWeightsHosts;
 }
 

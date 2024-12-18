@@ -262,7 +262,8 @@ export interface Calendar {
   getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]>;
 
   // for OOO calibration (only google calendar for now)

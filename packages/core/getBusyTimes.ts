@@ -44,6 +44,7 @@ export async function getBusyTimes(params: {
       })[]
     | null;
   bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 }) {
   const {
     credentials,
@@ -60,6 +61,7 @@ export async function getBusyTimes(params: {
     rescheduleUid,
     duration,
     bypassBusyCalendarTimes = false,
+    shouldServeCache,
   } = params;
 
   logger.silly(
@@ -238,7 +240,13 @@ export async function getBusyTimes(params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
+    const calendarBusyTimes = await getBusyCalendarTimes(
+      credentials,
+      startTime,
+      endTime,
+      selectedCalendars,
+      shouldServeCache
+    );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
       `Connected Calendars get took ${

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { calendar_v3 } from "@googleapis/calendar";
 import type { Prisma } from "@prisma/client";
+import type { GaxiosResponse } from "googleapis-common";
 import { OAuth2Client } from "googleapis-common";
 import { RRule } from "rrule";
 import { v4 as uuid } from "uuid";
@@ -9,6 +10,7 @@ import { MeetLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
+import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -50,6 +52,9 @@ const ONE_MONTH_IN_MS = 30 * MS_PER_DAY;
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- GOOGLE_WEBHOOK_URL only for local testing
 const GOOGLE_WEBHOOK_URL_BASE = process.env.GOOGLE_WEBHOOK_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
 const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googlecalendar/webhook`;
+
+const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
+  typeof error === "object" && !!error && error.hasOwnProperty("config");
 
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
@@ -263,7 +268,7 @@ export default class GoogleCalendarService implements Calendar {
       "primary";
 
     try {
-      let event;
+      let event: calendar_v3.Schema$Event | undefined;
       let recurringEventId = null;
       if (formattedCalEvent.existingRecurringEvent) {
         recurringEventId = formattedCalEvent.existingRecurringEvent.recurringEventId;
@@ -349,6 +354,11 @@ export default class GoogleCalendarService implements Calendar {
         iCalUID: event?.iCalUID,
       };
     } catch (error) {
+      if (isGaxiosResponse(error)) {
+        // Prevent clogging up the logs with the body of the request
+        // Plus, we already have this data in error.data.summary
+        delete error.config.body;
+      }
       this.log.error(
         "There was an error creating event in google calendar: ",
         safeStringify({ error, selectedCalendar, credentialId })
@@ -500,16 +510,22 @@ export default class GoogleCalendarService implements Calendar {
     return apiResponse.json;
   }
 
-  async getCacheOrFetchAvailability(args: FreeBusyArgs): Promise<(EventBusyDate & { id: string })[] | null> {
-    const { timeMin, timeMax, items } = args;
-    let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
+  async getFreeBusyResult(
+    args: FreeBusyArgs,
+    shouldServeCache?: boolean
+  ): Promise<calendar_v3.Schema$FreeBusyResponse> {
+    if (shouldServeCache === false) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
     const cached = await calendarCache.getCachedAvailability(this.credential.id, args);
-    if (cached) {
-      freeBusyResult = cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
-    } else {
-      freeBusyResult = await this.fetchAvailability({ timeMin, timeMax, items });
-    }
+    if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
+    return await this.fetchAvailability(args);
+  }
+
+  async getCacheOrFetchAvailability(
+    args: FreeBusyArgs,
+    shouldServeCache?: boolean
+  ): Promise<(EventBusyDate & { id: string })[] | null> {
+    const freeBusyResult = await this.getFreeBusyResult(args, shouldServeCache);
     if (!freeBusyResult.calendars) return null;
 
     const result = Object.entries(freeBusyResult.calendars).reduce((c, [id, i]) => {
@@ -595,7 +611,8 @@ export default class GoogleCalendarService implements Calendar {
   async getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
     const calendar = await this.authedCalendar();
@@ -621,11 +638,14 @@ export default class GoogleCalendarService implements Calendar {
 
       // /freebusy from google api only allows a date range of 90 days
       if (diff <= 90) {
-        const freeBusyData = await this.getCacheOrFetchAvailability({
-          timeMin: dateFrom,
-          timeMax: dateTo,
-          items: calsIds.map((id) => ({ id })),
-        });
+        const freeBusyData = await this.getCacheOrFetchAvailability(
+          {
+            timeMin: dateFrom,
+            timeMax: dateTo,
+            items: calsIds.map((id) => ({ id })),
+          },
+          shouldServeCache
+        );
         if (!freeBusyData) throw new Error("No response from google calendar");
 
         return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
@@ -641,11 +661,14 @@ export default class GoogleCalendarService implements Calendar {
           if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
 
           busyData.push(
-            ...((await this.getCacheOrFetchAvailability({
-              timeMin: startDate.format(),
-              timeMax: endDate.format(),
-              items: calsIds.map((id) => ({ id })),
-            })) || [])
+            ...((await this.getCacheOrFetchAvailability(
+              {
+                timeMin: startDate.format(),
+                timeMax: endDate.format(),
+                items: calsIds.map((id) => ({ id })),
+              },
+              shouldServeCache
+            )) || [])
           );
 
           startDate = endDate.add(1, "minutes");
@@ -730,12 +753,7 @@ export default class GoogleCalendarService implements Calendar {
   }
   async unwatchCalendar({ calendarId }: { calendarId: string }) {
     const credentialId = this.credential.id;
-    const sc = await prisma.selectedCalendar.findFirst({
-      where: {
-        credentialId,
-        externalId: calendarId,
-      },
-    });
+    const sc = await SelectedCalendarRepository.findByExternalId(credentialId, calendarId);
     // Delete the calendar cache to force a fresh cache
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
     const calendar = await this.authedCalendar();
@@ -757,6 +775,12 @@ export default class GoogleCalendarService implements Calendar {
       googleChannelResourceUri: null,
       googleChannelExpiration: null,
     });
+    // Populate the cache back for the remaining calendars, if any
+    const remainingCalendars =
+      sc?.credential?.selectedCalendars.filter((sc) => sc.externalId !== calendarId) || [];
+    if (remainingCalendars.length > 0) {
+      await this.fetchAvailabilityAndSetCache(remainingCalendars);
+    }
   }
 
   async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
@@ -765,12 +789,11 @@ export default class GoogleCalendarService implements Calendar {
   }
 
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
-    const date = new Date();
     const parsedArgs = {
       /** Expand the start date to the start of the month */
-      timeMin: new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0).toISOString(),
+      timeMin: getTimeMin(),
       /** Expand the end date to the end of the month */
-      timeMax: new Date(date.getFullYear(), date.getMonth() + 1, 0, 0, 0, 0, 0).toISOString(),
+      timeMax: getTimeMax(),
       items: selectedCalendars.map((sc) => ({ id: sc.externalId })),
     };
     const data = await this.fetchAvailability(parsedArgs);
