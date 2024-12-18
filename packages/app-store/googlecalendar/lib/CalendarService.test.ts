@@ -105,7 +105,7 @@ function expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock() {
 }
 
 async function expectSelectedCalendarToHaveGoogleChannelProps(
-  id: number,
+  id: string,
   googleChannelProps: {
     googleChannelId: string;
     googleChannelKind: string;
@@ -119,7 +119,7 @@ async function expectSelectedCalendarToHaveGoogleChannelProps(
   expect(selectedCalendar).toEqual(expect.objectContaining(googleChannelProps));
 }
 
-async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalendarId: number) {
+async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalendarId: string) {
   const selectedCalendar = await SelectedCalendarRepository.findFirst({
     where: {
       id: selectedCalendarId,
