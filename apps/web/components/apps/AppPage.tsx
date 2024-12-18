@@ -79,7 +79,6 @@ export const AppPage = ({
   const searchParams = useCompatSearchParams();
 
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
-  console.log({ descriptionItems });
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
