@@ -211,6 +211,7 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
+    memberUserId,
     columnFilters,
     sorting,
   }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
@@ -285,8 +286,8 @@ class RoutingEventsInsights {
           },
         }),
 
-      // userId
-      ...(userId && { bookingUserId: userId }),
+      // memberUserId
+      ...(memberUserId && { bookingUserId: memberUserId }),
 
       // createdAt
       ...(startDate &&
