@@ -158,7 +158,8 @@ export const getBusyCalendarTimes = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean
+  shouldServeCache?: boolean,
+  includeTimeZone?: boolean
 ) => {
   let results: (EventBusyDate & { timeZone?: string })[][] = [];
   // const months = getMonths(dateFrom, dateTo);
@@ -167,13 +168,18 @@ export const getBusyCalendarTimes = async (
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(
-      withCredentials,
-      startDate,
-      endDate,
-      selectedCalendars,
-      shouldServeCache
-    );
+
+    if (includeTimeZone) {
+      results = await getCalendarsEventsWithTimezones(withCredentials, startDate, endDate, selectedCalendars);
+    } else {
+      results = await getCalendarsEvents(
+        withCredentials,
+        startDate,
+        endDate,
+        selectedCalendars,
+        shouldServeCache
+      );
+    }
   } catch (e) {
     log.warn(safeStringify(e));
   }
