@@ -41,22 +41,11 @@ const handleCalendarsToWatch = async () => {
 // This cron is used to activate and renew calendar subcriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
-  const [watchedResult, unwatchedResult] = await Promise.all([
-    handleCalendarsToWatch(),
-    handleCalendarsToUnwatch(),
-  ]);
+  await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);
 
   // TODO: Credentials can be installed on a whole team, check for selected calendars on the team
   return {
-    succeededAt: new Date().toISOString(),
-    watched: {
-      successful: watchedResult.filter((x) => x.status === "fulfilled").length,
-      failed: watchedResult.filter((x) => x.status === "rejected").length,
-    },
-    unwatched: {
-      successful: unwatchedResult.filter((x) => x.status === "fulfilled").length,
-      failed: unwatchedResult.filter((x) => x.status === "rejected").length,
-    },
+    executedAt: new Date().toISOString(),
   };
 });
 
