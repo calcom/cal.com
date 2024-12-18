@@ -64,7 +64,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
+  if (url.pathname.startsWith("/apps/installed")) {
     const returnTo = req.cookies.get("return-to")?.value;
     if (returnTo !== undefined) {
       requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
@@ -166,27 +166,12 @@ export const config = {
     "/login",
     "/auth/login",
     "/future/auth/login",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
     "/event-types",
     "/future/event-types/",
-    "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
-    "/apps/:slug/",
-    "/future/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
-    "/apps/categories/",
-    "/future/apps/categories/",
-    "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:step/",
     "/future/getting-started/:step/",
-    "/apps",
+    "/apps/:path*",
     "/bookings/:status/",
     "/future/bookings/:status/",
     "/video/:path*",
