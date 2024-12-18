@@ -73,7 +73,6 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        "",
         credentials,
         dateFrom,
         dateTo,

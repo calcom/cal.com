@@ -88,6 +88,7 @@ export const useEventTypeForm = ({
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       requiresConfirmationWillBlockSlot: eventType.requiresConfirmationWillBlockSlot,
+      requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata: eventType.metadata,
@@ -189,6 +190,7 @@ export const useEventTypeForm = ({
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    console.log("🚀 ~ getDirtyFields ~ values:", values);
     if (!isFormDirty) {
       return {};
     }
@@ -369,6 +371,7 @@ export const useEventTypeForm = ({
     }, {}) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
+      console.log("🚀 ~ handleSubmit ~ filteredPayload:", filteredPayload);
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };

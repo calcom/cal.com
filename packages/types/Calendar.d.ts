@@ -271,6 +271,13 @@ export interface Calendar {
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[]>;
 
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
+
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;

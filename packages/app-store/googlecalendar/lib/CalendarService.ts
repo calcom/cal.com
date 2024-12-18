@@ -12,7 +12,6 @@ import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import type { FreeBusyArgs } from "@calcom/features/calendar-cache/calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import type CalendarService from "@calcom/lib/CalendarService";
 import { uniqueBy } from "@calcom/lib/array";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -579,20 +578,88 @@ export default class GoogleCalendarService implements Calendar {
   async getCacheOrFetchAvailability(
     args: FreeBusyArgs,
     shouldServeCache?: boolean
-  ): Promise<EventBusyDate[] | null> {
+  ): Promise<(EventBusyDate & { id: string })[] | null> {
     const freeBusyResult = await this.getFreeBusyResult(args, shouldServeCache);
     if (!freeBusyResult.calendars) return null;
 
-    const result = Object.values(freeBusyResult.calendars).reduce((c, i) => {
+    const result = Object.entries(freeBusyResult.calendars).reduce((c, [id, i]) => {
       i.busy?.forEach((busyTime) => {
         c.push({
+          id,
           start: busyTime.start || "",
           end: busyTime.end || "",
         });
       });
       return c;
-    }, [] as Prisma.PromiseReturnType<CalendarService["getAvailability"]>);
+    }, [] as (EventBusyDate & { id: string })[]);
+
     return result;
+  }
+
+  async getAvailabilityWithTimeZones(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]> {
+    const calendar = await this.authedCalendar();
+    const selectedCalendarIds = selectedCalendars
+      .filter((e) => e.integration === this.integrationName)
+      .map((e) => e.externalId);
+    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return [];
+    }
+
+    const getCalIdsWithTimeZone = async () => {
+      const cals = await this.getAllCalendars(calendar, ["id", "timeZone"]);
+      if (!cals.length) return [];
+
+      if (selectedCalendarIds.length !== 0) {
+        return selectedCalendarIds.map((selectedCalendarId) => {
+          const calWithTz = cals.find((cal) => cal.id === selectedCalendarId);
+          return {
+            id: selectedCalendarId,
+            timeZone: calWithTz?.timeZone || "",
+          };
+        });
+      }
+
+      // we ever reach that code, we already check before if selectedCalendarIds is empty
+      return [];
+    };
+
+    try {
+      const calIdsWithTimeZone = await getCalIdsWithTimeZone();
+      const calIds = calIdsWithTimeZone.map((calIdWithTimeZone) => ({ id: calIdWithTimeZone.id }));
+
+      const originalStartDate = dayjs(dateFrom);
+      const originalEndDate = dayjs(dateTo);
+      const diff = originalEndDate.diff(originalStartDate, "days");
+      const freeBusyData = await this.getCacheOrFetchAvailability({
+        timeMin: dateFrom,
+        timeMax: dateTo,
+        items: calIds,
+      });
+      if (!freeBusyData) throw new Error("No response from google calendar");
+
+      const timeZoneMap = new Map(calIdsWithTimeZone.map((cal) => [cal.id, cal.timeZone]));
+
+      const freeBusyDataWithTimeZone = freeBusyData.map((freeBusy) => {
+        return {
+          start: freeBusy.start,
+          end: freeBusy.end,
+          timeZone: timeZoneMap.get(freeBusy.id) || "",
+        };
+      });
+
+      return freeBusyDataWithTimeZone;
+    } catch (error) {
+      this.log.error(
+        "There was an error getting availability from google calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
+      throw error;
+    }
   }
 
   async getAvailability(
@@ -635,7 +702,7 @@ export default class GoogleCalendarService implements Calendar {
         );
         if (!freeBusyData) throw new Error("No response from google calendar");
 
-        return freeBusyData;
+        return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       } else {
         const busyData = [];
 
@@ -661,7 +728,7 @@ export default class GoogleCalendarService implements Calendar {
           startDate = endDate.add(1, "minutes");
           endDate = startDate.add(90, "days");
         }
-        return busyData;
+        return busyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
       }
     } catch (error) {
       this.log.error(
@@ -745,9 +812,16 @@ export default class GoogleCalendarService implements Calendar {
           expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
         }
       : {};
+    let error: string | undefined;
 
     if (!otherCalendarsWithSameSubscription.length) {
-      googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
+      try {
+        googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
+      } catch (error) {
+        this.log.error(`Failed to watch calendar ${calendarId}`, error);
+        // We set error to prevent attempting to watch on next cron run
+        error = error instanceof Error ? error.message : "Unknown error";
+      }
     } else {
       logger.info(
         `Calendar ${calendarId} is already being watched for event types ${otherCalendarsWithSameSubscription.map(
@@ -764,6 +838,7 @@ export default class GoogleCalendarService implements Calendar {
         googleChannelResourceId: googleChannelProps.resourceId,
         googleChannelResourceUri: googleChannelProps.resourceUri,
         googleChannelExpiration: googleChannelProps.expiration,
+        error,
       },
       eventTypeIds
     );

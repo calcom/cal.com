@@ -451,6 +451,7 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -688,6 +689,10 @@ export class EventTypeRepository {
                 id: true,
                 name: true,
                 email: true,
+                credentials: {
+                  select: credentialForCalendarServiceSelect,
+                },
+                selectedCalendars: true,
               },
             },
             weight: true,

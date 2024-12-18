@@ -2849,6 +2849,7 @@ checksums:
     salesforce_route_to_custom_lookup_field: 672a24e4de55eb073559e94b9266da7d
     salesforce_option: f09423b2785ee269db428163fc0a58d0
     lookup_field_name: 8d81d557128a52661d1ed9e9aae0575c
+    salesforce_if_free_email_domain_skip_owner_check: 0eb199ffefa8d97321a8baab41fe4c06
     filter_operator_is: 1940eeb4f6f0189788fde5403c6e9e9a
     filter_operator_is_not: 8c7817ecdb08e6fa92fdf3487e0c8c9d
     filter_operator_contains: 41c8c25407527a5336404313f4c8d650
@@ -2864,6 +2865,7 @@ checksums:
     rr_distribution_method_availability_description: 0fc05c527e1307e0c20165f0cefe2ed4
     rr_distribution_method_balanced_title: f13fe5c1c5e35ad5b2e0139df5c3e62f
     rr_distribution_method_balanced_description: 23fd5a95ac9d9f6283883180ba30db32
+    require_confirmation_for_free_email: 669a3c050cc065e85df79e0e7f12bbfd
     exclude_emails_that_contain: d43255c873c75c8fe1adcb8f8b7af914
     require_emails_that_contain: 54623674a8bf704fd44299c59eb31363
     exclude_emails_match_found_error_message: 4ca9429a41d63e53caffeceb0e4229f7
