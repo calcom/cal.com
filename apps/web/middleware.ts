@@ -192,6 +192,7 @@ export const config = {
     "/teams",
     "/future/teams/",
     "/settings/:path*",
+    "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
     "/payment/:path*",
