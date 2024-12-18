@@ -1,6 +1,5 @@
 import type { NextApiRequest } from "next";
 
-import { uniqueBy } from "@calcom/lib/array";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
@@ -37,16 +36,10 @@ async function postHandler(req: NextApiRequest) {
     });
   const { selectedCalendars } = credential;
   const calendar = await getCalendar(credential);
-  const uniqueSelectedCalendarsForUser = uniqueBy(selectedCalendars, [
-    "userId",
-    "integration",
-    "externalId",
-    "credentialId",
-  ]);
 
   // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
   // Necessary to do here so that it is ensure for all calendar apps
-  await calendar?.fetchAvailabilityAndSetCache?.(uniqueSelectedCalendarsForUser);
+  await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }
 
