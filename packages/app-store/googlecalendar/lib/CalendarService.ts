@@ -59,6 +59,14 @@ const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googleca
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && error.hasOwnProperty("config");
 
+type GoogleChannelProps = {
+  kind?: string | null;
+  id?: string | null;
+  resourceId?: string | null;
+  resourceUri?: string | null;
+  expiration?: string | null;
+};
+
 export default class GoogleCalendarService implements Calendar {
   private integrationName = "";
   private auth: ReturnType<typeof this.initGoogleAuth>;
@@ -728,57 +736,38 @@ export default class GoogleCalendarService implements Calendar {
       (sc) => !eventTypeIds?.includes(sc.eventTypeId)
     );
 
-    let googleChannelProps;
+    let googleChannelProps: GoogleChannelProps = otherCalendarsWithSameSubscription.length
+      ? {
+          kind: otherCalendarsWithSameSubscription[0].googleChannelKind,
+          id: otherCalendarsWithSameSubscription[0].googleChannelId,
+          resourceId: otherCalendarsWithSameSubscription[0].googleChannelResourceId,
+          resourceUri: otherCalendarsWithSameSubscription[0].googleChannelResourceUri,
+          expiration: otherCalendarsWithSameSubscription[0].googleChannelExpiration,
+        }
+      : {};
 
-    if (otherCalendarsWithSameSubscription.length) {
+    if (!otherCalendarsWithSameSubscription.length) {
+      googleChannelProps = await this.startWatchingCalendarsInGoogle({ calendarId });
+    } else {
       logger.info(
         `Calendar ${calendarId} is already being watched for event types ${otherCalendarsWithSameSubscription.map(
           (sc) => sc.eventTypeId
         )}. So, not watching again and instead reusing the existing channel`
       );
-
-      const existingCalendarWithSameSubscription = otherCalendarsWithSameSubscription[0];
-
-      googleChannelProps = {
-        kind: existingCalendarWithSameSubscription.googleChannelKind,
-        id: existingCalendarWithSameSubscription.googleChannelId,
-        resourceId: existingCalendarWithSameSubscription.googleChannelResourceId,
-        resourceUri: existingCalendarWithSameSubscription.googleChannelResourceUri,
-        expiration: existingCalendarWithSameSubscription.googleChannelExpiration,
-      };
-
-      // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
-      await this.upsertSelectedCalendarsForEventTypeIds(
-        {
-          externalId: calendarId,
-          googleChannelId: googleChannelProps.id,
-          googleChannelKind: googleChannelProps.kind,
-          googleChannelResourceId: googleChannelProps.resourceId,
-          googleChannelResourceUri: googleChannelProps.resourceUri,
-          googleChannelExpiration: googleChannelProps.expiration,
-        },
-        eventTypeIds
-      );
-
-      return googleChannelProps;
     }
-
-    const response = await this.startWatchingCalendarsInGoogle({ calendarId });
-
     // FIXME: We shouldn't create SelectedCalendar, we should only update if exists
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
         externalId: calendarId,
-        googleChannelId: response.id,
-        googleChannelKind: response.kind,
-        googleChannelResourceId: response.resourceId,
-        googleChannelResourceUri: response.resourceUri,
-        googleChannelExpiration: response.expiration,
+        googleChannelId: googleChannelProps.id,
+        googleChannelKind: googleChannelProps.kind,
+        googleChannelResourceId: googleChannelProps.resourceId,
+        googleChannelResourceUri: googleChannelProps.resourceUri,
+        googleChannelExpiration: googleChannelProps.expiration,
       },
       eventTypeIds
     );
-
-    return response;
+    return googleChannelProps;
   }
 
   /**
