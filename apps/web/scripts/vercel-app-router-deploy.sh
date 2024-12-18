@@ -22,7 +22,6 @@ checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
 checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 checkRoute "$APP_ROUTER_BOOKING_ENABLED" app/future/booking
-checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
 
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
