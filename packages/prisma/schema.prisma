@@ -109,6 +109,7 @@ model EventType {
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
+  requiresConfirmationForFreeEmail        Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
@@ -708,6 +709,8 @@ model Availability {
 }
 
 model SelectedCalendar {
+  // Will become required and @id in a seperate PR
+  id                               String?               @default(uuid())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
@@ -722,6 +725,7 @@ model SelectedCalendar {
   googleChannelExpiration          String?
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+  error                            String?
 
   @@id([userId, integration, externalId])
   @@index([userId])
@@ -1738,18 +1742,26 @@ enum WatchlistType {
   USERNAME
 }
 
+enum WatchlistSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model Watchlist {
-  id          String        @id @unique @default(cuid())
+  id          String            @id @unique @default(cuid())
   type        WatchlistType
   // The identifier of the Watchlisted entity (email or domain)
   value       String
   description String?
-  createdAt   DateTime      @default(now())
-  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdAt   DateTime          @default(now())
+  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
   createdById Int
-  updatedAt   DateTime      @updatedAt
-  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedAt   DateTime          @updatedAt
+  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
+  severity    WatchlistSeverity @default(LOW)
 
   @@unique([type, value])
   @@index([type, value])
