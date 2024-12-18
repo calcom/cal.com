@@ -7,7 +7,6 @@ export default (
   username: string,
   timeZone: string,
   emailVerified: Date | null,
-  identityProvider: string,
   twoFactorEnabled: boolean | null
 ): Card => {
   return {
@@ -155,30 +154,6 @@ export default (
               componentBadge: {
                 badgeLabel: twoFactorEnabled === null ? "Unknown" : twoFactorEnabled ? "Yes" : "No",
                 badgeColor: twoFactorEnabled === null ? "YELLOW" : twoFactorEnabled ? "GREEN" : "RED",
-              },
-            },
-          ],
-        },
-      },
-      {
-        componentSpacer: {
-          spacerSize: "M",
-        },
-      },
-      {
-        componentRow: {
-          rowMainContent: [
-            {
-              componentText: {
-                text: "Identity Provider",
-                textColor: "MUTED",
-              },
-            },
-          ],
-          rowAsideContent: [
-            {
-              componentText: {
-                text: identityProvider || "Unknown",
               },
             },
           ],

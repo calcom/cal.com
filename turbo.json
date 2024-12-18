@@ -115,7 +115,7 @@
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
         "MOTIFLAND_DOCS_PROJECT_ID",
-        "HMAC_SECRET_KEY",
+        "PLAIN_HMAC_SECRET_KEY",
         "PLAIN_API_KEY",
         "PLAIN_API_URL"
       ]
