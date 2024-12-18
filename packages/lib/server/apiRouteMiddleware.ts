@@ -21,19 +21,17 @@ export const apiRouteMiddleware =
         if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
           console.error(error);
           captureException(error);
-        } else {
-          return NextResponse.json(
-            {
-              message: serverError.message,
-              url: serverError.url,
-              method: serverError.method,
-            },
-            {
-              status: serverError.statusCode,
-            }
-          );
         }
-        return new Response("Something went wrong", { status: 500 });
+        return NextResponse.json(
+          {
+            message: serverError.message,
+            url: serverError.url,
+            method: serverError.method,
+          },
+          {
+            status: serverError.statusCode,
+          }
+        );
       }
     }
   };
