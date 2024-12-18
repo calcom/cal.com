@@ -54,6 +54,21 @@ test.describe("App Store - Authed", () => {
     await page.click('[data-testid="vertical-tab-automation"]');
     await page.waitForSelector('[data-testid="connect-automation-apps"]');
   });
+
+  test("Can add Adyen payment app from the app store", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+
+    await page.goto("/apps/adyen");
+    await page.getByTestId("install-app-button").click();
+    await page.waitForURL("/apps/installation/accounts?slug=adyen");
+    await page.getByTestId("install-app-button-personal").click();
+    await page.waitForURL("/apps/adyen/setup");
+    await page.getByTestId("connect-with-adyen").click();
+    await page.waitForNavigation();
+
+    await expect(page.url()).toContain("adyen.com");
+  });
 });
 
 test.describe("App Store - Unauthed", () => {
