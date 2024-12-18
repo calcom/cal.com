@@ -13,16 +13,10 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
   const eventName = props.booking.title;
-  const metadata = await _generateMetadata(
+  return await _generateMetadata(
     (t) => `${t("payment")} | ${eventName} | ${APP_NAME}`,
     () => ""
   );
-  return {
-    ...metadata,
-    icons: {
-      icon: "/favicon.ico",
-    },
-  };
 };
 
 const getData = withAppDirSsr<PaymentPageProps>(getServerSideProps);
