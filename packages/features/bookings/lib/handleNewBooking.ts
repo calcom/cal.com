@@ -759,12 +759,13 @@ async function handler(
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
     userId,
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
     paymentAppData,
+    bookerEmail,
   });
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
