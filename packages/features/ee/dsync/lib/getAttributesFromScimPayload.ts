@@ -1,5 +1,6 @@
 import type { DirectorySyncEvent } from "@boxyhq/saml-jackson";
 
+import { DIRECTORY_IDS_TO_LOG } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
@@ -7,6 +8,31 @@ const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 
 type ScimUserAttributeName = string;
 type ScimUserAttributeValue = string | string[];
+
+const coreUserAttributesToIgnore = [
+  "userName",
+  "name",
+  "displayName",
+  "emails",
+  "active",
+  "externalId",
+  "id",
+  "groups",
+  "meta",
+  "locale",
+  "password",
+  "phoneNumbers",
+  "photos",
+  "profileUrl",
+  "timezone",
+  "title",
+  "addresses",
+  "entitlements",
+  "ims",
+  "roles",
+  "x509Certificates",
+];
+
 /**
  * event.data.raw has this format
  * {
@@ -45,9 +71,13 @@ type ScimUserAttributeValue = string | string[];
  *   "segment": "SMB"
  * }
  */
-function getAttributesFromScimPayload(
-  event: DirectorySyncEvent
-): Record<ScimUserAttributeName, ScimUserAttributeValue> {
+function getAttributesFromScimPayload({
+  event,
+  directoryId,
+}: {
+  event: DirectorySyncEvent;
+  directoryId: string;
+}): Record<ScimUserAttributeName, ScimUserAttributeValue> {
   const scimUserAttributes: Record<ScimUserAttributeName, ScimUserAttributeValue> = {};
 
   if (event.event !== "user.created" && event.event !== "user.updated") {
@@ -60,7 +90,8 @@ function getAttributesFromScimPayload(
     if (schema === "urn:ietf:params:scim:schemas:core:2.0:User") {
       // Core schema has payload in the root
       const { schemas: _schemas, ...namespaceData } = raw;
-      collectAttributes(namespaceData);
+
+      collectAttributes({ data: namespaceData, ignoreList: coreUserAttributesToIgnore });
       return;
     }
     const namespaceName = schema;
@@ -77,15 +108,27 @@ function getAttributesFromScimPayload(
       return;
     }
 
-    collectAttributes(namespaceData);
+    collectAttributes({ data: namespaceData });
   });
 
-  log.debug("Collected attributes", `Attributes: ${safeStringify(scimUserAttributes)}`);
+  const shouldLog = DIRECTORY_IDS_TO_LOG.includes(directoryId);
+  if (shouldLog) {
+    console.log("Collected Attributes:", `${safeStringify(scimUserAttributes)}`);
+  }
 
   return scimUserAttributes;
 
-  function collectAttributes(data: Record<string, unknown>) {
+  function collectAttributes({
+    data,
+    ignoreList = [],
+  }: {
+    data: Record<string, unknown>;
+    ignoreList?: string[];
+  }) {
     Object.entries(data).forEach(([customAttributeName, value]) => {
+      if (ignoreList.includes(customAttributeName)) {
+        return;
+      }
       if (!value) {
         log.warn(
           "getAttributesFromScimPayload",
