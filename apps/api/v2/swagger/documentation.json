@@ -3592,6 +3592,7 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
         "parameters": [
           {
             "name": "loggedInUsersTz",
@@ -3610,7 +3611,6 @@
             "description": "The starting date for the busy times query",
             "example": "2023-10-01",
             "schema": {
-              "nullable": true,
               "type": "string"
             }
           },
@@ -3621,7 +3621,6 @@
             "description": "The ending date for the busy times query",
             "example": "2023-10-31",
             "schema": {
-              "nullable": true,
               "type": "string"
             }
           },
