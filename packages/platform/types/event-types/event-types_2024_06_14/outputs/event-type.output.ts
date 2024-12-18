@@ -108,6 +108,52 @@ class User_2024_06_14 {
   metadata!: Record<string, unknown>;
 }
 
+class EventTypeTeam {
+  @IsInt()
+  @DocsProperty()
+  id!: number;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  slug?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  bannerUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  weekStart?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  brandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  darkBrandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  theme?: string;
+}
+
 @ApiExtraModels(
   OutputAddressLocation_2024_06_14,
   OutputLinkLocation_2024_06_14,
@@ -408,9 +454,8 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsInt()
-  @IsOptional()
-  @ApiPropertyOptional({ nullable: true })
-  teamId?: number | null;
+  @DocsProperty()
+  teamId!: number;
 
   @IsInt()
   @IsOptional()
@@ -446,8 +491,8 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
   @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
 
-  @IsString()
-  @IsOptional()
-  @ApiPropertyOptional()
-  bannerUrl?: string;
+  @ValidateNested()
+  @Type(() => EventTypeTeam)
+  @DocsProperty()
+  team!: EventTypeTeam;
 }

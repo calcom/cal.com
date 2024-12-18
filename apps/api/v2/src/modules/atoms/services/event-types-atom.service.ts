@@ -2,8 +2,7 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -46,12 +45,11 @@ export class EventTypesAtomService {
     private readonly membershipsRepository: MembershipsRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly atomsRepository: AtomsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
     private readonly usersService: UsersService,
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: OrganizationsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService
   ) {}
 
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
@@ -183,7 +181,7 @@ export class EventTypesAtomService {
     let credentials = await this.credentialsRepository.getAllUserCredentialsById(userId);
     let userTeams: TeamQuery[] = [];
     if (teamId) {
-      const teamsQuery = await this.organizationsTeamsRepository.getUserTeamsById(userId);
+      const teamsQuery = await this.atomsRepository.getUserTeams(userId);
       // If a team is a part of an org then include those apps
       // Don't want to iterate over these parent teams
       const filteredTeams: TeamQuery[] = [];

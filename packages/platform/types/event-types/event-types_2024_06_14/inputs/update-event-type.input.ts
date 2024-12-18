@@ -24,8 +24,10 @@ import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
+  NameFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
@@ -101,7 +103,9 @@ import { Seats_2024_06_14 } from "./seats.input";
   Seats_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
-  InputAttendeeDefinedLocation_2024_06_14
+  InputAttendeeDefinedLocation_2024_06_14,
+  NameFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14
 )
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -163,6 +167,8 @@ export class UpdateEventTypeInput_2024_06_14 {
     description:
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
+      { $ref: getSchemaPath(NameFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(EmailFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
