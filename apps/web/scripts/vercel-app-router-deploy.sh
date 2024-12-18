@@ -20,7 +20,6 @@ checkRoute "$APP_ROUTER_AUTH_SAML_ENABLED" app/future/auth/saml-idp
 checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
 checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
 checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
-checkRoute "$APP_ROUTER_GETTING_STARTED_STEP_ENABLED" app/future/getting-started
 checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 checkRoute "$APP_ROUTER_BOOKING_ENABLED" app/future/booking
 checkRoute "$APP_ROUTER_TEAMS_ENABLED" app/future/teams
