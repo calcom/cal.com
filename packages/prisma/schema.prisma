@@ -708,6 +708,8 @@ model Availability {
 }
 
 model SelectedCalendar {
+  // Will become required and @id in a seperate PR
+  id                               String?               @default(uuid())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
