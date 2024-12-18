@@ -12,7 +12,7 @@ test.afterEach(({ users }) => users.deleteAll());
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     const testOnboarding = (identityProvider: IdentityProvider) => {
-      test(`Onboarding Flow - ${identityProvider} user`, async ({ page, users }) => {
+      test(`Onboarding Flow`, async ({ page, users }) => {
         const user = await users.create({
           completedOnboarding: false,
           name: null,
@@ -40,35 +40,29 @@ test.describe("Onboarding", () => {
             .click();
           await page.locator("button[type=submit]").click();
 
-          if (identityProvider === IdentityProvider.GOOGLE) {
-            await expect(page).toHaveURL(/.*setup-availability/);
-          } else {
-            await expect(page).toHaveURL(/.*connected-calendar/);
-          }
+          await expect(page).toHaveURL(/.*connected-calendar/);
 
           const userComplete = await user.self();
           expect(userComplete.name).toBe("new user 2");
         });
 
-        if (identityProvider !== IdentityProvider.GOOGLE) {
-          await test.step("step 2 - Connected Calendar", async () => {
-            const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
-            await expect(isDisabled).toBe(true);
-            // tests skip button, we don't want to test entire flow.
-            await page.locator("button[data-testid=skip-step]").click();
+        await test.step("step 2 - Connected Calendar", async () => {
+          const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
+          await expect(isDisabled).toBe(true);
+          // tests skip button, we don't want to test entire flow.
+          await page.locator("button[data-testid=skip-step]").click();
 
-            await expect(page).toHaveURL(/.*connected-video/);
-          });
+          await expect(page).toHaveURL(/.*connected-video/);
+        });
 
-          await test.step("step 3 - Connected Video", async () => {
-            const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
-            await expect(isDisabled).toBe(true);
-            // tests skip button, we don't want to test entire flow.
-            await page.locator("button[data-testid=skip-step]").click();
+        await test.step("step 3 - Connected Video", async () => {
+          const isDisabled = await page.locator("button[data-testid=save-video-button]").isDisabled();
+          await expect(isDisabled).toBe(true);
+          // tests skip button, we don't want to test entire flow.
+          await page.locator("button[data-testid=skip-step]").click();
 
-            await expect(page).toHaveURL(/.*setup-availability/);
-          });
-        }
+          await expect(page).toHaveURL(/.*setup-availability/);
+        });
 
         await test.step("step 4 - Setup Availability", async () => {
           const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
