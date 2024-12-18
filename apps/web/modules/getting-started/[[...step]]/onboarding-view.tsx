@@ -2,7 +2,6 @@
 
 import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
@@ -147,11 +146,6 @@ const OnboardingPage = (props: PageProps) => {
       )}
       data-testid="onboarding"
       key={pathname}>
-      <Head>
-        <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">

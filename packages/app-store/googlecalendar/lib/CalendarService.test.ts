@@ -136,18 +136,23 @@ test("Calendar can be watched and unwatched", async () => {
       integration: "google_calendar",
     },
   });
-  expect(watchedCalendar).toEqual({
-    userId: 1,
-    integration: "google_calendar",
-    externalId: "example@cal.com",
-    credentialId: 1,
-    domainWideDelegationCredentialId: null,
-    googleChannelId: "mock-channel-id",
-    googleChannelKind: "api#channel",
-    googleChannelResourceId: "mock-resource-id",
-    googleChannelResourceUri: "mock-resource-uri",
-    googleChannelExpiration: "1111111111",
-  });
+  expect(watchedCalendar).toEqual(
+    expect.objectContaining({
+      userId: 1,
+      integration: "google_calendar",
+      externalId: "example@cal.com",
+      credentialId: 1,
+      domainWideDelegationCredentialId: null,
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    })
+  );
+
+  expect(watchedCalendar?.id).toBeDefined();
+
   await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId });
   // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
   const [, unWatchedCalendar] = await prismock.selectedCalendar.findMany({
@@ -158,18 +163,22 @@ test("Calendar can be watched and unwatched", async () => {
     },
   });
 
-  expect(unWatchedCalendar).toEqual({
-    userId: 1,
-    integration: "google_calendar",
-    externalId: "example@cal.com",
-    credentialId: 1,
-    domainWideDelegationCredentialId: null,
-    googleChannelId: null,
-    googleChannelKind: null,
-    googleChannelResourceId: null,
-    googleChannelResourceUri: null,
-    googleChannelExpiration: null,
-  });
+  expect(unWatchedCalendar).toEqual(
+    expect.objectContaining({
+      userId: 1,
+      integration: "google_calendar",
+      externalId: "example@cal.com",
+      credentialId: 1,
+      domainWideDelegationCredentialId: null,
+      googleChannelId: null,
+      googleChannelKind: null,
+      googleChannelResourceId: null,
+      googleChannelResourceUri: null,
+      googleChannelExpiration: null,
+    })
+  );
+
+  expect(unWatchedCalendar?.id).toBeDefined();
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {
