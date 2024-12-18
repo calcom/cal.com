@@ -9,8 +9,6 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 import { csp } from "@lib/csp";
 
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
-
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
@@ -165,32 +163,23 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
 
     "/event-types",
-    "/future/event-types/",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
     "/apps/:slug/",
-    "/future/apps/:slug/",
     "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
     "/apps/categories/",
-    "/future/apps/categories/",
     "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
     "/bookings/:status/",
-    "/future/bookings/:status/",
     "/video/:path*",
     "/teams",
-    "/future/teams/",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
@@ -198,7 +187,7 @@ export const config = {
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,
