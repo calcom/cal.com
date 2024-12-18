@@ -1,8 +1,10 @@
 import { cardExamples } from "@pages/api/plain/example-cards";
-import crypto from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { createHmac } from "crypto";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -18,36 +20,36 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export async function handler(request: Request) {
+  const headersList = headers();
+  const requestBody = await request.json();
+
   // HMAC verification
-  const requestBody = JSON.stringify(req.body);
-  const incomingSignature = req.headers["plain-request-signature"];
-  const expectedSignature = crypto
-    .createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
-    .update(requestBody)
+  const incomingSignature = headersList.get("plain-request-signature");
+  const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
+    .update(JSON.stringify(requestBody))
     .digest("hex");
 
   if (incomingSignature !== expectedSignature) {
-    return res.status(403).send("Forbidden");
+    return new Response("Forbidden", { status: 403 });
   }
 
-  res.setHeader("Cache-Control", "no-cache");
-
   // Validate request body
-  const { cardKeys, customer } = inputSchema.parse(req.body);
+  const { cardKeys, customer } = inputSchema.parse(requestBody);
 
-  // Use UserRepository instead of direct prisma query
   const user = await UserRepository.findByEmail({ email: customer.email });
 
   if (!user) {
-    return res.status(200).json({
+    return NextResponse.json({
       cards: [
         {
           key: "customer-card",
           timeToLiveSeconds: null,
           components: [
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -69,7 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -102,7 +106,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -124,7 +130,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
+            },
+            {
+              componentRow: {
+                rowMainContent: [
+                  {
+                    componentText: {
+                      text: "User ID",
+                      textColor: "MUTED",
+                    },
+                  },
+                ],
+                rowAsideContent: [
+                  {
+                    componentText: {
+                      text: user.id || "Unknown",
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -146,7 +178,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -179,7 +213,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
               },
             },
             {
-              componentSpacer: { spacerSize: "M" },
+              componentSpacer: {
+                spacerSize: "M",
+              },
             },
             {
               componentRow: {
@@ -226,7 +262,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return cardKeys.length === 0 || cardKeys.includes(card.key);
   });
 
-  res.status(200).json({
+  return NextResponse.json({
     cards: filteredCards,
     user: {
       ...user,
@@ -234,3 +270,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 }
+
+export const POST = apiRouteMiddleware(handler);
