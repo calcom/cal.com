@@ -577,6 +577,47 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should be able to configure phone-only event type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data.bookingFields).toEqual([
+            { isDefault: true, type: "name", slug: "name", required: true },
+            { isDefault: true, type: "email", slug: "email", required: false, label: "Email" },
+            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            {
+              isDefault: false,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: true,
+              label: "Phone number",
+              placeholder: "",
+            },
+          ]);
+        });
+    });
+
     it("should assign all members to managed event-type", async () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         assignAllTeamMembers: true,
