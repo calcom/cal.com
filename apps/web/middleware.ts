@@ -194,6 +194,7 @@ export const config = {
     "/settings/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
   ],
 };
 
