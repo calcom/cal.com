@@ -11,7 +11,8 @@ const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  shouldServeCache?: boolean
 ): Promise<EventBusyDate[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
@@ -47,7 +48,12 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    const eventBusyDates = await c.getAvailability(
+      dateFrom,
+      dateTo,
+      passedSelectedCalendars,
+      shouldServeCache
+    );
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,

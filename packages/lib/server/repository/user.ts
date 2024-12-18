@@ -227,6 +227,16 @@ export class UserRepository {
     return { where, profiles };
   }
 
+  static async findByEmail({ email }: { email: string }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email.toLowerCase(),
+      },
+      select: userSelect,
+    });
+    return user;
+  }
+
   static async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
     const user = await prisma.user.findUnique({
       where: {

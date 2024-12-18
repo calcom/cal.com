@@ -161,26 +161,28 @@ export class SelectedCalendarRepository {
    * e.g. when a user disables calendar cache for the organization
    */
   static async getNextBatchToUnwatch(limit = 100) {
-    const nextBatch = await prisma.selectedCalendar.findMany({
-      take: limit,
-      where: {
-        user: {
-          teams: {
-            every: {
-              team: {
-                features: {
-                  none: {
-                    featureId: "calendar-cache",
-                  },
+    const where: Prisma.SelectedCalendarWhereInput = {
+      // RN we only support google calendar subscriptions for now
+      integration: "google_calendar",
+      googleChannelExpiration: { not: null },
+      user: {
+        teams: {
+          every: {
+            team: {
+              features: {
+                none: {
+                  featureId: "calendar-cache",
                 },
               },
             },
           },
         },
-        // RN we only support google calendar subscriptions for now
-        integration: "google_calendar",
-        googleChannelExpiration: { not: null },
       },
+    };
+    // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
+    const nextBatch = await prisma.selectedCalendar.findMany({
+      take: limit,
+      where,
     });
     return nextBatch;
   }

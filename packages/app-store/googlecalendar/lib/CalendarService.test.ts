@@ -211,7 +211,13 @@ async function expectCacheToBeNotSet({ credentialId }: { credentialId: number })
   expect(caches).toHaveLength(0);
 }
 
-async function expectCacheToBeSet({ credentialId }: { credentialId: number }) {
+async function expectCacheToBeSet({
+  credentialId,
+  itemsInKey,
+}: {
+  credentialId: number;
+  itemsInKey: { id: string }[];
+}) {
   const caches = await prismock.calendarCache.findMany({
     where: {
       credentialId,
@@ -219,7 +225,11 @@ async function expectCacheToBeSet({ credentialId }: { credentialId: number }) {
   });
 
   expect(caches).toHaveLength(1);
-  console.log(caches[0]);
+  expect(JSON.parse(caches[0].key)).toEqual(
+    expect.objectContaining({
+      items: itemsInKey,
+    })
+  );
 }
 
 describe("Watching and unwatching calendar", () => {
@@ -349,7 +359,9 @@ describe("Watching and unwatching calendar", () => {
 
     const someOtherCache = await prismock.calendarCache.create({
       data: {
-        key: "test-key-2",
+        key: JSON.stringify({
+          items: [{ id: "someOtherExternalId@cal.com" }],
+        }),
         value: "test-value-2",
         expiresAt: new Date(Date.now() + 100000000),
         credentialId: 999,
@@ -382,11 +394,12 @@ describe("Watching and unwatching calendar", () => {
       eventTypeId: 1,
     });
 
-    const eventTypeLevelCalendarForSomeOtherExternalId = await SelectedCalendarRepository.create({
-      ...commonProps,
-      externalId: "externalId2@cal.com",
-      eventTypeId: 2,
-    });
+    const eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId =
+      await SelectedCalendarRepository.create({
+        ...commonProps,
+        externalId: "externalId2@cal.com",
+        eventTypeId: 2,
+      });
 
     await calendarCache.unwatchCalendar({
       calendarId: userLevelCalendar.externalId,
@@ -408,15 +421,22 @@ describe("Watching and unwatching calendar", () => {
       },
     ]);
 
-    // Concerned cache is deleted
-    expectCacheToBeNotSet({ credentialId: concernedCache.credentialId });
-    expectCacheToBeSet({ credentialId: someOtherCache.credentialId });
+    // Concerned cache will just have remaining externalIds
+    expectCacheToBeSet({
+      credentialId: concernedCache.credentialId,
+      itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
+    });
+
+    expectCacheToBeSet({
+      credentialId: someOtherCache.credentialId,
+      itemsInKey: JSON.parse(someOtherCache.key).items,
+    });
 
     await expectSelectedCalendarToNotHaveGoogleChannelProps(eventTypeLevelCalendar.id);
 
     // Some other selectedCalendar stays unaffected
     await expectSelectedCalendarToHaveGoogleChannelProps(
-      eventTypeLevelCalendarForSomeOtherExternalId.id,
+      eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.id,
       googleChannelProps
     );
   });

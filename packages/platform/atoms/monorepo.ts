@@ -20,3 +20,4 @@ export { Shell } from "./src/components/ui/shell";
 export { AddMembersWithSwitchWebWrapper } from "./add-members-switch/AddMembersWithSwitchWebWrapper";
 export { AddMembersWithSwitchPlatformWrapper } from "./add-members-switch/AddMembersWithSwitchPlatformWrapper";
 export { markdownToSafeHTML } from "./lib/markdownToSafeHTML";
+export { useIsPlatformBookerEmbed } from "./hooks/useIsPlatformBookerEmbed";
