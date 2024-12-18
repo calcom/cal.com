@@ -1605,21 +1605,7 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate } = input;
-      const data1 = await RoutingEventsInsights.getRoutingFormPaginatedResponses({
-        teamId: input.teamId ?? null,
-        startDate,
-        endDate,
-        isAll: input.isAll ?? false,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
-        cursor: input.cursor,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
-        limit: input.limit,
-        columnFilters: input.columnFilters,
-        sorting: input.sorting,
-      });
-      const data2 = await RoutingEventsInsights.getRoutingFormPaginatedResponses2({
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
         teamId: input.teamId ?? null,
         startDate,
         endDate,
@@ -1632,7 +1618,6 @@ export const insightsRouter = router({
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });
-      return data2;
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
     .input(
