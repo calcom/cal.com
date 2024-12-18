@@ -7,8 +7,6 @@ import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 import type { PageProps as UserPageProps } from "~/users/views/users-public-view";
 import LegacyPage from "~/users/views/users-public-view";
 
-export { generateMetadata } from "../page";
-
 const getData = withAppDirSsr<UserPageProps>(getServerSideProps);
 
 const getEmbedData = withEmbedSsrAppDir(getData);
