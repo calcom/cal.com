@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const inputSchema = z.object({
@@ -19,7 +20,7 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-export async function POST(request: Request) {
+export async function handler(request: Request) {
   const headersList = headers();
   // HMAC verification
   const requestBody = await request.json();
@@ -241,3 +242,5 @@ export async function POST(request: Request) {
     user, // Include user details in the response if needed
   });
 }
+
+export const POST = apiRouteMiddleware(handler);
