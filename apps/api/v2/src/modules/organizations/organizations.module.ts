@@ -39,6 +39,7 @@ import { OrganizationsService } from "@/modules/organizations/services/organizat
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
+import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
@@ -54,6 +55,7 @@ import { Module } from "@nestjs/common";
     RedisModule,
     EmailModule,
     EventTypesModule_2024_06_14,
+    TeamsEventTypesModule,
     TeamsModule,
   ],
   providers: [

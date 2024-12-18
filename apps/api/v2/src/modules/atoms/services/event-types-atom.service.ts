@@ -2,10 +2,9 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException, ForbiddenException } from "@nestjs/common";
@@ -50,7 +49,7 @@ export class EventTypesAtomService {
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: OrganizationsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService
   ) {}
 
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
