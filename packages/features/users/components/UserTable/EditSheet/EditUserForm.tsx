@@ -26,7 +26,6 @@ import {
   SheetFooter,
   Button,
   SheetTitle,
-  SheetDescription,
   Divider,
 } from "@calcom/ui";
 
@@ -170,9 +169,8 @@ export function EditForm({
         }}>
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
-          <SheetDescription>{t("update_your_profile")}</SheetDescription>
         </SheetHeader>
-        <SheetBody className="bg-muted border-subtle flex flex-col gap-4 rounded-xl border p-4">
+        <SheetBody className="bg-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
           <div className="">
             <Controller
               control={form.control}
@@ -216,6 +214,7 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
@@ -312,7 +311,6 @@ function AttributesList(props: { selectedUserId: number }) {
   return (
     <div className="flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-emphasis mb-1 mt-6 text-base font-bold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
