@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import type { FilterValue, SortingState } from "./types";
 import {
   isSingleSelectFilterValue,
@@ -20,70 +18,6 @@ export function makeOrderBy(sorting: SortingState) {
   return sorting.map((sort) => ({
     [sort.id]: sort.desc ? ("desc" as const) : ("asc" as const),
   }));
-}
-
-export function makeRawOrderBy(sorting: SortingState) {
-  if (!sorting || !sorting.length) return undefined;
-
-  return Prisma.join(
-    sorting.map((sort) => Prisma.sql`${sort.id} ${Prisma.raw(sort.desc ? "DESC" : "ASC")}`),
-    ", "
-  );
-}
-
-export function makeRawWhereClause({
-  columnName,
-  filterValue,
-}: {
-  columnName: string;
-  filterValue: FilterValue;
-}) {
-  if (isMultiSelectFilterValue(filterValue)) {
-    return Prisma.sql`${columnName} IN (${filterValue.data.join(", ")})`;
-  } else if (isSingleSelectFilterValue(filterValue)) {
-    return Prisma.sql`${columnName} = ${filterValue.data}`;
-  } else if (isTextFilterValue(filterValue)) {
-    const { operator, operand } = filterValue.data;
-    switch (operator) {
-      case "equals":
-        return Prisma.sql`${columnName} = ${operand}`;
-      case "notEquals":
-        return Prisma.sql`${columnName} != ${operand}`;
-      case "contains":
-        return Prisma.sql`${columnName} ILIKE ${`%${operand}%`}`;
-      case "notContains":
-        return Prisma.sql`NOT (${columnName} ILIKE ${`%${operand}%`})`;
-      case "startsWith":
-        return Prisma.sql`${columnName} ILIKE ${`${operand}%`}`;
-      case "endsWith":
-        return Prisma.sql`${columnName} ILIKE ${`%${operand}`}`;
-      case "isEmpty":
-        return Prisma.sql`${columnName} = ''`;
-      case "isNotEmpty":
-        return Prisma.sql`NOT (${columnName} = '')`;
-      default:
-        throw new Error(`Invalid operator for text filter: ${operator}`);
-    }
-  } else if (isNumberFilterValue(filterValue)) {
-    const { operator, operand } = filterValue.data;
-    switch (operator) {
-      case "eq":
-        return Prisma.sql`${columnName} = ${operand}`;
-      case "neq":
-        return Prisma.sql`${columnName} != ${operand}`;
-      case "gt":
-        return Prisma.sql`${columnName} > ${operand}`;
-      case "gte":
-        return Prisma.sql`${columnName} >= ${operand}`;
-      case "lt":
-        return Prisma.sql`${columnName} < ${operand}`;
-      case "lte":
-        return Prisma.sql`${columnName} <= ${operand}`;
-      default:
-        throw new Error(`Invalid operator for number filter: ${operator}`);
-    }
-  }
-  throw new Error(`Invalid filter type: ${JSON.stringify({ columnName, filterValue })}`);
 }
 
 export function makeWhereClause(props: makeWhereClauseProps) {
