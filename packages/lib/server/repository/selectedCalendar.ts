@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 
-import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -48,6 +47,8 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
+        // We skip retrying calendars that have errored
+        error: null,
         OR: [
           // Either is a calendar pending to be watched
           { googleChannelExpiration: null },
@@ -64,12 +65,7 @@ export class SelectedCalendarRepository {
       // RN we only support google calendar subscriptions for now
       integration: "google_calendar",
       googleChannelExpiration: { not: null },
-    };
-    const featureRepo = new FeaturesRepository();
-    const calendarCache = await featureRepo.checkIfFeatureIsEnabledGlobally("calendar-cache");
-    // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
-    if (!calendarCache) {
-      where.user = {
+      user: {
         teams: {
           every: {
             team: {
@@ -81,8 +77,9 @@ export class SelectedCalendarRepository {
             },
           },
         },
-      };
-    }
+      },
+    };
+    // If calendar cache is disabled globally, we skip team features and unwatch all subscriptions
     const nextBatch = await prisma.selectedCalendar.findMany({
       take: limit,
       where,

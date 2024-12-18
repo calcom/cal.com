@@ -315,3 +315,23 @@ export function subtract(
 
   return result;
 }
+
+export function mergeOverlappingRanges(ranges: { start: Date; end: Date }[]): { start: Date; end: Date }[] {
+  if (ranges.length === 0) return [];
+
+  const sortedRanges = ranges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+
+  const mergedRanges: { start: Date; end: Date }[] = [sortedRanges[0]];
+
+  for (let i = 1; i < sortedRanges.length; i++) {
+    const lastMergedRange = mergedRanges[mergedRanges.length - 1];
+    const currentRange = sortedRanges[i];
+
+    if (currentRange.start.getTime() <= lastMergedRange.end.getTime()) {
+      lastMergedRange.end = new Date(Math.max(lastMergedRange.end.getTime(), currentRange.end.getTime()));
+    } else {
+      mergedRanges.push(currentRange);
+    }
+  }
+  return mergedRanges;
+}
