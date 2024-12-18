@@ -12,7 +12,7 @@ import {
   sendExistingUserTeamInviteEmails,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
+import { createUsersAndConnectToOrgWithOrgParam } from "./users/createUsersAndConnectToOrg";
 
 const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
 
@@ -104,7 +104,10 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+      const newUsers = await createUsersAndConnectToOrgWithOrgParam({
+        createUsersAndConnectToOrgProps,
+        org,
+      });
       await prisma.membership.createMany({
         data: newUsers.map((user) => ({
           userId: user.id,
