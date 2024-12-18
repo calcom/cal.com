@@ -81,8 +81,8 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
           {showQRCode && (
             <>
               <div className="flex items-center justify-center gap-2">
-                <p className="text-xs">Waiting for payment...</p>
                 <Spinner className="h-4 w-4" />
+                <p className="text-xs">Waiting for payment</p>
               </div>
               <p className="text-sm">Click or scan the invoice below to pay</p>
               <Link
