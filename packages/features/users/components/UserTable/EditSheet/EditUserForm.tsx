@@ -26,6 +26,7 @@ import {
   SheetFooter,
   Button,
   SheetTitle,
+  Divider,
 } from "@calcom/ui";
 
 import type { UserTableAction } from "../types";
@@ -168,19 +169,21 @@ export function EditForm({
         }}>
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
-
-          <div className="mt-6 flex flex-col gap-2">
+        </SheetHeader>
+        <SheetBody className="bg-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
+          <div className="">
             <Controller
               control={form.control}
               name="avatar"
               render={({ field: { value } }) => (
                 <div className="flex items-center">
-                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
+                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="mdLg" />
                   <div className="ml-4">
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg={t("change_avatar")}
+                      buttonSize="sm"
                       handleAvatarChange={(newAvatar) => {
                         form.setValue("avatar", newAvatar, { shouldDirty: true });
                       }}
@@ -191,14 +194,10 @@ export function EditForm({
               )}
             />
           </div>
-        </SheetHeader>
-        <SheetBody className="mt-4 flex h-full flex-col space-y-3 px-1">
-          <label className="text-emphasis mb-1 text-base font-bold">{t("profile")}</label>
-          <TextField label={t("username")} {...form.register("username")} />
+          <Divider />
           <TextField label={t("name")} {...form.register("name")} />
-          <TextField label={t("email")} {...form.register("email")} />
-
-          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-24" />
+          <TextField label={t("username")} {...form.register("username")} />
+          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24" />
           <div>
             <Label>{t("role")}</Label>
             <ToggleGroup
@@ -215,6 +214,7 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
@@ -311,7 +311,6 @@ function AttributesList(props: { selectedUserId: number }) {
   return (
     <div className="flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-emphasis mb-1 mt-6 text-base font-bold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
