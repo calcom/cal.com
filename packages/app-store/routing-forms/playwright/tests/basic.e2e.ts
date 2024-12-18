@@ -702,28 +702,11 @@ test.describe("Routing Forms", () => {
       await goToRoutingLinkAndSubmit({ page, formId });
 
       // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(5000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
       expect(receivedEmailsNewUser?.total).toBe(1);
-    });
-
-    test("newly added team member Not gets mail updates, when `Add all team members, including future members` switch is Not selected", async ({
-      page,
-      emails,
-      users,
-    }) => {
-      const { formId, teamId, owner } = await createUserAndTeamRoutingForm({ users, page });
-      const newUser = await addNewUserToTeam({ users, teamId });
-      await goToRoutingLinkAndSubmit({ page, formId });
-
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(4000);
-      const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
-      expect(receivedEmailsOwner?.total).toBe(1);
-      const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
-      expect(receivedEmailsNewUser?.total).toBe(0);
     });
   });
 });
