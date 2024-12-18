@@ -87,9 +87,9 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
               <p className="text-sm">Click or scan the invoice below to pay</p>
               <Link
                 href={`lightning:${paymentRequest}`}
-                className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent p-2
-                font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2">
-                <QRCode size={128} value={paymentRequest} />
+                className="inline-flex items-center justify-center rounded-2xl rounded-md border border-transparent p-2 bg-white
+                font-medium text-black shadow-sm hover:brightness-95 focus:outline-none focus:ring-offset-2 p-2">
+                <QRCode size={192} value={paymentRequest} />
               </Link>
 
               <Button
