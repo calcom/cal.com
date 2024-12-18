@@ -255,9 +255,11 @@ type MembersMatchResultType = {
 const TeamMembersMatchResult = ({
   membersMatchResult,
   chosenRouteName,
+  showAllData,
 }: {
   membersMatchResult: MembersMatchResultType;
   chosenRouteName: string;
+  showAllData: boolean;
 }) => {
   const { t } = useLocale();
   if (!membersMatchResult) return null;
@@ -284,6 +286,7 @@ const TeamMembersMatchResult = ({
 
   const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (!showAllData) return <>{t("no_active_queues")}</>;
       if (membersMatchResult.checkedFallback) {
         return (
           <span className="font-semibold">
@@ -311,12 +314,14 @@ const TeamMembersMatchResult = ({
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4">#</th>
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2 pr-4">Bookings</th>
-                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
-                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  <th className="py-2 pr-4">{t("email")}</th>
+                  <th className="py-2 pr-4">{t("bookings")}</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">{t("weight")}</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? (
+                    <th className="py-2">{t("calibration")}</th>
+                  ) : null}
                   {membersMatchResult.perUserData.bookingShortfalls ? (
-                    <th className="border-l py-2 pl-2">Shortfall</th>
+                    <th className="border-l py-2 pl-2">{t("shortfall")}</th>
                   ) : null}
                 </tr>
               </thead>
@@ -353,41 +358,61 @@ const TeamMembersMatchResult = ({
 
   return (
     <div className="text-default mt-2 space-y-2">
-      <div data-testid="chosen-route">
-        {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
-      </div>
-      <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
-        {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
-        {hasMainWarnings && (
-          <Alert className="mt-2" severity="warning" title={membersMatchResult.mainWarnings?.join(", ")} />
-        )}
-      </div>
-      <div data-testid="attribute-logic-fallback-matched" className={cn(hasFallbackWarnings && "text-error")}>
-        {t("attribute_logic_fallback_matched")}:{" "}
-        <span className="font-semibold">{renderFallbackLogicStatus()}</span>
-        {hasFallbackWarnings && (
-          <Alert
-            className="mt-2"
-            severity="warning"
-            title={membersMatchResult.fallbackWarnings?.join(", ")}
-          />
-        )}
-      </div>
+      {showAllData ? (
+        <>
+          <div data-testid="chosen-route">
+            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+          </div>
+          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+            {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+            {hasMainWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.mainWarnings?.join(", ")}
+              />
+            )}
+          </div>
+          <div
+            data-testid="attribute-logic-fallback-matched"
+            className={cn(hasFallbackWarnings && "text-error")}>
+            {t("attribute_logic_fallback_matched")}:{" "}
+            <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+            {hasFallbackWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.fallbackWarnings?.join(", ")}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}:{" "}
             <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
           </div>
-        ) : (
+        ) : showAllData ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}: <span className="font-semibold">Not found</span>
           </div>
+        ) : (
+          <></>
         )}
         <div className="mt-2" data-testid="matching-members">
-          {membersMatchResult.isUsingAttributeWeights
-            ? t("matching_members_queue_using_attribute_weights")
-            : t("matching_members_queue_using_event_assignee_weights")}
+          {showAllData ? (
+            <>
+              {membersMatchResult.isUsingAttributeWeights
+                ? t("matching_members_queue_using_attribute_weights")
+                : t("matching_members_queue_using_event_assignee_weights")}
+            </>
+          ) : (
+            <></>
+          )}
           {renderQueue()}
         </div>
       </div>
@@ -412,9 +437,11 @@ type UptoDateForm = Brand<
 
 export const TestForm = ({
   form,
+  showAllData = true,
   renderFooter,
 }: {
   form: UptoDateForm | RoutingForm;
+  showAllData?: boolean;
   renderFooter?: (onClose: () => void) => React.ReactNode;
 }) => {
   const { t } = useLocale();
@@ -482,7 +509,7 @@ export const TestForm = ({
     }
   }
 
-  const renderTestResult = () => {
+  const renderTestResult = (showAllData: boolean) => {
     if (!form.routes || !chosenRoute) return null;
 
     const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
@@ -493,6 +520,33 @@ export const TestForm = ({
       }
       return `Route ${chosenRouteIndex + 1}`;
     };
+
+    const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
+      if (!isTeamForm) return null;
+      if (isPending) return <div>Loading...</div>;
+
+      return (
+        <div>
+          <TeamMembersMatchResult
+            chosenRouteName={chosenRouteName()}
+            membersMatchResult={membersMatchResult}
+            showAllData={showAllData}
+          />
+        </div>
+      );
+    };
+
+    if (!showAllData) {
+      if (
+        chosenRoute.action.type !== "customPageMessage" &&
+        chosenRoute.action.type !== "externalRedirectUrl"
+      ) {
+        {
+          return renderTeamMembersMatchResult(false, findTeamMembersMatchingAttributeLogicMutation.isPending);
+        }
+      }
+      return <>{t("no_active_queues")}</>;
+    }
 
     return (
       <div className="bg-subtle text-default mt-5 rounded-md p-3">
@@ -540,18 +594,10 @@ export const TestForm = ({
                   {chosenRoute.action.value}
                 </a>
               </span>
-              {isTeamForm ? (
-                !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                  <div>
-                    <TeamMembersMatchResult
-                      chosenRouteName={chosenRouteName()}
-                      membersMatchResult={membersMatchResult}
-                    />
-                  </div>
-                ) : (
-                  <div>Loading...</div>
-                )
-              ) : null}
+              {renderTeamMembersMatchResult(
+                showAllData,
+                findTeamMembersMatchingAttributeLogicMutation.isPending
+              )}
             </div>
           )}
         </div>
@@ -574,7 +620,14 @@ export const TestForm = ({
       <div className="px-1">
         {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
       </div>
-      <div>{renderTestResult()}</div>
+      {!renderFooter ? (
+        <div className="mt-4">
+          <Button type="submit">{t("show_matching_hosts")}</Button>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div>{renderTestResult(showAllData)}</div>
       {renderFooter?.(onClose)}
     </form>
   );

@@ -2892,5 +2892,10 @@
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
   "virtual_queues": "Virtual queues",
+  "show_matching_hosts": "Show matching hosts",
+  "no_active_queues": "No active queues for this input",
+  "weight": "Weight",
+  "calibration": "Calibration",
+  "shortfall": "Shortfall",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
