@@ -5,7 +5,7 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
-  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinReassignedEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendRoundRobinUpdatedEmailsAndSMS,
 } from "@calcom/emails";
@@ -377,7 +377,7 @@ export const roundRobinReassignment = async ({
     }
 
     if (emailsEnabled) {
-      await sendRoundRobinCancelledEmailsAndSMS(
+      await sendRoundRobinReassignedEmailsAndSMS(
         cancelledRRHostEvt,
         [
           {
@@ -388,8 +388,8 @@ export const roundRobinReassignment = async ({
             language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
           },
         ],
-        eventType?.metadata as EventTypeMetadata,
-        { name: reassignedRRHost.name, email: reassignedRRHost.email }
+        { name: reassignedRRHost.name, email: reassignedRRHost.email },
+        eventType?.metadata as EventTypeMetadata
       );
     }
   }
