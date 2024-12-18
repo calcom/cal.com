@@ -187,6 +187,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       label: "Your email",
       placeholder: "bob@gmail.com",
       disableOnPrefill: true,
+      required: true,
     };
 
     const input: InputBookingField_2024_06_14[] = [bookingField];
