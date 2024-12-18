@@ -19,8 +19,8 @@ export const apiRouteMiddleware =
         const serverError = getServerErrorFromUnknown(error);
         // we don't want to report Bad Request errors to Sentry / console
         if (!(serverError.statusCode >= 400 && serverError.statusCode < 500)) {
-          console.error(serverError);
-          captureException(serverError);
+          console.error(error);
+          captureException(error);
         } else {
           return NextResponse.json(
             {
