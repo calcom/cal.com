@@ -186,7 +186,7 @@ export const config = {
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
-    "/bookings/:path*/",
+    "/bookings/:status/",
     "/video/:path*",
     "/teams",
     "/future/teams/",
