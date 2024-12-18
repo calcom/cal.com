@@ -6,8 +6,6 @@ import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSi
 
 import { Page, type OrgTypePageProps } from "../page";
 
-export { generateMetadata } from "../page";
-
 const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);
 const getEmbedData = withEmbedSsrAppDir(getData);
 
