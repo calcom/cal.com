@@ -981,7 +981,7 @@ export default class EventManager {
         success = false;
         // We don't know the type of the error here, so for an Error instance we can read message but otherwise we stringify the error
         const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
-        log.warn(`Error creating crm event for ${credential.type} for booking ${event.uid}`, errorMsg);
+        log.warn(`Error creating crm event for ${credential.type} for booking ${event?.uid}`, errorMsg);
       });
 
       if (createdEvent) {
