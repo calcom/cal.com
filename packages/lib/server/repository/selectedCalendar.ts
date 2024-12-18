@@ -47,6 +47,8 @@ export class SelectedCalendarRepository {
         },
         // RN we only support google calendar subscriptions for now
         integration: "google_calendar",
+        // We skip retrying calendars that have errored
+        error: null,
         OR: [
           // Either is a calendar pending to be watched
           { googleChannelExpiration: null },

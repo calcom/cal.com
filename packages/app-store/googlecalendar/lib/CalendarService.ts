@@ -656,33 +656,41 @@ export default class GoogleCalendarService implements Calendar {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
     }
-    const calendar = await this.authedCalendar();
-    const res = await calendar.events.watch({
-      // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
-      calendarId,
-      requestBody: {
-        // A UUID or similar unique string that identifies this channel.
-        id: uuid(),
-        type: "web_hook",
-        address: GOOGLE_WEBHOOK_URL,
-        token: process.env.GOOGLE_WEBHOOK_TOKEN,
-        params: {
-          // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
-          ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+    try {
+      const calendar = await this.authedCalendar();
+      const res = await calendar.events.watch({
+        // Calendar identifier. To retrieve calendar IDs call the calendarList.list method. If you want to access the primary calendar of the currently logged in user, use the "primary" keyword.
+        calendarId,
+        requestBody: {
+          // A UUID or similar unique string that identifies this channel.
+          id: uuid(),
+          type: "web_hook",
+          address: GOOGLE_WEBHOOK_URL,
+          token: process.env.GOOGLE_WEBHOOK_TOKEN,
+          params: {
+            // The time-to-live in seconds for the notification channel. Default is 604800 seconds.
+            ttl: `${Math.round(ONE_MONTH_IN_MS / 1000)}`,
+          },
         },
-      },
-    });
-    const response = res.data;
-    await this.upsertSelectedCalendar({
-      externalId: calendarId,
-      googleChannelId: response?.id,
-      googleChannelKind: response?.kind,
-      googleChannelResourceId: response?.resourceId,
-      googleChannelResourceUri: response?.resourceUri,
-      googleChannelExpiration: response?.expiration,
-    });
+      });
+      const response = res.data;
+      await this.upsertSelectedCalendar({
+        externalId: calendarId,
+        googleChannelId: response?.id,
+        googleChannelKind: response?.kind,
+        googleChannelResourceId: response?.resourceId,
+        googleChannelResourceUri: response?.resourceUri,
+        googleChannelExpiration: response?.expiration,
+      });
 
-    return res.data;
+      return res.data;
+    } catch (error) {
+      this.log.error(`Failed to watch calendar ${calendarId}`, error);
+      await this.upsertSelectedCalendar({
+        externalId: calendarId,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   }
   async unwatchCalendar({ calendarId }: { calendarId: string }) {
     const credentialId = this.credential.id;
