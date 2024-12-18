@@ -65,4 +65,15 @@ export class FeaturesRepository implements IFeaturesRepository {
       throw err;
     }
   }
+  async checkIfTeamHasFeature(teamId: number, featureId: keyof AppFlags) {
+    try {
+      const teamFeature = await db.teamFeatures.findUnique({
+        where: { teamId_featureId: { teamId, featureId } },
+      });
+      return !!teamFeature;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }

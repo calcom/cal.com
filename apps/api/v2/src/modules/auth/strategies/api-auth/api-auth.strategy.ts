@@ -17,6 +17,8 @@ import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
+export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
+
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   constructor(
@@ -75,12 +77,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
   async authenticateNextAuth(token: { email?: string | null }) {
     const user = await this.nextAuthStrategy(token);
-    return this.success(user);
+    return this.success(this.getSuccessUser(user));
+  }
+
+  getSuccessUser(user: UserWithProfile): ApiAuthGuardUser {
+    return {
+      ...user,
+      isSystemAdmin: user.role === "ADMIN",
+    };
   }
 
   async authenticateOAuthClient(oAuthClientId: string, oAuthClientSecret: string) {
     const user = await this.oAuthClientStrategy(oAuthClientId, oAuthClientSecret);
-    return this.success(user);
+    return this.success(this.getSuccessUser(user));
   }
 
   async oAuthClientStrategy(oAuthClientId: string, oAuthClientSecret: string) {
@@ -119,7 +128,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         return this.error(new UnauthorizedException("No user associated with the provided token"));
       }
 
-      return this.success(user);
+      return this.success(this.getSuccessUser(user));
     } catch (err) {
       if (err instanceof Error) {
         return this.error(err);
