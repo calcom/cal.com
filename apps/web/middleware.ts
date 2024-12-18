@@ -82,7 +82,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  if (url.pathname.startsWith("/future/auth/logout")) {
+  if (url.pathname.startsWith("/auth/logout")) {
     cookies().set("next-auth.session-token", "", {
       path: "/",
       expires: new Date(0),
@@ -165,7 +165,6 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */

@@ -8,7 +8,7 @@ import Page from "~/auth/error/error-view";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
-    () => "Error",
+    (t) => t("error"),
     () => ""
   );
 };
