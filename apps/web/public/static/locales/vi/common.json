@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Chuyển hướng {{orgSlug}}.cal.com đến {{destination}}",
   "single_select": "Chọn một",
   "multi_select": "Chọn nhiều",
+  "calendar_conflict_settings": "Cài đặt xung đột lịch",
+  "select_calendars_conflict_check": "Chọn lịch cần kiểm tra xung đột",
   "group_meeting": "Cuộc họp nhóm",
   "salesforce_ignore_guests": "Không tạo bản ghi mới cho khách được thêm vào lịch hẹn",
   "google_meet": "Google Meet",

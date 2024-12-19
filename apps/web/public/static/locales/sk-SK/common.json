@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Presmeruje {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Jednoduchý výber",
   "multi_select": "Viacnásobný výber",
+  "calendar_conflict_settings": "Nastavenia konfliktov v kalendári",
+  "select_calendars_conflict_check": "Vyberte kalendáre, ktoré sa majú kontrolovať na konflikty",
   "group_meeting": "Skupinové stretnutie",
   "salesforce_ignore_guests": "Nevytvárať nové záznamy pre hostí pridaných do rezervácie",
   "google_meet": "Google Meet",

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Uudelleenohjaa {{orgSlug}}.cal.com osoitteeseen {{destination}}",
   "single_select": "Yksittäisvalinta",
   "multi_select": "Monivalinta",
+  "calendar_conflict_settings": "Kalenterin päällekkäisyysasetukset",
+  "select_calendars_conflict_check": "Valitse kalenterit, joista päällekkäisyydet tarkistetaan",
   "group_meeting": "Ryhmätapaaminen",
   "salesforce_ignore_guests": "Älä luo uusia tietueita varaukseen lisätyille vieraille",
   "google_meet": "Google Meet",

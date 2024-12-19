@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.comを{{destination}}にリダイレクトします",
   "single_select": "単一選択",
   "multi_select": "複数選択",
+  "calendar_conflict_settings": "カレンダーの重複チェック設定",
+  "select_calendars_conflict_check": "重複をチェックするカレンダーを選択",
   "group_meeting": "グループミーティング",
   "salesforce_ignore_guests": "予約に追加されたゲストの新規レコードを作成しない",
   "google_meet": "Google Meet",

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Omdirigerar {{orgSlug}}.cal.com till {{destination}}",
   "single_select": "Enkelval",
   "multi_select": "Flerval",
+  "calendar_conflict_settings": "Inställningar för kalenderkonflikt",
+  "select_calendars_conflict_check": "Välj vilka kalendrar som ska kontrolleras för konflikter",
   "group_meeting": "Gruppmöte",
   "salesforce_ignore_guests": "Skapa inte nya poster för gäster som läggs till i bokningen",
   "google_meet": "Google Meet",

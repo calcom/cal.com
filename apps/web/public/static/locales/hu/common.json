@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Átirányítja a {{orgSlug}}.cal.com címet a {{destination}} címre",
   "single_select": "Egyszeres kiválasztás",
   "multi_select": "Többszörös kiválasztás",
+  "calendar_conflict_settings": "Naptárütközési beállítások",
+  "select_calendars_conflict_check": "Válaszd ki, mely naptárakat ellenőrizzük ütközések szempontjából",
   "group_meeting": "Csoportos megbeszélés",
   "salesforce_ignore_guests": "Ne hozzon létre új rekordokat a foglaláshoz hozzáadott vendégek számára",
   "google_meet": "Google Meet",

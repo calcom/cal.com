@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com ünvanını {{destination}} ünvanına yönləndirir",
   "single_select": "Tək seçim",
   "multi_select": "Çoxlu seçim",
+  "calendar_conflict_settings": "Təqvim münaqişəsi parametrləri",
+  "select_calendars_conflict_check": "Münaqişələri yoxlamaq üçün təqvimləri seçin",
   "group_meeting": "Qrup görüşü",
   "salesforce_ignore_guests": "Rezervasiyaya əlavə edilən qonaqlar üçün yeni qeydlər yaratma",
   "google_meet": "Google Meet",

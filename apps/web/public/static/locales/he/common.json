@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "מפנה מחדש את {{orgSlug}}.cal.com אל {{destination}}",
   "single_select": "בחירה בודדת",
   "multi_select": "בחירה מרובה",
+  "calendar_conflict_settings": "הגדרות התנגשות יומנים",
+  "select_calendars_conflict_check": "בחר אילו יומנים לבדוק להתנגשויות",
   "group_meeting": "פגישה קבוצתית",
   "salesforce_ignore_guests": "אל תיצור רשומות חדשות עבור אורחים שנוספו להזמנה",
   "google_meet": "Google Meet",

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Suunab {{orgSlug}}.cal.com ümber aadressile {{destination}}",
   "single_select": "Üksikvalik",
   "multi_select": "Mitmikvalik",
+  "calendar_conflict_settings": "Kalendri konfliktide seaded",
+  "select_calendars_conflict_check": "Vali kalendrid, mida kontrollida konfliktide suhtes",
   "group_meeting": "Grupikohtumise",
   "salesforce_ignore_guests": "Ära loo broneeringule lisatud külaliste jaoks uusi kirjeid",
   "google_meet": "Google Meet",

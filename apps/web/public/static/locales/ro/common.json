@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Redirecționează {{orgSlug}}.cal.com către {{destination}}",
   "single_select": "Selecție unică",
   "multi_select": "Selecție multiplă",
+  "calendar_conflict_settings": "Setări pentru conflicte de calendar",
+  "select_calendars_conflict_check": "Selectează calendarele pentru verificarea conflictelor",
   "group_meeting": "Întâlnire de grup",
   "salesforce_ignore_guests": "Nu crea înregistrări noi pentru invitații adăugați la programare",
   "google_meet": "Google Meet",

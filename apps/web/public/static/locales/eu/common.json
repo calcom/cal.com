@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com {{destination}}-era birbideratzen du",
   "single_select": "Hautapen bakarra",
   "multi_select": "Hautapen anitza",
+  "calendar_conflict_settings": "Egutegien arteko gatazken ezarpenak",
+  "select_calendars_conflict_check": "Hautatu zein egutegi egiaztatu nahi dituzun gatazkarik dagoen ikusteko",
   "group_meeting": "Talde bilera",
   "salesforce_ignore_guests": "Ez sortu erregistro berririk erreserbara gehitutako gonbidatuentzat",
   "google_meet": "Google Meet",

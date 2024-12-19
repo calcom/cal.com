@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Preusmerava {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Jednostruki izbor",
   "multi_select": "Višestruki izbor",
+  "calendar_conflict_settings": "Podešavanja konflikta kalendara",
+  "select_calendars_conflict_check": "Izaberite kalendare za proveru konflikata",
   "group_meeting": "Grupni sastanak",
   "salesforce_ignore_guests": "Ne kreiraj nove zapise za goste dodate u rezervaciju",
   "google_meet": "Google Meet",

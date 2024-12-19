@@ -2876,6 +2876,8 @@ checksums:
     disable_org_url_description: 875a1606ef83f120547305072b1b8723
     single_select: 40d573e93a3059895cf3e9ee1e7012c6
     multi_select: 1b93efbd975c6266858392adf33e6558
+    calendar_conflict_settings: 9d5721f39701b71ed421797e44e0a701
+    select_calendars_conflict_check: f4147c353f07390fcb44caa27c34ac57
     group_meeting: d30d80ebb9c0b0256130a3c516cb4b4f
     salesforce_ignore_guests: f56d10682d9a637a4bec42abcd212a35
     google_meet: e30a500b4e93f691c4b2ab046b96e753
