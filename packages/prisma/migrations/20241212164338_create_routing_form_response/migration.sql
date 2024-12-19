@@ -58,7 +58,8 @@ SELECT
   u.name as "bookingUserName",
   u.email as "bookingUserEmail",
   u."avatarUrl" as "bookingUserAvatarUrl",
-  ar.reasons as "bookingAssignmentReasons",
+  COALESCE((ar.reasons->0)->>'reasonString', '') as "bookingAssignmentReason",
+  LOWER(COALESCE((ar.reasons->0)->>'reasonString', '')) as "bookingAssignmentReasonLowercase",
   r."createdAt" as "createdAt"
 FROM "App_RoutingForms_FormResponse" r
 LEFT JOIN "App_RoutingForms_Form" f ON r."formId" = f.id

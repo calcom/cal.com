@@ -5,7 +5,12 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter, SortingState } from "@calcom/features/data-table";
+import type {
+  ColumnFilter,
+  TypedColumnFilter,
+  SortingState,
+  ColumnFilterType,
+} from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
@@ -226,15 +231,7 @@ class RoutingEventsInsights {
       routingFormId,
     });
 
-    const bookingStatus = columnFilters.find((filter) => filter.id === "bookingStatus");
-    const assignmentReason = columnFilters.find((filter) => filter.id === "assignmentReason") as
-      | TypedColumnFilter<"text">
-      | undefined;
-    const attributeFilters = columnFilters.filter(
-      (filter) => filter.id !== "bookingStatus" && filter.id !== "assignmentReason"
-    );
-
-    const getLowercaseFilterValue = (filter: ColumnFilter) => {
+    const getLowercaseFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
       if (filter.value.type === "text") {
         return {
           ...filter.value,
@@ -246,6 +243,16 @@ class RoutingEventsInsights {
       }
       return filter.value;
     };
+
+    const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
+    const assignmentReason = columnFilters.find((filter) => filter.id === "bookingAssignmentReason") as
+      | TypedColumnFilter<"text">
+      | undefined;
+    const assignmentReasonValue = assignmentReason ? getLowercaseFilterValue(assignmentReason) : undefined;
+
+    const responseFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatusOrder" && filter.id !== "bookingAssignmentReason"
+    );
 
     const whereClause: Prisma.RoutingFormResponseWhereInput = {
       ...(formsTeamWhereCondition.id !== undefined && {
@@ -259,32 +266,14 @@ class RoutingEventsInsights {
       }),
 
       // bookingStatus
-      ...(bookingStatus &&
-        makeWhereClause({ columnName: "bookingStatus", filterValue: bookingStatus.value })),
+      ...(bookingStatusOrder &&
+        makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
 
-      // assignmentReason
-      ...(assignmentReason &&
-        assignmentReason.value.data.operator === "isEmpty" && { bookingAssignmentReasons: { none: {} } }),
-      ...(assignmentReason &&
-        assignmentReason.value.data.operator === "isNotEmpty" && {
-          bookingAssignmentReasons: {
-            some: {
-              reasonString: {
-                not: "",
-              },
-            },
-          },
-        }),
-      ...(assignmentReason &&
-        assignmentReason.value.data.operator !== "isEmpty" &&
-        assignmentReason.value.data.operator !== "isNotEmpty" && {
-          bookingAssignmentReasons: {
-            some: makeWhereClause({
-              columnName: "reasonString",
-              filterValue: assignmentReason.value,
-            }),
-          },
-        }),
+      ...(assignmentReasonValue &&
+        makeWhereClause({
+          columnName: "bookingAssignmentReasonLowercase",
+          filterValue: assignmentReasonValue,
+        })),
 
       // memberUserId
       ...(memberUserId && { bookingUserId: memberUserId }),
@@ -298,8 +287,9 @@ class RoutingEventsInsights {
           },
         }),
 
-      ...(attributeFilters.length > 0 && {
-        AND: attributeFilters.map((fieldFilter) => {
+      // AND clause
+      ...(responseFilters.length > 0 && {
+        AND: responseFilters.map((fieldFilter) => {
           return makeWhereClause({
             columnName: "responseLowercase",
             filterValue: getLowercaseFilterValue(fieldFilter),
@@ -328,7 +318,7 @@ class RoutingEventsInsights {
         bookingUserName: true,
         bookingUserEmail: true,
         bookingUserAvatarUrl: true,
-        bookingAssignmentReasons: true,
+        bookingAssignmentReason: true,
         createdAt: true,
       },
       where: whereClause,

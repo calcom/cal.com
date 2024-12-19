@@ -15,7 +15,7 @@ import {
 } from "./types";
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
-  if (filterValue.data.operator === "isEmpty" && cellValue === undefined) {
+  if (filterValue.data.operator === "isEmpty" && (cellValue === undefined || cellValue === null)) {
     return true;
   }
 

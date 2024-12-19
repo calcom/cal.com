@@ -94,7 +94,7 @@ type ResponseValue = z.infer<typeof ZResponseValue>;
 
 type RoutingFormTableRow = Omit<
   RoutingFormResponse,
-  "response" | "responseLowercase" | "bookingAttendees" | "bookingAssignmentReasons"
+  "response" | "responseLowercase" | "bookingAttendees"
 > & {
   response: Record<
     string,
@@ -111,7 +111,6 @@ type RoutingFormTableRow = Omit<
     }
   >;
   bookingAttendees?: { email: string; timeZone: string }[];
-  bookingAssignmentReasons?: { reasonString: string }[];
 };
 
 const statusOrder: Record<BookingStatus, number> = {
@@ -515,8 +514,8 @@ export function RoutingFormResponsesTableContent({
           return dateA.getTime() - dateB.getTime();
         },
       }),
-      columnHelper.accessor("bookingAssignmentReasons", {
-        id: "bookingAssignmentReasons",
+      columnHelper.accessor("bookingAssignmentReason", {
+        id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
         size: 250,
         enableSorting: false,
@@ -524,27 +523,12 @@ export function RoutingFormResponsesTableContent({
           filter: { type: "text" },
         },
         cell: (info) => {
-          const assignmentReasons = info.getValue();
-          return (
-            <div className="max-w-[250px]">
-              {assignmentReasons && assignmentReasons.length > 0 ? assignmentReasons[0].reasonString : ""}
-            </div>
-          );
+          const assignmentReason = info.getValue();
+          return <div className="max-w-[250px]">{assignmentReason}</div>;
         },
         filterFn: (row, id, filterValue: TextFilterValue) => {
-          const reasons = row.original.bookingAssignmentReasons;
-          if (filterValue.data.operator === "isEmpty") {
-            return Boolean(!reasons || reasons.length === 0);
-          }
-          if (filterValue.data.operator === "isNotEmpty") {
-            return Boolean(
-              reasons && reasons.length > 0 && reasons.some((reason) => reason.reasonString.length > 0)
-            );
-          }
-          if (!reasons || reasons.length === 0) {
-            return false;
-          }
-          return reasons.some((reason) => textFilter(reason.reasonString, filterValue));
+          const reason = row.original.bookingAssignmentReason;
+          return textFilter(reason, filterValue);
         },
       }),
       columnHelper.accessor("createdAt", {
