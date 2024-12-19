@@ -72,6 +72,7 @@ describe("POST /api/event-types", () => {
         },
       });
       req.userId = memberUserId;
+      // @ts-expect-error - Return type is wrong
       vi.mocked(canUserAccessTeamWithRole).mockImplementationOnce(async () => false);
 
       await handler(req, res);
@@ -114,6 +115,7 @@ describe("POST /api/event-types", () => {
       req.isSystemWideAdmin = true;
       req.userId = adminUserId;
 
+      // @ts-expect-error - Return type is wrong
       vi.mocked(canUserAccessTeamWithRole).mockImplementationOnce(async () => false);
 
       await handler(req, res);
@@ -138,6 +140,7 @@ describe("POST /api/event-types", () => {
       req.isSystemWideAdmin = true;
       req.userId = adminUserId;
 
+      // @ts-expect-error - Return type is wrong
       vi.mocked(canUserAccessTeamWithRole).mockImplementationOnce(async () => true);
       vi.mocked(checkParentEventOwnership).mockImplementationOnce(async () => undefined);
       vi.mocked(checkUserMembership).mockImplementationOnce(async () => undefined);

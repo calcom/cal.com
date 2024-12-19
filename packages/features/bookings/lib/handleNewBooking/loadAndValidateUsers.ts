@@ -6,6 +6,7 @@ import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLe
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -91,7 +92,7 @@ export async function loadAndValidateUsers({
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
-    users.push(eventTypeUser);
+    users.push(withSelectedCalendars(eventTypeUser));
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });

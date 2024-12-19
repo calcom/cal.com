@@ -2878,6 +2878,8 @@
   "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
   "single_select": "Single Select",
   "multi_select": "Multi Select",
+  "calendar_conflict_settings": "Calendar Conflict Settings",
+  "select_calendars_conflict_check": "Select which calendars to check for conflicts",
   "group_meeting": "Group Meeting",
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "google_meet": "Google Meet",

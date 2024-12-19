@@ -1,8 +1,6 @@
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
-import { availabilityUserSelect } from "@calcom/prisma";
-import { prisma } from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -21,19 +19,8 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
   if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // verify member is in team
-  const members = await prisma.membership.findMany({
-    where: { teamId: input.teamId },
-    include: {
-      user: {
-        select: {
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          }, // needed for getUserAvailability
-          ...availabilityUserSelect,
-        },
-      },
-    },
-  });
+  const members = await MembershipRepository.findByTeamIdForAvailability({ teamId: input.teamId });
+
   const member = members?.find((m) => m.userId === input.memberId);
   if (!member) throw new TRPCError({ code: "NOT_FOUND", message: "Member not found" });
   if (!member.user.username)
