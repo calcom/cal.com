@@ -118,6 +118,7 @@ export type IconName =
   | "smartphone"
   | "sparkles"
   | "square-check"
+  | "square-pen"
   | "star"
   | "sun"
   | "sunrise"
