@@ -53,8 +53,10 @@ import {
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
-  const args = {
-    data: { ...body, userId } as Prisma.SelectedCalendarUncheckedCreateInput,
+  const args: {
+    data: Prisma.SelectedCalendarUncheckedCreateInput;
+  } = {
+    data: { ...body, userId },
   };
 
   if (!isSystemWideAdmin && bodyUserId)
