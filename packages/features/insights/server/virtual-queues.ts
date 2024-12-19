@@ -41,7 +41,7 @@ class VirtualQueuesInsights {
       teamRoutingForms.map(async (form) => {
         const serializedForm = await getSerializableForm({ form });
         return {
-          ...serializedForm, // Data from getSerializableForm
+          ...serializedForm,
           team: form.team,
         };
       })
