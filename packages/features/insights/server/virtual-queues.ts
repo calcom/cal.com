@@ -1,44 +1,63 @@
 import { readonlyPrisma as prisma } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
-import { zodRoutes } from "@calcom/routing-forms/zod";
 
 class VirtualQueuesInsights {
   static async getUserRelevantTeamRoutingForms({ userId }: { userId: number }) {
-    const teamRoutingForms = await prisma.app_RoutingForms_Form.findMany({
-      where: {
-        team: {
-          members: {
-            some: {
-              userId,
-            },
-          },
-        },
-      },
-      include: {
-        team: {
-          select: {
-            parentId: true,
-            parent: {
-              select: {
-                slug: true,
-              },
-            },
-            metadata: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            username: true,
-            movedToProfileId: true,
-          },
-        },
-      },
-    });
+    type FormWithRelations = App_RoutingForms_Form & {
+      team: {
+        parentId: number | null;
+        parent: { slug: string } | null;
+        metadata: any;
+      };
+      user: {
+        id: number;
+        username: string | null;
+        movedToProfileId: number | null;
+      };
+    };
 
+    const formsRedirectingToWeightedRR = await prisma.$queryRaw<FormWithRelations[]>`
+      WITH RECURSIVE json_array_elements_recursive AS (
+        SELECT f.id, f."teamId",
+               jsonb_array_elements(f.routes::jsonb) as route
+        FROM "App_RoutingForms_Form" f
+        WHERE f."teamId" IN (
+          SELECT "teamId"
+          FROM "Membership"
+          WHERE "userId" = ${userId}
+        )
+      )
+      SELECT DISTINCT f.*,
+        jsonb_build_object(
+          'parentId', t."parentId",
+          'parent', CASE WHEN p.id IS NOT NULL THEN jsonb_build_object('slug', p.slug) ELSE NULL END,
+          'metadata', t.metadata
+        ) as team,
+        jsonb_build_object(
+          'id', u.id,
+          'username', u.username,
+          'movedToProfileId', u."movedToProfileId"
+        ) as "user"
+      FROM "App_RoutingForms_Form" f
+      INNER JOIN json_array_elements_recursive r ON f.id = r.id
+      INNER JOIN "EventType" e ON (r.route->>'action')::jsonb->>'eventTypeId' = e.id::text
+      INNER JOIN "Team" t ON f."teamId" = t.id
+      LEFT JOIN "Team" p ON t."parentId" = p.id
+      INNER JOIN "users" u ON f."userId" = u.id
+      WHERE e."schedulingType" = 'roundRobin'
+        AND e."isRRWeightsEnabled" = true
+        AND EXISTS (
+          SELECT 1
+          FROM "Host" h
+          WHERE h."eventTypeId" = e.id
+          AND h."userId" = ${userId}
+        );
+    `;
+
+    // Convert the raw forms to serializable format
     const serializableForms = await Promise.all(
-      teamRoutingForms.map(async (form) => {
+      formsRedirectingToWeightedRR.map(async (form) => {
         const serializedForm = await getSerializableForm({ form });
         return {
           ...serializedForm,
@@ -46,36 +65,8 @@ class VirtualQueuesInsights {
         };
       })
     );
-    // find routing forms that link to RR event type
-    const formsRedirectingToWeightedRR = [];
 
-    for (const form of serializableForms) {
-      const routes = zodRoutes.parse(form.routes);
-      if (!routes) continue;
-
-      for (const route of routes) {
-        if ("action" in route) {
-          const eventType = await prisma.eventType.findFirst({
-            where: {
-              id: route.action.eventTypeId,
-              hosts: {
-                some: {
-                  userId,
-                },
-              },
-              schedulingType: SchedulingType.ROUND_ROBIN,
-              isRRWeightsEnabled: true,
-            },
-          });
-          if (eventType) {
-            formsRedirectingToWeightedRR.push(form);
-            break;
-          }
-        }
-      }
-    }
-
-    return formsRedirectingToWeightedRR;
+    return serializableForms;
   }
 }
 
