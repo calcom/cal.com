@@ -28,6 +28,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -154,6 +155,8 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
+    title: string;
+    responses: Prisma.JsonValue;
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
@@ -230,7 +233,9 @@ export async function handleConfirmation(args: {
           },
           description: true,
           attendees: true,
+          responses: true,
           location: true,
+          title: true,
           uid: true,
           startTime: true,
           metadata: true,
@@ -290,6 +295,8 @@ export async function handleConfirmation(args: {
         },
         uid: true,
         startTime: true,
+        responses: true,
+        title: true,
         metadata: true,
         endTime: true,
         smsReminderNumber: true,
@@ -389,8 +396,18 @@ export async function handleConfirmation(args: {
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
+    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
+      return {
+        ...booking,
+        ...getCalEventResponses({
+          bookingFields: booking.eventType?.bookingFields ?? null,
+          booking,
+        }),
+      };
+    });
+
     subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
@@ -402,7 +419,7 @@ export async function handleConfirmation(args: {
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
