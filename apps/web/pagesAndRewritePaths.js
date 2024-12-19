@@ -11,7 +11,7 @@ const BEFORE_REWRITE_EXCLUDE_PAGES = (exports.pages = glob
       .replace(/\/.*/, "")
   )
   // "/future" is a temporary directory for incremental migration to App Router
-  .filter((v, i, self) => self.indexOf(v) === i && !["[user]", "future", "_trpc"].some(prefix => v.startsWith(prefix)));
+  .filter((v, i, self) => self.indexOf(v) === i && !["[user]", "future", "_trpc"].some(prefix => v.startsWith(prefix))));
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
 // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
