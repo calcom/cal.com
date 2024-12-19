@@ -137,6 +137,8 @@ describe("Organizations Team Endpoints", () => {
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
           name: "Team created via API",
+          slug: "team-created-via-api",
+          bio: "This is our test team created via API",
         } satisfies CreateOrgTeamDto)
         .expect(201)
         .then(async (response) => {
@@ -144,6 +146,8 @@ describe("Organizations Team Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
           expect(teamCreatedViaApi.name).toEqual("Team created via API");
+          expect(teamCreatedViaApi.slug).toEqual("team-created-via-api");
+          expect(teamCreatedViaApi.bio).toEqual("This is our test team created via API");
           expect(teamCreatedViaApi.parentId).toEqual(org.id);
           const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
             user.id,
@@ -171,6 +175,9 @@ describe("Organizations Team Endpoints", () => {
         .patch(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
         .send({
           name: "Team created via API Updated",
+          weekStart: "Monday",
+          logoUrl: "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
+          bannerUrl: "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
         } satisfies CreateOrgTeamDto)
         .expect(200)
         .then((response) => {
@@ -178,6 +185,13 @@ describe("Organizations Team Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
           expect(teamCreatedViaApi.name).toEqual("Team created via API Updated");
+          expect(teamCreatedViaApi.weekStart).toEqual("Monday");
+          expect(teamCreatedViaApi.logoUrl).toEqual(
+            "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png"
+          );
+          expect(teamCreatedViaApi.bannerUrl).toEqual(
+            "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png"
+          );
           expect(teamCreatedViaApi.parentId).toEqual(org.id);
         });
     });

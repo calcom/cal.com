@@ -22,6 +22,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
     .nativeEnum(SalesforceRecordEnum)
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
+  ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
@@ -35,6 +36,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   sendNoShowAttendeeDataField: z.string().optional(),
   onBookingWriteToRecord: z.boolean().optional(),
   onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
+  ignoreGuests: z.boolean().optional(),
 });
 
 export const appKeysSchema = z.object({

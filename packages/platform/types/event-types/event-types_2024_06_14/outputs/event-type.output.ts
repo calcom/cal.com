@@ -1,4 +1,9 @@
-import { ApiProperty as DocsProperty, ApiExtraModels, getSchemaPath } from "@nestjs/swagger";
+import {
+  ApiProperty as DocsProperty,
+  ApiPropertyOptional,
+  ApiExtraModels,
+  getSchemaPath,
+} from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
   ArrayNotEmpty,
@@ -71,28 +76,82 @@ export type EventTypesOutputSchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MAN
 
 class User_2024_06_14 {
   @IsInt()
+  @DocsProperty()
   id!: number;
 
   @IsString()
+  @DocsProperty({ nullable: true })
   name!: string | null;
 
   @IsString()
+  @DocsProperty({ nullable: true, type: String })
   username!: string | null;
 
   @IsString()
+  @DocsProperty({ nullable: true, type: String })
   avatarUrl!: string | null;
 
   @IsString()
+  @DocsProperty({ type: String })
   weekStart!: string;
 
   @IsString()
+  @DocsProperty({ type: String, nullable: true })
   brandColor!: string | null;
 
   @IsString()
+  @DocsProperty({ type: String, nullable: true })
   darkBrandColor!: string | null;
 
   @Type(() => Object)
+  @DocsProperty({ type: Object })
   metadata!: Record<string, unknown>;
+}
+
+class EventTypeTeam {
+  @IsInt()
+  @DocsProperty()
+  id!: number;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  slug?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  bannerUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  name?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  logoUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  weekStart?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  brandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  darkBrandColor?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  theme?: string;
 }
 
 @ApiExtraModels(
@@ -141,7 +200,8 @@ class BaseEventTypeOutput_2024_06_14 {
   @ArrayUnique()
   @IsInt({ each: true })
   @Min(1, { each: true })
-  @DocsProperty({
+  @ApiPropertyOptional({
+    type: [Number],
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
@@ -164,6 +224,7 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @ValidateOutputLocations_2024_06_14()
   @DocsProperty({
+    required: true,
     oneOf: [
       { $ref: getSchemaPath(OutputAddressLocation_2024_06_14) },
       { $ref: getSchemaPath(OutputLinkLocation_2024_06_14) },
@@ -180,6 +241,7 @@ class BaseEventTypeOutput_2024_06_14 {
   @ValidateOutputBookingFields_2024_06_14()
   @DocsProperty()
   @DocsProperty({
+    required: true,
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldOutput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldOutput_2024_06_14) },
@@ -211,31 +273,38 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsInt()
   @IsOptional()
-  @DocsProperty({ example: 60, type: Number })
+  @ApiPropertyOptional({ example: 60, nullable: true })
   slotInterval?: number | null;
 
+  @IsOptional()
   @IsInt()
   @Min(0)
-  @IsOptional()
-  @DocsProperty({ example: 0 })
+  @ApiPropertyOptional({ example: 0 })
   minimumBookingNotice?: number;
 
-  @IsInt()
   @IsOptional()
-  @DocsProperty({ example: 0 })
+  @IsInt()
+  @Min(0)
+  @ApiPropertyOptional({ example: 0 })
   beforeEventBuffer?: number;
 
-  @IsInt()
   @IsOptional()
-  @DocsProperty({ example: 0 })
+  @IsInt()
+  @Min(0)
+  @ApiPropertyOptional({ example: 0 })
   afterEventBuffer?: number;
 
   @Type(() => Recurrence_2024_06_14)
-  @DocsProperty()
+  @DocsProperty({
+    type: Recurrence_2024_06_14,
+    nullable: true,
+  })
   recurrence!: Recurrence_2024_06_14 | null;
 
   @Type(() => Object)
-  @DocsProperty()
+  @DocsProperty({
+    type: Object,
+  })
   metadata!: Record<string, unknown>;
 
   @IsInt()
@@ -251,16 +320,16 @@ class BaseEventTypeOutput_2024_06_14 {
   lockTimeZoneToggleOnBookingPage!: boolean;
 
   @IsInt()
-  @DocsProperty()
+  @ApiPropertyOptional({ nullable: true })
   @IsOptional()
   seatsPerTimeSlot?: number | null;
 
   @IsBoolean()
-  @DocsProperty()
+  @DocsProperty({ nullable: true })
   forwardParamsSuccessRedirect!: boolean | null;
 
   @IsString()
-  @DocsProperty()
+  @DocsProperty({ nullable: true })
   successRedirectUrl!: string | null;
 
   @IsBoolean()
@@ -269,28 +338,28 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional({ type: Boolean, nullable: true })
   seatsShowAvailabilityCount?: boolean | null;
 
   @IsInt()
-  @DocsProperty()
+  @DocsProperty({ type: Number, nullable: true })
   scheduleId!: number | null;
 
   @IsOptional()
-  @DocsProperty()
+  @ApiPropertyOptional()
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @DocsProperty()
+  @ApiPropertyOptional()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
-  @DocsProperty({
+  @ApiPropertyOptional({
     description: "Limit how far in the future this event can be booked",
     oneOf: [
       { $ref: getSchemaPath(BusinessDaysWindow_2024_06_14) },
@@ -304,57 +373,57 @@ class BaseEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookerLayouts_2024_06_14)
-  @DocsProperty()
+  @ApiPropertyOptional()
   bookerLayouts?: BookerLayouts_2024_06_14;
 
   @IsOptional()
-  @DocsProperty()
+  @ApiPropertyOptional()
   confirmationPolicy?: ConfirmationPolicy_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   requiresBookerEmailVerification?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   hideCalendarNotes?: boolean;
 
   @IsOptional()
   @Type(() => EventTypeColor_2024_06_14)
-  @DocsProperty()
+  @ApiPropertyOptional({ type: EventTypeColor_2024_06_14 })
   color?: EventTypeColor_2024_06_14;
 
   @IsOptional()
   @Type(() => Seats_2024_06_14)
-  @DocsProperty()
+  @ApiPropertyOptional({ type: Seats_2024_06_14 })
   seats?: Seats_2024_06_14;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  @DocsProperty()
+  @ApiPropertyOptional()
   offsetStart?: number;
 
   @IsOptional()
   @IsString()
-  @DocsProperty()
+  @ApiPropertyOptional()
   customName?: string;
 
   @IsOptional()
   @Type(() => DestinationCalendar_2024_06_14)
-  @DocsProperty()
+  @ApiPropertyOptional({ type: DestinationCalendar_2024_06_14 })
   destinationCalendar?: DestinationCalendar_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   useDestinationCalendarEmail?: boolean;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
 }
 
@@ -362,6 +431,14 @@ export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
   @IsString()
   @DocsProperty({ example: "John Doe" })
   name!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional({
+    example: "https://cal.com/api/avatar/d95949bc-ccb1-400f-acf6-045c51a16856.png",
+    nullable: true,
+  })
+  avatarUrl?: string | null;
 }
 
 export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
@@ -377,20 +454,20 @@ export class EventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
 
 export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_14 {
   @IsInt()
-  @IsOptional()
   @DocsProperty()
-  teamId?: number | null;
+  teamId!: number;
 
   @IsInt()
   @IsOptional()
-  @DocsProperty()
+  @ApiPropertyOptional({ nullable: true })
   ownerId?: number | null;
 
   @IsInt()
   @IsOptional()
-  @DocsProperty({
+  @ApiPropertyOptional({
     description:
       "For managed event types, parent event type is the event type that this event type is based on",
+    nullable: true,
   })
   parentEventTypeId?: number | null;
 
@@ -402,15 +479,20 @@ export class TeamEventTypeOutput_2024_06_14 extends BaseEventTypeOutput_2024_06_
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty()
+  @ApiPropertyOptional()
   assignAllTeamMembers?: boolean;
 
   @IsEnum(SchedulingTypeEnum)
-  @DocsProperty({ enum: SchedulingTypeEnum })
+  @DocsProperty({ enum: SchedulingTypeEnum, nullable: true })
   schedulingType!: EventTypesOutputSchedulingType | null;
 
   @IsOptional()
   @IsBoolean()
-  @DocsProperty()
+  @ApiPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @ValidateNested()
+  @Type(() => EventTypeTeam)
+  @DocsProperty()
+  team!: EventTypeTeam;
 }

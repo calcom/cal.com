@@ -227,7 +227,6 @@ export class BookingRepository {
         }
       });
     }
-    console.log(`queueBookings ${JSON.stringify(queueBookings.map((booking) => booking.id))}`);
     return queueBookings;
   }
 
@@ -332,6 +331,23 @@ export class BookingRepository {
                     accepted: true,
                     role: {
                       in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              parent: {
+                team: {
+                  members: {
+                    some: {
+                      userId,
+                      accepted: true,
+                      role: {
+                        in: ["ADMIN", "OWNER"],
+                      },
                     },
                   },
                 },

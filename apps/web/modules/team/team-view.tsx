@@ -44,7 +44,7 @@ function TeamPage({
   const { t } = useLocale();
   const isEmbed = useIsEmbed();
   const telemetry = useTelemetry();
-  const teamName = team.name || "Nameless Team";
+  const teamName = team.name || t("nameless_team");
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
@@ -194,6 +194,7 @@ function TeamPage({
             <>
               <div
                 className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: team.safeBio }}
               />
             </>

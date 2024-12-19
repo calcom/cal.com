@@ -5,25 +5,27 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import {
-  getRoutedHostsWithContactOwnerAndFixedHosts,
   findMatchingHostsWithEventSegment,
+  getRoutedHostsWithContactOwnerAndFixedHosts,
 } from "@calcom/lib/bookings/getRoutedUsers";
+import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
-  isTimeOutOfBounds,
   calculatePeriodLimits,
+  isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -32,8 +34,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -429,6 +430,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+    _shouldServeCache,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -447,6 +449,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
     logger.settings.minLevel = 2;
   }
@@ -489,9 +492,15 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     normalizedHosts: eventHosts,
   });
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
-  const skipContactOwner = input.skipContactOwner;
-  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
+
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
+  const skipContactOwner = shouldIgnoreContactOwner({
+    skipContactOwner: input.skipContactOwner ?? null,
+    rescheduleUid: input.rescheduleUid ?? null,
+    routedTeamMemberIds: input.routedTeamMemberIds ?? null,
+  });
+
+  const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
   const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
     hosts: hostsAfterSegmentMatching,
     routedTeamMemberIds,
@@ -502,12 +511,13 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     await calculateHostsAndAvailabilities({
       input,
       eventType,
-      routedHostsWithContactOwnerAndFixedHosts,
+      hosts: routedHostsWithContactOwnerAndFixedHosts,
       contactOwnerEmail,
       loggerWithEventDetails,
       startTime,
       endTime,
       bypassBusyCalendarTimes,
+      shouldServeCache,
     });
 
   // If contact skipping, determine if there's availability within two weeks
@@ -526,12 +536,13 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           await calculateHostsAndAvailabilities({
             input,
             eventType,
-            routedHostsWithContactOwnerAndFixedHosts: routedHostsAndFixedHosts,
+            hosts: routedHostsAndFixedHosts,
             contactOwnerEmail,
             loggerWithEventDetails,
             startTime,
             endTime,
             bypassBusyCalendarTimes,
+            shouldServeCache,
           }));
       }
     }
@@ -1011,29 +1022,35 @@ export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
 const calculateHostsAndAvailabilities = async ({
   input,
   eventType,
-  routedHostsWithContactOwnerAndFixedHosts,
+  hosts,
   contactOwnerEmail,
   loggerWithEventDetails,
   startTime,
   endTime,
   bypassBusyCalendarTimes,
+  shouldServeCache,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
-  routedHostsWithContactOwnerAndFixedHosts: {
+  hosts: {
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
-  contactOwnerEmail?: string | null;
+  contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 }) => {
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   if (
     input.rescheduleUid &&
     eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+    // If it is rerouting, we should not force reschedule with same host.
+    // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
+    !isRerouting({ rescheduleUid: input.rescheduleUid, routedTeamMemberIds })
   ) {
     const originalRescheduledBooking = await prisma.booking.findFirst({
       where: {
@@ -1046,14 +1063,12 @@ const calculateHostsAndAvailabilities = async ({
         userId: true,
       },
     });
-    routedHostsWithContactOwnerAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
-      (host) => host.user.id === originalRescheduledBooking?.userId || 0
-    );
+    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
   const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
     contactOwnerEmail,
-    hosts: routedHostsWithContactOwnerAndFixedHosts,
+    hosts,
   });
 
   loggerWithEventDetails.debug("Using users", {
@@ -1141,6 +1156,7 @@ const calculateHostsAndAvailabilities = async ({
       duration: input.duration || 0,
       returnDateOverrides: false,
       bypassBusyCalendarTimes,
+      shouldServeCache,
     },
     initialData: {
       eventType,
@@ -1174,5 +1190,10 @@ const calculateHostsAndAvailabilities = async ({
     eventType.schedulingType
   );
 
-  return { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats };
+  return {
+    aggregatedAvailability,
+    allUsersAvailability,
+    usersWithCredentials,
+    currentSeats,
+  };
 };
