@@ -126,7 +126,7 @@ export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@c
 
 export {
   // note(Lauris): Api to internal
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
