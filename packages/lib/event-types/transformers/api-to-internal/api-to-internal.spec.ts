@@ -32,7 +32,7 @@ import {
 } from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformSelectOptionsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -151,7 +151,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 });
 
-describe("transformBookingFieldsApiToInternal", () => {
+describe("transformBookingFieldsApiRequestToInternal", () => {
   it("should transform name field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "name",
@@ -176,7 +176,7 @@ describe("transformBookingFieldsApiToInternal", () => {
 
     const expectedOutput: SystemField[] = [expectedField];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -200,7 +200,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -235,7 +235,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -270,7 +270,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -305,7 +305,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -340,7 +340,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -375,7 +375,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -412,7 +412,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -448,7 +448,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -483,7 +483,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -519,7 +519,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -555,7 +555,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -589,7 +589,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -629,7 +629,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiToInternal(input);
+    const result = transformBookingFieldsApiRequestToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
