@@ -2,7 +2,6 @@
 
 import { signOut } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Toaster } from "react-hot-toast";
@@ -12,7 +11,6 @@ import { classNames } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, StepCard, Steps } from "@calcom/ui";
@@ -27,11 +25,17 @@ import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 const INITIAL_STEP = "user-settings";
-const BASE_STEPS = ["user-settings", "setup-availability", "user-profile"] as const;
-const EXTRA_STEPS = ["connected-calendar", "connected-video"] as const;
-type StepType = (typeof BASE_STEPS)[number] | (typeof EXTRA_STEPS)[number];
+const BASE_STEPS = [
+  "user-settings",
+  "connected-calendar",
+  "connected-video",
+  "setup-availability",
+  "user-profile",
+] as const;
 
-const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunction) => {
+type StepType = (typeof BASE_STEPS)[number];
+
+const getStepsAndHeadersForUser = (t: TFunction) => {
   const baseHeaders: {
     title: string;
     subtitle: string[];
@@ -40,6 +44,16 @@ const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunct
     {
       title: t("welcome_to_cal_header", { appName: APP_NAME }),
       subtitle: [t("we_just_need_basic_info"), t("edit_form_later_subtitle")],
+    },
+    {
+      title: t("connect_your_calendar"),
+      subtitle: [t("connect_your_calendar_instructions")],
+      skipText: t("connect_calendar_later"),
+    },
+    {
+      title: t("connect_your_video_app"),
+      subtitle: [t("connect_your_video_app_instructions")],
+      skipText: t("set_up_later"),
     },
     {
       title: t("set_availability"),
@@ -54,33 +68,9 @@ const getStepsAndHeadersForUser = (identityProvider: IdentityProvider, t: TFunct
     },
   ];
 
-  const additionalHeaders: {
-    title: string;
-    subtitle: string[];
-    skipText?: string;
-  }[] = [
-    {
-      title: t("connect_your_calendar"),
-      subtitle: [t("connect_your_calendar_instructions")],
-      skipText: t("connect_calendar_later"),
-    },
-    {
-      title: t("connect_your_video_app"),
-      subtitle: [t("connect_your_video_app_instructions")],
-      skipText: t("set_up_later"),
-    },
-  ];
-
-  if (identityProvider === IdentityProvider.GOOGLE) {
-    return {
-      steps: [...BASE_STEPS] as StepType[],
-      headers: [...baseHeaders],
-    };
-  }
-
   return {
-    steps: [...BASE_STEPS.slice(0, 1), ...EXTRA_STEPS, ...BASE_STEPS.slice(1)] as StepType[],
-    headers: [baseHeaders[0], ...additionalHeaders, ...baseHeaders.slice(1)],
+    steps: [...BASE_STEPS],
+    headers: [...baseHeaders],
   };
 };
 
@@ -120,7 +110,7 @@ const OnboardingPage = (props: PageProps) => {
   //     }
   //   );
   // }
-  const { steps, headers } = getStepsAndHeadersForUser(user.identityProvider, t);
+  const { steps, headers } = getStepsAndHeadersForUser(t);
   const stepTransform = (step: StepType) => {
     const stepIndex = steps.indexOf(step as (typeof steps)[number]);
 
@@ -147,11 +137,6 @@ const OnboardingPage = (props: PageProps) => {
       )}
       data-testid="onboarding"
       key={pathname}>
-      <Head>
-        <title>{`${APP_NAME} - ${t("getting_started")}`}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">

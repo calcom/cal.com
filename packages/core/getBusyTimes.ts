@@ -241,7 +241,6 @@ export async function getBusyTimes(params: {
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(
-      username,
       credentials,
       startTime,
       endTime,

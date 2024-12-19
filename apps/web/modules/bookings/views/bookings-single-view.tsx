@@ -63,7 +63,6 @@ import {
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
-import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -1116,7 +1115,6 @@ const DisplayLocation = ({
   );
 
 Success.isBookingPage = true;
-Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];

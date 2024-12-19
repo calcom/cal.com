@@ -72,6 +72,7 @@ export default function RequiresConfirmationController({
   );
 
   const requiresConfirmationWillBlockSlot = formMethods.getValues("requiresConfirmationWillBlockSlot");
+  const requiresConfirmationForFreeEmail = formMethods.getValues("requiresConfirmationForFreeEmail");
 
   return (
     <div className="block items-start sm:flex">
@@ -237,6 +238,21 @@ export default function RequiresConfirmationController({
                           onChange={(e) => {
                             // We set should dirty to properly detect when we can submit the form
                             formMethods.setValue("requiresConfirmationWillBlockSlot", e.target.checked, {
+                              shouldDirty: true,
+                            });
+                          }}
+                        />
+                        <CheckboxField
+                          checked={requiresConfirmationForFreeEmail}
+                          descriptionAsLabel
+                          description={t("require_confirmation_for_free_email")}
+                          className={customClassNames?.conditionalConfirmationRadio?.checkbox}
+                          descriptionClassName={
+                            customClassNames?.conditionalConfirmationRadio?.checkboxDescription
+                          }
+                          onChange={(e) => {
+                            // We set should dirty to properly detect when we can submit the form
+                            formMethods.setValue("requiresConfirmationForFreeEmail", e.target.checked, {
                               shouldDirty: true,
                             });
                           }}

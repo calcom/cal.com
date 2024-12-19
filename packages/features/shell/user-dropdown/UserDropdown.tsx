@@ -21,7 +21,6 @@ import {
 // TODO (Platform): we shouldnt be importing from web here
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
-import usePostHog from "../../ee/event-tracking/lib/posthog/userPostHog";
 import FreshChatProvider from "../../ee/support/lib/freshchat/FreshChatProvider";
 
 interface UserDropdownProps {
@@ -32,7 +31,6 @@ export function UserDropdown({ small }: UserDropdownProps) {
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const pathname = usePathname();
-  const posthog = usePostHog();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -207,8 +205,6 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     StartIcon="log-out"
                     aria-hidden="true"
                     onClick={() => {
-                      posthog.capture("sign_out");
-                      posthog.reset();
                       signOut({ callbackUrl: "/auth/logout" });
                     }}>
                     {t("sign_out")}

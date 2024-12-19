@@ -1,15 +1,31 @@
 const glob = require("glob");
 const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
+// Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
-  .sync("pages/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
+  .sync("{pages,app}/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
   .map((filename) =>
     filename
-      .substr(6)
+      .replace(/^(pages|app)\//, "")
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
-  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]")));
+  // "/future" is a temporary directory for incremental migration to App Router
+  .filter(
+    (v, i, self) =>
+      self.indexOf(v) === i &&
+      ![
+        "[user]",
+        "future",
+        "_trpc",
+        "layout",
+        "layoutHOC",
+        "WithAppDirSsg",
+        "global-error",
+        "WithAppDirSsr",
+        "WithEmbedSSR",
+      ].some((prefix) => v.startsWith(prefix))
+  ));
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
 // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages

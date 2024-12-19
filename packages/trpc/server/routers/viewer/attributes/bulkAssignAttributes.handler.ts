@@ -1,9 +1,9 @@
-import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { processUserAttributes } from "./attributeUtils";
 import type { ZBulkAssignAttributes } from "./bulkAssignAttributes.schema";
 
 type GetOptions = {
@@ -22,6 +22,9 @@ const bulkAssignAttributesHandler = async ({ input, ctx }: GetOptions) => {
       message: "You need to be part of an organization to use this feature",
     });
   }
+
+  // Create a map of attribute types for quick lookup
+  const attributeTypes = new Map<string, string>();
 
   // Ensure this organization can access these attributes and attribute options
   const attributes = await prisma.attribute.findMany({
@@ -45,149 +48,22 @@ const bulkAssignAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const arrayOfAttributeOptionIds = attributes.flatMap(
-    (attribute) => attribute.options?.map((option) => option.id) || []
-  );
-
-  const attributeOptionIds = Array.from(new Set(arrayOfAttributeOptionIds));
-
-  const attributeOptions = await prisma.attributeOption.findMany({
-    where: {
-      id: {
-        in: attributeOptionIds,
-      },
-      attribute: {
-        teamId: org.id,
-      },
-    },
-    select: {
-      id: true,
-      value: true,
-      slug: true,
-    },
+  // Store attribute types in the map
+  attributes.forEach((attr) => {
+    attributeTypes.set(attr.id, attr.type);
   });
-
-  if (attributeOptions.length !== attributeOptionIds.length) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You do not have access to these attribute options",
-    });
-  }
 
   const results = await Promise.all(
     input.userIds.map(async (userId) => {
       return prisma.$transaction(async (tx) => {
-        const membership = await tx.membership.findFirst({
-          where: {
-            userId: userId,
-            // @ts-expect-error we check this higher in the logic
-            teamId: org?.id,
-          },
-        });
+        // Add type information to the input attributes
+        const attributesWithType = input.attributes.map((attr) => ({
+          ...attr,
+          type: attributeTypes.get(attr.id),
+        }));
 
-        if (!membership) {
-          return {
-            userId,
-            success: false,
-            message: "User is not part of your organization",
-          };
-        }
-
-        for (const attribute of input.attributes) {
-          // TEXT, NUMBER
-          if (attribute.value && !attribute.options) {
-            const valueAsString = String(attribute.value);
-
-            // Check if it is already the value
-            const existingAttributeOption = await tx.attributeToUser.findFirst({
-              where: {
-                memberId: membership.id,
-                attributeOption: {
-                  attribute: {
-                    id: attribute.id,
-                  },
-                },
-              },
-              select: {
-                id: true,
-                attributeOption: {
-                  select: {
-                    id: true,
-                  },
-                },
-              },
-            });
-
-            if (existingAttributeOption) {
-              // Update the value if it already exists
-              await tx.attributeOption.update({
-                where: {
-                  id: existingAttributeOption.attributeOption.id,
-                },
-                data: {
-                  value: valueAsString,
-                  slug: slugify(valueAsString),
-                },
-              });
-            } else {
-              await tx.attributeOption.create({
-                data: {
-                  value: valueAsString,
-                  slug: slugify(valueAsString),
-                  attribute: {
-                    connect: {
-                      id: attribute.id,
-                    },
-                  },
-                  assignedUsers: {
-                    create: {
-                      memberId: membership.id,
-                    },
-                  },
-                },
-              });
-            }
-          } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
-            const options = attribute.options;
-
-            for (const option of options) {
-              // Assign the attribute option to the user
-              await tx.attributeToUser.upsert({
-                where: {
-                  memberId_attributeOptionId: {
-                    memberId: membership.id,
-                    attributeOptionId: option.value,
-                  },
-                },
-                create: {
-                  memberId: membership.id,
-                  attributeOptionId: option.value,
-                },
-                update: {}, // No update needed if it already exists
-              });
-            }
-          }
-
-          // Delete the attribute from the user
-          if (!attribute.value && !attribute.options) {
-            await tx.attributeToUser.deleteMany({
-              where: {
-                memberId: membership.id,
-                attributeOption: {
-                  attribute: {
-                    id: attribute.id,
-                  },
-                },
-              },
-            });
-          }
-        }
-
-        return {
-          userId,
-          success: true,
-          message: "Attributes assigned successfully",
-        };
+        // @ts-expect-error - org.id is being checked above for nullish
+        return processUserAttributes(tx, userId, org.id, attributesWithType);
       });
     })
   );
