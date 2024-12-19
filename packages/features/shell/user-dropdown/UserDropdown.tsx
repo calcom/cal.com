@@ -64,7 +64,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
         <button
           data-testid="user-dropdown-trigger-button"
           className={classNames(
-            "hover:bg-emphasis todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
+            "hover:bg-emphasis taurify:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded",
             small ? "p-2" : "px-2 py-1.5"
           )}>
           <span
@@ -175,7 +175,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownItem>
                 </DropdownMenuItem>
                 {!isPlatformPages && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                  <DropdownMenuItem className="taurify:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="download"
                       target="_blank"
@@ -187,7 +187,7 @@ export function UserDropdown({ small }: UserDropdownProps) {
                 )}
 
                 {!isPlatformPages && isPlatformUser && (
-                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                  <DropdownMenuItem className="taurify:hidden hidden lg:flex">
                     <DropdownItem
                       StartIcon="blocks"
                       target="_blank"

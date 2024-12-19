@@ -3826,7 +3826,6 @@ __metadata:
     "@tailwindcss/forms": ^0.5.2
     "@tailwindcss/line-clamp": ^0.4.0
     "@tailwindcss/typography": ^0.5.4
-    "@todesktop/tailwind-variants": ^1.0.0
     "@trivago/prettier-plugin-sort-imports": 4.1.1
     "@typescript-eslint/eslint-plugin": ^5.52.0
     "@typescript-eslint/parser": ^5.52.0
@@ -5013,6 +5012,7 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
+    "@crabnebula/taurify-api": ^0.1.0
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
@@ -5152,6 +5152,7 @@ __metadata:
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
+    taurify: ^0.0.39
     ts-node: ^10.9.1
     turndown: ^7.1.3
     typescript: ^4.9.4
@@ -5527,6 +5528,13 @@ __metadata:
   version: 1.6.0
   resolution: "@colors/colors@npm:1.6.0"
   checksum: aa209963e0c3218e80a4a20553ba8c0fbb6fa13140540b4e5f97923790be06801fc90172c1114fc8b7e888b3d012b67298cde6b9e81521361becfaee400c662f
+  languageName: node
+  linkType: hard
+
+"@crabnebula/taurify-api@npm:^0.1.0":
+  version: 0.1.7
+  resolution: "@crabnebula/taurify-api@npm:0.1.7"
+  checksum: 9a081ade046ee935748c780517e6259b780f980d47fa5966fa0ba554cd6057a256b749aa38c6333fee7bdf3871322bcf0b23b6b0929389baf0f142959e98059f
   languageName: node
   linkType: hard
 
@@ -15467,15 +15475,6 @@ __metadata:
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
   checksum: 3e6bc9fd53dfe2f3648190193ed2fd4bca2a1bfb47f68810df3b33f05412526e5fd5c4ef9dc5375635e0f4cdf1859916867b597eed22bda1321e04242ea6c519
-  languageName: node
-  linkType: hard
-
-"@todesktop/tailwind-variants@npm:^1.0.0":
-  version: 1.0.1
-  resolution: "@todesktop/tailwind-variants@npm:1.0.1"
-  peerDependencies:
-    tailwindcss: ^3.4.0
-  checksum: 53dffba36455b555553cf4d1d74554b54f4a586ef6dc8f7eb66d586b935765f56a0b806c2bbba0fddb435340744fe68bb9e1bbf66a4646fdc3b18af13521e4b6
   languageName: node
   linkType: hard
 
@@ -42016,6 +42015,57 @@ __metadata:
   version: 3.0.2
   resolution: "tarn@npm:3.0.2"
   checksum: 27a69658f02504979c5b02e500522e78ec12ef893b90cb00fdef794f9d847a92ed78f6c0ad12e82b8919519bded6a8d6d0000442cd0c6d6ea83cd9b7297729af
+  languageName: node
+  linkType: hard
+
+"taurify-binding-darwin-arm64@npm:0.0.39":
+  version: 0.0.39
+  resolution: "taurify-binding-darwin-arm64@npm:0.0.39"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"taurify-binding-darwin-x64@npm:0.0.39":
+  version: 0.0.39
+  resolution: "taurify-binding-darwin-x64@npm:0.0.39"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"taurify-binding-linux-x64-gnu@npm:0.0.39":
+  version: 0.0.39
+  resolution: "taurify-binding-linux-x64-gnu@npm:0.0.39"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"taurify-binding-win32-x64-msvc@npm:0.0.39":
+  version: 0.0.39
+  resolution: "taurify-binding-win32-x64-msvc@npm:0.0.39"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"taurify@npm:^0.0.39":
+  version: 0.0.39
+  resolution: "taurify@npm:0.0.39"
+  dependencies:
+    taurify-binding-darwin-arm64: 0.0.39
+    taurify-binding-darwin-x64: 0.0.39
+    taurify-binding-linux-x64-gnu: 0.0.39
+    taurify-binding-win32-x64-msvc: 0.0.39
+  dependenciesMeta:
+    taurify-binding-darwin-arm64:
+      optional: true
+    taurify-binding-darwin-x64:
+      optional: true
+    taurify-binding-linux-x64-gnu:
+      optional: true
+    taurify-binding-win32-x64-msvc:
+      optional: true
+  bin:
+    taurify: taurify.js
+  checksum: b6293708721164db378df3c7eab7b4ead7d7290eae2ac3f35ae56eef70906bc8795f8c3e2c9b9a38f494555a2444d2232e683d37cf78f38b2625237d63d8c26b
   languageName: node
   linkType: hard
 

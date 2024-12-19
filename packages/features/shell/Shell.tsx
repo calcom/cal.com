@@ -197,7 +197,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
+              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow !== ButtonState.NONE && (
                 <Button
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
