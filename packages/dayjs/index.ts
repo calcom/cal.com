@@ -27,6 +27,6 @@ dayjs.extend(duration);
 
 export type Dayjs = dayjs.Dayjs;
 
-export type { ConfigType } from "dayjs";
+export type { ConfigType, ManipulateType } from "dayjs";
 
 export default dayjs;
