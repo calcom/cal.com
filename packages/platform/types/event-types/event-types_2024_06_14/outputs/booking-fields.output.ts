@@ -17,11 +17,15 @@ import {
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
-  NameFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
 } from "../inputs";
 
-export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14 {
+export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -47,7 +51,7 @@ export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14
   required!: boolean;
 }
 
-export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
+export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -108,7 +112,7 @@ export class LocationDefaultFieldOutput_2024_06_14 {
   hidden!: boolean;
 }
 
-export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
+export class RescheduleReasonDefaultFieldOutput_2024_06_14 extends RescheduleReasonDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -161,7 +165,7 @@ export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class TitleDefaultFieldOutput_2024_06_14 {
+export class TitleDefaultFieldOutput_2024_06_14 extends TitleDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -214,7 +218,7 @@ export class TitleDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class NotesDefaultFieldOutput_2024_06_14 {
+export class NotesDefaultFieldOutput_2024_06_14 extends NotesDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -267,7 +271,7 @@ export class NotesDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class GuestsDefaultFieldOutput_2024_06_14 {
+export class GuestsDefaultFieldOutput_2024_06_14 extends GuestsDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",

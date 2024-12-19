@@ -5,7 +5,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
-  transformBookingFieldsApiRequestToInternal,
+  transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -218,7 +218,7 @@ export class InputEventTypesService_2024_06_14 {
     hasMultipleLocations: boolean
   ) {
     const customFields: (SystemField | CustomField)[] = inputBookingFields
-      ? transformBookingFieldsApiRequestToInternal(inputBookingFields)
+      ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
     const customFieldsWithoutNameEmail = customFields.filter(
       (field) => field.type !== "name" && field.type !== "email"

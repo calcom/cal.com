@@ -542,7 +542,7 @@ export const systemAfterFieldTitle: TitleSystemField = {
   name: "title",
   editable: "system-but-optional",
   required: true,
-  hidden: false,
+  hidden: true,
   defaultPlaceholder: "",
   sources: [
     {

@@ -21,7 +21,9 @@ const inputBookingFieldTypes = [
   "boolean",
 ] as const;
 
-export class NameFieldInput_2024_06_14 {
+const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
+
+export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "name", description: "only allowed value for type is `name`" })
   type!: "name";
@@ -48,7 +50,7 @@ export class NameFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
-export class EmailFieldInput_2024_06_14 {
+export class EmailDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "email", description: "only allowed value for type is `email`" })
   type!: "email";
@@ -74,6 +76,166 @@ export class EmailFieldInput_2024_06_14 {
   })
   disableOnPrefill?: boolean;
 }
+
+export class TitleDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "title", description: "only allowed value for type is `title`" })
+  slug!: "title";
+
+  @IsBoolean()
+  @DocsProperty()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&title=journey`,\
+      the title field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class NotesDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "notes", description: "only allowed value for type is `notes`" })
+  slug!: "notes";
+
+  @IsBoolean()
+  @DocsProperty()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&notes=journey`,\
+      the notes field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class GuestsDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "guests", description: "only allowed value for type is `guests`" })
+  slug!: "guests";
+
+  @IsBoolean()
+  @DocsProperty()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&guests=bob@cal.com`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class RescheduleReasonDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({
+    example: "rescheduleReason",
+    description: "only allowed value for type is `rescheduleReason`",
+  })
+  slug!: "rescheduleReason";
+
+  @IsBoolean()
+  @DocsProperty()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&rescheduleReason=travel`,\
+      the rescheduleReason field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
 export class PhoneFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
@@ -577,8 +739,8 @@ export class BooleanFieldInput_2024_06_14 {
 }
 
 export type InputBookingField_2024_06_14 =
-  | NameFieldInput_2024_06_14
-  | EmailFieldInput_2024_06_14
+  | NameDefaultFieldInput_2024_06_14
+  | EmailDefaultFieldInput_2024_06_14
   | PhoneFieldInput_2024_06_14
   | AddressFieldInput_2024_06_14
   | TextFieldInput_2024_06_14
@@ -594,8 +756,8 @@ export type InputBookingField_2024_06_14 =
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   private classTypeMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
-    name: NameFieldInput_2024_06_14,
-    email: EmailFieldInput_2024_06_14,
+    name: NameDefaultFieldInput_2024_06_14,
+    email: EmailDefaultFieldInput_2024_06_14,
     phone: PhoneFieldInput_2024_06_14,
     address: AddressFieldInput_2024_06_14,
     text: TextFieldInput_2024_06_14,

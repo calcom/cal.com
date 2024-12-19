@@ -2,7 +2,7 @@ import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiResponseToInternal,
+  transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
@@ -329,7 +329,7 @@ function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const transformedBookingFields = transformBookingFieldsApiResponseToInternal(bookingFields);
+  const transformedBookingFields = transformBookingFieldsApiToInternal(bookingFields);
 
   const hasNameField = transformedBookingFields.some((field) => field.name === "name");
   const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
