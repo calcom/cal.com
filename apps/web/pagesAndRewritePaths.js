@@ -40,9 +40,7 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
   const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
   const nextJsSpecialPaths = ["_next", "public"];
 
-  let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes).concat(
-    nextJsSpecialPaths
-  );
+  let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes).concat(nextJsSpecialPaths);
   return beforeRewriteExcludePages.join(`${suffix}|`) + suffix;
 }
 
