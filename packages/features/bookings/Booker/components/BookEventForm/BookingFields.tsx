@@ -1,4 +1,4 @@
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
@@ -10,6 +10,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
+import { isNameFieldReadOnly } from "./isNameFieldReadOnly";
+
+type Fields = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
 
 export const BookingFields = ({
   fields,
@@ -18,7 +21,7 @@ export const BookingFields = ({
   isDynamicGroupBooking,
   bookingData,
 }: {
-  fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
+  fields: Fields;
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
@@ -26,7 +29,9 @@ export const BookingFields = ({
 }) => {
   const { t } = useLocale();
   const { watch, setValue } = useFormContext();
+  const { dirtyFields } = useFormState();
   const locationResponse = watch("responses.location");
+  const nameResponse = watch("responses.name");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
 
@@ -37,12 +42,12 @@ export const BookingFields = ({
       {fields.map((field, index) => {
         // Don't Display Location field in case of instant meeting as only Cal Video is supported
         if (isInstantMeeting && field.name === "location") return null;
-
+        const isReschedule = !!rescheduleUid;
         // During reschedule by default all system fields are readOnly. Make them editable on case by case basis.
         // Allowing a system field to be edited might require sending emails to attendees, so we need to be careful
         const rescheduleReadOnly =
           (field.editable === "system" || field.editable === "system-but-optional") &&
-          !!rescheduleUid &&
+          isReschedule &&
           bookingData !== null;
 
         const bookingReadOnly = field.editable === "user-readonly";
@@ -54,6 +59,15 @@ export const BookingFields = ({
 
         if (fieldViews && !fieldViews.find((view) => view.id === currentView)) {
           return null;
+        }
+
+        if (field.name === SystemField.Enum.name) {
+          readOnly = isNameFieldReadOnly({
+            field,
+            isReschedule,
+            nameResponse,
+            isNameFieldDirty: !!dirtyFields.responses?.name,
+          });
         }
 
         if (field.name === SystemField.Enum.rescheduleReason) {
