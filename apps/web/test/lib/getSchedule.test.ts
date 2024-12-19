@@ -833,12 +833,14 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
-          `08:00:00.000Z`,
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `04:00:00.000Z`, - 9:30 AM IST not available because of slot interval.
+          // `04:30:00.000Z`, `06:30:00.000Z` - not available because minimum time slot is 07:30 UTC which is 13hrs from 18:30 UTC
+          `07:30:00.000Z`, // 01:00 PM IST
+          `09:30:00.000Z`, // 03:00 PM IST
+          // `11:30:00.000Z`, - 05:00 PM IST - not enough time for 2 hour event.
         ],
         {
+          doExactMatch: true,
           dateString: todayDateString,
         }
       );
@@ -856,12 +858,14 @@ describe("getSchedule", () => {
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
-          `05:00:00.000Z`,
-          `07:00:00.000Z`,
-          `09:00:00.000Z`,
+          // `04:00:00.000Z`, - 9:30 AM IST not available because of slot interval.
+          `04:30:00.000Z`, // 10:00 AM IST is available because minimum time slot is 04:30 UTC which is 10hrs from 18:30 UTC
+          `06:30:00.000Z`, // 12:00 PM IST
+          `08:30:00.000Z`, // 02:00 PM IST
+          `10:30:00.000Z`, // 04:00 PM IST
         ],
         {
+          doExactMatch: true,
           dateString: todayDateString,
         }
       );
