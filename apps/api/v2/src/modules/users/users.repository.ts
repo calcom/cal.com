@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team } from "@prisma/client";
+import type { Profile, User, Team, Prisma } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -180,6 +180,13 @@ export class UsersRepository {
 
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
+      data: updateData,
+    });
+  }
+
+  async updateByEmail(email: string, updateData: Prisma.UserUpdateInput) {
+    return this.dbWrite.prisma.user.update({
+      where: { email },
       data: updateData,
     });
   }
