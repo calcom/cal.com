@@ -41,6 +41,16 @@ const AlbyPaymentComponent = dynamic(
   }
 );
 
+const HitpayPaymentComponent = dynamic(
+  () =>
+    import("@calcom/app-store/hitpay/components/HitpayPaymentComponent").then(
+      (m) => m.HitpayPaymentComponent
+    ),
+  {
+    ssr: false,
+  }
+);
+
 const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t, i18n } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
@@ -158,6 +168,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                   )}
                   {props.payment.appId === "alby" && !props.payment.success && (
                     <AlbyPaymentComponent payment={props.payment} paymentPageProps={props} />
+                  )}
+                  {props.payment.appId === "hitpay" && !props.payment.success && (
+                    <HitpayPaymentComponent payment={props.payment} />
                   )}
                   {props.payment.refunded && (
                     <div className="text-default mt-4 text-center dark:text-gray-300">{t("refunded")}</div>
