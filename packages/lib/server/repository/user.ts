@@ -74,7 +74,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   isPlatformManaged: true,
 });
 
-type UserWithNotToBeUsedSelectedCalendars<TCalendar, TUser> = TUser & {
+export type UserWithLegacySelectedCalendars<TCalendar, TUser> = TUser & {
   selectedCalendars: TCalendar[];
 };
 
@@ -88,10 +88,9 @@ export function withSelectedCalendars<
     eventTypeId: number | null;
   },
   TUser extends {
-    id: number;
     selectedCalendars: TCalendar[];
   }
->(user: UserWithNotToBeUsedSelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
+>(user: UserWithLegacySelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
   // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
   const { selectedCalendars, ...restUser } = user;
   return {

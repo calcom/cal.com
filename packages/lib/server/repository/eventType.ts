@@ -13,6 +13,7 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
+import type { UserWithLegacySelectedCalendars } from "./user";
 import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
@@ -34,12 +35,36 @@ type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number |
   allSelectedCalendars: TSelectedCalendar[];
 };
 
+type HostWithLegacySelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null },
+  THost,
+  TUser
+> = THost & {
+  user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
+};
+
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
 });
+
+function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
+  hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
+) {
+  return hosts.map((host) => ({
+    ...host,
+    user: withSelectedCalendars(host.user),
+  }));
+}
+
+function usersWithSelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null },
+  TUser extends { selectedCalendars: TSelectedCalendar[] }
+>(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
+  return users.map((user) => withSelectedCalendars(user));
+}
 
 export class EventTypeRepository {
   private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
@@ -677,7 +702,7 @@ export class EventTypeRepository {
   }
 
   static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
-    return await prisma.eventType.findUnique({
+    const eventType = await prisma.eventType.findUnique({
       where: {
         id,
       },
@@ -707,6 +732,15 @@ export class EventTypeRepository {
         },
       },
     });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    return {
+      ...eventType,
+      hosts: hostsWithSelectedCalendars(eventType.hosts),
+    };
   }
 
   static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
@@ -837,17 +871,10 @@ export class EventTypeRepository {
       return eventType;
     }
 
-    const hostsWithSelectedCalendars = eventType.hosts.map((host) => ({
-      ...host,
-      user: withSelectedCalendars(host.user),
-    }));
-
-    const usersWithSelectedCalendars = eventType.users.map((user) => withSelectedCalendars(user));
-
     return {
       ...eventType,
-      hosts: hostsWithSelectedCalendars,
-      users: usersWithSelectedCalendars,
+      hosts: hostsWithSelectedCalendars(eventType.hosts),
+      users: usersWithSelectedCalendars(eventType.users),
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
     };
