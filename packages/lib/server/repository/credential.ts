@@ -46,4 +46,18 @@ export class CredentialRepository {
   static async deleteById({ id }: { id: number }) {
     await prisma.credential.delete({ where: { id } });
   }
+
+  static async findByIdWithSelectedCalendar({ id }: { id: number }) {
+    return await prisma.credential.findFirst({
+      where: { id },
+      select: {
+        ...safeCredentialSelect,
+        selectedCalendars: {
+          select: {
+            externalId: true,
+          },
+        },
+      },
+    });
+  }
 }

@@ -7,6 +7,7 @@ import { throwIfNotHaveAdminAccessToTeam } from "@calcom/app-store/_utils/throwI
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 const stateSchema = z.object({
@@ -45,13 +46,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const credentials = await oAuth2Client.getToken(code);
 
-  await prisma.credential.create({
+  const newCredential = await prisma.credential.create({
     data: {
       type: "google_workspace_directory",
       key: credentials.res?.data,
       userId: session.user.id,
     },
   });
+
+  await BookingReferenceRepository.reconnectWithNewCredential(newCredential.id);
 
   if (!teamId) {
     res.redirect(getSafeRedirectUrl(`${WEBAPP_URL}/settings`) ?? `${WEBAPP_URL}/teams`);
