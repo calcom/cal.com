@@ -3,12 +3,11 @@ import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 import { i18nInputSchema } from "./i18n.schema";
-import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
-import { ZSubmitRatingInputSchema } from "./submitRating.schema";
+import { ZCommonInputSchema } from "./types";
 
 const NAMESPACE = "publicViewer";
 
@@ -25,11 +24,11 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
     return handler(opts);
   }),
-  submitRating: publicProcedure.input(ZSubmitRatingInputSchema).mutation(async (opts) => {
+  submitRating: publicProcedure.input(ZCommonInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("submitRating"), () => import("./submitRating.handler"));
     return handler(opts);
   }),
-  markHostAsNoShow: publicProcedure.input(ZMarkHostAsNoShowInputSchema).mutation(async (opts) => {
+  markHostAsNoShow: publicProcedure.input(ZCommonInputSchema).mutation(async (opts) => {
     const handler = await importHandler(
       namespaced("markHostAsNoShow"),
       () => import("./markHostAsNoShow.handler")
