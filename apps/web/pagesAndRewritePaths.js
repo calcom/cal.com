@@ -2,7 +2,7 @@ const glob = require("glob");
 const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
-const BEFORE_REWRITE_EXCLUDE_PAGES = (exports.pages = glob
+let pages = (exports.pages = glob
   .sync("{pages,app}/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
   .map((filename) =>
     filename
@@ -40,7 +40,7 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
   const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
   const nextJsSpecialPaths = ["_next", "public"];
 
-  let beforeRewriteExcludePages = BEFORE_REWRITE_EXCLUDE_PAGES.concat(otherNonExistingRoutePrefixes).concat(
+  let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes).concat(
     nextJsSpecialPaths
   );
   return beforeRewriteExcludePages.join(`${suffix}|`) + suffix;
