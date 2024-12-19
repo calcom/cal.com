@@ -518,19 +518,21 @@ export const EventAdvancedTab = ({
 
   return (
     <div className="flex flex-col space-y-4">
-      <calendarComponents.CalendarSettings
-        verifiedSecondaryEmails={verifiedSecondaryEmails}
-        userEmail={userEmail}
-        calendarsQuery={calendarsQuery}
-        isTeamEventType={!!team}
-        isChildrenManagedEventType={isChildrenManagedEventType}
-        customClassNames={customClassNames}
-        eventNameLocked={eventNameLocked}
-        eventNamePlaceholder={eventNamePlaceholder}
-        setShowEventNameTip={setShowEventNameTip}
-        showToast={showToast}
-        eventType={eventType}
-      />
+      {!isPlatform && (
+        <calendarComponents.CalendarSettings
+          verifiedSecondaryEmails={verifiedSecondaryEmails}
+          userEmail={userEmail}
+          calendarsQuery={calendarsQuery}
+          isTeamEventType={!!team}
+          isChildrenManagedEventType={isChildrenManagedEventType}
+          customClassNames={customClassNames}
+          eventNameLocked={eventNameLocked}
+          eventNamePlaceholder={eventNamePlaceholder}
+          setShowEventNameTip={setShowEventNameTip}
+          showToast={showToast}
+          eventType={eventType}
+        />
+      )}
       {showBookerLayoutSelector && (
         <BookerLayoutSelector
           fallbackToUserSettings
