@@ -2,7 +2,7 @@ import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
@@ -333,7 +333,7 @@ function getBookingFields(
   // booking field outputs than inputs due to default system fields that cant be passed as inputs, which is why we take v2 from response
   // only the custom fields and default editable fields aka fields that can be passed as inputs for event type booking fields.
   const customFields: (SystemField | CustomField)[] = bookingFields
-    ? transformBookingFieldsApiToInternal(
+    ? transformBookingFieldsApiRequestToInternal(
         bookingFields.filter((field) => isCustomField(field) || isDefaultEditableField(field))
       )
     : [];

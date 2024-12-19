@@ -7,7 +7,7 @@ import {
   type SystemField,
 } from "../internal-to-api";
 
-export function transformBookingFieldsApiToInternal(
+export function transformBookingFieldsApiRequestToInternal(
   inputBookingFields: InputBookingField_2024_06_14[]
 ): (SystemField | CustomField)[] {
   const customBookingFields = inputBookingFields.map((field) => {
