@@ -1,15 +1,17 @@
 const glob = require("glob");
 const { getSubdomainRegExp } = require("./getSubdomainRegExp");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
-let pages = (exports.pages = glob
+// Pages found here are excluded from redirects in beforeFiles in next.config.js
+const BEFORE_REWRITE_EXCLUDE_PAGES = (exports.pages = glob
   .sync("{pages,app}/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
-  .map((filename) => 
+  .map((filename) =>
     filename
-      .replace(/^(pages|app)\//, '')
+      .replace(/^(pages|app)\//, "")
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
-  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]") && !v.startsWith("future"))); // "/future" is a temporary directory for incremental migration to App Router
+  // "/future" is a temporary directory for incremental migration to App Router
+  .filter((v, i, self) => self.indexOf(v) === i && !v.startsWith("[user]") && !v.startsWith("future")));
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
 // It would match /free/30min but not /bookings/upcoming because 'bookings' is an item in pages
@@ -32,7 +34,9 @@ function getRegExpMatchingAllReservedRoutes(suffix) {
   const otherNonExistingRoutePrefixes = ["forms", "router", "success", "cancel"];
   const nextJsSpecialPaths = ["_next", "public"];
 
-  let beforeRewriteExcludePages = pages.concat(otherNonExistingRoutePrefixes).concat(nextJsSpecialPaths);
+  let beforeRewriteExcludePages = BEFORE_REWRITE_EXCLUDE_PAGES.concat(otherNonExistingRoutePrefixes).concat(
+    nextJsSpecialPaths
+  );
   return beforeRewriteExcludePages.join(`${suffix}|`) + suffix;
 }
 
