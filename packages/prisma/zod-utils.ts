@@ -265,6 +265,8 @@ export const bookingCreateBodySchema = z.object({
    * Used to identify if the booking is a dry run.
    */
   _isDryRun: z.boolean().optional(),
+  /** Whether to override the cache */
+  _shouldServeCache: z.boolean().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -520,7 +522,10 @@ export const successRedirectUrl = z
 
 export const RoutingFormSettings = z
   .object({
+    // Applicable only for User Forms
     emailOwnerOnSubmission: z.boolean(),
+
+    // Applicable only for Team Forms
     sendUpdatesTo: z.array(z.number()).optional(),
     sendToAll: z.boolean().optional(),
   })
@@ -686,6 +691,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  requiresConfirmationForFreeEmail: true,
   requiresConfirmationWillBlockSlot: true,
   eventName: true,
   metadata: true,

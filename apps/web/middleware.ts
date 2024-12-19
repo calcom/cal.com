@@ -184,8 +184,7 @@ export const config = {
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
     "/workflows/:path*",
-    "/getting-started/:step/",
-    "/future/getting-started/:step/",
+    "/getting-started/:path*",
     "/apps",
     "/bookings/:status/",
     "/future/bookings/:status/",
@@ -194,6 +193,7 @@ export const config = {
     "/future/teams/",
     "/settings/:path*",
     "/availability/:path*",
+    "/booking/:path*",
   ],
 };
 

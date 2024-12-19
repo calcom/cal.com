@@ -1,5 +1,5 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   BadRequestException,
@@ -23,7 +23,7 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
     const request = context
       .switchToHttp()
       .getRequest<Request & { webhook: Webhook } & { eventType: EventType }>();
-    const user = request.user as GetUserReturnType;
+    const user = request.user as ApiAuthGuardUser;
     const webhookId = request.params.webhookId;
     const eventTypeId = request.params.eventTypeId;
 
