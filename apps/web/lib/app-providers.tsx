@@ -292,9 +292,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
       script.onload = function(){
         Plain.init({
           appId: 'liveChatApp_01JFGGYJT7XMJYF2Z9EEXVAJ5Q',
-          fullName: "Nizar",
-          email: "nizar@cal.com",
-          emailHash: "c73a36cf13de44b571fa98391191ad9eb02e8c90e54f7b7f8919f294b7cf99c8"
+          requireAuthentication: true
         });
       };
       script.src = 'https://chat.cdn-plain.com/index.js';
