@@ -65,6 +65,7 @@ import {
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to \`2024-08-13\``,
+  example: "2024-08-13",
   required: true,
 })
 export class BookingsController_2024_08_13 {
