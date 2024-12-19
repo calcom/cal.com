@@ -2541,13 +2541,11 @@
   "email_team_invite|subject|added_to_subteam": "{{user}} added you to the team {{team}} of organization {{parentTeamName}} on {{appName}}",
   "email_team_invite|subject|invited_to_subteam": "{{user}} invited you to join the team {{team}} of organization {{parentTeamName}} on {{appName}}",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} invited you to join the team {{team}} on {{appName}}",
-
   "email_team_invite|heading|added_to_org": "You’ve been added to a {{appName}} organization",
   "email_team_invite|heading|invited_to_org": "You’ve been invited to a {{appName}} organization",
   "email_team_invite|heading|added_to_subteam": "You’ve been added to a team of {{parentTeamName}} organization",
   "email_team_invite|heading|invited_to_subteam": "You’ve been invited to a team of {{parentTeamName}} organization",
   "email_team_invite|heading|invited_to_regular_team": "You’ve been invited to join a {{appName}} team",
-
   "email_team_invite|content|added_to_org": "{{invitedBy}} has added you to the <strong>{{teamName}}</strong> organization.",
   "email_team_invite|content|invited_to_org": "{{invitedBy}} has invited you to join the {{teamName}} organization.",
   "email_team_invite|content|added_to_subteam": "{{invitedBy}} has added you to the team <strong>{{teamName}}</strong> in their organization {{parentTeamName}}. {{appName}} is the event-juggling scheduler that enables you and your team to schedule meetings without the email tennis.",
@@ -2596,6 +2594,9 @@
   "disconnect_account": "Disconnect connected account",
   "disconnect_account_hint": "Disconnecting your connected account will change the way you log in. You will only be able to login to your account using email + password",
   "cookie_consent_checkbox": "I agree to the privacy policy and cookie usage",
+  "bookings_settings_description": "Set global limits for when and how often you can be booked",
+  "global_limit_booking_frequency_description": "Limit how many bookings you allow across all your event types.",
+  "failed_to_save_global_settings": "Failed to save global settings",
   "make_a_call": "Make a Call",
   "skip_rr_assignment_label": "Skip round robin assignment if contact exists in Salesforce",
   "skip_rr_description": "URL must contain the contacts email as a parameter ex. ?email=contactEmail",

@@ -258,6 +258,7 @@ export async function getEventType(
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
+          bookingLimits: true,
         },
       },
     },
@@ -303,6 +304,7 @@ export async function getDynamicEventType(
       credentials: {
         select: credentialForCalendarServiceSelect,
       },
+      bookingLimits: true,
     },
   });
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
