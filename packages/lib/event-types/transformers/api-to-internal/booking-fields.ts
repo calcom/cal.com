@@ -183,6 +183,9 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ...systemAfterFieldRescheduleReason,
       required: field.required,
       hidden: field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: field.disableOnPrefill,
     };
   }
 
@@ -191,6 +194,9 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ...systemAfterFieldTitle,
       required: field.required,
       hidden: field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: field.disableOnPrefill,
     };
   }
 
@@ -199,6 +205,9 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ...systemAfterFieldNotes,
       required: field.required,
       hidden: field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: field.disableOnPrefill,
     };
   }
 
@@ -207,6 +216,9 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ...systemAfterFieldGuests,
       required: field.required,
       hidden: field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: field.disableOnPrefill,
     };
   }
 

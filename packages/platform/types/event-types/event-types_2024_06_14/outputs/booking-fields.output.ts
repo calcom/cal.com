@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsBoolean, IsString } from "class-validator";
+import { IsBoolean, IsOptional, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -139,6 +139,27 @@ export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&rescheduleReason=busy`,\
+      the reschedule reason field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class TitleDefaultFieldOutput_2024_06_14 {
@@ -172,6 +193,27 @@ export class TitleDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&title=masterclass`,\
+      the title field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class NotesDefaultFieldOutput_2024_06_14 {
@@ -205,6 +247,27 @@ export class NotesDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&notes=hello`,\
+      the notes field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class GuestsDefaultFieldOutput_2024_06_14 {
@@ -238,6 +301,27 @@ export class GuestsDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&guests=lauris@cal.com`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
 }
 
 export class PhoneDefaultFieldOutput_2024_06_14 {

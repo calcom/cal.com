@@ -48,6 +48,9 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             required: field.required,
             hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
           };
         case "rescheduleReason":
           return {
@@ -56,6 +59,9 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             required: field.required,
             hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
           };
         case "title":
           return {
@@ -64,6 +70,9 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             required: field.required,
             hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
           };
         case "notes":
           return {
@@ -72,6 +81,9 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             required: field.required,
             hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
           };
         case "guests":
           return {
@@ -80,6 +92,9 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             required: field.required,
             hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: field.disableOnPrefill,
           };
         case "attendeePhoneNumber":
           return {
