@@ -5,26 +5,27 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats, IFromUser, IToUser, GetAvailabilityUser } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWrapper";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import {
-  getRoutedHostsWithContactOwnerAndFixedHosts,
   findMatchingHostsWithEventSegment,
+  getRoutedHostsWithContactOwnerAndFixedHosts,
 } from "@calcom/lib/bookings/getRoutedUsers";
-import { shouldIgnoreContactOwner, isRerouting } from "@calcom/lib/bookings/routing/utils";
+import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
-  isTimeOutOfBounds,
   calculatePeriodLimits,
+  isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -33,8 +34,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -430,6 +430,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const {
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
+    _shouldServeCache,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -448,6 +449,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
   if (isEventTypeLoggingEnabled({ eventTypeId: eventType.id })) {
     logger.settings.minLevel = 2;
   }
@@ -515,6 +517,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       startTime,
       endTime,
       bypassBusyCalendarTimes,
+      shouldServeCache,
     });
 
   // If contact skipping, determine if there's availability within two weeks
@@ -539,6 +542,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             startTime,
             endTime,
             bypassBusyCalendarTimes,
+            shouldServeCache,
           }));
       }
     }
@@ -1024,6 +1028,7 @@ const calculateHostsAndAvailabilities = async ({
   startTime,
   endTime,
   bypassBusyCalendarTimes,
+  shouldServeCache,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
@@ -1036,6 +1041,7 @@ const calculateHostsAndAvailabilities = async ({
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 }) => {
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   if (
@@ -1150,6 +1156,7 @@ const calculateHostsAndAvailabilities = async ({
       duration: input.duration || 0,
       returnDateOverrides: false,
       bypassBusyCalendarTimes,
+      shouldServeCache,
     },
     initialData: {
       eventType,

@@ -8,6 +8,11 @@ import {
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
   transformRecurrenceApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
@@ -33,11 +38,28 @@ export function transformApiEventTypeForAtom(
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    bookingFields,
+    users,
+    recurrence,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -101,7 +123,27 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
@@ -110,10 +152,28 @@ export function transformApiTeamEventTypeForAtom(
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    hosts,
+    bookingFields,
+    recurrence,
+    team,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -131,15 +191,16 @@ export function transformApiTeamEventTypeForAtom(
     isDefault,
     isDynamic: false,
     profile: {
-      username: "team",
-      name: "Team",
-      weekStart: "Sunday",
-      image: "",
-      brandColor: null,
-      darkBrandColor: null,
-      theme: null,
+      username: team?.slug ?? "team",
+      name: team?.name,
+      weekStart: team?.weekStart ?? "Sunday",
+      image: team?.logoUrl,
+      brandColor: team?.brandColor ?? null,
+      darkBrandColor: team?.darkBrandColor ?? null,
+      theme: team?.theme ?? null,
       bookerLayouts,
     },
+    bannerUrl: team?.bannerUrl,
     entity: entity
       ? {
           ...entity,
@@ -153,9 +214,9 @@ export function transformApiTeamEventTypeForAtom(
           fromRedirectOfNonOrgLink: true,
           considerUnpublished: false,
           orgSlug: null,
-          teamSlug: null,
-          name: null,
-          logoUrl: undefined,
+          teamSlug: team?.slug,
+          name: team?.name,
+          logoUrl: team?.logoUrl,
         },
     hosts: hosts.map((host) => ({
       user: {
@@ -190,6 +251,26 @@ export function transformApiTeamEventTypeForAtom(
       },
     })),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
@@ -295,6 +376,11 @@ function isCustomField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
 ): field is CustomFieldOutput_2024_06_14 {
   return field.type !== "unknown" && !field.isDefault;
+}
+
+function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {
+  const res = transformFutureBookingLimitsApiToInternal(inputBookingWindow);
+  return !!res ? res : {};
 }
 
 function isDefaultEditableField(

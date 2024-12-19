@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -444,6 +445,7 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -680,6 +682,10 @@ export class EventTypeRepository {
                 id: true,
                 name: true,
                 email: true,
+                credentials: {
+                  select: credentialForCalendarServiceSelect,
+                },
+                selectedCalendars: true,
               },
             },
             weight: true,
