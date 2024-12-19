@@ -1,6 +1,6 @@
 import { it, expect, describe } from "vitest";
 
-import { pages } from "./apps/web/pagesAndRewritePaths.js";
+import { pages } from "../../pagesAndRewritePaths";
 
 describe("pagesAndRewritePaths", () => {
   describe("beforeFiles must exclude routes in pages/app router", () => {
