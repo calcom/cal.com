@@ -17,6 +17,7 @@ export const createEventTypeInput = z.object({
   disableGuests: z.boolean().optional(),
   slotInterval: z.number().min(0).nullish(),
   minimumBookingNotice: z.number().int().min(0).optional(),
+  minimumReschedulingNotice: z.number().int().min(0).optional(),
   beforeEventBuffer: z.number().int().min(0).optional(),
   afterEventBuffer: z.number().int().min(0).optional(),
   scheduleId: z.number().int().optional()

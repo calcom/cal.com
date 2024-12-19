@@ -104,6 +104,7 @@ import type {
 } from "./handleNewBooking/types";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
+import { validateRescheduleWindow } from "./handleNewBooking/validateRescheduleWindow";
 import handleSeats from "./handleSeats/handleSeats";
 
 const translator = short();
@@ -452,6 +453,18 @@ async function handler(
   const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
+  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
+  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
+
+  const isRescheduling = !!rescheduleUid;
+
+  if (isRescheduling) {
+    await validateRescheduleWindow({
+      bookingStartTime: bookingData.start,
+      minimumReschedulingNotice: eventType.minimumReschedulingNotice,
+    });
+  }
+
   await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
     reqBody.start,
     reqBody.timeZone,
@@ -508,9 +521,6 @@ async function handler(
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
-
-  const bookingSeat = reqBody.rescheduleUid ? await getSeatedBooking(reqBody.rescheduleUid) : null;
-  const rescheduleUid = bookingSeat ? bookingSeat.booking.uid : reqBody.rescheduleUid;
 
   let originalRescheduledBooking = rescheduleUid
     ? await getOriginalRescheduledBooking(rescheduleUid, !!eventType.seatsPerTimeSlot)

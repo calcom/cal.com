@@ -166,6 +166,7 @@ export async function getEventType(
       id: true,
       slug: true,
       minimumBookingNotice: true,
+      minimumReschedulingNotice: true,
       length: true,
       offsetStart: true,
       seatsPerTimeSlot: true,

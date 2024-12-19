@@ -116,6 +116,7 @@ export type FormValues = {
   autoTranslateDescriptionEnabled: boolean;
   fieldTranslations: EventTypeTranslation[];
   scheduleName: string;
+  minimumReschedulingNotice: number;
   minimumBookingNotice: number;
   minimumBookingNoticeInDurationType: number;
   beforeEventBuffer: number;
