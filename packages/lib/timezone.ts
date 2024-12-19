@@ -4,7 +4,8 @@ import dayjs from "@calcom/dayjs";
 
 import isProblematicTimezone from "./isProblematicTimezone";
 
-export type Timezones = { label: string; timezone: string }[];
+export type Timezone = { label: string; timezone: string };
+export type Timezones = Timezone[];
 
 const searchTextFilter = (tzOption: Timezones[number], searchText: string) => {
   return searchText && tzOption.label.toLowerCase().includes(searchText.toLowerCase());
