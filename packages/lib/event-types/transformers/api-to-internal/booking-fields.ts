@@ -2,6 +2,15 @@ import type {
   InputBookingField_2024_06_14,
   LocationDefaultFieldOutput_2024_06_14,
   PhoneDefaultFieldOutput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
 } from "@calcom/platform-types";
 
 import {
@@ -43,7 +52,42 @@ export function transformBookingFieldsApiToInternal(bookingFields: InputBookingF
 }
 
 function getBaseProperties(field: InputBookingField): CustomField | SystemField {
-  if (field.type === "name") {
+  if (fieldIsSelect(field)) {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: "hidden" in field ? field.hidden : false,
+    };
+  }
+
+  if (fieldIsDefaultSystemLocation(field)) {
+    return {
+      ...systemBeforeFieldLocation,
+      required: field.required,
+      hidden: field.hidden,
+    };
+  }
+
+  if (fieldIsDefaultAttendeePhone(field)) {
+    return {
+      ...systemBeforeFieldPhone,
+      required: field.required,
+    };
+  }
+
+  if (fieldIsCustomSystemName(field)) {
     const systemName = { ...systemBeforeFieldName };
     if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
       systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
@@ -63,7 +107,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
-  if (field.type === "email") {
+  if (fieldIsCustomSystemEmail(field)) {
     return {
       ...systemBeforeFieldEmail,
       label: field.label,
@@ -72,59 +116,44 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     };
   }
 
-  if (field.slug === "location") {
-    return {
-      ...systemBeforeFieldLocation,
-      required: field.required,
-      hidden: field.hidden,
-    };
-  }
-
-  if (field.slug === "attendeePhoneNumber") {
-    return {
-      ...systemBeforeFieldPhone,
-      required: field.required,
-    };
-  }
-
-  if (field.slug === "rescheduleReason") {
+  if (fieldIsCustomSystemRescheduleReason(field)) {
     return {
       ...systemAfterFieldRescheduleReason,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "title") {
+  if (fieldIsCustomSystemTitle(field)) {
     return {
       ...systemAfterFieldTitle,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "notes") {
+  if (fieldIsCustomSystemNotes(field)) {
     return {
       ...systemAfterFieldNotes,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "guests") {
+  if (fieldIsCustomSystemGuests(field)) {
     return {
       ...systemAfterFieldGuests,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
@@ -146,7 +175,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
         },
       ],
       editable: "user",
-      required: field.required,
+      required: !!field.required,
       disableOnPrefill: !!field.disableOnPrefill,
       hidden: !!field.hidden,
     };
@@ -165,11 +194,58 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       },
     ],
     editable: "user",
-    required: "required" in field ? field.required : false,
-    placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
-    hidden: "hidden" in field ? field.hidden : undefined,
+    required: !!field.required,
+    placeholder: field.placeholder,
+    disableOnPrefill: !!field.disableOnPrefill,
+    hidden: !!field.hidden,
   };
+}
+
+function fieldIsCustomSystemName(field: InputBookingField): field is NameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "name";
+}
+
+function fieldIsCustomSystemEmail(field: InputBookingField): field is EmailDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "email";
+}
+
+function fieldIsCustomSystemTitle(field: InputBookingField): field is TitleDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "title";
+}
+
+function fieldIsCustomSystemNotes(field: InputBookingField): field is NotesDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "notes";
+}
+
+function fieldIsCustomSystemGuests(field: InputBookingField): field is GuestsDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "guests";
+}
+
+function fieldIsCustomSystemRescheduleReason(
+  field: InputBookingField
+): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "rescheduleReason";
+}
+
+function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "attendeePhoneNumber";
+}
+
+function fieldIsDefaultSystemLocation(
+  field: InputBookingField
+): field is LocationDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "location";
+}
+
+function fieldIsSelect(
+  field: InputBookingField
+): field is
+  | CheckboxGroupFieldInput_2024_06_14
+  | RadioGroupFieldInput_2024_06_14
+  | MultiSelectFieldInput_2024_06_14 {
+  return (
+    "type" in field && (field.type === "checkbox" || field.type === "radio" || field.type === "multiselect")
+  );
 }
 
 export function transformSelectOptionsApiToInternal(options: string[]) {

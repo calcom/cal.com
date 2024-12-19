@@ -571,6 +571,8 @@ export type CustomFieldOutput_2024_06_14 =
   | RadioGroupFieldOutput_2024_06_14
   | BooleanFieldOutput_2024_06_14;
 
+export type KnownBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
+
 export type OutputBookingField_2024_06_14 =
   | DefaultFieldOutput_2024_06_14
   | CustomFieldOutput_2024_06_14

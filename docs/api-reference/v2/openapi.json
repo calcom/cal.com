@@ -7727,7 +7727,15 @@
               "boolean"
             ],
             "example": "email",
-            "description": "only allowed value for type is `email`",
+            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
+            "deprecated": true,
+            "default": "email"
+          },
+          "slug": {
+            "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "name",
+            "description": "only allowed value for slug is `name`",
             "default": "email"
           },
           "label": {
@@ -7746,15 +7754,11 @@
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "email"
-          },
           "required": {
             "type": "boolean"
           }
         },
-        "required": ["type", "isDefault", "slug", "required"]
+        "required": ["type", "slug", "isDefault", "required"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -7777,7 +7781,15 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
+            "deprecated": true,
+            "default": "name"
+          },
+          "slug": {
+            "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "name",
+            "description": "only allowed value for slug is `name`",
             "default": "name"
           },
           "label": {
@@ -7796,15 +7808,11 @@
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "name"
-          },
           "required": {
             "type": "boolean"
           }
         },
-        "required": ["type", "isDefault", "slug", "required"]
+        "required": ["type", "slug", "isDefault", "required"]
       },
       "LocationDefaultFieldOutput_2024_06_14": {
         "type": "object",
