@@ -8,7 +8,7 @@ import Page from "~/bookings/views/bookings-listing-view";
 import { getStaticProps } from "~/bookings/views/bookings-listing-view.getStaticProps";
 
 type Y = InferGetStaticPropsType<typeof getStaticProps>;
-const getData = withAppDirSsg<Y>(getStaticProps);
+const getData = withAppDirSsg<Y>(getStaticProps, "bookings/[status]");
 
 export const generateMetadata = async () =>
   await _generateMetadata(
