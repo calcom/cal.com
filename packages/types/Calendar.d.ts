@@ -1,3 +1,4 @@
+import type { calendar_v3 } from "@googleapis/calendar";
 import type {
   BookingSeat,
   DestinationCalendar,
@@ -5,7 +6,6 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { calendar_v3 } from "@googleapis/calendar";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 import type z from "zod";
@@ -217,6 +217,7 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export interface EntryPoint {
@@ -261,8 +262,16 @@ export interface Calendar {
   getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]>;
+
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
