@@ -11,6 +11,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Button, Icon, Select } from "@calcom/ui";
 
+interface SelectedAccount {
+  value: string;
+  label: string;
+}
+
 export default function Authorize() {
   const { t } = useLocale();
   const { status } = useSession();
@@ -24,7 +29,7 @@ export default function Authorize() {
 
   const queryString = searchParams?.toString();
 
-  const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
+  const [selectedAccount, setSelectedAccount] = useState<SelectedAccount | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
   const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
@@ -44,7 +49,7 @@ export default function Authorize() {
     },
   });
 
-  const mappedProfiles = data
+  const mappedProfiles: SelectedAccount[] = data
     ? data
         .filter((profile) => !profile.readOnly)
         .map((profile) => ({
@@ -104,7 +109,7 @@ export default function Authorize() {
         <Select
           isSearchable={true}
           id="account-select"
-          onChange={(value) => {
+          onChange={(value: SelectedAccount) => {
             setSelectedAccount(value);
           }}
           className="w-52"

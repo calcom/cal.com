@@ -1,6 +1,14 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import type { GroupBase, Props, SingleValue, MultiValue } from "react-select";
+import type {
+  GroupBase,
+  Props,
+  SingleValue,
+  MultiValue,
+  ClassNamesState,
+  OnChangeValue,
+  CommonProps,
+} from "react-select";
 import ReactSelect from "react-select";
 
 import cx from "@calcom/lib/classNames";
@@ -51,7 +59,7 @@ export const Select = <
       menuPlacement={menuPlacement}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
-        option: (state) =>
+        option: (state: ClassNamesState) =>
           cx(
             "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
@@ -59,9 +67,10 @@ export const Select = <
             state.isSelected && "bg-emphasis text-default",
             innerClassNames?.option
           ),
-        placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
+        placeholder: (state: ClassNamesState) =>
+          cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
         dropdownIndicator: () => "text-default",
-        control: (state) =>
+        control: (state: ClassNamesState) =>
           cx(
             "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal dark:focus:border-emphasis focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default hover:border-emphasis rounded-md transition border",
             state.isMulti
@@ -89,7 +98,7 @@ export const Select = <
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
         menuList: () => cx("scroll-bar scrollbar-track-w-20 rounded-md", innerClassNames?.menuList),
-        indicatorsContainer: (state) =>
+        indicatorsContainer: (state: CommonProps<Option, IsMulti, Group>) =>
           cx(
             state.selectProps.menuIsOpen
               ? state.isMulti
@@ -182,7 +191,7 @@ export function SelectWithValidation<
       <Select
         value={value}
         {...remainingProps}
-        onChange={(value, ...remainingArgs) => {
+        onChange={(value: OnChangeValue<Option, IsMulti>, ...remainingArgs: unknown[]) => {
           setHiddenInputValue(value);
           if (onChange) {
             onChange(value, ...remainingArgs);

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { useEffect, useState } from "react";
-import type { OptionProps, SingleValueProps } from "react-select";
+import type { OptionProps, SingleValueProps, ClassNamesState } from "react-select";
 import { components } from "react-select";
 
 import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
@@ -47,6 +47,12 @@ export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
   );
 };
 
+interface SelectedOption {
+  value: string;
+  label: string;
+  subtitle: string;
+}
+
 const DestinationCalendarSelector = ({
   onChange,
   isPending,
@@ -61,11 +67,7 @@ const DestinationCalendarSelector = ({
   const connectedCalendarsList = calendarsQueryData?.connectedCalendars;
   const destinationCalendar = calendarsQueryData?.destinationCalendar;
 
-  const [selectedOption, setSelectedOption] = useState<{
-    value: string;
-    label: string;
-    subtitle: string;
-  } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<SelectedOption | null>(null);
 
   // Extra styles to show prefixed text in react-select
   const content = (hidePlaceholder = false) => {
@@ -146,9 +148,9 @@ const DestinationCalendarSelector = ({
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          control: (defaultStyles) => {
+          placeholder: (styles: ClassNamesState) => ({ ...styles, ...content(hidePlaceholder) }),
+          singleValue: (styles: ClassNamesState) => ({ ...styles, ...content(hidePlaceholder) }),
+          control: (defaultStyles: Record<string, string | object>) => {
             return {
               ...defaultStyles,
               "@media only screen and (min-width: 640px)": {
@@ -164,7 +166,7 @@ const DestinationCalendarSelector = ({
           customClassNames?.select
         )}
         innerClassNames={customClassNames?.innerClassNames}
-        onChange={(newValue) => {
+        onChange={(newValue: SelectedOption | null) => {
           setSelectedOption(newValue);
           if (!newValue) {
             return;

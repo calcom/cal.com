@@ -126,7 +126,7 @@ export default function ExchangeSetup() {
                             label={t("exchange_authentication")}
                             options={authenticationMethods}
                             defaultValue={ntlmAuthenticationMethod}
-                            onChange={(authentication) => {
+                            onChange={(authentication: (typeof authenticationMethods)[0]) => {
                               if (authentication) {
                                 onChange(authentication.value);
                                 form.setValue("authenticationMethod", authentication.value);
@@ -149,7 +149,7 @@ export default function ExchangeSetup() {
                               label={t("exchange_version")}
                               options={exchangeVersions}
                               defaultValue={exchangeVersion2016}
-                              onChange={(version) => {
+                              onChange={(version: { value: ExchangeVersion; label: string }) => {
                                 onChange(version?.value);
                                 if (version) {
                                   form.setValue("exchangeVersion", version.value);

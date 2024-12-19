@@ -16,6 +16,8 @@ interface Props {
   member?: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 }
 
+type Frequency = 15 | 30 | 60;
+
 export default function TeamAvailabilityModal(props: Props) {
   const utils = trpc.useUtils();
   const [selectedDate, setSelectedDate] = useState(dayjs());
@@ -25,7 +27,7 @@ export default function TeamAvailabilityModal(props: Props) {
 
   const { t } = useLocale();
 
-  const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
+  const [frequency, setFrequency] = useState<Frequency>(30);
 
   useEffect(() => {
     utils.viewer.teams.getMemberAvailability.invalidate();
@@ -80,7 +82,9 @@ export default function TeamAvailabilityModal(props: Props) {
                 classNamePrefix="react-select"
                 className="w-64"
                 value={{ value: frequency, label: `${frequency} minutes` }}
-                onChange={(newFrequency) => setFrequency(newFrequency?.value ?? 30)}
+                onChange={(newFrequency?: { value: Frequency; label: string }) =>
+                  setFrequency(newFrequency?.value ?? 30)
+                }
               />
             </div>
           </div>

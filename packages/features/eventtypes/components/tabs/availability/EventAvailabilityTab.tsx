@@ -370,7 +370,7 @@ const EventTypeSchedule = ({
                 options={options}
                 isDisabled={shouldLockDisableProps("schedule").disabled}
                 isSearchable={false}
-                onChange={(selected) => {
+                onChange={(selected?: { value: string }) => {
                   if (selected) onChange(selected.value);
                 }}
                 className={classNames(
@@ -458,7 +458,7 @@ const TeamMemberSchedule = ({
                   placeholder={t("select")}
                   options={options}
                   isSearchable={false}
-                  onChange={(selected) => {
+                  onChange={(selected?: { value: string }) => {
                     field.onChange(selected?.value || null);
                   }}
                   className={classNames(
