@@ -47,7 +47,7 @@ function getUniqueCalendarsByExternalId<
 }
 
 const handleCalendarsToUnwatch = async () => {
-  const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch();
+  const calendarsToUnwatch = await SelectedCalendarRepository.getNextBatchToUnwatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
@@ -64,7 +64,7 @@ const handleCalendarsToUnwatch = async () => {
 };
 
 const handleCalendarsToWatch = async () => {
-  const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch();
+  const calendarsToWatch = await SelectedCalendarRepository.getNextBatchToWatch(500);
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
