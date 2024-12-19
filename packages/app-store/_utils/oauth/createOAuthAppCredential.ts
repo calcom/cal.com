@@ -26,28 +26,24 @@ const createOAuthAppCredential = async (
   }
   // For OAuth flows, see if a teamId was passed through the state
   const state = decodeOAuthState(req);
-
   if (state?.teamId) {
     // Check that the user belongs to the team
     await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
-
-    return await prisma.credential.create({
-      data: {
-        type: appData.type,
-        key: key || {},
-        teamId: state.teamId,
-        appId: appData.appId,
-      },
-    });
   }
 
-  return await prisma.credential.create({
-    data: {
-      type: appData.type,
-      key: key || {},
-      userId,
-      appId: appData.appId,
-    },
+  const baseData = {
+    type: appData.type,
+    key: key || {},
+    appId: appData.appId,
+    ...(state?.teamId ? { teamId: state.teamId } : { userId }),
+  };
+
+  const credentialId = (state?.credentialId || -1) as number;
+
+  await prisma.credential.upsert({
+    where: { id: credentialId }, // Use a dummy ID if not upgrading
+    create: baseData,
+    update: baseData,
   });
 };
 
