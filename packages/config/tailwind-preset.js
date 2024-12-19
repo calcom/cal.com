@@ -164,7 +164,7 @@ module.exports = {
     },
   },
   plugins: [
-    require("@todesktop/tailwind-variants"),
+    taurifyVariants(),
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("tailwind-scrollbar")({ nocompatible: true }),
@@ -187,3 +187,31 @@ module.exports = {
     scrollbar: ["dark"],
   },
 };
+
+function taurifyVariants() {
+  return plugin(function ({ addVariant, e }) {
+    // Add support for `taurify` modifier
+    // Usage: <div class="taurify:rounded-lg">...</div>
+    addVariant("taurify", ({ modifySelectors, separator }) => {
+      modifySelectors(({ className }) => {
+        return `html.taurify .${e(`taurify${separator}${className}`)}`;
+      });
+    });
+
+    // Add support for `mac`, `windows` and `linux` modifiers
+    // Usage: <div class="mac:hidden">...</div>
+    const platformMap = {
+      darwin: "mac",
+      win32: "windows",
+      linux: "linux",
+    };
+    Object.keys(platformMap).forEach((platform) => {
+      const variant = platformMap[platform];
+      addVariant(variant, ({ modifySelectors, separator }) => {
+        modifySelectors(({ className }) => {
+          return `html.taurify-${platform} .${e(`${variant}${separator}${className}`)}`;
+        });
+      });
+    });
+  });
+}

@@ -17,6 +17,7 @@ import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
 import { GoogleTagManagerComponent } from "@components/GTM";
+import { TrayIconComponent } from "@components/Tauri/TrayIcon";
 
 export interface CalPageWrapper {
   (props?: AppProps): JSX.Element;
@@ -69,6 +70,7 @@ function PageWrapper(props: AppProps) {
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
         />
       </Head>
+      {typeof window !== "undefined" && "__TAURIFY__" in window ? <TrayIconComponent /> : null}
       <DefaultSeo
         // Set canonical to https://cal.com or self-hosted URL
         canonical={
