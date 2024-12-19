@@ -82,6 +82,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
       editable: "user",
       required: field.required,
       disableOnPrefill: field.disableOnPrefill,
+      hidden: !!field.hidden,
     };
   }
 
@@ -101,6 +102,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
     required: field.required,
     placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
     disableOnPrefill: field.disableOnPrefill,
+    hidden: !!field.hidden,
   };
 }
 
@@ -165,6 +167,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     return {
       ...systemBeforeFieldLocation,
       required: field.required,
+      hidden: field.hidden,
     };
   }
 
@@ -179,6 +182,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     return {
       ...systemAfterFieldRescheduleReason,
       required: field.required,
+      hidden: field.hidden,
     };
   }
 
@@ -186,6 +190,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     return {
       ...systemAfterFieldTitle,
       required: field.required,
+      hidden: field.hidden,
     };
   }
 
@@ -193,6 +198,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     return {
       ...systemAfterFieldNotes,
       required: field.required,
+      hidden: field.hidden,
     };
   }
 
@@ -200,13 +206,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     return {
       ...systemAfterFieldGuests,
       required: field.required,
-    };
-  }
-
-  if (field.slug === "attendeePhoneNumber") {
-    return {
-      ...systemBeforeFieldPhone,
-      required: field.required,
+      hidden: field.hidden,
     };
   }
 
@@ -227,6 +227,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       editable: "user",
       required: field.required,
       disableOnPrefill: field.disableOnPrefill,
+      hidden: !!field.hidden,
     };
   }
 
@@ -246,5 +247,6 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     required: "required" in field ? field.required : false,
     placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
     disableOnPrefill: "disableOnPrefill" in field ? field.disableOnPrefill : false,
+    hidden: "hidden" in field ? field.hidden : undefined,
   };
 }
