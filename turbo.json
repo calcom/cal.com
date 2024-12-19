@@ -117,7 +117,8 @@
         "MOTIFLAND_DOCS_PROJECT_ID",
         "PLAIN_HMAC_SECRET_KEY",
         "PLAIN_API_KEY",
-        "PLAIN_API_URL"
+        "PLAIN_API_URL",
+        "PLAIN_LIVE_CHAT_ID"
       ]
     },
     "build": {

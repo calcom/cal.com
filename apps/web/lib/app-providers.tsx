@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
@@ -10,13 +11,11 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
-import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
@@ -282,9 +281,72 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
+
+  React.useEffect(() => {
+    // Check if script already exists
+    const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
+    if (existingScript) return;
+
+    const script = document.createElement("script");
+    script.async = true;
+    script.id = "plain-chat-script";
+    script.onload = function () {
+      (window as any).Plain?.init({
+        region: "uk",
+        appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423ND",
+        theme: {
+          colorMode: "light",
+          primaryColor: "#000000",
+        },
+        styles: {
+          button: {
+            backgroundColor: "#000000",
+            color: "#ffffff",
+          },
+          chat: {
+            backgroundColor: "#ffffff",
+            textColor: "#000000",
+          },
+        },
+        branding: {
+          logo: "https://cal.com/android-chrome-512x512.png",
+          name: "Cal.com",
+          hideBranding: true,
+        },
+        layout: {
+          position: {
+            desktop: {
+              bottom: "20px",
+              right: "20px",
+            },
+          },
+        },
+        buttons: [
+          {
+            type: "chat",
+            label: "Ask a question",
+            defaultText: "Ask a question",
+          },
+          {
+            type: "feedback",
+            label: "Share feedback",
+            defaultText: "Share feedback",
+          },
+          {
+            type: "bug",
+            label: "Report a bug",
+            defaultText: "Report a bug",
+          },
+        ],
+      });
+    };
+    script.src = "https://chat.cdn-plain.com/index.js";
+    document.head.appendChild(script);
+
+    return () => {};
+  }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { nonce, ...restPageProps } = pageProps;
@@ -300,7 +362,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
       <SessionProvider session={pageProps.session ?? undefined}>
         <CustomI18nextProvider {...propsWithoutNonce}>
           <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
             <CalcomThemeProvider
               themeBasis={props.pageProps.themeBasis}
               nonce={props.pageProps.nonce}
@@ -327,14 +388,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
   }
 
   return (
-    <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>
-        <DynamicPostHogProvider>
-          <PostHogPageView />
-          {RemainingProviders}
-        </DynamicPostHogProvider>
-      </DynamicIntercomProvider>
-    </DynamicHelpscoutProvider>
+    <DynamicPostHogProvider>
+      <PostHogPageView />
+      {RemainingProviders}
+    </DynamicPostHogProvider>
   );
 };
 

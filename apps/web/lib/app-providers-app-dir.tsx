@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
@@ -11,7 +12,7 @@ import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
@@ -263,11 +264,51 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: PageWrapperProps) => {
-  // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
+
+  // Move the Plain chat initialization into a separate component
+  const PlainChatScript = () => {
+    const { data: session } = useSession();
+
+    React.useEffect(() => {
+      // Check if script already exists
+      const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
+      if (existingScript) return;
+
+      const script = document.createElement("script");
+      script.async = false;
+      script.id = "plain-chat-script";
+      script.onload = function () {
+        // Get user details from session
+        const userEmail = session?.user?.email;
+        const userName = session?.user?.name;
+        const userImage = session?.user?.image;
+
+        (window as any).Plain?.init({
+          appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423ND",
+          theme: "light",
+          customerDetails: {
+            fullName: userName || "Anonymous",
+            shortName: userName?.split(" ")[0] || "Anonymous",
+            chatAvatarUrl: userImage || "https://picsum.photos/32/32",
+            email: userEmail || "anonymous@example.com",
+          },
+          // ... rest of the configuration
+        });
+      };
+      script.src = "https://chat.cdn-plain.com/index.js";
+      document.head.appendChild(script);
+
+      return () => {};
+    }, [session]);
+
+    return null;
+  };
+
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider>
+        <PlainChatScript />
         <CustomI18nextProvider i18n={props.i18n}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
