@@ -155,6 +155,9 @@ export {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
 } from "@calcom/lib/event-types/transformers";
 
 export type {
