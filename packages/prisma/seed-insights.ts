@@ -105,7 +105,8 @@ async function createAttendees(bookings: any[]) {
 
 async function seedBookingAssignments() {
   const assignmentReasons = [
-    AssignmentReasonEnum.ROUTING_FORM_ROUTING || AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK,
+    AssignmentReasonEnum.ROUTING_FORM_ROUTING,
+    AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK,
     AssignmentReasonEnum.REASSIGNED,
     AssignmentReasonEnum.REROUTED,
     AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
@@ -120,7 +121,6 @@ async function seedBookingAssignments() {
   // Take 20% of bookings randomly
   const numberOfBookingsToAssign = Math.floor(bookings.length * 0.2);
   const randomBookings = bookings.sort(() => Math.random() - 0.5).slice(0, numberOfBookingsToAssign);
-  console.log("💡 random bookings for assignment reason", JSON.stringify(randomBookings, null, 2));
 
   // Create assignment reasons for the random bookings
   await prisma.assignmentReason.createMany({

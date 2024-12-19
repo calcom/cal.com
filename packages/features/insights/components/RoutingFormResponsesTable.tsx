@@ -13,12 +13,7 @@ import { useRef, useMemo, useId } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import type {
-  TextFilterValue,
-  MultiSelectFilterValue,
-  FilterValue,
-  ExternalFilter,
-} from "@calcom/features/data-table";
+import type { ExternalFilter } from "@calcom/features/data-table";
 import {
   DataTableProvider,
   DataTable,
@@ -59,14 +54,11 @@ import { UserListInTeam } from "../filters/UserListInTeam";
 import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
-type RoutingFormResponseHeader = RouterOutputs["viewer"]["insights"]["routingFormResponsesHeaders"][number];
 
 const ZResponseMultipleValues = z.object({
   label: z.string(),
   value: z.array(z.string()),
 });
-
-type ResponseMultipleValues = z.infer<typeof ZResponseMultipleValues>;
 
 const ZResponseSingleValue = z.object({
   label: z.string(),
@@ -96,20 +88,8 @@ type RoutingFormTableRow = Omit<
   RoutingFormResponse,
   "response" | "responseLowercase" | "bookingAttendees"
 > & {
-  response: Record<
-    string,
-    {
-      label: string;
-      value: ResponseValue;
-    }
-  >;
-  responseLowercase: Record<
-    string,
-    {
-      label: string;
-      value: ResponseValue;
-    }
-  >;
+  response: Record<string, ResponseValue>;
+  responseLowercase: Record<string, ResponseValue>;
   bookingAttendees?: { email: string; timeZone: string }[];
 };
 
@@ -459,7 +439,7 @@ export function RoutingFormResponsesTableContent({
           meta: {
             filter: { type: filterType },
           },
-          filterFn: (row, id, filterValue: FilterValue) => {
+          filterFn: (row, id, filterValue) => {
             const cellValue = row.original.response[id].value;
             return dataTableFilter(cellValue, filterValue);
           },
@@ -478,8 +458,7 @@ export function RoutingFormResponsesTableContent({
         meta: {
           filter: { type: "multi_select", icon: "circle" },
         },
-        filterFn: (row, id, filterValue: MultiSelectFilterValue) => {
-          console.log("💡 booking status order filter", row.original.bookingStatusOrder, filterValue);
+        filterFn: (row, id, filterValue) => {
           return multiSelectFilter(row.original.bookingStatusOrder, filterValue);
         },
         sortingFn: (rowA, rowB) => {
@@ -526,7 +505,7 @@ export function RoutingFormResponsesTableContent({
           const assignmentReason = info.getValue();
           return <div className="max-w-[250px]">{assignmentReason}</div>;
         },
-        filterFn: (row, id, filterValue: TextFilterValue) => {
+        filterFn: (row, id, filterValue) => {
           const reason = row.original.bookingAssignmentReason;
           return textFilter(reason, filterValue);
         },

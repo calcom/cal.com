@@ -131,4 +131,4 @@ export const ZSorting = z.object({
   desc: z.boolean(),
 });
 
-export type { SortingState } from "@tanstack/react-table";
+export type SortingState = Array<z.infer<typeof ZSorting>>;

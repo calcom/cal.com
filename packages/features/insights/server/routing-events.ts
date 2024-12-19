@@ -8,8 +8,8 @@ import dayjs from "@calcom/dayjs";
 import type {
   ColumnFilter,
   TypedColumnFilter,
-  SortingState,
   ColumnFilterType,
+  SortingState,
 } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -225,13 +225,14 @@ class RoutingEventsInsights {
     limit?: number;
   }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
       routingFormId,
     });
 
-    const getLowercaseFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
+    const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
       if (filter.value.type === "text") {
         return {
           ...filter.value,
@@ -245,10 +246,12 @@ class RoutingEventsInsights {
     };
 
     const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
-    const assignmentReason = columnFilters.find((filter) => filter.id === "bookingAssignmentReason") as
-      | TypedColumnFilter<"text">
-      | undefined;
-    const assignmentReasonValue = assignmentReason ? getLowercaseFilterValue(assignmentReason) : undefined;
+    const bookingAssignmentReason = columnFilters.find(
+      (filter) => filter.id === "bookingAssignmentReason"
+    ) as TypedColumnFilter<"text"> | undefined;
+    const assignmentReasonValue = bookingAssignmentReason
+      ? getLowercasedFilterValue(bookingAssignmentReason)
+      : undefined;
 
     const responseFilters = columnFilters.filter(
       (filter) => filter.id !== "bookingStatusOrder" && filter.id !== "bookingAssignmentReason"
@@ -269,6 +272,7 @@ class RoutingEventsInsights {
       ...(bookingStatusOrder &&
         makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
 
+      // bookingAssignmentReason
       ...(assignmentReasonValue &&
         makeWhereClause({
           columnName: "bookingAssignmentReasonLowercase",
@@ -292,7 +296,7 @@ class RoutingEventsInsights {
         AND: responseFilters.map((fieldFilter) => {
           return makeWhereClause({
             columnName: "responseLowercase",
-            filterValue: getLowercaseFilterValue(fieldFilter),
+            filterValue: getLowercasedFilterValue(fieldFilter),
             json: { path: [fieldFilter.id, "value"] },
           });
         }),
