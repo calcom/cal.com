@@ -44,7 +44,7 @@ export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14
 
   @IsBoolean()
   @DocsProperty()
-  required!: true;
+  required!: boolean;
 }
 
 export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
@@ -70,7 +70,7 @@ export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_
 
   @IsBoolean()
   @DocsProperty()
-  required!: true;
+  required!: boolean;
 }
 
 export class LocationDefaultFieldOutput_2024_06_14 {
@@ -98,7 +98,7 @@ export class LocationDefaultFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  required!: false;
+  required!: boolean;
 }
 
 export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
@@ -124,7 +124,7 @@ export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  required!: false;
+  required!: boolean;
 }
 
 export class TitleDefaultFieldOutput_2024_06_14 {
@@ -150,7 +150,7 @@ export class TitleDefaultFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  required!: true;
+  required!: boolean;
 }
 
 export class NotesDefaultFieldOutput_2024_06_14 {
@@ -176,7 +176,7 @@ export class NotesDefaultFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  required!: false;
+  required!: boolean;
 }
 
 export class GuestsDefaultFieldOutput_2024_06_14 {
@@ -202,7 +202,7 @@ export class GuestsDefaultFieldOutput_2024_06_14 {
 
   @IsBoolean()
   @DocsProperty()
-  required!: false;
+  required!: boolean;
 }
 
 export class PhoneDefaultFieldOutput_2024_06_14 {

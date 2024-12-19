@@ -341,37 +341,37 @@ const PhoneSystemFieldSchema = SystemFieldSchema.extend({
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("email"),
   type: z.literal("email"),
-  required: z.literal(true),
+  required: z.boolean(),
 });
 
 const RescheduleReasonSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("rescheduleReason"),
   type: z.literal("textarea"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const LocationReasonSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("location"),
   type: z.literal("radioInput"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const TitleSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("title"),
   type: z.literal("text"),
-  required: z.literal(true),
+  required: z.boolean(),
 });
 
 const NotesSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("notes"),
   type: z.literal("textarea"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const GuestsSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("guests"),
   type: z.literal("multiemail"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 export type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
@@ -453,6 +453,22 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   ],
 };
 
+export const systemBeforeFieldPhone: PhoneSystemField = {
+  defaultLabel: "phone_number",
+  type: "phone",
+  name: "attendeePhoneNumber",
+  required: false,
+  hidden: true,
+  editable: "system-but-optional",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
 export const systemBeforeFieldLocation: LocationReasonSystemField = {
   defaultLabel: "location",
   type: "radioInput",
@@ -478,6 +494,56 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
       placeholder: "",
     },
   },
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldTitle: TitleSystemField = {
+  defaultLabel: "what_is_this_meeting_about",
+  type: "text",
+  name: "title",
+  editable: "system-but-optional",
+  required: true,
+  hidden: false,
+  defaultPlaceholder: "",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldNotes: NotesSystemField = {
+  defaultLabel: "additional_notes",
+  type: "textarea",
+  name: "notes",
+  editable: "system-but-optional",
+  required: false,
+  defaultPlaceholder: "share_additional_notes",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldGuests: GuestsSystemField = {
+  defaultLabel: "additional_guests",
+  type: "multiemail",
+  editable: "system-but-optional",
+  name: "guests",
+  defaultPlaceholder: "email",
+  required: false,
+  hidden: false,
   sources: [
     {
       label: "Default",
