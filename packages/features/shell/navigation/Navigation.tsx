@@ -117,7 +117,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
       },
       {
-        name: "virtual_queues",
+        name: "router_position",
         href: "/insights/virtual-queues",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
       },
