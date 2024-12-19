@@ -28,7 +28,7 @@ export const generateStaticParams = async () => {
   return paths.map((category) => ({ category }));
 };
 
-const getData = withAppDirSsg<PageProps>(getStaticProps);
+const getData = withAppDirSsg<PageProps>(getStaticProps, "future/apps/categories/[category]");
 
 export default WithLayout({ getData, Page: CategoryPage, getLayout: null })<"P">;
 export const dynamic = "force-static";
