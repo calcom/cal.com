@@ -8353,19 +8353,6 @@
             "deprecated": true,
             "default": "email"
           },
-          "slug": {
-            "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "title",
-              "notes",
-              "guests"
-            ],
-            "example": "name",
-            "description": "only allowed value for slug is `name`",
-            "default": "email"
-          },
           "label": {
             "type": "string"
           },
@@ -8382,14 +8369,18 @@
             "description": "This property is always true because it's a default field",
             "example": true
           },
+          "slug": {
+            "type": "string",
+            "default": "email"
+          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
           "type",
-          "slug",
           "isDefault",
+          "slug",
           "required"
         ]
       },
@@ -8418,19 +8409,6 @@
             "deprecated": true,
             "default": "name"
           },
-          "slug": {
-            "type": "string",
-            "enum": [
-              "name",
-              "email",
-              "title",
-              "notes",
-              "guests"
-            ],
-            "example": "name",
-            "description": "only allowed value for slug is `name`",
-            "default": "name"
-          },
           "label": {
             "type": "string"
           },
@@ -8447,14 +8425,18 @@
             "description": "This property is always true because it's a default field",
             "example": true
           },
+          "slug": {
+            "type": "string",
+            "default": "name"
+          },
           "required": {
             "type": "boolean"
           }
         },
         "required": [
           "type",
-          "slug",
           "isDefault",
+          "slug",
           "required"
         ]
       },
