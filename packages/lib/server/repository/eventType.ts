@@ -35,6 +35,28 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
 });
 
+const includeWithHostsAndTeam = {
+  hosts: {
+    select: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      weight: true,
+      priority: true,
+      createdAt: true,
+    },
+  },
+  team: {
+    select: {
+      parentId: true,
+    },
+  },
+};
+
 export class EventTypeRepository {
   private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
     const {
@@ -717,5 +739,42 @@ export class EventTypeRepository {
         ],
       },
     });
+  }
+
+  /** Prioritize searching if the slug belongs to a team event type */
+  static async findBySlugAndUserIdOrTeamId({
+    slug,
+    teamId,
+    userId,
+  }: {
+    slug: string;
+    teamId?: number;
+    userId?: number;
+  }) {
+    if (!teamId || !userId) return;
+
+    if (teamId) {
+      const eventType = await prisma.eventType.findFirst({
+        where: {
+          slug,
+          teamId,
+        },
+        include: includeWithHostsAndTeam,
+      });
+      if (eventType) return eventType;
+    }
+
+    if (userId) {
+      const eventType = await prisma.eventType.findFirst({
+        where: {
+          slug,
+          userId,
+        },
+        include: includeWithHostsAndTeam,
+      });
+      if (eventType) return eventType;
+    }
+
+    return null;
   }
 }
