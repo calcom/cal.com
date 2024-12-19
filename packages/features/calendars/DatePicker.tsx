@@ -13,6 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
 
+import { getTodaysDateInTimeZone } from "./lib/getTodaysDateInTimeZone";
+
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -51,6 +53,8 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
+  // Preferred timezone selected on booker page
+  timezone?: string;
 };
 
 export const Day = ({
@@ -60,6 +64,7 @@ export const Day = ({
   away,
   emoji,
   customClassName,
+  timezone,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
@@ -70,10 +75,15 @@ export const Day = ({
     dayContainer?: string;
     dayActive?: string;
   };
+  timezone?: string;
 }) => {
   const { t } = useLocale();
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
+  const isToday = () => {
+    const todayInTimeZone = dayjs().tz(timezone).startOf("day");
+    return date.isSame(todayInTimeZone, "date");
+  };
 
   return (
     <button
@@ -97,7 +107,7 @@ export const Day = ({
       {...props}>
       {away && <span data-testid="away-emoji">{emoji}</span>}
       {!away && date.date()}
-      {date.isToday() && (
+      {isToday() && (
         <span
           className={classNames(
             "bg-brand-default absolute left-1/2 top-1/2 flex h-[5px] w-[5px] -translate-x-1/2 translate-y-[8px] items-center justify-center rounded-full align-middle sm:translate-y-[12px]",
@@ -276,6 +286,7 @@ const Days = ({
               active={isActive(day)}
               away={away}
               emoji={emoji}
+              timezone={props.timezone}
             />
           )}
         </div>
@@ -297,6 +308,7 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
+  timezone: selectedTimeZone,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -309,6 +321,8 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
+  const minDate = getTodaysDateInTimeZone(selectedTimeZone);
+
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -353,7 +367,7 @@ const DatePicker = ({
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
-              disabled={!browsingDate.isAfter(dayjs())}
+              disabled={!browsingDate.isAfter(dayjs(minDate))}
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
@@ -389,6 +403,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          minDate={minDate}
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
@@ -402,6 +417,7 @@ const DatePicker = ({
           slots={slots}
           includedDates={includedDates}
           isBookingInPast={isBookingInPast}
+          timezone={selectedTimeZone}
         />
       </div>
     </div>
