@@ -35,7 +35,7 @@ type User = {
   profile: {
     id: SessionUser["profile"]["id"] | null;
   };
-  selectedCalendars: SessionUser["selectedCalendars"];
+  userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
   locale: string;
 };
