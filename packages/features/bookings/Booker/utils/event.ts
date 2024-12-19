@@ -89,10 +89,11 @@ export const useScheduleForEvent = ({
   isTeamEvent?: boolean;
 } = {}) => {
   const { timezone } = useTimePreferences();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
-    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
-    shallow
-  );
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, timeZoneFromStore] =
+    useBookerStore(
+      (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timeZone],
+      shallow
+    );
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
@@ -103,7 +104,7 @@ export const useScheduleForEvent = ({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone,
+    timezone: timeZoneFromStore ?? timezone,
     selectedDate,
     prefetchNextMonth,
     monthCount,
