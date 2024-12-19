@@ -232,6 +232,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -267,6 +269,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -302,6 +306,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -337,6 +343,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -372,6 +380,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -409,6 +419,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         required: bookingField.required,
         placeholder: bookingField.placeholder,
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -445,6 +457,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         required: bookingField.required,
         placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -480,6 +494,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -516,6 +532,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         required: bookingField.required,
         placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -552,6 +570,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         required: bookingField.required,
         placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -586,6 +606,8 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -626,6 +648,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill,
+        hidden: false,
       },
     ];
 

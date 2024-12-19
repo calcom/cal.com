@@ -52,7 +52,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
 
     return {
       ...systemName,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -61,7 +61,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
       ...systemBeforeFieldEmail,
       label: field.label,
       placeholder: field.placeholder,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -81,7 +81,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
       ],
       editable: "user",
       required: field.required,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
       hidden: !!field.hidden,
     };
   }
@@ -101,7 +101,7 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
     editable: "user",
     required: field.required,
     placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: field.disableOnPrefill,
+    disableOnPrefill: !!field.disableOnPrefill,
     hidden: !!field.hidden,
   };
 }
@@ -150,7 +150,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
 
     return {
       ...systemName,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -159,7 +159,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ...systemBeforeFieldEmail,
       label: field.label,
       placeholder: field.placeholder,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -185,7 +185,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       hidden: field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -196,7 +196,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       hidden: field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -207,7 +207,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       hidden: field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -218,7 +218,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       hidden: field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -238,7 +238,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       ],
       editable: "user",
       required: field.required,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
       hidden: !!field.hidden,
     };
   }
@@ -258,7 +258,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     editable: "user",
     required: "required" in field ? field.required : false,
     placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: "disableOnPrefill" in field ? field.disableOnPrefill : false,
+    disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
     hidden: "hidden" in field ? field.hidden : undefined,
   };
 }

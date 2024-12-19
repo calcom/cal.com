@@ -29,7 +29,7 @@ export function transformBookingFieldsInternalToApi(
             required: field.required,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "email":
           return {
@@ -39,7 +39,7 @@ export function transformBookingFieldsInternalToApi(
             required: field.required,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "location":
           return {
@@ -50,7 +50,7 @@ export function transformBookingFieldsInternalToApi(
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "rescheduleReason":
           return {
@@ -61,7 +61,7 @@ export function transformBookingFieldsInternalToApi(
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "title":
           return {
@@ -72,7 +72,7 @@ export function transformBookingFieldsInternalToApi(
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "notes":
           return {
@@ -83,7 +83,7 @@ export function transformBookingFieldsInternalToApi(
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "guests":
           return {
@@ -94,7 +94,7 @@ export function transformBookingFieldsInternalToApi(
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "attendeePhoneNumber":
           return {
@@ -124,7 +124,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "address":
@@ -135,7 +135,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "text":
@@ -146,7 +146,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "number":
@@ -157,7 +157,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "textarea":
@@ -168,7 +168,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "multiemail":
@@ -179,7 +179,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "boolean":
@@ -189,7 +189,7 @@ export function transformBookingFieldsInternalToApi(
             slug: field.name,
             label: field.label,
             required: field.required,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "select":
@@ -201,7 +201,7 @@ export function transformBookingFieldsInternalToApi(
             required: field.required,
             placeholder: field.placeholder,
             options: field.options ? field.options.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "multiselect":
@@ -212,7 +212,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "checkbox":
@@ -223,7 +223,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         case "radio":
@@ -234,7 +234,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
         default:

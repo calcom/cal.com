@@ -1,5 +1,5 @@
 import { BadRequestException } from "@nestjs/common";
-import { ApiPropertyOptional, ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
@@ -151,15 +151,14 @@ export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
   placeholder?: string;
 
   @IsBoolean()
-  @IsOptional()
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&rescheduleReason=busy`,\
       the reschedule reason field will be prefilled with this value and disabled.",
   })
-  disableOnPrefill?: boolean;
+  disableOnPrefill!: boolean;
 }
 
 export class TitleDefaultFieldOutput_2024_06_14 {
@@ -205,15 +204,14 @@ export class TitleDefaultFieldOutput_2024_06_14 {
   placeholder?: string;
 
   @IsBoolean()
-  @IsOptional()
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&title=masterclass`,\
       the title field will be prefilled with this value and disabled.",
   })
-  disableOnPrefill?: boolean;
+  disableOnPrefill!: boolean;
 }
 
 export class NotesDefaultFieldOutput_2024_06_14 {
@@ -259,15 +257,14 @@ export class NotesDefaultFieldOutput_2024_06_14 {
   placeholder?: string;
 
   @IsBoolean()
-  @IsOptional()
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&notes=hello`,\
       the notes field will be prefilled with this value and disabled.",
   })
-  disableOnPrefill?: boolean;
+  disableOnPrefill!: boolean;
 }
 
 export class GuestsDefaultFieldOutput_2024_06_14 {
@@ -313,15 +310,14 @@ export class GuestsDefaultFieldOutput_2024_06_14 {
   placeholder?: string;
 
   @IsBoolean()
-  @IsOptional()
-  @ApiPropertyOptional({
+  @ApiProperty({
     type: Boolean,
     description:
       "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
       For example, if URL contains query parameter `&guests=lauris@cal.com`,\
       the guests field will be prefilled with this value and disabled.",
   })
-  disableOnPrefill?: boolean;
+  disableOnPrefill!: boolean;
 }
 
 export class PhoneDefaultFieldOutput_2024_06_14 {
