@@ -187,7 +187,6 @@ export const config = {
     "/getting-started/:path*",
     "/apps",
     "/bookings/:status/",
-    "/future/bookings/:status/",
     "/video/:path*",
     "/teams",
     "/future/teams/",
