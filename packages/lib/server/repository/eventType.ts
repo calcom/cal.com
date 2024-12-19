@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -428,6 +429,7 @@ export class EventTypeRepository {
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
@@ -443,8 +445,17 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
+      autoTranslateDescriptionEnabled: true,
+      fieldTranslations: {
+        select: {
+          translatedText: true,
+          targetLocale: true,
+          field: true,
+        },
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
@@ -459,6 +470,8 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
@@ -534,7 +547,6 @@ export class EventTypeRepository {
           userId: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
           scheduleId: true,
         },
       },
@@ -611,6 +623,7 @@ export class EventTypeRepository {
         },
       },
       secondaryEmailId: true,
+      maxLeadThreshold: true,
     });
 
     return await prisma.eventType.findFirst({
@@ -645,6 +658,47 @@ export class EventTypeRepository {
         ],
       },
       select: CompleteEventTypeSelect,
+    });
+  }
+
+  static async findByIdMinimal({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        hosts: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                credentials: {
+                  select: credentialForCalendarServiceSelect,
+                },
+                selectedCalendars: true,
+              },
+            },
+            weight: true,
+            priority: true,
+            createdAt: true,
+          },
+        },
+        team: {
+          select: {
+            parentId: true,
+          },
+        },
+      },
     });
   }
 

@@ -48,40 +48,49 @@ export const useSchedule = ({
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
-  return trpc.viewer.public.slots.getSchedule.useQuery(
-    {
-      isTeamEvent,
-      usernameList: getUsernameList(username ?? ""),
-      // Prioritize slug over id, since slug is the first value we get available.
-      // If we have a slug, we don't need to fetch the id.
-      // TODO: are queries using eventTypeId faster? Even tho we lost time fetching the id with the slug.
-      ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
-      // @TODO: Old code fetched 2 days ago if we were fetching the current month.
-      // Do we want / need to keep that behavior?
-      startTime,
-      // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime,
-      timeZone: timezone!,
-      duration: duration ? `${duration}` : undefined,
-      rescheduleUid,
-      orgSlug,
-      teamMemberEmail,
-      routedTeamMemberIds,
-      skipContactOwner,
-    },
-    {
-      trpc: {
-        context: {
-          skipBatch: true,
-        },
+  const _cacheParam = searchParams?.get("cal.cache");
+  const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+
+  const input = {
+    isTeamEvent,
+    usernameList: getUsernameList(username ?? ""),
+    // Prioritize slug over id, since slug is the first value we get available.
+    // If we have a slug, we don't need to fetch the id.
+    // TODO: are queries using eventTypeId faster? Even tho we lost time fetching the id with the slug.
+    ...(eventSlug ? { eventTypeSlug: eventSlug } : { eventTypeId: eventId ?? 0 }),
+    // @TODO: Old code fetched 2 days ago if we were fetching the current month.
+    // Do we want / need to keep that behavior?
+    startTime,
+    // if `prefetchNextMonth` is true, two months are fetched at once.
+    endTime,
+    timeZone: timezone!,
+    duration: duration ? `${duration}` : undefined,
+    rescheduleUid,
+    orgSlug,
+    teamMemberEmail,
+    routedTeamMemberIds,
+    skipContactOwner,
+    shouldServeCache,
+  };
+
+  const options = {
+    trpc: {
+      context: {
+        skipBatch: true,
       },
-      refetchOnWindowFocus: false,
-      enabled:
-        Boolean(username) &&
-        Boolean(month) &&
-        Boolean(timezone) &&
-        // Should only wait for one or the other, not both.
-        (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
-    }
-  );
+    },
+    refetchOnWindowFocus: false,
+    enabled:
+      Boolean(username) &&
+      Boolean(month) &&
+      Boolean(timezone) &&
+      // Should only wait for one or the other, not both.
+      (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),
+  };
+
+  if (isTeamEvent) {
+    return trpc.viewer.highPerf.getTeamSchedule.useQuery(input, options);
+  }
+
+  return trpc.viewer.public.slots.getSchedule.useQuery(input, options);
 };

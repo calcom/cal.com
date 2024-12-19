@@ -11,17 +11,14 @@ export class RequestIdMiddleware implements NestMiddleware {
     req.headers["X-Request-Id"] = requestId;
     const { method, headers, body: requestBody, baseUrl } = req;
 
-    this.logger.log(
-      JSON.stringify({
-        requestId,
-        method,
-        url: baseUrl,
-        headers,
-        requestBody,
-        timestamp: new Date().toISOString(),
-        message: "Incoming Request",
-      })
-    );
+    this.logger.log("Incoming Request", {
+      requestId,
+      method,
+      url: baseUrl,
+      headers,
+      requestBody,
+      timestamp: new Date().toISOString(),
+    });
 
     next();
   }

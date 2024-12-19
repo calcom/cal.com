@@ -1,8 +1,8 @@
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { AtomsRepository } from "@/modules/atoms/atoms.repository";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UsersService } from "@/modules/users/services/users.service";
@@ -17,6 +17,10 @@ import {
   getEnabledAppsFromCredentials,
   getAppFromSlug,
   MembershipRole,
+  EventTypeMetaDataSchema,
+  getClientSecretFromPayment,
+  getBulkEventTypes,
+  bulkUpdateEventsToDefaultLocation,
 } from "@calcom/platform-libraries";
 import type {
   App,
@@ -27,7 +31,7 @@ import type {
   TDependencyData,
   CredentialPayload,
 } from "@calcom/platform-libraries";
-import { PrismaClient } from "@calcom/prisma/client";
+import { PrismaClient } from "@calcom/prisma";
 
 type EnabledAppType = App & {
   credential: CredentialDataWithTeamName;
@@ -40,12 +44,12 @@ export class EventTypesAtomService {
   constructor(
     private readonly membershipsRepository: MembershipsRepository,
     private readonly credentialsRepository: CredentialsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly atomsRepository: AtomsRepository,
     private readonly usersService: UsersService,
     private readonly dbWrite: PrismaWriteService,
     private readonly dbRead: PrismaReadService,
     private readonly eventTypeService: EventTypesService_2024_06_14,
-    private readonly teamEventTypeService: OrganizationsEventTypesService
+    private readonly teamEventTypeService: TeamsEventTypesService
   ) {}
 
   async getUserEventType(user: UserWithProfile, eventTypeId: number) {
@@ -75,6 +79,10 @@ export class EventTypesAtomService {
     }
 
     return eventType;
+  }
+
+  async getUserEventTypes(userId: number) {
+    return getBulkEventTypes(userId);
   }
 
   async updateTeamEventType(
@@ -173,7 +181,7 @@ export class EventTypesAtomService {
     let credentials = await this.credentialsRepository.getAllUserCredentialsById(userId);
     let userTeams: TeamQuery[] = [];
     if (teamId) {
-      const teamsQuery = await this.organizationsTeamsRepository.getUserTeamsById(userId);
+      const teamsQuery = await this.atomsRepository.getUserTeams(userId);
       // If a team is a part of an org then include those apps
       // Don't want to iterate over these parent teams
       const filteredTeams: TeamQuery[] = [];
@@ -273,5 +281,52 @@ export class EventTypesAtomService {
         )
     );
     return apps[0];
+  }
+
+  async getUserPaymentInfo(uid: string) {
+    const rawPayment = await this.atomsRepository.getRawPayment(uid);
+    if (!rawPayment) throw new NotFoundException(`Payment with uid ${uid} not found`);
+    const { data, booking: _booking, ...restPayment } = rawPayment;
+    const payment = {
+      ...restPayment,
+      data: data as Record<string, unknown>,
+    };
+    if (!_booking) throw new NotFoundException(`Booking with uid ${uid} not found`);
+    const { startTime, endTime, eventType, ...restBooking } = _booking;
+    const booking = {
+      ...restBooking,
+      startTime: startTime.toString(),
+      endTime: endTime.toString(),
+    };
+    if (!eventType) throw new NotFoundException(`Event type with uid ${uid} not found`);
+    if (eventType.users.length === 0 && !!!eventType.team)
+      throw new NotFoundException(`No users found or no team present for event type with uid ${uid}`);
+    const [user] = eventType?.users.length
+      ? eventType.users
+      : [{ name: null, theme: null, hideBranding: null, username: null }];
+    const profile = {
+      name: eventType.team?.name || user?.name || null,
+      theme: (!eventType.team?.name && user?.theme) || null,
+      hideBranding: eventType.team?.hideBranding || user?.hideBranding || null,
+    };
+    return {
+      user,
+      eventType: {
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      },
+      booking,
+      payment,
+      clientSecret: getClientSecretFromPayment(payment),
+      profile,
+    };
+  }
+
+  async bulkUpdateEventTypesDefaultLocation(user: UserWithProfile, eventTypeIds: number[]) {
+    return bulkUpdateEventsToDefaultLocation({
+      eventTypeIds,
+      user,
+      prisma: this.dbWrite.prisma as unknown as PrismaClient,
+    });
   }
 }

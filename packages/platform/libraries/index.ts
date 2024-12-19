@@ -5,10 +5,24 @@ import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
+import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
+import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
+import AttendeeRescheduledEmail from "@calcom/emails/templates/attendee-rescheduled-email";
+import AttendeeScheduledEmail from "@calcom/emails/templates/attendee-scheduled-email";
+import AttendeeUpdatedEmail from "@calcom/emails/templates/attendee-updated-email";
+import OrganizerCancelledEmail from "@calcom/emails/templates/organizer-cancelled-email";
+import OrganizerReassignedEmail from "@calcom/emails/templates/organizer-reassigned-email";
+import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-email";
+import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
+import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
+import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
+import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
@@ -16,9 +30,11 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
@@ -68,6 +84,10 @@ export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleN
 
 export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+
+export { getConnectedApps } from "@calcom/lib/getConnectedApps";
+export { bulkUpdateEventsToDefaultLocation } from "@calcom/lib/bulkUpdateEventsToDefaultLocation";
+export type { ConnectedApps } from "@calcom/lib/getConnectedApps";
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
@@ -88,8 +108,8 @@ export type { AppsStatus } from "@calcom/types/Calendar";
 
 export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 
-export { cityTimezonesHandler } from "@calcom/lib/cityTimezonesHandler";
-export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
+export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
+export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
@@ -102,11 +122,11 @@ export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
 
-export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 export {
   // note(Lauris): Api to internal
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -126,8 +146,10 @@ export {
   transformEventTypeColorsInternalToApi,
   transformSeatsInternalToApi,
   // note(Lauris): schemas
-  TransformedLocationsSchema,
+  InternalLocationsSchema,
+  InternalLocationSchema,
   BookingFieldsSchema,
+  BookingFieldSchema,
   // note(Lauris): constants
   systemBeforeFieldName,
   systemBeforeFieldEmail,
@@ -140,6 +162,7 @@ export type {
   CustomField,
   NameSystemField,
   EmailSystemField,
+  InternalLocation,
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit, parseEventTypeColor } from "@calcom/lib";
@@ -155,6 +178,9 @@ export { getCalendar };
 export { getTranslation };
 
 export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
+
+export { roundRobinReassignment } from "@calcom/features/ee/round-robin/roundRobinReassignment";
+export { roundRobinManualReassignment } from "@calcom/features/ee/round-robin/roundRobinManualReassignment";
 
 export { ErrorCode } from "@calcom/lib/errorCodes";
 
@@ -172,3 +198,34 @@ export type { CredentialPayload };
 export { getAppFromSlug };
 export { credentialForCalendarServiceSelect };
 export { MembershipRole };
+
+export { paymentDataSelect };
+export { getClientSecretFromPayment };
+
+export { confirmHandler as confirmBookingHandler } from "@calcom/trpc/server/routers/viewer/bookings/confirm.handler";
+
+export { AttendeeScheduledEmail };
+
+export { OrganizerScheduledEmail };
+
+export { AttendeeDeclinedEmail };
+
+export { AttendeeCancelledEmail };
+
+export { OrganizerCancelledEmail };
+
+export { OrganizerReassignedEmail };
+
+export { OrganizerRescheduledEmail };
+
+export { AttendeeRescheduledEmail };
+
+export { AttendeeUpdatedEmail };
+
+export { OrganizerRequestEmail };
+
+export { AttendeeRequestEmail };
+export { handleDeleteCredential };
+export { getBulkEventTypes };
+
+export { getBookingFieldsWithSystemFields };

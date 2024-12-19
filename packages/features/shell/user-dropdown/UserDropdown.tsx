@@ -204,7 +204,9 @@ export function UserDropdown({ small }: UserDropdownProps) {
                     type="button"
                     StartIcon="log-out"
                     aria-hidden="true"
-                    onClick={() => signOut({ callbackUrl: "/auth/logout" })}>
+                    onClick={() => {
+                      signOut({ callbackUrl: "/auth/logout" });
+                    }}>
                     {t("sign_out")}
                   </DropdownItem>
                 </DropdownMenuItem>

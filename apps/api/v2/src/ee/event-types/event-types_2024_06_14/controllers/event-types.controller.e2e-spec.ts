@@ -10,10 +10,12 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User, Schedule } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Schedule, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -75,18 +77,22 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
-
+    let profileRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
     const userEmail = "event-types-test-e2e@api.com";
     const falseTestEmail = "false-event-types@api.com";
     const name = "bob-the-builder";
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
+    let orgUser: User;
     let falseTestUser: User;
     let firstSchedule: Schedule;
     let secondSchedule: Schedule;
     let falseTestSchedule: Schedule;
-
+    let orgUserEventType1: EventType;
+    let orgUserEventType2: EventType;
+    let orgUserEventType3: EventType;
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -109,13 +115,60 @@ describe("Event types Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepostoryFixture = new SchedulesRepositoryFixture(moduleRef);
-
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      organization = await teamRepositoryFixture.create({
+        name: "organization",
+        slug: "event-type-2024-06-14-org-slug",
+      });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
         email: userEmail,
         name,
         username,
+      });
+
+      orgUser = await userRepositoryFixture.create({
+        email: "event-types-2024-06-14-org-user@example.com",
+        name: "event-types-2024-06-14-org-user",
+        username: "event-types-2024-06-14-org-user",
+      });
+
+      profileRepositoryFixture.create({
+        uid: `usr-${orgUser.id}`,
+        username: orgUser.username as string,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: orgUser.id,
+          },
+        },
+      });
+
+      orgUserEventType1 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType1", slug: "org-event-type-1", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      orgUserEventType2 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType2", slug: "org-event-type-2", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      orgUserEventType3 = await eventTypesRepositoryFixture.create(
+        { title: "orgUserEventType3", slug: "org-event-type-3", length: 60, locations: [] },
+        orgUser.id
+      );
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: orgUser.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       falseTestUser = await userRepositoryFixture.create({
@@ -212,10 +265,20 @@ describe("Event types Endpoints", () => {
         slug: "coding-class",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
+        lengthInMinutesOptions: [30, 60, 90],
         locations: [
           {
             type: "integration",
             integration: "cal-video",
+          },
+          {
+            type: "attendeePhone",
+          },
+          {
+            type: "attendeeAddress",
+          },
+          {
+            type: "attendeeDefined",
           },
         ],
         bookingFields: [
@@ -228,6 +291,7 @@ describe("Event types Endpoints", () => {
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
             disableOnPrefill: true,
+            hidden: false,
           },
         ],
         scheduleId: firstSchedule.id,
@@ -291,6 +355,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.title).toEqual(body.title);
           expect(createdEventType.description).toEqual(body.description);
           expect(createdEventType.lengthInMinutes).toEqual(body.lengthInMinutes);
+          expect(createdEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(createdEventType.locations).toEqual(body.locations);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
@@ -317,8 +382,24 @@ describe("Event types Endpoints", () => {
           const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
             { isDefault: true, required: true, slug: "name", ...nameBookingField },
-            { isDefault: true, required: true, slug: "email", type: "email" },
-            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+            // note(Lauris): location booking field is added if multiple locations are passed
+            {
+              isDefault: true,
+              required: false,
+              slug: "location",
+              type: "radioInput",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              required: false,
+              slug: "rescheduleReason",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
+            },
             ...requestBookingFields
               .filter((field) => field.type !== "name" && field.type !== "email")
               .map((field) => ({ isDefault: false, ...field })),
@@ -329,7 +410,7 @@ describe("Event types Endpoints", () => {
         });
     });
 
-    it(`/GET/even-types by username`, async () => {
+    it(`/GET/event-types by username`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${username}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
@@ -349,6 +430,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
@@ -370,6 +452,61 @@ describe("Event types Endpoints", () => {
         eventType.lockTimeZoneToggleOnBookingPage
       );
       expect(fetchedEventType.color).toEqual(eventType.color);
+    });
+
+    it(`/GET/event-types by username and orgSlug`, async () => {
+      console.log(organization);
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(3);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType2.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType3.id)?.id).toBeDefined();
+    });
+
+    it(`/GET/event-types by username and orgSlug and eventSlug`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(
+          `/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}&eventSlug=${orgUserEventType1.slug}`
+        )
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(1);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+    });
+
+    it(`/GET/event-types by username and orgId`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types?username=${orgUser.username}&orgId=${organization.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14[]> = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data?.length).toEqual(3);
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType1.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType2.id)?.id).toBeDefined();
+      expect(responseBody.data?.find((e) => e.id === orgUserEventType3.id)?.id).toBeDefined();
     });
 
     it("should return an error when creating an event type with seats enabled and multiple locations", async () => {
@@ -654,6 +791,7 @@ describe("Event types Endpoints", () => {
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        lengthInMinutesOptions: [15, 30],
         bookingFields: [
           nameBookingField,
           {
@@ -664,6 +802,7 @@ describe("Event types Endpoints", () => {
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
             disableOnPrefill: false,
+            hidden: false,
           },
         ],
         bookingLimitsCount: {
@@ -722,6 +861,7 @@ describe("Event types Endpoints", () => {
 
           expect(updatedEventType.id).toEqual(eventType.id);
           expect(updatedEventType.title).toEqual(newTitle);
+          expect(updatedEventType.lengthInMinutesOptions).toEqual(body.lengthInMinutesOptions);
           expect(updatedEventType.description).toEqual(eventType.description);
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
@@ -729,8 +869,15 @@ describe("Event types Endpoints", () => {
           const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
             { isDefault: true, required: true, slug: "name", ...nameBookingField },
-            { isDefault: true, required: true, slug: "email", type: "email" },
-            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+            {
+              isDefault: true,
+              required: false,
+              slug: "rescheduleReason",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
+            },
             ...requestBookingFields
               .filter((field) => field.type !== "name" && field.type !== "email")
               .map((field) => ({ isDefault: false, ...field })),
@@ -761,6 +908,7 @@ describe("Event types Endpoints", () => {
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
+          eventType.lengthInMinutesOptions = updatedEventType.lengthInMinutesOptions;
           eventType.bookingLimitsCount = updatedEventType.bookingLimitsCount;
           eventType.onlyShowFirstAvailableSlot = updatedEventType.onlyShowFirstAvailableSlot;
           eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
@@ -808,6 +956,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.title).toEqual(eventType.title);
       expect(fetchedEventType.description).toEqual(eventType.description);
       expect(fetchedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
@@ -846,6 +995,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.title).toEqual(eventType.title);
       expect(fetchedEventType?.description).toEqual(eventType.description);
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
+      expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
@@ -900,11 +1050,17 @@ describe("Event types Endpoints", () => {
       } catch (e) {
         // User might have been deleted by the test
       }
+
+      try {
+        await userRepositoryFixture.delete(orgUser.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });
 
-  describe("Handle legacy event-types booking fields", () => {
+  describe("Handle event-types booking fields", () => {
     let app: INestApplication;
 
     let oAuthClient: PlatformOAuthClient;
@@ -922,13 +1078,44 @@ describe("Event types Endpoints", () => {
     let legacyEventTypeId2: number;
 
     const expectedReturnSystemFields = [
-      { isDefault: true, required: true, slug: "name", type: "name" },
-      { isDefault: true, required: true, slug: "email", type: "email" },
-      { isDefault: true, type: "radioInput", slug: "location", required: false },
-      { isDefault: true, required: true, slug: "title", type: "text" },
-      { isDefault: true, required: false, slug: "notes", type: "textarea" },
-      { isDefault: true, required: false, slug: "guests", type: "multiemail" },
-      { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
+      { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
+      { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+      {
+        isDefault: true,
+        type: "radioInput",
+        slug: "location",
+        required: false,
+        disableOnPrefill: false,
+        hidden: false,
+        label: "",
+        placeholder: "",
+      },
+      { isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
+      {
+        isDefault: true,
+        required: false,
+        slug: "notes",
+        type: "textarea",
+        disableOnPrefill: false,
+        hidden: false,
+      },
+      {
+        isDefault: true,
+        required: false,
+        slug: "guests",
+        type: "multiemail",
+        disableOnPrefill: false,
+        hidden: false,
+      },
+      {
+        isDefault: true,
+        required: false,
+        slug: "rescheduleReason",
+        type: "textarea",
+        disableOnPrefill: false,
+        hidden: false,
+      },
+      { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
     ];
 
     beforeAll(async () => {
@@ -1081,6 +1268,21 @@ describe("Event types Endpoints", () => {
             defaultLabel: "reason_for_reschedule",
             defaultPlaceholder: "reschedule_placeholder",
           },
+          {
+            name: "attendeePhoneNumber",
+            type: "phone",
+            hidden: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "phone_number",
+          },
         ],
       };
       const legacyEventType = await eventTypesRepositoryFixture.create(legacyEventTypeInput, user.id);
@@ -1196,6 +1398,21 @@ describe("Event types Endpoints", () => {
             defaultLabel: "reason_for_reschedule",
             defaultPlaceholder: "reschedule_placeholder",
           },
+          {
+            name: "attendeePhoneNumber",
+            type: "phone",
+            hidden: true,
+            sources: [
+              {
+                id: "default",
+                type: "default",
+                label: "Default",
+              },
+            ],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "phone_number",
+          },
         ],
       };
       const legacyEventType = await eventTypesRepositoryFixture.create(legacyEventTypeInput, user.id);
@@ -1218,7 +1435,286 @@ describe("Event types Endpoints", () => {
               label: userDefinedBookingField.label,
               required: userDefinedBookingField.required,
               placeholder: userDefinedBookingField.placeholder,
+              disableOnPrefill: false,
+              hidden: false,
             },
+          ]);
+        });
+    });
+
+    it("should return event type with unknown bookingField", async () => {
+      const unknownSystemField = {
+        name: "unknown-whatever",
+        type: "unknown-whatever",
+        label: "your team",
+        sources: [
+          {
+            id: "user",
+            type: "user",
+            label: "User",
+            fieldRequired: true,
+          },
+        ],
+        editable: "user",
+        required: true,
+        placeholder: "FC Barcelona",
+      };
+
+      const eventTypeInput = {
+        title: "unknown field event type two",
+        description: "unknown field event type description two",
+        length: 40,
+        hidden: false,
+        slug: "unknown-field-type-two",
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [unknownSystemField],
+      };
+      const eventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          expect(fetchedEventType.bookingFields).toEqual([
+            {
+              type: "unknown",
+              slug: "unknown",
+              bookingField: JSON.stringify(unknownSystemField),
+            },
+          ]);
+        });
+    });
+
+    it("should return event type with default bookingFields if they are not defined", async () => {
+      const eventTypeInput = {
+        title: "undefined booking fields",
+        description: "undefined booking fields",
+        length: 40,
+        hidden: false,
+        slug: "undefined-booking-fields",
+        locations: [],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+      };
+      const eventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+
+          expect(fetchedEventType.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+          ]);
+        });
+    });
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId1);
+        await eventTypesRepositoryFixture.delete(legacyEventTypeId2);
+      } catch (e) {
+        // Event type might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
+
+  describe("Handle event-types locations", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+
+    const userEmail = "locations-event-types-test-e2e@api.com";
+    const name = "bob-the-locations-builder";
+    const username = name;
+    let user: User;
+    let legacyEventTypeId1: number;
+    let legacyEventTypeId2: number;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          providers: [PrismaExceptionFilter, HttpExceptionFilter],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_06_14, TokensModule],
+        })
+      )
+        .overrideGuard(PermissionsGuard)
+        .useValue({
+          canActivate: () => true,
+        })
+        .compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({ name: "organization" });
+      oAuthClient = await createOAuthClient(organization.id);
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        name,
+        username,
+      });
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: ["redirect-uri"],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should return integration location with link and credentialId", async () => {
+      const eventTypeInput = {
+        title: "event type discord",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "discord-event-type",
+        locations: [
+          {
+            type: "integrations:discord_video",
+            link: "https://discord.com/users/100",
+            credentialId: 100,
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            {
+              type: "integration",
+              integration: "discord-video",
+              link: eventTypeInput.locations[0].link,
+              credentialId: eventTypeInput.locations[0].credentialId,
+            },
+          ]);
+        });
+    });
+
+    it("should return unsupported location", async () => {
+      const eventTypeInput = {
+        title: "event type not existing",
+        description: "event type description",
+        length: 40,
+        hidden: false,
+        slug: "not-existing-event-type",
+        locations: [
+          {
+            type: "this-type-does-not-exist",
+          },
+        ],
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        bookingFields: [],
+      };
+      const legacyEventType = await eventTypesRepositoryFixture.create(eventTypeInput, user.id);
+      legacyEventTypeId1 = legacyEventType.id;
+
+      return request(app.getHttpServer())
+        .get(`/api/v2/event-types/${legacyEventTypeId1}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
+          const fetchedEventType = responseBody.data;
+          expect(fetchedEventType.locations).toEqual([
+            { type: "unknown", location: JSON.stringify(eventTypeInput.locations[0]) },
           ]);
         });
     });

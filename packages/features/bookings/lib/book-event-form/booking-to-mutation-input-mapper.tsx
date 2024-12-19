@@ -22,6 +22,8 @@ export type BookingOptions = {
   seatReferenceUid?: string;
   hashedLink?: string | null;
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
   orgSlug?: string;
 };
 
@@ -40,6 +42,8 @@ export const mapBookingToMutationInput = ({
   seatReferenceUid,
   hashedLink,
   teamMemberEmail,
+  crmOwnerRecordType,
+  crmAppSlug,
   orgSlug,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(window.location.search);
@@ -48,6 +52,10 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
+  const isBookingDryRun = searchParams.get("cal.isBookingDryRun") === "true";
+  const _cacheParam = searchParams?.get("cal.cache");
+  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+
   return {
     ...values,
     user: username,
@@ -68,12 +76,16 @@ export const mapBookingToMutationInput = ({
     seatReferenceUid,
     hashedLink,
     teamMemberEmail,
+    crmOwnerRecordType,
+    crmAppSlug,
     orgSlug,
     routedTeamMemberIds,
     routingFormResponseId,
     skipContactOwner,
     // In case of rerouting, the form responses are actually the responses that we need to update.
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
+    _isDryRun: isBookingDryRun,
+    _shouldServeCache,
   };
 };
 

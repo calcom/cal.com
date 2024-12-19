@@ -9,7 +9,8 @@ import { useEffect, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import { Button, Steps } from "../../..";
+import { Button } from "../../button";
+import { Steps } from "../../form/step";
 
 type DefaultStep = {
   title: string;
@@ -59,7 +60,7 @@ function WizardForm<T extends DefaultStep>(props: {
             <Steps
               maxSteps={steps.length}
               currentStep={step}
-              navigateToStep={noop}
+              nextStep={noop}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
             />

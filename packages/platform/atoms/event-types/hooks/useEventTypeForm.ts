@@ -63,6 +63,7 @@ export const useEventTypeForm = ({
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
+      instantMeetingParameters: eventType.instantMeetingParameters || [],
       instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
@@ -87,6 +88,7 @@ export const useEventTypeForm = ({
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       requiresConfirmationWillBlockSlot: eventType.requiresConfirmationWillBlockSlot,
+      requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata: eventType.metadata,
@@ -109,8 +111,11 @@ export const useEventTypeForm = ({
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
+      rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,
@@ -124,6 +129,7 @@ export const useEventTypeForm = ({
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+      maxLeadThreshold: eventType.maxLeadThreshold,
     };
   }, [eventType, periodDates]);
 
@@ -183,6 +189,7 @@ export const useEventTypeForm = ({
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    console.log("🚀 ~ getDirtyFields ~ values:", values);
     if (!isFormDirty) {
       return {};
     }
@@ -363,6 +370,7 @@ export const useEventTypeForm = ({
     }, {}) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
+      console.log("🚀 ~ handleSubmit ~ filteredPayload:", filteredPayload);
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };

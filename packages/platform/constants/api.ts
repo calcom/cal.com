@@ -18,6 +18,7 @@ export const METHOD_NOT_ALLOWED = "METHOD_NOT_ALLOWED";
 export const UNPROCESSABLE_ENTITY = "UNPROCESSABLE_ENTITY";
 export const ACCESS_TOKEN_EXPIRED = "ACCESS_TOKEN_IS_EXPIRED";
 export const INVALID_ACCESS_TOKEN = "Invalid Access Token.";
+export const CONFLICT = "CONFLICT";
 
 // Server Errors (5xx)
 export const INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR";

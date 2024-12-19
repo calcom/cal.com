@@ -4,7 +4,11 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, customInputSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  customInputSchema,
+  rrSegmentQueryValueSchema,
+} from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
@@ -52,7 +56,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
+      maxLeadThreshold: true,
       minimumBookingNotice: true,
       userId: true,
       price: true,
@@ -70,6 +76,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       parentId: true,
       parent: {
         select: {
@@ -110,7 +118,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
+          createdAt: true,
           user: {
             select: {
               credentials: {
@@ -150,6 +158,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           email: true,
         },
       },
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
     },
   });
 
@@ -163,6 +173,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
     bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };

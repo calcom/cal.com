@@ -12,6 +12,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -76,6 +77,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  bannerUrl?: string;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -94,7 +96,7 @@ export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomPro
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW" } = props;
+  const { view = "MONTH_VIEW", bannerUrl } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -126,8 +128,13 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
-  setOrg(props.entity?.orgSlug ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
+  useEffect(() => {
+    setOrg(props.entity?.orgSlug ?? null);
+  }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -246,7 +253,7 @@ export const BookerPlatformWrapper = (
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -315,7 +322,12 @@ export const BookerPlatformWrapper = (
     onError: props.onCreateInstantBookingError,
   });
 
-  const slots = useSlots(event);
+  const slots = useSlots(event, {
+    onReserveSlotSuccess: props.onReserveSlotSuccess,
+    onReserveSlotError: props.onReserveSlotError,
+    onDeleteSlotSuccess: props.onDeleteSlotSuccess,
+    onDeleteSlotError: props.onDeleteSlotError,
+  });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: hasSession,
@@ -333,7 +345,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
@@ -358,9 +370,9 @@ export const BookerPlatformWrapper = (
     (state: boolean) => {
       setIsOverlayCalendarEnabled(state);
       if (state) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
       }
     },
     [setIsOverlayCalendarEnabled]
@@ -391,7 +403,7 @@ export const BookerPlatformWrapper = (
 
   useEffect(() => {
     if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
-      localStorage.removeItem("overlayCalendarSwitchDefault");
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
     }
     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
   }, [view, isOverlayCalendarEnabled]);
@@ -478,6 +490,7 @@ export const BookerPlatformWrapper = (
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
+        orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
         bookerLayout={bookerLayout}
         verifyCode={undefined}
         isPlatform

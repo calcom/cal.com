@@ -247,4 +247,78 @@ describe("roundRobinManualReassignment test", () => {
     expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
     expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
+
+  test("sends cancellation email to previous RR host when reassigning", async ({ emails }) => {
+    const roundRobinManualReassignment = (await import("./roundRobinManualReassignment")).default;
+    const EventManager = (await import("@calcom/core/EventManager")).default;
+
+    const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
+
+    const sendRoundRobinCancelledEmailsAndSMSSpy = vi.spyOn(
+      await import("@calcom/emails"),
+      "sendRoundRobinCancelledEmailsAndSMS"
+    );
+
+    const users = testUsers;
+    const originalHost = users[0];
+    const previousRRHost = users[1];
+    const newHost = users[2];
+
+    const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
+
+    const bookingToReassignUid = "booking-to-reassign-with-previous-rr-host";
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "round-robin-event",
+            schedulingType: SchedulingType.ROUND_ROBIN,
+            length: 45,
+            users: users.map((user) => ({ id: user.id })),
+            hosts: users.map((user) => ({ userId: user.id, isFixed: false })),
+          },
+        ],
+        bookings: [
+          {
+            id: 124,
+            eventTypeId: 1,
+            userId: originalHost.id,
+            uid: bookingToReassignUid,
+            status: BookingStatus.ACCEPTED,
+            startTime: `${dateStringPlusOne}T05:00:00.000Z`,
+            endTime: `${dateStringPlusOne}T05:15:00.000Z`,
+            attendees: [
+              getMockBookingAttendee({
+                id: 2,
+                name: "attendee",
+                email: "attendee@test.com",
+                locale: "en",
+                timeZone: "Asia/Kolkata",
+              }),
+              getMockBookingAttendee({
+                id: previousRRHost.id,
+                name: previousRRHost.name,
+                email: previousRRHost.email,
+                locale: "en",
+                timeZone: previousRRHost.timeZone,
+              }),
+            ],
+          },
+        ],
+        organizer: originalHost,
+        usersApartFromOrganizer: users.slice(1),
+      })
+    );
+
+    await roundRobinManualReassignment({
+      bookingId: 124,
+      newUserId: newHost.id,
+      orgId: null,
+    });
+
+    expect(sendRoundRobinCancelledEmailsAndSMSSpy).toHaveBeenCalledTimes(1);
+  });
 });

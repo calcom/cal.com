@@ -5,7 +5,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -104,6 +104,7 @@ export class InputEventTypesService_2024_06_14 {
 
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -135,6 +136,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -152,6 +154,7 @@ export class InputEventTypesService_2024_06_14 {
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -191,6 +194,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
@@ -214,7 +218,7 @@ export class InputEventTypesService_2024_06_14 {
     hasMultipleLocations: boolean
   ) {
     const customFields: (SystemField | CustomField)[] = inputBookingFields
-      ? transformBookingFieldsApiToInternal(inputBookingFields)
+      ? transformBookingFieldsApiRequestToInternal(inputBookingFields)
       : [];
     const customFieldsWithoutNameEmail = customFields.filter(
       (field) => field.type !== "name" && field.type !== "email"

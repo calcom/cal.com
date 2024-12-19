@@ -10,6 +10,8 @@ export type Environment = {
   DATABASE_URL: string;
   JWT_SECRET: string;
   SENTRY_DSN: string;
+  SENTRY_TRACES_SAMPLE_RATE?: number;
+  SENTRY_PROFILES_SAMPLE_RATE?: number;
   LOG_LEVEL: keyof typeof logLevels;
   REDIS_URL: string;
   STRIPE_API_KEY: string;
@@ -26,12 +28,16 @@ export type Environment = {
   RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN: number;
   RATE_LIMIT_DEFAULT_LIMIT: number;
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: number;
+  AXIOM_DATASET: string;
+  AXIOM_TOKEN: string;
+  STRIPE_TEAM_MONTHLY_PRICE_ID: string;
+  IS_TEAM_BILLING_ENABLED: boolean;
 };
 
 export const getEnv = <K extends keyof Environment>(key: K, fallback?: Environment[K]): Environment[K] => {
   const value = process.env[key] as Environment[K] | undefined;
 
-  if (!value) {
+  if (value === undefined) {
     if (fallback) {
       return fallback;
     }

@@ -359,7 +359,12 @@ export default async function main() {
   await createApp("make", "make", ["automation"], "make_automation", {
     invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
   });
-  await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
+
+  if (process.env.HUDDLE01_API_TOKEN) {
+    await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video", {
+      apiKey: process.env.HUDDLE01_API_TOKEN,
+    });
+  }
 
   // Payment apps
   if (
@@ -377,6 +382,13 @@ export default async function main() {
       payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    });
+  }
+
+  if (process.env.CLOSECOM_CLIENT_ID && process.env.CLOSECOM_CLIENT_SECRET) {
+    await createApp("closecom", "closecom", ["crm"], "closecom_crm", {
+      client_id: process.env.CLOSECOM_CLIENT_ID,
+      client_secret: process.env.CLOSECOM_CLIENT_SECRET,
     });
   }
 

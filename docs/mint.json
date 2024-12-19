@@ -185,6 +185,7 @@
       "group": "Getting Started",
       "pages": [
         "platform/introduction",
+        "platform/quickstart",
         {
           "group": "Atoms",
           "icon": "atom",
@@ -194,11 +195,21 @@
             "platform/atoms/apple-calendar-connect",
             "platform/atoms/availability-settings",
             "platform/atoms/booker",
-            "platform/atoms/calendar-settings"
+            "platform/atoms/event-type",
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form",
+            "platform/atoms/conferencing-apps"
           ]
         },
-        "platform/quickstart",
-        "platform/booking-redirects",
+        {
+          "group": "Guides",
+          "icon": "book",
+          "pages": [
+            "platform/guides/replacing-toasts",
+            "platform/guides/booking-fields",
+            "platform/guides/booking-redirects"
+          ]
+        },
         "platform/faq"
       ]
     },

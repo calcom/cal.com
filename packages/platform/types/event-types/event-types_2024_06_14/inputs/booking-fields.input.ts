@@ -110,6 +110,14 @@ export class PhoneFieldInput_2024_06_14 {
       the phone field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class AddressFieldInput_2024_06_14 {
@@ -149,6 +157,14 @@ export class AddressFieldInput_2024_06_14 {
       the address field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class TextFieldInput_2024_06_14 {
@@ -188,6 +204,14 @@ export class TextFieldInput_2024_06_14 {
       the text field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class NumberFieldInput_2024_06_14 {
@@ -227,6 +251,14 @@ export class NumberFieldInput_2024_06_14 {
       the number field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class TextAreaFieldInput_2024_06_14 {
@@ -266,6 +298,14 @@ export class TextAreaFieldInput_2024_06_14 {
       the text area will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class SelectFieldInput_2024_06_14 {
@@ -309,6 +349,14 @@ export class SelectFieldInput_2024_06_14 {
       the 'italian' will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class MultiSelectFieldInput_2024_06_14 {
@@ -346,6 +394,14 @@ export class MultiSelectFieldInput_2024_06_14 {
       the 'en' and 'it' will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class MultiEmailFieldInput_2024_06_14 {
@@ -385,6 +441,14 @@ export class MultiEmailFieldInput_2024_06_14 {
       the these emails will be added and none more can be added.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class CheckboxGroupFieldInput_2024_06_14 {
@@ -422,6 +486,14 @@ export class CheckboxGroupFieldInput_2024_06_14 {
       the checkbox will be selected and the checkbox field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class RadioGroupFieldInput_2024_06_14 {
@@ -459,6 +531,14 @@ export class RadioGroupFieldInput_2024_06_14 {
       the 'italian' radio buttom will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class BooleanFieldInput_2024_06_14 {
@@ -486,6 +566,14 @@ export class BooleanFieldInput_2024_06_14 {
   @IsOptional()
   @DocsPropertyOptional({ type: Boolean })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export type InputBookingField_2024_06_14 =
@@ -521,7 +609,7 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
-  private reservedSystemSlugs = ["location", "rescheduleReason"];
+  private reservedSystemSlugs = ["location", "rescheduleReason", "attendeePhoneNumber"];
 
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {

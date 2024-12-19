@@ -3,9 +3,21 @@ import { Type } from "class-transformer";
 import { IsEnum, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { BookingOutput_2024_08_13, RecurringBookingOutput_2024_08_13 } from "@calcom/platform-types";
+import {
+  BookingOutput_2024_08_13,
+  CreateRecurringSeatedBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+} from "@calcom/platform-types";
 
-@ApiExtraModels(BookingOutput_2024_08_13, RecurringBookingOutput_2024_08_13)
+@ApiExtraModels(
+  BookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  CreateSeatedBookingOutput_2024_08_13,
+  CreateRecurringSeatedBookingOutput_2024_08_13
+)
 export class RescheduleBookingOutput_2024_08_13 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
@@ -15,11 +27,17 @@ export class RescheduleBookingOutput_2024_08_13 {
     oneOf: [
       { $ref: getSchemaPath(BookingOutput_2024_08_13) },
       { $ref: getSchemaPath(RecurringBookingOutput_2024_08_13) },
+      { $ref: getSchemaPath(CreateSeatedBookingOutput_2024_08_13) },
+      { $ref: getSchemaPath(CreateRecurringSeatedBookingOutput_2024_08_13) },
     ],
     description:
       "Booking data, which can be either a BookingOutput object or a RecurringBookingOutput object",
   })
   @ValidateNested()
   @Type(() => Object)
-  data!: BookingOutput_2024_08_13 | RecurringBookingOutput_2024_08_13;
+  data!:
+    | BookingOutput_2024_08_13
+    | RecurringBookingOutput_2024_08_13
+    | CreateSeatedBookingOutput_2024_08_13
+    | CreateRecurringSeatedBookingOutput_2024_08_13;
 }
