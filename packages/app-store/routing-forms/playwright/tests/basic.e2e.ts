@@ -669,6 +669,21 @@ test.describe("Routing Forms", () => {
       await saveCurrentForm(page);
     };
 
+    const selectSendMailToUser = async ({
+      page,
+      formId,
+      text,
+    }: {
+      page: Page;
+      formId: string;
+      text: string;
+    }) => {
+      await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.click('[data-testid="routing-form-select-members"]');
+      await page.getByText(text).nth(1).click();
+      await saveCurrentForm(page);
+    };
+
     const addNewUserToTeam = async ({ users, teamId }: { users: Fixtures["users"]; teamId: number }) => {
       const newUser = await users.create();
       await prisma.membership.create({
@@ -685,7 +700,7 @@ test.describe("Routing Forms", () => {
     const goToRoutingLinkAndSubmit = async ({ page, formId }: { page: Page; formId: string }) => {
       await gotoRoutingLink({ page, formId });
       await page.fill('[data-testid="form-field-short-text"]', "test");
-      page.click('button[type="submit"]');
+      await page.click('button[type="submit"]');
       await page.waitForURL((url) => {
         return url.hostname.includes("cal.com");
       });
@@ -702,7 +717,7 @@ test.describe("Routing Forms", () => {
       await goToRoutingLinkAndSubmit({ page, formId });
 
       // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(5000);
+      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
@@ -715,11 +730,12 @@ test.describe("Routing Forms", () => {
       users,
     }) => {
       const { formId, teamId, owner } = await createUserAndTeamRoutingForm({ users, page });
+      await selectSendMailToUser({ page, formId, text: owner.email as string });
       const newUser = await addNewUserToTeam({ users, teamId });
       await goToRoutingLinkAndSubmit({ page, formId });
 
       // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(10000);
+      await page.waitForTimeout(2000);
       const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
       expect(receivedEmailsOwner?.total).toBe(1);
       const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
