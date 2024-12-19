@@ -7869,7 +7869,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=busy`,      the reschedule reason field will be prefilled with this value and disabled."
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
       },
       "TitleDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -7906,7 +7906,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=masterclass`,      the title field will be prefilled with this value and disabled."
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
       },
       "NotesDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -7943,7 +7943,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=hello`,      the notes field will be prefilled with this value and disabled."
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
       },
       "GuestsDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -7980,7 +7980,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=lauris@cal.com`,      the guests field will be prefilled with this value and disabled."
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden"]
+        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
       },
       "AddressFieldOutput_2024_06_14": {
         "type": "object",
