@@ -21,11 +21,9 @@ export const withAppDirSsg =
         notFound();
       }
 
-      const props = await Promise.resolve(ssgResponse.props);
-
       return {
-        ...props,
-        ...("trpcState" in props && { dehydratedState: props.trpcState }),
+        ...ssgResponse.props,
+        ...("trpcState" in ssgResponse.props && { dehydratedState: ssgResponse.props.trpcState }),
       };
     }, [`ssg-${cacheKey}`]);
 
