@@ -16,13 +16,21 @@ export const routingFormOptions = z
   })
   .optional();
 
+const optionalBooleanOnlyRunTimeValidation = z
+  .any()
+  .refine((val) => typeof val === "boolean" || val === undefined)
+  .optional();
+
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
   roundRobinSkipCheckRecordOn: z
     .nativeEnum(SalesforceRecordEnum)
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
-  // ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
+  // Another way to define z.boolean().optional() through z.any()
+  // Required to prevent tsc crash. I have no clue why it started crashing suddenly.
+  // But we need to improve the schemas of all apps that are combined into apps.schemas.generated.ts
+  ifFreeEmailDomainSkipOwnerCheck: optionalBooleanOnlyRunTimeValidation,
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),

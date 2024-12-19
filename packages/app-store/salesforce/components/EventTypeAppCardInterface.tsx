@@ -26,8 +26,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
   const roundRobinSkipCheckRecordOn =
     getAppData("roundRobinSkipCheckRecordOn") ?? SalesforceRecordEnum.CONTACT;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   const ifFreeEmailDomainSkipOwnerCheck = getAppData("ifFreeEmailDomainSkipOwnerCheck") ?? false;
   const isSkipContactCreationEnabled = getAppData("skipContactCreation");
   const createLeadIfAccountNull = getAppData("createLeadIfAccountNull");
@@ -521,12 +519,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   <Switch
                     label={t("salesforce_if_free_email_domain_skip_owner_check")}
                     labelOnLeading
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                     checked={ifFreeEmailDomainSkipOwnerCheck}
                     onCheckedChange={(checked) => {
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                      // @ts-ignore
                       setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
                     }}
                   />
