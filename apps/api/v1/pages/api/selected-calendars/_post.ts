@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 
 import {
@@ -64,6 +65,8 @@ async function postHandler(req: NextApiRequest) {
   }
 
   const data = await prisma.selectedCalendar.create(args);
+
+  data.credentialId && (await BookingReferenceRepository.reconnectWithNewCredential(data.credentialId));
 
   return {
     selected_calendar: schemaSelectedCalendarPublic.parse(data),
