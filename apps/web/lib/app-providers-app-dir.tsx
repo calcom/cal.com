@@ -267,48 +267,111 @@ const AppProviders = (props: PageWrapperProps) => {
   const isBookingPage = useIsBookingPage();
 
   // Move the Plain chat initialization into a separate component
-  const PlainChatScript = () => {
-    const { data: session } = useSession();
+  // const PlainChatScript = () => {
+  //   const { data: session } = useSession();
 
-    React.useEffect(() => {
-      // Check if script already exists
-      const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
-      if (existingScript) return;
+  //   React.useEffect(() => {
+  //     // Check if script already exists
+  //     const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
+  //     if (existingScript) return;
 
-      const script = document.createElement("script");
-      script.async = false;
-      script.id = "plain-chat-script";
-      script.onload = function () {
-        // Get user details from session
-        const userEmail = session?.user?.email;
-        const userName = session?.user?.name;
-        const userImage = session?.user?.image;
+  //     const script = document.createElement("script");
+  //     script.async = false;
+  //     script.id = "plain-chat-script";
+  //     script.onload = function () {
+  //       // Get user details from session
+  //       const userEmail = session?.user?.email;
+  //       const userName = session?.user?.name;
+  //       const userImage = session?.user?.image;
 
-        (window as any).Plain?.init({
-          appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423ND",
-          theme: "light",
-          customerDetails: {
-            fullName: userName || "Anonymous",
-            shortName: userName?.split(" ")[0] || "Anonymous",
-            chatAvatarUrl: userImage || "https://picsum.photos/32/32",
-            email: userEmail || "anonymous@example.com",
-          },
-          // ... rest of the configuration
-        });
-      };
-      script.src = "https://chat.cdn-plain.com/index.js";
-      document.head.appendChild(script);
+  //       (window as any).Plain?.init({
+  //         appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423ND",
+  //         theme: "light",
+  //         customerDetails: {
+  //           fullName: userName || "",
+  //           shortName: userName?.split(" ")[0] || "",
+  //           chatAvatarUrl: userImage || "https://picsum.photos/32/32",
+  //           email: userEmail || "anonymous@example.com",
+  //         },
+  //         // ... rest of the configuration
+  //       });
+  //     };
+  //     script.src = "https://chat.cdn-plain.com/index.js";
+  //     document.head.appendChild(script);
 
-      return () => {};
-    }, [session]);
+  //     return () => {};
+  //   }, [session]);
 
-    return null;
-  };
+  //   return null;
+  // };
+  // React.useEffect(() => {
+  //   // Check if script already exists
+  //   const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
+  //   if (existingScript) return;
+
+  //   const script = document.createElement("script");
+  //   script.async = true;
+  //   script.id = "plain-chat-script";
+  //   script.onload = function () {
+  //     (window as any).Plain?.init({
+  //       region: "uk",
+  //       appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423N",
+  //       theme: {
+  //         colorMode: "light",
+  //         primaryColor: "#000000",
+  //       },
+  //       styles: {
+  //         button: {
+  //           backgroundColor: "#000000",
+  //           color: "#ffffff",
+  //         },
+  //         chat: {
+  //           backgroundColor: "#ffffff",
+  //           textColor: "#000000",
+  //         },
+  //       },
+  //       branding: {
+  //         logo: "https://cal.com/android-chrome-512x512.png",
+  //         name: "Cal.com",
+  //         hideBranding: true,
+  //       },
+  //       layout: {
+  //         position: {
+  //           desktop: {
+  //             bottom: "20px",
+  //             right: "20px",
+  //           },
+  //         },
+  //       },
+  //       buttons: [
+  //         {
+  //           type: "chat",
+  //           label: "Ask a question",
+  //           defaultText: "Ask a question",
+  //         },
+  //         {
+  //           type: "feedback",
+  //           label: "Share feedback",
+  //           defaultText: "Share feedback",
+  //         },
+  //         {
+  //           type: "bug",
+  //           label: "Report a bug",
+  //           defaultText: "Report a bug",
+  //         },
+  //       ],
+  //     });
+  //   };
+  //   script.src = "https://chat.cdn-plain.com/index.js";
+  //   document.head.appendChild(script);
+
+  //   return () => {};
+  // }, []);
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider>
-        <PlainChatScript />
+        {/* <PlainChatScript /> */}
         <CustomI18nextProvider i18n={props.i18n}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}

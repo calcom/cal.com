@@ -9,6 +9,7 @@ import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import dynamic from "next/dynamic";
+import Script from "next/script";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import React, { useEffect } from "react";
@@ -158,7 +159,6 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   return (
     <ThemeProvider key={key} {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
-      {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
         <style jsx global>
           {`
@@ -284,69 +284,23 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
 
-  React.useEffect(() => {
-    // Check if script already exists
-    const existingScript = document.querySelector('script[src="https://chat.cdn-plain.com/index.js"]');
-    if (existingScript) return;
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.id = "plain-chat-script";
-    script.onload = function () {
-      (window as any).Plain?.init({
-        region: "uk",
-        appId: "liveChatApp_01JFEH8BS8TNB10CX7GRG423ND",
-        theme: {
-          colorMode: "light",
-          primaryColor: "#000000",
-        },
-        styles: {
-          button: {
-            backgroundColor: "#000000",
-            color: "#ffffff",
-          },
-          chat: {
-            backgroundColor: "#ffffff",
-            textColor: "#000000",
-          },
-        },
-        branding: {
-          logo: "https://cal.com/android-chrome-512x512.png",
-          name: "Cal.com",
-          hideBranding: true,
-        },
-        layout: {
-          position: {
-            desktop: {
-              bottom: "20px",
-              right: "20px",
-            },
-          },
-        },
-        buttons: [
-          {
-            type: "chat",
-            label: "Ask a question",
-            defaultText: "Ask a question",
-          },
-          {
-            type: "feedback",
-            label: "Share feedback",
-            defaultText: "Share feedback",
-          },
-          {
-            type: "bug",
-            label: "Report a bug",
-            defaultText: "Report a bug",
-          },
-        ],
-      });
-    };
-    script.src = "https://chat.cdn-plain.com/index.js";
-    document.head.appendChild(script);
-
-    return () => {};
-  }, []);
+  // Add Plain Chat Script
+  const plainChatScript = `
+    (function(d, script) {
+      script = d.createElement('script');
+      script.async = false;
+      script.onload = function(){
+        Plain.init({
+          appId: 'liveChatApp_01JFGGYJT7XMJYF2Z9EEXVAJ5Q',
+          fullName: "Nizar",
+          email: "nizar@cal.com",
+          emailHash: "c73a36cf13de44b571fa98391191ad9eb02e8c90e54f7b7f8919f294b7cf99c8"
+        });
+      };
+      script.src = 'https://chat.cdn-plain.com/index.js';
+      d.getElementsByTagName('head')[0].appendChild(script);
+    }(document));
+  `;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { nonce, ...restPageProps } = pageProps;
@@ -388,10 +342,17 @@ const AppProviders = (props: AppPropsWithChildren) => {
   }
 
   return (
-    <DynamicPostHogProvider>
-      <PostHogPageView />
-      {RemainingProviders}
-    </DynamicPostHogProvider>
+    <>
+      <Script
+        id="plain-chat"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: plainChatScript }}
+      />
+      <DynamicPostHogProvider>
+        <PostHogPageView />
+        {RemainingProviders}
+      </DynamicPostHogProvider>
+    </>
   );
 };
 
