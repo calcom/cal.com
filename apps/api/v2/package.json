@@ -21,8 +21,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "yarn dev:build && NODE_OPTIONS='--max_old_space_size=8192 --experimental-vm-modules' jest --ci --forceExit --config ./jest-e2e.json",
     "test:e2e:watch": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json --watch",
-    "prisma": "yarn workspace @calcom/prisma prisma",
-    "generate-schemas": "yarn prisma generate && yarn prisma format",
+    "prisma": "PRISMA_SCHEMA_PATH=../../../packages/prisma/schema.prisma yarn workspace @calcom/prisma prisma",
+    "generate-schemas": "PRISMA_SCHEMA_PATH=../../../packages/prisma/schema.prisma yarn prisma generate && PRISMA_SCHEMA_PATH=../../../packages/prisma/schema.prisma yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts"
   },
   "dependencies": {
