@@ -14,9 +14,17 @@ let pages = (exports.pages = glob
   .filter(
     (v, i, self) =>
       self.indexOf(v) === i &&
-      !["[user]", "future", "_trpc", "WithAppDirSsg", "WithAppDirSsr", "WithEmbedSSR"].some((prefix) =>
-        v.startsWith(prefix)
-      )
+      ![
+        "[user]",
+        "future",
+        "_trpc",
+        "layout",
+        "layoutHOC",
+        "WithAppDirSsg",
+        "global-error",
+        "WithAppDirSsr",
+        "WithEmbedSSR",
+      ].some((prefix) => v.startsWith(prefix))
   ));
 
 // .* matches / as well(Note: *(i.e wildcard) doesn't match / but .*(i.e. RegExp) does)
