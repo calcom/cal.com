@@ -8,6 +8,8 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 import Link from "next/link";
 import { useRef, useMemo, useId } from "react";
 import { z } from "zod";
@@ -24,7 +26,6 @@ import {
   multiSelectFilter,
   textFilter,
   dataTableFilter,
-  convertToTitleCase,
   useDataTable,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
@@ -47,51 +48,19 @@ import {
 import { useFilterContext } from "../context/provider";
 import { ClearFilters } from "../filters/ClearFilters";
 import { DateSelect } from "../filters/DateSelect";
-import { RoutingDownload } from "../filters/Download";
+import { RoutingFormResponsesDownload } from "../filters/Download";
 import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
 import { TeamAndSelfList } from "../filters/TeamAndSelfList";
 import { UserListInTeam } from "../filters/UserListInTeam";
-import { RoutingKPICards } from "./RoutingKPICards";
-
-type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
-
-const ZResponseMultipleValues = z.object({
-  label: z.string(),
-  value: z.array(z.string()),
-});
-
-const ZResponseSingleValue = z.object({
-  label: z.string(),
-  value: z.string(),
-});
-
-const ZResponseTextValue = z.object({
-  label: z.string(),
-  value: z.string(),
-});
-
-const ZResponseNumericValue = z.object({
-  label: z.string(),
-  value: z.number(),
-});
-
-const ZResponseValue = z.union([
+import {
   ZResponseMultipleValues,
   ZResponseSingleValue,
   ZResponseTextValue,
   ZResponseNumericValue,
-]);
+} from "../lib/types";
+import { RoutingKPICards } from "./RoutingKPICards";
 
-type ResponseValue = z.infer<typeof ZResponseValue>;
-
-type RoutingFormTableRow = Omit<
-  RoutingFormResponse,
-  "response" | "responseLowercase" | "bookingAttendees"
-> & {
-  response: Record<string, ResponseValue>;
-  responseLowercase: Record<string, ResponseValue>;
-  bookingAttendees?: { email: string; timeZone: string }[];
-};
+type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
 const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.ACCEPTED]: 1,
@@ -147,8 +116,8 @@ function BookedByCell({
     <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => (
         <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
-          <Badge variant="gray" className="whitespace-nowrap">
-            {attendee.email}
+          <Badge variant="gray" className="whitespace-nowrap" title={attendee.email}>
+            {attendee.name}
           </Badge>
         </CellWithOverflowX>
       ))}
@@ -309,21 +278,24 @@ export function RoutingFormResponsesTableContent({
     selectedRoutingFormId,
     selectedMemberUserId,
     selectedUserId,
-    selectedBookingStatus,
-    selectedRoutingFormFilter,
   } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
   const columnFilters = useColumnFilters();
 
+  const teamId = selectedTeamId ?? undefined;
+  const userId = selectedUserId ?? undefined;
+  const memberUserId = selectedMemberUserId ?? undefined;
+  const routingFormId = selectedRoutingFormId ?? undefined;
+
   const { data: headers, isLoading: isHeadersLoading } =
     trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
       {
-        userId: selectedUserId ?? undefined,
-        teamId: selectedTeamId ?? undefined,
+        userId,
+        teamId,
         isAll: isAll ?? false,
-        routingFormId: selectedRoutingFormId ?? undefined,
+        routingFormId,
       },
       {
         enabled: initialConfigIsReady,
@@ -335,13 +307,13 @@ export function RoutingFormResponsesTableContent({
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
-        teamId: selectedTeamId,
+        teamId,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        userId: selectedUserId ?? undefined,
-        memberUserId: selectedMemberUserId ?? undefined,
+        userId,
+        memberUserId,
         isAll: isAll ?? false,
-        routingFormId: selectedRoutingFormId ?? undefined,
+        routingFormId,
         columnFilters,
         sorting,
         limit: 30,
@@ -407,7 +379,7 @@ export function RoutingFormResponsesTableContent({
 
         return columnHelper.accessor(`response.${fieldHeader.id}`, {
           id: fieldHeader.id,
-          header: convertToTitleCase(fieldHeader.label),
+          header: startCase(fieldHeader.label),
           size: 200,
           enableSorting: false,
           cell: (info) => {
@@ -610,7 +582,17 @@ export function RoutingFormResponsesTableContent({
             <ClearFilters />
             <div className="grow" />
             <DateSelect />
-            <RoutingDownload />
+            <RoutingFormResponsesDownload
+              startDate={startDate}
+              endDate={endDate}
+              teamId={teamId}
+              userId={userId}
+              isAll={isAll ?? false}
+              memberUserId={memberUserId}
+              routingFormId={routingFormId}
+              columnFilters={columnFilters}
+              sorting={sorting}
+            />
             <DataTableFilters.ColumnVisibilityButton table={table} />
           </div>
           <RoutingKPICards />

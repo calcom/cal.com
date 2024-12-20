@@ -1029,6 +1029,8 @@ view RoutingFormResponse {
   bookingUserAvatarUrl             String?
   bookingAssignmentReason          String?
   bookingAssignmentReasonLowercase String?
+  bookingStartTime                 DateTime?
+  bookingEndTime                   DateTime?
   createdAt                        DateTime
 }
 

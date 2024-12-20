@@ -4,6 +4,7 @@ WITH attendees_agg AS (
     a."bookingId",
     json_agg(
       json_build_object(
+        'name', a.name,
         'timeZone', a."timeZone",
         'email', a.email
       )
@@ -53,6 +54,8 @@ SELECT
     WHEN 'rejected' THEN 5
   END as "bookingStatusOrder",
   b."createdAt" as "bookingCreatedAt",
+  b."startTime" as "bookingStartTime",
+  b."endTime" as "bookingEndTime",
   att.attendees as "bookingAttendees",
   u.id as "bookingUserId",
   u.name as "bookingUserName",
