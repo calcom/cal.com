@@ -21,6 +21,8 @@ export type ExtendedCalendarEvent = Omit<CalendarEvent, "bookerUrl"> & {
     schedulingType?: SchedulingType | null;
     hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };
+  rescheduleReason?: string | null;
+  cancellationReason?: string | null;
   bookerUrl: string;
 };
 

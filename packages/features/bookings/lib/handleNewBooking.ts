@@ -1911,6 +1911,7 @@ async function handler(
 
   const evtWithMetadata = {
     ...evt,
+    rescheduleReason,
     metadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
     bookerUrl,
