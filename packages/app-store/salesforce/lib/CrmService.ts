@@ -43,9 +43,9 @@ const sfApiErrors = {
 };
 
 type ContactRecord = {
-  Id: string;
-  Email: string;
-  OwnerId: string;
+  Id?: string;
+  Email?: string;
+  OwnerId?: string;
   [key: string]: any;
 };
 
@@ -413,8 +413,8 @@ export default class SalesforceCRMService implements CRM {
 
       return records.map((record) => {
         return {
-          id: record?.Id,
-          email: record?.Email,
+          id: record?.Id || "",
+          email: record?.Email || "",
           recordType: record?.attributes?.type,
           ...((includeOwner || forRoundRobinSkip) && {
             ownerId: record?.OwnerId,
@@ -832,19 +832,26 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
     );
 
     if (accountQuery.records.length > 0) {
-      return accountQuery.records[0] as { Id?: string; Owner?: { Email?: string } };
+      // return accountQuery.records[0] as { Id?: string; Owner?: { Email?: string } };
+      return {
+        ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
+        Email: undefined,
+      };
     }
 
     // Fallback to querying which account the majority of contacts are under
     const contactQuery = await conn.query(
-      `SELECT Id, Email, AccountId, Account.Owner.Email FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+      `SELECT Id, Email, AccountId, Account.OwnerId, Account.Owner.Email FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
     );
 
-    const contacts = contactQuery?.records as { AccountId: string; Account: { Owner: { Email: string } } }[];
+    const contacts = contactQuery?.records as {
+      AccountId: string;
+      Account: { OwnerId?: string; Owner: { Email: string } };
+    }[];
     if (!contacts) return;
 
     const dominantAccountId = this.getDominantAccountId(contacts);
@@ -853,6 +860,8 @@ export default class SalesforceCRMService implements CRM {
 
     return {
       Id: dominantAccountId,
+      Email: undefined,
+      OwnerId: contactUnderAccount?.Account?.OwnerId,
       Owner: {
         Email: contactUnderAccount?.Account?.Owner?.Email,
       },
