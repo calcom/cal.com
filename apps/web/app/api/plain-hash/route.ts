@@ -9,6 +9,8 @@ const responseSchema = z.object({
   hash: z.string(),
   email: z.string().email(),
   shortName: z.string(),
+  appId: z.string(),
+  fullName: z.string(),
 });
 
 async function handler(request: Request) {
@@ -34,6 +36,8 @@ async function handler(request: Request) {
     hash,
     email: session.user.email,
     shortName,
+    appId: process.env.PLAIN_CHAT_ID,
+    fullName: session.user.name || "User",
   });
 
   return NextResponse.json(response);

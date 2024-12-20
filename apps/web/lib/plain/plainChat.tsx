@@ -3,6 +3,16 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
+declare global {
+  interface Window {
+    Plain?: {
+      init: (config: any) => void;
+      open: () => void;
+    };
+    plainScriptLoaded?: () => void;
+  }
+}
+
 interface PlainChatConfig {
   appId: string;
   customerDetails: {
@@ -90,14 +100,14 @@ const PlainChat = () => {
           throw new Error("Failed to generate hash");
         }
 
-        const { hash, email, shortName } = await response.json();
+        const { hash, email, shortName, appId, fullName } = await response.json();
 
         const plainChatConfig = {
-          appId: "liveChatApp_01JFK21W8S3JPBX64TGYC029BN",
+          appId,
           customerDetails: {
             email,
             shortName,
-            fullName: "User",
+            fullName,
             emailHash: hash,
           },
           links: [
@@ -140,6 +150,7 @@ const PlainChat = () => {
                           severity: "critical",
                           issueType: "critical",
                           labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                          priority: "Urgent",
                         },
                       },
                       {
@@ -149,6 +160,7 @@ const PlainChat = () => {
                           severity: "major",
                           issueType: "major",
                           labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                          priority: "High",
                         },
                       },
                       {
@@ -158,6 +170,7 @@ const PlainChat = () => {
                           severity: "minor",
                           issueType: "minor",
                           labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
+                          priority: "Low",
                         },
                       },
                     ],
@@ -215,7 +228,7 @@ const PlainChat = () => {
         id="plain-chat"
         src="https://chat.cdn-plain.com/index.js"
         strategy="afterInteractive"
-        onLoad={() => window.plainScriptLoaded()}
+        onLoad={() => window.plainScriptLoaded?.()}
       />
       <Script
         id="plain-chat-init"
