@@ -29,6 +29,7 @@ interface PlainChatConfig {
           text: string;
           threadDetails: {
             severity: string;
+            labelTypeIds: Array<string>;
           };
         }>;
       }>;
@@ -89,15 +90,15 @@ const PlainChat = () => {
           throw new Error("Failed to generate hash");
         }
 
-        const { hash, email, fullName, shortName } = await response.json();
+        const { hash, email, shortName } = await response.json();
 
         const plainChatConfig = {
-          appId: "liveChatApp_01JFJJK1RF3XA2ZDAEHERJ0VZZ",
+          appId: "liveChatApp_01JFK21W8S3JPBX64TGYC029BN",
           customerDetails: {
             email,
             shortName,
+            fullName: "User",
             emailHash: hash,
-            fullName,
           },
           links: [
             {
@@ -137,6 +138,8 @@ const PlainChat = () => {
                         text: "I'm unable to use the app",
                         threadDetails: {
                           severity: "critical",
+                          issueType: "critical",
+                          labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
                         },
                       },
                       {
@@ -144,6 +147,8 @@ const PlainChat = () => {
                         text: "Major functionality degraded",
                         threadDetails: {
                           severity: "major",
+                          issueType: "major",
+                          labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
                         },
                       },
                       {
@@ -151,6 +156,8 @@ const PlainChat = () => {
                         text: "Minor annoyance",
                         threadDetails: {
                           severity: "minor",
+                          issueType: "minor",
+                          labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
                         },
                       },
                     ],
@@ -174,7 +181,6 @@ const PlainChat = () => {
             right: "20px",
           },
         };
-
         setConfig(plainChatConfig);
       } catch (error) {
         console.error("Failed to initialize Plain Chat:", error);

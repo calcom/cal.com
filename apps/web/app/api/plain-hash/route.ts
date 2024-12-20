@@ -1,5 +1,4 @@
 import { createHmac } from "crypto";
-import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,24 +9,9 @@ const responseSchema = z.object({
   hash: z.string(),
   email: z.string().email(),
   shortName: z.string(),
-  fullName: z.string().optional(),
 });
 
 async function handler(request: Request) {
-  const headersList = headers();
-
-  const incomingSignature = headersList.get("plain-request-signature");
-  if (incomingSignature) {
-    const requestBody = await request.json();
-    const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
-      .update(JSON.stringify(requestBody))
-      .digest("hex");
-
-    if (incomingSignature !== expectedSignature) {
-      return new Response("Forbidden", { status: 403 });
-    }
-  }
-
   const session = await getServerSession({ req: request as any });
   if (!session?.user?.email) {
     return new Response("Unauthorized - No session email found", { status: 401 });
@@ -50,10 +34,7 @@ async function handler(request: Request) {
     hash,
     email: session.user.email,
     shortName,
-    fullName: session.user.name,
   });
-
-  console.log("Sending response:", response);
 
   return NextResponse.json(response);
 }
