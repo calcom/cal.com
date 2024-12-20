@@ -28,6 +28,7 @@ export type MonthlyDigestEmailData = {
   }[];
   admin: { email: string; name: string };
   team: { name: string; id: number };
+  transcriptContent?: string;
 };
 
 export const MonthlyDigestEmail = (
@@ -102,6 +103,39 @@ export const MonthlyDigestEmail = (
   return (
     <BaseEmailHtml subject={props.language("verify_email_subject", { appName: APP_NAME })}>
       <div>
+        <div style={{ marginTop: "40px", marginBottom: "40px" }}>
+          <h2 style={{ fontSize: "24px", fontWeight: "600", marginBottom: "16px" }}>
+            {props.language("transcript")}
+          </h2>
+          <div
+            style={{
+              backgroundColor: "#F3F4F6",
+              padding: "16px",
+              borderRadius: "4px",
+              fontFamily: "sans-serif",
+              fontSize: "14px",
+              lineHeight: "1.5",
+              maxHeight: "400px",
+              overflowY: "auto",
+            }}>
+            {props.transcript.map((entry, index) => (
+              <div key={index} style={{ marginBottom: "16px" }}>
+                <div>
+                  <span style={{ fontWeight: "bold", color: "#4B5563" }}>{entry.speaker}: </span>
+                  <span>{entry.text}</span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#6B7280",
+                    marginTop: "1px",
+                  }}>
+                  {entry.time}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         <p
           style={{
             fontWeight: 600,
