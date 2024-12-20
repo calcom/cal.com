@@ -355,28 +355,6 @@ export default class SalesforceCRMService implements CRM {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
         log.info("Searching account for email", safeStringify({ attendeeEmail }));
-
-        soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
-
-        // If this is for a round robin skip then we need to return the account record
-        if (forRoundRobinSkip) {
-          const results = await conn.query(soql);
-          log.info("Account contact search results", safeStringify({ resultCount: results.records.length }));
-
-          if (results.records?.length) {
-            const contact = results.records[0] as { AccountId?: string };
-            if (contact?.AccountId) {
-              soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
-            }
-          } else {
-            // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
-            const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
-            if (accountId) {
-              soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
-            }
-          }
-        }
-        // If creating events on contacts or leads
         soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       } else {
         // Handle Contact/Lead record types
@@ -424,6 +402,15 @@ export default class SalesforceCRMService implements CRM {
 
       if (!records.length && results?.records?.length) {
         records = results.records as ContactRecord[];
+      }
+
+      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && forRoundRobinSkip && !results.records.length) {
+        const attendeeEmail = emailArray[0];
+        // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
+        const account = await this.getAccountBasedOnEmailDomainOfContacts(attendeeEmail);
+        if (account) {
+          records = [account];
+        }
       }
 
       if (!records.length) {
