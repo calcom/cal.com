@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Перенаправляє {{orgSlug}}.cal.com на {{destination}}",
   "single_select": "Одиночний вибір",
   "multi_select": "Множинний вибір",
+  "calendar_conflict_settings": "Налаштування конфліктів календаря",
+  "select_calendars_conflict_check": "Оберіть календарі для перевірки конфліктів",
   "group_meeting": "Групова зустріч",
   "salesforce_ignore_guests": "Не створювати нові записи для гостей, доданих до бронювання",
   "google_meet": "Google Meet",
