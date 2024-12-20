@@ -379,13 +379,14 @@ export default class SalesforceCRMService implements CRM {
       // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
-        appOptions.createEventOnLeadCheckForContact && !forRoundRobinSkip
+        appOptions.createEventOnLeadCheckForContact &&
+        !forRoundRobinSkip
       ) {
         // Get any matching contacts
         const contactSearch = await conn.query(
-          `SELECT Id, Email, OwnerId, Owner.Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
-            "','"
-          )}')`
+          `SELECT Id, Email, OwnerId, Owner.Email FROM ${
+            SalesforceRecordEnum.CONTACT
+          } WHERE Email IN ('${emailArray.join("','")}')`
         );
 
         if (contactSearch?.records?.length > 0) {
@@ -897,6 +898,42 @@ export default class SalesforceCRMService implements CRM {
     );
 
     return this.getDominantAccountId(response.records as { AccountId: string }[]);
+  }
+
+  private async getAccountBasedOnEmailDomainOfContacts(email: string) {
+    const conn = await this.conn;
+    const emailDomain = email.split("@")[1];
+
+    // First check if an account has the same website as the email domain of the attendee
+    const accountQuery = await conn.query(
+      `SELECT Id, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
+    );
+
+    if (accountQuery.records.length > 0) {
+      return accountQuery.records[0] as { Id?: string; Owner?: { Email?: string } };
+    }
+
+    // Fallback to querying which account the majority of contacts are under
+    const contactQuery = await conn.query(
+      `SELECT Id, Email, AccountId, Account.Owner.Email FROM Contact WHERE Email LIKE '%@${emailDomain}' AND AccountId != null`
+    );
+
+    const contacts = contactQuery?.records as { AccountId: string; Account: { Owner: { Email: string } } }[];
+    if (!contacts) return;
+
+    const dominantAccountId = this.getDominantAccountId(contacts);
+
+    const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
+
+    return {
+      Id: dominantAccountId,
+      Owner: {
+        Email: contactUnderAccount?.Account?.Owner?.Email,
+      },
+      attributes: {
+        type: SalesforceRecordEnum.ACCOUNT,
+      },
+    };
   }
 
   private setFallbackToContact(boolean: boolean) {
