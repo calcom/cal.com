@@ -377,9 +377,10 @@ export default class SalesforceCRMService implements CRM {
           }
         }
         // If creating events on contacts or leads
+        soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       } else {
         // Handle Contact/Lead record types
-        soql = `SELECT Id, Email, OwnerId FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
+        soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
           "','"
         )}')`;
       }
