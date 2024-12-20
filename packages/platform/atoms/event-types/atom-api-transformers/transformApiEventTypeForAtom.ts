@@ -2,7 +2,7 @@ import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiResponseToInternal,
+  transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
@@ -16,10 +16,10 @@ import {
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
-  CustomFieldOutput_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
   InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
@@ -329,7 +329,9 @@ function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const transformedBookingFields = transformBookingFieldsApiResponseToInternal(bookingFields);
+  const transformedBookingFields = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isKnownField(field))
+  );
 
   const hasNameField = transformedBookingFields.some((field) => field.name === "name");
   const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
@@ -366,10 +368,10 @@ function getBookingFields(
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
 }
 
-function isCustomField(
+function isKnownField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
-): field is CustomFieldOutput_2024_06_14 {
-  return field.type !== "unknown" && !field.isDefault;
+): field is KnownBookingField_2024_06_14 {
+  return field.type !== "unknown";
 }
 
 function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {
