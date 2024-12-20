@@ -10,7 +10,6 @@ import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import Script from "next/script";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
@@ -24,6 +23,7 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import PlainChat from "@lib/plain/plainChat";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -267,93 +267,6 @@ const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
 
-  const plainChatScript = `
-    window.plainScriptLoaded = function() {
-      Plain.init({
-        appId: 'liveChatApp_01JFGTZC4M5QH5GSXCTPJCA88F',
-        customerDetails: {
-          fullName: 'John Doe',
-          shortName: 'John',
-          chatAvatarUrl: 'https://picsum.photos/32/32',
-        },
-        links: [
-          {
-            icon: 'book',
-            text: 'Documentation',
-            url: 'https://cal.com/docs',
-          },
-          {
-            icon: 'chat',
-            text: 'Ask the community',
-            url: 'https://github.com/calcom/cal.com/discussions',
-          }
-        ],
-        chatButtons: [
-          {
-            icon: 'chat',
-            text: 'Ask a question',
-            type: 'primary'
-          },
-          {
-            icon: 'bulb',
-            text: 'Send feedback',
-            type: 'default'
-          },
-          {
-            icon: 'error',
-            text: 'Report an issue',
-            type: 'default',
-            form: {
-              fields: [
-                {
-                  type: 'dropdown',
-                  placeholder: 'Select severity...',
-                  options: [
-                    {
-                      icon: 'support',
-                      text: "I'm unable to use the app",
-                      threadDetails: {
-                        severity: 'critical'
-                      }
-                    },
-                    {
-                      icon: 'error',
-                      text: 'Major functionality degraded',
-                      threadDetails: {
-                        severity: 'major'
-                      }
-                    },
-                    {
-                      icon: 'bug',
-                      text: 'Minor annoyance',
-                      threadDetails: {
-                        severity: 'minor'
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          }
-        ],
-        entryPoint: {
-          type: 'chat',
-        },
-        hideBranding: true,
-        theme: 'auto',
-        style: {
-          brandColor: '#FFFFFF',
-          launcherBackgroundColor: '#262626',
-          launcherIconColor: '#FFFFFF'
-        },
-        position: {
-          bottom: '20px',
-          right: '20px'
-        }
-      });
-    }
-  `;
-
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider>
@@ -391,17 +304,7 @@ const AppProviders = (props: PageWrapperProps) => {
 
   return (
     <>
-      <Script
-        id="plain-chat"
-        src="https://chat.cdn-plain.com/index.js"
-        strategy="afterInteractive"
-        onLoad={() => window.plainScriptLoaded()}
-      />
-      <Script
-        id="plain-chat-init"
-        strategy="afterInteractive"
-        dangerouslySetInnerHTML={{ __html: plainChatScript }}
-      />
+      <PlainChat />
       <DynamicHelpscoutProvider>
         <DynamicIntercomProvider>
           <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
