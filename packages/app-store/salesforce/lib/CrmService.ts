@@ -30,15 +30,6 @@ type ExtendedTokenResponse = TokenResponse & {
   instance_url: string;
 };
 
-type ContactSearchResult = {
-  attributes: {
-    type: string;
-    url: string;
-  };
-  Id: string;
-  Email: string;
-};
-
 const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
@@ -61,6 +52,39 @@ const salesforceTokenSchema = z.object({
   scope: z.string(),
   token_type: z.string(),
 });
+
+interface GetContactsParams {
+  emails: string | string[];
+  includeOwner?: boolean;
+  forRoundRobinSkip?: boolean;
+}
+
+interface ContactQueryResult {
+  soql: string;
+  accountOwnerId: string;
+}
+
+interface BuildContactQueryParams {
+  recordToSearch: string;
+  emailArray: string[];
+  forRoundRobinSkip?: boolean;
+}
+
+interface ContactWithOwner {
+  id: string;
+  email: string;
+  ownerId: string;
+  ownerEmail: string;
+  recordType: string;
+}
+
+interface BasicContactInfo {
+  id: string;
+  email: string;
+  recordType: string;
+}
+
+type SalesforceQueryResult = jsforce.QueryResult<ContactRecord>;
 
 export default class SalesforceCRMService implements CRM {
   private integrationName = "";
@@ -322,23 +346,13 @@ export default class SalesforceCRMService implements CRM {
     emails,
     includeOwner,
     forRoundRobinSkip,
-  }: {
-    emails: string | string[];
-    includeOwner?: boolean;
-    forRoundRobinSkip?: boolean;
-  }) {
+  }: GetContactsParams): Promise<Array<ContactWithOwner | BasicContactInfo>> {
     const log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
     try {
       const conn = await this.conn;
       const emailArray = Array.isArray(emails) ? emails : [emails];
-
       const appOptions = this.getAppOptions();
-      const recordToSearch =
-        (forRoundRobinSkip ? appOptions?.roundRobinSkipCheckRecordOn : appOptions?.createEventOn) ??
-        SalesforceRecordEnum.CONTACT;
-
-      let soql: string;
-      let accountOwnerId = "";
+      const recordToSearch = this.determineRecordToSearch(forRoundRobinSkip, appOptions);
 
       log.info(
         "Getting contacts for emails",
@@ -351,175 +365,215 @@ export default class SalesforceCRMService implements CRM {
         })
       );
 
-      // Handle Account record type
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
-        // For an account let's assume that the first email is the one we should be querying against
-        const attendeeEmail = emailArray[0];
-        log.info("Searching account for email", safeStringify({ attendeeEmail }));
+      const contactQueryResult = await this.buildContactQuery({
+        recordToSearch,
+        emailArray,
+        forRoundRobinSkip,
+      });
 
-        soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+      const soql = contactQueryResult.soql;
+      let accountOwnerId = contactQueryResult.accountOwnerId;
 
-        // If this is for a round robin skip then we need to return the account record
-        if (forRoundRobinSkip) {
-          const results = await conn.query(soql);
-          log.info("Account contact search results", safeStringify({ resultCount: results.records.length }));
-
-          if (results.records?.length) {
-            const contact = results.records[0] as { AccountId?: string };
-            if (contact?.AccountId) {
-              soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
-            }
-          } else {
-            // If we can't find the exact contact, then we need to search for an account where the contacts share the same email domain
-            const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
-            if (accountId) {
-              soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
-            }
-          }
-        }
-        // If creating events on contacts or leads
-      } else {
-        // Handle Contact/Lead record types
-        soql = `SELECT Id, Email, OwnerId FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
-          "','"
-        )}')`;
-      }
-
-      const results = await conn.query(soql);
+      const results = await conn.query<ContactRecord>(soql);
       log.info("Query results", safeStringify({ recordCount: results.records?.length }));
 
-      // If we're checking against the contact, the ownerId should take precedence
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
-        const account = results.records[0] as ContactRecord;
-        if (account?.OwnerId) {
-          accountOwnerId = account.OwnerId;
-        }
-      }
-
-      let records: ContactRecord[] = [];
-
-      // If falling back to contacts, check for the contact before returning the leads or empty array
-      if (
-        appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
-        appOptions.createEventOnLeadCheckForContact
-      ) {
-        // Get any matching contacts
-        const contactSearch = await conn.query(
-          `SELECT Id, Email, OwnerId FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
-            "','"
-          )}')`
-        );
-
-        if (contactSearch?.records?.length > 0) {
-          records = contactSearch.records as ContactRecord[];
-          this.setFallbackToContact(true);
-          log.info(
-            "Found matching contacts, falling back to contact",
-            safeStringify({
-              contactCount: records.length,
-            })
-          );
-        }
-      }
-
-      if (!records.length && results?.records?.length) {
-        records = results.records as ContactRecord[];
-      }
+      const records = await this.getRecordsWithFallback(results, emailArray, appOptions);
 
       if (!records.length) {
         log.info("No records found");
         return [];
       }
 
-      // Handle owner information
+      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
+        accountOwnerId = (results.records[0] as ContactRecord).OwnerId || accountOwnerId;
+      }
+
       if (
         (includeOwner || forRoundRobinSkip) &&
         !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]))
       ) {
-        const ownerIds: Set<string> = new Set();
-
-        if (accountOwnerId) {
-          ownerIds.add(accountOwnerId);
-        } else {
-          records.forEach((record) => {
-            if (record?.OwnerId) {
-              ownerIds.add(record.OwnerId);
-            }
-          });
-        }
-
-        if (ownerIds.size === 0) {
-          log.warn("No owner IDs found for records");
-          return [];
-        }
-
-        const ownersQuery = await Promise.all(
-          Array.from(ownerIds).map(async (ownerId) => {
-            const result = await this.getSalesforceUserFromUserId(ownerId);
-            return result;
-          })
-        );
-
-        // Filter out any undefined results and ensure records exist
-        const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
-          const firstRecord = query?.records?.[0];
-          if (!firstRecord) return false;
-
-          return (
-            typeof firstRecord === "object" && "Email" in firstRecord && typeof firstRecord.Email === "string"
-          );
-        });
-
-        if (validOwnersQuery.length === 0) {
-          log.warn("No valid owner records found");
-          return [];
-        }
-
-        return records
-          .map((record) => {
-            if (!record?.Id || !record?.OwnerId) {
-              log.warn("Invalid record data", { record });
-              return null;
-            }
-
-            const ownerEmail = accountOwnerId
-              ? validOwnersQuery[0]?.records[0]?.Email
-              : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
-
-            if (!ownerEmail) {
-              log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
-              return null;
-            }
-
-            return {
-              id: record.Id,
-              email: record.Email,
-              ownerId: record.OwnerId,
-              ownerEmail,
-              recordType: accountOwnerId ? SalesforceRecordEnum.ACCOUNT : record.attributes?.type,
-            };
-          })
-          .filter((record): record is NonNullable<typeof record> => record !== null);
+        return await this.getRecordsWithOwnerInfo(records, accountOwnerId, log);
       }
 
-      return records
-        .map((record) => {
-          if (!record?.Id || !record?.Email || !record?.attributes?.type) {
-            log.warn("Invalid record data for basic mapping", { record });
-            return null;
-          }
-
-          return {
-            id: record.Id,
-            email: record.Email,
-            recordType: record.attributes.type,
-          };
-        })
-        .filter((record): record is NonNullable<typeof record> => record !== null);
+      return this.mapBasicRecordInfo(records, log);
     } catch (error) {
       log.error("Error in getContacts", safeStringify({ error }));
       return [];
     }
+  }
+
+  private determineRecordToSearch(forRoundRobinSkip: boolean | undefined, appOptions: any): string {
+    return (
+      (forRoundRobinSkip ? appOptions?.roundRobinSkipCheckRecordOn : appOptions?.createEventOn) ??
+      SalesforceRecordEnum.CONTACT
+    );
+  }
+
+  private async buildContactQuery({
+    recordToSearch,
+    emailArray,
+    forRoundRobinSkip,
+  }: BuildContactQueryParams): Promise<ContactQueryResult> {
+    const conn = await this.conn;
+    let soql: string;
+    const accountOwnerId = "";
+
+    if (recordToSearch === SalesforceRecordEnum.ACCOUNT) {
+      const attendeeEmail = emailArray[0];
+      soql = `SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = '${attendeeEmail}' AND AccountId != null`;
+
+      if (forRoundRobinSkip) {
+        const results = await conn.query<ContactRecord>(soql);
+        if (results.records?.length) {
+          const contact = results.records[0] as { AccountId?: string };
+          if (contact?.AccountId) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${contact.AccountId}'`;
+          }
+        } else {
+          const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendeeEmail);
+          if (accountId) {
+            soql = `SELECT Id, OwnerId FROM Account WHERE Id = '${accountId}'`;
+          }
+        }
+      }
+    } else {
+      soql = `SELECT Id, Email, OwnerId FROM ${recordToSearch} WHERE Email IN ('${emailArray.join("','")}')`;
+    }
+
+    return { soql, accountOwnerId };
+  }
+
+  private async getRecordsWithFallback(
+    results: SalesforceQueryResult,
+    emailArray: string[],
+    appOptions: any
+  ): Promise<ContactRecord[]> {
+    let records: ContactRecord[] = [];
+
+    if (
+      appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
+      appOptions.createEventOnLeadCheckForContact
+    ) {
+      const conn = await this.conn;
+      const contactSearch = await conn.query<ContactRecord>(
+        `SELECT Id, Email, OwnerId FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
+          "','"
+        )}')`
+      );
+
+      if (contactSearch?.records?.length > 0) {
+        records = contactSearch.records;
+        this.setFallbackToContact(true);
+        this.log.info(
+          "Found matching contacts, falling back to contact",
+          safeStringify({
+            contactCount: records.length,
+          })
+        );
+      }
+    }
+
+    if (!records.length && results?.records?.length) {
+      records = results.records;
+    }
+
+    return records;
+  }
+
+  private async getRecordsWithOwnerInfo(
+    records: ContactRecord[],
+    accountOwnerId: string,
+    log: typeof logger
+  ): Promise<ContactWithOwner[]> {
+    const ownerIds: Set<string> = new Set();
+
+    if (accountOwnerId) {
+      ownerIds.add(accountOwnerId);
+    } else {
+      records.forEach((record) => {
+        if (record?.OwnerId) {
+          ownerIds.add(record.OwnerId);
+        }
+      });
+    }
+
+    if (ownerIds.size === 0) {
+      log.warn("No owner IDs found for records");
+      return [];
+    }
+
+    const ownersQuery = await Promise.all(
+      Array.from(ownerIds).map((ownerId) => this.getSalesforceUserFromUserId(ownerId))
+    );
+
+    const validOwnersQuery = this.filterValidOwnerQueries(ownersQuery);
+
+    if (validOwnersQuery.length === 0) {
+      log.warn("No valid owner records found");
+      return [];
+    }
+
+    return this.mapRecordsWithOwnerInfo(records, validOwnersQuery, accountOwnerId);
+  }
+
+  private filterValidOwnerQueries(ownersQuery: any[]): SalesforceQueryResult[] {
+    return ownersQuery.filter((query): query is SalesforceQueryResult => {
+      const firstRecord = query?.records?.[0];
+      if (!firstRecord) return false;
+
+      return (
+        typeof firstRecord === "object" && "Email" in firstRecord && typeof firstRecord.Email === "string"
+      );
+    });
+  }
+
+  private mapRecordsWithOwnerInfo(
+    records: ContactRecord[],
+    validOwnersQuery: SalesforceQueryResult[],
+    accountOwnerId: string
+  ): ContactWithOwner[] {
+    return records
+      .map((record) => {
+        if (!record?.Id || !record?.OwnerId) {
+          this.log.warn("Invalid record data", { record });
+          return null;
+        }
+
+        const ownerEmail = accountOwnerId
+          ? validOwnersQuery[0]?.records[0]?.Email
+          : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
+
+        if (!ownerEmail) {
+          this.log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
+          return null;
+        }
+
+        return {
+          id: record.Id,
+          email: record.Email,
+          ownerId: record.OwnerId,
+          ownerEmail,
+          recordType: accountOwnerId ? SalesforceRecordEnum.ACCOUNT : record.attributes?.type,
+        };
+      })
+      .filter((record): record is ContactWithOwner => record !== null);
+  }
+
+  private mapBasicRecordInfo(records: ContactRecord[], log: typeof logger): BasicContactInfo[] {
+    return records
+      .map((record) => {
+        if (!record?.Id || !record?.Email || !record?.attributes?.type) {
+          log.warn("Invalid record data for basic mapping", { record });
+          return null;
+        }
+
+        return {
+          id: record.Id,
+          email: record.Email,
+          recordType: record.attributes.type,
+        };
+      })
+      .filter((record): record is BasicContactInfo => record !== null);
   }
 
   async createContacts(
