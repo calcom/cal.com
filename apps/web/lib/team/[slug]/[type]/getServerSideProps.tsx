@@ -91,6 +91,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                 select: {
                   name: true,
                   username: true,
+                  email: true,
                 },
               },
             },
