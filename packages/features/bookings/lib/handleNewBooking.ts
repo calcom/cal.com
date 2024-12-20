@@ -33,6 +33,7 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -359,7 +360,7 @@ async function handler(
     platformBookingLocation,
   } = req;
 
-  const eventType = await getEventType({
+  const eventType = await monitorCallbackAsync(getEventType, {
     eventTypeId: req.body.eventTypeId,
     eventTypeSlug: req.body.eventTypeSlug,
   });
@@ -395,6 +396,7 @@ async function handler(
     reroutingFormResponses,
     routingFormResponseId,
     _isDryRun: isDryRun = false,
+    _shouldServeCache,
     ...reqBody
   } = bookingData;
 
@@ -416,6 +418,7 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
@@ -482,7 +485,7 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  const allHostUsers = await loadAndValidateUsers({
+  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -502,7 +505,7 @@ async function handler(
     location
   );
 
-  await checkBookingAndDurationLimits({
+  await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
@@ -571,7 +574,8 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
-              loggerWithEventDetails
+              loggerWithEventDetails,
+              shouldServeCache
             );
           }
         } else {
@@ -583,7 +587,8 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails
+            loggerWithEventDetails,
+            shouldServeCache
           );
         }
       }
@@ -598,7 +603,8 @@ async function handler(
           timeZone: reqBody.timeZone,
           originalRescheduledBooking,
         },
-        loggerWithEventDetails
+        loggerWithEventDetails,
+        shouldServeCache
       );
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
@@ -698,7 +704,8 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails
+                loggerWithEventDetails,
+                shouldServeCache
               );
             }
             // if no error, then lucky user is available for the next slots
@@ -754,12 +761,13 @@ async function handler(
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
     userId,
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
     paymentAppData,
+    bookerEmail,
   });
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
