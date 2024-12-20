@@ -683,7 +683,7 @@ model Schedule {
   eventType            EventType[]
   instantMeetingEvents EventType[]    @relation("InstantMeetingSchedule")
   name                 String
-  timeZone             String?
+  timeZone             String?        @default("Europe/London")
   availability         Availability[]
   Host                 Host[]
 
