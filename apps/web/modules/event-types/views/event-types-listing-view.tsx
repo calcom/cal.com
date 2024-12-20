@@ -3,7 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
@@ -257,7 +257,7 @@ export const InfiniteEventTypeList = ({
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { copyToClipboard } = useCopy();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -374,7 +374,7 @@ export const InfiniteEventTypeList = ({
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+    const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -898,7 +898,7 @@ const InfiniteScrollMain = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
@@ -946,12 +946,9 @@ const InfiniteScrollMain = ({
   );
 };
 
-const EventTypesPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+const EventTypesPage: React.FC = () => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1009,17 +1006,14 @@ const EventTypesPage: React.FC & {
   return (
     <Shell
       withoutMain={false}
-      title="Event Types"
-      description="Create events to share for people to book on your calendar."
+      title={t("event_types_page_title")}
+      description={t("event_types_page_subtitle")}
       withoutSeo
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
+      <HeadSeo title={t("event_types_page_title")} description={t("event_types_page_subtitle")} />
 
       <InfiniteScrollMain
         profiles={getUserEventGroupsData?.profiles}
