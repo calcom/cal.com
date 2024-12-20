@@ -412,13 +412,16 @@ export default class SalesforceCRMService implements CRM {
         return [];
       }
 
+      const includeOwnerData =
+        (includeOwner || forRoundRobinSkip) &&
+        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
+
       return records.map((record) => {
         return {
           id: record?.Id || "",
           email: record?.Email || "",
           recordType: record?.attributes?.type,
-          ...((includeOwner || forRoundRobinSkip) &&
-        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]))) && {
+          ...(includeOwnerData && {
             ownerId: record?.OwnerId,
             // Handle if Account is nested
             ownerEmail:
@@ -426,7 +429,9 @@ export default class SalesforceCRMService implements CRM {
               record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
                 ? record?.Account?.Owner?.Email
                 : record?.Owner?.Email,
-          }}}),
+          }),
+        };
+      });
     } catch (error) {
       log.error("Error in getContacts", safeStringify({ error }));
       return [];
