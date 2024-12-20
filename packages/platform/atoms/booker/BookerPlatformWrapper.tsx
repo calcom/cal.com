@@ -322,7 +322,12 @@ export const BookerPlatformWrapper = (
     onError: props.onCreateInstantBookingError,
   });
 
-  const slots = useSlots(event);
+  const slots = useSlots(event, {
+    onReserveSlotSuccess: props.onReserveSlotSuccess,
+    onReserveSlotError: props.onReserveSlotError,
+    onDeleteSlotSuccess: props.onDeleteSlotSuccess,
+    onDeleteSlotError: props.onDeleteSlotError,
+  });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: hasSession,
@@ -489,6 +494,7 @@ export const BookerPlatformWrapper = (
         bookerLayout={bookerLayout}
         verifyCode={undefined}
         isPlatform
+        hasValidLicense={true}
       />
     </AtomsWrapper>
   );

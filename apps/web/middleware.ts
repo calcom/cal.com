@@ -169,8 +169,6 @@ export const config = {
     "/event-types",
     "/future/event-types/",
     "/workflows/:path*",
-    "/getting-started/:step/",
-    "/future/getting-started/:step/",
     "/apps/:path*",
     "/bookings/:status/",
     "/future/bookings/:status/",
@@ -178,7 +176,9 @@ export const config = {
     "/teams",
     "/future/teams/",
     "/settings/:path*",
+    "/reschedule/:path*",
     "/availability/:path*",
+    "/booking/:path*",
   ],
 };
 

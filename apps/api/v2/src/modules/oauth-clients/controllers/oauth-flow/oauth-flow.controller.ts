@@ -1,5 +1,6 @@
 import { getEnv } from "@/env";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
@@ -62,7 +63,7 @@ export class OAuthFlowController {
       throw new BadRequestException(`OAuth client with ID '${clientId}' not found`);
     }
 
-    if (!oauthClient?.redirectUris.includes(body.redirectUri)) {
+    if (!isOriginAllowed(body.redirectUri, oauthClient.redirectUris)) {
       throw new BadRequestException("Invalid 'redirect_uri' value.");
     }
 
