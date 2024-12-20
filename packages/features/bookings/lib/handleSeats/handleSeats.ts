@@ -32,6 +32,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     evt,
     workflows,
     rescheduledBy,
+    rescheduleReason,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -110,6 +111,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
+          rescheduleReason,
           ...{
             metadata,
             eventType: {
