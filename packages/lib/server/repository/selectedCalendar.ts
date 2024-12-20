@@ -323,4 +323,10 @@ export class SelectedCalendarRepository {
       )
     );
   }
+  static async updateById(id: string, data: Prisma.SelectedCalendarUpdateInput) {
+    return await prisma.selectedCalendar.update({
+      where: { id },
+      data,
+    });
+  }
 }
