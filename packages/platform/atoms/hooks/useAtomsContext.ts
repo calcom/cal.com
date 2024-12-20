@@ -31,6 +31,7 @@ export interface IAtomsContext {
   };
   organizationId: number;
   userId?: number;
+  isEmbed?: boolean;
 }
 
 export const AtomsContext = createContext({
@@ -42,6 +43,7 @@ export const AtomsContext = createContext({
   getClient: () => {
     return;
   },
+  isEmbed: false,
 } as IAtomsContext);
 
 export const useAtomsContext = () => useContext(AtomsContext);
