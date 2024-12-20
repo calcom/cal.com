@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "将 {{orgSlug}}.cal.com 重定向到 {{destination}}",
   "single_select": "单选",
   "multi_select": "多选",
+  "calendar_conflict_settings": "日历冲突设置",
+  "select_calendars_conflict_check": "选择需要检查冲突的日历",
   "group_meeting": "群组会议",
   "salesforce_ignore_guests": "不为预约中添加的访客创建新记录",
   "google_meet": "Google Meet",

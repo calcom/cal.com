@@ -70,7 +70,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
       id: number;
       email: string;
       credentials: CredentialPayload[];
-      selectedCalendars: SelectedCalendar[];
+      userLevelSelectedCalendars: SelectedCalendar[];
     };
     createdAt: Date;
     weight?: number | null;
@@ -382,7 +382,7 @@ async function getCurrentMonthCalendarBusyTimes(
     id: number;
     email: string;
     credentials: CredentialPayload[];
-    selectedCalendars: SelectedCalendar[];
+    userLevelSelectedCalendars: SelectedCalendar[];
   }[]
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
   return Promise.all(
@@ -391,7 +391,7 @@ async function getCurrentMonthCalendarBusyTimes(
         user.credentials,
         startOfMonth().toISOString(),
         new Date().toISOString(),
-        user.selectedCalendars,
+        user.userLevelSelectedCalendars,
         true
       ).then((busyTimes) => ({
         userId: user.id,
