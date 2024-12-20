@@ -5,16 +5,19 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
-  transformBookingFieldsApiRequestToInternal,
+  transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
   transformRecurrenceApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
   systemAfterFieldRescheduleReason,
   EventTypeMetaDataSchema,
-  systemBeforeFieldLocation,
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformEventColorsApiToInternal,
@@ -217,27 +220,46 @@ export class InputEventTypesService_2024_06_14 {
     inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
     hasMultipleLocations: boolean
   ) {
-    const customFields: (SystemField | CustomField)[] = inputBookingFields
-      ? transformBookingFieldsApiRequestToInternal(inputBookingFields)
+    const internalFields: (SystemField | CustomField)[] = inputBookingFields
+      ? transformBookingFieldsApiToInternal(inputBookingFields)
       : [];
-    const customFieldsWithoutNameEmail = customFields.filter(
-      (field) => field.type !== "name" && field.type !== "email"
+    const systemCustomFields = internalFields.filter((field) => !this.isUserCustomField(field));
+    const userCustomFields = internalFields.filter((field) => this.isUserCustomField(field));
+
+    const systemCustomNameField = systemCustomFields?.find((field) => field.type === "name");
+    const systemCustomEmailField = systemCustomFields?.find((field) => field.type === "email");
+    const systemCustomTitleField = systemCustomFields?.find((field) => field.name === "title");
+    const systemCustomNotesField = systemCustomFields?.find((field) => field.name === "notes");
+    const systemCustomGuestsField = systemCustomFields?.find((field) => field.name === "guests");
+    const systemCustomRescheduleReasonField = systemCustomFields?.find(
+      (field) => field.name === "rescheduleReason"
     );
-    const customNameField = customFields?.find((field) => field.type === "name");
-    const customEmailField = customFields?.find((field) => field.type === "email");
 
     const defaultFieldsBefore: (SystemField | CustomField)[] = [
-      customNameField || systemBeforeFieldName,
-      customEmailField || systemBeforeFieldEmail,
+      systemCustomNameField || systemBeforeFieldName,
+      systemCustomEmailField || systemBeforeFieldEmail,
+      systemBeforeFieldLocation,
     ];
-    // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
-    if (hasMultipleLocations) {
-      defaultFieldsBefore.push(systemBeforeFieldLocation);
-    }
 
-    const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
+    const defaultFieldsAfter = [
+      systemCustomTitleField || systemAfterFieldTitle,
+      systemCustomNotesField || systemAfterFieldNotes,
+      systemCustomGuestsField || systemAfterFieldGuests,
+      systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
+    ];
 
-    return [...defaultFieldsBefore, ...customFieldsWithoutNameEmail, ...defaultFieldsAfter];
+    return [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+  }
+
+  isUserCustomField(field: SystemField | CustomField): field is CustomField {
+    return (
+      field.type !== "name" &&
+      field.type !== "email" &&
+      field.name !== "title" &&
+      field.name !== "notes" &&
+      field.name !== "guests" &&
+      field.name !== "rescheduleReason"
+    );
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
