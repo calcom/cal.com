@@ -78,6 +78,7 @@ export default function Bookings() {
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,

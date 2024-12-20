@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { PeopleFilter } from "@calcom/features/bookings/components/PeopleFilter";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { StartTimeFilters } from "@calcom/features/filters/components/StartTimeFilters";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip, Button } from "@calcom/ui";
@@ -24,6 +25,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <PeopleFilter />
           <EventTypeFilter />
           <TeamsFilter />
+          <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
             <Button
               color="secondary"
