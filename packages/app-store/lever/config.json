@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Lever",
+  "slug": "lever",
+  "type": "lever_other",
+  "logo": "icon.svg",
+  "url": "https://github.com/RajatYadav01",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Rajat Yadav",
+  "email": "help@cal.com",
+  "description": "Hire smarter, faster, and more efficiently with Lever's applicant tracking system (ATS) with candidate relationship management capabilities.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "basic",
+  "isOAuth": true
+}
