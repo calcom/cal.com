@@ -1,6 +1,5 @@
 "use client";
 
-import MarkdownIt from "markdown-it";
 import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
@@ -13,8 +12,6 @@ import type { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import App from "@components/apps/App";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
 
