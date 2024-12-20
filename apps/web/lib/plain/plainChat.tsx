@@ -1,3 +1,5 @@
+import { useSession } from "next-auth/react";
+import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
@@ -7,6 +9,8 @@ interface PlainChatConfig {
   customerDetails: {
     email: string;
     emailHash: string;
+    fullName: string;
+    shortName: string;
   };
   links: Array<{
     icon: string;
@@ -47,36 +51,53 @@ interface PlainChatConfig {
   };
 }
 
+export const usePlain = () => {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (pathname === "/event-types" && searchParams?.has("plain")) {
+      window.Plain?.open();
+    }
+  }, [pathname, searchParams]);
+
+  const openPlain = () => {
+    if (window.Plain) {
+      window.Plain.open();
+    }
+  };
+
+  return { openPlain };
+};
+
 const PlainChat = () => {
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
+  const { data: session } = useSession();
+  const { openPlain } = usePlain();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const initConfig = async () => {
-      const email = "nizar@cal.com";
+      if (!session?.user?.email) return;
 
       try {
-        // Get hash from server endpoint
         const response = await fetch("/api/plain-hash", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
         });
 
         if (!response.ok) {
           throw new Error("Failed to generate hash");
         }
 
-        const { hash } = await response.json();
+        const { hash, email, fullName, shortName } = await response.json();
 
         const plainChatConfig = {
-          appId: "liveChatApp_01JFGTZC4M5QH5GSXCTPJCA88F",
+          appId: "liveChatApp_01JFJJK1RF3XA2ZDAEHERJ0VZZ",
           customerDetails: {
-            fullName: "John Doe",
-            shortName: "John",
-            chatAvatarUrl: "https://picsum.photos/32/32",
-            email: email,
+            email,
+            fullName: "John",
+            shortName,
             emailHash: hash,
           },
           links: [
@@ -162,13 +183,26 @@ const PlainChat = () => {
     };
 
     initConfig();
-  }, []);
+  }, [session]);
 
+  // Only initialize Plain once when the script loads
   const plainChatScript = `
     window.plainScriptLoaded = function() {
-      ${config ? `Plain.init(${JSON.stringify(config)})` : ""}
+      if (window.Plain && ${config ? true : false}) {
+        Plain.init(${config ? JSON.stringify(config) : null});
+      }
     }
   `;
+
+  useEffect(() => {
+    // Check if we're on /event-types with ?plain parameter after config is loaded
+    if (pathname === "/event-types" && searchParams?.has("openPlain") && config) {
+      // Small delay to ensure Plain is fully initialized
+      setTimeout(() => {
+        openPlain();
+      }, 100);
+    }
+  }, [pathname, searchParams, config]);
 
   if (!config) return null;
 

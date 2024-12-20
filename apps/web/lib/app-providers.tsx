@@ -296,6 +296,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider session={pageProps.session ?? undefined}>
+        <PlainChat />
         <CustomI18nextProvider {...propsWithoutNonce}>
           <TooltipProvider>
             <CalcomThemeProvider
@@ -325,7 +326,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   return (
     <>
-      <PlainChat />
       <DynamicPostHogProvider>
         <PostHogPageView />
         {RemainingProviders}
