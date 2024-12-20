@@ -1090,7 +1090,8 @@ describe("Event types Endpoints", () => {
         label: "",
         placeholder: "",
       },
-      { isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
+      // not returning hidden fields hotfix
+      //{ isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
       {
         isDefault: true,
         required: false,
@@ -1115,7 +1116,8 @@ describe("Event types Endpoints", () => {
         disableOnPrefill: false,
         hidden: false,
       },
-      { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
+      // not returning hidden fields hotfix
+      //{ isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
     ];
 
     beforeAll(async () => {
@@ -1533,14 +1535,15 @@ describe("Event types Endpoints", () => {
               disableOnPrefill: false,
               hidden: false,
             },
-            {
+            // not returning hidden fields hotfix
+            /* {
               isDefault: true,
               type: "text",
               slug: "title",
               required: true,
               disableOnPrefill: false,
               hidden: true,
-            },
+            }, */
             {
               isDefault: true,
               type: "textarea",
