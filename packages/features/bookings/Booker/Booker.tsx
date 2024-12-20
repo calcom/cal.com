@@ -5,6 +5,7 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
@@ -63,9 +64,10 @@ const BookerComponent = ({
   customClassNames,
   areInstantMeetingParametersSet = false,
   userLocale,
+  hasValidLicense,
 }: BookerProps & WrappedBookerProps) => {
   const { t } = useLocale();
-
+  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -457,7 +459,7 @@ const BookerComponent = ({
               />
             </div>
           )}
-        {!hideBranding && !isPlatform && (
+        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && (
           <m.span
             key="logo"
             className={classNames(
@@ -465,7 +467,7 @@ const BookerComponent = ({
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>
-            <PoweredBy logoOnly />
+            <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
           </m.span>
         )}
       </div>
