@@ -9,8 +9,8 @@ import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 const responseSchema = z.object({
   hash: z.string(),
   email: z.string().email(),
-  fullName: z.string().optional(),
   shortName: z.string(),
+  fullName: z.string().optional(),
 });
 
 async function handler(request: Request) {
@@ -33,7 +33,6 @@ async function handler(request: Request) {
     return new Response("Unauthorized - No session email found", { status: 401 });
   }
 
-  // Environment variable check
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
   if (!secret) {
     return new Response("Missing Plain Chat secret", { status: 500 });
@@ -50,8 +49,8 @@ async function handler(request: Request) {
   const response = responseSchema.parse({
     hash,
     email: session.user.email,
-    fullName: session.user.name,
     shortName,
+    fullName: session.user.name,
   });
 
   console.log("Sending response:", response);

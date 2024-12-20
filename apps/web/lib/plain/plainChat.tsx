@@ -3,7 +3,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 
-// Add interface for Plain Chat configuration
 interface PlainChatConfig {
   appId: string;
   customerDetails: {
@@ -96,9 +95,9 @@ const PlainChat = () => {
           appId: "liveChatApp_01JFJJK1RF3XA2ZDAEHERJ0VZZ",
           customerDetails: {
             email,
-            fullName: "John",
             shortName,
             emailHash: hash,
+            fullName,
           },
           links: [
             {
@@ -195,9 +194,7 @@ const PlainChat = () => {
   `;
 
   useEffect(() => {
-    // Check if we're on /event-types with ?plain parameter after config is loaded
     if (pathname === "/event-types" && searchParams?.has("openPlain") && config) {
-      // Small delay to ensure Plain is fully initialized
       setTimeout(() => {
         openPlain();
       }, 100);

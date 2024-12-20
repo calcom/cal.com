@@ -270,6 +270,7 @@ const AppProviders = (props: PageWrapperProps) => {
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider>
+        <PlainChat />
         <CustomI18nextProvider i18n={props.i18n}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
@@ -304,7 +305,6 @@ const AppProviders = (props: PageWrapperProps) => {
 
   return (
     <>
-      <PlainChat />
       <DynamicHelpscoutProvider>
         <DynamicIntercomProvider>
           <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
