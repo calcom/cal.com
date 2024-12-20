@@ -9,7 +9,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
+import { Button, EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
   const { t } = useLocale();
@@ -27,13 +27,14 @@ export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser>
           Icon="user-check"
           headline={t("admin_user_created")}
           description={t("admin_user_created_description")}
+          buttonRaw={<Button onClick={props.onSuccess}>{t("setup_license")}</Button>}
         />
       </form>
     );
   return <AdminUser {...props} />;
 };
 
-export const AdminUser = (props: { onSubmit: () => void; onError: () => void; onSuccess: () => void }) => {
+export const AdminUser = (props: { onSuccess: () => void }) => {
   const { t } = useLocale();
 
   const formSchema = z.object({
@@ -64,12 +65,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
     resolver: zodResolver(formSchema),
   });
 
-  const onError = () => {
-    props.onError();
-  };
-
   const onSubmit = formMethods.handleSubmit(async (data) => {
-    props.onSubmit();
     const response = await fetch("/api/auth/setup", {
       method: "POST",
       body: JSON.stringify({
@@ -90,10 +86,8 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
         password: data.password,
       });
       props.onSuccess();
-    } else {
-      props.onError();
     }
-  }, onError);
+  });
 
   const longWebsiteUrl = WEBSITE_URL.length > 30;
 
@@ -115,13 +109,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
                   )}
                 </Label>
                 <TextField
-                  addOnLeading={
-                    !longWebsiteUrl && (
-                      <span className="text-subtle inline-flex items-center rounded-none px-3 text-sm">
-                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      </span>
-                    )
-                  }
+                  addOnLeading={!longWebsiteUrl && <span>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</span>}
                   id="username"
                   labelSrOnly={true}
                   value={value || ""}
@@ -185,6 +173,11 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
               />
             )}
           />
+        </div>
+        <div className="flex justify-end">
+          <Button type="submit" loading={formMethods.formState.isSubmitting}>
+            {t("create")}
+          </Button>
         </div>
       </form>
     </FormProvider>
