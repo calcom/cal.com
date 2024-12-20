@@ -1,4 +1,4 @@
-import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsInt, IsOptional } from "class-validator";
 
