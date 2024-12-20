@@ -1,6 +1,5 @@
 "use client";
 
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -87,35 +86,19 @@ export type EventTypeWebWrapperProps = {
   id: number;
 };
 
-type EventTypeAppComponentProp = {
-  id: number;
-  pathname: string;
-  appRouter: AppRouterInstance;
-};
-
 export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
 
   if (!eventTypeQueryData) return null;
 
-  return <EventTypeAppWrapper {...eventTypeQueryData} id={id} />;
+  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
-  const pathname = usePathname();
-  const router = useAppRouter();
-  return <EventTypeWeb {...rest} id={id} pathname={pathname ?? ""} appRouter={router} />;
-};
-
-const EventTypeWeb = ({
-  id,
-  appRouter,
-  pathname,
-  ...rest
-}: EventTypeSetupProps & EventTypeAppComponentProp) => {
+const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-
+  const pathname = usePathname();
+  const appRouter = useAppRouter();
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
