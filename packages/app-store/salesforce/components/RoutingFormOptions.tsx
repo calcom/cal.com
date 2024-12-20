@@ -123,7 +123,7 @@ const RoutingFormOptions = ({
           <Select
             options={salesforceRoutingOptions}
             value={selectedRoutingOption}
-            onChange={(e) => {
+            onChange={(e: (typeof salesforceRoutingOptions)[0]) => {
               if (e) {
                 onOptionChange(e.value);
                 setSelectedRoutingOption(e);

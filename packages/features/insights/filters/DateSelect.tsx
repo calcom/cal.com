@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ClassNamesState } from "react-select";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -96,9 +97,9 @@ export const DateSelect = ({ className }: { className?: string }) => {
         value={selectedPreset}
         className="w-40 capitalize text-black"
         defaultValue={selectedPreset}
-        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        styles={{ menuPortal: (base: ClassNamesState) => ({ ...base, zIndex: 9999 }) }}
         menuPortalTarget={document.body}
-        onChange={(e) => {
+        onChange={(e: (typeof presetOptions)[0]) => {
           if (e) {
             updateDateRange(e.value);
           }

@@ -226,7 +226,7 @@ export const UserForm = ({
             <Select
               value={value}
               options={timeFormatOptions}
-              onChange={(event) => {
+              onChange={(event: (typeof timeFormatOptions)[0]) => {
                 if (event) form.setValue("timeFormat", { ...event });
               }}
             />
@@ -244,7 +244,7 @@ export const UserForm = ({
             <Select
               value={value}
               options={weekStartOptions}
-              onChange={(event) => {
+              onChange={(event: (typeof weekStartOptions)[0]) => {
                 if (event) form.setValue("weekStart", { ...event });
               }}
             />

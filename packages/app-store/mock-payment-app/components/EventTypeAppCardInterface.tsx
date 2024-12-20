@@ -8,6 +8,7 @@ import {
   currencySymbols,
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
+import type { CurrencyOption } from "@calcom/app-store/paypal/lib/currencyOptions";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,7 +34,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const paymentOption = getAppData("paymentOption");
   const enable = getAppData("enabled");
 
-  const [selectedCurrency, setSelectedCurrency] = useState(currencyOptions.find((c) => c.value === currency));
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyOption | undefined>(
+    currencyOptions.find((c) => c.value === currency)
+  );
   const [currencySymbol, setCurrencySymbol] = useState(
     isAcceptedCurrencyCode(currency) ? currencySymbols[currency] : ""
   );
@@ -95,7 +98,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   value={selectedCurrency}
                   className="text-black"
                   defaultValue={selectedCurrency}
-                  onChange={(e) => {
+                  onChange={(e?: CurrencyOption) => {
                     if (e) {
                       setSelectedCurrency(e);
                       setCurrencySymbol(currencySymbols[e.value]);
@@ -118,7 +121,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                   options={paymentOptions.map((option) => {
                     return { ...option, label: t(option.label) || option.label };
                   })}
-                  onChange={(input) => {
+                  onChange={(input?: Option) => {
                     if (input) setAppData("paymentOption", input.value);
                   }}
                   className="mb-1 h-[38px] w-full"
