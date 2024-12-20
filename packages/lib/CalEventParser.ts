@@ -376,9 +376,16 @@ export const getPublicVideoCallUrl = (calEvent: Pick<CalendarEvent, "uid">): str
   return `${WEBAPP_URL}/video/${getUid(calEvent)}`;
 };
 
+type MetaData = {
+  metadata?: {
+    videoCallUrl?: string;
+  };
+};
+
 export const getVideoCallUrlFromCalEvent = (
   calEvent: Parameters<typeof getPublicVideoCallUrl>[0] &
-    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location">
+    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location"> &
+    MetaData
 ): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
@@ -392,6 +399,10 @@ export const getVideoCallUrlFromCalEvent = (
   if (calEvent.location?.startsWith("http")) {
     return calEvent.location;
   }
+  if (calEvent.metadata?.videoCallUrl) {
+    return calEvent.metadata.videoCallUrl;
+  }
+
   return "";
 };
 
