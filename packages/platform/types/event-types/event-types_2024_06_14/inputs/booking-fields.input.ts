@@ -27,8 +27,7 @@ export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({
     example: "name",
-    description: "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
-    deprecated: true,
+    description: "only allowed value for type is `name`",
   })
   type!: "name";
 
@@ -58,8 +57,7 @@ export class EmailDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({
     example: "email",
-    description: "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
-    deprecated: true,
+    description: "only allowed value for type is `email`",
   })
   type!: "email";
 
