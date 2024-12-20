@@ -23,12 +23,16 @@ export const useCreateInstantBooking = (
 ) => {
   const createInstantBooking = useMutation<ApiResponse<BookingResponse>, Error, BookingCreateBody>({
     mutationFn: (data) => {
-      return http.post<ApiResponse<BookingResponse>>("/bookings/instant", data).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
-          return res.data;
-        }
-        throw new Error(res.data.error.message);
-      });
+      return http
+        .post<ApiResponse<BookingResponse>>("/bookings/instant", data, {
+          headers: {},
+        })
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return res.data;
+          }
+          throw new Error(res.data.error.message);
+        });
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
