@@ -1,14 +1,14 @@
-import { withAppDirSsg } from "app/WithAppDirSsg";
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import type { InferGetStaticPropsType } from "next";
+import { z } from "zod";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
-import Page from "~/bookings/views/bookings-listing-view";
-import { getStaticProps } from "~/bookings/views/bookings-listing-view.getStaticProps";
+import BookingsList from "~/bookings/views/bookings-listing-view";
 
-type Y = InferGetStaticPropsType<typeof getStaticProps>;
-const getData = withAppDirSsg<Y>(getStaticProps, "future/bookings/[status]");
+const querySchema = z.object({
+  status: z.enum(validStatuses),
+});
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -16,10 +16,12 @@ export const generateMetadata = async () =>
     (t) => t("bookings_description")
   );
 
-export const generateStaticParams = async () => {
-  return validStatuses.map((status) => ({ status }));
+const Page = async ({ params, searchParams }: PageProps) => {
+  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+
+  const status = parsed.success ? parsed.data.status : ("upcoming" as const);
+
+  return <BookingsList status={status} />;
 };
 
-export default WithLayout({ getLayout: null, getData, Page })<"P">;
-
-export const dynamic = "force-static";
+export default WithLayout({ ServerPage: Page })<"P">;
