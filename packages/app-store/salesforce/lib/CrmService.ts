@@ -379,13 +379,14 @@ export default class SalesforceCRMService implements CRM {
       // If falling back to contacts, check for the contact before returning the leads or empty array
       if (
         appOptions.createEventOn === SalesforceRecordEnum.LEAD &&
-        appOptions.createEventOnLeadCheckForContact
+        appOptions.createEventOnLeadCheckForContact &&
+        !forRoundRobinSkip
       ) {
         // Get any matching contacts
         const contactSearch = await conn.query(
-          `SELECT Id, Email, OwnerId FROM ${SalesforceRecordEnum.CONTACT} WHERE Email IN ('${emailArray.join(
-            "','"
-          )}')`
+          `SELECT Id, Email, OwnerId, Owner.Email FROM ${
+            SalesforceRecordEnum.CONTACT
+          } WHERE Email IN ('${emailArray.join("','")}')`
         );
 
         if (contactSearch?.records?.length > 0) {
