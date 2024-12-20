@@ -337,7 +337,6 @@ export default class SalesforceCRMService implements CRM {
         SalesforceRecordEnum.CONTACT;
 
       let soql: string;
-      let accountOwnerId = "";
 
       log.info(
         "Getting contacts for emails",
@@ -364,15 +363,8 @@ export default class SalesforceCRMService implements CRM {
       }
 
       const results = await conn.query(soql);
-      log.info("Query results", safeStringify({ recordCount: results.records?.length }));
 
-      // If we're checking against the contact, the ownerId should take precedence
-      if (recordToSearch === SalesforceRecordEnum.ACCOUNT && results.records?.length) {
-        const account = results.records[0] as ContactRecord;
-        if (account?.OwnerId) {
-          accountOwnerId = account.OwnerId;
-        }
-      }
+      log.info("Query results", safeStringify({ recordCount: results.records?.length }));
 
       let records: ContactRecord[] = [];
 
@@ -419,88 +411,22 @@ export default class SalesforceCRMService implements CRM {
         return [];
       }
 
-      // Handle owner information
-      if (includeOwner || forRoundRobinSkip) {
-        const ownerIds: Set<string> = new Set();
-
-        if (accountOwnerId) {
-          ownerIds.add(accountOwnerId);
-        } else {
-          records.forEach((record) => {
-            if (record?.OwnerId) {
-              ownerIds.add(record.OwnerId);
-            }
-          });
-        }
-
-        if (ownerIds.size === 0) {
-          log.warn("No owner IDs found for records");
-          return [];
-        }
-
-        const ownersQuery = await Promise.all(
-          Array.from(ownerIds).map(async (ownerId) => {
-            const result = await this.getSalesforceUserFromUserId(ownerId);
-            return result;
-          })
-        );
-
-        // Filter out any undefined results and ensure records exist
-        const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
-          const firstRecord = query?.records?.[0];
-          if (!firstRecord) return false;
-
-          return (
-            typeof firstRecord === "object" && "Email" in firstRecord && typeof firstRecord.Email === "string"
-          );
-        });
-
-        if (validOwnersQuery.length === 0) {
-          log.warn("No valid owner records found");
-          return [];
-        }
-
-        return records
-          .map((record) => {
-            if (!record?.Id || !record?.OwnerId) {
-              log.warn("Invalid record data", { record });
-              return null;
-            }
-
-            const ownerEmail = accountOwnerId
-              ? validOwnersQuery[0]?.records[0]?.Email
-              : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
-
-            if (!ownerEmail) {
-              log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
-              return null;
-            }
-
-            return {
-              id: record.Id,
-              email: record.Email,
-              ownerId: record.OwnerId,
-              ownerEmail,
-              recordType: accountOwnerId ? SalesforceRecordEnum.ACCOUNT : record.attributes?.type,
-            };
-          })
-          .filter((record): record is NonNullable<typeof record> => record !== null);
-      }
-
-      return records
-        .map((record) => {
-          if (!record?.Id || !record?.Email || !record?.attributes?.type) {
-            log.warn("Invalid record data for basic mapping", { record });
-            return null;
-          }
-
-          return {
-            id: record.Id,
-            email: record.Email,
-            recordType: record.attributes.type,
-          };
-        })
-        .filter((record): record is NonNullable<typeof record> => record !== null);
+      return records.map((record) => {
+        return {
+          id: record?.Id,
+          email: record?.Email,
+          recordType: record?.attributes?.type,
+          ...((includeOwner || forRoundRobinSkip) && {
+            ownerId: record?.OwnerId,
+            // Handle if Account is nested
+            ownerEmail:
+              recordToSearch === SalesforceRecordEnum.ACCOUNT &&
+              record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
+                ? record?.Account?.Owner?.Email
+                : record?.Owner?.Email,
+          }),
+        };
+      });
     } catch (error) {
       log.error("Error in getContacts", safeStringify({ error }));
       return [];
