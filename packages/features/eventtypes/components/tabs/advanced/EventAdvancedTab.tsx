@@ -250,7 +250,7 @@ const destinationCalendarComponents = {
                   }
                   className={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.select}
                   containerClassName={customClassNames?.addToCalendarEmailOrganizer?.emailSelect?.container}
-                  onChange={(option) =>
+                  onChange={(option: (typeof verifiedSecondaryEmails)[0]) =>
                     formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
                   }
                   value={verifiedSecondaryEmails.find(

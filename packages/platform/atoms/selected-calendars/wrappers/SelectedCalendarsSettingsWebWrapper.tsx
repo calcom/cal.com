@@ -240,7 +240,7 @@ const SelectedCalendarsSettingsHeading = (props: {
         <div className="mt-2 flex flex-row items-center space-x-2">
           <span className="text-default text-sm">Using</span>
           <Select
-            onChange={(option) => {
+            onChange={(option: (typeof optionsToSwitchScope)[0]) => {
               if (!option) return;
               props.setScope(option.value);
             }}
