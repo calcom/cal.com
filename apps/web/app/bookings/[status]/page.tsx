@@ -1,6 +1,7 @@
 import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { validStatuses } from "~/bookings/lib/validStatuses";
@@ -18,10 +19,11 @@ export const generateMetadata = async () =>
 
 const Page = async ({ params, searchParams }: PageProps) => {
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
+  if (!parsed.success) {
+    redirect("/bookings/upcoming");
+  }
 
-  const status = parsed.success ? parsed.data.status : ("upcoming" as const);
-
-  return <BookingsList status={status} />;
+  return <BookingsList status={parsed.data.status} />;
 };
 
 export default WithLayout({ ServerPage: Page })<"P">;
