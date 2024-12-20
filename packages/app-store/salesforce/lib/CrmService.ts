@@ -841,7 +841,6 @@ export default class SalesforceCRMService implements CRM {
     );
 
     if (accountQuery.records.length > 0) {
-      // return accountQuery.records[0] as { Id?: string; Owner?: { Email?: string } };
       return {
         ...(accountQuery.records[0] as { Id?: string; OwnerId?: string; Owner?: { Email?: string } }),
         Email: undefined,
