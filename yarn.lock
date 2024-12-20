@@ -9699,11 +9699,11 @@ __metadata:
   linkType: hard
 
 "@mux/mux-player-react@npm:*":
-  version: 3.2.3
-  resolution: "@mux/mux-player-react@npm:3.2.3"
+  version: 3.2.4
+  resolution: "@mux/mux-player-react@npm:3.2.4"
   dependencies:
-    "@mux/mux-player": 3.2.3
-    "@mux/playback-core": 0.28.1
+    "@mux/mux-player": 3.2.4
+    "@mux/playback-core": 0.28.2
     prop-types: ^15.7.2
   peerDependencies:
     "@types/react": ^17.0.0 || ^17.0.0-0 || ^18 || ^18.0.0-0 || ^19 || ^19.0.0-0
@@ -9714,41 +9714,41 @@ __metadata:
       optional: true
     "@types/react-dom":
       optional: true
-  checksum: 98889fdfda263490f8fa23ea4740c31557bf6ef567fac33bb2849d78aa52290a6d04d3b7cc05c151b13c06e6ad292fefd74f8c567ed37a250cfb851103d9a9aa
+  checksum: db4cdfaf9a14f970e5d7f8eb189b1e6f87eab60293b1d266cb54bb7b558118da4f313eddc96b95754d2b77d4632f2de3bc7cd6fe670f5d769486e344ee0e65bb
   languageName: node
   linkType: hard
 
-"@mux/mux-player@npm:3.2.3":
-  version: 3.2.3
-  resolution: "@mux/mux-player@npm:3.2.3"
+"@mux/mux-player@npm:3.2.4":
+  version: 3.2.4
+  resolution: "@mux/mux-player@npm:3.2.4"
   dependencies:
-    "@mux/mux-video": 0.24.1
-    "@mux/playback-core": 0.28.1
+    "@mux/mux-video": 0.24.2
+    "@mux/playback-core": 0.28.2
     media-chrome: ~4.3.0
-    player.style: ^0.1.0
-  checksum: a52684fd648c898cf5e4a56fc444fc6c52eabad9867ca64f8264bce292a7fb405a5ce0545a04df3bf2f42d869543b64f81674c7235614372a24978914480dfa4
+    player.style: ^0.1.1
+  checksum: a2b742b9ca3bdf8849c9a5b96a3a347959e74f8aeca99a0e93cc4cc6e2b71534f7a2fce4a7228481717243cc185c0e1a9592d1caad08ee7f6d40d97a6b949d2a
   languageName: node
   linkType: hard
 
-"@mux/mux-video@npm:0.24.1":
-  version: 0.24.1
-  resolution: "@mux/mux-video@npm:0.24.1"
+"@mux/mux-video@npm:0.24.2":
+  version: 0.24.2
+  resolution: "@mux/mux-video@npm:0.24.2"
   dependencies:
-    "@mux/playback-core": 0.28.1
-    castable-video: ~1.1.3
-    custom-media-element: ~1.4.1
+    "@mux/playback-core": 0.28.2
+    castable-video: ~1.1.4
+    custom-media-element: ~1.4.2
     media-tracks: ~0.3.2
-  checksum: cd1f790d6dc073bbc5639e8bbd3257bc6d8d3e2dfe51a735f9ba891247b3edb1ea8ae4fd2a383c1304453d576c33528531756eefc6459c95485a6feec0d3a281
+  checksum: 9663e2d4fc21377e3718f9eb0a3bdc38f0ed9e9b44c940c8d90145d01b32a53dc6063b55726e0b2cec3a00c0b41a4db60568845c483eb48373a76756af86f919
   languageName: node
   linkType: hard
 
-"@mux/playback-core@npm:0.28.1":
-  version: 0.28.1
-  resolution: "@mux/playback-core@npm:0.28.1"
+"@mux/playback-core@npm:0.28.2":
+  version: 0.28.2
+  resolution: "@mux/playback-core@npm:0.28.2"
   dependencies:
-    hls.js: ~1.5.11
-    mux-embed: ^5.3.1
-  checksum: 05eaaca52f78b7bc48600601243d667dc6b9062490116fa11cb5e98905e7870341801578e17cc6ab34a07c5dcf4fda8ecb60a805131e7e6140884fef7e6a5d82
+    hls.js: ~1.5.18
+    mux-embed: ^5.5.0
+  checksum: 48c674c8ae8605563918a7d6d766c9deab33255889ce800eecb4aca01a926eb74326e54332d1607233e1cf1040ed8ab6dec41138243d40c393d91415e9a1d149
   languageName: node
   linkType: hard
 
@@ -23546,12 +23546,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"castable-video@npm:~1.1.3":
-  version: 1.1.3
-  resolution: "castable-video@npm:1.1.3"
+"castable-video@npm:~1.1.4":
+  version: 1.1.4
+  resolution: "castable-video@npm:1.1.4"
   dependencies:
-    custom-media-element: ~1.4.1
-  checksum: 98fc4c5f81e5d430d3a9e494968dbe667174657488042744c0e9189d5e34609b928b801a711b84b1efe9b80612849a382988e7b7cdafaba0e50da8627c6a7d26
+    custom-media-element: ~1.4.2
+  checksum: 9c9d2548b67a3e9f6b2fc43ec54a1cdef23db1aa03672137ff68924a623fe04dfa39dddfe1e26edc876ae089728fbde5b7dac904ed7a79f122cea16d43205ee4
   languageName: node
   linkType: hard
 
@@ -25653,10 +25653,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"custom-media-element@npm:~1.4.1":
-  version: 1.4.1
-  resolution: "custom-media-element@npm:1.4.1"
-  checksum: 840caf12cd4ff5769a7d8636ee5c5c429400a7ffb02499181ccf37a0cb3a874d0fa759693b0b0329a39d35affd6e452716cb51996dcdeb45f834f2dc2d9e8dab
+"custom-media-element@npm:~1.4.2":
+  version: 1.4.2
+  resolution: "custom-media-element@npm:1.4.2"
+  checksum: 993710047ceb7cba2db6ba4b9aef79aac860dfff1fdb4ffd9a574b8e03e0140a07b49c16cc565ce2e3747b5e34dc226411353cdc1f57bf338ea9ff4a91afa7bb
   languageName: node
   linkType: hard
 
@@ -27664,25 +27664,26 @@ __metadata:
   linkType: hard
 
 "es-iterator-helpers@npm:^1.1.0":
-  version: 1.2.0
-  resolution: "es-iterator-helpers@npm:1.2.0"
+  version: 1.2.1
+  resolution: "es-iterator-helpers@npm:1.2.1"
   dependencies:
-    call-bind: ^1.0.7
+    call-bind: ^1.0.8
+    call-bound: ^1.0.3
     define-properties: ^1.2.1
-    es-abstract: ^1.23.3
+    es-abstract: ^1.23.6
     es-errors: ^1.3.0
     es-set-tostringtag: ^2.0.3
     function-bind: ^1.1.2
-    get-intrinsic: ^1.2.4
+    get-intrinsic: ^1.2.6
     globalthis: ^1.0.4
-    gopd: ^1.0.1
+    gopd: ^1.2.0
     has-property-descriptors: ^1.0.2
-    has-proto: ^1.0.3
-    has-symbols: ^1.0.3
-    internal-slot: ^1.0.7
-    iterator.prototype: ^1.1.3
-    safe-array-concat: ^1.1.2
-  checksum: c5f5ff10d57f956539581aca7a2d8726c5a8a3e49e6285700d74dcd8b64c7a337b9ab5e81b459b079dac745d2fe02e4f6b80a842e3df45d9cfe3f12325fda8c0
+    has-proto: ^1.2.0
+    has-symbols: ^1.1.0
+    internal-slot: ^1.1.0
+    iterator.prototype: ^1.1.4
+    safe-array-concat: ^1.1.3
+  checksum: 952808dd1df3643d67ec7adf20c30b36e5eecadfbf36354e6f39ed3266c8e0acf3446ce9bc465e38723d613cb1d915c1c07c140df65bdce85da012a6e7bda62b
   languageName: node
   linkType: hard
 
@@ -30442,15 +30443,16 @@ __metadata:
   linkType: hard
 
 "function.prototype.name@npm:^1.1.7":
-  version: 1.1.7
-  resolution: "function.prototype.name@npm:1.1.7"
+  version: 1.1.8
+  resolution: "function.prototype.name@npm:1.1.8"
   dependencies:
     call-bind: ^1.0.8
+    call-bound: ^1.0.3
     define-properties: ^1.2.1
     functions-have-names: ^1.2.3
     hasown: ^2.0.2
     is-callable: ^1.2.7
-  checksum: 271000814fd44b45ee5dbd595fe9aa45c20f276d04e2d3191476331e44d39c3d83d758bd7482e4dc7dacb67a2f196f5183834ab7a3546aa6d98f1de9020c676a
+  checksum: 3a366535dc08b25f40a322efefa83b2da3cd0f6da41db7775f2339679120ef63b6c7e967266182609e655b8f0a8f65596ed21c7fd72ad8bd5621c2340edd4010
   languageName: node
   linkType: hard
 
@@ -32009,7 +32011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:~1.5.11":
+"hls.js@npm:~1.5.18":
   version: 1.5.18
   resolution: "hls.js@npm:1.5.18"
   checksum: 43253d754c38a069b0ab444f0e139b910406562039417bf4b6161dc14c682576186038846577ad88d83acb17ca176c0d13589fb214d623cae9997b71df86d8b7
@@ -34416,7 +34418,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iterator.prototype@npm:^1.1.3":
+"iterator.prototype@npm:^1.1.4":
   version: 1.1.4
   resolution: "iterator.prototype@npm:1.1.4"
   dependencies:
@@ -38800,7 +38802,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mux-embed@npm:^5.3.1":
+"mux-embed@npm:^5.5.0":
   version: 5.5.0
   resolution: "mux-embed@npm:5.5.0"
   checksum: d24654d9248a64a93cee3de1fe8e2295d2284615c9e59daa79431b192b7be01462d08522830033bc57b6d74a59b2b5962369f5d56e263ff0deadebc09d048552
@@ -41785,7 +41787,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"player.style@npm:^0.1.0":
+"player.style@npm:^0.1.1":
   version: 0.1.1
   resolution: "player.style@npm:0.1.1"
   dependencies:
@@ -42246,14 +42248,14 @@ __metadata:
   linkType: hard
 
 "posthog-js@npm:^1.167.0":
-  version: 1.202.5
-  resolution: "posthog-js@npm:1.202.5"
+  version: 1.203.1
+  resolution: "posthog-js@npm:1.203.1"
   dependencies:
     core-js: ^3.38.1
     fflate: ^0.4.8
     preact: ^10.19.3
     web-vitals: ^4.2.0
-  checksum: b6cff3a77769fa244b3379e4fbf881ccf4378195f7a5d3555419024dcd65ebab54a14e227016ef58c3d7e28745ec2446ca7cf18c75bed5f00099d7ef3f15becd
+  checksum: 0fae7ebd5f8b6a28ceb509a756814a6e5a500d8ec9d19e303bc486aaa7159f636fa86d402bb08ea30b080ed646afc3f1cec9b20937f6f1cc0ed9e2cd2f261d39
   languageName: node
   linkType: hard
 
@@ -47571,22 +47573,23 @@ __metadata:
   linkType: hard
 
 "string.prototype.matchall@npm:^4.0.11":
-  version: 4.0.11
-  resolution: "string.prototype.matchall@npm:4.0.11"
+  version: 4.0.12
+  resolution: "string.prototype.matchall@npm:4.0.12"
   dependencies:
-    call-bind: ^1.0.7
+    call-bind: ^1.0.8
+    call-bound: ^1.0.3
     define-properties: ^1.2.1
-    es-abstract: ^1.23.2
+    es-abstract: ^1.23.6
     es-errors: ^1.3.0
     es-object-atoms: ^1.0.0
-    get-intrinsic: ^1.2.4
-    gopd: ^1.0.1
-    has-symbols: ^1.0.3
-    internal-slot: ^1.0.7
-    regexp.prototype.flags: ^1.5.2
+    get-intrinsic: ^1.2.6
+    gopd: ^1.2.0
+    has-symbols: ^1.1.0
+    internal-slot: ^1.1.0
+    regexp.prototype.flags: ^1.5.3
     set-function-name: ^2.0.2
-    side-channel: ^1.0.6
-  checksum: 6ac6566ed065c0c8489c91156078ca077db8ff64d683fda97ae652d00c52dfa5f39aaab0a710d8243031a857fd2c7c511e38b45524796764d25472d10d7075ae
+    side-channel: ^1.1.0
+  checksum: 98a09d6af91bfc6ee25556f3d7cd6646d02f5f08bda55d45528ed273d266d55a71af7291fe3fc76854deffb9168cc1a917d0b07a7d5a178c7e9537c99e6d2b57
   languageName: node
   linkType: hard
 
