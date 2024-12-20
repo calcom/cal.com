@@ -746,13 +746,16 @@ export class BooleanFieldInput_2024_06_14 {
   hidden?: boolean;
 }
 
-export type InputBookingField_2024_06_14 =
+type InputDefaultField_2024_06_14 =
   | NameDefaultFieldInput_2024_06_14
   | EmailDefaultFieldInput_2024_06_14
   | TitleDefaultFieldInput_2024_06_14
   | NotesDefaultFieldInput_2024_06_14
   | GuestsDefaultFieldInput_2024_06_14
-  | RescheduleReasonDefaultFieldInput_2024_06_14
+  | RescheduleReasonDefaultFieldInput_2024_06_14;
+
+export type InputBookingField_2024_06_14 =
+  | InputDefaultField_2024_06_14
   | PhoneFieldInput_2024_06_14
   | AddressFieldInput_2024_06_14
   | TextFieldInput_2024_06_14
@@ -765,13 +768,6 @@ export type InputBookingField_2024_06_14 =
   | RadioGroupFieldInput_2024_06_14
   | BooleanFieldInput_2024_06_14;
 
-type InputDefaultField_2024_06_14 =
-  | NameDefaultFieldInput_2024_06_14
-  | EmailDefaultFieldInput_2024_06_14
-  | TitleDefaultFieldInput_2024_06_14
-  | NotesDefaultFieldInput_2024_06_14
-  | GuestsDefaultFieldInput_2024_06_14
-  | RescheduleReasonDefaultFieldInput_2024_06_14;
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
   private classMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {

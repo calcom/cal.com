@@ -25,15 +25,19 @@ import {
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
   EmailDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
   SelectFieldInput_2024_06_14,
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
   ValidateInputBookingFields_2024_06_14,
 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
@@ -105,7 +109,11 @@ import { Seats_2024_06_14 } from "./seats.input";
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
   NameDefaultFieldInput_2024_06_14,
-  EmailDefaultFieldInput_2024_06_14
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14
 )
 export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -169,6 +177,10 @@ export class UpdateEventTypeInput_2024_06_14 {
     oneOf: [
       { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
