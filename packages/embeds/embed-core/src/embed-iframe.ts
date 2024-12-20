@@ -84,6 +84,7 @@ const embedStore = {
   windowLoadEventFired: false,
   setTheme: undefined as ((arg0: EmbedThemeConfig) => void) | undefined,
   theme: undefined as UiConfig["theme"],
+  visitId: null as string | null,
   uiConfig: undefined as Omit<UiConfig, "styles" | "theme"> | undefined,
   /**
    * We maintain a list of all setUiConfig setters that are in use at the moment so that we can update all those components.
@@ -130,6 +131,14 @@ function log(...args: unknown[]) {
   }
 }
 
+function logEvent(eventName: string, data?: unknown) {
+  if (!embedStore.visitId) {
+    console.warn("No visitId found. Skipping event logging");
+    return;
+  }
+  methods.lifecycleEvent({ eventName, eventTime: performance.now(), data, visitId: embedStore.visitId });
+}
+
 const setEmbedStyles = (stylesConfig: EmbedStyles) => {
   embedStore.styles = stylesConfig;
   for (const [, setEmbedStyle] of Object.entries(embedStore.reactStylesStateSetters)) {
@@ -141,6 +150,35 @@ const setEmbedStyles = (stylesConfig: EmbedStyles) => {
     });
   }
 };
+
+function logWindowLoadStats() {
+  // Get navigation timing data
+  const timing = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming;
+
+  if (timing) {
+    const navigationTiming = {
+      // Can be attribut to redirects e.g. /router redirects to booking page
+      delayInSendingRequest: timing.requestStart - timing.startTime,
+
+      // Time to first byte (TTFB)
+      ttfb: timing.responseStart - timing.requestStart,
+
+      // DOM Content Loaded
+      domContentLoaded: timing.domContentLoadedEventEnd - timing.requestStart,
+
+      // Load complete
+      loadComplete: timing.loadEventEnd - timing.requestStart,
+
+      // DOM Interactive
+      domInteractive: timing.domInteractive - timing.requestStart,
+
+      // Response time
+      responseTime: timing.responseEnd - timing.requestStart,
+    };
+
+    logEvent("__windowLoadComplete", navigationTiming);
+  }
+}
 
 const setEmbedNonStyles = (stylesConfig: EmbedNonStylesConfig) => {
   embedStore.nonStyles = stylesConfig;
@@ -415,6 +453,20 @@ const methods = {
 
     connectPreloadedEmbed({ url: currentUrl });
   },
+  lifecycleEvent: function lifecycleEvent({
+    eventTime,
+    eventName,
+    visitId,
+    data,
+  }: {
+    eventTime: number;
+    eventName: string;
+    visitId: string;
+    data?: unknown;
+  }) {
+    log("Method: `lifecycleEvent` called", eventName);
+    console.log(`[${eventTime}] [${visitId}] Lifecycle Event: ${eventName}`, data);
+  },
 };
 
 export type InterfaceWithParent = {
@@ -455,6 +507,7 @@ function keepParentInformedAboutDimensionChanges() {
     }
     if (!embedStore.windowLoadEventFired) {
       sdkActionManager?.fire("__windowLoadComplete", {});
+      logWindowLoadStats();
     }
     embedStore.windowLoadEventFired = true;
     // Use the dimensions of main element as in most places there is max-width restriction on it and we just want to show the main content.
@@ -518,6 +571,9 @@ function main() {
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
+  embedStore.visitId = url.searchParams.get("cal.visitId") || null;
+
+  logEvent("embed-iframe.init");
 
   embedStore.uiConfig = {
     // TODO: Add theme as well here
