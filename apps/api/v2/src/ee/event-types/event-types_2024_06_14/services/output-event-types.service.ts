@@ -242,9 +242,7 @@ export class OutputEventTypesService_2024_06_14 {
       }
     }
 
-    return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields]
-      .map((field) => (field.hidden !== true ? field : null))
-      .filter((f) => f);
+    return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
   }
 
   getDefaultBookingFields(isOrgTeamEvent: boolean) {
