@@ -6,24 +6,24 @@ import { useState, useCallback, useEffect } from "react";
 type UsePersistentColumnResizingProps<TData> = {
   enabled: boolean;
   table: Table<TData>;
-  name?: string;
+  identifier?: string;
 };
 
-function getLocalStorageKey(name: string) {
-  return `data-table-column-sizing-${name}`;
+function getLocalStorageKey(identifier: string) {
+  return `data-table-column-sizing-${identifier}`;
 }
 
-function loadColumnSizing(name: string) {
+function loadColumnSizing(identifier: string) {
   try {
-    return JSON.parse(localStorage.getItem(getLocalStorageKey(name)) || "{}");
+    return JSON.parse(localStorage.getItem(getLocalStorageKey(identifier)) || "{}");
   } catch (error) {
     return {};
   }
   return {};
 }
 
-function saveColumnSizing(name: string, columnSizing: ColumnSizingState) {
-  localStorage.setItem(getLocalStorageKey(name), JSON.stringify(columnSizing));
+function saveColumnSizing(identifier: string, columnSizing: ColumnSizingState) {
+  localStorage.setItem(getLocalStorageKey(identifier), JSON.stringify(columnSizing));
 }
 
 const debouncedSaveColumnSizing = debounce(saveColumnSizing, 1000);
@@ -31,19 +31,19 @@ const debouncedSaveColumnSizing = debounce(saveColumnSizing, 1000);
 export function usePersistentColumnResizing<TData>({
   enabled,
   table,
-  name,
+  identifier,
 }: UsePersistentColumnResizingProps<TData>) {
   const [_, setColumnSizing] = useState<ColumnSizingState>({});
 
   const onColumnSizingChange = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
-      // `!name` is checked already in the `useEffect` hook,
+      // `!identifier` is checked already in the `useEffect` hook,
       // but TS doesn't know that, and this won't happen.
-      if (!name) return;
+      if (!identifier) return;
 
       table.setState((oldTableState) => {
         const newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
-        debouncedSaveColumnSizing(name, newColumnSizing);
+        debouncedSaveColumnSizing(identifier, newColumnSizing);
         setColumnSizing(newColumnSizing);
 
         return {
@@ -52,13 +52,13 @@ export function usePersistentColumnResizing<TData>({
         };
       });
     },
-    [name, table]
+    [identifier, table]
   );
 
   useEffect(() => {
-    if (!enabled || !name) return;
+    if (!enabled || !identifier) return;
 
-    const newColumnSizing = loadColumnSizing(name);
+    const newColumnSizing = loadColumnSizing(identifier);
     setColumnSizing(newColumnSizing);
     table.setState((old) => ({
       ...old,
@@ -69,5 +69,5 @@ export function usePersistentColumnResizing<TData>({
       columnResizeMode: "onChange",
       onColumnSizingChange,
     }));
-  }, [enabled, name, table, onColumnSizingChange]);
+  }, [enabled, identifier, table, onColumnSizingChange]);
 }

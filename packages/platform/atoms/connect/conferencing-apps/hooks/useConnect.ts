@@ -1,7 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 
-import { SUCCESS_STATUS, ERROR_STATUS, ZOOM, GOOGLE_MEET } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  ERROR_STATUS,
+  ZOOM,
+  GOOGLE_MEET,
+  OFFICE_365_VIDEO,
+} from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import type { App } from "@calcom/types/App";
 
@@ -12,7 +18,7 @@ export type UseGetOauthAuthUrlProps = {
   onErrorReturnTo?: string;
 };
 
-export const useGetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+export const useGetZoomOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
   return useQuery({
     queryKey: ["get-zoom-auth-url"],
     staleTime: Infinity,
@@ -23,6 +29,29 @@ export const useGetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAut
           `conferencing/${ZOOM}/oauth/auth-url${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""}${
             onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""
           }`
+        )
+        .then(({ data: responseBody }) => {
+          if (responseBody.status === SUCCESS_STATUS) {
+            return responseBody.data.url;
+          }
+          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+          return "";
+        });
+    },
+  });
+};
+
+export const useOffice365GetOauthAuthUrl = ({ returnTo, onErrorReturnTo }: UseGetOauthAuthUrlProps) => {
+  return useQuery({
+    queryKey: ["get-office365-auth-url"],
+    staleTime: Infinity,
+    enabled: false,
+    queryFn: () => {
+      return http
+        ?.get<ApiResponse<{ url: string }>>(
+          `conferencing/${OFFICE_365_VIDEO}/oauth/auth-url${
+            returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ""
+          }${onErrorReturnTo ? `&onErrorReturnTo=${encodeURIComponent(onErrorReturnTo)}` : ""}`
         )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
@@ -69,18 +98,25 @@ export const useConnectNonOauthApp = (
 };
 
 export const useConnect = ({ returnTo, onErrorReturnTo, ...props }: UseConnectGoogleMeetProps) => {
-  const { refetch } = useGetOauthAuthUrl({ returnTo, onErrorReturnTo });
+  const { refetch: refetchZoomAuthUrl } = useGetZoomOauthAuthUrl({ returnTo, onErrorReturnTo });
+  const { refetch: refetchOffice365AuthUrl } = useOffice365GetOauthAuthUrl({ returnTo, onErrorReturnTo });
   const connectNonOauthApp = useConnectNonOauthApp(props);
 
   const connect = async (app: App["slug"]) => {
     switch (app) {
       case ZOOM:
-        const redirectUri = await refetch();
-        if (redirectUri.data) {
-          window.location.href = redirectUri.data;
+        const zoomRedirectUri = await refetchZoomAuthUrl();
+        if (zoomRedirectUri.data) {
+          window.location.href = zoomRedirectUri.data;
         }
         break;
 
+      case OFFICE_365_VIDEO:
+        const office365RedirectUri = await refetchOffice365AuthUrl();
+        if (office365RedirectUri.data) {
+          window.location.href = office365RedirectUri.data;
+        }
+        break;
       case GOOGLE_MEET:
         connectNonOauthApp.mutate(app);
 

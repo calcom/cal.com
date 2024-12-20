@@ -29,6 +29,7 @@ const RoutingDownload = () => {
       endDate: filter.dateRange[1].toISOString(),
       teamId: filter.selectedTeamId ?? undefined,
       userId: filter.selectedUserId ?? undefined,
+      memberUserId: filter.selectedMemberUserId ?? undefined,
       routingFormId: filter.selectedRoutingFormId ?? undefined,
       bookingStatus: filter.selectedBookingStatus ?? undefined,
       fieldFilter: filter.selectedRoutingFormFilter ?? undefined,
