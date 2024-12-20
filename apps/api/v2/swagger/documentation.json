@@ -7777,6 +7777,9 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object"
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7788,6 +7791,7 @@
         "required": [
           "type",
           "label",
+          "required",
           "placeholder"
         ]
       },
@@ -9624,7 +9628,6 @@
         "required": [
           "id",
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug",
           "description",
@@ -14407,7 +14410,6 @@
         },
         "required": [
           "start",
-          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -14482,7 +14484,6 @@
         },
         "required": [
           "start",
-          "lengthInMinutes",
           "eventTypeId",
           "attendee",
           "instant"
@@ -14558,7 +14559,6 @@
         },
         "required": [
           "start",
-          "lengthInMinutes",
           "eventTypeId",
           "attendee"
         ]
@@ -14948,6 +14948,10 @@
           "absent": {
             "type": "boolean",
             "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
           },
           "seatUid": {
             "type": "string",

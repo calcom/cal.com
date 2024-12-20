@@ -7205,6 +7205,9 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object"
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7213,7 +7216,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "placeholder"]
+        "required": ["type", "label", "required", "placeholder"]
       },
       "BookerLayouts_2024_06_14": {
         "type": "object",
@@ -13461,6 +13464,10 @@
           "absent": {
             "type": "boolean",
             "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
           },
           "seatUid": {
             "type": "string",
