@@ -41,7 +41,7 @@ export function DataTable<TData, TValue>({
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const pathname = usePathname();
-  const identifier = _identifier ?? pathname;
+  const identifier = _identifier ?? pathname ?? undefined;
 
   const { rows } = table.getRowModel();
 
@@ -87,7 +87,7 @@ export function DataTable<TData, TValue>({
   }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
 
   usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing),
+    enabled: Boolean(enableColumnResizing && identifier),
     table,
     identifier,
   });

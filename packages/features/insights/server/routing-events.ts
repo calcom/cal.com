@@ -1,4 +1,8 @@
 import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import mapKeys from "lodash/mapKeys";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 
 import {
   zodFields as routingFormFieldsSchema,
@@ -14,6 +18,8 @@ import type {
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
+
+import { type ResponseValue, ZResponse } from "../lib/types";
 
 type RoutingFormInsightsTeamFilter = {
   userId?: number | null;
@@ -323,6 +329,8 @@ class RoutingEventsInsights {
         bookingUserEmail: true,
         bookingUserAvatarUrl: true,
         bookingAssignmentReason: true,
+        bookingStartTime: true,
+        bookingEndTime: true,
         createdAt: true,
       },
       where: whereClause,
@@ -335,11 +343,111 @@ class RoutingEventsInsights {
 
     const hasNextPage = responses.length > (limit ?? 0);
     const responsesToReturn = responses.slice(0, limit ? limit : responses.length);
+    type Response = Omit<
+      (typeof responsesToReturn)[number],
+      "response" | "responseLowercase" | "bookingAttendees"
+    > & {
+      response: Record<string, ResponseValue>;
+      responseLowercase: Record<string, ResponseValue>;
+      bookingAttendees?: { name: string; email: string; timeZone: string }[];
+    };
 
     return {
       total: totalResponses,
-      data: responsesToReturn,
+      data: responsesToReturn as Response[],
       nextCursor: hasNextPage ? responsesToReturn[responsesToReturn.length - 1].id : undefined,
+    };
+  }
+
+  static async getRoutingFormPaginatedResponsesForDownload({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    memberUserId,
+    columnFilters,
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
+    const headersPromise = this.getRoutingFormHeaders({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+    const dataPromise = this.getRoutingFormPaginatedResponses({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId,
+      routingFormId,
+      cursor,
+      userId,
+      memberUserId,
+      limit,
+      columnFilters,
+      sorting,
+    });
+
+    const [headers, data] = await Promise.all([headersPromise, dataPromise]);
+
+    const dataWithFlatResponse = data.data.map((item) => {
+      const { bookingAttendees } = item;
+      const responseParseResult = ZResponse.safeParse(item.response);
+      const response = responseParseResult.success ? responseParseResult.data : {};
+
+      const fields = (headers || []).reduce((acc, header) => {
+        const id = header.id;
+        if (!response[id]) {
+          acc[header.label] = "";
+          return acc;
+        }
+        if (header.type === "select") {
+          acc[header.label] = header.options?.find((option) => option.id === response[id].value)?.label;
+        } else if (header.type === "multiselect" && Array.isArray(response[id].value)) {
+          acc[header.label] = (response[id].value as string[])
+            .map((value) => header.options?.find((option) => option.id === value)?.label)
+            .filter((label): label is string => label !== undefined)
+            .sort()
+            .join(", ");
+        } else {
+          acc[header.label] = response[id].value as string;
+        }
+        return acc;
+      }, {} as Record<string, string | undefined>);
+
+      return {
+        "Response ID": item.id,
+        "Form Name": item.formName,
+        "Submitted At": item.createdAt.toISOString(),
+        "Has Booking": item.bookingUid !== null,
+        "Booking Status": item.bookingStatus || "NO_BOOKING",
+        "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
+        "Booking Start Time": item.bookingStartTime?.toISOString() || "",
+        "Booking End Time": item.bookingEndTime?.toISOString() || "",
+        "Attendee Name": (bookingAttendees as any)?.[0]?.name,
+        "Attendee Email": (bookingAttendees as any)?.[0]?.email,
+        "Attendee Timezone": (bookingAttendees as any)?.[0]?.timeZone,
+        "Assignment Reason": item.bookingAssignmentReason || "",
+        "Routed To Name": item.bookingUserName || "",
+        "Routed To Email": item.bookingUserEmail || "",
+        ...mapKeys(fields, (_, key) => startCase(key)),
+      };
+    });
+
+    return {
+      data: dataWithFlatResponse,
+      nextCursor: data.nextCursor,
     };
   }
 
