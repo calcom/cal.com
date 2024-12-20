@@ -4450,6 +4450,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/chatbase@workspace:packages/app-store/chatbase":
+  version: 0.0.0-use.local
+  resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/clic@workspace:packages/app-store/clic":
   version: 0.0.0-use.local
   resolution: "@calcom/clic@workspace:packages/app-store/clic"

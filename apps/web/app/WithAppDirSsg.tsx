@@ -1,24 +1,31 @@
 import type { GetStaticProps, GetStaticPropsContext } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 
 export const withAppDirSsg =
-  <T extends Record<string, any>>(getStaticProps: GetStaticProps<T>) =>
+  <T extends Record<string, any>>(getStaticProps: GetStaticProps<T>, routePath: string) =>
   async (context: GetStaticPropsContext) => {
-    const ssgResponse = await getStaticProps(context);
+    const cacheKey = JSON.stringify({
+      route: routePath,
+      params: context.params || {},
+    });
 
-    if ("redirect" in ssgResponse) {
-      redirect(ssgResponse.redirect.destination);
-    }
+    const getCachedProps = unstable_cache(async () => {
+      const ssgResponse = await getStaticProps(context);
 
-    if ("notFound" in ssgResponse) {
-      notFound();
-    }
+      if ("redirect" in ssgResponse) {
+        redirect(ssgResponse.redirect.destination);
+      }
 
-    const props = await Promise.resolve(ssgResponse.props);
+      if ("notFound" in ssgResponse) {
+        notFound();
+      }
 
-    return {
-      ...ssgResponse.props,
-      // includes dehydratedState required for future page trpcPropvider
-      ...("trpcState" in props && { dehydratedState: props.trpcState }),
-    };
+      return {
+        ...ssgResponse.props,
+        ...("trpcState" in ssgResponse.props && { dehydratedState: ssgResponse.props.trpcState }),
+      };
+    }, [`ssg-${cacheKey}`]);
+
+    return getCachedProps();
   };
