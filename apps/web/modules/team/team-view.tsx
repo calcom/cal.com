@@ -7,8 +7,7 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
@@ -38,6 +37,7 @@ function TeamPage({
   isSEOIndexable,
 }: PageProps) {
   useTheme(team.theme);
+  const router = useRouter();
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const showMembers = useToggleQuery("members");
@@ -76,46 +76,56 @@ function TeamPage({
   // slug is a route parameter, we don't want to forward it to the next route
   const { slug: _slug, orgSlug: _orgSlug, user: _user, ...queryParamsToForward } = routerQuery;
 
+  const flattenedQueryParams = Object.entries(queryParamsToForward).reduce((acc, [key, value]) => {
+    if (Array.isArray(value)) {
+      acc[key] = value.join(",");
+    } else {
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as Record<string, string>);
+  const queryString = new URLSearchParams(flattenedQueryParams).toString();
+
   const EventTypes = ({ eventTypes }: { eventTypes: NonNullable<(typeof team)["eventTypes"]> }) => (
     <ul className="border-subtle rounded-md border">
-      {eventTypes.map((type, index) => (
-        <li
-          key={index}
-          className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
-            !isEmbed && "bg-default"
-          )}>
-          <div className="px-6 py-4 ">
-            <Link
-              href={{
-                pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
-                query: queryParamsToForward,
-              }}
-              onClick={async () => {
-                sdkActionManager?.fire("eventTypeSelected", {
-                  eventType: type,
-                });
-              }}
-              data-testid="event-type-link"
-              className="flex justify-between">
-              <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
+      {eventTypes.map((type, index) => {
+        const basePath = `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`;
+        const url = `${basePath}${queryString ? `?${queryString}` : ""}`;
+        return (
+          <li
+            key={index}
+            className={classNames(
+              "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative cursor-pointer border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+              !isEmbed && "bg-default"
+            )}
+            onClick={() => {
+              router.push(url);
+              sdkActionManager?.fire("eventTypeSelected", { eventType: type });
+            }}
+            role="link"
+            title={`${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`}
+            data-testid="event-type-link">
+            <div className="px-6 py-4">
+              <div className="flex justify-between">
+                <div className="flex-shrink">
+                  <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                    <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
+                  </div>
+                  <EventTypeDescription className="text-sm" eventType={type} />
                 </div>
-                <EventTypeDescription className="text-sm" eventType={type} />
+                <div className="mt-1 self-center">
+                  <UserAvatarGroup
+                    truncateAfter={4}
+                    className="flex flex-shrink-0"
+                    size="sm"
+                    users={type.users}
+                  />
+                </div>
               </div>
-              <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
-              </div>
-            </Link>
-          </div>
-        </li>
-      ))}
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 
@@ -127,8 +137,14 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full rounded-md transition">
-              <Link href={`/${ch.slug}`} className="flex items-center justify-between">
+            <li
+              key={i}
+              className="hover:bg-muted w-full cursor-pointer rounded-md transition"
+              onClick={() => router.push(`/${ch.slug}`)}
+              role="link"
+              title={`/${ch.slug}`}
+              data-testid={`${ch.slug}-team-link`}>
+              <div className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
                     <span className="text-default text-sm font-bold">{ch.name}</span>
@@ -145,7 +161,7 @@ function TeamPage({
                   truncateAfter={4}
                   users={team.members.filter((mem) => mem.subteams?.includes(ch.slug) && mem.accepted)}
                 />
-              </Link>
+              </div>
             </li>
           );
         })}
