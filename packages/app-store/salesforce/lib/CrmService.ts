@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -416,7 +417,8 @@ export default class SalesforceCRMService implements CRM {
           id: record?.Id || "",
           email: record?.Email || "",
           recordType: record?.attributes?.type,
-          ...((includeOwner || forRoundRobinSkip) && {
+          ...((includeOwner || forRoundRobinSkip) &&
+        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]))) && {
             ownerId: record?.OwnerId,
             // Handle if Account is nested
             ownerEmail:
@@ -424,9 +426,7 @@ export default class SalesforceCRMService implements CRM {
               record?.attributes?.type !== SalesforceRecordEnum.ACCOUNT
                 ? record?.Account?.Owner?.Email
                 : record?.Owner?.Email,
-          }),
-        };
-      });
+          }}}),
     } catch (error) {
       log.error("Error in getContacts", safeStringify({ error }));
       return [];
@@ -1201,5 +1201,13 @@ export default class SalesforceCRMService implements CRM {
 
     if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
     return companyValue;
+  }
+
+  private async shouldSkipAttendeeIfFreeEmailDomain(attendeeEmail: string) {
+    const appOptions = this.getAppOptions();
+    if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
+
+    const response = await checkIfFreeEmailDomain(attendeeEmail);
+    return response;
   }
 }
