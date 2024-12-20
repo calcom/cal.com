@@ -7179,8 +7179,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
-            "deprecated": true
+            "description": "only allowed value for type is `name`"
           },
           "label": {
             "type": "string"
@@ -7201,8 +7200,7 @@
           "type": {
             "type": "string",
             "example": "email",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
-            "deprecated": true
+            "description": "only allowed value for type is `email`"
           },
           "label": {
             "type": "string"
@@ -7243,7 +7241,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=journey`,      the title field will be prefilled with this value and disabled."
           }
         },
-        "required": ["slug", "required", "hidden", "label", "placeholder"]
+        "required": ["slug"]
       },
       "NotesDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -7271,7 +7269,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=journey`,      the notes field will be prefilled with this value and disabled."
           }
         },
-        "required": ["slug", "required", "hidden", "label", "placeholder"]
+        "required": ["slug"]
       },
       "GuestsDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -7299,7 +7297,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=bob@cal.com`,      the guests field will be prefilled with this value and disabled."
           }
         },
-        "required": ["slug", "required", "hidden", "label", "placeholder"]
+        "required": ["slug"]
       },
       "RescheduleReasonDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -7327,7 +7325,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=travel`,      the rescheduleReason field will be prefilled with this value and disabled."
           }
         },
-        "required": ["slug", "required", "hidden", "label", "placeholder"]
+        "required": ["slug"]
       },
       "BookerLayouts_2024_06_14": {
         "type": "object",
@@ -7853,8 +7851,7 @@
               "boolean"
             ],
             "example": "email",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
-            "deprecated": true,
+            "description": "only allowed value for type is `email`",
             "default": "email"
           },
           "label": {
@@ -7904,8 +7901,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
-            "deprecated": true,
+            "description": "only allowed value for type is `name`",
             "default": "name"
           },
           "label": {
@@ -8000,7 +7996,7 @@
             "default": "textarea"
           }
         },
-        "required": ["slug", "required", "hidden", "isDefault", "type"]
+        "required": ["slug", "isDefault", "type"]
       },
       "TitleDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -8040,7 +8036,7 @@
             "default": "text"
           }
         },
-        "required": ["slug", "required", "hidden", "isDefault", "type"]
+        "required": ["slug", "isDefault", "type"]
       },
       "NotesDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -8080,7 +8076,7 @@
             "default": "textarea"
           }
         },
-        "required": ["slug", "required", "hidden", "isDefault", "type"]
+        "required": ["slug", "isDefault", "type"]
       },
       "GuestsDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -8120,7 +8116,7 @@
             "default": "multiemail"
           }
         },
-        "required": ["slug", "required", "hidden", "isDefault", "type"]
+        "required": ["slug", "isDefault", "type"]
       },
       "AddressFieldOutput_2024_06_14": {
         "type": "object",

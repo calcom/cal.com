@@ -7747,8 +7747,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
-            "deprecated": true
+            "description": "only allowed value for type is `name`"
           },
           "label": {
             "type": "string"
@@ -7773,8 +7772,7 @@
           "type": {
             "type": "string",
             "example": "email",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
-            "deprecated": true
+            "description": "only allowed value for type is `email`"
           },
           "label": {
             "type": "string"
@@ -7820,11 +7818,7 @@
           }
         },
         "required": [
-          "slug",
-          "required",
-          "hidden",
-          "label",
-          "placeholder"
+          "slug"
         ]
       },
       "NotesDefaultFieldInput_2024_06_14": {
@@ -7854,11 +7848,7 @@
           }
         },
         "required": [
-          "slug",
-          "required",
-          "hidden",
-          "label",
-          "placeholder"
+          "slug"
         ]
       },
       "GuestsDefaultFieldInput_2024_06_14": {
@@ -7888,11 +7878,7 @@
           }
         },
         "required": [
-          "slug",
-          "required",
-          "hidden",
-          "label",
-          "placeholder"
+          "slug"
         ]
       },
       "RescheduleReasonDefaultFieldInput_2024_06_14": {
@@ -7922,11 +7908,7 @@
           }
         },
         "required": [
-          "slug",
-          "required",
-          "hidden",
-          "label",
-          "placeholder"
+          "slug"
         ]
       },
       "BookerLayouts_2024_06_14": {
@@ -8499,8 +8481,7 @@
               "boolean"
             ],
             "example": "email",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `email`",
-            "deprecated": true,
+            "description": "only allowed value for type is `email`",
             "default": "email"
           },
           "label": {
@@ -8555,8 +8536,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "DEPRECATED: pass `slug` property instead. only allowed value for type is `name`",
-            "deprecated": true,
+            "description": "only allowed value for type is `name`",
             "default": "name"
           },
           "label": {
@@ -8670,8 +8650,6 @@
         },
         "required": [
           "slug",
-          "required",
-          "hidden",
           "isDefault",
           "type"
         ]
@@ -8722,8 +8700,6 @@
         },
         "required": [
           "slug",
-          "required",
-          "hidden",
           "isDefault",
           "type"
         ]
@@ -8774,8 +8750,6 @@
         },
         "required": [
           "slug",
-          "required",
-          "hidden",
           "isDefault",
           "type"
         ]
@@ -8826,8 +8800,6 @@
         },
         "required": [
           "slug",
-          "required",
-          "hidden",
           "isDefault",
           "type"
         ]

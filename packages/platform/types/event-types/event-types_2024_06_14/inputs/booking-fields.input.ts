@@ -89,12 +89,13 @@ export class TitleDefaultFieldInput_2024_06_14 {
   slug!: "title";
 
   @IsBoolean()
-  @DocsProperty()
+  @IsOptional()
+  @DocsPropertyOptional()
   required?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     description:
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
@@ -102,12 +103,12 @@ export class TitleDefaultFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   label?: string;
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
@@ -128,12 +129,13 @@ export class NotesDefaultFieldInput_2024_06_14 {
   slug!: "notes";
 
   @IsBoolean()
-  @DocsProperty()
+  @IsOptional()
+  @DocsPropertyOptional()
   required?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     description:
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
@@ -141,12 +143,12 @@ export class NotesDefaultFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   label?: string;
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
@@ -167,12 +169,13 @@ export class GuestsDefaultFieldInput_2024_06_14 {
   slug!: "guests";
 
   @IsBoolean()
-  @DocsProperty()
+  @IsOptional()
+  @DocsPropertyOptional()
   required?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     description:
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
@@ -180,12 +183,12 @@ export class GuestsDefaultFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   label?: string;
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
@@ -209,12 +212,13 @@ export class RescheduleReasonDefaultFieldInput_2024_06_14 {
   slug!: "rescheduleReason";
 
   @IsBoolean()
-  @DocsProperty()
+  @IsOptional()
+  @DocsPropertyOptional()
   required?: boolean;
 
   @IsBoolean()
   @IsOptional()
-  @DocsProperty({
+  @DocsPropertyOptional({
     description:
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
@@ -222,12 +226,12 @@ export class RescheduleReasonDefaultFieldInput_2024_06_14 {
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   label?: string;
 
   @IsString()
   @IsOptional()
-  @DocsProperty()
+  @DocsPropertyOptional()
   placeholder?: string;
 
   @IsBoolean()
