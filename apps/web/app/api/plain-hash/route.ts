@@ -11,6 +11,7 @@ const responseSchema = z.object({
   shortName: z.string(),
   appId: z.string(),
   fullName: z.string(),
+  chatAvatarUrl: z.string(),
 });
 
 async function handler(request: Request) {
@@ -30,14 +31,15 @@ async function handler(request: Request) {
 
   const shortName =
     (session.user.name?.split(" ")[0] || session.user.email).charAt(0).toUpperCase() +
-    (session.user.name?.split(" ")[0] || session.user.email).slice(1);
+      (session.user.name?.split(" ")[0] || session.user.email).slice(1) || "User";
 
   const response = responseSchema.parse({
     hash,
-    email: session.user.email,
+    email: session.user.email || "user@example.com",
     shortName,
     appId: process.env.PLAIN_CHAT_ID,
     fullName: session.user.name || "User",
+    chatAvatarUrl: session.user.avatarUrl || "",
   });
 
   return NextResponse.json(response);

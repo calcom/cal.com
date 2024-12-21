@@ -10,6 +10,7 @@ declare global {
       open: () => void;
     };
     plainScriptLoaded?: () => void;
+    __PLAIN_CONFIG__?: PlainChatConfig;
   }
 }
 
@@ -20,6 +21,7 @@ interface PlainChatConfig {
     emailHash: string;
     fullName: string;
     shortName: string;
+    chatAvatarUrl: string;
   };
   links: Array<{
     icon: string;
@@ -40,6 +42,8 @@ interface PlainChatConfig {
           threadDetails: {
             severity: string;
             labelTypeIds: Array<string>;
+            issueType: string;
+            priority: string;
           };
         }>;
       }>;
@@ -94,21 +98,30 @@ const PlainChat = () => {
       try {
         const response = await fetch("/api/plain-hash", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
         if (!response.ok) {
-          throw new Error("Failed to generate hash");
+          const errorText = await response.text();
+          throw new Error(`Failed to generate hash: ${errorText}`);
         }
 
-        const { hash, email, shortName, appId, fullName } = await response.json();
+        const data = await response.json();
 
-        const plainChatConfig = {
-          appId,
+        if (!data.hash || !data.email || !data.appId) {
+          throw new Error("Missing required fields in API response");
+        }
+
+        const plainChatConfig: PlainChatConfig = {
+          appId: data.appId,
           customerDetails: {
-            email,
-            shortName,
-            fullName,
-            emailHash: hash,
+            email: data.email,
+            shortName: data.shortName,
+            fullName: data.fullName,
+            emailHash: data.hash,
+            chatAvatarUrl: data.chatAvatarUrl,
           },
           links: [
             {
@@ -150,7 +163,7 @@ const PlainChat = () => {
                           severity: "critical",
                           issueType: "critical",
                           labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                          priority: "Urgent",
+                          priority: "u",
                         },
                       },
                       {
@@ -160,7 +173,7 @@ const PlainChat = () => {
                           severity: "major",
                           issueType: "major",
                           labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                          priority: "High",
+                          priority: "h",
                         },
                       },
                       {
@@ -170,7 +183,7 @@ const PlainChat = () => {
                           severity: "minor",
                           issueType: "minor",
                           labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                          priority: "Low",
+                          priority: "l",
                         },
                       },
                     ],
@@ -194,6 +207,11 @@ const PlainChat = () => {
             right: "20px",
           },
         };
+
+        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+          window.__PLAIN_CONFIG__ = plainChatConfig;
+        }
+
         setConfig(plainChatConfig);
       } catch (error) {
         console.error("Failed to initialize Plain Chat:", error);
@@ -203,22 +221,28 @@ const PlainChat = () => {
     initConfig();
   }, [session]);
 
-  // Only initialize Plain once when the script loads
   const plainChatScript = `
     window.plainScriptLoaded = function() {
-      if (window.Plain && ${config ? true : false}) {
-        Plain.init(${config ? JSON.stringify(config) : null});
+      if (window.Plain && ${Boolean(config)}) {
+        try {
+          Plain.init(${config ? JSON.stringify(config) : null});
+        } catch (error) {
+          console.error("Failed to initialize Plain:", error);
+        }
       }
     }
   `;
 
   useEffect(() => {
     if (pathname === "/event-types" && searchParams?.has("openPlain") && config) {
-      setTimeout(() => {
-        openPlain();
+      const timer = setTimeout(() => {
+        if (window.Plain) {
+          openPlain();
+        }
       }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [pathname, searchParams, config]);
+  }, [pathname, searchParams, config, openPlain]);
 
   if (!config) return null;
 
