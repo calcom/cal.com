@@ -1,27 +1,30 @@
 import { Prisma } from "@prisma/client";
-import { withAppDirSsg } from "app/WithAppDirSsg";
 import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import type { PageProps } from "~/apps/[slug]/slug-view";
-import Page from "~/apps/[slug]/slug-view";
-
-const getData = withAppDirSsg<PageProps>(getStaticProps, "future/apps/[slug]");
+import AppView from "~/apps/[slug]/slug-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const res = await getData(legacyContext);
+  const _params = { ...params, ...searchParams };
+  if (!_params.slug) {
+    notFound();
+  }
+
+  const props = await getStaticProps(_params.slug as string);
+
+  if (!props) {
+    notFound();
+  }
 
   return await _generateMetadata(
-    () => res?.data.name ?? "",
-    () => res?.data.description ?? ""
+    () => props.data.name,
+    () => props.data.description
   );
 };
 
@@ -40,6 +43,21 @@ export const generateStaticParams = async () => {
   return [];
 };
 
-export default WithLayout({ getLayout: null, Page, getData });
+async function Page({ params, searchParams }: _PageProps) {
+  const _params = { ...params, ...searchParams };
+  if (!_params.slug) {
+    notFound();
+  }
+
+  const props = await getStaticProps(_params.slug as string);
+
+  if (!props) {
+    notFound();
+  }
+
+  return <AppView {...props} />;
+}
+
+export default WithLayout({ getLayout: null, ServerPage: Page });
 
 export const dynamic = "force-static";
