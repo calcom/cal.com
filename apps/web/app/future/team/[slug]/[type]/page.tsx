@@ -24,6 +24,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     isTeamEvent: true,
     org: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
+    includeOnlyOneHost: true,
   });
 
   const profileName = event?.profile?.name ?? "";

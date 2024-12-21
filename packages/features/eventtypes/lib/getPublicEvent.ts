@@ -50,99 +50,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
-const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  id: true,
-  title: true,
-  description: true,
-  eventName: true,
-  slug: true,
-  isInstantEvent: true,
-  instantMeetingParameters: true,
-  aiPhoneCallConfig: true,
-  schedulingType: true,
-  length: true,
-  locations: true,
-  customInputs: true,
-  disableGuests: true,
-  metadata: true,
-  lockTimeZoneToggleOnBookingPage: true,
-  requiresConfirmation: true,
-  autoTranslateDescriptionEnabled: true,
-  fieldTranslations: {
-    select: {
-      translatedText: true,
-      targetLocale: true,
-      field: true,
-    },
-  },
-  requiresBookerEmailVerification: true,
-  recurringEvent: true,
-  price: true,
-  currency: true,
-  seatsPerTimeSlot: true,
-  seatsShowAvailabilityCount: true,
-  bookingFields: true,
-  teamId: true,
-  team: {
-    select: {
-      parentId: true,
-      metadata: true,
-      brandColor: true,
-      darkBrandColor: true,
-      slug: true,
-      name: true,
-      logoUrl: true,
-      theme: true,
-      parent: {
-        select: {
-          slug: true,
-          name: true,
-          bannerUrl: true,
-          logoUrl: true,
-        },
-      },
-      isPrivate: true,
-    },
-  },
-  successRedirectUrl: true,
-  forwardParamsSuccessRedirect: true,
-  workflows: {
-    include: {
-      workflow: {
-        include: {
-          steps: true,
-        },
-      },
-    },
-  },
-  hosts: {
-    select: {
-      user: {
-        select: userSelect,
-      },
-    },
-  },
-  owner: {
-    select: userSelect,
-  },
-  schedule: {
-    select: {
-      id: true,
-      timeZone: true,
-    },
-  },
-  instantMeetingSchedule: {
-    select: {
-      id: true,
-      timeZone: true,
-    },
-  },
-
-  hidden: true,
-  assignAllTeamMembers: true,
-  rescheduleWithSameRoundRobinHost: true,
-});
-
 export async function isCurrentlyAvailable({
   prisma,
   instantMeetingScheduleId,
@@ -209,6 +116,102 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
+const getPublicEventSelect = (includeOnlyOneHost?: boolean) => {
+  return Prisma.validator<Prisma.EventTypeSelect>()({
+    id: true,
+    title: true,
+    description: true,
+    eventName: true,
+    slug: true,
+    isInstantEvent: true,
+    instantMeetingParameters: true,
+    aiPhoneCallConfig: true,
+    schedulingType: true,
+    length: true,
+    locations: true,
+    customInputs: true,
+    disableGuests: true,
+    metadata: true,
+    lockTimeZoneToggleOnBookingPage: true,
+    requiresConfirmation: true,
+    autoTranslateDescriptionEnabled: true,
+    fieldTranslations: {
+      select: {
+        translatedText: true,
+        targetLocale: true,
+        field: true,
+      },
+    },
+    requiresBookerEmailVerification: true,
+    recurringEvent: true,
+    price: true,
+    currency: true,
+    seatsPerTimeSlot: true,
+    seatsShowAvailabilityCount: true,
+    bookingFields: true,
+    teamId: true,
+    team: {
+      select: {
+        parentId: true,
+        metadata: true,
+        brandColor: true,
+        darkBrandColor: true,
+        slug: true,
+        name: true,
+        logoUrl: true,
+        theme: true,
+        parent: {
+          select: {
+            slug: true,
+            name: true,
+            bannerUrl: true,
+            logoUrl: true,
+          },
+        },
+        isPrivate: true,
+      },
+    },
+    successRedirectUrl: true,
+    forwardParamsSuccessRedirect: true,
+    workflows: {
+      include: {
+        workflow: {
+          include: {
+            steps: true,
+          },
+        },
+      },
+    },
+    hosts: {
+      select: {
+        user: {
+          select: userSelect,
+        },
+      },
+      ...(includeOnlyOneHost ? { take: 3 } : {}),
+    },
+    owner: {
+      select: userSelect,
+    },
+    schedule: {
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    },
+    instantMeetingSchedule: {
+      select: {
+        id: true,
+        timeZone: true,
+      },
+    },
+
+    hidden: true,
+    assignAllTeamMembers: true,
+    rescheduleWithSameRoundRobinHost: true,
+  });
+};
+
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
   username: string,
@@ -217,8 +220,10 @@ export const getPublicEvent = async (
   org: string | null,
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
-  currentUserId?: number
+  currentUserId?: number,
+  includeOnlyOneHost?: boolean
 ) => {
+  const publicEventSelect = getPublicEventSelect(includeOnlyOneHost);
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
@@ -504,7 +509,7 @@ export const getPublicEvent = async (
 };
 
 const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: publicEventSelect,
+  select: getPublicEventSelect(false),
 });
 
 type Event = Prisma.EventTypeGetPayload<typeof eventData>;

@@ -11,7 +11,8 @@ export class EventRepository {
       input.org,
       prisma,
       input.fromRedirectOfNonOrgLink,
-      userId
+      userId,
+      input.includeOnlyOneHost
     );
     return event;
   }

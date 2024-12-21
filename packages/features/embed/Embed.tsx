@@ -178,7 +178,7 @@ const EmailEmbed = ({
     ],
     shallow
   );
-  const event = useEvent();
+  const event = useEvent({ includeOnlyOneHost: true });
   const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
