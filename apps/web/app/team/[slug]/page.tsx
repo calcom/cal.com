@@ -25,4 +25,5 @@ export default WithLayout({
   Page: LegacyPage,
   getData,
   getLayout: null,
+  isBookingPage: true,
 })<"P">;

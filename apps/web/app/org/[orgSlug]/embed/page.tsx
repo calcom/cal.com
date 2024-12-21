@@ -8,7 +8,6 @@ import type { PageProps } from "~/team/team-view";
 import TeamPage from "~/team/team-view";
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
-
 const getEmbedData = withEmbedSsrAppDir(getData);
 
 export default WithLayout({
