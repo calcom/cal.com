@@ -27,7 +27,6 @@ checkRoute "$APP_ROUTER_BOOKINGS_STATUS_ENABLED" app/future/bookings
 rm -rf \
    app/future/d\
    app/future/enterprise\
-   app/future/org\
    app/future/payment\
    app/future/reschedule\
    app/future/routing-forms\
