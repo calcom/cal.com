@@ -170,6 +170,7 @@ export const config = {
     "/future/event-types/",
     "/workflows/:path*",
     "/apps/:path*",
+    "/routing/:path*",
     "/bookings/:status/",
     "/future/bookings/:status/",
     "/video/:path*",
