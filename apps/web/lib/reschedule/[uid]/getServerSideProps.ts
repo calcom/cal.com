@@ -4,6 +4,7 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -46,6 +47,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
     select: {
       ...bookingMinimalSelect,
+      responses: true,
       eventType: {
         select: {
           users: {
@@ -129,9 +131,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast) {
+    const destinationUrlSearchParams = new URLSearchParams();
+    // console.log("booking.responses", booking);
+    const name = getSafe<string>(booking.responses, ["name"]);
+    const email = getSafe<string>(booking.responses, ["email"]);
+    if (name) destinationUrlSearchParams.set("name", name);
+    if (email) destinationUrlSearchParams.set("email", email);
+
+    const searchParamsString = destinationUrlSearchParams.toString();
     return {
       redirect: {
-        destination: eventUrl,
+        destination: searchParamsString ? `${eventUrl}?${searchParamsString}` : eventUrl,
         permanent: false,
       },
     };
