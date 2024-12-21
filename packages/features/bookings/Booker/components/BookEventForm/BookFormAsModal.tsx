@@ -12,7 +12,7 @@ import { useEvent } from "../../utils/event";
 import { useBookerTime } from "../hooks/useBookerTime";
 
 const BookEventFormWrapper = ({ children, onCancel }: { onCancel: () => void; children: ReactNode }) => {
-  const { data } = useEvent();
+  const { data } = useEvent({ includeOnlyOneHost: true });
 
   return <BookEventFormWrapperComponent child={children} eventLength={data?.length} onCancel={onCancel} />;
 };
