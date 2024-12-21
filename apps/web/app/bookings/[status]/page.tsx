@@ -17,6 +17,10 @@ export const generateMetadata = async () =>
     (t) => t("bookings_description")
   );
 
+export const generateStaticParams = async () => {
+  return validStatuses.map((status) => ({ status }));
+};
+
 const Page = async ({ params, searchParams }: PageProps) => {
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
