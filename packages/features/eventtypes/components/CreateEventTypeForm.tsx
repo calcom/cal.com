@@ -8,7 +8,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
+import { Editor, Form, TextAreaField, TextField, Tooltip, Select } from "@calcom/ui";
+
+enum EventDurationConfig {
+  MINUTES = "Mins",
+  HOURS = "Hours",
+  DAYS = "Days",
+}
 
 export default function CreateEventTypeForm({
   form,
@@ -27,16 +33,47 @@ export default function CreateEventTypeForm({
   urlPrefix?: string;
   SubmitButton: (isPending: boolean) => ReactNode;
 }) {
-  const isPlatform = useIsPlatform();
   const { t } = useLocale();
-  const [firstRender, setFirstRender] = useState(true);
+  const durationOptions = [
+    {
+      label: t("Mins"),
+      value: EventDurationConfig.MINUTES,
+    },
+    {
+      label: t("Hours"),
+      value: EventDurationConfig.HOURS,
+    },
+    {
+      label: t("Days"),
+      value: EventDurationConfig.DAYS,
+    },
+  ];
 
-  const { register } = form;
+  const isPlatform = useIsPlatform();
+  const [firstRender, setFirstRender] = useState(true);
+  const [selectedDurationUnit, setSelectedDurationUnit] = useState(durationOptions[0]);
+  const [displayedDuration, setDisplayedDuration] = useState<number>(15);
+
+  // setValue and watch are for time format handling
+  const { register, setValue } = form;
+
+  const getConvertedDuration = () => {
+    if (selectedDurationUnit.value === EventDurationConfig.HOURS) {
+      return displayedDuration * 60; // Horas a minutos
+    }
+    if (selectedDurationUnit.value === EventDurationConfig.DAYS) {
+      return displayedDuration * 1440; // Días a minutos
+    }
+    return displayedDuration; // Minutos
+  };
+
   return (
     <Form
       form={form}
       handleSubmit={(values) => {
-        handleSubmit(values);
+        const convertedDuration = getConvertedDuration();
+        setValue("length", convertedDuration); // Asigna el valor correcto antes de enviar
+        handleSubmit({ ...values, length: convertedDuration });
       }}>
       <div className="mt-3 space-y-6 pb-11">
         <TextField
@@ -115,17 +152,27 @@ export default function CreateEventTypeForm({
               maxHeight="200px"
             />
           )}
-
-          <div className="relative">
+          <div className="flex items-center space-x-1">
             <TextField
               type="number"
               required
-              min="10"
+              min="1"
               placeholder="15"
+              value={displayedDuration}
+              onChange={(e) => setDisplayedDuration(parseFloat(e.target.value))}
               label={t("duration")}
-              className="pr-4"
-              {...register("length", { valueAsNumber: true })}
-              addOnSuffix={t("minutes")}
+              className="h-10 w-24 flex-grow rounded border border-gray-600 "
+              style={{ lineHeight: "normal" }}
+            />
+            <Select
+              options={durationOptions}
+              value={selectedDurationUnit}
+              onChange={(e) => {
+                if (e) {
+                  setSelectedDurationUnit(e);
+                }
+              }}
+              className="h-10 w-24 self-stretch rounded border border-gray-600"
             />
           </div>
         </>
