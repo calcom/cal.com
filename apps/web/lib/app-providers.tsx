@@ -15,6 +15,7 @@ import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
+import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
@@ -326,10 +327,12 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   return (
     <>
-      <DynamicPostHogProvider>
-        <PostHogPageView />
-        {RemainingProviders}
-      </DynamicPostHogProvider>
+      <DynamicHelpscoutProvider>
+        <DynamicPostHogProvider>
+          <PostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
+      </DynamicHelpscoutProvider>
     </>
   );
 };
