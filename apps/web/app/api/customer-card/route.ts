@@ -89,17 +89,8 @@ export async function handler(request: Request) {
                   {
                     componentBadge: {
                       badgeLabel:
-                        customer.emailVerified === undefined
-                          ? "Unknown"
-                          : customer.emailVerified
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.emailVerified === undefined
-                          ? "YELLOW"
-                          : customer.emailVerified
-                          ? "GREEN"
-                          : "RED",
+                        customer.emailVerified === undefined ? "No" : customer.emailVerified ? "Yes" : "No",
+                      badgeColor: customer.emailVerified ? "GREEN" : "RED",
                     },
                   },
                 ],
@@ -195,18 +186,8 @@ export async function handler(request: Request) {
                 rowAsideContent: [
                   {
                     componentBadge: {
-                      badgeLabel:
-                        customer.twoFactorEnabled === undefined
-                          ? "Unknown"
-                          : customer.twoFactorEnabled
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.twoFactorEnabled === undefined
-                          ? "YELLOW"
-                          : customer.twoFactorEnabled
-                          ? "GREEN"
-                          : "RED",
+                      badgeLabel: customer.twoFactorEnabled ? "Yes" : "No",
+                      badgeColor: customer.twoFactorEnabled ? "GREEN" : "RED",
                     },
                   },
                 ],

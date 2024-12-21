@@ -55,8 +55,8 @@ export default (
           rowAsideContent: [
             {
               componentBadge: {
-                badgeLabel: emailVerified === null ? "Unknown" : emailVerified ? "Yes" : "No",
-                badgeColor: emailVerified === null ? "YELLOW" : emailVerified ? "GREEN" : "RED",
+                badgeLabel: emailVerified === null ? "No" : emailVerified ? "Yes" : "No",
+                badgeColor: emailVerified === null ? "RED" : emailVerified ? "GREEN" : "RED",
               },
             },
           ],
@@ -152,8 +152,8 @@ export default (
           rowAsideContent: [
             {
               componentBadge: {
-                badgeLabel: twoFactorEnabled === null ? "Unknown" : twoFactorEnabled ? "Yes" : "No",
-                badgeColor: twoFactorEnabled === null ? "YELLOW" : twoFactorEnabled ? "GREEN" : "RED",
+                badgeLabel: twoFactorEnabled === null ? "No" : twoFactorEnabled ? "Yes" : "No",
+                badgeColor: twoFactorEnabled === null ? "RED" : twoFactorEnabled ? "GREEN" : "RED",
               },
             },
           ],

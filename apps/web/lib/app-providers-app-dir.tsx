@@ -17,12 +17,12 @@ import CacheProvider from "react-inlinesvg/provider";
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import PlainChat from "@lib/plain/plainChat";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -265,9 +265,11 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
+
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
       <SessionProvider>
+        <PlainChat />
         <CustomI18nextProvider i18n={props.i18n}>
           <TooltipProvider>
             {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
@@ -301,11 +303,11 @@ const AppProviders = (props: PageWrapperProps) => {
   }
 
   return (
-    <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>
+    <>
+      <DynamicHelpscoutProvider>
         <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
-      </DynamicIntercomProvider>
-    </DynamicHelpscoutProvider>
+      </DynamicHelpscoutProvider>
+    </>
   );
 };
 
