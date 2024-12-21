@@ -50,7 +50,7 @@ describe("SalesforceCRMService", () => {
 
       expect(result).toEqual([]);
       expect(mockConnection.query).toHaveBeenCalledWith(
-        "SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('test@example.com')"
+        "SELECT Id, Email, OwnerId, Owner.Email FROM Contact WHERE Email IN ('test@example.com')"
       );
     });
 
@@ -83,7 +83,7 @@ describe("SalesforceCRMService", () => {
 
       // Verify the exact query made
       expect(querySpy).toHaveBeenCalledWith(
-        "SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('test@example.com')"
+        "SELECT Id, Email, OwnerId, Owner.Email FROM Contact WHERE Email IN ('test@example.com')"
       );
     });
 
@@ -126,7 +126,7 @@ describe("SalesforceCRMService", () => {
       ]);
 
       expect(querySpy).toHaveBeenCalledWith(
-        "SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('test1@example.com','test2@example.com')"
+        "SELECT Id, Email, OwnerId, Owner.Email FROM Contact WHERE Email IN ('test1@example.com','test2@example.com')"
       );
     });
 
@@ -138,25 +138,16 @@ describe("SalesforceCRMService", () => {
             Email: "test@example.com",
             OwnerId: "owner001",
             attributes: { type: "Contact" },
-          },
-        ],
-      };
-
-      const ownerQueryResponse = {
-        records: [
-          {
-            Id: "owner001",
-            Email: "owner@example.com",
-            Name: "Test Owner",
+            Owner: {
+              Email: "owner@example.com",
+            },
           },
         ],
       };
 
       // Setup query spy with specific responses
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy
-        .mockResolvedValueOnce(contactQueryResponse) // Contact query
-        .mockResolvedValueOnce(ownerQueryResponse); // Owner query
+      querySpy.mockResolvedValueOnce(contactQueryResponse); // Contact query
 
       const result = await service.getContacts({
         emails: "test@example.com",
@@ -175,11 +166,7 @@ describe("SalesforceCRMService", () => {
 
       expect(querySpy).toHaveBeenNthCalledWith(
         1,
-        "SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('test@example.com')"
-      );
-      expect(querySpy).toHaveBeenNthCalledWith(
-        2,
-        expect.stringContaining("SELECT Id, Email, Name FROM User WHERE Id = 'owner001'")
+        "SELECT Id, Email, OwnerId, Owner.Email FROM Contact WHERE Email IN ('test@example.com')"
       );
     });
 
@@ -204,36 +191,18 @@ describe("SalesforceCRMService", () => {
             AccountId: "acc001",
             OwnerId: "owner001",
             attributes: { type: "Contact" },
-          },
-        ],
-      };
-
-      const accountQueryResponse = {
-        records: [
-          {
-            Id: "acc001",
-            OwnerId: "owner001",
-            Email: "test@example.com",
-            attributes: { type: "Account" },
-          },
-        ],
-      };
-
-      const ownerQueryResponse = {
-        records: [
-          {
-            Id: "owner001",
-            Email: "owner@example.com",
-            Name: "Test Owner",
+            Account: {
+              Website: "test.com",
+              Owner: {
+                Email: "owner@example.com",
+              },
+            },
           },
         ],
       };
 
       const querySpy = vi.spyOn(mockConnection, "query");
-      querySpy
-        .mockResolvedValueOnce(initialContactQueryResponse)
-        .mockResolvedValueOnce(accountQueryResponse)
-        .mockResolvedValueOnce(ownerQueryResponse);
+      querySpy.mockResolvedValueOnce(initialContactQueryResponse);
 
       const result = await service.getContacts({
         emails: "test@example.com",
@@ -243,22 +212,17 @@ describe("SalesforceCRMService", () => {
 
       expect(result).toEqual([
         {
-          id: "acc001",
+          id: "001",
           email: "test@example.com",
           ownerId: "owner001",
           ownerEmail: "owner@example.com",
-          recordType: "Account",
+          recordType: "Contact",
         },
       ]);
 
       expect(querySpy).toHaveBeenNthCalledWith(
         1,
-        "SELECT Id, Email, OwnerId, AccountId FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
-      );
-      expect(querySpy).toHaveBeenNthCalledWith(2, "SELECT Id, OwnerId FROM Account WHERE Id = 'acc001'");
-      expect(querySpy).toHaveBeenNthCalledWith(
-        3,
-        expect.stringContaining("SELECT Id, Email, Name FROM User WHERE Id = 'owner001'")
+        "SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM Contact WHERE Email = 'test@example.com' AND AccountId != null"
       );
     });
   });
