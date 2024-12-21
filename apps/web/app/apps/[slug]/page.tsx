@@ -1,10 +1,10 @@
-import { Prisma } from "@prisma/client";
 import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
+import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 
@@ -12,10 +12,6 @@ import AppView from "~/apps/[slug]/slug-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const _params = { ...params, ...searchParams };
-  if (!_params.slug) {
-    notFound();
-  }
-
   const props = await getStaticProps(_params.slug as string);
 
   if (!props) {
@@ -29,26 +25,18 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 };
 
 export const generateStaticParams = async () => {
-  try {
-    const appStore = await AppRepository.findAppStore();
-    return appStore.map(({ slug }) => ({ slug }));
-  } catch (e: unknown) {
-    if (e instanceof Prisma.PrismaClientInitializationError) {
-      // Database is not available at build time, but that's ok – we fall back to resolving paths on demand
-    } else {
-      throw e;
-    }
-  }
+  const isPrismaAvailable = await isPrismaAvailableCheck();
 
-  return [];
+  if (!isPrismaAvailable) {
+    // Database is not available at build time. Make sure we fall back to building these pages on demand
+    return [];
+  }
+  const appStore = await AppRepository.findAppStore();
+  return appStore.map(({ slug }) => ({ slug }));
 };
 
 async function Page({ params, searchParams }: _PageProps) {
   const _params = { ...params, ...searchParams };
-  if (!_params.slug) {
-    notFound();
-  }
-
   const props = await getStaticProps(_params.slug as string);
 
   if (!props) {
@@ -59,5 +47,3 @@ async function Page({ params, searchParams }: _PageProps) {
 }
 
 export default WithLayout({ getLayout: null, ServerPage: Page });
-
-export const dynamic = "force-static";
