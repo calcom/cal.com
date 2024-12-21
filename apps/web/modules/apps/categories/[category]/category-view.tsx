@@ -1,6 +1,5 @@
 "use client";
 
-import type { InferGetStaticPropsType } from "next";
 import Link from "next/link";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -8,10 +7,9 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
-import type { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
+import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 
-export type PageProps = InferGetStaticPropsType<typeof getStaticProps>;
-export default function Apps({ apps }: PageProps) {
+export default function Apps({ apps }: CategoryDataProps) {
   const searchParams = useCompatSearchParams();
   const { t, isLocaleReady } = useLocale();
   const category = searchParams?.get("category");

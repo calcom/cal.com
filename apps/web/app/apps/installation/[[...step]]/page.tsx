@@ -12,7 +12,6 @@ import Page from "~/apps/installation/[[...step]]/step-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-
   const { appMetadata } = await getData(legacyCtx);
   return await _generateMetadata(
     (t) => `${t("install")} ${appMetadata?.name ?? ""}`,
