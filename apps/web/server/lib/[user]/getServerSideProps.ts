@@ -24,6 +24,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
+  id: number;
   trpcState: DehydratedState;
   profile: {
     name: string;
@@ -174,6 +175,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   return {
     props: {
+      id: user.id,
       users: usersInOrgContext.map((user) => ({
         name: user.name,
         username: user.username,

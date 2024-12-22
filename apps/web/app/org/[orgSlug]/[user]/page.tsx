@@ -4,9 +4,9 @@ import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
@@ -45,12 +45,12 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       nofollow: !isSEOIndexable,
     };
   } else {
-    const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
-    const session = await getServerSessionForAppDir();
-    const user = session?.user;
+    const { id, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
+    const avatarUrl = await UserRepository.getAvatarUrl(id);
+
     const meeting = {
       title: markdownStrippedBio,
-      profile: { name: `${profile.name}`, image: user?.avatarUrl ?? null },
+      profile: { name: `${profile.name}`, image: avatarUrl },
       users: [
         {
           username: `${profile.username ?? ""}`,

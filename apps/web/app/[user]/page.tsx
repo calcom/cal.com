@@ -4,8 +4,8 @@ import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -17,12 +17,11 @@ import LegacyPage from "~/users/views/users-public-view";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
-  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
-  const session = await getServerSessionForAppDir();
-  const user = session?.user;
+  const { id, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
+  const avatarUrl = await UserRepository.getAvatarUrl(id);
   const meeting = {
     title: markdownStrippedBio,
-    profile: { name: `${profile.name}`, image: user?.avatarUrl ?? null },
+    profile: { name: `${profile.name}`, image: avatarUrl },
     users: [
       {
         username: `${profile.username ?? ""}`,
@@ -30,6 +29,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       },
     ],
   };
+
   const metadata = await generateMeetingMetadata(
     meeting,
     () => profile.name,
