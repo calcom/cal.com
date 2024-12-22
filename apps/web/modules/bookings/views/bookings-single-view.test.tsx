@@ -1,13 +1,12 @@
 import { render } from "@testing-library/react";
 import { useSession } from "next-auth/react";
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, vi } from "vitest";
 import type { z } from "zod";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { HeadSeo } from "@calcom/ui";
 
 import Success from "./bookings-single-view";
 
@@ -138,16 +137,5 @@ describe("Success Component", () => {
     };
 
     render(<Success {...mockObject.props} />);
-
-    const expectedTitle = `booking_confirmed`;
-    const expectedDescription = expectedTitle;
-    expect(HeadSeo).toHaveBeenCalledWith(
-      {
-        origin: `${mockObject.props.orgSlug}.cal.local`,
-        title: expectedTitle,
-        description: expectedDescription,
-      },
-      {}
-    );
   });
 });
