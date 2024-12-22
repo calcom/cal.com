@@ -20,13 +20,6 @@ export default function Type({
 }: PageProps) {
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={booking?.uid}
-        hideBranding={isBrandingHidden}
-        entity={entity}
-      />
       <Booker
         username={user}
         eventSlug={slug}

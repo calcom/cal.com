@@ -41,26 +41,6 @@ function Type({
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={booking?.uid}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        eventData={
-          profile && users && title && hidden !== undefined
-            ? {
-                profile,
-                users,
-                title,
-                hidden,
-              }
-            : undefined
-        }
-        entity={eventData.entity}
-        bookingData={booking}
-        isSEOIndexable={isSEOIndexable}
-      />
       <Booker
         username={user}
         eventSlug={slug}
