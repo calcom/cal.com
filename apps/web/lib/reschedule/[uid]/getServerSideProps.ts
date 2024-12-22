@@ -36,10 +36,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   } = querySchema.parse(context.query);
 
   const coepFlag = context.query["flag.coep"];
-  const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
-    prisma,
-    bookingUid
-  );
+  const {
+    uid,
+    seatReferenceUid: maybeSeatReferenceUid,
+    bookingSeat,
+  } = await maybeGetBookingUidFromSeat(prisma, bookingUid);
 
   const booking = await prisma.booking.findUnique({
     where: {
@@ -132,8 +133,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast) {
     const destinationUrlSearchParams = new URLSearchParams();
-    const name = getSafe<string>(booking.responses, ["name"]);
-    const email = getSafe<string>(booking.responses, ["email"]);
+    const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
+    const name = getSafe<string>(responses, ["name"]);
+    const email = getSafe<string>(responses, ["email"]);
+
     if (name) destinationUrlSearchParams.set("name", name);
     if (email) destinationUrlSearchParams.set("email", email);
 
