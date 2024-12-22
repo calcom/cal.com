@@ -45,9 +45,6 @@ vi.mock("@calcom/lib/OgImages", async () => {
     constructGenericImage() {
       return "constructGenericImage";
     },
-    constructMeetingImage() {
-      return "constructMeetingImage";
-    },
   };
 });
 
