@@ -65,6 +65,7 @@ export interface App {
     | `${string}_video`
     | `${string}_other`
     | `${string}_automation`
+    | `${string}_ai`
     | `${string}_analytics`
     | `${string}_crm`
     | `${string}_other_calendar`;
@@ -88,6 +89,7 @@ export interface App {
     | "other"
     | "other_calendar"
     | "automation"
+    | "ai"
     | "crm";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
