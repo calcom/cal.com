@@ -74,7 +74,7 @@ export const _generateMetadata = async (
       url: canonical,
       type: "website",
       siteName: APP_NAME,
-      title,
+      title: displayedTitle,
       images: [image],
     },
     metadataBase,
