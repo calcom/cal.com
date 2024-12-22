@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug } = props;
+  const { booking, user: username, slug: eventSlug, isSEOIndexable } = props;
   const rescheduleUid = booking?.uid;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
@@ -57,6 +57,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
   return {
     ...metadata,
+    nofollow: event?.hidden || !isSEOIndexable,
+    noindex: event?.hidden || !isSEOIndexable,
     openGraph: {
       ...metadata.openGraph,
       images: [image],

@@ -4,6 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { constructMeetingImage } from "@calcom/lib/OgImages";
 import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -15,7 +16,7 @@ import type { PageProps } from "~/team/team-view";
 import LegacyPage from "~/team/team-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const { team, markdownStrippedBio } = await getData(
+  const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = await getData(
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
 
@@ -30,10 +31,14 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   const metadata = await _generateMetadata(
     (t) => team.name || t("nameless_team"),
-    (t) => team.name || t("nameless_team")
+    (t) => team.name || t("nameless_team"),
+    false,
+    getOrgFullOrigin(currentOrgDomain ?? null)
   );
   return {
     ...metadata,
+    nofollow: !isSEOIndexable,
+    noindex: !isSEOIndexable,
     openGraph: {
       ...metadata.openGraph,
       images: [image],

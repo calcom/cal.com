@@ -4,7 +4,8 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
-import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
+import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 //@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
@@ -39,10 +40,13 @@ export const getTranslate = async () => {
 export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
-  excludeAppNameFromTitle?: boolean
+  excludeAppNameFromTitle?: boolean,
+  origin?: string
 ) => {
   const h = headers();
-  const canonical = h.get("x-pathname") ?? "";
+  const pathname = h.get("x-pathname") ?? "";
+  const canonical = buildCanonical({ path: pathname, origin: origin ?? CAL_URL });
+
   const locale = h.get("x-locale") ?? "en";
 
   const t = await getFixedT(locale, "common");

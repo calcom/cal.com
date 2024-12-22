@@ -5,6 +5,7 @@ import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { constructMeetingImage } from "@calcom/lib/OgImages";
 import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -25,7 +26,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(legacyCtx);
   let metadata, meeting;
   if ((props as TeamPageProps)?.team) {
-    const { team, markdownStrippedBio } = props as TeamPageProps;
+    const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = props as TeamPageProps;
     meeting = {
       title: markdownStrippedBio ?? "",
       profile: {
@@ -34,16 +35,32 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       },
     };
 
-    metadata = await _generateMetadata(
-      (t) => team.name ?? t("nameless_team"),
-      (t) => team.name ?? t("nameless_team")
-    );
+    metadata = {
+      ...(await _generateMetadata(
+        (t) => team.name ?? t("nameless_team"),
+        (t) => team.name ?? t("nameless_team"),
+        false,
+        getOrgFullOrigin(currentOrgDomain ?? null)
+      )),
+      noindex: !isSEOIndexable,
+      nofollow: !isSEOIndexable,
+    };
   } else {
-    const { profile, markdownStrippedBio } = props as UserPageProps;
-    metadata = await _generateMetadata(
-      () => profile.name,
-      () => markdownStrippedBio
-    );
+    const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
+    const isOrg = !!profile?.organization;
+
+    const allowSEOIndexing =
+      (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
+    metadata = {
+      ...(await _generateMetadata(
+        () => profile.name,
+        () => markdownStrippedBio,
+        false,
+        getOrgFullOrigin(entity.orgSlug ?? null)
+      )),
+      noindex: !allowSEOIndexing,
+      nofollow: !allowSEOIndexing,
+    };
     const session = await getServerSessionForAppDir();
     const user = session?.user;
     meeting = {

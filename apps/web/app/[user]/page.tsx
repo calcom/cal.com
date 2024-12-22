@@ -5,6 +5,7 @@ import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { constructMeetingImage } from "@calcom/lib/OgImages";
 import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 
@@ -18,10 +19,12 @@ import LegacyPage from "~/users/views/users-public-view";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
-  const { profile, markdownStrippedBio } = props;
+  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
   const metadata = await _generateMetadata(
     () => profile.name,
-    () => markdownStrippedBio
+    () => markdownStrippedBio,
+    false,
+    getOrgFullOrigin(entity.orgSlug ?? null)
   );
   const session = await getServerSessionForAppDir();
   const user = session?.user;
@@ -37,8 +40,15 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     ],
   };
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+  const isOrg = !!profile?.organization;
+
+  const allowSEOIndexing =
+    (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
+
   return {
     ...metadata,
+    noindex: !allowSEOIndexing,
+    nofollow: !allowSEOIndexing,
     openGraph: {
       ...metadata.openGraph,
       images: [image],

@@ -60,11 +60,8 @@ export function UserPage(props: PageProps) {
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
 
-  const allowSEOIndexing = isOrg
-    ? isOrgSEOIndexable
-      ? profile.allowSEOIndexing
-      : false
-    : profile.allowSEOIndexing;
+  const allowSEOIndexing =
+    (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
 
   return (
     <>

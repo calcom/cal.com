@@ -4,7 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { constructMeetingImage } from "@calcom/lib/OgImages";
 import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { EventRepository } from "@calcom/lib/server/repository/event";
@@ -20,7 +20,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug } = props;
+  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData } = props;
   const rescheduleUid = booking?.uid;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
@@ -38,7 +38,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
   const metadata = await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    false,
+    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
   );
   const meeting = {
     title,
@@ -53,6 +55,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
   return {
     ...metadata,
+    nofollow: event?.hidden || !isSEOIndexable,
+    noindex: event?.hidden || !isSEOIndexable,
     openGraph: {
       ...metadata.openGraph,
       images: [image],
