@@ -17,8 +17,8 @@ import LegacyPage from "~/users/views/users-public-view";
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
-  const { id, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
-  const avatarUrl = await UserRepository.getAvatarUrl(id);
+  const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
+  const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
   const meeting = {
     title: markdownStrippedBio,
     profile: { name: `${profile.name}`, image: avatarUrl },

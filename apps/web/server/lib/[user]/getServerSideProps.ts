@@ -24,9 +24,9 @@ import { ssrInit } from "@server/lib/ssr";
 
 const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
-  id: number;
   trpcState: DehydratedState;
   profile: {
+    id: number;
     name: string;
     image: string;
     theme: string | null;
@@ -133,6 +133,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
   const profile = {
+    id: user.id,
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
       avatarUrl: user.avatarUrl,
@@ -175,7 +176,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   return {
     props: {
-      id: user.id,
       users: usersInOrgContext.map((user) => ({
         name: user.name,
         username: user.username,

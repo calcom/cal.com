@@ -45,8 +45,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       nofollow: !isSEOIndexable,
     };
   } else {
-    const { id, profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
-    const avatarUrl = await UserRepository.getAvatarUrl(id);
+    const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
+    const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
 
     const meeting = {
       title: markdownStrippedBio,
