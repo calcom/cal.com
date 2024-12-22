@@ -12,7 +12,6 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +19,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
+import { Avatar, Button, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -164,105 +163,87 @@ function TeamPage({
   const profileImageSrc = getOrgOrTeamAvatar(team);
 
   return (
-    <>
-      <HeadSeo
-        origin={getOrgFullOrigin(currentOrgDomain)}
-        title={teamName}
-        description={teamName}
-        meeting={{
-          title: markdownStrippedBio,
-          profile: {
-            name: `${team.name}`,
-            image: profileImageSrc,
-          },
-        }}
-        nextSeoProps={{
-          nofollow: !isSEOIndexable,
-          noindex: !isSEOIndexable,
-        }}
-      />
-      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
-        <div className="mx-auto mb-8 max-w-3xl text-center">
-          <div className="relative">
-            <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
-          </div>
-          <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
-            {team.parent && `${team.parent.name} `}
-            {teamName}
-          </p>
-          {!isBioEmpty && (
-            <>
-              <div
-                className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                // eslint-disable-next-line react/no-danger
-                dangerouslySetInnerHTML={{ __html: team.safeBio }}
-              />
-            </>
-          )}
+    <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
+      <div className="mx-auto mb-8 max-w-3xl text-center">
+        <div className="relative">
+          <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
         </div>
-        {team.isOrganization ? (
-          !teamOrOrgIsPrivate ? (
-            <SubTeams />
-          ) : (
-            <div className="w-full text-center">
-              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
-            </div>
-          )
-        ) : (
+        <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
+          {team.parent && `${team.parent.name} `}
+          {teamName}
+        </p>
+        {!isBioEmpty && (
           <>
-            {(showMembers.isOn || !team.eventTypes?.length) &&
-              (teamOrOrgIsPrivate ? (
-                <div className="w-full text-center">
-                  <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
-                    {t("you_cannot_see_team_members")}
-                  </h2>
-                </div>
-              ) : (
-                <Team members={team.members} teamName={team.name} />
-              ))}
-            {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
-              <div className="mx-auto max-w-3xl ">
-                <EventTypes eventTypes={team.eventTypes} />
-
-                {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
-                  <div>
-                    <div className="relative mt-12">
-                      <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div className="border-subtle w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle px-2 text-sm">
-                          {t("or")}
-                        </span>
-                      </div>
-                    </div>
-
-                    <aside className="dark:text-inverted mt-8 flex justify-center text-center">
-                      <Button
-                        color="minimal"
-                        EndIcon="arrow-right"
-                        data-testid="book-a-team-member-btn"
-                        className="dark:hover:bg-darkgray-200"
-                        href={{
-                          pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
-                          query: {
-                            ...queryParamsToForward,
-                            members: "1",
-                          },
-                        }}
-                        shallow={true}>
-                        {t("book_a_team_member")}
-                      </Button>
-                    </aside>
-                  </div>
-                )}
-              </div>
-            )}
+            <div
+              className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{ __html: team.safeBio }}
+            />
           </>
         )}
-      </main>
-    </>
+      </div>
+      {team.isOrganization ? (
+        !teamOrOrgIsPrivate ? (
+          <SubTeams />
+        ) : (
+          <div className="w-full text-center">
+            <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
+          </div>
+        )
+      ) : (
+        <>
+          {(showMembers.isOn || !team.eventTypes?.length) &&
+            (teamOrOrgIsPrivate ? (
+              <div className="w-full text-center">
+                <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
+                  {t("you_cannot_see_team_members")}
+                </h2>
+              </div>
+            ) : (
+              <Team members={team.members} teamName={team.name} />
+            ))}
+          {!showMembers.isOn && team.eventTypes && team.eventTypes.length > 0 && (
+            <div className="mx-auto max-w-3xl ">
+              <EventTypes eventTypes={team.eventTypes} />
+
+              {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
+              {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
+                <div>
+                  <div className="relative mt-12">
+                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                      <div className="border-subtle w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="dark:bg-darkgray-50 bg-subtle text-subtle px-2 text-sm">
+                        {t("or")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <aside className="dark:text-inverted mt-8 flex justify-center text-center">
+                    <Button
+                      color="minimal"
+                      EndIcon="arrow-right"
+                      data-testid="book-a-team-member-btn"
+                      className="dark:hover:bg-darkgray-200"
+                      href={{
+                        pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}`,
+                        query: {
+                          ...queryParamsToForward,
+                          members: "1",
+                        },
+                      }}
+                      shallow={true}>
+                      {t("book_a_team_member")}
+                    </Button>
+                  </aside>
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+    </main>
   );
 }
 
