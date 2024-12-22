@@ -40,7 +40,7 @@ export const getTranslate = async () => {
 export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
-  excludeAppNameFromTitle?: boolean,
+  hideBranding?: boolean,
   origin?: string
 ) => {
   const h = headers();
@@ -64,8 +64,7 @@ export const _generateMetadata = async (
     });
 
   const titleSuffix = `| ${APP_NAME}`;
-  const displayedTitle =
-    title.includes(titleSuffix) || excludeAppNameFromTitle ? title : `${title} ${titleSuffix}`;
+  const displayedTitle = title.includes(titleSuffix) || hideBranding ? title : `${title} ${titleSuffix}`;
 
   return {
     title: title.length === 0 ? APP_NAME : displayedTitle,
