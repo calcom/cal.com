@@ -2,7 +2,6 @@
 
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
