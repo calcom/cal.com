@@ -103,7 +103,7 @@ test.describe("Organization Settings", () => {
             `/${orgMember.username}`,
             `/${orgMember.username}/${userEvent.slug}`,
           ],
-          expectedContent: "noindex,nofollow",
+          expectedContent: "noindex, nofollow",
         });
       });
     });
@@ -148,7 +148,7 @@ test.describe("Organization Settings", () => {
           page,
           orgSlug: org.slug,
           urls: [`/${orgMember.username}/${userEvent.slug}`],
-          expectedContent: "noindex,nofollow",
+          expectedContent: "noindex, nofollow",
         });
       });
     });
