@@ -248,6 +248,11 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   integrationTitle?: string;
 }
 
+/**
+ * null is to refer to user-level SelectedCalendar
+ */
+export type SelectedCalendarEventTypeIds = (number | null)[];
+
 export interface Calendar {
   createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
 
@@ -277,9 +282,14 @@ export interface Calendar {
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
-
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown>;
+  unwatchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
 }
 
 /**

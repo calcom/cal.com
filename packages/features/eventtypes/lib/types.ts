@@ -93,6 +93,7 @@ export type FormValues = {
   aiPhoneCallConfig: PhoneCallConfig;
   customInputs: CustomInputParsed[];
   schedule: number | null;
+  useEventLevelSelectedCalendars: boolean;
 
   periodType: PeriodType;
   /**
