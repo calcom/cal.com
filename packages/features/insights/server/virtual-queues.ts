@@ -4,20 +4,7 @@ import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableFo
 
 class VirtualQueuesInsights {
   static async getUserRelevantTeamRoutingForms({ userId }: { userId: number }) {
-    type FormWithRelations = App_RoutingForms_Form & {
-      team: {
-        parentId: number | null;
-        parent: { slug: string } | null;
-        metadata: any;
-      };
-      user: {
-        id: number;
-        username: string | null;
-        movedToProfileId: number | null;
-      };
-    };
-
-    const formsRedirectingToWeightedRR = await prisma.$queryRaw<FormWithRelations[]>`
+    const formsRedirectingToWeightedRR = await prisma.$queryRaw<App_RoutingForms_Form[]>`
       WITH RECURSIVE json_array_elements_recursive AS (
         SELECT f.id, f."teamId",
                jsonb_array_elements(f.routes::jsonb) as route
@@ -59,10 +46,7 @@ class VirtualQueuesInsights {
     const serializableForms = await Promise.all(
       formsRedirectingToWeightedRR.map(async (form) => {
         const serializedForm = await getSerializableForm({ form });
-        return {
-          ...serializedForm,
-          team: form.team,
-        };
+        return serializedForm;
       })
     );
 
