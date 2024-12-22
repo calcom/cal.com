@@ -15,7 +15,7 @@ import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-mee
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const { slug: eventSlug, user: username } = await getData(context);
+  const { slug: eventSlug, user: username, isBrandingHidden } = await getData(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
@@ -33,7 +33,8 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   return await _generateMetadata(
     () => `${title} | ${profileName}`,
-    () => `${title}`
+    () => `${title}`,
+    isBrandingHidden
   );
 };
 

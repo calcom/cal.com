@@ -20,7 +20,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData } = props;
+  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
@@ -39,7 +39,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const metadata = await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    false,
+    isBrandingHidden,
     getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
   );
   const meeting = {

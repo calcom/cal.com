@@ -17,7 +17,7 @@ import LegacyPage, { type PageProps as LegacyPageProps } from "~/team/type-view"
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData } = props;
+  const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData, isBrandingHidden } = props;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
   const event = await EventRepository.getPublicEvent({
@@ -35,7 +35,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const metadata = await _generateMetadata(
     (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
-    false,
+    isBrandingHidden,
     getOrgFullOrigin(eventData.entity.orgSlug ?? null)
   );
   const meeting = {
