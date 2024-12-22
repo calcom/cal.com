@@ -5,6 +5,8 @@ import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { constructMeetingImage } from "@calcom/lib/OgImages";
+import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -29,18 +31,37 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const event = await EventRepository.getPublicEvent({
     username,
     eventSlug,
-    isTeamEvent: false,
+    isTeamEvent: !!(props as TeamTypePageProps)?.teamId,
     org: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
 
   const profileName = event?.profile?.name ?? "";
+  const profileImage = event?.profile.image;
   const title = event?.title ?? "";
 
-  return await _generateMetadata(
+  const metadata = await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
   );
+  const meeting = {
+    title,
+    profile: { name: profileName, image: profileImage },
+    users: [
+      ...(event?.users || []).map((user) => ({
+        name: `${user.name}`,
+        username: `${user.username}`,
+      })),
+    ],
+  };
+  const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      images: [image],
+    },
+  };
 };
 
 export const Page = async (props: OrgTypePageProps) => {
