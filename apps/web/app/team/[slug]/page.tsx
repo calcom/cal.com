@@ -1,12 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { constructMeetingImage } from "@calcom/lib/OgImages";
-import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -27,9 +25,9 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
       image: getOrgOrTeamAvatar(team),
     },
   };
-  const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
 
-  const metadata = await _generateMetadata(
+  const metadata = await generateMeetingMetadata(
+    meeting,
     (t) => team.name || t("nameless_team"),
     (t) => team.name || t("nameless_team"),
     false,
@@ -39,10 +37,6 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     ...metadata,
     nofollow: !isSEOIndexable,
     noindex: !isSEOIndexable,
-    openGraph: {
-      ...metadata.openGraph,
-      images: [image],
-    },
   };
 };
 

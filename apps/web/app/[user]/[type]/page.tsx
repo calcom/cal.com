@@ -1,12 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { constructMeetingImage } from "@calcom/lib/OgImages";
-import { SEO_IMG_OGIMG } from "@calcom/lib/constants";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -36,12 +34,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const profileImage = event?.profile.image;
   const title = event?.title ?? "";
 
-  const metadata = await _generateMetadata(
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
-  );
   const meeting = {
     title,
     profile: { name: profileName, image: profileImage },
@@ -52,15 +44,19 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       })),
     ],
   };
-  const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+
+  const metadata = await generateMeetingMetadata(
+    meeting,
+    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    isBrandingHidden,
+    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
+  );
+
   return {
     ...metadata,
     nofollow: event?.hidden || !isSEOIndexable,
     noindex: event?.hidden || !isSEOIndexable,
-    openGraph: {
-      ...metadata.openGraph,
-      images: [image],
-    },
   };
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
