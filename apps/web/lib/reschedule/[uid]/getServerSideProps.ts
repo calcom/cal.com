@@ -132,7 +132,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast) {
     const destinationUrlSearchParams = new URLSearchParams();
-    // console.log("booking.responses", booking);
     const name = getSafe<string>(booking.responses, ["name"]);
     const email = getSafe<string>(booking.responses, ["email"]);
     if (name) destinationUrlSearchParams.set("name", name);
