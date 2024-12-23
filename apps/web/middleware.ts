@@ -160,6 +160,7 @@ export const config = {
     "/upgrade/:path*",
     "/connect-and-join/:path*",
     "/insights/:path*",
+    "/:path*/embed",
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
@@ -197,7 +198,6 @@ export const config = {
     "/team/:path*",
     "/:user/:type/",
     "/:user/",
-    "/:path*/embed",
   ],
 };
 
