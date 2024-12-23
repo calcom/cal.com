@@ -116,7 +116,7 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-const getPublicEventSelect = (includeOnlyOneHost?: boolean) => {
+const getPublicEventSelect = (limitHostsToThree?: boolean) => {
   return Prisma.validator<Prisma.EventTypeSelect>()({
     id: true,
     title: true,
@@ -188,7 +188,7 @@ const getPublicEventSelect = (includeOnlyOneHost?: boolean) => {
           select: userSelect,
         },
       },
-      ...(includeOnlyOneHost ? { take: 3 } : {}),
+      ...(limitHostsToThree ? { take: 3 } : {}),
     },
     owner: {
       select: userSelect,
@@ -221,9 +221,9 @@ export const getPublicEvent = async (
   prisma: PrismaClient,
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number,
-  includeOnlyOneHost?: boolean
+  limitHostsToThree?: boolean
 ) => {
-  const publicEventSelect = getPublicEventSelect(includeOnlyOneHost);
+  const publicEventSelect = getPublicEventSelect(limitHostsToThree);
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.

@@ -26,7 +26,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     isTeamEvent: true,
     org,
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    includeOnlyOneHost: true,
+    limitHostsToThree: true,
   });
 
   const profileName = event?.profile.name ?? "";
