@@ -2891,5 +2891,12 @@
   "reassigned": "Đã phân công lại",
   "rerouted": "Đã chuyển hướng lại",
   "salesforce_assigned": "Phân công Salesforce",
+  "router_position": "Vị trí bộ định tuyến",
+  "show_matching_hosts": "Hiển thị các máy chủ phù hợp",
+  "no_active_queues": "Không có hàng đợi đang hoạt động cho đầu vào này",
+  "weight": "Trọng số",
+  "calibration": "Hiệu chuẩn",
+  "shortfall": "Thiếu hụt",
+  "routing_form": "Biểu mẫu định tuyến",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

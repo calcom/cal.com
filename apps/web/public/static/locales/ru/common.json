@@ -2891,5 +2891,12 @@
   "reassigned": "Переназначено",
   "rerouted": "Перенаправлено",
   "salesforce_assigned": "Назначение в Salesforce",
+  "router_position": "Позиция роутера",
+  "show_matching_hosts": "Показать подходящие хосты",
+  "no_active_queues": "Нет активных очередей для этого входа",
+  "weight": "Вес",
+  "calibration": "Калибровка",
+  "shortfall": "Дефицит",
+  "routing_form": "Форма маршрутизации",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

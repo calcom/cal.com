@@ -2891,5 +2891,12 @@
   "reassigned": "Uudelleenmääritetty",
   "rerouted": "Uudelleenreititetty",
   "salesforce_assigned": "Salesforce-määritys",
+  "router_position": "Reitittimen sijainti",
+  "show_matching_hosts": "Näytä täsmäävät isännät",
+  "no_active_queues": "Ei aktiivisia jonoja tälle syötteelle",
+  "weight": "Paino",
+  "calibration": "Kalibrointi",
+  "shortfall": "Vajaus",
+  "routing_form": "Reitityskaavake",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
