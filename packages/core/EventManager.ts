@@ -9,6 +9,7 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvideo/zod";
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import CRMScheduler from "@calcom/core/crmManager/tasker/crmScheduler";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
@@ -215,7 +216,9 @@ export default class EventManager {
       return result.type.includes("_calendar");
     };
 
-    results.push(...(await this.createAllCRMEvents(clonedCalEvent)));
+    const createdCRMEvents = await this.createAllCRMEvents(clonedCalEvent);
+
+    results.push(...createdCRMEvents);
 
     // References can be any type: calendar/video
     const referencesToCreate = results.map((result) => {
@@ -970,8 +973,21 @@ export default class EventManager {
 
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
+
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
+      if (process.env.TASKER_ENABLE_CRM_EVENT_CREATION) {
+        if (!event.uid) {
+          console.error(
+            `Missing bookingId when scheduling CRM event creation on event type ${event?.eventTypeId}`
+          );
+          continue;
+        }
+
+        await CRMScheduler.createEvent({ credentialId: credential.id, bookingUid: event.uid });
+        continue;
+      }
+
       const currentAppOption = this.getAppOptionsFromEventMetadata(credential);
 
       const crm = new CrmManager(credential, currentAppOption);
