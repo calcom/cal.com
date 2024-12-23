@@ -476,6 +476,7 @@ export const EventAdvancedTab = ({
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
+  const reschedulingPastBookingsLocked = shouldLockDisableProps("reschedulingPastBookings");
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
@@ -897,15 +898,11 @@ export const EventAdvancedTab = ({
         name="reschedulingPastBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
-            labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
-            descriptionClassName={customClassNames?.timezoneLock?.description}
+            labelClassName={classNames("text-sm")}
             toggleSwitchAtTheEnd={true}
-            switchContainerClassName={classNames(
-              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              customClassNames?.timezoneLock?.container
-            )}
+            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
             title={t("allow_rescheduling_past_events")}
-            {...lockTimeZoneToggleOnBookingPageLocked}
+            {...reschedulingPastBookingsLocked}
             description={t("allow_rescheduling_past_events_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
