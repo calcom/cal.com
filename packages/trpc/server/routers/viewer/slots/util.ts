@@ -62,38 +62,38 @@ export const checkIfIsAvailable = ({
     return true;
   }
 
-  const slotStartValue = time.utc().valueOf();
-  const slotEndValue = time.add(eventLength, "minutes").utc().valueOf();
+  const slotStartDate = time.utc().toDate();
+  const slotEndDate = time.add(eventLength, "minutes").utc().toDate();
 
   return busy.every((busyTime) => {
-    const busyStartValue = dayjs.utc(busyTime.start).valueOf();
-    const busyEndValue = dayjs.utc(busyTime.end).valueOf();
+    const busyStartDate = dayjs.utc(busyTime.start).toDate();
+    const busyEndDate = dayjs.utc(busyTime.end).toDate();
 
     // First check if there's any overlap at all
     // If busy period ends before slot starts or starts after slot ends, there's no overlap
-    if (busyEndValue <= slotStartValue || busyStartValue >= slotEndValue) {
+    if (busyEndDate <= slotStartDate || busyStartDate >= slotEndDate) {
       return true;
     }
 
     // Now check all possible overlap scenarios:
 
     // 1. Slot start falls within busy period (inclusive start, exclusive end)
-    if (slotStartValue >= busyStartValue && slotStartValue < busyEndValue) {
+    if (slotStartDate >= busyStartDate && slotStartDate < busyEndDate) {
       return false;
     }
 
     // 2. Slot end falls within busy period (exclusive start, inclusive end)
-    if (slotEndValue > busyStartValue && slotEndValue <= busyEndValue) {
+    if (slotEndDate > busyStartDate && slotEndDate <= busyEndDate) {
       return false;
     }
 
     // 3. Busy period completely contained within slot
-    if (busyStartValue >= slotStartValue && busyEndValue <= slotEndValue) {
+    if (busyStartDate >= slotStartDate && busyEndDate <= slotEndDate) {
       return false;
     }
 
     // 4. Slot completely contained within busy period
-    if (busyStartValue <= slotStartValue && busyEndValue >= slotEndValue) {
+    if (busyStartDate <= slotStartDate && busyEndDate >= slotEndDate) {
       return false;
     }
 
