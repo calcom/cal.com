@@ -244,14 +244,20 @@ const OnboardingPage = ({
                   const promises = group.eventTypes
                     .filter((eventType) => eventType.selected)
                     .map((value: TEventType) => {
-                      const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(value.metadata);
-                      // Prevent two payment apps to be enabled
-                      // Ok to cast type here because this metadata will be updated as the event type metadata
-                      if (checkForMultiplePaymentApps(metadata))
-                        throw new Error(t("event_setup_multiple_payment_apps_error"));
-                      if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
-                        throw new Error(t("seats_and_no_show_fee_error"));
+                      if (value.metadata) {
+                        const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(value.metadata);
+                        // Prevent two payment apps to be enabled
+                        // Ok to cast type here because this metadata will be updated as the event type metadata
+                        if (checkForMultiplePaymentApps(metadata))
+                          throw new Error(t("event_setup_multiple_payment_apps_error"));
+                        if (
+                          value.metadata?.apps?.stripe?.paymentOption === "HOLD" &&
+                          value.seatsPerTimeSlot
+                        ) {
+                          throw new Error(t("seats_and_no_show_fee_error"));
+                        }
                       }
+
                       let updateObject: TUpdateObject = { id: value.id };
                       if (isConferencing) {
                         updateObject = {
