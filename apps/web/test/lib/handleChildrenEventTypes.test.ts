@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
@@ -405,22 +406,22 @@ describe("handleChildrenEventTypes", () => {
       // Mock the event type that will be returned for existing users
       const mockUpdatedEventType = {
         id: 2,
-        ...evType,
-        bookingLimits: undefined,
-        durationLimits: undefined,
-        recurringEvent: undefined,
-        eventTypeColor: undefined,
-        instantMeetingScheduleId: undefined,
-        locations: [],
-        lockTimeZoneToggleOnBookingPage: false,
+        userId: 4,
+        timeZone: "UTC",
+        teamId: 1,
+        autoTranslateDescriptionEnabled: false,
+        secondaryEmailId: null,
+        schedulingType: SchedulingType.MANAGED,
         requiresBookerEmailVerification: false,
+        lockTimeZoneToggleOnBookingPage: false,
+        useEventTypeDestinationCalendarEmail: false,
+        workflows: [],
         parentId: 1,
+        locations: [],
+        ...evType,
       };
 
-      // Mock the Promise.all response for existing event types
-      prismaMock.eventType.findUnique.mockResolvedValue({ metadata: null });
       prismaMock.eventType.update.mockResolvedValue(mockUpdatedEventType);
-      prismaMock.$transaction.mockResolvedValue([mockUpdatedEventType]);
 
       await updateChildrenEventTypes({
         eventTypeId: 1,
@@ -436,7 +437,6 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
 
-      // Verify create call for new user
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
@@ -462,8 +462,6 @@ describe("handleChildrenEventTypes", () => {
           useEventLevelSelectedCalendars: false,
         },
       });
-
-      // Verify update call for existing user
       const { profileId, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -487,8 +485,6 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
-
-      // Verify workflow upsert call
       expect(prismaMock.workflowsOnEventTypes.upsert).toHaveBeenCalledWith({
         create: {
           eventTypeId: 2,
