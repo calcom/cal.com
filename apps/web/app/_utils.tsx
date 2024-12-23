@@ -4,7 +4,8 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { headers } from "next/headers";
 
 import { constructGenericImage } from "@calcom/lib/OgImages";
-import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
+import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 //@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
@@ -47,24 +48,23 @@ export const getTranslate = async () => {
   return t;
 };
 
-export const _generateMetadata = async (
+const _generateMetadataWithoutImage = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
-  excludeAppNameFromTitle?: boolean
+  hideBranding?: boolean,
+  origin?: string
 ) => {
   const h = headers();
-  const canonical = h.get("x-pathname") ?? "";
+  const pathname = h.get("x-pathname") ?? "";
+  const canonical = buildCanonical({ path: pathname, origin: origin ?? CAL_URL });
   const locale = h.get("x-locale") ?? "en";
   const t = await getTranslationWithCache(locale);
 
   const title = getTitle(t);
   const description = getDescription(t);
-
-  const metadataBase = new URL(IS_CALCOM ? "https://cal.com" : WEBAPP_URL);
-  const image = SEO_IMG_OGIMG + constructGenericImage({ title, description });
   const titleSuffix = `| ${APP_NAME}`;
-  const displayedTitle =
-    title.includes(titleSuffix) || excludeAppNameFromTitle ? title : `${title} ${titleSuffix}`;
+  const displayedTitle = title.includes(titleSuffix) || hideBranding ? title : `${title} ${titleSuffix}`;
+  const metadataBase = new URL(IS_CALCOM ? "https://cal.com" : WEBAPP_URL);
 
   return {
     title: title.length === 0 ? APP_NAME : displayedTitle,
@@ -75,9 +75,31 @@ export const _generateMetadata = async (
       url: canonical,
       type: "website",
       siteName: APP_NAME,
-      title,
-      images: [image],
+      title: displayedTitle,
     },
     metadataBase,
+  };
+};
+
+export const _generateMetadata = async (
+  getTitle: (t: TFunction<string, undefined>) => string,
+  getDescription: (t: TFunction<string, undefined>) => string,
+  hideBranding?: boolean,
+  origin?: string
+) => {
+  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const image =
+    SEO_IMG_OGIMG +
+    constructGenericImage({
+      title: metadata.title,
+      description: metadata.description,
+    });
+
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      images: [image],
+    },
   };
 };
