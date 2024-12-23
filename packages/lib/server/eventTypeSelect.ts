@@ -35,7 +35,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   afterEventBuffer: true,
   seatsPerTimeSlot: true,
   onlyShowFirstAvailableSlot: true,
-  reschedulingPastBookings: true,
+  alllowReschedulingPastBookings: true,
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
   scheduleId: true,

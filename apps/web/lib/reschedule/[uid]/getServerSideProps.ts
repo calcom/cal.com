@@ -54,7 +54,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             },
           },
           slug: true,
-          reschedulingPastBookings: true,
+          alllowReschedulingPastBookings: true,
           team: {
             select: {
               parentId: true,
@@ -129,7 +129,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
-  if (isBookingInPast && !eventType.reschedulingPastBookings) {
+  if (isBookingInPast && !eventType.alllowReschedulingPastBookings) {
     return {
       redirect: {
         destination: eventUrl,

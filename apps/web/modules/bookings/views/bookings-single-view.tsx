@@ -728,7 +728,7 @@ export default function Success(props: PageProps) {
 
                             <>
                               {!props.recurringBookings &&
-                                (!isBookingInPast || eventType.reschedulingPastBookings) && (
+                                (!isBookingInPast || eventType.alllowReschedulingPastBookings) && (
                                   <span className="text-default inline">
                                     <span className="underline" data-testid="reschedule-link">
                                       <Link

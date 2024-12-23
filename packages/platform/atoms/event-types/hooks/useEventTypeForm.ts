@@ -91,7 +91,7 @@ export const useEventTypeForm = ({
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      reschedulingPastBookings: eventType.reschedulingPastBookings,
+      alllowReschedulingPastBookings: eventType.alllowReschedulingPastBookings,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
