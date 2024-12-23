@@ -19,6 +19,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendSms: () => Promise.resolve(() => Promise.reject(new Error("Not implemented"))),
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
+  createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
 };
 
 export default tasks;
