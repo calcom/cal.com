@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 
 import { ssrInit } from "@server/lib/ssr";
 
