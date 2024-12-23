@@ -26,8 +26,8 @@ export const generateMetadata = () =>
     twitterCreator: "@calcom",
     twitterSite: "@calcom",
     robots: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
     },
   });
 
