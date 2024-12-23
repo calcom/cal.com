@@ -62,33 +62,38 @@ export const checkIfIsAvailable = ({
     return true;
   }
 
-  const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.utc();
+  const slotStartValue = time.utc().valueOf();
+  const slotEndValue = time.add(eventLength, "minutes").utc().valueOf();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
+    const busyStartValue = dayjs.utc(busyTime.start).valueOf();
+    const busyEndValue = dayjs.utc(busyTime.end).valueOf();
 
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
+    // First check if there's any overlap at all
+    // If busy period ends before slot starts or starts after slot ends, there's no overlap
+    if (busyEndValue <= slotStartValue || busyStartValue >= slotEndValue) {
       return true;
     }
 
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
+    // Now check all possible overlap scenarios:
+
+    // 1. Slot start falls within busy period (inclusive start, exclusive end)
+    if (slotStartValue >= busyStartValue && slotStartValue < busyEndValue) {
       return false;
     }
 
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
+    // 2. Slot end falls within busy period (exclusive start, inclusive end)
+    if (slotEndValue > busyStartValue && slotEndValue <= busyEndValue) {
       return false;
     }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
+
+    // 3. Busy period completely contained within slot
+    if (busyStartValue >= slotStartValue && busyEndValue <= slotEndValue) {
       return false;
     }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
+
+    // 4. Slot completely contained within busy period
+    if (busyStartValue <= slotStartValue && busyEndValue >= slotEndValue) {
       return false;
     }
 
@@ -986,22 +991,18 @@ const calculateHostsAndAvailabilities = async ({
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const currentBookingsAllUsers = await monitorCallbackAsync(
-    getExistingBookings,
-    startTimeDate,
-    endTimeDate,
-    eventType,
-    sharedQuery,
-    usersWithCredentials,
-    allUserIds
-  );
-
-  const outOfOfficeDaysAllUsers = await monitorCallbackAsync(
-    getOOODates,
-    startTimeDate,
-    endTimeDate,
-    allUserIds
-  );
+  const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    monitorCallbackAsync(
+      getExistingBookings,
+      startTimeDate,
+      endTimeDate,
+      eventType,
+      sharedQuery,
+      usersWithCredentials,
+      allUserIds
+    ),
+    monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
+  ]);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
