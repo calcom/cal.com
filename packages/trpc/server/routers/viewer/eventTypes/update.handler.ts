@@ -15,6 +15,7 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -27,7 +28,6 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
-import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
