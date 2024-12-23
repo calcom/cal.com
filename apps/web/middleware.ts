@@ -172,7 +172,6 @@ export const config = {
     "/apps/:path*",
     "/routing/:path*",
     "/bookings/:status/",
-    "/future/bookings/:status/",
     "/video/:path*",
     "/teams",
     "/future/teams/",
