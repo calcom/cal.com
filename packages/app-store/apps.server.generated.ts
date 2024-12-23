@@ -49,6 +49,7 @@ export const apiHandlers = {
   metapixel: import("./metapixel/api"),
   mirotalk: import("./mirotalk/api"),
   "mock-payment-app": import("./mock-payment-app/api"),
+  monobot: import("./monobot/api"),
   n8n: import("./n8n/api"),
   nextcloudtalk: import("./nextcloudtalk/api"),
   office365calendar: import("./office365calendar/api"),
