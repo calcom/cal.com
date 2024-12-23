@@ -399,7 +399,27 @@ describe("handleChildrenEventTypes", () => {
           } as CompleteWorkflowsOnEventTypes,
         ],
       });
-      prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
+
+      // Mock the event type that will be returned for existing users
+      const mockUpdatedEventType = {
+        id: 2,
+        ...evType,
+        bookingLimits: undefined,
+        durationLimits: undefined,
+        recurringEvent: undefined,
+        eventTypeColor: undefined,
+        instantMeetingScheduleId: undefined,
+        locations: [],
+        lockTimeZoneToggleOnBookingPage: false,
+        requiresBookerEmailVerification: false,
+        parentId: 1,
+      };
+
+      // Mock the Promise.all response for existing event types
+      prismaMock.eventType.findUnique.mockResolvedValue({ metadata: null });
+      prismaMock.eventType.update.mockResolvedValue(mockUpdatedEventType);
+      prismaMock.$transaction.mockResolvedValue([mockUpdatedEventType]);
+
       await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -414,6 +434,7 @@ describe("handleChildrenEventTypes", () => {
         updatedValues: {},
       });
 
+      // Verify create call for new user
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
           ...evType,
@@ -428,11 +449,7 @@ describe("handleChildrenEventTypes", () => {
           parentId: 1,
           userId: 5,
           users: {
-            connect: [
-              {
-                id: 5,
-              },
-            ],
+            connect: [{ id: 5 }],
           },
           workflows: {
             create: [{ workflowId: 11 }],
@@ -442,6 +459,8 @@ describe("handleChildrenEventTypes", () => {
           assignRRMembersUsingSegment: false,
         },
       });
+
+      // Verify update call for existing user
       const { profileId, ...rest } = evType;
       if ("workflows" in rest) delete rest.workflows;
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
@@ -464,6 +483,8 @@ describe("handleChildrenEventTypes", () => {
           },
         },
       });
+
+      // Verify workflow upsert call
       expect(prismaMock.workflowsOnEventTypes.upsert).toHaveBeenCalledWith({
         create: {
           eventTypeId: 2,
