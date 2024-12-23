@@ -69,8 +69,8 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import {
-  EventTypeAppMetadataOptionalSchema,
-  EventTypeMetaDataSchemaWithTypedApps,
+  eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
 } from "@calcom/prisma/zod-utils";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -427,7 +427,7 @@ async function handler(
 
   const paymentAppData = getPaymentAppData({
     ...eventType,
-    metadata: EventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
@@ -1061,7 +1061,7 @@ async function handler(
   const workflows = await getAllWorkflowsFromEventType(
     {
       ...eventType,
-      metadata: EventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
     },
     organizerUser.id
   );
@@ -1288,7 +1288,7 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
-  const apps = EventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
     ? new EventManager({ ...organizerUser, credentials }, apps)
     : buildDryRunEventManager();
