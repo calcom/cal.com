@@ -6,6 +6,7 @@ import type { appDataSchema, paymentOptionEnum } from "@calcom/app-store/stripep
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 export default function getPaymentAppData(
   _eventType: Pick<BookerEvent, "price" | "currency"> & {
