@@ -56,14 +56,12 @@ import {
   Badge,
   Button,
   EmailInput,
-  HeadSeo,
   useCalcomTheme,
   TextArea,
   showToast,
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
-import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -435,7 +433,6 @@ export default function Success(props: PageProps) {
           </Link>
         </div>
       )}
-      <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
       <BookingPageTagManager eventType={eventType} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
@@ -1116,7 +1113,6 @@ const DisplayLocation = ({
   );
 
 Success.isBookingPage = true;
-Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
