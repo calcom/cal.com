@@ -2891,5 +2891,12 @@
   "reassigned": "Újra kiosztva",
   "rerouted": "Átirányítva",
   "salesforce_assigned": "Salesforce hozzárendelés",
+  "router_position": "Router pozíció",
+  "show_matching_hosts": "Egyező hosztok megjelenítése",
+  "no_active_queues": "Nincsenek aktív sorok ehhez a bemenethez",
+  "weight": "Súly",
+  "calibration": "Kalibráció",
+  "shortfall": "Hiány",
+  "routing_form": "Útválasztási űrlap",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2891,5 +2891,12 @@
   "reassigned": "Reatribuído",
   "rerouted": "Reencaminhado",
   "salesforce_assigned": "Atribuição do Salesforce",
+  "router_position": "Posição do roteador",
+  "show_matching_hosts": "Mostrar hosts correspondentes",
+  "no_active_queues": "Não há filas ativas para esta entrada",
+  "weight": "Peso",
+  "calibration": "Calibração",
+  "shortfall": "Déficit",
+  "routing_form": "Formulário de roteamento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
