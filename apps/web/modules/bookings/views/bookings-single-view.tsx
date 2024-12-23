@@ -56,7 +56,6 @@ import {
   Badge,
   Button,
   EmailInput,
-  HeadSeo,
   useCalcomTheme,
   TextArea,
   showToast,
@@ -431,12 +430,12 @@ export default function Success(props: PageProps) {
         />
       )}
       {isLoggedIn && !isEmbed && !isFeedbackMode && (
-        <div className="-mb-4 ml-4 mt-2">
+        <div className="mt-2 ml-4 -mb-4">
           <Link
             href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
             data-testid="back-to-bookings"
-            className="hover:bg-subtle text-subtle hover:text-default mt-2 inline-flex px-1 py-2 text-sm transition dark:hover:bg-transparent">
-            <Icon name="chevron-left" className="h-5 w-5 rtl:rotate-180" /> {t("back_to_bookings")}
+            className="inline-flex px-1 py-2 mt-2 text-sm transition hover:bg-subtle text-subtle hover:text-default dark:hover:bg-transparent">
+            <Icon name="chevron-left" className="w-5 h-5 rtl:rotate-180" /> {t("back_to_bookings")}
           </Link>
         </div>
       )}
@@ -472,7 +471,7 @@ export default function Success(props: PageProps) {
                       className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
                       {isRoundRobin && bookingInfo.user && (
                         <Avatar
-                          className="mx-auto flex items-center justify-center"
+                          className="flex items-center justify-center mx-auto"
                           alt={bookingInfo.user.name || bookingInfo.user.email}
                           size="xl"
                           imageSrc={`${bookingInfo.user.avatarUrl}`}
@@ -492,17 +491,17 @@ export default function Success(props: PageProps) {
                           isCancelled ? "bg-error" : ""
                         )}>
                         {!giphyImage && !needsConfirmation && isReschedulable && (
-                          <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <Icon name="check" className="w-5 h-5 text-green-600 dark:text-green-400" />
                         )}
                         {needsConfirmation && isReschedulable && (
-                          <Icon name="calendar" className="text-emphasis h-5 w-5" />
+                          <Icon name="calendar" className="w-5 h-5 text-emphasis" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        {isCancelled && <Icon name="x" className="w-5 h-5 text-red-600 dark:text-red-200" />}
                       </div>
                     </div>
-                    <div className="mb-8 mt-6 text-center last:mb-0">
+                    <div className="mt-6 mb-8 text-center last:mb-0">
                       <h3
-                        className="text-emphasis text-2xl font-semibold leading-6"
+                        className="text-2xl font-semibold leading-6 text-emphasis"
                         data-testid={isCancelled ? "cancelled-headline" : ""}
                         id="modal-headline">
                         {successPageHeadline}
@@ -525,7 +524,7 @@ export default function Success(props: PageProps) {
                           </h4>
                         )}
 
-                      <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
+                      <div className="grid grid-cols-3 pt-8 mt-8 text-left border-t border-subtle text-default rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
                             <div className="font-medium">
@@ -635,7 +634,7 @@ export default function Success(props: PageProps) {
                                 ? t("complete_your_booking")
                                 : t("payment")}
                             </div>
-                            <div className="col-span-2 mb-2 mt-3">
+                            <div className="col-span-2 mt-3 mb-2">
                               <Price
                                 currency={props.paymentStatus.currency}
                                 price={props.paymentStatus.amount}
@@ -648,14 +647,14 @@ export default function Success(props: PageProps) {
 
                         {bookingInfo?.description && (
                           <>
-                            <div className="mt-9 font-medium">{t("additional_notes")}</div>
+                            <div className="font-medium mt-9">{t("additional_notes")}</div>
                             <div className="col-span-2 mb-2 mt-9">
                               <p className="break-words">{bookingInfo.description}</p>
                             </div>
                           </>
                         )}
                       </div>
-                      <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
+                      <div className="mt-8 text-left text-bookingdark dark:border-darkgray-200 dark:text-gray-300">
                         {eventType.bookingFields.map((field) => {
                           if (!field) return null;
 
@@ -682,14 +681,14 @@ export default function Success(props: PageProps) {
                           return (
                             <>
                               <div
-                                className="text-emphasis mt-4 font-medium"
+                                className="mt-4 font-medium text-emphasis"
                                 // eslint-disable-next-line react/no-danger
                                 dangerouslySetInnerHTML={{
                                   __html: markdownToSafeHTML(label),
                                 }}
                               />
                               <p
-                                className="text-default break-words"
+                                className="break-words text-default"
                                 data-testid="field-response"
                                 data-fob-field={field.name}>
                                 {field.type === "boolean"
@@ -705,13 +704,13 @@ export default function Success(props: PageProps) {
                     </div>
                     {requiresLoginToUpdate && (
                       <>
-                        <hr className="border-subtle mb-8" />
+                        <hr className="mb-8 border-subtle" />
                         <div className="text-center">
                           <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                             {t("need_to_make_a_change")}
                           </span>
                           {/* Login button but redirect to here */}
-                          <span className="text-default inline">
+                          <span className="inline text-default">
                             <span className="underline" data-testid="reschedule-link">
                               <Link
                                 href={`/auth/login?callbackUrl=${encodeURIComponent(
@@ -731,7 +730,7 @@ export default function Success(props: PageProps) {
                       !isRerouting &&
                       (!isCancellationMode ? (
                         <>
-                          <hr className="border-subtle mb-8" />
+                          <hr className="mb-8 border-subtle" />
                           <div className="text-center last:pb-0">
                             <span className="text-emphasis ltr:mr-2 rtl:ml-2">
                               {t("need_to_make_a_change")}
@@ -739,7 +738,7 @@ export default function Success(props: PageProps) {
 
                             <>
                               {!props.recurringBookings && !isBookingInPast && (
-                                <span className="text-default inline">
+                                <span className="inline text-default">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
                                       href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
@@ -802,12 +801,12 @@ export default function Success(props: PageProps) {
                     )}
                     {!needsConfirmation && !isCancellationMode && isReschedulable && !!calculatedDuration && (
                       <>
-                        <hr className="border-subtle mt-8" />
-                        <div className="text-default align-center flex flex-row justify-center pt-8">
-                          <span className="text-default flex self-center font-medium ltr:mr-2 rtl:ml-2 ">
+                        <hr className="mt-8 border-subtle" />
+                        <div className="flex flex-row justify-center pt-8 text-default align-center">
+                          <span className="flex self-center font-medium text-default ltr:mr-2 rtl:ml-2 ">
                             {t("add_to_calendar")}
                           </span>
-                          <div className="justify-left mt-1 flex text-left sm:mt-0">
+                          <div className="flex mt-1 text-left justify-left sm:mt-0">
                             <Link
                               href={`https://calendar.google.com/calendar/r/eventedit?dates=${date
                                 .utc()
@@ -827,7 +826,7 @@ export default function Success(props: PageProps) {
                                     )}`
                                   : ""
                               }`}
-                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
+                              className="w-10 h-10 px-3 py-2 border rounded-sm text-default border-subtle ltr:mr-2 rtl:ml-2">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"
@@ -853,7 +852,7 @@ export default function Success(props: PageProps) {
                                   ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                   : "")
                               }
-                              className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
+                              className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-subtle text-default"
                               target="_blank">
                               <svg
                                 className="-mt-1.5 mr-1 inline-block h-4 w-4"
@@ -880,7 +879,7 @@ export default function Success(props: PageProps) {
                                   ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                   : "")
                               }
-                              className="text-default border-subtle mx-2 h-10 w-10 rounded-sm border px-3 py-2"
+                              className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm text-default border-subtle"
                               target="_blank">
                               <svg
                                 className="-mt-1.5 mr-1 inline-block h-4 w-4"
@@ -893,7 +892,7 @@ export default function Success(props: PageProps) {
                             </Link>
                             <Link
                               href={`data:text/calendar,${eventLink()}`}
-                              className="border-subtle text-default mx-2 h-10 w-10 rounded-sm border px-3 py-2"
+                              className="w-10 h-10 px-3 py-2 mx-2 border rounded-sm border-subtle text-default"
                               download={`${eventType.title}.ics`}>
                               <svg
                                 version="1.1"
@@ -912,8 +911,8 @@ export default function Success(props: PageProps) {
 
                     {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
-                        <hr className="border-subtle mt-8" />
-                        <div className="text-default pt-8 text-center text-xs">
+                        <hr className="mt-8 border-subtle" />
+                        <div className="pt-8 text-xs text-center text-default">
                           <a href="https://cal.com/signup">
                             {t("create_booking_link_with_calcom", { appName: APP_NAME })}
                           </a>
@@ -926,18 +925,18 @@ export default function Success(props: PageProps) {
                               };
                               router.push(`https://cal.com/signup?email=${target.email.value}`);
                             }}
-                            className="mt-4 flex">
+                            className="flex mt-4">
                             <EmailInput
                               name="email"
                               id="email"
                               defaultValue={email}
-                              className="mr- focus:border-brand-default border-default text-default mt-0 block w-full rounded-none rounded-l-md shadow-sm focus:ring-black sm:text-sm"
+                              className="block w-full mt-0 rounded-none shadow-sm mr- focus:border-brand-default border-default text-default rounded-l-md focus:ring-black sm:text-sm"
                               placeholder="rick.astley@cal.com"
                             />
                             <Button
                               size="lg"
                               type="submit"
-                              className="min-w-max rounded-none rounded-r-md"
+                              className="rounded-none min-w-max rounded-r-md"
                               color="primary">
                               {t("try_for_free")}
                             </Button>
@@ -967,7 +966,7 @@ export default function Success(props: PageProps) {
                     </>
                   ) : (
                     <>
-                      <div className="my-3 flex justify-center space-x-1">
+                      <div className="flex justify-center my-3 space-x-1">
                         <button
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
@@ -1025,7 +1024,7 @@ export default function Success(props: PageProps) {
                         </button>
                       </div>
                       <div className="my-4 space-y-1 text-center">
-                        <h2 className="font-cal text-lg">{t("submitted_feedback")}</h2>
+                        <h2 className="text-lg font-cal">{t("submitted_feedback")}</h2>
                         <p className="text-sm">{rateValue < 4 ? t("how_can_we_improve") : t("most_liked")}</p>
                       </div>
                       <TextArea
@@ -1036,7 +1035,7 @@ export default function Success(props: PageProps) {
                         disabled={isFeedbackSubmitted}
                         onChange={(event) => setComment(event.target.value)}
                       />
-                      <div className="my-4 flex justify-start">
+                      <div className="flex justify-start my-4">
                         <Button
                           loading={mutation.isPending}
                           disabled={isFeedbackSubmitted}
@@ -1053,7 +1052,7 @@ export default function Success(props: PageProps) {
               </div>
               {isGmail && !isFeedbackMode && (
                 <Alert
-                  className="main -mb-20 mt-4 inline-block ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
+                  className="inline-block mt-4 -mb-20 main ltr:text-left rtl:text-right sm:-mt-4 sm:mb-4 sm:w-full sm:max-w-xl sm:align-middle"
                   severity="warning"
                   message={
                     <div>
@@ -1085,12 +1084,12 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
   return (
     <>
       <div className="mt-3 font-medium">{t("rescheduled")}</div>
-      <div className="col-span-2 mb-2 mt-3">
+      <div className="col-span-2 mt-3 mb-2">
         <span className="underline">
           <Link href={`/booking/${rescheduledToUid}`}>
             <div className="flex items-center gap-1">
               {t("view_booking")}
-              <Icon name="external-link" className="h-4 w-4" />
+              <Icon name="external-link" className="w-4 h-4" />
             </div>
           </Link>
         </span>
@@ -1116,7 +1115,7 @@ const DisplayLocation = ({
       className={classNames("text-default flex items-center gap-2", className)}
       rel="noreferrer">
       {providerName || "Link"}
-      <Icon name="external-link" className="text-default inline h-4 w-4" />
+      <Icon name="external-link" className="inline w-4 h-4 text-default" />
     </a>
   ) : (
     <p className={className}>{locationToDisplay}</p>
