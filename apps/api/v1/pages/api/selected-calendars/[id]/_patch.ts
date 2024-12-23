@@ -3,6 +3,8 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import type { UpdateArguments } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
 import {
@@ -56,7 +58,7 @@ export async function patchHandler(req: NextApiRequest) {
   const { query, isSystemWideAdmin } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
   const { userId: bodyUserId, ...data } = schemaSelectedCalendarUpdateBodyParams.parse(req.body);
-  const args: Prisma.SelectedCalendarUpdateArgs = { where: { userId_integration_externalId }, data };
+  const args: UpdateArguments = { where: { ...userId_integration_externalId }, data };
 
   if (!isSystemWideAdmin && bodyUserId)
     throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
@@ -67,7 +69,7 @@ export async function patchHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  const result = await prisma.selectedCalendar.update(args);
+  const result = await SelectedCalendarRepository.updateUserLevel(args);
   return { selected_calendar: schemaSelectedCalendarPublic.parse(result) };
 }
 

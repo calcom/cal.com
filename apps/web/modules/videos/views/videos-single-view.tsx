@@ -3,12 +3,11 @@
 import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
 import { DailyProvider } from "@daily-co/daily-react";
-import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,111 +22,98 @@ import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function JoinCall(props: PageProps) {
-  const { t } = useLocale();
   const { meetingUrl, meetingPassword, booking, hasTeamPlan, calVideoLogo } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
-    const callFrame = DailyIframe.createFrame({
-      theme: {
-        colors: {
-          accent: "#FFF",
-          accentText: "#111111",
-          background: "#111111",
-          backgroundAccent: "#111111",
-          baseText: "#FFF",
-          border: "#292929",
-          mainAreaBg: "#111111",
-          mainAreaBgAccent: "#1A1A1A",
-          mainAreaText: "#FFF",
-          supportiveText: "#FFF",
-        },
-      },
-      showLeaveButton: true,
-      iframeStyle: {
-        position: "fixed",
-        width: "100%",
-        height: "100%",
-      },
-      url: meetingUrl,
-      ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-      ...(hasTeamPlan && {
-        customTrayButtons: {
-          recording: {
-            label: "Record",
-            tooltip: "Start or stop recording",
-            iconPath: RECORDING_DEFAULT_ICON,
-            iconPathDarkMode: RECORDING_DEFAULT_ICON,
-          },
-          transcription: {
-            label: "Cal.ai",
-            tooltip: "Transcription powered by AI",
-            iconPath: TRANSCRIPTION_STOPPED_ICON,
-            iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+    let callFrame: DailyCall | undefined;
+    try {
+      callFrame = DailyIframe.createFrame({
+        theme: {
+          colors: {
+            accent: "#FFF",
+            accentText: "#111111",
+            background: "#111111",
+            backgroundAccent: "#111111",
+            baseText: "#FFF",
+            border: "#292929",
+            mainAreaBg: "#111111",
+            mainAreaBgAccent: "#1A1A1A",
+            mainAreaText: "#FFF",
+            supportiveText: "#FFF",
           },
         },
-      }),
-    });
+        showLeaveButton: true,
+        iframeStyle: {
+          position: "fixed",
+          width: "100%",
+          height: "100%",
+        },
+        url: meetingUrl,
+        ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+        ...(hasTeamPlan && {
+          customTrayButtons: {
+            recording: {
+              label: "Record",
+              tooltip: "Start or stop recording",
+              iconPath: RECORDING_DEFAULT_ICON,
+              iconPathDarkMode: RECORDING_DEFAULT_ICON,
+            },
+            transcription: {
+              label: "Cal.ai",
+              tooltip: "Transcription powered by AI",
+              iconPath: TRANSCRIPTION_STOPPED_ICON,
+              iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+            },
+          },
+        }),
+      });
+    } catch (err) {
+      callFrame = DailyIframe.getCallInstance();
+    } finally {
+      setDaily(callFrame ?? null);
 
-    setDaily(callFrame);
-
-    callFrame.join();
+      callFrame?.join();
+    }
 
     return () => {
-      callFrame.destroy();
+      callFrame?.destroy();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const title = `${APP_NAME} Video`;
   return (
-    <>
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content={t("quick_video_meeting")} />
-        <meta property="og:image" content={SEO_IMG_OGIMG_VIDEO} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={`${WEBSITE_URL}/video`} />
-        <meta property="og:title" content={`${APP_NAME} Video`} />
-        <meta property="og:description" content={t("quick_video_meeting")} />
-        <meta property="twitter:image" content={SEO_IMG_OGIMG_VIDEO} />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={`${WEBSITE_URL}/video`} />
-        <meta property="twitter:title" content={`${APP_NAME} Video`} />
-        <meta property="twitter:description" content={t("quick_video_meeting")} />
-      </Head>
-      <DailyProvider callObject={daily}>
-        <div
-          className="mx-auto hidden sm:block"
-          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
-          <CalAiTranscribe />
-        </div>
-        <div style={{ zIndex: 2, position: "relative" }}>
-          {calVideoLogo ? (
-            <img
-              className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
-              src={calVideoLogo}
-              alt="My Org Logo"
-              style={{
-                top: 32,
-                left: 32,
-              }}
-            />
-          ) : (
-            <img
-              className="fixed z-10 hidden h-5 sm:inline-block"
-              src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-              alt="Logo"
-              style={{
-                top: 47,
-                left: 20,
-              }}
-            />
-          )}
-        </div>
-        <VideoMeetingInfo booking={booking} />
-      </DailyProvider>
-    </>
+    <DailyProvider callObject={daily}>
+      <div
+        className="mx-auto hidden sm:block"
+        style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
+        <CalAiTranscribe />
+      </div>
+      <div style={{ zIndex: 2, position: "relative" }}>
+        {calVideoLogo ? (
+          <img
+            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+            src={calVideoLogo}
+            alt="My Org Logo"
+            style={{
+              top: 32,
+              left: 32,
+            }}
+          />
+        ) : (
+          <img
+            className="fixed z-10 hidden h-5 sm:inline-block"
+            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+            alt="Logo"
+            style={{
+              top: 47,
+              left: 20,
+            }}
+          />
+        )}
+      </div>
+      <VideoMeetingInfo booking={booking} />
+    </DailyProvider>
   );
 }
 
@@ -257,6 +243,7 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
 
               <div
                 className="prose-sm prose prose-invert"
+                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(booking.description) }}
               />
             </>

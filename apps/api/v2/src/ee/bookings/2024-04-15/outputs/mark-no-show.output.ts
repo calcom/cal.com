@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsEnum, IsOptional, ValidateNested, IsArray, IsEmail, IsBoolean } from "class-validator";
 
@@ -6,24 +6,29 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
 class Attendee {
   @IsEmail()
+  @ApiProperty()
   email!: string;
 
   @IsBoolean()
+  @ApiProperty()
   noShow!: boolean;
 }
 
 class HandleMarkNoShowData_2024_04_15 {
   @IsString()
+  @ApiProperty()
   message!: string;
 
   @IsBoolean()
   @IsOptional()
+  @ApiPropertyOptional()
   noShowHost?: boolean;
 
   @ValidateNested()
   @Type(() => Attendee)
   @IsArray()
   @IsOptional()
+  @ApiPropertyOptional({ type: [Attendee] })
   attendees?: Attendee[];
 }
 

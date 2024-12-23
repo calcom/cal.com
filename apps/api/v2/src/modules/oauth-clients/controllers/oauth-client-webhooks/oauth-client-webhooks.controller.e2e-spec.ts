@@ -24,10 +24,10 @@ import { withNextAuth } from "test/utils/withNextAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
-describe("EventTypes WebhooksController (e2e)", () => {
+describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "event-types-webhook-controller-e2e@api.com";
-  const otherUserEmail = "other-event-types-webhook-controller-e2e@api.com";
+  const userEmail = "oauth-client-webhook-controller-e2e@api.com";
+  const otherUserEmail = "other-oauth-client-webhook-controller-e2e@api.com";
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
   let oAuthClient: PlatformOAuthClient;
@@ -244,7 +244,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
         });
       });
   });
-  it("/webhooks (GET) should fail to get webhooks of oauth client that doesn't belong to you", () => {
+  it("/webhooks (GET) should fail to get webhooks of OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer()).get(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks`).expect(403);
   });
 
@@ -267,7 +267,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an oauth client that doesn't belong to you", () => {
+  it("/oauth-clients/:oAuthClientId/webhooks/:webhookId (DELETE) should fail to delete webhooks of an OAuth client that doesn't belong to you", () => {
     return request(app.getHttpServer())
       .delete(`/v2/oauth-clients/${otherOAuthClient.id}/webhooks/${otherOAuthClientWebhook.id}`)
       .expect(403);

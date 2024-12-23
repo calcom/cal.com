@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, SelectedCalendar } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +9,10 @@ import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
+};
 
 type UsernameSlugLinkProps = {
   users: {
@@ -38,7 +41,8 @@ const user: User & { credentials: CredentialPayload[] } = {
   id: 0,
   startTime: 0,
   endTime: 0,
-  selectedCalendars: [],
+  allSelectedCalendars: [],
+  userLevelSelectedCalendars: [],
   schedules: [],
   defaultScheduleId: null,
   locale: "en",
@@ -92,6 +96,7 @@ const commons = {
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
+  requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
@@ -116,6 +121,7 @@ const commons = {
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
   maxLeadThreshold: null,
+  useEventLevelSelectedCalendars: false,
 };
 
 export const dynamicEvent = {
