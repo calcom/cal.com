@@ -128,6 +128,9 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   EventTypeMetaDataSchema: {
     parse: vi.fn(),
   },
+  eventTypeMetaDataSchemaWithTypedApps: {
+    parse: vi.fn(),
+  },
   bookingMetadataSchema: {
     parse: vi.fn(),
   },
