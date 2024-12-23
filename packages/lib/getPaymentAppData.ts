@@ -22,7 +22,7 @@ export function getPaymentAppData(
   if (!metadataApps) {
     return { enabled: false, price: 0, currency: "usd", appId: null };
   }
-  type appId = keyof typeof metadataApps;
+  type appId = keyof typeof eventType.metadata.apps;
   // @TODO: a lot of unknowns types here can be improved later
   const paymentAppIds = (Object.keys(metadataApps) as Array<keyof typeof appDataSchemas>).filter(
     (app) =>
