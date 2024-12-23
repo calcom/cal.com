@@ -1,5 +1,5 @@
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, generateAppMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 
@@ -17,10 +17,12 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   if (!props) {
     notFound();
   }
+  const { name, logo, description } = props.data;
 
-  return await _generateMetadata(
-    () => props.data.name,
-    () => props.data.description
+  return await generateAppMetadata(
+    { slug: logo, name, description },
+    () => name,
+    () => description
   );
 };
 
