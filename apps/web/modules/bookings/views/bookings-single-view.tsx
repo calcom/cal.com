@@ -19,7 +19,6 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -728,22 +727,23 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && !isBookingInPast && (
-                                <span className="text-default inline">
-                                  <span className="underline" data-testid="reschedule-link">
-                                    <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail
-                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                          : ""
-                                      }`}
-                                      legacyBehavior>
-                                      {t("reschedule")}
-                                    </Link>
+                              {!props.recurringBookings &&
+                                (!isBookingInPast || eventType.reschedulingPastBookings) && (
+                                  <span className="text-default inline">
+                                    <span className="underline" data-testid="reschedule-link">
+                                      <Link
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                          currentUserEmail
+                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                            : ""
+                                        }`}
+                                        legacyBehavior>
+                                        {t("reschedule")}
+                                      </Link>
+                                    </span>
+                                    <span className="mx-2">{t("or_lowercase")}</span>
                                   </span>
-                                  <span className="mx-2">{t("or_lowercase")}</span>
-                                </span>
-                              )}
+                                )}
 
                               <button
                                 data-testid="cancel"

@@ -894,6 +894,25 @@ export const EventAdvancedTab = ({
         )}
       />
       <Controller
+        name="reschedulingPastBookings"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm", customClassNames?.timezoneLock?.label)}
+            descriptionClassName={customClassNames?.timezoneLock?.description}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.timezoneLock?.container
+            )}
+            title={t("allow_rescheduling_past_events")}
+            {...lockTimeZoneToggleOnBookingPageLocked}
+            description={t("allow_rescheduling_past_events_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <Controller
         name="eventTypeColor"
         render={() => (
           <SettingsToggle

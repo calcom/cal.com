@@ -764,6 +764,7 @@ async function getExistingBookings(
         seatsPerTimeSlot: true,
         requiresConfirmationWillBlockSlot: true,
         requiresConfirmation: true,
+        reschedulingPastBookings: true,
       },
     },
     ...(!!eventType?.seatsPerTimeSlot && {
