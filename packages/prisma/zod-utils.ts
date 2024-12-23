@@ -71,50 +71,64 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
 export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
+export const EventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
-export const EventTypeMetaDataSchema = z
-  .object({
-    smartContractAddress: z.string().optional(),
-    blockchainId: z.number().optional(),
-    multipleDuration: z.number().array().optional(),
-    giphyThankYouPage: z.string().optional(),
-    apps: EventTypeAppMetadataSchema.optional(),
-    additionalNotesRequired: z.boolean().optional(),
-    disableSuccessPage: z.boolean().optional(),
-    disableStandardEmails: z
-      .object({
-        all: z
-          .object({
-            host: z.boolean().optional(),
-            attendee: z.boolean().optional(),
-          })
-          .optional(),
-        confirmation: z
-          .object({
-            host: z.boolean().optional(),
-            attendee: z.boolean().optional(),
-          })
-          .optional(),
-      })
-      .optional(),
-    managedEventConfig: z
-      .object({
-        unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
-      })
-      .optional(),
-    requiresConfirmationThreshold: z
-      .object({
-        time: z.number(),
-        unit: RequiresConfirmationThresholdUnits,
-      })
-      .optional(),
-    config: z
-      .object({
-        useHostSchedulesForTeamEvent: z.boolean().optional(),
-      })
-      .optional(),
-    bookerLayouts: bookerLayouts.optional(),
+const _EventTypeMetaDataSchemaWithoutApps = z.object({
+  smartContractAddress: z.string().optional(),
+  blockchainId: z.number().optional(),
+  multipleDuration: z.number().array().optional(),
+  giphyThankYouPage: z.string().optional(),
+  additionalNotesRequired: z.boolean().optional(),
+  disableSuccessPage: z.boolean().optional(),
+  disableStandardEmails: z
+    .object({
+      all: z
+        .object({
+          host: z.boolean().optional(),
+          attendee: z.boolean().optional(),
+        })
+        .optional(),
+      confirmation: z
+        .object({
+          host: z.boolean().optional(),
+          attendee: z.boolean().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  managedEventConfig: z
+    .object({
+      unlockedFields: z.custom<{ [k in keyof Omit<Prisma.EventTypeSelect, "id">]: true }>().optional(),
+    })
+    .optional(),
+  requiresConfirmationThreshold: z
+    .object({
+      time: z.number(),
+      unit: RequiresConfirmationThresholdUnits,
+    })
+    .optional(),
+  config: z
+    .object({
+      useHostSchedulesForTeamEvent: z.boolean().optional(),
+    })
+    .optional(),
+  bookerLayouts: bookerLayouts.optional(),
+});
+
+export const EventTypeMetaDataSchemaWithUntypedApps = _EventTypeMetaDataSchemaWithoutApps.merge(
+  z.object({
+    apps: z.unknown().optional(),
   })
+);
+
+export const EventTypeMetaDataSchema = EventTypeMetaDataSchemaWithUntypedApps.nullable();
+export const EventTypeMetaDataSchemaWithoutApps = _EventTypeMetaDataSchemaWithoutApps.nullable();
+export const EventTypeMetaDataSchemaWithTypedApps = _EventTypeMetaDataSchemaWithoutApps
+  .merge(
+    z.object({
+      apps: EventTypeAppMetadataOptionalSchema,
+    })
+  )
   .nullable();
 
 export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;

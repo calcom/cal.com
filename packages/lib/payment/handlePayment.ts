@@ -3,6 +3,7 @@ import type { AppCategories, Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
+import { EventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -40,15 +41,15 @@ const handlePayment = async (
 
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-  const paymentOption =
-    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+  const apps = EventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
+  const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;
   if (paymentOption === "HOLD") {
     paymentData = await paymentInstance.collectCard(
       {
-        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+        amount: apps?.[paymentAppCredentials.appId].price,
+        currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
       paymentOption,
@@ -58,8 +59,8 @@ const handlePayment = async (
   } else {
     paymentData = await paymentInstance.create(
       {
-        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+        amount: apps?.[paymentAppCredentials.appId].price,
+        currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
       booking.userId,
