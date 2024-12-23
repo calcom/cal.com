@@ -2891,5 +2891,12 @@
   "reassigned": "הוקצה מחדש",
   "rerouted": "נותב מחדש",
   "salesforce_assigned": "הקצאת Salesforce",
+  "router_position": "מיקום נתב",
+  "show_matching_hosts": "הצג מארחים תואמים",
+  "no_active_queues": "אין תורים פעילים עבור קלט זה",
+  "weight": "משקל",
+  "calibration": "כיול",
+  "shortfall": "חוסר",
+  "routing_form": "טופס ניתוב",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2891,5 +2891,12 @@
   "reassigned": "Yenidən təyin edildi",
   "rerouted": "Yenidən yönləndirildi",
   "salesforce_assigned": "Salesforce təyinatı",
+  "router_position": "Router mövqeyi",
+  "show_matching_hosts": "Uyğun hostları göstər",
+  "no_active_queues": "Bu giriş üçün aktiv növbə yoxdur",
+  "weight": "Çəki",
+  "calibration": "Kalibrasiya",
+  "shortfall": "Çatışmazlıq",
+  "routing_form": "Marşrutlama forması",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
