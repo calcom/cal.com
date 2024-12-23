@@ -21,15 +21,7 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: true,
-      follow: true,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
