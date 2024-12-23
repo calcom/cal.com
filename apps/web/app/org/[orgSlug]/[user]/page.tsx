@@ -41,8 +41,10 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         false,
         getOrgFullOrigin(currentOrgDomain ?? null)
       )),
-      noindex: !isSEOIndexable,
-      nofollow: !isSEOIndexable,
+      robots: {
+        index: isSEOIndexable,
+        follow: isSEOIndexable,
+      },
     };
   } else {
     const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
@@ -69,8 +71,10 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         false,
         getOrgFullOrigin(entity.orgSlug ?? null)
       )),
-      noindex: !allowSEOIndexing,
-      nofollow: !allowSEOIndexing,
+      robots: {
+        index: allowSEOIndexing,
+        follow: allowSEOIndexing,
+      },
     };
   }
 };

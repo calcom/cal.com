@@ -49,8 +49,10 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
   return {
     ...metadata,
-    nofollow: event?.hidden || !isSEOIndexable,
-    noindex: event?.hidden || !isSEOIndexable,
+    robots: {
+      follow: !(event?.hidden || !isSEOIndexable),
+      index: !(event?.hidden || !isSEOIndexable),
+    },
   };
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);

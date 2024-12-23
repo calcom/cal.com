@@ -35,8 +35,10 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   );
   return {
     ...metadata,
-    nofollow: !isSEOIndexable,
-    noindex: !isSEOIndexable,
+    robots: {
+      follow: isSEOIndexable,
+      index: isSEOIndexable,
+    },
   };
 };
 
