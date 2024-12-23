@@ -17,6 +17,7 @@ import OrganizerRequestEmail from "@calcom/emails/templates/organizer-request-em
 import OrganizerRescheduledEmail from "@calcom/emails/templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "@calcom/emails/templates/organizer-scheduled-email";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
@@ -81,7 +82,7 @@ export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 
-export { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+export { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
 
 export { getConnectedApps } from "@calcom/lib/getConnectedApps";
@@ -125,7 +126,7 @@ export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@c
 
 export {
   // note(Lauris): Api to internal
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -226,3 +227,5 @@ export { OrganizerRequestEmail };
 export { AttendeeRequestEmail };
 export { handleDeleteCredential };
 export { getBulkEventTypes };
+
+export { getBookingFieldsWithSystemFields };

@@ -35,7 +35,7 @@ type User = {
   profile: {
     id: SessionUser["profile"]["id"] | null;
   };
-  selectedCalendars: SessionUser["selectedCalendars"];
+  userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
   locale: string;
 };
@@ -79,6 +79,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isRRWeightsEnabled,
     autoTranslateDescriptionEnabled,
     description: newDescription,
+    title: newTitle,
     ...rest
   } = input;
 
@@ -173,6 +174,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     // autoTranslate feature is allowed for org users only
     autoTranslateDescriptionEnabled: !!(ctx.user.organizationId && autoTranslateDescriptionEnabled),
     description: newDescription,
+    title: newTitle,
     bookingFields,
     isRRWeightsEnabled,
     rrSegmentQueryValue:
@@ -497,21 +499,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // Logic for updating `fieldTranslations`
-  // user has no description translations OR user is changing the description
-  const descriptionTranslationsNeeded =
+  // user has no translations OR user is changing the field
+  const hasNoDescriptionTranslations =
     eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.DESCRIPTION)
-      .length === 0 || newDescription;
-  const description = newDescription ?? eventType.description;
+      .length === 0;
+  const description = newDescription ?? (hasNoDescriptionTranslations ? eventType.description : undefined);
+  const hasNoTitleTranslations =
+    eventType.fieldTranslations.filter((trans) => trans.field === EventTypeAutoTranslatedField.TITLE)
+      .length === 0;
+  const title = newTitle ?? (hasNoTitleTranslations ? eventType.title : undefined);
 
-  if (
-    ctx.user.organizationId &&
-    autoTranslateDescriptionEnabled &&
-    descriptionTranslationsNeeded &&
-    description
-  ) {
-    await tasker.create("translateEventTypeDescription", {
+  if (ctx.user.organizationId && autoTranslateDescriptionEnabled && (title || description)) {
+    await tasker.create("translateEventTypeData", {
       eventTypeId: id,
       description,
+      title,
       userLocale: ctx.user.locale,
       userId: ctx.user.id,
     });

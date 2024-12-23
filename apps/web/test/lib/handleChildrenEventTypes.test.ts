@@ -190,6 +190,7 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
@@ -350,6 +351,7 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           locations: [],
           hashedLink: {
@@ -457,6 +459,7 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useEventLevelSelectedCalendars: false,
         },
       });
 
@@ -468,6 +471,7 @@ describe("handleChildrenEventTypes", () => {
           ...rest,
           locations: [],
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
