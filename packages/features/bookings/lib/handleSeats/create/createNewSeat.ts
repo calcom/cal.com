@@ -14,6 +14,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { EventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
@@ -147,7 +148,8 @@ const createNewSeat = async (
     );
   }
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
+  const apps = EventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
