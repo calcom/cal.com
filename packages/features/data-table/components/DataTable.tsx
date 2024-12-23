@@ -7,12 +7,12 @@ import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
 import { usePathname } from "next/navigation";
-import { useMemo, useEffect, memo } from "react";
+import { useEffect, memo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
-import { usePersistentColumnResizing } from "../lib/resizing";
+import { useColumnSizingVars, usePersistentColumnResizing } from "../hooks";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
@@ -71,20 +71,7 @@ export function DataTable<TData, TValue>({
     }
   }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
 
-  const columnSizeVars = useMemo(() => {
-    const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: string } = {};
-    for (let i = 0; i < headers.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const header = headers[i]!;
-      const isAutoWidth = header.column.columnDef.meta?.autoWidth;
-      colSizes[`--header-${kebabCase(header.id)}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
-      colSizes[`--col-${kebabCase(header.column.id)}-size`] = isAutoWidth
-        ? "auto"
-        : `${header.column.getSize()}px`;
-    }
-    return colSizes;
-  }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
+  const columnSizingVars = useColumnSizingVars({ table, tableContainerRef });
 
   usePersistentColumnResizing({
     enabled: Boolean(enableColumnResizing),
@@ -112,7 +99,7 @@ export function DataTable<TData, TValue>({
         <TableNew
           className="grid border-0"
           style={{
-            ...columnSizeVars,
+            ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
           <TableHeader className="sticky top-0 z-10">
