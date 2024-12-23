@@ -6,7 +6,7 @@ import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
+import type { EmbedProps } from "app/WithEmbedSSR";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 

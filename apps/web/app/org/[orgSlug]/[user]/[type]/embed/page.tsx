@@ -1,4 +1,3 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
@@ -6,7 +5,6 @@ import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSi
 
 import { Page, type OrgTypePageProps } from "../page";
 
-const getData = withAppDirSsr<OrgTypePageProps>(getServerSideProps);
-const getEmbedData = withEmbedSsrAppDir(getData);
+const getEmbedData = withEmbedSsrAppDir<OrgTypePageProps>(getServerSideProps);
 
 export default WithLayout({ getLayout: null, getData: getEmbedData, isBookingPage: true, ServerPage: Page });
