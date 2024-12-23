@@ -1,5 +1,5 @@
 import { isTeamMember } from "@calcom/lib/server/queries";
-import { EventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -44,7 +44,7 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
   const allActiveWorkflows = await getAllWorkflowsFromEventType(
     {
       ...completeEventType,
-      metadata: EventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
     },
     eventType.userId
   );

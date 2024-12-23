@@ -24,7 +24,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
-import { EventTypeMetaDataSchema, EventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -84,7 +84,7 @@ export async function handleConfirmation(args: {
   } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
-  const apps = EventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadata?.apps);
   const eventManager = new EventManager(user, apps);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;

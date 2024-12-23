@@ -71,9 +71,9 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
 export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
-export const EventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
+export const eventTypeAppMetadataOptionalSchema = EventTypeAppMetadataSchema.optional();
 
-const _EventTypeMetaDataSchemaWithoutApps = z.object({
+const _eventTypeMetaDataSchemaWithoutApps = z.object({
   smartContractAddress: z.string().optional(),
   blockchainId: z.number().optional(),
   multipleDuration: z.number().array().optional(),
@@ -115,18 +115,18 @@ const _EventTypeMetaDataSchemaWithoutApps = z.object({
   bookerLayouts: bookerLayouts.optional(),
 });
 
-export const EventTypeMetaDataSchemaWithUntypedApps = _EventTypeMetaDataSchemaWithoutApps.merge(
+export const eventTypeMetaDataSchemaWithUntypedApps = _eventTypeMetaDataSchemaWithoutApps.merge(
   z.object({
     apps: z.unknown().optional(),
   })
 );
 
-export const EventTypeMetaDataSchema = EventTypeMetaDataSchemaWithUntypedApps.nullable();
-export const EventTypeMetaDataSchemaWithoutApps = _EventTypeMetaDataSchemaWithoutApps.nullable();
-export const EventTypeMetaDataSchemaWithTypedApps = _EventTypeMetaDataSchemaWithoutApps
+export const EventTypeMetaDataSchema = eventTypeMetaDataSchemaWithUntypedApps.nullable();
+export const eventTypeMetaDataSchemaWithoutApps = _eventTypeMetaDataSchemaWithoutApps.nullable();
+export const eventTypeMetaDataSchemaWithTypedApps = _eventTypeMetaDataSchemaWithoutApps
   .merge(
     z.object({
-      apps: EventTypeAppMetadataOptionalSchema,
+      apps: eventTypeAppMetadataOptionalSchema,
     })
   )
   .nullable();

@@ -11,7 +11,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui";
 
 export type EventTypeDescriptionProps = {
@@ -42,7 +42,7 @@ export const EventTypeDescription = ({
 
   const paymentAppData = getPaymentAppData({
     ...eventType,
-    metadata: EventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
 
   return (

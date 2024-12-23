@@ -3,7 +3,7 @@ import type { AppCategories, Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
-import { EventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -41,7 +41,7 @@ const handlePayment = async (
 
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-  const apps = EventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
   const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;

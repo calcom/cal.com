@@ -15,7 +15,7 @@ import type {
 } from "@calcom/features/eventtypes/lib/types";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { VerticalTabItemProps } from "@calcom/ui";
 
 type Props = {
@@ -58,7 +58,7 @@ export const useTabsNavigations = ({
   }
   const paymentAppData = getPaymentAppData({
     ...eventType,
-    metadata: EventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
   });
 
   const requirePayment = paymentAppData.price > 0;

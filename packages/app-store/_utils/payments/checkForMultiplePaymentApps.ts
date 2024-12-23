@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import type { EventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import type { appDataSchemas } from "../../apps.schemas.generated";
 
@@ -13,7 +13,7 @@ import type { appDataSchemas } from "../../apps.schemas.generated";
 const checkForMultiplePaymentApps = (
   metadata:
     | {
-        apps?: z.infer<typeof EventTypeAppMetadataOptionalSchema>;
+        apps?: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
       }
     | null
     | undefined,
