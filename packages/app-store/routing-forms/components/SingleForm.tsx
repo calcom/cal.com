@@ -915,8 +915,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           target="_blank"
                           color="minimal"
                           href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
-                            user.email
-                          )}&name=${encodeURIComponent(user.name)}&form=${encodeURIComponent(form.id)}`}>
+                            user?.email ?? ""
+                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
+                            form.id
+                          )}`}>
                           {t("need_help")}
                         </Button>
                       </Tooltip>
