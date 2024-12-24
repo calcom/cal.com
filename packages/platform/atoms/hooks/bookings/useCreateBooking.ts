@@ -26,7 +26,6 @@ export const useCreateBooking = (
   }
 ) => {
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
-  console.log({ isPlatformBookerEmbed });
   const createBooking = useMutation<ApiResponse<BookingResponse>, Error, UseCreateBookingInput>({
     mutationFn: (data) => {
       return http
