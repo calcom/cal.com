@@ -2891,5 +2891,12 @@
   "reassigned": "Preraspoređeno",
   "rerouted": "Preusmereno",
   "salesforce_assigned": "Salesforce dodeljivanje",
+  "router_position": "Pozicija rutera",
+  "show_matching_hosts": "Prikaži odgovarajuće hostove",
+  "no_active_queues": "Nema aktivnih redova za ovaj unos",
+  "weight": "Težina",
+  "calibration": "Kalibracija",
+  "shortfall": "Manjak",
+  "routing_form": "Formular za rutiranje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

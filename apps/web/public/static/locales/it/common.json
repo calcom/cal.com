@@ -2891,5 +2891,12 @@
   "reassigned": "Riassegnato",
   "rerouted": "Reindirizzato",
   "salesforce_assigned": "Assegnazione Salesforce",
+  "router_position": "Posizione del router",
+  "show_matching_hosts": "Mostra host corrispondenti",
+  "no_active_queues": "Nessuna coda attiva per questo input",
+  "weight": "Peso",
+  "calibration": "Calibrazione",
+  "shortfall": "Deficit",
+  "routing_form": "Modulo di instradamento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
