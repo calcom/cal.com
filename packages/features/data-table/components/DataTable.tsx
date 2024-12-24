@@ -12,7 +12,8 @@ import { useEffect, memo } from "react";
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
-import { useColumnSizingVars, usePersistentColumnResizing } from "../hooks";
+import { useColumnSizingVars } from "../hooks";
+import { usePersistentColumnResizing } from "../lib/resizing";
 
 export interface DataTableProps<TData, TValue> {
   table: ReactTableType<TData>;
@@ -71,11 +72,12 @@ export function DataTable<TData, TValue>({
     }
   }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
 
-  const columnSizingVars = useColumnSizingVars({ table, tableContainerRef });
+  const columnSizingVars = useColumnSizingVars({ table });
 
   usePersistentColumnResizing({
     enabled: Boolean(enableColumnResizing),
     table,
+    tableContainerRef,
     identifier,
   });
 
