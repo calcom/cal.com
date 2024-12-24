@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsOptional, Validate } from "class-validator";
 
@@ -12,7 +12,8 @@ export class GetUsersInput extends SkipTakePagination {
   @Transform(({ value }: { value: string | string[] }) => {
     return typeof value === "string" ? [value] : value;
   })
-  @ApiProperty({
+  @ApiPropertyOptional({
+    type: [String],
     description: "The email address or an array of email addresses to filter by",
   })
   emails?: string[];

@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter, useParams } from "next/navigation";
-import React from "react";
+import { useParams } from "next/navigation";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,7 +21,6 @@ const CreateAttributeSchema = z.object({
 type FormValues = z.infer<typeof CreateAttributeSchema>;
 
 function CreateAttributesPage() {
-  const router = useRouter();
   const utils = trpc.useUtils();
   const { t } = useLocale();
   // Get the attribute id from the url
@@ -38,7 +36,6 @@ function CreateAttributesPage() {
         id,
       });
       utils.viewer.attributes.list.invalidate();
-      router.push("/settings/organizations/attributes");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -54,14 +51,16 @@ function CreateAttributesPage() {
               attrName: attribute.data.name,
               type: attribute.data.type,
               options: attribute.data.options,
+              isLocked: attribute.data.isLocked,
+              isWeightsEnabled: attribute.data.isWeightsEnabled,
             }}
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {
+              const { attrName, ...rest } = values;
               mutation.mutate({
+                ...rest,
+                name: attrName,
                 attributeId: id,
-                name: values.attrName,
-                type: values.type,
-                options: values.options,
               });
             }}
           />
@@ -92,7 +91,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
-            <h1 className="text-emphasis">{meta.title || "Attribute"}</h1>
+            <h1 className="text-emphasis">{meta.title || t("attribute")}</h1>
             {watchedTitle && (
               <>
                 <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
@@ -101,7 +100,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
           </div>
         </div>
         <Button type="submit" data-testid="create-attribute-button" loading={props.isPending}>
-          Save
+          {t("save")}
         </Button>
       </div>
     </>

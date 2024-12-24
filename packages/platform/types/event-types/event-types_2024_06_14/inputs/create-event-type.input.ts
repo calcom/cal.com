@@ -11,6 +11,7 @@ import {
   IsBoolean,
   IsOptional,
   Min,
+  IsUrl,
   IsEnum,
   IsArray,
   ValidateNested,
@@ -25,8 +26,10 @@ import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
+  NameFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
@@ -37,7 +40,7 @@ import {
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
 import type { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
-import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import { BaseBookingLimitsCount_2024_06_14, ValidateBookingLimitsCount } from "./booking-limits-count.input";
 import type { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
 import {
   BaseBookingLimitsDuration_2024_06_14,
@@ -102,7 +105,9 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   Seats_2024_06_14,
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
-  InputAttendeeDefinedLocation_2024_06_14
+  InputAttendeeDefinedLocation_2024_06_14,
+  NameFieldInput_2024_06_14,
+  EmailFieldInput_2024_06_14
 )
 export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
@@ -161,6 +166,8 @@ export class CreateEventTypeInput_2024_06_14 {
     description:
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
+      { $ref: getSchemaPath(NameFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(EmailFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },
@@ -225,7 +232,7 @@ export class CreateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @ValidateBookingLimistsCount()
+  @ValidateBookingLimitsCount()
   @DocsPropertyOptional({
     description: "Limit how many times this event can be booked",
     oneOf: [
@@ -381,6 +388,14 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsBoolean()
   @DocsPropertyOptional()
   hideCalendarEventDetails?: boolean;
+
+  @IsOptional()
+  @IsUrl()
+  @DocsPropertyOptional({
+    description: "A valid URL where the booker will redirect to, once the booking is completed successfully",
+    example: "https://masterchief.com/argentina/flan/video/9129412",
+  })
+  successRedirectUrl?: string;
 }
 
 export enum HostPriority {
