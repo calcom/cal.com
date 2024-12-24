@@ -21,6 +21,7 @@ import {
   transformSeatsInternalToApi,
   InternalLocation,
   BookingFieldSchema,
+  getBookingFieldsWithSystemFields,
 } from "@calcom/platform-libraries";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
@@ -88,7 +89,11 @@ type Input = Pick<
 
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  getResponseEventType(ownerId: number, databaseEventType: Input): EventTypeOutput_2024_06_14 {
+  getResponseEventType(
+    ownerId: number,
+    databaseEventType: Input,
+    isOrgTeamEvent: boolean
+  ): EventTypeOutput_2024_06_14 {
     const {
       id,
       length,
@@ -122,7 +127,7 @@ export class OutputEventTypesService_2024_06_14 {
     const customName = databaseEventType?.eventName ?? undefined;
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
-      : [];
+      : this.getDefaultBookingFields(isOrgTeamEvent);
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users || []);
@@ -238,6 +243,18 @@ export class OutputEventTypesService_2024_06_14 {
     }
 
     return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
+  }
+
+  getDefaultBookingFields(isOrgTeamEvent: boolean) {
+    const defaultBookingFields = getBookingFieldsWithSystemFields({
+      disableGuests: false,
+      bookingFields: null,
+      customInputs: [],
+      metadata: null,
+      workflows: [],
+      isOrgTeamEvent,
+    });
+    return this.transformBookingFields(defaultBookingFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {

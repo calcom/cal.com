@@ -13,7 +13,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import type { PageProps } from "~/apps/[slug]/slug-view";
 import Page from "~/apps/[slug]/slug-view";
 
-const getData = withAppDirSsg<PageProps>(getStaticProps);
+const getData = withAppDirSsg<PageProps>(getStaticProps, "future/apps/[slug]");
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);

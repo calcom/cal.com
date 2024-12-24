@@ -34,6 +34,7 @@ import {
   UpdateEventTypeInput_2024_06_14,
   GetEventTypesQuery_2024_06_14,
   CreateEventTypeInput_2024_06_14,
+  EventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -113,10 +114,26 @@ export class EventTypesController_2024_06_14 {
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
+    const eventTypesFormatted = this.eventTypeResponseTransformPipe.transform(eventTypes);
+    const eventTypesWithoutHiddenFields = eventTypesFormatted.map((eventType) => {
+      return {
+        ...eventType,
+        bookingFields: Array.isArray(eventType?.bookingFields)
+          ? eventType?.bookingFields
+              .map((field) => {
+                if ("hidden" in field) {
+                  return field.hidden !== true ? field : null;
+                }
+                return field;
+              })
+              .filter((f) => f)
+          : [],
+      };
+    }) as EventTypeOutput_2024_06_14[];
 
     return {
       status: SUCCESS_STATUS,
-      data: this.eventTypeResponseTransformPipe.transform(eventTypes),
+      data: eventTypesWithoutHiddenFields,
     };
   }
 
