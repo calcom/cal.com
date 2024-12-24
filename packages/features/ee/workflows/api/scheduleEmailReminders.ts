@@ -15,9 +15,14 @@ import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } f
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
-import { getAllRemindersToCancel, getAllUnscheduledReminders } from "../lib/getWorkflowReminders";
+import {
+  getAllRemindersToCancel,
+  getAllRemindersToDelete,
+  getAllUnscheduledReminders,
+} from "../lib/getWorkflowReminders";
 import {
   cancelScheduledEmail,
+  deleteScheduledSend,
   getBatchId,
   sendSendgridMail,
 } from "../lib/reminders/providers/sendgridProvider";
@@ -37,6 +42,24 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.status(405).json({ message: "No SendGrid API key or email" });
     return;
   }
+
+  // delete batch_ids with already past scheduled date from scheduled_sends
+  const remindersToDelete: { referenceId: string | null }[] = await getAllRemindersToDelete();
+
+  const deletePromises: Promise<any>[] = [];
+
+  for (const reminder of remindersToDelete) {
+    const deletePromise = deleteScheduledSend(reminder.referenceId);
+    deletePromises.push(deletePromise);
+  }
+
+  Promise.allSettled(deletePromises).then((results) => {
+    results.forEach((result) => {
+      if (result.status === "rejected") {
+        logger.error(`Error deleting batch id from scheduled_sends: ${result.reason}`);
+      }
+    });
+  });
 
   //delete workflow reminders with past scheduled date
   await prisma.workflowReminder.deleteMany({
