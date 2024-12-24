@@ -28,4 +28,20 @@ export class AttributeToUserRepository {
       },
     });
   }
+
+  static async findManyByTeamMembershipIds({ teamMembershipIds }: { teamMembershipIds: number[] }) {
+    if (!teamMembershipIds.length) {
+      return [];
+    }
+
+    const attributesAssignedToTeamMembers = await prisma.attributeToUser.findMany({
+      where: {
+        memberId: {
+          in: teamMembershipIds,
+        },
+      },
+    });
+
+    return attributesAssignedToTeamMembers;
+  }
 }

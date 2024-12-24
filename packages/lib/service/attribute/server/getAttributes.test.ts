@@ -5,11 +5,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
-import {
-  getAttributesForTeam,
-  getTeamMembersWithAttributeOptionValuePerAttribute,
-  getUsersAttributes,
-} from "./getAttributes";
+import { getAttributesForTeam, getAttributesAssignmentData, getUsersAttributes } from "./getAttributes";
 
 // Helper functions to create test data
 async function createMockAttribute({
@@ -96,15 +92,15 @@ async function createMockTeam({ orgId }: { orgId: number | null }) {
 }
 
 async function createMockAttributeAssignment({
-  membershipId,
+  orgMembershipId,
   attributeOptionId,
 }: {
-  membershipId: number;
+  orgMembershipId: number;
   attributeOptionId: string;
 }) {
   return await prismock.attributeToUser.create({
     data: {
-      memberId: membershipId,
+      memberId: orgMembershipId,
       attributeOptionId,
     },
   });
@@ -157,7 +153,7 @@ describe("getAttributes", () => {
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: teamMembership.id,
         attributeOptionId: "opt1",
       });
 
@@ -172,10 +168,10 @@ describe("getAttributes", () => {
     });
   });
 
-  describe("getTeamMembersWithAttributeOptionValuePerAttribute", () => {
+  describe("getAttributesAssignmentData", () => {
     it("should return team members with their assigned attributes", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -225,25 +221,26 @@ describe("getAttributes", () => {
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         // Assigning a group option that has its sub-options not assigned directly to the user
         attributeOptionId: "engineering-and-sales-id",
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         attributeOptionId: "india-id",
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         attributeOptionId: "engineering-id",
       });
 
-      const teamMembers = await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: team.id });
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: team.id, orgId });
 
-      expect(teamMembers).toHaveLength(1);
-      expect(teamMembers[0]).toEqual({
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0]).toEqual({
         userId: user.id,
         attributes: {
           attr1: {
@@ -279,7 +276,7 @@ describe("getAttributes", () => {
 
     it("should return contains correctly for group options that have sub-options not assigned directly to the user", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -304,15 +301,16 @@ describe("getAttributes", () => {
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         // Assigning a group option that has its sub-options not assigned directly to the user
         attributeOptionId: "engineering-and-sales-id",
       });
 
-      const teamMembers = await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: team.id });
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: team.id, orgId });
 
-      expect(teamMembers).toHaveLength(1);
-      expect(teamMembers[0]).toEqual({
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0]).toEqual({
         userId: user.id,
         attributes: {
           attr1: {
@@ -336,8 +334,9 @@ describe("getAttributes", () => {
 
     it("should return no attributes for a different org", async () => {
       const team = await createMockTeam({ orgId });
-      const otherTeam = await createMockTeam({ orgId: 1002 });
-      const { teamMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const otherOrgId = 1002;
+      const otherOrgsTeam = await createMockTeam({ orgId: otherOrgId });
+      const { teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -362,19 +361,20 @@ describe("getAttributes", () => {
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         // Assigning a group option that has its sub-options not assigned directly to the user
         attributeOptionId: "engineering-and-sales-id",
       });
 
-      const teamMembers = await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: otherTeam.id });
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: otherOrgsTeam.id, orgId: otherOrgId });
 
-      expect(teamMembers).toHaveLength(0);
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(0);
     });
 
     it("should handle multi-select attributes correctly", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -393,18 +393,19 @@ describe("getAttributes", () => {
 
       // Assign multiple skills
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         attributeOptionId: "opt1",
       });
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         attributeOptionId: "opt2",
       });
 
-      const teamMembers = await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: team.id });
+      const { attributesOfTheOrg, attributesAssignedToTeamMembersWithOptions } =
+        await getAttributesAssignmentData({ teamId: team.id, orgId });
 
-      expect(teamMembers).toHaveLength(1);
-      expect(teamMembers[0].attributes.attr1.attributeOption).toEqual([
+      expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(1);
+      expect(attributesAssignedToTeamMembersWithOptions[0].attributes.attr1.attributeOption).toEqual([
         { value: "JavaScript", isGroup: false, contains: [] },
         { value: "Python", isGroup: false, contains: [] },
       ]);
@@ -414,7 +415,7 @@ describe("getAttributes", () => {
   describe("getUsersAttributes", () => {
     it("should return attributes assigned to specific user in team", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -429,7 +430,7 @@ describe("getAttributes", () => {
       });
 
       await createMockAttributeAssignment({
-        membershipId: teamMembership.id,
+        orgMembershipId: orgMembership.id,
         attributeOptionId: "opt1",
       });
 

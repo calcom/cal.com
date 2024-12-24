@@ -227,6 +227,8 @@ async function main() {
     });
   }
 
+  const javascriptEventId = teamEvents.find((event) => event.slug === "team-javascript")?.id;
+  const salesEventId = teamEvents.find((event) => event.slug === "team-sales")?.id;
   const insightsMembers = await prisma.membership.findMany({
     where: {
       teamId: insightsTeam.id,
