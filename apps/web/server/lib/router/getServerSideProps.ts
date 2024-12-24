@@ -1,43 +1,33 @@
+import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import z from "zod";
 
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
+import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
+import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
+import { isAuthorizedToViewTheForm } from "@calcom/app-store/routing-forms/pages/routing-link/getServerSideProps";
+import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
-
-import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
-import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { getSerializableForm } from "../../lib/getSerializableForm";
-import { getServerTimingHeader } from "../../lib/getServerTimingHeader";
-import { handleResponse } from "../../lib/handleResponse";
-import { findMatchingRoute } from "../../lib/processRoute";
-import { substituteVariables } from "../../lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { FormResponse } from "../../types/types";
-import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
-import { getUrlSearchParamsToForward } from "../routing-link/getUrlSearchParamsToForward";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
 const querySchema = z
   .object({
     form: z.string(),
-    slug: z.string(),
-    pages: z.array(z.string()),
   })
   .catchall(z.string().or(z.array(z.string())));
 
-function getNamedParams(params: { appPages: string[] } | undefined) {
-  const [embed] = params?.appPages || [];
-  return {
-    // There might not be item at index 0, so explicit assertion is needed
-    embed: embed as typeof embed | undefined,
-  };
-}
-
-async function findFormById(formId: string, prisma: AppPrisma) {
+async function findFormById(formId: string) {
   return await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
@@ -73,14 +63,13 @@ async function findFormById(formId: string, prisma: AppPrisma) {
   });
 }
 
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma
-) {
+export const getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
   const queryParsed = querySchema.safeParse(context.query);
-  const { embed } = getNamedParams(context.params);
+  const pathWithQuery = context.req.url || "";
+  const onlyPath = pathWithQuery.split("?")[0];
+  const isEmbed = onlyPath.endsWith("/embed");
   const pageProps = {
-    isEmbed: !!embed,
+    isEmbed,
   };
 
   if (!queryParsed.success) {
@@ -90,13 +79,13 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
+  const { form: formId, embed, ...fieldsResponses } = queryParsed.data;
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await findFormById(formId, prisma);
+  const form = await findFormById(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {

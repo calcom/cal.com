@@ -11,7 +11,7 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
 import isRouter from "../lib/isRouter";
-import type { ZResponseInputSchema } from "../trpc/response.schema";
+import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
 
