@@ -2891,5 +2891,12 @@
   "reassigned": "Berresleituta",
   "rerouted": "Berbideratuta",
   "salesforce_assigned": "Salesforce esleipena",
+  "router_position": "Bideratzailearen posizioa",
+  "show_matching_hosts": "Erakutsi bat datozen ostalariak",
+  "no_active_queues": "Sarrera honek ez du ilara aktiborik",
+  "weight": "Pisua",
+  "calibration": "Kalibrazioa",
+  "shortfall": "Gabezia",
+  "routing_form": "Bideratze-formularioa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2891,5 +2891,12 @@
   "reassigned": "Przypisano ponownie",
   "rerouted": "Przekierowano ponownie",
   "salesforce_assigned": "Przypisanie Salesforce",
+  "router_position": "Pozycja routera",
+  "show_matching_hosts": "Pokaż pasujące hosty",
+  "no_active_queues": "Brak aktywnych kolejek dla tego wejścia",
+  "weight": "Waga",
+  "calibration": "Kalibracja",
+  "shortfall": "Niedobór",
+  "routing_form": "Formularz routingu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
