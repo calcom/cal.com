@@ -1,14 +1,11 @@
 import type { calendar_v3 } from "@googleapis/calendar";
-import type {
-  BookingSeat,
-  DestinationCalendar,
-  Prisma,
-  SelectedCalendar as _SelectedCalendar,
-} from "@prisma/client";
+import type { BookingSeat, DestinationCalendar, Prisma, SelectedCalendar as _SelectedCalendar } from "@prisma/client";
 import type { Dayjs } from "dayjs";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 import type z from "zod";
+
+
 
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { Calendar } from "@calcom/features/calendars/weeklyview";
@@ -17,7 +14,10 @@ import type { SchedulingType } from "@calcom/prisma/enums";
 import type { Frequency } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+
+
 import type { Ensure } from "./utils";
+
 
 export type { VideoCallData } from "./VideoApiAdapter";
 
@@ -252,6 +252,11 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   integrationTitle?: string;
 }
 
+/**
+ * null is to refer to user-level SelectedCalendar
+ */
+export type SelectedCalendarEventTypeIds = (number | null)[];
+
 export interface Calendar {
   createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
 
@@ -273,16 +278,28 @@ export interface Calendar {
     dateFrom: string,
     dateTo: string,
     selectedCalendars: IntegrationCalendar[],
-    isOverlayUser?: boolean
-  ): Promise<EventBusyData[]>;
+    shouldServeCache?: boolean
+  ): Promise<EventBusyDate[]>;
+
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
-
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown>;
+  unwatchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
 }
 
 /**

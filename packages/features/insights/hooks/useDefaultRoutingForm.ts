@@ -5,11 +5,13 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 
 export function useDefaultRoutingForm({
+  userId,
   teamId,
   isAll,
   routingFormId,
   onRoutingFormChange,
 }: {
+  userId: number | null | undefined;
   teamId: number | null | undefined;
   isAll: boolean;
   routingFormId: string | null | undefined;
@@ -24,6 +26,7 @@ export function useDefaultRoutingForm({
   // Query to get routing forms list
   const { data: routingForms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery(
     {
+      userId: userId ?? undefined,
       teamId: teamId ?? undefined,
       isAll,
     },

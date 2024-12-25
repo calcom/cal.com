@@ -3,6 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZColumnFilter } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -14,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
+import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1551,10 +1553,11 @@ export const insightsRouter = router({
   }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
-    .input(z.object({ teamId: z.number().optional(), isAll: z.boolean() }))
+    .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
-      const { teamId, isAll } = input;
+      const { userId, teamId, isAll } = input;
       return await RoutingEventsInsights.getRoutingFormsForFilters({
+        userId,
         teamId,
         isAll,
         organizationId: ctx.user.organizationId ?? undefined,
@@ -1584,6 +1587,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
         userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
         bookingStatus: input.bookingStatus ?? null,
         fieldFilter: input.fieldFilter ?? null,
       });
@@ -1596,13 +1600,7 @@ export const insightsRouter = router({
         routingFormId: z.string().optional(),
         cursor: z.number().optional(),
         limit: z.number().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
+        columnFilters: z.array(ZColumnFilter),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1616,14 +1614,19 @@ export const insightsRouter = router({
         routingFormId: input.routingFormId ?? null,
         cursor: input.cursor,
         userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
         limit: input.limit,
-        bookingStatus: input.bookingStatus ?? null,
-        fieldFilter: input.fieldFilter ?? null,
+        columnFilters: input.columnFilters,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
     .input(
-      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+      z.object({
+        userId: z.number().optional(),
+        teamId: z.number().optional(),
+        isAll: z.boolean(),
+        routingFormId: z.string().optional(),
+      })
     )
     .query(async ({ input, ctx }) => {
       const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
@@ -1634,7 +1637,12 @@ export const insightsRouter = router({
     }),
   failedBookingsByField: userBelongsToTeamProcedure
     .input(
-      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+      z.object({
+        userId: z.number().optional(),
+        teamId: z.number().optional(),
+        isAll: z.boolean(),
+        routingFormId: z.string().optional(),
+      })
     )
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getFailedBookingsByRoutingFormGroup({
@@ -1645,18 +1653,22 @@ export const insightsRouter = router({
   routingFormResponsesHeaders: userBelongsToTeamProcedure
     .input(
       z.object({
+        userId: z.number().optional(),
         teamId: z.number().optional(),
         isAll: z.boolean(),
         routingFormId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormHeaders({
+      const headers = await RoutingEventsInsights.getRoutingFormHeaders({
+        userId: input.userId ?? null,
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
       });
+
+      return headers || [];
     }),
   rawRoutingData: userBelongsToTeamProcedure
     .input(
@@ -1673,8 +1685,18 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, userId, isAll, routingFormId, bookingStatus, fieldFilter, cursor } =
-        input;
+      const {
+        teamId,
+        startDate,
+        endDate,
+        userId,
+        memberUserId,
+        isAll,
+        routingFormId,
+        bookingStatus,
+        fieldFilter,
+        cursor,
+      } = input;
 
       if (!teamId && !userId) {
         return { data: [], hasMore: false, nextCursor: null };
@@ -1686,6 +1708,7 @@ export const insightsRouter = router({
           startDate,
           endDate,
           userId,
+          memberUserId,
           isAll: isAll ?? false,
           organizationId: ctx.user.organizationId,
           routingFormId,
@@ -1723,9 +1746,11 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, period, cursor, limit, isAll, routingFormId, searchQuery } = input;
+      const { teamId, userId, startDate, endDate, period, cursor, limit, isAll, routingFormId, searchQuery } =
+        input;
 
       return await RoutingEventsInsights.routedToPerPeriod({
+        userId: userId ?? null,
         teamId: teamId ?? null,
         startDate,
         endDate,
@@ -1751,6 +1776,7 @@ export const insightsRouter = router({
       const { startDate, endDate } = input;
       try {
         const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
+          userId: input.userId ?? null,
           teamId: input.teamId ?? null,
           startDate,
           endDate,
@@ -1771,4 +1797,15 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  getUserRelevantTeamRoutingForms: authedProcedure.query(async ({ ctx }) => {
+    try {
+      const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
+        userId: ctx.user.id,
+      });
+
+      return routingForms;
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
 });
