@@ -9,32 +9,35 @@ import { prisma } from "@calcom/prisma";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
+import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
 import isRouter from "../lib/isRouter";
-import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
+
+type Form = SerializableForm<
+  App_RoutingForms_Form & {
+    user: {
+      id: number;
+      email: string;
+    };
+    team: {
+      parentId: number | null;
+    } | null;
+  }
+>;
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
 export const handleResponse = async ({
   response,
   form,
+  // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
-  form: SerializableForm<
-    App_RoutingForms_Form & {
-      user: {
-        id: number;
-        email: string;
-      };
-      team: {
-        parentId: number | null;
-      } | null;
-    }
-  >;
+  form: Form;
   formFillerId: string;
   chosenRouteId: string | null;
 }) => {

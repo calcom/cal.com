@@ -259,7 +259,7 @@ export class MembershipRepository {
     return membershipsWithSelectedCalendars;
   }
 
-  static async findMembershipsForOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
+  static async findMembershipsForBothOrgAndTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
     const memberships = await prisma.membership.findMany({
       where: {
         teamId: {
@@ -268,8 +268,19 @@ export class MembershipRepository {
       },
     });
 
-    const teamMemberships = memberships.filter((membership) => membership.teamId === teamId);
-    const orgMemberships = memberships.filter((membership) => membership.teamId === orgId);
+    type Membership = (typeof memberships)[number];
+
+    const { teamMemberships, orgMemberships } = memberships.reduce(
+      (acc, membership) => {
+        if (membership.teamId === teamId) {
+          acc.teamMemberships.push(membership);
+        } else if (membership.teamId === orgId) {
+          acc.orgMemberships.push(membership);
+        }
+        return acc;
+      },
+      { teamMemberships: [] as Membership[], orgMemberships: [] as Membership[] }
+    );
 
     return {
       teamMemberships,

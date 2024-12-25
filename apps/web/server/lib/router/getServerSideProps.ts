@@ -16,7 +16,7 @@ import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pag
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { TRPCError } from "@calcom/trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
@@ -27,47 +27,14 @@ const querySchema = z
   })
   .catchall(z.string().or(z.array(z.string())));
 
-async function findFormById(formId: string) {
-  return await prisma.app_RoutingForms_Form.findUnique({
-    where: {
-      id: formId,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          email: true,
-          movedToProfileId: true,
-          metadata: true,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
-        },
-      },
-      team: {
-        select: {
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-            },
-          },
-          slug: true,
-          metadata: true,
-        },
-      },
-    },
-  });
+function hasEmbedPath(pathWithQuery: string) {
+  const onlyPath = pathWithQuery.split("?")[0];
+  return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
 export const getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
   const queryParsed = querySchema.safeParse(context.query);
-  const pathWithQuery = context.req.url || "";
-  const onlyPath = pathWithQuery.split("?")[0];
-  const isEmbed = onlyPath.endsWith("/embed");
+  const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
     isEmbed,
   };
@@ -78,14 +45,15 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       notFound: true,
     };
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { form: formId, embed, ...fieldsResponses } = queryParsed.data;
+
+  // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
+  const { form: formId, ...fieldsResponses } = queryParsed.data;
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   let timeTaken: Record<string, number | null> = {};
 
   const formQueryStart = performance.now();
-  const form = await findFormById(formId);
+  const form = await RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
   timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {

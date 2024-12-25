@@ -29,15 +29,15 @@ export class AttributeToUserRepository {
     });
   }
 
-  static async findManyByTeamMembershipIds({ teamMembershipIds }: { teamMembershipIds: number[] }) {
-    if (!teamMembershipIds.length) {
+  static async findManyByOrgMembershipIds({ orgMembershipIds }: { orgMembershipIds: number[] }) {
+    if (!orgMembershipIds.length) {
       return [];
     }
 
     const attributesAssignedToTeamMembers = await prisma.attributeToUser.findMany({
       where: {
         memberId: {
-          in: teamMembershipIds,
+          in: orgMembershipIds,
         },
       },
     });

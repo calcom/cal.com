@@ -10,6 +10,7 @@ import { MembershipRepository } from "../../../server/repository/membership";
 import type { AttributeId } from "../types";
 
 type UserId = number;
+type OrgMembershipId = number;
 
 export type Attribute = {
   name: string;
@@ -193,15 +194,12 @@ function _getAttributeOptionFromAttributeOption({
 }
 
 async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
-  const { orgMemberships, teamMemberships } = await MembershipRepository.findMembershipsForOrgAndTeam({
+  const { orgMemberships, teamMemberships } = await MembershipRepository.findMembershipsForBothOrgAndTeam({
     orgId,
     teamId,
   });
 
-  type MembershipId = number;
-  type UserId = number;
-
-  const orgMembershipToUserIdForTeamMembers = new Map<MembershipId, UserId>();
+  const orgMembershipToUserIdForTeamMembers = new Map<OrgMembershipId, UserId>();
 
   /**
    * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we query from DB are 3000+300 = 3300
@@ -282,9 +280,11 @@ export async function getAllData({ orgId, teamId }: { orgId: number; teamId: num
     AttributeRepository.findManyByOrgId({ orgId }),
   ]);
 
+  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
+
   // Get all the attributes assigned to the members of the team
-  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByTeamMembershipIds({
-    teamMembershipIds: Array.from(orgMembershipToUserIdForTeamMembers.keys()),
+  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByOrgMembershipIds({
+    orgMembershipIds,
   });
 
   return {
