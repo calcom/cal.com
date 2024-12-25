@@ -7,6 +7,7 @@ import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
+import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
 
@@ -85,6 +86,16 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getAttributesForTeam",
         () => import("./getAttributesForTeam.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  getIncompleteBookingSettings: authedProcedure
+    .input(ZGetIncompleteBookingSettingsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getIncompleteBookingSettings",
+        () => import("./getIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),
