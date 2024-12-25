@@ -21,8 +21,12 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
 
-    await page.getByTestId("add_entry_ooo").click();
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -68,8 +72,12 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto(`/settings/my-account/out-of-office`);
+    await page.waitForLoadState("domcontentloaded");
 
-    await page.getByTestId("add_entry_ooo").click();
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -204,10 +212,13 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
 
-    await page.getByTestId("add_entry_ooo").click();
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22", true);
 
@@ -244,10 +255,13 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
 
-    await page.getByTestId("add_entry_ooo").click();
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -256,9 +270,8 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await page.getByTestId("add_entry_ooo").click();
-
-    await page.locator('[data-testid="date-range"]').click();
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    await dateButton.click();
 
     await selectToAndFromDates(page, "11", "24");
 
@@ -274,10 +287,13 @@ test.describe("Out of office", () => {
     await user.apiLogin();
 
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
 
-    await page.getByTestId("add_entry_ooo").click();
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -286,9 +302,8 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await page.getByTestId("add_entry_ooo").click();
-
-    await page.locator('[data-testid="date-range"]').click();
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -308,13 +323,13 @@ test.describe("Out of office", () => {
 
     //Creates 2 OOO entries:
     //First OOO is created on Next month 1st - 3rd
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
     //Second OOO is created on Next month 4th - 6th
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "6");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
@@ -341,7 +356,7 @@ test.describe("Out of office", () => {
     const dateButton = await page.locator('[data-testid="date-range"]');
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", "member-1");
     await expect(
@@ -352,7 +367,7 @@ test.describe("Out of office", () => {
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState();
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "5", "owner");
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
@@ -380,7 +395,7 @@ test.describe("Out of office", () => {
     const dateButton = await page.locator('[data-testid="date-range"]');
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", "member-1");
     await expect(
@@ -391,7 +406,7 @@ test.describe("Out of office", () => {
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState();
-    await clickUntilDialogVisible(addOOOButton, dateButton);
+    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
     await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();

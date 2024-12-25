@@ -2899,5 +2899,12 @@
   "reassigned": "Reassigned",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
+  "router_position": "Router Position",
+  "show_matching_hosts": "Show matching hosts",
+  "no_active_queues": "No active queues for this input",
+  "weight": "Weight",
+  "calibration": "Calibration",
+  "shortfall": "Shortfall",
+  "routing_form": "Routing Form",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

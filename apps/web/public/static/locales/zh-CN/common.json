@@ -2891,5 +2891,12 @@
   "reassigned": "已重新分配",
   "rerouted": "已重新路由",
   "salesforce_assigned": "Salesforce 分配",
+  "router_position": "路由位置",
+  "show_matching_hosts": "显示匹配的主机",
+  "no_active_queues": "此输入没有活动队列",
+  "weight": "权重",
+  "calibration": "校准",
+  "shortfall": "缺口",
+  "routing_form": "路由表单",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

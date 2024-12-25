@@ -2891,5 +2891,12 @@
   "reassigned": "Réaffecté",
   "rerouted": "Réacheminé",
   "salesforce_assigned": "Affectation Salesforce",
+  "router_position": "Position du routeur",
+  "show_matching_hosts": "Afficher les hôtes correspondants",
+  "no_active_queues": "Aucune file d'attente active pour cette entrée",
+  "weight": "Poids",
+  "calibration": "Calibrage",
+  "shortfall": "Déficit",
+  "routing_form": "Formulaire de routage",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
