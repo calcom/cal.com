@@ -1,5 +1,6 @@
+import type { Prisma } from "@prisma/client";
+
 import logger from "@calcom/lib/logger";
-import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -65,11 +66,9 @@ export async function createCRMEvent(payload: string): Promise<void> {
     throw new Error(`event type app metadata not found for booking ${bookingUid}`);
   }
 
-  const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
-
   const calendarEvent = await buildCalendarEvent(bookingUid);
 
-  const bookingReferencesToCreate = [];
+  const bookingReferencesToCreate: Prisma.BookingReferenceUncheckedCreateInput[] = [];
 
   // Find enabled CRM apps for the event type
   for (const appSlug of Object.keys(eventTypeAppMetadata)) {
@@ -107,11 +106,21 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const results = await crm.createEvent(calendarEvent).catch((error) => {
       log.error(`Error creating crm event for credentialId ${app.credentialId}`, error);
     });
+
+    if (results) {
+      bookingReferencesToCreate.push({
+        type: crmCredential.type,
+        uid: results.id,
+        meetingId: results.id,
+        credentialId: crmCredential.id,
+        bookingId: booking.id,
+      });
+    }
   }
 
-  // Call on credentialId associated with the event type
-  // Call on CRMManager and create event
-  // Create the bookingReferences
+  await prisma.bookingReference.createMany({
+    data: bookingReferencesToCreate,
+  });
 
   return;
 }
