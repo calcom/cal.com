@@ -2,6 +2,7 @@ import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { TGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 
 interface GetInCompleteBookingSettingsOptions {
@@ -42,9 +43,6 @@ const getInCompleteBookingSettingsHandler = async (options: GetInCompleteBooking
     });
   }
 
-  // See if the team has any eligible credentials
-  const enabledApps = ["salesforce"];
-
   const teamId = form?.teamId;
   const userId = form.userId;
 
@@ -62,7 +60,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetInCompleteBooking
     const credentials = await prisma.credential.findMany({
       where: {
         appId: {
-          in: enabledApps,
+          in: enabledIncompleteBookingApps,
         },
         teamId: {
           in: [teamId, ...(orgQuery?.parentId ? [orgQuery.parentId] : [])],
@@ -77,7 +75,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetInCompleteBooking
     const credentials = await prisma.credential.findMany({
       where: {
         appId: {
-          in: enabledApps,
+          in: enabledIncompleteBookingApps,
         },
         userId,
       },
