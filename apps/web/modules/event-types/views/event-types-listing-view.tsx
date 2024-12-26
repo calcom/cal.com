@@ -947,7 +947,7 @@ const InfiniteScrollMain = ({
                 tabs={tabs}
                 className="no-scrollbar flex h-9 space-x-1 overflow-x-scroll whitespace-nowrap rounded-md"
               />
-              <div className="from-background pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent dark:from-gray-900" />
+              <div className="from-background dark:from-darkgray-100 pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent" />
             </div>
             <TextField
               className="max-w-64 bg-subtle !border-muted rounded-md !pl-0 focus:!ring-offset-0"
