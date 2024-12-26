@@ -23,7 +23,16 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
     formId: form.id,
   });
 
-  const [incompleteBookingWriteToRecordEntries, setIncompleteBookingWriteToRecordEntries] = useState<
+  const mutation = trpc.viewer.appRoutingForms.saveIncompleteBookingSettings.useMutation({
+    onSuccess: () => {
+      showToast(t("success"), "success");
+    },
+    onError: (error) => {
+      showToast(t(`error: ${error.message}`), "error");
+    },
+  });
+
+  const [salesforceWriteToRecordObject, setSalesforceWriteToRecordObject] = useState<
     z.infer<typeof salesforceWriteToRecordDataSchema> | []
   >([]);
 
@@ -60,7 +69,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
         salesforceAction.data
       );
       if (parsedSalesforceActionData.success) {
-        setIncompleteBookingWriteToRecordEntries(parsedSalesforceActionData.data?.writeToRecordObject ?? []);
+        setSalesforceWriteToRecordObject(parsedSalesforceActionData.data?.writeToRecordObject ?? []);
       }
     }
   }, [data]);
@@ -101,7 +110,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {incompleteBookingWriteToRecordEntries.map((action) => (
+                {salesforceWriteToRecordObject.map((action) => (
                   <div className="mt-2 grid grid-cols-5 gap-4" key={action.field}>
                     <div>
                       <InputField value={action.field} readOnly />
@@ -129,10 +138,10 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                         variant="icon"
                         color="destructive"
                         onClick={() => {
-                          const newActions = incompleteBookingWriteToRecordEntries.filter(
-                            (action) => action.field !== action.field
+                          const newActions = salesforceWriteToRecordObject.filter(
+                            (existingAction) => existingAction.field !== action.field
                           );
-                          setIncompleteBookingWriteToRecordEntries(newActions);
+                          setSalesforceWriteToRecordObject(newActions);
                         }}
                       />
                     </div>
@@ -205,17 +214,13 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                   )
                 }
                 onClick={() => {
-                  if (
-                    Object.keys(incompleteBookingWriteToRecordEntries).includes(
-                      newSalesforceAction.field.trim()
-                    )
-                  ) {
+                  if (Object.keys(salesforceWriteToRecordObject).includes(newSalesforceAction.field.trim())) {
                     showToast("Field already exists", "error");
                     return;
                   }
 
-                  setIncompleteBookingWriteToRecordEntries([
-                    ...incompleteBookingWriteToRecordEntries,
+                  setSalesforceWriteToRecordObject([
+                    ...salesforceWriteToRecordObject,
                     {
                       field: newSalesforceAction.field,
                       fieldType: newSalesforceAction.fieldType,
@@ -236,6 +241,23 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
             </div>
           </>
         ) : null}
+      </div>
+      <div className="mt-2 flex justify-end">
+        <Button
+          size="sm"
+          disabled={mutation.isLoading}
+          onClick={() => {
+            mutation.mutate({
+              formId: form.id,
+              data: {
+                writeToRecordObject: salesforceWriteToRecordObject,
+              },
+              actionType: IncompleteBookingActionType.SALESFORCE,
+              enabled: salesforceActionEnabled,
+            });
+          }}>
+          {t("save")}
+        </Button>
       </div>
     </>
   );
