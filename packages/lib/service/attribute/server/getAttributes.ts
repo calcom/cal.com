@@ -2,6 +2,7 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
 import { AttributeRepository } from "../../../server/repository/attribute";
@@ -179,7 +180,7 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
   const orgMembershipToUserIdForTeamMembers = new Map<OrgMembershipId, UserId>();
 
   /**
-   * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we query from DB are 3000+300 = 3300
+   * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we get for a team are 3000+300 = 3300
    * So, these are not a lot of records and we could afford to do in memory computations on them.
    *
    */
@@ -273,6 +274,50 @@ async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId
   return assignedAttributeOptions;
 }
 
+function _buildAssignmentsForTeam({
+  attributesToUsersForTeam,
+  orgMembershipToUserIdForTeamMembers,
+  attributesOfTheOrg,
+}: {
+  attributesToUsersForTeam: AttributeToUser[];
+  orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
+  attributesOfTheOrg: Attribute[];
+}) {
+  return attributesToUsersForTeam
+    .map((attributeToUser) => {
+      const orgMembershipId = attributeToUser.memberId;
+      const userId = orgMembershipToUserIdForTeamMembers.get(orgMembershipId);
+      if (!userId) {
+        console.error(`No org membership found for membership id ${orgMembershipId}`);
+        return null;
+      }
+      const attribute = _getAttributeFromAttributeOption({
+        allAttributesOfTheOrg: attributesOfTheOrg,
+        attributeOptionId: attributeToUser.attributeOptionId,
+      });
+
+      const attributeOption = _getAttributeOptionFromAttributeOption({
+        allAttributesOfTheOrg: attributesOfTheOrg,
+        attributeOptionId: attributeToUser.attributeOptionId,
+      });
+
+      if (!attributeOption || !attribute) {
+        console.error(
+          `Attribute option with id ${attributeToUser.attributeOptionId} not found in the organization's attributes`
+        );
+        return null;
+      }
+
+      return {
+        ...attributeToUser,
+        userId,
+        attribute,
+        attributeOption,
+      };
+    })
+    .filter((assignment): assignment is NonNullable<typeof assignment> => assignment !== null);
+}
+
 export async function getAttributesAssignmentData({ orgId, teamId }: { orgId: number; teamId: number }) {
   const { attributesOfTheOrg, attributesToUsersForTeam, orgMembershipToUserIdForTeamMembers } =
     await _queryAllData({
@@ -280,34 +325,10 @@ export async function getAttributesAssignmentData({ orgId, teamId }: { orgId: nu
       teamId,
     });
 
-  const assignmentsForTheTeam = attributesToUsersForTeam.map((attributeToUser) => {
-    const orgMembershipId = attributeToUser.memberId;
-    const userId = orgMembershipToUserIdForTeamMembers.get(orgMembershipId);
-    if (!userId) {
-      throw new Error(`No org membership found for membership id ${orgMembershipId}`);
-    }
-    const attribute = _getAttributeFromAttributeOption({
-      allAttributesOfTheOrg: attributesOfTheOrg,
-      attributeOptionId: attributeToUser.attributeOptionId,
-    });
-
-    const attributeOption = _getAttributeOptionFromAttributeOption({
-      allAttributesOfTheOrg: attributesOfTheOrg,
-      attributeOptionId: attributeToUser.attributeOptionId,
-    });
-
-    if (!attributeOption || !attribute) {
-      throw new Error(
-        `Attribute option with id ${attributeToUser.attributeOptionId} not found in the organization's attributes`
-      );
-    }
-
-    return {
-      ...attributeToUser,
-      userId,
-      attribute,
-      attributeOption,
-    };
+  const assignmentsForTheTeam = _buildAssignmentsForTeam({
+    attributesToUsersForTeam,
+    orgMembershipToUserIdForTeamMembers,
+    attributesOfTheOrg,
   });
 
   const attributesAssignedToTeamMembersWithOptions = _prepareAssignmentData({
