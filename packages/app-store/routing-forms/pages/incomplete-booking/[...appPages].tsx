@@ -86,154 +86,162 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   return (
     <>
       <div className="bg-default border-subtle rounded-md border p-8">
-        <Switch
-          labelOnLeading
-          label="Write to Salesforce contact/lead record"
-          checked={salesforceActionEnabled}
-          onCheckedChange={(checked) => {
-            setSalesforceActionEnabled(checked);
-          }}
-        />
+        <div>
+          <Switch
+            labelOnLeading
+            label="Write to Salesforce contact/lead record"
+            checked={salesforceActionEnabled}
+            onCheckedChange={(checked) => {
+              setSalesforceActionEnabled(checked);
+            }}
+          />
+        </div>
+
         {salesforceActionEnabled ? (
-          <div className="ml-2 mt-2">
-            <div className="grid grid-cols-5 gap-4">
-              <div>{t("field_name")}</div>
-              <div>{t("field_type")}</div>
-              <div>{t("value")}</div>
-              <div>{t("when_to_write")}</div>
-            </div>
-            <div>
-              {incompleteBookingWriteToRecordEntries.map((action) => (
-                <div className="mt-2 grid grid-cols-5 gap-4" key={action.field}>
-                  <div>
-                    <InputField value={action.field} readOnly />
+          <>
+            <hr className="mt-4 border" />
+            <div className="mt-2">
+              <div className="grid grid-cols-5 gap-4">
+                <div>{t("field_name")}</div>
+                <div>{t("field_type")}</div>
+                <div>{t("value")}</div>
+                <div>{t("when_to_write")}</div>
+              </div>
+              <div>
+                {incompleteBookingWriteToRecordEntries.map((action) => (
+                  <div className="mt-2 grid grid-cols-5 gap-4" key={action.field}>
+                    <div>
+                      <InputField value={action.field} readOnly />
+                    </div>
+                    <div>
+                      <Select
+                        value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
+                        isDisabled={true}
+                      />
+                    </div>
+                    <div>
+                      <InputField value={action.value} readOnly />
+                    </div>
+                    <div>
+                      <Select
+                        value={whenToWriteToRecordOptions.find(
+                          (option) => option.value === action.whenToWrite
+                        )}
+                        isDisabled={true}
+                      />
+                    </div>
+                    <div>
+                      <Button
+                        StartIcon="trash"
+                        variant="icon"
+                        color="destructive"
+                        onClick={() => {
+                          const newActions = incompleteBookingWriteToRecordEntries.filter(
+                            (action) => action.field !== action.field
+                          );
+                          setIncompleteBookingWriteToRecordEntries(newActions);
+                        }}
+                      />
+                    </div>
                   </div>
+                ))}
+                <div className="mt-2 grid grid-cols-5 gap-4">
                   <div>
-                    <Select
-                      value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
-                      isDisabled={true}
+                    <InputField
+                      value={newSalesforceAction.field}
+                      onChange={(e) =>
+                        setNewSalesforceAction({
+                          ...newSalesforceAction,
+                          field: e.target.value,
+                        })
+                      }
                     />
                   </div>
                   <div>
-                    <InputField value={action.value} readOnly />
-                  </div>
-                  <div>
                     <Select
-                      value={whenToWriteToRecordOptions.find((option) => option.value === action.whenToWrite)}
-                      isDisabled={true}
+                      options={fieldTypeOptions}
+                      value={selectedFieldType}
+                      onChange={(e) => {
+                        if (e) {
+                          setSelectedFieldType(e);
+                          setNewSalesforceAction({
+                            ...newSalesforceAction,
+                            fieldType: e.value,
+                          });
+                        }
+                      }}
                     />
                   </div>
                   <div>
-                    <Button
-                      StartIcon="trash"
-                      variant="icon"
-                      color="destructive"
-                      onClick={() => {
-                        const newActions = incompleteBookingWriteToRecordEntries.filter(
-                          (action) => action.field !== action.field
-                        );
-                        setIncompleteBookingWriteToRecordEntries(newActions);
+                    <InputField
+                      value={newSalesforceAction.value}
+                      onChange={(e) =>
+                        setNewSalesforceAction({
+                          ...newSalesforceAction,
+                          value: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Select
+                      options={whenToWriteToRecordOptions}
+                      value={selectedWhenToWrite}
+                      onChange={(e) => {
+                        if (e) {
+                          setSelectedWhenToWrite(e);
+                          setNewSalesforceAction({
+                            ...newSalesforceAction,
+                            whenToWrite: e.value,
+                          });
+                        }
                       }}
                     />
                   </div>
                 </div>
-              ))}
-              <div className="mt-2 grid grid-cols-5 gap-4">
-                <div>
-                  <InputField
-                    value={newSalesforceAction.field}
-                    onChange={(e) =>
-                      setNewSalesforceAction({
-                        ...newSalesforceAction,
-                        field: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Select
-                    options={fieldTypeOptions}
-                    value={selectedFieldType}
-                    onChange={(e) => {
-                      if (e) {
-                        setSelectedFieldType(e);
-                        setNewSalesforceAction({
-                          ...newSalesforceAction,
-                          fieldType: e.value,
-                        });
-                      }
-                    }}
-                  />
-                </div>
-                <div>
-                  <InputField
-                    value={newSalesforceAction.value}
-                    onChange={(e) =>
-                      setNewSalesforceAction({
-                        ...newSalesforceAction,
-                        value: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Select
-                    options={whenToWriteToRecordOptions}
-                    value={selectedWhenToWrite}
-                    onChange={(e) => {
-                      if (e) {
-                        setSelectedWhenToWrite(e);
-                        setNewSalesforceAction({
-                          ...newSalesforceAction,
-                          whenToWrite: e.value,
-                        });
-                      }
-                    }}
-                  />
-                </div>
               </div>
-            </div>
-            <Button
-              className="mt-2"
-              size="sm"
-              disabled={
-                !(
-                  newSalesforceAction.field &&
-                  newSalesforceAction.fieldType &&
-                  newSalesforceAction.value &&
-                  newSalesforceAction.whenToWrite
-                )
-              }
-              onClick={() => {
-                if (
-                  Object.keys(incompleteBookingWriteToRecordEntries).includes(
-                    newSalesforceAction.field.trim()
+              <Button
+                className="mt-2"
+                size="sm"
+                disabled={
+                  !(
+                    newSalesforceAction.field &&
+                    newSalesforceAction.fieldType &&
+                    newSalesforceAction.value &&
+                    newSalesforceAction.whenToWrite
                   )
-                ) {
-                  showToast("Field already exists", "error");
-                  return;
                 }
+                onClick={() => {
+                  if (
+                    Object.keys(incompleteBookingWriteToRecordEntries).includes(
+                      newSalesforceAction.field.trim()
+                    )
+                  ) {
+                    showToast("Field already exists", "error");
+                    return;
+                  }
 
-                setIncompleteBookingWriteToRecordEntries([
-                  ...incompleteBookingWriteToRecordEntries,
-                  {
-                    field: newSalesforceAction.field,
-                    fieldType: newSalesforceAction.fieldType,
-                    value: newSalesforceAction.value,
-                    whenToWrite: newSalesforceAction.whenToWrite,
-                  },
-                ]);
+                  setIncompleteBookingWriteToRecordEntries([
+                    ...incompleteBookingWriteToRecordEntries,
+                    {
+                      field: newSalesforceAction.field,
+                      fieldType: newSalesforceAction.fieldType,
+                      value: newSalesforceAction.value,
+                      whenToWrite: newSalesforceAction.whenToWrite,
+                    },
+                  ]);
 
-                setNewSalesforceAction({
-                  field: "",
-                  fieldType: selectedFieldType.value,
-                  value: "",
-                  whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
-                });
-              }}>
-              {t("add_new_field")}
-            </Button>
-          </div>
+                  setNewSalesforceAction({
+                    field: "",
+                    fieldType: selectedFieldType.value,
+                    value: "",
+                    whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
+                  });
+                }}>
+                {t("add_new_field")}
+              </Button>
+            </div>
+          </>
         ) : null}
       </div>
     </>
