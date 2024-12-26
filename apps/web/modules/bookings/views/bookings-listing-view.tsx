@@ -147,13 +147,12 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
       title={t("bookings")}
       description={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="relative mb-8 flex items-center justify-between gap-4">
+        <div className="relative mb-4 flex items-center justify-between gap-4">
           <div className="relative min-w-0 flex-grow overflow-hidden">
             <HorizontalTabs
               tabs={tabs}
               className="no-scrollbar flex h-9 space-x-1 overflow-x-scroll whitespace-nowrap rounded-md"
             />
-            <div className="pointer-events-none absolute right-0 top-0 h-full w-24 bg-gradient-to-l from-white to-transparent dark:from-gray-900" />
           </div>
           <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
