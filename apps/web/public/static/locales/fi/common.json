@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Uudelleenohjaa {{orgSlug}}.cal.com osoitteeseen {{destination}}",
   "single_select": "Yksittäisvalinta",
   "multi_select": "Monivalinta",
+  "calendar_conflict_settings": "Kalenterin päällekkäisyysasetukset",
+  "select_calendars_conflict_check": "Valitse kalenterit, joista päällekkäisyydet tarkistetaan",
   "group_meeting": "Ryhmätapaaminen",
   "salesforce_ignore_guests": "Älä luo uusia tietueita varaukseen lisätyille vieraille",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Uudelleenmääritetty",
   "rerouted": "Uudelleenreititetty",
   "salesforce_assigned": "Salesforce-määritys",
+  "router_position": "Reitittimen sijainti",
+  "show_matching_hosts": "Näytä täsmäävät isännät",
+  "no_active_queues": "Ei aktiivisia jonoja tälle syötteelle",
+  "weight": "Paino",
+  "calibration": "Kalibrointi",
+  "shortfall": "Vajaus",
+  "routing_form": "Reitityskaavake",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

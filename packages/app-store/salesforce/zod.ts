@@ -16,6 +16,11 @@ export const routingFormOptions = z
   })
   .optional();
 
+const optionalBooleanOnlyRunTimeValidation = z
+  .any()
+  .refine((val) => typeof val === "boolean" || val === undefined)
+  .optional();
+
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
   roundRobinSkipCheckRecordOn: z

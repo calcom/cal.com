@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Suunab {{orgSlug}}.cal.com ümber aadressile {{destination}}",
   "single_select": "Üksikvalik",
   "multi_select": "Mitmikvalik",
+  "calendar_conflict_settings": "Kalendri konfliktide seaded",
+  "select_calendars_conflict_check": "Vali kalendrid, mida kontrollida konfliktide suhtes",
   "group_meeting": "Grupikohtumise",
   "salesforce_ignore_guests": "Ära loo broneeringule lisatud külaliste jaoks uusi kirjeid",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Ümber määratud",
   "rerouted": "Ümber suunatud",
   "salesforce_assigned": "Salesforce'i määramine",
+  "router_position": "Ruuteri positsioon",
+  "show_matching_hosts": "Näita sobivaid hoste",
+  "no_active_queues": "Sellel sisendit jaoks pole aktiivseid järjekordi",
+  "weight": "Kaal",
+  "calibration": "Kalibreerimine",
+  "shortfall": "Puudujääk",
+  "routing_form": "Marsruutimise vorm",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "إعادة توجيه {{orgSlug}}.cal.com إلى {{destination}}",
   "single_select": "اختيار فردي",
   "multi_select": "اختيار متعدد",
+  "calendar_conflict_settings": "إعدادات تعارض التقويم",
+  "select_calendars_conflict_check": "حدد التقويمات التي تريد التحقق من تعارضاتها",
   "group_meeting": "اجتماع جماعي",
   "salesforce_ignore_guests": "عدم إنشاء سجلات جديدة للضيوف المضافين إلى الحجز",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "تمت إعادة التعيين",
   "rerouted": "تمت إعادة التوجيه",
   "salesforce_assigned": "تعيين Salesforce",
+  "router_position": "موضع الموجه",
+  "show_matching_hosts": "عرض المضيفين المتطابقين",
+  "no_active_queues": "لا توجد قوائم انتظار نشطة لهذا المُدخل",
+  "weight": "الوزن",
+  "calibration": "المعايرة",
+  "shortfall": "العجز",
+  "routing_form": "نموذج التوجيه",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

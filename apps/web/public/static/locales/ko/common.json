@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com을 {{destination}}(으)로 리디렉션합니다",
   "single_select": "단일 선택",
   "multi_select": "다중 선택",
+  "calendar_conflict_settings": "캘린더 충돌 설정",
+  "select_calendars_conflict_check": "일정 충돌을 확인할 캘린더 선택",
   "group_meeting": "그룹 미팅",
   "salesforce_ignore_guests": "예약에 추가된 게스트에 대한 새 레코드를 생성하지 않음",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "재할당됨",
   "rerouted": "재라우팅됨",
   "salesforce_assigned": "Salesforce 할당",
+  "router_position": "라우터 위치",
+  "show_matching_hosts": "일치하는 호스트 표시",
+  "no_active_queues": "이 입력에 대한 활성 대기열 없음",
+  "weight": "가중치",
+  "calibration": "보정",
+  "shortfall": "부족",
+  "routing_form": "라우팅 양식",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

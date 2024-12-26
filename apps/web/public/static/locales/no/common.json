@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Omdirigerer {{orgSlug}}.cal.com til {{destination}}",
   "single_select": "Enkeltvalg",
   "multi_select": "Flervalg",
+  "calendar_conflict_settings": "Innstillinger for kalenderkonflikt",
+  "select_calendars_conflict_check": "Velg hvilke kalendere som skal sjekkes for konflikter",
   "group_meeting": "Gruppemøte",
   "salesforce_ignore_guests": "Ikke opprett nye poster for gjester som legges til i bookingen",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Omfordelt",
   "rerouted": "Omdirigert",
   "salesforce_assigned": "Salesforce-tildeling",
+  "router_position": "Ruterposisjon",
+  "show_matching_hosts": "Vis samsvarende verter",
+  "no_active_queues": "Ingen aktive køer for dette inndata",
+  "weight": "Vekt",
+  "calibration": "Kalibrering",
+  "shortfall": "Underskudd",
+  "routing_form": "Rutingskjema",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

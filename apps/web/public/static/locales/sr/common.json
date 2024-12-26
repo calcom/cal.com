@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Preusmerava {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Jednostruki izbor",
   "multi_select": "Višestruki izbor",
+  "calendar_conflict_settings": "Podešavanja konflikta kalendara",
+  "select_calendars_conflict_check": "Izaberite kalendare za proveru konflikata",
   "group_meeting": "Grupni sastanak",
   "salesforce_ignore_guests": "Ne kreiraj nove zapise za goste dodate u rezervaciju",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Preraspoređeno",
   "rerouted": "Preusmereno",
   "salesforce_assigned": "Salesforce dodeljivanje",
+  "router_position": "Pozicija rutera",
+  "show_matching_hosts": "Prikaži odgovarajuće hostove",
+  "no_active_queues": "Nema aktivnih redova za ovaj unos",
+  "weight": "Težina",
+  "calibration": "Kalibracija",
+  "shortfall": "Manjak",
+  "routing_form": "Formular za rutiranje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

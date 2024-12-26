@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Przekierowuje {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Pojedynczy wybór",
   "multi_select": "Wielokrotny wybór",
+  "calendar_conflict_settings": "Ustawienia konfliktów kalendarza",
+  "select_calendars_conflict_check": "Wybierz kalendarze do sprawdzania konfliktów",
   "group_meeting": "Spotkanie grupowe",
   "salesforce_ignore_guests": "Nie twórz nowych rekordów dla gości dodanych do rezerwacji",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Przypisano ponownie",
   "rerouted": "Przekierowano ponownie",
   "salesforce_assigned": "Przypisanie Salesforce",
+  "router_position": "Pozycja routera",
+  "show_matching_hosts": "Pokaż pasujące hosty",
+  "no_active_queues": "Brak aktywnych kolejek dla tego wejścia",
+  "weight": "Waga",
+  "calibration": "Kalibracja",
+  "shortfall": "Niedobór",
+  "routing_form": "Formularz routingu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

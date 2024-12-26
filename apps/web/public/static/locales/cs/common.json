@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Přesměruje {{orgSlug}}.cal.com na {{destination}}",
   "single_select": "Jeden výběr",
   "multi_select": "Více výběrů",
+  "calendar_conflict_settings": "Nastavení konfliktů kalendáře",
+  "select_calendars_conflict_check": "Vyberte kalendáře pro kontrolu konfliktů",
   "group_meeting": "Skupinová schůzka",
   "salesforce_ignore_guests": "Nevytvářet nové záznamy pro hosty přidané do rezervace",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Přeřazeno",
   "rerouted": "Přesměrováno jinam",
   "salesforce_assigned": "Přiřazení Salesforce",
+  "router_position": "Pozice routeru",
+  "show_matching_hosts": "Zobrazit odpovídající hosty",
+  "no_active_queues": "Pro tento vstup nejsou žádné aktivní fronty",
+  "weight": "Váha",
+  "calibration": "Kalibrace",
+  "shortfall": "Nedostatek",
+  "routing_form": "Směrovací formulář",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

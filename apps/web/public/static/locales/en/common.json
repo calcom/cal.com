@@ -2878,6 +2878,8 @@
   "disable_org_url_description": "Redirects {{orgSlug}}.cal.com to {{destination}}",
   "single_select": "Single Select",
   "multi_select": "Multi Select",
+  "calendar_conflict_settings": "Calendar Conflict Settings",
+  "select_calendars_conflict_check": "Select which calendars to check for conflicts",
   "group_meeting": "Group Meeting",
   "salesforce_ignore_guests": "Do not create new records for guests added to the booking",
   "google_meet": "Google Meet",
@@ -2893,5 +2895,12 @@
   "reassigned": "Reassigned",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
+  "router_position": "Router Position",
+  "show_matching_hosts": "Show matching hosts",
+  "no_active_queues": "No active queues for this input",
+  "weight": "Weight",
+  "calibration": "Calibration",
+  "shortfall": "Shortfall",
+  "routing_form": "Routing Form",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.com ünvanını {{destination}} ünvanına yönləndirir",
   "single_select": "Tək seçim",
   "multi_select": "Çoxlu seçim",
+  "calendar_conflict_settings": "Təqvim münaqişəsi parametrləri",
+  "select_calendars_conflict_check": "Münaqişələri yoxlamaq üçün təqvimləri seçin",
   "group_meeting": "Qrup görüşü",
   "salesforce_ignore_guests": "Rezervasiyaya əlavə edilən qonaqlar üçün yeni qeydlər yaratma",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Yenidən təyin edildi",
   "rerouted": "Yenidən yönləndirildi",
   "salesforce_assigned": "Salesforce təyinatı",
+  "router_position": "Router mövqeyi",
+  "show_matching_hosts": "Uyğun hostları göstər",
+  "no_active_queues": "Bu giriş üçün aktiv növbə yoxdur",
+  "weight": "Çəki",
+  "calibration": "Kalibrasiya",
+  "shortfall": "Çatışmazlıq",
+  "routing_form": "Marşrutlama forması",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

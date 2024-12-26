@@ -2876,6 +2876,8 @@ checksums:
     disable_org_url_description: 875a1606ef83f120547305072b1b8723
     single_select: 40d573e93a3059895cf3e9ee1e7012c6
     multi_select: 1b93efbd975c6266858392adf33e6558
+    calendar_conflict_settings: 9d5721f39701b71ed421797e44e0a701
+    select_calendars_conflict_check: f4147c353f07390fcb44caa27c34ac57
     group_meeting: d30d80ebb9c0b0256130a3c516cb4b4f
     salesforce_ignore_guests: f56d10682d9a637a4bec42abcd212a35
     google_meet: e30a500b4e93f691c4b2ab046b96e753
@@ -2891,4 +2893,11 @@ checksums:
     reassigned: de2ba8f5c983bf7f66859221f12e1608
     rerouted: 6343fe8a25d8578fc05ff2a2ba950c93
     salesforce_assigned: 885bd396ce914aaa6d69476b39a2dcfc
+    router_position: f4ab21e2479f07d9719e3942c5aa300a
+    show_matching_hosts: 54170b5ac4d9009a900c6d47f3627280
+    no_active_queues: 40fdd4323b7f83f246d0920ff6bb0370
+    weight: 0f46ce3eb36714fd0da498f1d6c752f1
+    calibration: f51287d6811bf1ecf8138969d922265c
+    shortfall: 6a20a35f6f5512e1cee011f1b62698b6
+    routing_form: 0f5f1272e5305e7adcd77dc8d819e9a4
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

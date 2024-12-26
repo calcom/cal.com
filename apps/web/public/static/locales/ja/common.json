@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "{{orgSlug}}.cal.comを{{destination}}にリダイレクトします",
   "single_select": "単一選択",
   "multi_select": "複数選択",
+  "calendar_conflict_settings": "カレンダーの重複チェック設定",
+  "select_calendars_conflict_check": "重複をチェックするカレンダーを選択",
   "group_meeting": "グループミーティング",
   "salesforce_ignore_guests": "予約に追加されたゲストの新規レコードを作成しない",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "再割り当て済み",
   "rerouted": "再ルーティング済み",
   "salesforce_assigned": "Salesforce割り当て",
+  "router_position": "ルーターの位置",
+  "show_matching_hosts": "一致するホストを表示",
+  "no_active_queues": "この入力に対してアクティブなキューはありません",
+  "weight": "重み",
+  "calibration": "キャリブレーション",
+  "shortfall": "不足",
+  "routing_form": "ルーティングフォーム",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

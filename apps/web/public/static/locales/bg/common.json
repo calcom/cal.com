@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Пренасочва {{orgSlug}}.cal.com към {{destination}}",
   "single_select": "Единичен избор",
   "multi_select": "Множествен избор",
+  "calendar_conflict_settings": "Настройки за конфликти в календара",
+  "select_calendars_conflict_check": "Изберете кои календари да се проверяват за конфликти",
   "group_meeting": "Групова среща",
   "salesforce_ignore_guests": "Да не се създават нови записи за гости, добавени към резервацията",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Преразпределен",
   "rerouted": "Пренасочен",
   "salesforce_assigned": "Възложен в Salesforce",
+  "router_position": "Позиция на рутера",
+  "show_matching_hosts": "Покажи съвпадащите хостове",
+  "no_active_queues": "Няма активни опашки за този вход",
+  "weight": "Тегло",
+  "calibration": "Калибриране",
+  "shortfall": "Недостиг",
+  "routing_form": "Форма за маршрутизиране",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "បញ្ជូនបន្តពី {{orgSlug}}.cal.com ទៅកាន់ {{destination}}",
   "single_select": "ជ្រើសរើសតែមួយ",
   "multi_select": "ជ្រើសរើសច្រើន",
+  "calendar_conflict_settings": "ការកំណត់ជម្លោះប្រតិទិន",
+  "select_calendars_conflict_check": "ជ្រើសរើសប្រតិទិនណាមួយដើម្បីពិនិត្យមើលជម្លោះ",
   "group_meeting": "ការប្រជុំក្រុម",
   "salesforce_ignore_guests": "កុំបង្កើតកំណត់ត្រាថ្មីសម្រាប់ភ្ញៀវដែលបានបន្ថែមទៅក្នុងការកក់",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "បានចាត់តាំងឡើងវិញ",
   "rerouted": "បញ្ជូនបន្តឡើងវិញ",
   "salesforce_assigned": "ការចាត់តាំង Salesforce",
+  "router_position": "ទីតាំងរ៉ោតទ័រ",
+  "show_matching_hosts": "បង្ហាញម៉ាស៊ីនដែលត្រូវគ្នា",
+  "no_active_queues": "គ្មានជួររង់ចាំសកម្មសម្រាប់ការបញ្ចូលនេះទេ",
+  "weight": "ទម្ងន់",
+  "calibration": "ការកែតម្រូវ",
+  "shortfall": "កង្វះខាត",
+  "routing_form": "ទម្រង់ការបញ្ជូន",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

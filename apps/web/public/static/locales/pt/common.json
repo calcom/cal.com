@@ -2874,6 +2874,8 @@
   "disable_org_url_description": "Redireciona {{orgSlug}}.cal.com para {{destination}}",
   "single_select": "Seleção única",
   "multi_select": "Seleção múltipla",
+  "calendar_conflict_settings": "Configurações de conflito de agenda",
+  "select_calendars_conflict_check": "Selecione quais agendas verificar para conflitos",
   "group_meeting": "Reunião em grupo",
   "salesforce_ignore_guests": "Não criar novos registros para convidados adicionados ao agendamento",
   "google_meet": "Google Meet",
@@ -2889,5 +2891,12 @@
   "reassigned": "Reatribuído",
   "rerouted": "Reencaminhado",
   "salesforce_assigned": "Atribuição do Salesforce",
+  "router_position": "Posição do roteador",
+  "show_matching_hosts": "Mostrar hosts correspondentes",
+  "no_active_queues": "Não há filas ativas para esta entrada",
+  "weight": "Peso",
+  "calibration": "Calibração",
+  "shortfall": "Déficit",
+  "routing_form": "Formulário de roteamento",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
