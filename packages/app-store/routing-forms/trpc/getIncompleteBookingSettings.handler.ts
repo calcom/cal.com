@@ -66,6 +66,13 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
           in: [teamId, ...(orgQuery?.parentId ? [orgQuery.parentId] : [])],
         },
       },
+      include: {
+        team: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     return { incompleteBookingActions, credentials };

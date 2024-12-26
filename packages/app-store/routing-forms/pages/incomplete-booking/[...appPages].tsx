@@ -57,6 +57,15 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
     whenToWrite: WhenToWriteToRecord.FIELD_EMPTY,
   });
 
+  const credentialOptions = data?.credentials.map((credential) => ({
+    label: credential.team?.name,
+    value: credential.id,
+  }));
+
+  const [selectedCredential, setSelectedCredential] = useState(
+    Array.isArray(credentialOptions) ? credentialOptions[0] : null
+  );
+
   useEffect(() => {
     const salesforceAction = data?.incompleteBookingActions.find(
       (action) => action.actionType === IncompleteBookingActionType.SALESFORCE
@@ -71,6 +80,11 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
       if (parsedSalesforceActionData.success) {
         setSalesforceWriteToRecordObject(parsedSalesforceActionData.data?.writeToRecordObject ?? {});
       }
+
+      setSelectedCredential(
+        credentialOptions.find((option) => option.value === salesforceAction.data.credentialId) ??
+          selectedCredential
+      );
     }
   }, [data]);
 
@@ -102,6 +116,27 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
         {salesforceActionEnabled ? (
           <>
             <hr className="mt-4 border" />
+
+            {form.team && (
+              <>
+                <div className="mt-2">
+                  <p>Credential to use</p>
+                  <Select
+                    options={credentialOptions}
+                    value={selectedCredential}
+                    onChange={(option) => {
+                      if (!option) {
+                        return;
+                      }
+                      setSelectedCredential(option);
+                    }}
+                  />
+                </div>
+
+                <hr className="mt-4 border" />
+              </>
+            )}
+
             <div className="mt-2">
               <div className="grid grid-cols-5 gap-4">
                 <div>{t("field_name")}</div>
@@ -262,6 +297,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
               },
               actionType: IncompleteBookingActionType.SALESFORCE,
               enabled: salesforceActionEnabled,
+              credentialId: selectedCredential?.value ?? data.credentials[0].id,
             });
           }}>
           {t("save")}
