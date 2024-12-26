@@ -32,6 +32,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
   Alert,
   Badge,
@@ -904,6 +905,7 @@ const InfiniteScrollMain = ({
   const searchParams = useCompatSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
+  const { t } = useLocale();
 
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
@@ -913,10 +915,11 @@ const InfiniteScrollMain = ({
     return <InfiniteSkeletonLoader />;
   }
 
-  const tabs = eventTypeGroups.map((item) => ({
+  const tabs: HorizontalTabItemProps[] = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
     avatar: item.profile.image,
+    linkShallow: true,
   }));
 
   const activeEventTypeGroup =
@@ -940,7 +943,7 @@ const InfiniteScrollMain = ({
         <>
           <div className="relative mb-4 flex items-center justify-between gap-4">
             <div className="relative flex-grow overflow-hidden">
-              <HorizontalTabs tabs={tabs} className="pr-8" />
+              <HorizontalTabs tabs={tabs} {...{ className: "pr-8" }} />
               <div className="from-background pointer-events-none absolute right-0 top-0 h-full w-16 bg-gradient-to-l to-transparent" />
             </div>
             <TextField
@@ -952,7 +955,8 @@ const InfiniteScrollMain = ({
               autoComplete="false"
               placeholder={t("search")}
               onChange={(e) => {
-                const setSearchTerm = (window as any).setSearchTerm;
+                const setSearchTerm = (window as Window & { setSearchTerm?: (term: string) => void })
+                  .setSearchTerm;
                 if (setSearchTerm) {
                   setSearchTerm(e.target.value);
                 }
