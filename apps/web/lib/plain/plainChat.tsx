@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
@@ -6,6 +8,7 @@ import { useEffect, useState } from "react";
 declare global {
   interface Window {
     Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       init: (config: any) => void;
       open: () => void;
     };
@@ -65,29 +68,9 @@ interface PlainChatConfig {
   };
 }
 
-export const usePlain = () => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    if (pathname === "/event-types" && searchParams?.has("plain")) {
-      window.Plain?.open();
-    }
-  }, [pathname, searchParams]);
-
-  const openPlain = () => {
-    if (window.Plain) {
-      window.Plain.open();
-    }
-  };
-
-  return { openPlain };
-};
-
 const PlainChat = () => {
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
   const { data: session } = useSession();
-  const { openPlain } = usePlain();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -213,13 +196,22 @@ const PlainChat = () => {
         }
 
         setConfig(plainChatConfig);
+
+        if (pathname === "/event-types" && searchParams?.has("openPlain")) {
+          const timer = setTimeout(() => {
+            if (window.Plain) {
+              window.Plain.open();
+            }
+          }, 100);
+          return () => clearTimeout(timer);
+        }
       } catch (error) {
         console.error("Failed to initialize Plain Chat:", error);
       }
     };
 
     initConfig();
-  }, [session]);
+  }, [session, pathname, searchParams]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
@@ -232,17 +224,6 @@ const PlainChat = () => {
       }
     }
   `;
-
-  useEffect(() => {
-    if (pathname === "/event-types" && searchParams?.has("openPlain") && config) {
-      const timer = setTimeout(() => {
-        if (window.Plain) {
-          openPlain();
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [pathname, searchParams, config, openPlain]);
 
   if (!config) return null;
 

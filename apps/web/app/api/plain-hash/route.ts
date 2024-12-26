@@ -15,6 +15,7 @@ const responseSchema = z.object({
 });
 
 async function handler(request: Request) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession({ req: request as any });
   if (!session?.user?.email) {
     return new Response("Unauthorized - No session email found", { status: 401 });

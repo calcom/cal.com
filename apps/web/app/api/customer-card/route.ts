@@ -26,6 +26,7 @@ export async function handler(request: Request) {
 
   // HMAC verification
   const incomingSignature = headersList.get("plain-request-signature");
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
     .update(JSON.stringify(requestBody))
     .digest("hex");
@@ -88,8 +89,7 @@ export async function handler(request: Request) {
                 rowAsideContent: [
                   {
                     componentBadge: {
-                      badgeLabel:
-                        customer.emailVerified === undefined ? "No" : customer.emailVerified ? "Yes" : "No",
+                      badgeLabel: customer.emailVerified ? "Yes" : "No",
                       badgeColor: customer.emailVerified ? "GREEN" : "RED",
                     },
                   },
