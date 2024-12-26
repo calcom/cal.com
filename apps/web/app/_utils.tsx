@@ -11,22 +11,33 @@ import { truncateOnWord } from "@calcom/lib/text";
 //@ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
 
-const create = async (locale: string, ns: string) => {
+const i18nInstanceCache: Record<string, any> = {};
+
+const createI18nInstance = async (locale: string, ns: string) => {
+  const cacheKey = `${locale}-${ns}`;
+  // Check module-level cache first
+  if (i18nInstanceCache[cacheKey]) {
+    return i18nInstanceCache[cacheKey];
+  }
+
   const { _nextI18Next } = await serverSideTranslations(locale, [ns], config);
 
   const _i18n = i18next.createInstance();
-  _i18n.init({
+  await _i18n.init({
     lng: locale,
     resources: _nextI18Next?.initialI18nStore,
     fallbackLng: _nextI18Next?.userConfig?.i18n.defaultLocale,
   });
+
+  // Cache the instance
+  i18nInstanceCache[cacheKey] = _i18n;
   return _i18n;
 };
 
-export const getFixedT = async (locale: string, ns = "common") => {
-  const i18n = await create(locale, ns);
-
-  return i18n.getFixedT(locale, ns);
+const getTranslationWithCache = async (locale: string, ns: string = "common") => {
+  const localeWithFallback = locale ?? "en";
+  const i18n = await createI18nInstance(localeWithFallback, ns);
+  return i18n.getFixedT(localeWithFallback, ns);
 };
 
 export const getTranslate = async () => {
@@ -34,7 +45,7 @@ export const getTranslate = async () => {
   // If "x-locale" does not exist in header,
   // ensure that config.matcher in middleware includes the page you are testing
   const locale = headersList.get("x-locale");
-  const t = await getFixedT(locale ?? "en");
+  const t = await getTranslationWithCache(locale ?? "en");
   return t;
 };
 
@@ -48,7 +59,7 @@ const _generateMetadataWithoutImage = async (
   const pathname = h.get("x-pathname") ?? "";
   const canonical = buildCanonical({ path: pathname, origin: origin ?? CAL_URL });
   const locale = h.get("x-locale") ?? "en";
-  const t = await getFixedT(locale, "common");
+  const t = await getTranslationWithCache(locale);
 
   const title = getTitle(t);
   const description = getDescription(t);
@@ -59,9 +70,7 @@ const _generateMetadataWithoutImage = async (
   return {
     title: title.length === 0 ? APP_NAME : displayedTitle,
     description,
-    alternates: {
-      canonical,
-    },
+    alternates: { canonical },
     openGraph: {
       description: truncateOnWord(description, 158),
       url: canonical,
