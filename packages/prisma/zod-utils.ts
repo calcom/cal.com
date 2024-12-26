@@ -739,6 +739,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   eventTypeColor: true,
+  alllowReschedulingPastBookings: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
 };
