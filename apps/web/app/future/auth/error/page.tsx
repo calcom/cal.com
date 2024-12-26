@@ -13,7 +13,7 @@ export const generateMetadata = async () => {
   );
 };
 
-const getData = withAppDirSsg(getStaticProps);
+const getData = withAppDirSsg(getStaticProps, "future/auth/error");
 
 export default WithLayout({ getData, Page, getLayout: null })<"P">;
 export const dynamic = "force-static";

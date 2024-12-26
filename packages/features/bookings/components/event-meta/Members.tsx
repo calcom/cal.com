@@ -39,11 +39,12 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
       : [
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
-            href: isEmbed
-              ? null
-              : entity.teamSlug
-              ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
-              : getBookerBaseUrlSync(entity.orgSlug),
+            href:
+              isEmbed || isPlatform
+                ? null
+                : entity.teamSlug
+                ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+                : getBookerBaseUrlSync(entity.orgSlug),
             image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
