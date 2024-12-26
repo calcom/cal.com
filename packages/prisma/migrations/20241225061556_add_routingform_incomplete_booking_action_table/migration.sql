@@ -7,6 +7,7 @@ CREATE TABLE "App_RoutingForms_IncompleteBooking_Actions" (
     "formId" TEXT NOT NULL,
     "actionType" "IncompleteBookingActionType" NOT NULL,
     "data" JSONB NOT NULL,
+    "enabled" BOOLEAN NOT NULL DEFAULT true,
 
     CONSTRAINT "App_RoutingForms_IncompleteBooking_Actions_pkey" PRIMARY KEY ("id")
 );
