@@ -5,7 +5,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { enabledIncompleteBookingApps } from "../lib/enabledIncompleteBookingApps";
 import type { TGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 
-interface GetInCompleteBookingSettingsOptions {
+interface GetIncompleteBookingSettingsOptions {
   ctx: {
     prisma: PrismaClient;
     user: NonNullable<TrpcSessionUser>;
@@ -13,7 +13,7 @@ interface GetInCompleteBookingSettingsOptions {
   input: TGetIncompleteBookingSettingsInputSchema;
 }
 
-const getInCompleteBookingSettingsHandler = async (options: GetInCompleteBookingSettingsOptions) => {
+const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBookingSettingsOptions) => {
   const {
     ctx: { prisma },
     input,
