@@ -69,6 +69,19 @@ const queryParamsForDialog = [
   "month",
 ];
 
+function chooseTimezone({
+  timezoneFromBookerStore,
+  timezoneFromTimePreferences,
+  userSettingsTimezone,
+}: {
+  timezoneFromBookerStore: string | null;
+  timezoneFromTimePreferences: string;
+  userSettingsTimezone: string | undefined;
+}) {
+  // We prefer user's timezone configured in settings at the moment - Might be a better idea to prefer timezoneFromTimePreferences over user settings as the user might be in different timezone
+  return timezoneFromBookerStore ?? userSettingsTimezone ?? timezoneFromTimePreferences;
+}
+
 function useRouterHelpers() {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
@@ -146,17 +159,21 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
-  initialTimezone,
+  userSettingsTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
-  initialTimezone?: string;
+  userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { timezone: bookerTimezone } = useBookerTime();
-  const timezone = bookerTimezone ?? initialTimezone;
+  const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
 
   useInitializeBookerStore({
     username,
@@ -325,7 +342,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
-  initialTimezone,
+  userSettingsTimezone,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -334,11 +351,15 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
-  initialTimezone?: string;
+  userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const { timeFormat, timezone: bookerTimezone } = useBookerTime();
-  const timezone = bookerTimezone ?? initialTimezone;
+  const { timeFormat, timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
 
   if (!eventType) {
     return null;
@@ -780,7 +801,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
-              initialTimezone={userSettings?.timeZone}
+              userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
@@ -1132,7 +1153,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
                         username={teamSlug ?? (data?.user.username as string)}
-                        initialTimezone={userSettings?.timeZone}
+                        userSettingsTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes

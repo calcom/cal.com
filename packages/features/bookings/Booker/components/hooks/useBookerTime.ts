@@ -16,5 +16,7 @@ export const useBookerTime = () => {
   return {
     timezone,
     timeFormat,
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
   };
 };
