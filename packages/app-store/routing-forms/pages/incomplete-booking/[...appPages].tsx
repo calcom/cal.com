@@ -17,13 +17,6 @@ import SingleForm, {
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { enabledIncompleteBookingApps } from "../../lib/enabledIncompleteBookingApps";
 
-interface IncompleteBookingActionData {
-  field: string;
-  fieldType: string;
-  value: string;
-  whenToWrite: WhenToWriteToRecord;
-}
-
 function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.appRoutingForms.getIncompleteBookingSettings.useQuery({
@@ -76,7 +69,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
     return <div>Loading...</div>;
   }
 
-  // Check to see if the user has any compatable credentials
+  // Check to see if the user has any compatible credentials
   if (
     !data?.credentials.some((credential) => enabledIncompleteBookingApps.includes(credential?.appId ?? ""))
   ) {
