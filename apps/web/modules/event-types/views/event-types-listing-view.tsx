@@ -941,10 +941,13 @@ const InfiniteScrollMain = ({
     <>
       {eventTypeGroups.length >= 1 && (
         <>
-          <div className="relative flex items-center justify-between gap-4">
-            <div className="relative flex-grow overflow-hidden">
-              <HorizontalTabs tabs={tabs} />
-              <div className="from-background pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l to-transparent" />
+          <div className="relative mb-8 flex items-center justify-between gap-4">
+            <div className="relative min-w-0 flex-grow overflow-hidden">
+              <HorizontalTabs
+                tabs={tabs}
+                className="no-scrollbar flex h-9 space-x-1 overflow-x-scroll whitespace-nowrap rounded-md"
+              />
+              <div className="from-background pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent dark:from-gray-900" />
             </div>
             <TextField
               className="max-w-64 bg-subtle !border-muted rounded-md !pl-0 focus:!ring-offset-0"
