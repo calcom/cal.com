@@ -25,7 +25,7 @@ type TeamMemberWithAttributeOptionValuePerAttribute = Awaited<
 type RunAttributeLogicData = {
   attributesQueryValue: AttributesQueryValue | null;
   attributesData: {
-    attributesForTheOrg: Attribute[];
+    attributesOfTheOrg: Attribute[];
     teamMembersWithAttributeOptionValuePerAttribute: TeamMemberWithAttributeOptionValuePerAttribute[];
   };
   dynamicFieldValueOperands?: dynamicFieldValueOperands;
@@ -180,13 +180,13 @@ async function getLogicResultForAllMembers(
 async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttributeLogicOptions) {
   const {
     attributesQueryValue: _attributesQueryValue,
-    attributesData: { attributesForTheOrg, teamMembersWithAttributeOptionValuePerAttribute },
+    attributesData: { attributesOfTheOrg, teamMembersWithAttributeOptionValuePerAttribute },
     dynamicFieldValueOperands,
   } = data;
   const { concurrency, enablePerf, enableTroubleshooter } = options;
   const attributesQueryValue = getAttributesQueryValue({
     attributesQueryValue: _attributesQueryValue ?? null,
-    attributes: attributesForTheOrg,
+    attributes: attributesOfTheOrg,
     dynamicFieldValueOperands,
   });
 
@@ -206,7 +206,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
   const [attributesQueryBuilderConfig, ttgetAttributesQueryBuilderConfigHavingListofLabels] = pf(() =>
     getAttributesQueryBuilderConfigHavingListofLabels({
       dynamicFieldValueOperands,
-      attributes: attributesForTheOrg,
+      attributes: attributesOfTheOrg,
     })
   );
 
@@ -269,7 +269,7 @@ async function runAttributeLogic(data: RunAttributeLogicData, options: RunAttrib
         attributesQueryValue,
         attributesQueryBuilderConfig,
         logic,
-        attributesForTheOrg,
+        attributesOfTheOrg,
       },
     }),
   };
@@ -310,7 +310,7 @@ export async function getAttributesForLogic({ teamId, orgId }: { teamId: number;
   });
 
   return {
-    attributesForTheOrg: result.attributesOfTheOrg,
+    attributesOfTheOrg: result.attributesOfTheOrg,
     teamMembersWithAttributeOptionValuePerAttribute: result.attributesAssignedToTeamMembersWithOptions,
     timeTaken: ttAttributes,
   };
@@ -347,7 +347,7 @@ export async function findTeamMembersMatchingAttributeLogic(
   } = data;
 
   const {
-    attributesForTheOrg,
+    attributesOfTheOrg,
     teamMembersWithAttributeOptionValuePerAttribute,
     timeTaken: ttGetAttributesForLogic,
   } = await getAttributesForLogic({
@@ -365,7 +365,7 @@ export async function findTeamMembersMatchingAttributeLogic(
   const runAttributeLogicData: Omit<RunAttributeLogicData, "attributesQueryValue"> = {
     // Change it as per the main/fallback query
     attributesData: {
-      attributesForTheOrg,
+      attributesOfTheOrg,
       teamMembersWithAttributeOptionValuePerAttribute,
     },
     dynamicFieldValueOperands,
@@ -453,7 +453,7 @@ export async function findTeamMembersMatchingAttributeLogic(
           type: TroubleshooterCase.MATCH_RESULTS_READY,
           data: {
             ...troubleshooter.data,
-            attributesForTheOrg,
+            attributesOfTheOrg,
           },
         })
       : null),

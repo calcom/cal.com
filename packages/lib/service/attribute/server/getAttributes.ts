@@ -38,8 +38,20 @@ export type Attribute = {
     id: string;
     value: string;
     slug: string;
-    contains: string[];
+  }[];
+};
+
+type FullAttribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
     isGroup: boolean;
+    contains: string[];
   }[];
 };
 
@@ -161,7 +173,7 @@ function _getAttributeOptionFromAttributeOption({
   allAttributesOfTheOrg,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: Attribute[];
+  allAttributesOfTheOrg: FullAttribute[];
   attributeOptionId: AttributeOptionId;
 }) {
   const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
@@ -177,17 +189,20 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
     teamId,
   });
 
+  // Using map for performance lookup as it matters in the below loop working with 1000s of records
+  const orgMembershipsByUserId = new Map(orgMemberships.map((m) => [m.userId, m]));
+
+  /**
+   * Holds the records of orgMembershipId to userId for the sub-team's members only.
+   */
   const orgMembershipToUserIdForTeamMembers = new Map<OrgMembershipId, UserId>();
 
   /**
    * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we get for a team are 3000+300 = 3300
    * So, these are not a lot of records and we could afford to do in memory computations on them.
-   *
    */
   teamMemberships.forEach((teamMembership) => {
-    const orgMembership = orgMemberships.find(
-      (orgMembership) => orgMembership.userId === teamMembership.userId
-    );
+    const orgMembership = orgMembershipsByUserId.get(teamMembership.userId);
     if (!orgMembership) {
       console.error(
         `Org membership not found for userId ${teamMembership.userId} in the organization's memberships`
@@ -201,7 +216,6 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
 }
 
 async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
-  // Get all the attributes with their options first.
   const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
     _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
     AttributeRepository.findManyByOrgId({ orgId }),
@@ -281,7 +295,7 @@ function _buildAssignmentsForTeam({
 }: {
   attributesToUsersForTeam: AttributeToUser[];
   orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
-  attributesOfTheOrg: Attribute[];
+  attributesOfTheOrg: FullAttribute[];
 }) {
   return attributesToUsersForTeam
     .map((attributeToUser) => {
