@@ -5,6 +5,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import type { AttributeOption } from "@calcom/prisma/client";
 import { AttributeType, MembershipRole } from "@calcom/prisma/enums";
 
+import type { Attribute } from "./getAttributes";
 import { getAttributesForTeam, getAttributesAssignmentData, getUsersAttributes } from "./getAttributes";
 
 // Helper functions to create test data
@@ -39,7 +40,15 @@ async function createMockAttribute({
     })),
   });
 
-  return attribute;
+  const result = await prismock.attribute.findUnique({
+    where: { id: attribute.id },
+    // eslint-disable-next-line @calcom/eslint/no-prisma-include-true
+    include: { options: true },
+  });
+  if (!result) {
+    throw new Error("Some error in creating mock attribute");
+  }
+  return result;
 }
 
 async function createMockUserHavingMembershipWithBothTeamAndOrg({
@@ -104,6 +113,22 @@ async function createMockAttributeAssignment({
       attributeOptionId,
     },
   });
+}
+
+async function expectAttributeToMatch(attribute: Attribute, expected: Attribute) {
+  expect(attribute).toMatchObject({
+    id: expected.id,
+    name: expected.name,
+    slug: expected.slug,
+    type: expected.type,
+  });
+}
+
+async function expectAttributesToMatch(attributes: Attribute[], expected: Attribute[]) {
+  expect(attributes).toHaveLength(expected.length);
+  for (let i = 0; i < attributes.length; i++) {
+    expectAttributeToMatch(attributes[i], expected[i]);
+  }
 }
 
 describe("getAttributes", () => {
@@ -171,12 +196,12 @@ describe("getAttributes", () => {
   describe("getAttributesAssignmentData", () => {
     it("should return team members with their assigned attributes", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
 
-      await createMockAttribute({
+      const attr1 = await createMockAttribute({
         orgId,
         id: "attr1",
         name: "Department",
@@ -195,7 +220,7 @@ describe("getAttributes", () => {
         ],
       });
 
-      await createMockAttribute({
+      const attr2 = await createMockAttribute({
         orgId,
         id: "attr2",
         name: "Territory",
@@ -208,7 +233,7 @@ describe("getAttributes", () => {
       });
 
       // Unassigned attribute
-      await createMockAttribute({
+      const attr3 = await createMockAttribute({
         orgId,
         id: "attr3",
         name: "Attr3",
@@ -272,16 +297,18 @@ describe("getAttributes", () => {
           // attr3 - unassigned isn't here
         },
       });
+
+      expectAttributesToMatch(attributesOfTheOrg, [attr1, attr2, attr3]);
     });
 
     it("should return contains correctly for group options that have sub-options not assigned directly to the user", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
 
-      await createMockAttribute({
+      const attr1 = await createMockAttribute({
         orgId,
         id: "attr1",
         name: "Department",
@@ -330,13 +357,15 @@ describe("getAttributes", () => {
           },
         },
       });
+
+      expectAttributesToMatch(attributesOfTheOrg, [attr1]);
     });
 
     it("should return no attributes for a different org", async () => {
       const team = await createMockTeam({ orgId });
       const otherOrgId = 1002;
       const otherOrgsTeam = await createMockTeam({ orgId: otherOrgId });
-      const { teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
@@ -370,16 +399,18 @@ describe("getAttributes", () => {
         await getAttributesAssignmentData({ teamId: otherOrgsTeam.id, orgId: otherOrgId });
 
       expect(attributesAssignedToTeamMembersWithOptions).toHaveLength(0);
+      // Because created attribute is of other org, it should not be returned
+      expect(attributesOfTheOrg).toHaveLength(0);
     });
 
     it("should handle multi-select attributes correctly", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });
 
-      await createMockAttribute({
+      const attr1 = await createMockAttribute({
         orgId,
         id: "attr1",
         name: "Skills",
@@ -409,13 +440,15 @@ describe("getAttributes", () => {
         { value: "JavaScript", isGroup: false, contains: [] },
         { value: "Python", isGroup: false, contains: [] },
       ]);
+
+      expectAttributesToMatch(attributesOfTheOrg, [attr1]);
     });
   });
 
   describe("getUsersAttributes", () => {
     it("should return attributes assigned to specific user in team", async () => {
       const team = await createMockTeam({ orgId });
-      const { user, teamMembership, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
+      const { user, orgMembership } = await createMockUserHavingMembershipWithBothTeamAndOrg({
         orgId,
         teamId: team.id,
       });

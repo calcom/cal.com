@@ -11,6 +11,22 @@ import type { AttributeId } from "../types";
 
 type UserId = number;
 type OrgMembershipId = number;
+type AttributeOptionId = string;
+type AssignmentForTheTeam = {
+  userId: number;
+  attributeOption: {
+    id: string;
+    value: string;
+    slug: string;
+    contains: string[];
+    isGroup: boolean;
+  };
+  attribute: {
+    id: string;
+    name: string;
+    type: AttributeType;
+  };
+};
 
 export type Attribute = {
   name: string;
@@ -21,6 +37,8 @@ export type Attribute = {
     id: string;
     value: string;
     slug: string;
+    contains: string[];
+    isGroup: boolean;
   }[];
 };
 
@@ -43,29 +61,8 @@ function _prepareAssignmentData({
   assignmentsForTheTeam,
   attributesOfTheOrg,
 }: {
-  assignmentsForTheTeam: {
-    userId: number;
-    attributeOption: {
-      id: string;
-      value: string;
-      slug: string;
-      contains: string[];
-      isGroup: boolean;
-    };
-    attribute: {
-      id: string;
-      name: string;
-      type: AttributeType;
-    };
-  }[];
-  attributesOfTheOrg: {
-    id: string;
-    options: {
-      id: string;
-      value: string;
-      slug: string;
-    }[];
-  }[];
+  assignmentsForTheTeam: AssignmentForTheTeam[];
+  attributesOfTheOrg: Attribute[];
 }) {
   const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce((acc, attributeToUser) => {
     const userId = attributeToUser.userId;
@@ -151,17 +148,8 @@ function _getAttributeFromAttributeOption({
   allAttributesOfTheOrg,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: {
-    id: string;
-    name: string;
-    type: AttributeType;
-    options: {
-      id: string;
-      value: string;
-      slug: string;
-    }[];
-  }[];
-  attributeOptionId: string;
+  allAttributesOfTheOrg: Attribute[];
+  attributeOptionId: AttributeOptionId;
 }) {
   return allAttributesOfTheOrg.find((attribute) =>
     attribute.options.some((option) => option.id === attributeOptionId)
@@ -172,19 +160,8 @@ function _getAttributeOptionFromAttributeOption({
   allAttributesOfTheOrg,
   attributeOptionId,
 }: {
-  allAttributesOfTheOrg: {
-    id: string;
-    name: string;
-    type: AttributeType;
-    options: {
-      id: string;
-      value: string;
-      slug: string;
-      contains: string[];
-      isGroup: boolean;
-    }[];
-  }[];
-  attributeOptionId: string;
+  allAttributesOfTheOrg: Attribute[];
+  attributeOptionId: AttributeOptionId;
 }) {
   const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
     if (found) return found;
@@ -220,6 +197,27 @@ async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: numb
   });
 
   return orgMembershipToUserIdForTeamMembers;
+}
+
+async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
+  // Get all the attributes with their options first.
+  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
+    _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
+    AttributeRepository.findManyByOrgId({ orgId }),
+  ]);
+
+  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
+
+  // Get all the attributes assigned to the members of the team
+  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByOrgMembershipIds({
+    orgMembershipIds,
+  });
+
+  return {
+    attributesOfTheOrg,
+    attributesToUsersForTeam,
+    orgMembershipToUserIdForTeamMembers,
+  };
 }
 
 async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
@@ -264,6 +262,8 @@ async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId
           id: true,
           value: true,
           slug: true,
+          contains: true,
+          isGroup: true,
         },
       },
       slug: true,
@@ -273,30 +273,9 @@ async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId
   return assignedAttributeOptions;
 }
 
-export async function getAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
-  // Get all the attributes with their options first.
-  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
-    _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
-    AttributeRepository.findManyByOrgId({ orgId }),
-  ]);
-
-  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
-
-  // Get all the attributes assigned to the members of the team
-  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByOrgMembershipIds({
-    orgMembershipIds,
-  });
-
-  return {
-    attributesOfTheOrg,
-    attributesToUsersForTeam,
-    orgMembershipToUserIdForTeamMembers,
-  };
-}
-
 export async function getAttributesAssignmentData({ orgId, teamId }: { orgId: number; teamId: number }) {
   const { attributesOfTheOrg, attributesToUsersForTeam, orgMembershipToUserIdForTeamMembers } =
-    await getAllData({
+    await _queryAllData({
       orgId,
       teamId,
     });
