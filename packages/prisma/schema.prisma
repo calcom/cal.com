@@ -1787,4 +1787,5 @@ model App_RoutingForms_IncompleteBooking_Actions {
   formId     String
   actionType IncompleteBookingActionType
   data       Json
+  enabled    Boolean                     @default(true)
 }
