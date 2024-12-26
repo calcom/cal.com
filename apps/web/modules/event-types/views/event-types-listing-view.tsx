@@ -89,6 +89,7 @@ interface InfiniteEventTypeListProps {
 
 interface InfiniteTeamsTabProps {
   activeEventTypeGroup: InfiniteEventTypeGroup;
+  hideSearch?: boolean;
 }
 
 const querySchema = z.object({
@@ -96,7 +97,7 @@ const querySchema = z.object({
 });
 
 const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
-  const { activeEventTypeGroup } = props;
+  const { activeEventTypeGroup, hideSearch } = props;
   const { t } = useLocale();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,19 +125,21 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <TextField
-        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        addOnClassname="!border-muted"
-        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
-        type="search"
-        value={searchTerm}
-        autoComplete="false"
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-        }}
-        placeholder={t("search")}
-      />
+      {!hideSearch && (
+        <TextField
+          className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+          addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+          addOnClassname="!border-muted"
+          containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+          type="search"
+          value={searchTerm}
+          autoComplete="false"
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+          }}
+          placeholder={t("search")}
+        />
+      )}
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
@@ -935,8 +938,28 @@ const InfiniteScrollMain = ({
     <>
       {eventTypeGroups.length >= 1 && (
         <>
-          <HorizontalTabs tabs={tabs} />
-          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
+          <div className="relative mb-4 flex items-center justify-between gap-4">
+            <div className="relative flex-grow overflow-hidden">
+              <HorizontalTabs tabs={tabs} className="pr-8" />
+              <div className="from-background pointer-events-none absolute right-0 top-0 h-full w-16 bg-gradient-to-l to-transparent" />
+            </div>
+            <TextField
+              className="max-w-64 bg-subtle !border-muted rounded-md !pl-0 focus:!ring-offset-0"
+              addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+              addOnClassname="!border-muted"
+              containerClassName="min-w-64 focus:!ring-offset-0"
+              type="search"
+              autoComplete="false"
+              placeholder={t("search")}
+              onChange={(e) => {
+                const setSearchTerm = (window as any).setSearchTerm;
+                if (setSearchTerm) {
+                  setSearchTerm(e.target.value);
+                }
+              }}
+            />
+          </div>
+          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} hideSearch={true} />
         </>
       )}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
