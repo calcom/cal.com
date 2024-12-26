@@ -44,7 +44,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   const [selectedFieldType, setSelectedFieldType] = useState(fieldTypeOptions[0]);
 
   const whenToWriteToRecordOptions = [
-    { label: t("on_every_booking"), value: WhenToWriteToRecord.EVERY_BOOKING },
+    { label: t("on_every_instance"), value: WhenToWriteToRecord.EVERY_BOOKING },
     { label: t("only_if_field_is_empty"), value: WhenToWriteToRecord.FIELD_EMPTY },
   ];
 
