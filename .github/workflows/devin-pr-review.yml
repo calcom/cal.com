@@ -1,0 +1,92 @@
+name: Automated PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR files
+        id: pr-files
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const fileList = files.data.map(file => file.filename);
+            core.setOutput('files', JSON.stringify(fileList));
+
+      - name: Create Devin Review Session
+        id: devin-review
+        uses: actions/github-script@v7
+        env:
+          DEVIN_API_KEY: ${{ secrets.DEVIN_API_KEY }}
+          FILES_TO_REVIEW: ${{ steps.pr-files.outputs.files }}
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read conformance rules from PR description or use default
+            let conformanceRules = './CONTRIBUTING.md';
+            const prData = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            // Create Devin review session
+            const reviewPrompt = `You are PR Reviewer Devin. Your task is to review the following pull request based on our code conformance rules and leave feedback as comments.
+            --user-afk
+            
+            Code Conformance Rules File Path:
+            ${conformanceRules}
+            
+            Files to review:
+            ${process.env.FILES_TO_REVIEW}
+            
+            Your tasks:
+            1. Review the changes in the PR files
+            2. Analyze each changed file for conformance violations
+            3. Provide specific, actionable feedback for any violations
+            4. If no violations are found, confirm compliance
+            5. Return feedback as a JSON array of comments
+            
+            Guidelines:
+            - Be specific about which rules are violated
+            - Provide clear suggestions for fixing violations
+            - Use a professional and constructive tone
+            - Reference specific lines of code in your comments
+            - Only comment on actual violations, not style preferences
+            `;
+            
+            // Create Devin session
+            const response = await fetch('https://api.devin.ai/v1/sessions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.DEVIN_API_KEY}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                prompt: reviewPrompt,
+                unlisted: true
+              })
+            });
+            
+            const session = await response.json();
+            core.setOutput('session-id', session.session_id);
+            core.setOutput('session-url', session.url);
