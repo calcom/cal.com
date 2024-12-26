@@ -68,7 +68,7 @@ function getAdjustedColumnSizing<TData>({
   const leftoverWidth = widthToFill - widthPerAdjustableColumn * numberOfAdjustableColumns;
 
   // Build the new column sizing object
-  return headers.reduce((acc, header, index) => {
+  const newColumnSizing = headers.reduce((acc, header, index) => {
     const baseWidth = getColumnSize(header.id);
     const adjustmentWidth = isAdjustable(header) ? widthPerAdjustableColumn : 0;
     const isLastColumn = index === headers.length - 1;
@@ -77,6 +77,8 @@ function getAdjustedColumnSizing<TData>({
     acc[header.id] = baseWidth + adjustmentWidth + extraWidth;
     return acc;
   }, {} as ColumnSizingState);
+
+  return newColumnSizing;
 }
 
 function getPartialColumnSizing(columnSizing: ColumnSizingState, columnsToExtract: Set<string>) {
@@ -94,6 +96,7 @@ export function usePersistentColumnResizing<TData>({
   identifier,
   tableContainerRef,
 }: UsePersistentColumnResizingProps<TData>) {
+  const initialized = useRef(false);
   const columnSizing = useRef<ColumnSizingState>({});
   const initialColumnSizing = useRef<ColumnSizingState>({});
   const resizedColumns = useRef<Set<string>>(new Set());
@@ -135,7 +138,7 @@ export function usePersistentColumnResizing<TData>({
   const debouncedContainerWidth = useDebouncedWidth(tableContainerRef);
 
   useEffect(() => {
-    if (!enabled || !identifier) return;
+    if (!enabled || !identifier || !initialized.current) return;
     const newColumnSizing = getAdjustedColumnSizing({
       headers: table.getFlatHeaders(),
       containerWidth: debouncedContainerWidth,
@@ -175,5 +178,7 @@ export function usePersistentColumnResizing<TData>({
       columnResizeMode: "onChange",
       onColumnSizingChange,
     }));
+
+    initialized.current = true;
   }, [enabled, identifier, table, onColumnSizingChange]);
 }
