@@ -16,7 +16,7 @@ export const AtomsWrapper = ({
   return (
     <div
       dir={options?.readingDirection ?? "ltr"}
-      className={classNames(`${CALCOM_ATOMS_WRAPPER_CLASS} m-0 w-auto p-0`, customClassName)}>
+      className={classNames(`${CALCOM_ATOMS_WRAPPER_CLASS} m-0 w-auto bg-transparent p-0`, customClassName)}>
       {children}
     </div>
   );

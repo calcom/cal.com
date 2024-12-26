@@ -91,6 +91,7 @@ model EventType {
   availability                            Availability[]
   webhooks                                Webhook[]
   destinationCalendar                     DestinationCalendar?
+  useEventLevelSelectedCalendars          Boolean                   @default(false)
   eventName                               String?
   customInputs                            EventTypeCustomInput[]
   parentId                                Int?
@@ -109,6 +110,7 @@ model EventType {
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
+  requiresConfirmationForFreeEmail        Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
@@ -157,6 +159,7 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  selectedCalendars                       SelectedCalendar[]
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -373,7 +376,6 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
-
 }
 
 model NotificationsSubscriptions {
@@ -709,6 +711,7 @@ model Availability {
 }
 
 model SelectedCalendar {
+  id                               String                @id @default(uuid())
   user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                           Int
   integration                      String
@@ -716,18 +719,27 @@ model SelectedCalendar {
   credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId                     Int?
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?               @unique
+  googleChannelId                  String?
   googleChannelKind                String?
   googleChannelResourceId          String?
   googleChannelResourceUri         String?
   googleChannelExpiration          String?
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+  error                            String?
 
-  @@id([userId, integration, externalId])
+  eventTypeId Int?
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+
+  // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
+  // We currently ensure uniqueness by checking for the existence of the record before creating a new one
+  // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
+  @@unique([userId, integration, externalId, eventTypeId])
+  @@unique([googleChannelId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])
+  @@index([eventTypeId])
 }
 
 enum EventTypeCustomInputType {
@@ -1633,21 +1645,21 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
-  
-  weight            Int?
-  
+
+  weight Int?
+
   // We don't intentionally delete assignments on deletion of a user/directory sync
-  createdAt         DateTime          @default(now())
-  createdById       Int?
-  createdBy         User?             @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
-  createdByDSyncId  String?
-  createdByDSync    DSyncData?        @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
-  
-  updatedAt         DateTime?         @updatedAt
-  updatedBy         User?             @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  updatedById       Int?
-  updatedByDSyncId  String?
-  updatedByDSync    DSyncData?        @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
+  createdAt        DateTime   @default(now())
+  createdById      Int?
+  createdBy        User?      @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByDSyncId String?
+  createdByDSync   DSyncData? @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+
+  updatedAt        DateTime?  @updatedAt
+  updatedBy        User?      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById      Int?
+  updatedByDSyncId String?
+  updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
 }
@@ -1670,7 +1682,8 @@ model AssignmentReason {
 }
 
 enum EventTypeAutoTranslatedField {
-  DESCRIPTION // Currently the only field we translate
+  DESCRIPTION
+  TITLE
 }
 
 model DomainWideDelegation {
@@ -1738,18 +1751,26 @@ enum WatchlistType {
   USERNAME
 }
 
+enum WatchlistSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model Watchlist {
-  id          String        @id @unique @default(cuid())
+  id          String            @id @unique @default(cuid())
   type        WatchlistType
   // The identifier of the Watchlisted entity (email or domain)
   value       String
   description String?
-  createdAt   DateTime      @default(now())
-  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdAt   DateTime          @default(now())
+  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
   createdById Int
-  updatedAt   DateTime      @updatedAt
-  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedAt   DateTime          @updatedAt
+  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
+  severity    WatchlistSeverity @default(LOW)
 
   @@unique([type, value])
   @@index([type, value])
