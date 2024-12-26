@@ -18,7 +18,7 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import type { EmbedProps } from "@lib/withEmbedSsr";
+import type { EmbedProps } from "app/WithEmbedSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
