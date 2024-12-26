@@ -155,7 +155,8 @@ const EmailEmbed = ({
   initialTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const { timezone: bookerStoreTimezone } = useBookerTime();
+  const { timezone: bookerTimezone } = useBookerTime();
+  const timezone = bookerTimezone ?? initialTimezone;
 
   useInitializeBookerStore({
     username,
@@ -170,7 +171,7 @@ const EmailEmbed = ({
     (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
-  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimeZone] =
+  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
     useBookerStore(
       (state) => [
         state.setSelectedDate,
@@ -184,7 +185,6 @@ const EmailEmbed = ({
   const event = useEvent();
   const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const timezone = bookerStoreTimezone ?? initialTimezone;
 
   const onTimeSelect = (time: string) => {
     if (!eventType) {
@@ -310,7 +310,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimeZone(value)} />
+            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimezone(value)} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -337,8 +337,8 @@ const EmailEmbedPreview = ({
   initialTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const { timeFormat, timezone: bookerStoreTimezone } = useBookerTime();
-  const timezone = bookerStoreTimezone ?? initialTimezone;
+  const { timeFormat, timezone: bookerTimezone } = useBookerTime();
+  const timezone = bookerTimezone ?? initialTimezone;
 
   if (!eventType) {
     return null;

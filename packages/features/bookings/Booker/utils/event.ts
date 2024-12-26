@@ -6,6 +6,7 @@ import { trpc } from "@calcom/trpc/react";
 
 import { useTimePreferences } from "../../lib/timePreferences";
 import { useBookerStore } from "../store";
+import { getBookerTimezone } from "./getBookerTimezone";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -88,13 +89,17 @@ export const useScheduleForEvent = ({
   isTeamEvent?: boolean;
 } = {}) => {
   // Somehow using useBookerTime here causes infinite re-renders
-  const { timezone } = useTimePreferences();
+  const { timezone: timezoneFromPreferences } = useTimePreferences();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, timeZoneFromStore] =
     useBookerStore(
       (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timezone],
       shallow
     );
 
+  const timezone = getBookerTimezone({
+    storeTimezone: timeZoneFromStore,
+    bookerUserPreferredTimezone: timezoneFromPreferences,
+  });
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
