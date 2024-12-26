@@ -12,13 +12,12 @@ import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-import { trpc } from "@calcom/trpc/react";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
+import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
-import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -66,14 +65,11 @@ const SlotItem = ({
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, preferenceTimeZone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
-  const timezoneFromBookerStore = useBookerStore((state) => state.timeZone);
-  const { data: userSettings } = trpc.viewer.me.useQuery();
   const { data: eventData } = event;
   const hasTimeSlots = !!seatsPerTimeSlot;
-  const timezone = timezoneFromBookerStore ?? userSettings?.timeZone ?? preferenceTimeZone;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);

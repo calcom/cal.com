@@ -32,7 +32,7 @@ type StoreInitializeType = {
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
-  timeZone?: string | null;
+  timezone?: string | null;
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
@@ -153,9 +153,9 @@ export type BookerStore = {
   org?: string | null;
   setOrg: (org: string | null | undefined) => void;
 
-  timeZone: string | null;
-  setTimeZone: (timeZone: string | null) => void;
-  
+  timezone: string | null;
+  setTimezone: (timezone: string | null) => void;
+
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
@@ -250,9 +250,11 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
   },
-  timeZone: getQueryParam("tz") ?? null,
-  setTimeZone: (timeZone: string | null) => {
-    set({ timeZone });
+  // This is different from timeZone in timePreferencesStore, because timeZone in timePreferencesStore is the preferred timezone of the booker,
+  // it is the timezone configured through query param. So, this is in a way the preference of the person who shared the link.
+  timezone: getQueryParam("cal.tz") ?? null,
+  setTimezone: (timezone: string | null) => {
+    set({ timezone });
   },
   initialize: ({
     username,
@@ -268,7 +270,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     durationConfig,
     org,
     isInstantMeeting,
-    timeZone = null,
+    timezone = null,
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,
@@ -284,7 +286,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout &&
-      get().timeZone === timeZone &&
+      get().timezone === timezone &&
       get().rescheduledBy === rescheduledBy &&
       get().teamMemberEmail === teamMemberEmail &&
       get().crmOwnerRecordType === crmOwnerRecordType &&
@@ -303,7 +305,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       layout: layout || BookerLayouts.MONTH_VIEW,
       isTeamEvent: isTeamEvent || false,
       durationConfig,
-      timeZone,
+      timezone,
       // Preselect today's date in week / column view, since they use this to show the week title.
       selectedDate:
         selectedDateInStore ||
@@ -399,7 +401,7 @@ export const useInitializeBookerStore = ({
   durationConfig,
   org,
   isInstantMeeting,
-  timeZone = null,
+  timezone = null,
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
@@ -420,7 +422,7 @@ export const useInitializeBookerStore = ({
       verifiedEmail,
       durationConfig,
       isInstantMeeting,
-      timeZone,
+      timezone,
       teamMemberEmail,
       crmOwnerRecordType,
       crmAppSlug,
@@ -440,7 +442,7 @@ export const useInitializeBookerStore = ({
     verifiedEmail,
     durationConfig,
     isInstantMeeting,
-    timeZone,
+    timezone,
     teamMemberEmail,
     crmOwnerRecordType,
     crmAppSlug,

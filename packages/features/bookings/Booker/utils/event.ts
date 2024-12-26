@@ -1,4 +1,3 @@
-import { usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
@@ -88,17 +87,16 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
 } = {}) => {
+  // Somehow using useBookerTime here causes infinite re-renders
   const { timezone } = useTimePreferences();
   const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, timeZoneFromStore] =
     useBookerStore(
-      (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timeZone],
+      (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timezone],
       shallow
     );
 
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
-
-  const pathname = usePathname();
 
   const schedule = useSchedule({
     username: usernameFromStore ?? username,

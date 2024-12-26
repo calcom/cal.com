@@ -13,7 +13,6 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
@@ -41,6 +40,7 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
 import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -146,16 +146,16 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
-  userSettingsTimezone,
+  initialTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
-  userSettingsTimezone?: string;
+  initialTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-  const [preferenceTimezone] = useTimePreferences((state) => [state.timezone]);
+  const { timezone: bookerStoreTimezone } = useBookerTime();
 
   useInitializeBookerStore({
     username,
@@ -166,8 +166,8 @@ const EmailEmbed = ({
     isTeamEvent,
   });
 
-  const [month, selectedDate, selectedDatesAndTimes, bookerStoreTimezone] = useBookerStore(
-    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes, state.timeZone],
+  const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
+    (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
   const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimeZone] =
@@ -177,14 +177,14 @@ const EmailEmbed = ({
         state.setMonth,
         state.setSelectedDatesAndTimes,
         state.setSelectedTimeslot,
-        state.setTimeZone,
+        state.setTimezone,
       ],
       shallow
     );
   const event = useEvent();
   const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
-  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
+  const timezone = bookerStoreTimezone ?? initialTimezone;
 
   const onTimeSelect = (time: string) => {
     if (!eventType) {
@@ -325,7 +325,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
-  userSettingsTimezone,
+  initialTimezone,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -334,12 +334,11 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
-  userSettingsTimezone?: string;
+  initialTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const [timeFormat, preferenceTimezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
-  const bookerStoreTimezone = useBookerStore((store) => store.timeZone);
-  const timezone = bookerStoreTimezone ?? userSettingsTimezone ?? preferenceTimezone;
+  const { timeFormat, timezone: bookerStoreTimezone } = useBookerTime();
+  const timezone = bookerStoreTimezone ?? initialTimezone;
 
   if (!eventType) {
     return null;
@@ -442,7 +441,7 @@ const EmailEmbedPreview = ({
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
-                                        }&date=${key}&month=${month}&slot=${time}&tz=${timezone}`;
+                                        }&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
                                         return (
                                           <td
                                             key={time}
@@ -506,7 +505,7 @@ const EmailEmbedPreview = ({
                 <a
                   className="more"
                   data-testid="see_all_available_times"
-                  href={`${eventType.bookerUrl}/${calLink}?tz=${timezone}`}
+                  href={`${eventType.bookerUrl}/${calLink}?cal.tz=${timezone}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -781,7 +780,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
-              userSettingsTimezone={userSettings?.timeZone}
+              initialTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
@@ -1133,7 +1132,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
                         username={teamSlug ?? (data?.user.username as string)}
-                        userSettingsTimezone={userSettings?.timeZone}
+                        initialTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes

@@ -19,6 +19,7 @@ import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -80,17 +81,15 @@ export const EventMeta = ({
   };
   locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone: preferenceTimezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
   const bookingData = useBookerStore((state) => state.bookingData);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
-  const [timezoneFromBookerStore, setBookerStoreTimezone] = useBookerStore(
-    (state) => [state.timeZone, state.setTimeZone],
-    shallow
-  );
-  const timezone = timezoneFromBookerStore ?? preferenceTimezone;
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const [seatedEventData, setSeatedEventData] = useBookerStore(
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
