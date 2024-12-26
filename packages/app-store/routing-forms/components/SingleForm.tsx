@@ -8,10 +8,12 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import cn from "@calcom/lib/classNames";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import {
@@ -676,6 +678,8 @@ export const TestFormDialog = ({
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
+  const { data: user } = useMeQuery();
+
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
@@ -898,13 +902,27 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                     </div>
                   ) : null}
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex gap-2">
                     <Button
                       color="secondary"
                       data-testid="test-preview"
                       onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
+                    {IS_CALCOM && (
+                      <Tooltip content={t("contact_our_support_team")} side="right">
+                        <Button
+                          target="_blank"
+                          color="minimal"
+                          href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                            user?.email ?? ""
+                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
+                            form.id
+                          )}`}>
+                          {t("need_help")}
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                   {form.routes?.every(isFallbackRoute) && (
                     <Alert
