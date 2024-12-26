@@ -4,9 +4,8 @@ import { useSchedule } from "@calcom/features/schedules";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
-import { useTimePreferences } from "../../lib/timePreferences";
+import { useBookerTime } from "../components/hooks/useBookerTime";
 import { useBookerStore } from "../store";
-import { getBookerTimezone } from "./getBookerTimezone";
 
 export type useEventReturnType = ReturnType<typeof useEvent>;
 export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEvent>;
@@ -88,18 +87,12 @@ export const useScheduleForEvent = ({
   fromRedirectOfNonOrgLink?: boolean;
   isTeamEvent?: boolean;
 } = {}) => {
-  // Somehow using useBookerTime here causes infinite re-renders
-  const { timezone: timezoneFromPreferences } = useTimePreferences();
-  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore, timeZoneFromStore] =
-    useBookerStore(
-      (state) => [state.username, state.eventSlug, state.month, state.selectedDuration, state.timezone],
-      shallow
-    );
+  const { timezone } = useBookerTime();
+  const [usernameFromStore, eventSlugFromStore, monthFromStore, durationFromStore] = useBookerStore(
+    (state) => [state.username, state.eventSlug, state.month, state.selectedDuration],
+    shallow
+  );
 
-  const timezone = getBookerTimezone({
-    storeTimezone: timeZoneFromStore,
-    bookerUserPreferredTimezone: timezoneFromPreferences,
-  });
   const searchParams = useCompatSearchParams();
   const rescheduleUid = searchParams?.get("rescheduleUid");
 
@@ -107,7 +100,7 @@ export const useScheduleForEvent = ({
     username: usernameFromStore ?? username,
     eventSlug: eventSlugFromStore ?? eventSlug,
     eventId,
-    timezone: timeZoneFromStore ?? timezone,
+    timezone,
     selectedDate,
     prefetchNextMonth,
     monthCount,
