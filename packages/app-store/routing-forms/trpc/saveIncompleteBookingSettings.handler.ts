@@ -1,9 +1,12 @@
+import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import incompleteBookingActionDataSchemas from "../lib/incompleteBooking/actionDataSchemas";
 import type { TSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
+
+const log = logger.getSubLogger({ prefix: ["incomplete-booking"] });
 
 interface SaveIncompleteBookingSettingsOptions {
   ctx: {
@@ -33,6 +36,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
   const parsedData = dataSchema.safeParse(data);
 
   if (!parsedData.success) {
+    log.error("Data is not valid", data, parsedData.error);
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Data is not valid",
@@ -55,6 +59,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
       data: {
         data: parsedData.data,
         enabled: input.enabled,
+        credentialId: input?.credentialId,
       },
     });
   } else {
@@ -64,6 +69,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
         actionType: actionType,
         data: parsedData.data,
         enabled: input.enabled,
+        credentialId: input?.credentialId,
       },
     });
   }
