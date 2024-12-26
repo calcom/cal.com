@@ -1965,6 +1965,7 @@ async function handler(
         eventTypeId,
         teamId,
         orgId,
+        workflows,
       });
     }
   } catch (error) {

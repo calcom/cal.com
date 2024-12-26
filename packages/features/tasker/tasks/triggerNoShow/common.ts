@@ -8,7 +8,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TWebhook, TTriggerNoShowPayloadSchema, TWorkflow } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =
@@ -144,7 +144,8 @@ export const prepareNoShowTrigger = async (
   payload: string
 ): Promise<{
   booking: Booking;
-  webhook: TWebhook;
+  webhook?: TWebhook;
+  workflow?: TWorkflow;
   hostsThatDidntJoinTheCall: Host[];
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
@@ -152,7 +153,7 @@ export const prepareNoShowTrigger = async (
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
 } | void> => {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, ...rest } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
   let originalRescheduledBooking = null;
@@ -176,7 +177,7 @@ export const prepareNoShowTrigger = async (
       "Booking is not accepted",
       safeStringify({
         bookingId,
-        webhook: { id: webhook.id },
+        ...rest,
       })
     );
 
@@ -191,7 +192,7 @@ export const prepareNoShowTrigger = async (
       "Daily video reference not found",
       safeStringify({
         bookingId,
-        webhook: { id: webhook.id },
+        ...rest,
       })
     );
     throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
@@ -225,9 +226,9 @@ export const prepareNoShowTrigger = async (
     hostsThatJoinedTheCall,
     booking,
     numberOfHostsThatJoined,
-    webhook,
     didGuestJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
+    ...rest,
   };
 };

@@ -10,8 +10,12 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   sendWebhook: () => import("./sendWebook").then((module) => module.sendWebhook),
   triggerHostNoShowWebhook: () =>
     import("./triggerNoShow/triggerHostNoShow").then((module) => module.triggerHostNoShow),
+  triggerHostNoShowWorkflow: () =>
+    import("./triggerNoShow/triggerHostNoShow").then((module) => module.triggerHostNoShow),
   triggerGuestNoShowWebhook: () =>
     import("./triggerNoShow/triggerGuestNoShow").then((module) => module.triggerGuestNoShow),
+  triggerGuestNoShowWorkflow: () =>
+    import("./triggerNoShow/triggerHostNoShow").then((module) => module.triggerGuestNoShow),
   triggerFormSubmittedNoEventWebhook: () =>
     import("./triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").then(
       (module) => module.triggerFormSubmittedNoEventWebhook

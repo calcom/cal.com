@@ -37,20 +37,25 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     didGuestJoinTheCall,
     originalRescheduledBooking,
     participants,
+    workflow,
   } = result;
 
-  const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
+  if (webhook) {
+    const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  if (!didGuestJoinTheCall) {
-    await sendWebhookPayload(
-      webhook,
-      WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-      booking,
-      maxStartTime,
-      participants,
-      originalRescheduledBooking
-    );
+    if (!didGuestJoinTheCall) {
+      await sendWebhookPayload(
+        webhook,
+        WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+        booking,
+        maxStartTime,
+        participants,
+        originalRescheduledBooking
+      );
 
-    await markAllGuestNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall });
+      await markAllGuestNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall });
+    }
+  } else if (workflow) {
+    // TODO: Implement workflow
   }
 }
