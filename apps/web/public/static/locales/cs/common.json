@@ -2891,5 +2891,12 @@
   "reassigned": "Přeřazeno",
   "rerouted": "Přesměrováno jinam",
   "salesforce_assigned": "Přiřazení Salesforce",
+  "router_position": "Pozice routeru",
+  "show_matching_hosts": "Zobrazit odpovídající hosty",
+  "no_active_queues": "Pro tento vstup nejsou žádné aktivní fronty",
+  "weight": "Váha",
+  "calibration": "Kalibrace",
+  "shortfall": "Nedostatek",
+  "routing_form": "Směrovací formulář",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
