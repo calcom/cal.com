@@ -3,8 +3,9 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
+/* eslint-disable react-hooks/rules-of-hooks */
 declare global {
   interface Window {
     Plain?: {
@@ -69,36 +70,34 @@ interface PlainChatConfig {
 }
 
 const PlainChat = () => {
+  if (typeof window === "undefined") return null;
+
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
-  const [isAppDomain, setIsAppDomain] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
   const userEmail = session?.user?.email;
+  const isAppDomain =
+    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL && !pathname?.startsWith("/video");
+
+  const checkScreenSize = useCallback(() => {
+    const isSmall = window.innerWidth < 768;
+    setIsSmallScreen(isSmall);
+
+    if (isSmall && window.Plain) {
+      const plainElement = document.querySelector("#plain-container");
+      plainElement?.remove();
+      window.Plain = undefined;
+    } else if (!isSmall && config && window.Plain === undefined) {
+      window.plainScriptLoaded?.();
+    }
+  }, [config]);
 
   useEffect(() => {
-    setIsAppDomain(
-      window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL && !pathname?.startsWith("/video")
-    );
-
     if (!isAppDomain) return;
-
-    const checkScreenSize = () => {
-      const isSmall = window.innerWidth < 768;
-      setIsSmallScreen(isSmall);
-
-      if (isSmall && window.Plain) {
-        const plainElement = document.querySelector("#plain-container");
-        plainElement?.remove();
-
-        window.Plain = undefined;
-      } else if (!isSmall && config && window.Plain === undefined) {
-        window.plainScriptLoaded?.();
-      }
-    };
 
     const initConfig = async () => {
       if (!userEmail) return;
@@ -240,7 +239,7 @@ const PlainChat = () => {
     initConfig();
 
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [userEmail, pathname, shouldOpenPlain, isAppDomain, config]);
+  }, [userEmail, pathname, shouldOpenPlain, isAppDomain, config, checkScreenSize]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
