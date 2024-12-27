@@ -55,7 +55,7 @@ export const EventMeta = ({
     | "lockTimeZoneToggleOnBookingPage"
     | "schedule"
     | "seatsPerTimeSlot"
-    | "users"
+    | "firstThreeUsers"
     | "length"
     | "schedulingType"
     | "profile"
@@ -150,7 +150,7 @@ export const EventMeta = ({
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
-            users={event.users}
+            users={event.firstThreeUsers}
             profile={event.profile}
             entity={event.entity}
           />

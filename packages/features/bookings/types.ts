@@ -47,16 +47,17 @@ export type BookerEvent = Pick<
   | "description"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
-  | "hosts"
+  | "firstThreeHosts"
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
-> & { firstThreeUsers: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & {
-  profile: BookerEventProfile;
-};
+> & {
+  firstThreeUsers: BookerEventUser[];
+  showInstantEventConnectNowModal: boolean;
+} & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 

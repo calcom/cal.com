@@ -270,7 +270,7 @@ export const getPublicEvent = async (
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
-      users: users.map((user) => ({
+      firstThreeUsers: users.map((user) => ({
         ...user,
         metadata: undefined,
         bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),

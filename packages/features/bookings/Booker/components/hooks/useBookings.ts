@@ -187,9 +187,9 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.hosts?.length
-        ? event.data?.hosts.map((host) => host.user)
-        : event.data?.users;
+      const users = !!event.data?.firstThreeHosts?.length
+        ? event.data?.firstThreeHosts.map((host) => host.user)
+        : event.data?.firstThreeUsers;
 
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length
