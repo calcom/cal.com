@@ -2891,5 +2891,12 @@
   "reassigned": "Neu zugewiesen",
   "rerouted": "Umgeleitet",
   "salesforce_assigned": "Salesforce-Zuweisung",
+  "router_position": "Router-Position",
+  "show_matching_hosts": "Passende Hosts anzeigen",
+  "no_active_queues": "Keine aktiven Warteschlangen für diese Eingabe",
+  "weight": "Gewichtung",
+  "calibration": "Kalibrierung",
+  "shortfall": "Fehlmenge",
+  "routing_form": "Routing-Formular",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

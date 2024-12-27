@@ -4,7 +4,7 @@ import Head from "next/head";
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import { getServerSideProps } from "./getServerSideProps";
+import { getServerSideProps } from "../../server/lib/router/getServerSideProps";
 
 export default function Router({ form, message }: inferSSRProps<typeof getServerSideProps>) {
   return (

@@ -4,7 +4,7 @@ import type { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod"
 import CrmManager from "@calcom/core/crmManager/crmManager";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeAppMetadataOptionalSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { NoShowAttendees } from "../handleMarkNoShow";
 import { noShowEnabledApps } from "./noShowEnabledApps";
@@ -38,7 +38,7 @@ export default async function handleSendingAttendeeNoShowDataToApps(
     log.error(`Malformed event type metadata for bookingUid ${bookingUid}`);
     return;
   }
-  const eventTypeAppMetadata = eventTypeMetadataParse.data?.apps;
+  const eventTypeAppMetadata = eventTypeAppMetadataOptionalSchema.parse(eventTypeMetadataParse.data?.apps);
 
   for (const slug in eventTypeAppMetadata) {
     if (noShowEnabledApps.includes(slug)) {
