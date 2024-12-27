@@ -80,8 +80,12 @@ const PlainChat = () => {
 
   const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
   const userEmail = session?.user?.email;
+
+  const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
+
   const isAppDomain =
-    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL && !pathname?.startsWith("/video");
+    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
+    !restrictedPaths.some((path) => pathname?.startsWith(path.trim()));
 
   const checkScreenSize = useCallback(() => {
     const isSmall = window.innerWidth < 768;
