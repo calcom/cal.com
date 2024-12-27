@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Meno vlastníka na zmenu",
   "no_filter_set": "Nie je nastavený žiadny filter",
   "booking_dry_run_successful": "Testovacia rezervácia prebehla úspešne",
+  "booking_dry_run_successful_description": "Testovací beh bol úspešne dokončený.",
   "dont_have_access_this_page": "Nemáte prístup na túto stránku",
   "you_need_admin_or_owner_privileges_to_access": "Na zobrazenie alebo interakciu s touto stránkou musíte mať administrátorské alebo vlastnícke práva",
   "field_type": "Typ poľa",
