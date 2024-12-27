@@ -1109,6 +1109,7 @@ async function handler(
       responses,
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
+      isDryRun,
     });
 
     if (newBooking) {
@@ -1778,15 +1779,16 @@ async function handler(
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
-    const payment = await handlePayment(
+    const payment = await handlePayment({
       evt,
-      eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
-      fullName,
+      bookerName: fullName,
       bookerEmail,
-      bookerPhoneNumber
-    );
+      bookerPhoneNumber,
+      isDryRun,
+    });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
@@ -1802,6 +1804,7 @@ async function handler(
         ...webhookData,
         paymentId: payment?.id,
       },
+      isDryRun,
     });
 
     req.statusCode = 201;
@@ -1844,6 +1847,7 @@ async function handler(
       //delete all scheduled triggers for meeting ended and meeting started of booking
       deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
         booking: originalRescheduledBooking,
+        isDryRun,
       });
     }
 
@@ -1855,6 +1859,7 @@ async function handler(
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+            isDryRun,
           })
         );
       }
@@ -1866,6 +1871,7 @@ async function handler(
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+            isDryRun,
           })
         );
       }
@@ -1879,13 +1885,23 @@ async function handler(
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await monitorCallbackAsync(handleWebhookTrigger, { subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    await monitorCallbackAsync(handleWebhookTrigger, { subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   }
 
   try {
@@ -1931,14 +1947,15 @@ async function handler(
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
-    await scheduleMandatoryReminder(
-      evtWithMetadata,
+    await scheduleMandatoryReminder({
+      evt: evtWithMetadata,
       workflows,
-      !isConfirmedByDefault,
-      !!eventType.owner?.hideBranding,
-      evt.attendeeSeatId,
-      noEmail && Boolean(platformClientId)
-    );
+      requiresConfirmation: !isConfirmedByDefault,
+      hideBranding: !!eventType.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
+      isPlatformNoEmail: noEmail && Boolean(platformClientId),
+      isDryRun,
+    });
   }
 
   try {
@@ -1951,6 +1968,7 @@ async function handler(
       isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
+      isDryRun,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -1965,6 +1983,7 @@ async function handler(
         eventTypeId,
         teamId,
         orgId,
+        isDryRun,
       });
     }
   } catch (error) {
