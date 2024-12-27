@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
@@ -11,14 +11,22 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, Divider, FilterSearchField, Icon, Button } from "@calcom/ui";
 
+import useMeQuery from "../../../trpc/react/hooks/useMeQuery";
+
 export const PeopleFilter = () => {
   const { t } = useLocale();
-
+  const { data: me } = useMeQuery();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery();
   const isAdmin = currentOrg?.user.role === "ADMIN" || currentOrg?.user.role === "OWNER";
   const hasPermToView = !currentOrg?.isPrivate || isAdmin;
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
+
+  useEffect(() => {
+    if (isAdmin && me?.id && (!query.userIds || query.userIds.length === 0)) {
+      pushItemToKey("userIds", me.id);
+    }
+  }, [isAdmin, me?.id, query.userIds, pushItemToKey]);
   const [searchText, setSearchText] = useState("");
 
   const debouncedSearch = useDebounce(searchText, 500);
