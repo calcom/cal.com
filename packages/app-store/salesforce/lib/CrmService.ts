@@ -17,6 +17,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
+import type { writeToRecordDataSchema } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -962,7 +963,7 @@ export default class SalesforceCRMService implements CRM {
     existingFields: Field[];
     personRecord: Record<string, any>;
     onBookingWriteToRecordFields: Record<string, any>;
-    startTime: string;
+    startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
@@ -989,7 +990,7 @@ export default class SalesforceCRMService implements CRM {
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
           }
-        } else if (field.type === SalesforceFieldType.DATE) {
+        } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
             startTime,
@@ -1238,5 +1239,61 @@ export default class SalesforceCRMService implements CRM {
 
     const response = await checkIfFreeEmailDomain(attendeeEmail);
     return response;
+  }
+
+  async incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ) {
+    const conn = await this.conn;
+
+    let personRecord: { Id: string; Email: string; recordType: SalesforceRecordEnum } | null = null;
+
+    // Prioritize contacts over leads
+    const contactsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}'`
+    );
+
+    if (contactsQuery.records.length) {
+      personRecord = {
+        ...(contactsQuery.records[0] as { Id: string; Email: string }),
+        recordType: SalesforceRecordEnum.CONTACT,
+      };
+    }
+
+    const leadsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}'`
+    );
+
+    if (leadsQuery.records.length) {
+      personRecord = {
+        ...(leadsQuery.records[0] as { Id: string; Email: string }),
+        recordType: SalesforceRecordEnum.LEAD,
+      };
+    }
+
+    if (!personRecord) {
+      throw new Error(`No contact or lead found for email ${email}`);
+    }
+    // Ensure the fields exist on the record
+    const existingFields = await this.ensureFieldsExistOnObject(
+      Object.keys(writeToRecordObject),
+      personRecord.recordType
+    );
+
+    const writeOnRecordBody = await this.buildRecordUpdatePayload({
+      existingFields,
+      personRecord,
+      onBookingWriteToRecordFields: writeToRecordObject,
+    });
+    await conn
+      .sobject(personRecord.recordType)
+      .update({
+        Id: personRecord.Id,
+        ...writeOnRecordBody,
+      })
+      .catch((e) => {
+        this.log.error(`Error updating person record for contactId ${personRecord?.Id}`, e);
+      });
   }
 }
