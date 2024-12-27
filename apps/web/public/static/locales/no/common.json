@@ -2891,5 +2891,12 @@
   "reassigned": "Omfordelt",
   "rerouted": "Omdirigert",
   "salesforce_assigned": "Salesforce-tildeling",
+  "router_position": "Ruterposisjon",
+  "show_matching_hosts": "Vis samsvarende verter",
+  "no_active_queues": "Ingen aktive køer for dette inndata",
+  "weight": "Vekt",
+  "calibration": "Kalibrering",
+  "shortfall": "Underskudd",
+  "routing_form": "Rutingskjema",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

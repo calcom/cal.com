@@ -2891,5 +2891,12 @@
   "reassigned": "Επανεκχωρήθηκε",
   "rerouted": "Ανακατευθύνθηκε",
   "salesforce_assigned": "Ανάθεση Salesforce",
+  "router_position": "Θέση δρομολογητή",
+  "show_matching_hosts": "Εμφάνιση αντίστοιχων hosts",
+  "no_active_queues": "Δεν υπάρχουν ενεργές ουρές για αυτήν την είσοδο",
+  "weight": "Βάρος",
+  "calibration": "Βαθμονόμηση",
+  "shortfall": "Έλλειμμα",
+  "routing_form": "Φόρμα δρομολόγησης",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
