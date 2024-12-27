@@ -8,7 +8,7 @@ import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
+import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

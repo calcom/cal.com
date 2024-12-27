@@ -2,6 +2,8 @@ import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach } from "vitest";
 
+import { WatchlistSeverity } from "@calcom/prisma/enums";
+
 import { isLockedOrBlocked } from "../../../lib/utils/isLockedOrBlocked";
 
 describe("isLockedOrBlocked", () => {
@@ -16,6 +18,7 @@ describe("isLockedOrBlocked", () => {
         {
           type: "DOMAIN",
           value: "blocked.com",
+          severity: WatchlistSeverity.CRITICAL,
           createdById: 1,
         },
       ],

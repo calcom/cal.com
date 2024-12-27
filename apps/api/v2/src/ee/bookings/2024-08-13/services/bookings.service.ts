@@ -340,7 +340,10 @@ export class BookingsService_2024_08_13 {
     }
 
     const bookingRequest = await this.inputService.createCancelBookingRequest(request, bookingUid, body);
-    await handleCancelBooking(bookingRequest);
+    const res = await handleCancelBooking(bookingRequest);
+    if (!res.onlyRemovedAttendee) {
+      await this.billingService.cancelUsageByBookingUid(res.bookingUid);
+    }
 
     if ("cancelSubsequentBookings" in body && body.cancelSubsequentBookings) {
       return this.getAllRecurringBookingsByIndividualUid(bookingUid);

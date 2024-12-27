@@ -11,3 +11,4 @@ export { HighestRatedMembersTable } from "./HighestRatedMembersTable";
 export { LowestRatedMembersTable } from "./LowestRatedMembersTable";
 export { RoutingFormResponsesTable, type RoutingFormTableType } from "./RoutingFormResponsesTable";
 export { FailedBookingsByField } from "./FailedBookingsByField";
+export { RoutedToPerPeriod } from "./RoutedToPerPeriod";
