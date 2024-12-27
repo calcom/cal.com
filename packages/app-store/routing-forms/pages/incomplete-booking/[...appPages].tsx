@@ -176,13 +176,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                           variant="icon"
                           color="destructive"
                           onClick={() => {
-                            console.log(
-                              "🚀 ~ {Object.keys ~ salesforceWriteToRecordObject:",
-                              salesforceWriteToRecordObject
-                            );
-                            console.log("🚀 ~ {Object.keys ~ key:", key);
                             const newActions = { ...salesforceWriteToRecordObject };
-                            console.log("🚀 ~ {Object.keys ~ newActions:", newActions);
                             delete newActions[key];
                             setSalesforceWriteToRecordObject(newActions);
                           }}

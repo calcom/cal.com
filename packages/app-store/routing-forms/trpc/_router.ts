@@ -10,7 +10,6 @@ import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema"
 import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
-import { ZResponseInputSchema } from "./response.schema";
 import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types

@@ -23,9 +23,11 @@ export const incompleteBookingAction = async (action: any, email: string) => {
     return;
   }
 
-  const crm = new SalesforceCRMService(credential, {});
+  if (writeToRecordObject) {
+    const crm = new SalesforceCRMService(credential, {});
 
-  await crm.incompleteBookingWriteToRecord(email, writeToRecordObject);
+    await crm.incompleteBookingWriteToRecord(email, writeToRecordObject);
+  }
 
   return;
 };
