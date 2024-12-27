@@ -10,7 +10,6 @@ export const ZEventInputSchema = z.object({
    * Based on this decision like whether to allow unpublished organization's event to be served or not can be made.
    */
   fromRedirectOfNonOrgLink: z.boolean().optional().default(false),
-  limitHostsToThree: z.boolean().optional().default(false),
 });
 
 export type TEventInputSchema = z.infer<typeof ZEventInputSchema>;

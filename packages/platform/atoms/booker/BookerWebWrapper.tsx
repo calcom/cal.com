@@ -33,7 +33,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const searchParams = useSearchParams();
   const event = useEvent({
     fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
-    limitHostsToThree: true,
   });
   const bookerLayout = useBookerLayout(event.data);
 
