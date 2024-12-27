@@ -77,6 +77,13 @@ export const BookEventForm = ({
   }, [cpfError, onSubmit]);
 
   useEffect(() => {
+    return () => {
+      console.log("execute");
+      bookingForm.clearErrors();
+    };
+  }, []);
+
+  useEffect(() => {
     if (!cpfError && showError) setShowError(false);
   }, [cpfError, showError]);
 

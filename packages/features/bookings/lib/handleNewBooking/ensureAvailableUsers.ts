@@ -148,6 +148,7 @@ export async function ensureAvailableUsers(
         input,
       })
     );
+    throw new Error("erro lá");
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
