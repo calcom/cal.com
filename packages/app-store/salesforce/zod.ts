@@ -16,7 +16,7 @@ export const writeToRecordEntrySchema = z.object({
   whenToWrite: z.nativeEnum(WhenToWriteToRecord),
 });
 
-export const writeToRecordDataSchema = z.array(writeToRecordEntrySchema);
+export const writeToRecordDataSchema = z.record(z.string(), writeToBookingEntry);
 
 export const routingFormOptions = z
   .object({

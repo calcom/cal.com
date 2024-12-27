@@ -33,8 +33,8 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
   });
 
   const [salesforceWriteToRecordObject, setSalesforceWriteToRecordObject] = useState<
-    z.infer<typeof salesforceWriteToRecordDataSchema> | []
-  >([]);
+    z.infer<typeof salesforceWriteToRecordDataSchema>
+  >({});
 
   // Handle just Salesforce for now but need to expand this to other apps
   const [salesforceActionEnabled, setSalesforceActionEnabled] = useState<boolean>(false);
@@ -110,43 +110,52 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                 <div>{t("when_to_write")}</div>
               </div>
               <div>
-                {salesforceWriteToRecordObject.map((action) => (
-                  <div className="mt-2 grid grid-cols-5 gap-4" key={action.field}>
-                    <div>
-                      <InputField value={action.field} readOnly />
+                {Object.keys(salesforceWriteToRecordObject).map((key) => {
+                  const action =
+                    salesforceWriteToRecordObject[key as keyof typeof salesforceWriteToRecordObject];
+                  return (
+                    <div className="mt-2 grid grid-cols-5 gap-4" key={key}>
+                      <div>
+                        <InputField value={key} readOnly />
+                      </div>
+                      <div>
+                        <Select
+                          value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
+                          isDisabled={true}
+                        />
+                      </div>
+                      <div>
+                        <InputField value={action.value} readOnly />
+                      </div>
+                      <div>
+                        <Select
+                          value={whenToWriteToRecordOptions.find(
+                            (option) => option.value === action.whenToWrite
+                          )}
+                          isDisabled={true}
+                        />
+                      </div>
+                      <div>
+                        <Button
+                          StartIcon="trash"
+                          variant="icon"
+                          color="destructive"
+                          onClick={() => {
+                            console.log(
+                              "🚀 ~ {Object.keys ~ salesforceWriteToRecordObject:",
+                              salesforceWriteToRecordObject
+                            );
+                            console.log("🚀 ~ {Object.keys ~ key:", key);
+                            const newActions = { ...salesforceWriteToRecordObject };
+                            console.log("🚀 ~ {Object.keys ~ newActions:", newActions);
+                            delete newActions[key];
+                            setSalesforceWriteToRecordObject(newActions);
+                          }}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Select
-                        value={fieldTypeOptions.find((option) => option.value === action.fieldType)}
-                        isDisabled={true}
-                      />
-                    </div>
-                    <div>
-                      <InputField value={action.value} readOnly />
-                    </div>
-                    <div>
-                      <Select
-                        value={whenToWriteToRecordOptions.find(
-                          (option) => option.value === action.whenToWrite
-                        )}
-                        isDisabled={true}
-                      />
-                    </div>
-                    <div>
-                      <Button
-                        StartIcon="trash"
-                        variant="icon"
-                        color="destructive"
-                        onClick={() => {
-                          const newActions = salesforceWriteToRecordObject.filter(
-                            (existingAction) => existingAction.field !== action.field
-                          );
-                          setSalesforceWriteToRecordObject(newActions);
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div className="mt-2 grid grid-cols-5 gap-4">
                   <div>
                     <InputField
@@ -219,15 +228,14 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
                     return;
                   }
 
-                  setSalesforceWriteToRecordObject([
+                  setSalesforceWriteToRecordObject({
                     ...salesforceWriteToRecordObject,
-                    {
-                      field: newSalesforceAction.field,
+                    [newSalesforceAction.field]: {
                       fieldType: newSalesforceAction.fieldType,
                       value: newSalesforceAction.value,
                       whenToWrite: newSalesforceAction.whenToWrite,
                     },
-                  ]);
+                  });
 
                   setNewSalesforceAction({
                     field: "",
