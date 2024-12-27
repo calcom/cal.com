@@ -7,12 +7,11 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
-  orgHostPath,
+  nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
-
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -124,7 +123,7 @@ const matcherConfigRootPath = {
   has: [
     {
       type: "host",
-      value: orgHostPath,
+      value: nextJsOrgRewriteConfig.orgHostPath,
     },
   ],
   source: "/",
@@ -134,7 +133,7 @@ const matcherConfigRootPathEmbed = {
   has: [
     {
       type: "host",
-      value: orgHostPath,
+      value: nextJsOrgRewriteConfig.orgHostPath,
     },
   ],
   source: "/embed",
@@ -144,7 +143,7 @@ const matcherConfigUserRoute = {
   has: [
     {
       type: "host",
-      value: orgHostPath,
+      value: nextJsOrgRewriteConfig.orgHostPath,
     },
   ],
   source: orgUserRoutePath,
@@ -154,7 +153,7 @@ const matcherConfigUserTypeRoute = {
   has: [
     {
       type: "host",
-      value: orgHostPath,
+      value: nextJsOrgRewriteConfig.orgHostPath,
     },
   ],
   source: orgUserTypeRoutePath,
@@ -164,7 +163,7 @@ const matcherConfigUserTypeEmbedRoute = {
   has: [
     {
       type: "host",
-      value: orgHostPath,
+      value: nextJsOrgRewriteConfig.orgHostPath,
     },
   ],
   source: orgUserTypeEmbedRoutePath,
@@ -287,6 +286,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
       {
         source: "/forms/:formQuery*",
@@ -328,23 +328,23 @@ const nextConfig = {
         ? [
             {
               ...matcherConfigRootPath,
-              destination: "/team/:orgSlug?isOrgProfile=1",
+              destination: `/team/${orgSlug}?isOrgProfile=1`,
             },
             {
               ...matcherConfigRootPathEmbed,
-              destination: "/team/:orgSlug/embed?isOrgProfile=1",
+              destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
             },
             {
               ...matcherConfigUserRoute,
-              destination: "/org/:orgSlug/:user",
+              destination: `/org/${orgSlug}/:user`,
             },
             {
               ...matcherConfigUserTypeRoute,
-              destination: "/org/:orgSlug/:user/:type",
+              destination: `/org/${orgSlug}/:user/:type`,
             },
             {
               ...matcherConfigUserTypeEmbedRoute,
-              destination: "/org/:orgSlug/:user/:type/embed",
+              destination: `/org/${orgSlug}/:user/:type/embed`,
             },
           ]
         : []),
@@ -392,6 +392,7 @@ const nextConfig = {
     };
   },
   async headers() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
     // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
     // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
     const CORP_CROSS_ORIGIN_HEADER = {
@@ -478,7 +479,7 @@ const nextConfig = {
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/team/:orgSlug",
+                  value: `/team/${orgSlug}`,
                 },
               ],
             },
@@ -487,7 +488,7 @@ const nextConfig = {
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user",
+                  value: `/org/${orgSlug}/:user`,
                 },
               ],
             },
@@ -496,7 +497,7 @@ const nextConfig = {
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type",
+                  value: `/org/${orgSlug}/:user/:type`,
                 },
               ],
             },
@@ -505,7 +506,7 @@ const nextConfig = {
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type/embed",
+                  value: `/org/${orgSlug}/:user/:type/embed`,
                 },
               ],
             },
@@ -591,7 +592,7 @@ const nextConfig = {
           {
             type: "header",
             key: "host",
-            value: orgHostPath,
+            value: nextJsOrgRewriteConfig.orgHostPath,
           },
         ],
         destination: "/event-types?openPlain=true",
