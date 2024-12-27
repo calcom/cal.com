@@ -7,8 +7,6 @@ import SalesforceCRMService from "../CrmService";
 const log = logger.getSubLogger({ prefix: ["incomplete-booking: salesforce"] });
 
 export const incompleteBookingAction = async (action: any, email: string) => {
-  console.log("🚀 ~ incompleteBookingAction ~ data:", action);
-
   const dataParse = routingFormIncompleteBookingDataSchema.safeParse(action.data);
 
   if (!dataParse.success) {
