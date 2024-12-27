@@ -237,8 +237,6 @@ const PlainChat = () => {
     }
   }, [userEmail, shouldOpenPlain]);
 
-  console.log("isAppDomain", isAppDomain);
-
   useEffect(() => {
     if (!isAppDomain) return;
 
