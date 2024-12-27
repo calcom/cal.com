@@ -38,8 +38,8 @@ export interface IUseBookings {
           | "recurringEvent"
           | "schedulingType"
         > & {
-          users: Pick<
-            BookerEvent["users"][number],
+          firstThreeUsers: Pick<
+            BookerEvent["firstThreeUsers"][number],
             "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
           >[];
         })
