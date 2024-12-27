@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 declare global {
   interface Window {
@@ -78,12 +78,14 @@ const PlainChat = () => {
   const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
   const userEmail = session?.user?.email;
 
-  const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
-
-  const isAppDomain =
-    typeof window !== "undefined" &&
-    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-    !restrictedPaths.some((path) => pathname?.startsWith(path.trim()));
+  const isAppDomain = useMemo(() => {
+    const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
+    return (
+      typeof window !== "undefined" &&
+      window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
+      !restrictedPaths.some((path) => pathname?.startsWith(path.trim()))
+    );
+  }, [pathname]);
 
   const checkScreenSize = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -95,155 +97,157 @@ const PlainChat = () => {
       const plainElement = document.querySelector("#plain-container");
       plainElement?.remove();
       window.Plain = undefined;
-    } else if (!isSmall && config && window.Plain === undefined) {
+    } else if (!isSmall && window.Plain === undefined) {
       window.plainScriptLoaded?.();
     }
-  }, [config]);
+  }, []);
+
+  const initConfig = useCallback(async () => {
+    if (!userEmail) return;
+
+    try {
+      const response = await fetch("/api/plain-hash", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to generate hash: ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data.hash || !data.email || !data.appId) {
+        throw new Error("Missing required fields in API response");
+      }
+
+      const plainChatConfig: PlainChatConfig = {
+        appId: data.appId,
+        customerDetails: {
+          email: data.email,
+          shortName: data.shortName,
+          fullName: data.fullName,
+          emailHash: data.hash,
+          chatAvatarUrl: data.chatAvatarUrl,
+        },
+        links: [
+          {
+            icon: "book",
+            text: "Documentation",
+            url: "https://cal.com/docs",
+          },
+          {
+            icon: "chat",
+            text: "Ask the community",
+            url: "https://github.com/calcom/cal.com/discussions",
+          },
+        ],
+        chatButtons: [
+          {
+            icon: "chat",
+            text: "Ask a question",
+            type: "primary",
+          },
+          {
+            icon: "bulb",
+            text: "Send feedback",
+            type: "default",
+          },
+          {
+            icon: "error",
+            text: "Report an issue",
+            type: "default",
+            form: {
+              fields: [
+                {
+                  type: "dropdown",
+                  placeholder: "Select severity...",
+                  options: [
+                    {
+                      icon: "support",
+                      text: "I'm unable to use the app",
+                      threadDetails: {
+                        severity: "critical",
+                        issueType: "critical",
+                        labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                        priority: "u",
+                      },
+                    },
+                    {
+                      icon: "error",
+                      text: "Major functionality degraded",
+                      threadDetails: {
+                        severity: "major",
+                        issueType: "major",
+                        labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                        priority: "h",
+                      },
+                    },
+                    {
+                      icon: "bug",
+                      text: "Minor annoyance",
+                      threadDetails: {
+                        severity: "minor",
+                        issueType: "minor",
+                        labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
+                        priority: "l",
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+        entryPoint: {
+          type: "chat",
+        },
+        hideBranding: true,
+        theme: "auto",
+        style: {
+          brandColor: "#FFFFFF",
+          launcherBackgroundColor: "#262626",
+          launcherIconColor: "#FFFFFF",
+        },
+        position: {
+          bottom: "20px",
+          right: "20px",
+        },
+      };
+
+      if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+        window.__PLAIN_CONFIG__ = plainChatConfig;
+      }
+
+      setConfig(plainChatConfig);
+
+      if (shouldOpenPlain) {
+        const timer = setTimeout(() => {
+          if (window.Plain) {
+            window.Plain.open();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    } catch (error) {
+      console.error("Failed to initialize Plain Chat:", error);
+    }
+  }, [userEmail, shouldOpenPlain]);
+
+  console.log("isAppDomain", isAppDomain);
 
   useEffect(() => {
     if (!isAppDomain) return;
-
-    const initConfig = async () => {
-      if (!userEmail) return;
-
-      try {
-        const response = await fetch("/api/plain-hash", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to generate hash: ${errorText}`);
-        }
-
-        const data = await response.json();
-
-        if (!data.hash || !data.email || !data.appId) {
-          throw new Error("Missing required fields in API response");
-        }
-
-        const plainChatConfig: PlainChatConfig = {
-          appId: data.appId,
-          customerDetails: {
-            email: data.email,
-            shortName: data.shortName,
-            fullName: data.fullName,
-            emailHash: data.hash,
-            chatAvatarUrl: data.chatAvatarUrl,
-          },
-          links: [
-            {
-              icon: "book",
-              text: "Documentation",
-              url: "https://cal.com/docs",
-            },
-            {
-              icon: "chat",
-              text: "Ask the community",
-              url: "https://github.com/calcom/cal.com/discussions",
-            },
-          ],
-          chatButtons: [
-            {
-              icon: "chat",
-              text: "Ask a question",
-              type: "primary",
-            },
-            {
-              icon: "bulb",
-              text: "Send feedback",
-              type: "default",
-            },
-            {
-              icon: "error",
-              text: "Report an issue",
-              type: "default",
-              form: {
-                fields: [
-                  {
-                    type: "dropdown",
-                    placeholder: "Select severity...",
-                    options: [
-                      {
-                        icon: "support",
-                        text: "I'm unable to use the app",
-                        threadDetails: {
-                          severity: "critical",
-                          issueType: "critical",
-                          labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                          priority: "u",
-                        },
-                      },
-                      {
-                        icon: "error",
-                        text: "Major functionality degraded",
-                        threadDetails: {
-                          severity: "major",
-                          issueType: "major",
-                          labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                          priority: "h",
-                        },
-                      },
-                      {
-                        icon: "bug",
-                        text: "Minor annoyance",
-                        threadDetails: {
-                          severity: "minor",
-                          issueType: "minor",
-                          labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                          priority: "l",
-                        },
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          ],
-          entryPoint: {
-            type: "chat",
-          },
-          hideBranding: true,
-          theme: "auto",
-          style: {
-            brandColor: "#FFFFFF",
-            launcherBackgroundColor: "#262626",
-            launcherIconColor: "#FFFFFF",
-          },
-          position: {
-            bottom: "20px",
-            right: "20px",
-          },
-        };
-
-        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-          window.__PLAIN_CONFIG__ = plainChatConfig;
-        }
-
-        setConfig(plainChatConfig);
-
-        if (shouldOpenPlain) {
-          const timer = setTimeout(() => {
-            if (window.Plain) {
-              window.Plain.open();
-            }
-          }, 100);
-          return () => clearTimeout(timer);
-        }
-      } catch (error) {
-        console.error("Failed to initialize Plain Chat:", error);
-      }
-    };
 
     checkScreenSize();
     window.addEventListener("resize", checkScreenSize);
     initConfig();
 
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [userEmail, pathname, shouldOpenPlain, isAppDomain, config, checkScreenSize]);
+  }, [isAppDomain, checkScreenSize, initConfig, userEmail]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
