@@ -2891,5 +2891,12 @@
   "reassigned": "Преразпределен",
   "rerouted": "Пренасочен",
   "salesforce_assigned": "Възложен в Salesforce",
+  "router_position": "Позиция на рутера",
+  "show_matching_hosts": "Покажи съвпадащите хостове",
+  "no_active_queues": "Няма активни опашки за този вход",
+  "weight": "Тегло",
+  "calibration": "Калибриране",
+  "shortfall": "Недостиг",
+  "routing_form": "Форма за маршрутизиране",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2891,5 +2891,12 @@
   "reassigned": "Reassignat",
   "rerouted": "Redirigit de nou",
   "salesforce_assigned": "Assignació de Salesforce",
+  "router_position": "Posició del router",
+  "show_matching_hosts": "Mostra els hosts coincidents",
+  "no_active_queues": "No hi ha cues actives per a aquesta entrada",
+  "weight": "Pes",
+  "calibration": "Calibratge",
+  "shortfall": "Dèficit",
+  "routing_form": "Formulari d'encaminament",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
