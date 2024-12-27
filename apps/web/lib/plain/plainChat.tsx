@@ -71,40 +71,37 @@ interface PlainChatConfig {
 const PlainChat = () => {
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [isAppDomain, setIsAppDomain] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const isAppDomain =
-    typeof window !== "undefined" &&
-    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-    !pathname?.startsWith("/video");
+  const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
+  const userEmail = session?.user?.email;
 
   useEffect(() => {
+    setIsAppDomain(
+      window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL && !pathname?.startsWith("/video")
+    );
+
     if (!isAppDomain) return;
 
     const checkScreenSize = () => {
       const isSmall = window.innerWidth < 768;
       setIsSmallScreen(isSmall);
 
-      // Cleanup Plain chat if screen becomes small
       if (isSmall && window.Plain) {
-        // Remove the Plain chat widget from DOM
         const plainElement = document.querySelector("#plain-container");
         plainElement?.remove();
-        // Reset Plain object to force re-initialization when screen becomes large again
+
         window.Plain = undefined;
       } else if (!isSmall && config && window.Plain === undefined) {
-        // Re-initialize Plain chat when screen becomes large
         window.plainScriptLoaded?.();
       }
     };
 
-    checkScreenSize();
-    window.addEventListener("resize", checkScreenSize);
-
     const initConfig = async () => {
-      if (!session?.user?.email) return;
+      if (!userEmail) return;
 
       try {
         const response = await fetch("/api/plain-hash", {
@@ -225,7 +222,7 @@ const PlainChat = () => {
 
         setConfig(plainChatConfig);
 
-        if (pathname === "/event-types" && searchParams?.has("openPlain")) {
+        if (shouldOpenPlain) {
           const timer = setTimeout(() => {
             if (window.Plain) {
               window.Plain.open();
@@ -238,10 +235,12 @@ const PlainChat = () => {
       }
     };
 
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
     initConfig();
 
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [session, pathname, searchParams, isAppDomain, config]);
+  }, [userEmail, pathname, shouldOpenPlain, isAppDomain, config]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
