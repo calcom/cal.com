@@ -62,33 +62,38 @@ export const checkIfIsAvailable = ({
     return true;
   }
 
-  const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.utc();
+  const slotStartDate = time.utc().toDate();
+  const slotEndDate = time.add(eventLength, "minutes").utc().toDate();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
+    const busyStartDate = dayjs.utc(busyTime.start).toDate();
+    const busyEndDate = dayjs.utc(busyTime.end).toDate();
 
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
+    // First check if there's any overlap at all
+    // If busy period ends before slot starts or starts after slot ends, there's no overlap
+    if (busyEndDate <= slotStartDate || busyStartDate >= slotEndDate) {
       return true;
     }
 
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
+    // Now check all possible overlap scenarios:
+
+    // 1. Slot start falls within busy period (inclusive start, exclusive end)
+    if (slotStartDate >= busyStartDate && slotStartDate < busyEndDate) {
       return false;
     }
 
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
+    // 2. Slot end falls within busy period (exclusive start, inclusive end)
+    if (slotEndDate > busyStartDate && slotEndDate <= busyEndDate) {
       return false;
     }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
+
+    // 3. Busy period completely contained within slot
+    if (busyStartDate >= slotStartDate && busyEndDate <= slotEndDate) {
       return false;
     }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
+
+    // 4. Slot completely contained within busy period
+    if (busyStartDate <= slotStartDate && busyEndDate >= slotEndDate) {
       return false;
     }
 
