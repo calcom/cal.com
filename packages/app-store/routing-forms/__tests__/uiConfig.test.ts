@@ -1,7 +1,10 @@
 import type { Settings } from "react-awesome-query-builder";
 import { describe, it, vi, expect } from "vitest";
 
-import { withRaqbSettingsAndWidgets } from "../components/react-awesome-query-builder/config/uiConfig";
+import {
+  ConfigFor,
+  withRaqbSettingsAndWidgets,
+} from "../components/react-awesome-query-builder/config/uiConfig";
 
 // Mock dependencies
 vi.mock("../components/react-awesome-query-builder/widgets", () => ({
@@ -26,13 +29,27 @@ vi.mock("@calcom/ui", () => ({
 describe("uiConfig", () => {
   const mockConfig = {
     widgets: {
-      text: {},
-      textarea: {},
-      number: {},
-      multiselect: {},
-      select: {},
-      phone: {},
-      email: {},
+      text: {
+        type: "text",
+      },
+      textarea: {
+        type: "textarea",
+      },
+      number: {
+        type: "number",
+      },
+      multiselect: {
+        type: "multiselect",
+      },
+      select: {
+        type: "select",
+      },
+      phone: {
+        type: "phone",
+      },
+      email: {
+        type: "email",
+      },
     },
     settings: {} as Settings,
   };
@@ -41,7 +58,7 @@ describe("uiConfig", () => {
     it("should add factory functions to all widgets", () => {
       const result = withRaqbSettingsAndWidgets({
         config: mockConfig,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       // Verify each widget has a factory function
@@ -57,7 +74,7 @@ describe("uiConfig", () => {
     it("should add render functions to settings", () => {
       const result = withRaqbSettingsAndWidgets({
         config: mockConfig,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       // Verify settings have all required render functions
@@ -76,6 +93,7 @@ describe("uiConfig", () => {
         widgets: {
           ...mockConfig.widgets,
           text: {
+            type: "text",
             existingProp: "value",
           },
         },
@@ -83,7 +101,7 @@ describe("uiConfig", () => {
 
       const result = withRaqbSettingsAndWidgets({
         config: configWithExistingProps,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       expect(result.widgets.text).toHaveProperty("existingProp", "value");
@@ -93,7 +111,7 @@ describe("uiConfig", () => {
     it("should set correct placeholder for phone widget", () => {
       const result = withRaqbSettingsAndWidgets({
         config: mockConfig,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       expect(result.widgets.phone).toHaveProperty("valuePlaceholder", "Enter Phone Number");
@@ -106,16 +124,18 @@ describe("uiConfig", () => {
 
       const result = withRaqbSettingsAndWidgets({
         config: configWithExistingProps,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
+      // @ts-expect-error - TODO: fix this
       const textFactory = result.widgets.text.factory;
 
       const result2 = withRaqbSettingsAndWidgets({
         config: configWithExistingProps,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
+      // @ts-expect-error - TODO: fix this
       // Using same reference
       expect(result2.widgets.text.factory).toBe(textFactory);
     });
@@ -127,14 +147,14 @@ describe("uiConfig", () => {
 
       const result1 = withRaqbSettingsAndWidgets({
         config: configWithExistingProps,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       const renderFieldOnFirstCallOfWithRaqbSettingsAndWidgets = result1.settings.renderField;
 
       const result2 = withRaqbSettingsAndWidgets({
         config: configWithExistingProps,
-        configFor: "form-fields",
+        configFor: ConfigFor.FormFields,
       });
 
       expect(result2.settings.renderField).toBe(renderFieldOnFirstCallOfWithRaqbSettingsAndWidgets);
