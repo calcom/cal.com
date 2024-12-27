@@ -293,10 +293,6 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router/:path*",
-        destination: "/apps/routing-forms/router/:path*",
-      },
-      {
         source: "/success/:path*",
         has: [
           {
