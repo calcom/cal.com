@@ -148,12 +148,25 @@ const BookerComponent = ({
   };
 
   useEffect(() => {
-    if (event.isPending) return setBookerState("loading");
-    if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot) return setBookerState("selecting_time");
-    // return setBookerState("booking");
-    handleBookEvent();
-  }, [event, selectedDate, selectedTimeslot, setBookerState, handleBookEvent]);
+    if (event.isPending) {
+      setBookerState("loading");
+      return;
+    }
+    if (!selectedDate) {
+      setBookerState("selecting_date");
+      return;
+    }
+    if (!selectedTimeslot) {
+      setBookerState("selecting_time");
+      return;
+    }
+
+    // Only call handleBookEvent if we're not already booking
+    if (bookerState !== "booking") {
+      setBookerState("booking");
+      handleBookEvent();
+    }
+  }, [event, selectedDate, selectedTimeslot, setBookerState, handleBookEvent, bookerState]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {
