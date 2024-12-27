@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import incompleteBookingActionFunctions from "@calcom/app-store/routing-forms/lib/incompleteBooking/actionFunctions";
 import type { FORM_SUBMITTED_WEBHOOK_RESPONSES } from "@calcom/app-store/routing-forms/trpc/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import prisma from "@calcom/prisma";
@@ -41,8 +42,10 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 });
 
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
+  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ payload:", payload);
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
+  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ responseId:", responseId);
 
   const bookingFromResponse = await prisma.booking.findFirst({
     where: {
@@ -81,6 +84,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       return typeof value === "string" && value.includes("@");
     }
   )?.value;
+  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ emailValue:", emailValue);
 
   // Check for duplicate email in recent responses
   const hasDuplicate =
@@ -114,4 +118,22 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
   }).catch((e) => {
     console.error(`Error executing FORM_SUBMITTED_NO_EVENT webhook`, webhook, e);
   });
+
+  // See if there are other incomplete booking actions
+  const incompleteBookingActions = await prisma.app_RoutingForms_IncompleteBooking_Actions.findMany({
+    where: {
+      formId: form.id,
+    },
+  });
+
+  for (const incompleteBookingAction of incompleteBookingActions) {
+    const actionType = incompleteBookingAction.actionType;
+
+    // Get action function
+    const bookingActionFunction = incompleteBookingActionFunctions[actionType];
+
+    if (emailValue) {
+      await bookingActionFunction(incompleteBookingAction, emailValue);
+    }
+  }
 }
