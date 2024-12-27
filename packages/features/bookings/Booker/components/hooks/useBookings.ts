@@ -28,7 +28,7 @@ export interface IUseBookings {
           BookerEvent,
           | "id"
           | "slug"
-          | "hosts"
+          | "firstThreeHosts"
           | "requiresConfirmation"
           | "isDynamic"
           | "metadata"
