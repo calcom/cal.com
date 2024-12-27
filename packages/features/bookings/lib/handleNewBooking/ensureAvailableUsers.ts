@@ -130,10 +130,6 @@ export async function ensureAvailableUsers(
 
     try {
       const foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
-      console.log(foundConflict);
-      console.log(bufferedBusyTimes);
-      console.log(startDateTimeUtc);
-      console.log(duration);
       // no conflicts found, add to available users.
       if (!foundConflict) {
         availableUsers.push(user);
@@ -152,6 +148,7 @@ export async function ensureAvailableUsers(
         input,
       })
     );
+    throw new Error(JSON.stringify(usersAvailability));
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
