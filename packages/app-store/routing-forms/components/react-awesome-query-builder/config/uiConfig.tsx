@@ -117,7 +117,7 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
 }
 
 // These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
-const sharedSettingsProps = {
+const sharedSettingsProps: Partial<Settings> = {
   renderField: (props) => renderComponent(props, FieldSelect),
   renderOperator: (props) => renderComponent(props, FieldSelect),
   renderFunc: (props) => renderComponent(props, FieldSelect),
