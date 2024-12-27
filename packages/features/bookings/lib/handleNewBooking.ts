@@ -665,7 +665,6 @@ async function handler(
 
   if (users.length === 0 && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     loggerWithEventDetails.error(`No available users found for round robin event.`);
-    throw new Error("erro aqui");
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
