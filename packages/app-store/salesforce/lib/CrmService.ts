@@ -1,5 +1,5 @@
-import type { TokenResponse } from "jsforce";
-import jsforce from "jsforce";
+import type { TokenResponse } from "@jsforce/jsforce-node";
+import jsforce from "@jsforce/jsforce-node";
 import { RRule } from "rrule";
 import { z } from "zod";
 
