@@ -2891,5 +2891,12 @@
   "reassigned": "Realocat",
   "rerouted": "Redirecționat",
   "salesforce_assigned": "Atribuire Salesforce",
+  "router_position": "Poziția routerului",
+  "show_matching_hosts": "Afișează gazdele care se potrivesc",
+  "no_active_queues": "Nu există cozi active pentru această intrare",
+  "weight": "Greutate",
+  "calibration": "Calibrare",
+  "shortfall": "Deficit",
+  "routing_form": "Formular de rutare",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
