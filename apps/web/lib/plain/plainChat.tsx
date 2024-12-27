@@ -5,7 +5,6 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState, useCallback } from "react";
 
-/* eslint-disable react-hooks/rules-of-hooks */
 declare global {
   interface Window {
     Plain?: {
@@ -70,8 +69,6 @@ interface PlainChatConfig {
 }
 
 const PlainChat = () => {
-  if (typeof window === "undefined") return null;
-
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const { data: session } = useSession();
@@ -84,6 +81,7 @@ const PlainChat = () => {
   const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
 
   const isAppDomain =
+    typeof window !== "undefined" &&
     window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
     !restrictedPaths.some((path) => pathname?.startsWith(path.trim()));
 
