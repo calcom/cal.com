@@ -12,7 +12,7 @@ export class EventRepository {
       prisma,
       input.fromRedirectOfNonOrgLink,
       userId,
-      input.limitHostsToThree
+      input?.limitHostsToThree ?? false
     );
     return event;
   }
