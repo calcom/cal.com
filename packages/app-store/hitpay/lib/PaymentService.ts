@@ -101,7 +101,7 @@ export class PaymentService implements IAbstractPaymentService {
               id: bookingId,
             },
           },
-          amount: parseInt(data.amount) * 100,
+          amount: parseFloat(data.amount.replace(/,/g, "")) * 100,
           externalId: data.id,
           currency: data.currency,
           data: Object.assign({}, data, { isPaid: false }) as unknown as Prisma.InputJsonValue,
