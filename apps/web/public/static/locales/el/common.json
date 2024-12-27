@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Όνομα κατόχου προς αλλαγή",
   "no_filter_set": "Δεν έχει οριστεί φίλτρο",
   "booking_dry_run_successful": "Η δοκιμαστική κράτηση ολοκληρώθηκε με επιτυχία",
+  "booking_dry_run_successful_description": "Η δοκιμαστική εκτέλεση ολοκληρώθηκε με επιτυχία.",
   "dont_have_access_this_page": "Δεν έχετε πρόσβαση σε αυτή τη σελίδα",
   "you_need_admin_or_owner_privileges_to_access": "Για να δείτε ή να αλληλεπιδράσετε με αυτή τη σελίδα, πρέπει να έχετε δικαιώματα διαχειριστή ή ιδιοκτήτη",
   "field_type": "Τύπος πεδίου",
