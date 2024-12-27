@@ -151,8 +151,6 @@ export async function ensureAvailableUsers(
 
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
-  const logObject = { usersAvailability, availableUsers };
-  throw new Error(JSON.stringify(logObject));
 
   return availableUsers;
 }
