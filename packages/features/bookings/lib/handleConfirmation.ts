@@ -153,6 +153,7 @@ export async function handleConfirmation(args: {
     endTime: Date;
     uid: string;
     smsReminderNumber: string | null;
+    cancellationReason?: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
     eventType: {
@@ -230,6 +231,7 @@ export async function handleConfirmation(args: {
             },
           },
           description: true,
+          cancellationReason: true,
           attendees: true,
           location: true,
           uid: true,
@@ -292,6 +294,7 @@ export async function handleConfirmation(args: {
         uid: true,
         startTime: true,
         metadata: true,
+        cancellationReason: true,
         endTime: true,
         smsReminderNumber: true,
         description: true,
@@ -325,6 +328,7 @@ export async function handleConfirmation(args: {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
       const evtOfBooking = {
         ...evt,
+        rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
           slug: eventTypeSlug,

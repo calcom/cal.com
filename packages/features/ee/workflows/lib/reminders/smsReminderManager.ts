@@ -57,6 +57,8 @@ export type BookingInfo = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
+  cancellationReason?: string | null;
+  rescheduleReason?: string | null;
 };
 
 export type ScheduleTextReminderAction = Extract<
@@ -159,7 +161,9 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
+      cancelReason: evt.cancellationReason,
       rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+      rescheduleReason: evt.rescheduleReason,
       attendeeTimezone: evt.attendees[0].timeZone,
       eventTimeInAttendeeTimezone: dayjs(evt.startTime).tz(evt.attendees[0].timeZone),
       eventEndTimeInAttendeeTimezone: dayjs(evt.endTime).tz(evt.attendees[0].timeZone),
