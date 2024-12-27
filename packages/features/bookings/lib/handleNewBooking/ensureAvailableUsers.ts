@@ -150,9 +150,11 @@ export async function ensureAvailableUsers(
       })
     );
     throw new Error(
-      JSON.stringify(
-        checkForConflicts(usersAvailability.filter(({ busy }) => busy)[0].busy, startDateTimeUtc, duration)
-      )
+      JSON.stringify({
+        busy: usersAvailability.filter(({ busy }) => busy)[0].busy,
+        startDateTimeUtc,
+        duration,
+      })
     );
 
     throw new Error(ErrorCode.NoAvailableUsersFound);
