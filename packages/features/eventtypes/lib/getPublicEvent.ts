@@ -116,101 +116,98 @@ function isAvailableInTimeSlot(
   return isWithinPeriod;
 }
 
-const getPublicEventSelect = () => {
-  return Prisma.validator<Prisma.EventTypeSelect>()({
-    id: true,
-    title: true,
-    description: true,
-    eventName: true,
-    slug: true,
-    isInstantEvent: true,
-    instantMeetingParameters: true,
-    aiPhoneCallConfig: true,
-    schedulingType: true,
-    length: true,
-    locations: true,
-    customInputs: true,
-    disableGuests: true,
-    metadata: true,
-    lockTimeZoneToggleOnBookingPage: true,
-    requiresConfirmation: true,
-    autoTranslateDescriptionEnabled: true,
-    fieldTranslations: {
-      select: {
-        translatedText: true,
-        targetLocale: true,
-        field: true,
-      },
+const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  title: true,
+  description: true,
+  eventName: true,
+  slug: true,
+  isInstantEvent: true,
+  instantMeetingParameters: true,
+  aiPhoneCallConfig: true,
+  schedulingType: true,
+  length: true,
+  locations: true,
+  customInputs: true,
+  disableGuests: true,
+  metadata: true,
+  lockTimeZoneToggleOnBookingPage: true,
+  requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  fieldTranslations: {
+    select: {
+      translatedText: true,
+      targetLocale: true,
+      field: true,
     },
-    requiresBookerEmailVerification: true,
-    recurringEvent: true,
-    price: true,
-    currency: true,
-    seatsPerTimeSlot: true,
-    seatsShowAvailabilityCount: true,
-    bookingFields: true,
-    teamId: true,
-    team: {
-      select: {
-        parentId: true,
-        metadata: true,
-        brandColor: true,
-        darkBrandColor: true,
-        slug: true,
-        name: true,
-        logoUrl: true,
-        theme: true,
-        parent: {
-          select: {
-            slug: true,
-            name: true,
-            bannerUrl: true,
-            logoUrl: true,
-          },
+  },
+  requiresBookerEmailVerification: true,
+  recurringEvent: true,
+  price: true,
+  currency: true,
+  seatsPerTimeSlot: true,
+  seatsShowAvailabilityCount: true,
+  bookingFields: true,
+  teamId: true,
+  team: {
+    select: {
+      parentId: true,
+      metadata: true,
+      brandColor: true,
+      darkBrandColor: true,
+      slug: true,
+      name: true,
+      logoUrl: true,
+      theme: true,
+      parent: {
+        select: {
+          slug: true,
+          name: true,
+          bannerUrl: true,
+          logoUrl: true,
         },
-        isPrivate: true,
       },
+      isPrivate: true,
     },
-    successRedirectUrl: true,
-    forwardParamsSuccessRedirect: true,
-    workflows: {
-      include: {
-        workflow: {
-          include: {
-            steps: true,
-          },
+  },
+  successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
+  workflows: {
+    include: {
+      workflow: {
+        include: {
+          steps: true,
         },
       },
     },
-    hosts: {
-      select: {
-        user: {
-          select: userSelect,
-        },
-      },
-      take: 3,
-    },
-    owner: {
-      select: userSelect,
-    },
-    schedule: {
-      select: {
-        id: true,
-        timeZone: true,
+  },
+  hosts: {
+    select: {
+      user: {
+        select: userSelect,
       },
     },
-    instantMeetingSchedule: {
-      select: {
-        id: true,
-        timeZone: true,
-      },
+    take: 3,
+  },
+  owner: {
+    select: userSelect,
+  },
+  schedule: {
+    select: {
+      id: true,
+      timeZone: true,
     },
-
-    hidden: true,
-    assignAllTeamMembers: true,
-    rescheduleWithSameRoundRobinHost: true,
-  });
-};
+  },
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
+  },
+  hidden: true,
+  assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
+});
 
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
@@ -222,7 +219,6 @@ export const getPublicEvent = async (
   fromRedirectOfNonOrgLink: boolean,
   currentUserId?: number
 ) => {
-  const publicEventSelect = getPublicEventSelect();
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
   // In case of dynamic group event, we fetch user's data and use the default event.
@@ -508,7 +504,7 @@ export const getPublicEvent = async (
 };
 
 const eventData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: getPublicEventSelect(false),
+  select: publicEventSelect,
 });
 
 type Event = Prisma.EventTypeGetPayload<typeof eventData>;
