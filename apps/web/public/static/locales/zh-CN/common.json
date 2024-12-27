@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "要更改的所有者名称",
   "no_filter_set": "未设置筛选条件",
   "booking_dry_run_successful": "预订测试成功",
+  "booking_dry_run_successful_description": "测试运行已成功完成。",
   "dont_have_access_this_page": "您无权访问此页面",
   "you_need_admin_or_owner_privileges_to_access": "要查看或操作此页面，您必须拥有管理员或所有者权限",
   "field_type": "字段类型",

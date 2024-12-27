@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "اسم المالك المراد تغييره",
   "no_filter_set": "لم يتم تعيين أي تصفية",
   "booking_dry_run_successful": "تم إجراء المحاكاة التجريبية للحجز بنجاح",
+  "booking_dry_run_successful_description": "تم إكمال التشغيل التجريبي بنجاح.",
   "dont_have_access_this_page": "ليس لديك صلاحية الوصول إلى هذه الصفحة",
   "you_need_admin_or_owner_privileges_to_access": "لرؤية هذه الصفحة أو التفاعل معها، يجب أن تكون لديك صلاحيات المدير أو المالك",
   "field_type": "نوع الحقل",
