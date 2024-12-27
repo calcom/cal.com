@@ -23,6 +23,9 @@
     },
     "pages/api/trpc/appRoutingForms/[trpc].ts": {
       "memory": 2048
+    },
+    "pages/router/embed.tsx": {
+      "memory": 2048
     }
   }
 }
