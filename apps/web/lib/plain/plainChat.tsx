@@ -70,11 +70,23 @@ interface PlainChatConfig {
 
 const PlainChat = () => {
   const [config, setConfig] = useState<PlainChatConfig | null>(null);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
   const { data: session } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const isAppDomain = typeof window !== "undefined" && window.location.hostname === "app.cal.com";
+
   useEffect(() => {
+    if (!isAppDomain) return;
+
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 768);
+    };
+
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+
     const initConfig = async () => {
       if (!session?.user?.email) return;
 
@@ -211,7 +223,9 @@ const PlainChat = () => {
     };
 
     initConfig();
-  }, [session, pathname, searchParams]);
+
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, [session, pathname, searchParams, isAppDomain]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
@@ -225,7 +239,7 @@ const PlainChat = () => {
     }
   `;
 
-  if (!config) return null;
+  if (!isAppDomain || isSmallScreen || !config) return null;
 
   return (
     <>
