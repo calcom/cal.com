@@ -19,7 +19,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Label, Select, SettingsToggle, Skeleton, TextField, Editor, TextAreaField } from "@calcom/ui";
+import {
+  DurationSelector,
+  Label,
+  Select,
+  SettingsToggle,
+  Skeleton,
+  TextField,
+  Editor,
+  TextAreaField,
+} from "@calcom/ui";
 
 export type EventSetupTabCustomClassNames = {
   wrapper?: string;
@@ -280,21 +289,11 @@ export const EventSetupTab = (
               </div>
             </div>
           ) : (
-            <TextField
-              required
-              type="number"
-              containerClassName={classNames(
-                customClassNames?.durationSection?.singleDurationInput?.container
-              )}
-              labelClassName={classNames(customClassNames?.durationSection?.singleDurationInput?.label)}
-              className={classNames(customClassNames?.durationSection?.singleDurationInput?.input)}
-              data-testid="duration"
+            <DurationSelector
+              value={formMethods.getValues("length") ?? 30}
+              onChange={(val: number) => formMethods.setValue("length", val, { shouldDirty: true })}
+              className={classNames(customClassNames?.durationSection?.singleDurationInput?.container)}
               {...(isManagedEventType || isChildrenManagedEventType ? lengthLockedProps : {})}
-              label={t("duration")}
-              defaultValue={formMethods.getValues("length") ?? 15}
-              {...formMethods.register("length")}
-              addOnSuffix={<>{t("minutes")}</>}
-              min={1}
             />
           )}
           {!lengthLockedProps.disabled && (

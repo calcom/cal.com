@@ -56,6 +56,7 @@ export {
   Switch,
   NumberInput,
   InputError,
+  DurationSelector,
 } from "./components/form";
 
 export type {

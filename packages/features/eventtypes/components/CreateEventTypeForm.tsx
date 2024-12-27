@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
-import { Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
+import { DurationSelector, Editor, Form, TextAreaField, TextField, Tooltip } from "@calcom/ui";
 
 export default function CreateEventTypeForm({
   form,
@@ -117,15 +117,9 @@ export default function CreateEventTypeForm({
           )}
 
           <div className="relative">
-            <TextField
-              type="number"
-              required
-              min="10"
-              placeholder="15"
-              label={t("duration")}
-              className="pr-4"
-              {...register("length", { valueAsNumber: true })}
-              addOnSuffix={t("minutes")}
+            <DurationSelector
+              value={form.getValues("length") || 30}
+              onChange={(val: number) => form.setValue("length", val, { shouldDirty: true })}
             />
           </div>
         </>
