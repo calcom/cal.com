@@ -371,7 +371,6 @@ model User {
   @@index([identityProvider])
   @@index([identityProviderId])
   @@map(name: "users")
-
 }
 
 model NotificationsSubscriptions {
@@ -1625,21 +1624,21 @@ model AttributeToUser {
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
-  
-  weight            Int?
-  
+
+  weight Int?
+
   // We don't intentionally delete assignments on deletion of a user/directory sync
-  createdAt         DateTime          @default(now())
-  createdById       Int?
-  createdBy         User?             @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
-  createdByDSyncId  String?
-  createdByDSync    DSyncData?        @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
-  
-  updatedAt         DateTime?         @updatedAt
-  updatedBy         User?             @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
-  updatedById       Int?
-  updatedByDSyncId  String?
-  updatedByDSync    DSyncData?        @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
+  createdAt        DateTime   @default(now())
+  createdById      Int?
+  createdBy        User?      @relation("createdBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdByDSyncId String?
+  createdByDSync   DSyncData? @relation("createdByDSync", fields: [createdByDSyncId], references: [directoryId], onDelete: SetNull)
+
+  updatedAt        DateTime?  @updatedAt
+  updatedBy        User?      @relation("updatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById      Int?
+  updatedByDSyncId String?
+  updatedByDSync   DSyncData? @relation("updatedByDSync", fields: [updatedByDSyncId], references: [directoryId], onDelete: SetNull)
 
   @@unique([memberId, attributeOptionId])
 }

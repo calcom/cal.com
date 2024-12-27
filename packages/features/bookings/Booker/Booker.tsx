@@ -151,8 +151,9 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-    return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+    // return setBookerState("booking");
+    handleBookEvent();
+  }, [event, selectedDate, selectedTimeslot, setBookerState, handleBookEvent]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {
@@ -266,7 +267,6 @@ const BookerComponent = ({
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
-
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -474,7 +474,6 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
-
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
