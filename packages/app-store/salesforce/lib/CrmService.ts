@@ -88,6 +88,10 @@ export default class SalesforceCRMService implements CRM {
   private getClient = async (credential: CredentialPayload) => {
     const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+
+    if (!credentialKey.refresh_token)
+      throw new Error(`Refresh token is missing for credential ${credential.id}`);
+
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
               Needs further investigation ASAP */
