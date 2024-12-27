@@ -75,13 +75,29 @@ const PlainChat = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const isAppDomain = typeof window !== "undefined" && window.location.hostname === "app.cal.com";
+  const isAppDomain =
+    typeof window !== "undefined" &&
+    window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
+    !pathname?.startsWith("/video");
 
   useEffect(() => {
     if (!isAppDomain) return;
 
     const checkScreenSize = () => {
-      setIsSmallScreen(window.innerWidth < 768);
+      const isSmall = window.innerWidth < 768;
+      setIsSmallScreen(isSmall);
+
+      // Cleanup Plain chat if screen becomes small
+      if (isSmall && window.Plain) {
+        // Remove the Plain chat widget from DOM
+        const plainElement = document.querySelector("#plain-container");
+        plainElement?.remove();
+        // Reset Plain object to force re-initialization when screen becomes large again
+        window.Plain = undefined;
+      } else if (!isSmall && config && window.Plain === undefined) {
+        // Re-initialize Plain chat when screen becomes large
+        window.plainScriptLoaded?.();
+      }
     };
 
     checkScreenSize();
@@ -225,7 +241,7 @@ const PlainChat = () => {
     initConfig();
 
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, [session, pathname, searchParams, isAppDomain]);
+  }, [session, pathname, searchParams, isAppDomain, config]);
 
   const plainChatScript = `
     window.plainScriptLoaded = function() {
