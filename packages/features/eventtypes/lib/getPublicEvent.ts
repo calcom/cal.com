@@ -50,72 +50,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
-export async function isCurrentlyAvailable({
-  prisma,
-  instantMeetingScheduleId,
-  availabilityTimezone,
-  length,
-}: {
-  prisma: PrismaClient;
-  instantMeetingScheduleId: number;
-  availabilityTimezone: string;
-  length: number;
-}): Promise<boolean> {
-  const now = dayjs().tz(availabilityTimezone);
-  const currentDay = now.day();
-  const meetingEndTime = now.add(length, "minute");
-
-  const res = await prisma.schedule.findUniqueOrThrow({
-    where: {
-      id: instantMeetingScheduleId,
-    },
-    select: {
-      availability: true,
-    },
-  });
-
-  const dateOverride = res.availability.find((a) => a.date && dayjs(a.date).isSame(now, "day"));
-
-  if (dateOverride) {
-    return !isAvailableInTimeSlot(dateOverride, now, meetingEndTime);
-  }
-
-  for (const availability of res.availability) {
-    if (!availability.date && availability.days.includes(currentDay)) {
-      const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
-      if (isAvailable) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
-function isAvailableInTimeSlot(
-  availability: { startTime: Date; endTime: Date; days: number[] },
-  now: dayjs.Dayjs,
-  meetingEndTime: dayjs.Dayjs
-): boolean {
-  const startTime = dayjs(availability.startTime).utc().format("HH:mm");
-  const endTime = dayjs(availability.endTime).utc().format("HH:mm");
-
-  const periodStart = now
-    .startOf("day")
-    .hour(parseInt(startTime.split(":")[0]))
-    .minute(parseInt(startTime.split(":")[1]));
-  const periodEnd = now
-    .startOf("day")
-    .hour(parseInt(endTime.split(":")[0]))
-    .minute(parseInt(endTime.split(":")[1]));
-
-  const isWithinPeriod =
-    now.isBetween(periodStart, periodEnd, null, "[)") &&
-    meetingEndTime.isBetween(periodStart, periodEnd, null, "(]");
-
-  return isWithinPeriod;
-}
-
 const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
@@ -208,6 +142,72 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   assignAllTeamMembers: true,
   rescheduleWithSameRoundRobinHost: true,
 });
+
+export async function isCurrentlyAvailable({
+  prisma,
+  instantMeetingScheduleId,
+  availabilityTimezone,
+  length,
+}: {
+  prisma: PrismaClient;
+  instantMeetingScheduleId: number;
+  availabilityTimezone: string;
+  length: number;
+}): Promise<boolean> {
+  const now = dayjs().tz(availabilityTimezone);
+  const currentDay = now.day();
+  const meetingEndTime = now.add(length, "minute");
+
+  const res = await prisma.schedule.findUniqueOrThrow({
+    where: {
+      id: instantMeetingScheduleId,
+    },
+    select: {
+      availability: true,
+    },
+  });
+
+  const dateOverride = res.availability.find((a) => a.date && dayjs(a.date).isSame(now, "day"));
+
+  if (dateOverride) {
+    return !isAvailableInTimeSlot(dateOverride, now, meetingEndTime);
+  }
+
+  for (const availability of res.availability) {
+    if (!availability.date && availability.days.includes(currentDay)) {
+      const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
+      if (isAvailable) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function isAvailableInTimeSlot(
+  availability: { startTime: Date; endTime: Date; days: number[] },
+  now: dayjs.Dayjs,
+  meetingEndTime: dayjs.Dayjs
+): boolean {
+  const startTime = dayjs(availability.startTime).utc().format("HH:mm");
+  const endTime = dayjs(availability.endTime).utc().format("HH:mm");
+
+  const periodStart = now
+    .startOf("day")
+    .hour(parseInt(startTime.split(":")[0]))
+    .minute(parseInt(startTime.split(":")[1]));
+  const periodEnd = now
+    .startOf("day")
+    .hour(parseInt(endTime.split(":")[0]))
+    .minute(parseInt(endTime.split(":")[1]));
+
+  const isWithinPeriod =
+    now.isBetween(periodStart, periodEnd, null, "[)") &&
+    meetingEndTime.isBetween(periodStart, periodEnd, null, "(]");
+
+  return isWithinPeriod;
+}
 
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
