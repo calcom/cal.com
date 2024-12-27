@@ -128,13 +128,9 @@ export async function ensureAvailableUsers(
       return;
     }
 
-    if (bufferedBusyTimes.length === 0) throw new Error("Chegou vazio");
-
     try {
       const foundConflict = checkForConflicts(bufferedBusyTimes, startDateTimeUtc, duration);
       // no conflicts found, add to available users.
-
-      if (foundConflict) throw new Error("Achamos um conflito vazio");
 
       if (!foundConflict) {
         availableUsers.push(user);
@@ -153,6 +149,7 @@ export async function ensureAvailableUsers(
         input,
       })
     );
+    throw new Error(usersAvailability.filter(({ busy }) => busy).length.toString());
 
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
