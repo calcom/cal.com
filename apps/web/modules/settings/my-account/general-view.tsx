@@ -41,6 +41,10 @@ export type FormValues = {
     value: string;
     label: string;
   };
+  defaultView: {
+    value: "EVENT_TYPES" | "BOOKINGS" | "INSIGHTS";
+    label: string;
+  };
   travelSchedules: {
     id?: number;
     startDate: Date;
@@ -159,6 +163,10 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      defaultView: {
+        value: ((user as any).defaultView as "EVENT_TYPES" | "BOOKINGS" | "INSIGHTS") || "EVENT_TYPES",
+        label: t(((user as any).defaultView?.toLowerCase() as string) || "event_types"),
+      },
       travelSchedules:
         travelSchedules.map((schedule) => {
           return {
@@ -202,6 +210,7 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
             locale: values.locale.value,
             timeFormat: values.timeFormat.value,
             weekStart: values.weekStart.value,
+            defaultView: values.defaultView.value as "EVENT_TYPES" | "BOOKINGS" | "INSIGHTS",
           });
         }}>
         <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
@@ -322,6 +331,37 @@ const GeneralView = ({ localeProp, user, travelSchedules, revalidatePage }: Gene
           <div className="text-gray text-subtle mt-2 flex items-center text-xs">
             {t("timeformat_profile_hint")}
           </div>
+          <Controller
+            name="defaultView"
+            control={formMethods.control}
+            render={({ field: { value } }) => (
+              <>
+                <Label className="text-emphasis mt-6">
+                  <>{t("default_view")}</>
+                </Label>
+                <Select
+                  value={value}
+                  options={[
+                    { value: "EVENT_TYPES", label: t("event_types") },
+                    { value: "BOOKINGS", label: t("bookings") },
+                    { value: "INSIGHTS", label: t("insights") },
+                  ]}
+                  onChange={(event) => {
+                    if (event) {
+                      formMethods.setValue(
+                        "defaultView",
+                        {
+                          value: event.value,
+                          label: t(event.value.toLowerCase()),
+                        },
+                        { shouldDirty: true }
+                      );
+                    }
+                  }}
+                />
+              </>
+            )}
+          />
           <Controller
             name="weekStart"
             control={formMethods.control}

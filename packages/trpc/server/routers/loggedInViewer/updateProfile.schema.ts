@@ -16,6 +16,7 @@ export const ZUpdateProfileInputSchema = z.object({
   avatarUrl: z.string().nullable().optional(),
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
+  defaultView: z.enum(["EVENT_TYPES", "BOOKINGS", "INSIGHTS"]).optional(),
   hideBranding: z.boolean().optional(),
   allowDynamicBooking: z.boolean().optional(),
   allowSEOIndexing: z.boolean().optional(),
