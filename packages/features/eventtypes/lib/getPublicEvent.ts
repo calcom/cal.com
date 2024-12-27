@@ -388,7 +388,7 @@ export const getPublicEvent = async (
           user: event.owner,
         })
       : null,
-    hosts: hosts,
+    firstThreeHosts: hosts,
   };
 
   let users =
@@ -471,7 +471,7 @@ export const getPublicEvent = async (
       : null,
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
-    users,
+    firstThreeUsers: users,
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished:
@@ -493,7 +493,6 @@ export const getPublicEvent = async (
           }
         : {}),
     },
-
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     showInstantEventConnectNowModal,
@@ -545,7 +544,7 @@ async function getUsersFromEvent(
           profile: UserProfile;
         })
       | null;
-    hosts: (Omit<Event["hosts"][number], "user"> & {
+    firstThreeHosts: (Omit<Event["hosts"][number], "user"> & {
       user: Event["hosts"][number]["user"] & {
         profile: UserProfile;
       };
@@ -553,11 +552,11 @@ async function getUsersFromEvent(
   },
   prisma: PrismaClient
 ) {
-  const { team, hosts, owner, id } = event;
+  const { team, firstThreeHosts, owner, id } = event;
   if (team) {
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
-    return hosts.length
-      ? hosts.filter((host) => host.user.username).map(mapHostsToUsers)
+    return firstThreeHosts.length
+      ? firstThreeHosts.filter((host) => host.user.username).map(mapHostsToUsers)
       : (await getOwnerFromUsersArray(prisma, id)) ?? [];
   }
   if (!owner) {
