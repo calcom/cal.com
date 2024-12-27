@@ -10,8 +10,6 @@ import * as IncompleteBooking from "./incomplete-booking/[...appPages]";
 import * as LayoutHandler from "./layout-handler/[...appPages]";
 import * as Reporting from "./reporting/[...appPages]";
 import * as RouteBuilder from "./route-builder/[...appPages]";
-import * as Router from "./router/[...appPages]";
-import { getServerSideProps as getServerSidePropsRouter } from "./router/getServerSideProps";
 import * as RoutingLink from "./routing-link/[...appPages]";
 import { getServerSideProps as getServerSidePropsRoutingLink } from "./routing-link/getServerSideProps";
 
@@ -20,7 +18,6 @@ const routingConfig = {
   "route-builder": RouteBuilder,
   forms: forms,
   "routing-link": RoutingLink,
-  router: Router,
   reporting: Reporting,
   layoutHandler: LayoutHandler,
   "incomplete-booking": IncompleteBooking,
@@ -31,7 +28,6 @@ export const serverSidePropsConfig: Record<string, AppGetServerSideProps> = {
   "form-edit": getServerSidePropsSingleForm,
   "route-builder": getServerSidePropsSingleForm,
   "routing-link": getServerSidePropsRoutingLink,
-  router: getServerSidePropsRouter,
   reporting: getServerSidePropsSingleForm,
 };
 
