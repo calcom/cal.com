@@ -7,6 +7,7 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 import isSmsCalEmail from "./isSmsCalEmail";
+import { markdownToSafeHTML } from "./markdownToSafeHTML";
 
 const translator = short();
 
@@ -129,7 +130,7 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
     return "";
   }
   return `\n${t("description")}
-    ${calEvent.description}
+    ${markdownToSafeHTML(calEvent.description)}
     `;
 };
 export const getLocation = (

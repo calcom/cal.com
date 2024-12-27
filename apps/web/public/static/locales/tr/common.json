@@ -2891,5 +2891,12 @@
   "reassigned": "Yeniden atandı",
   "rerouted": "Yeniden yönlendirildi",
   "salesforce_assigned": "Salesforce ataması",
+  "router_position": "Router konumu",
+  "show_matching_hosts": "Eşleşen sunucuları göster",
+  "no_active_queues": "Bu girdi için aktif kuyruk yok",
+  "weight": "Ağırlık",
+  "calibration": "Kalibrasyon",
+  "shortfall": "Açık",
+  "routing_form": "Yönlendirme formu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

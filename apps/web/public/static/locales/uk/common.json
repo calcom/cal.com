@@ -2891,5 +2891,12 @@
   "reassigned": "Перепризначено",
   "rerouted": "Перемаршрутизовано",
   "salesforce_assigned": "Призначення Salesforce",
+  "router_position": "Позиція маршрутизатора",
+  "show_matching_hosts": "Показати відповідні хости",
+  "no_active_queues": "Немає активних черг для цього вводу",
+  "weight": "Вага",
+  "calibration": "Калібрування",
+  "shortfall": "Дефіцит",
+  "routing_form": "Форма маршрутизації",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

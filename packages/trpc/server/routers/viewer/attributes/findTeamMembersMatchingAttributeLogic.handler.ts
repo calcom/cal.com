@@ -18,9 +18,14 @@ interface FindTeamMembersMatchingAttributeLogicHandlerOptions {
 }
 
 export const findTeamMembersMatchingAttributeLogicHandler = async ({
+  ctx,
   input,
 }: FindTeamMembersMatchingAttributeLogicHandlerOptions) => {
   const { teamId, attributesQueryValue, _enablePerf, _concurrency } = input;
+  const orgId = ctx.user.organizationId;
+  if (!orgId) {
+    throw new Error("You must be in an organization to use this feature");
+  }
   const {
     teamMembersMatchingAttributeLogic: matchingTeamMembersWithResult,
     mainAttributeLogicBuildingWarnings: mainWarnings,
@@ -30,6 +35,7 @@ export const findTeamMembersMatchingAttributeLogicHandler = async ({
     {
       teamId,
       attributesQueryValue,
+      orgId,
     },
     {
       enablePerf: _enablePerf,

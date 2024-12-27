@@ -298,46 +298,56 @@ async function createOrganizationAndAddMembersAndTeams({
   })[] = [];
 
   try {
-    for (const member of orgMembers) {
-      const newUser = await createUserAndEventType({
-        user: {
-          ...member.memberData,
-          password: member.memberData.password.create?.hash,
-        },
-        eventTypes: [
-          {
-            title: "30min",
-            slug: "30min",
-            length: 30,
-            _bookings: [
+    const batchSize = 50;
+    // Process members in batches of  in parallel
+    for (let i = 0; i < orgMembers.length; i += batchSize) {
+      const batch = orgMembers.slice(i, i + batchSize);
+
+      const batchResults = await Promise.all(
+        batch.map(async (member) => {
+          const newUser = await createUserAndEventType({
+            user: {
+              ...member.memberData,
+              password: member.memberData.password.create?.hash,
+            },
+            eventTypes: [
               {
-                uid: uuid(),
                 title: "30min",
-                startTime: dayjs().add(1, "day").toDate(),
-                endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+                slug: "30min",
+                length: 30,
+                _bookings: [
+                  {
+                    uid: uuid(),
+                    title: "30min",
+                    startTime: dayjs().add(1, "day").toDate(),
+                    endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+                  },
+                ],
               },
             ],
-          },
-        ],
-      });
+          });
 
-      const orgMemberInDb = {
-        ...newUser,
-        inTeams: member.inTeams,
-        orgMembership: member.orgMembership,
-        orgProfile: member.orgProfile,
-      };
+          const orgMemberInDb = {
+            ...newUser,
+            inTeams: member.inTeams,
+            orgMembership: member.orgMembership,
+            orgProfile: member.orgProfile,
+          };
 
-      await prisma.tempOrgRedirect.create({
-        data: {
-          fromOrgId: 0,
-          type: RedirectType.User,
-          from: member.memberData.username,
-          toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
-        },
-      });
+          await prisma.tempOrgRedirect.create({
+            data: {
+              fromOrgId: 0,
+              type: RedirectType.User,
+              from: member.memberData.username,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+          });
 
-      orgMembersInDb.push(orgMemberInDb);
+          return orgMemberInDb;
+        })
+      );
+
+      orgMembersInDb.push(...batchResults);
     }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

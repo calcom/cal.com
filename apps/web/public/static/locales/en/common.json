@@ -2216,8 +2216,8 @@
   "org_no_teams_yet": "This organization has no teams yet",
   "org_no_teams_yet_description": "If you are an administrator, be sure to create teams to be shown here.",
   "set_up": "Set up",
-  "my_profile": "My Profile",
-  "my_settings": "My Settings",
+  "my_profile": "My profile",
+  "my_settings": "My settings",
   "crm": "CRM",
   "messaging": "Messaging",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
@@ -2895,5 +2895,12 @@
   "reassigned": "Reassigned",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
+  "router_position": "Router Position",
+  "show_matching_hosts": "Show matching hosts",
+  "no_active_queues": "No active queues for this input",
+  "weight": "Weight",
+  "calibration": "Calibration",
+  "shortfall": "Shortfall",
+  "routing_form": "Routing Form",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
