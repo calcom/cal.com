@@ -1,5 +1,6 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
@@ -7,7 +8,6 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 
 import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -33,10 +33,8 @@ function Type({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
-  isSEOIndexable,
 }: PageProps) {
   const searchParams = useSearchParams();
-  const { profile, users, hidden, title } = eventData;
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
