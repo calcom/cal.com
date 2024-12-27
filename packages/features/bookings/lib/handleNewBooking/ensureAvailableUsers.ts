@@ -148,7 +148,7 @@ export async function ensureAvailableUsers(
         input,
       })
     );
-    throw new Error(JSON.stringify(usersAvailability));
+    // throw new Error(JSON.stringify(usersAvailability));
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 

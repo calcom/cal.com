@@ -61,6 +61,7 @@ export const BookEventForm = ({
   const [cpfError, setCPFError] = useState(false);
   const [nameError, setNameError] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [formState, setFormState] = useState("undefined");
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -73,12 +74,22 @@ export const BookEventForm = ({
 
   const validateCPF = useCallback(() => {
     if (cpfError) setShowError(true);
-    else onSubmit();
-  }, [cpfError, onSubmit]);
+    else {
+      setFormState("loading");
+      onSubmit();
+    }
+  }, [cpfError, onSubmit, setFormState]);
 
   useEffect(() => {
     if (!cpfError && showError) setShowError(false);
   }, [cpfError, showError]);
+
+  useEffect(() => {
+    if (formState === "loading" && (errors.hasDataErrors || errors.hasFormErrors)) setFormState("error");
+    return () => {
+      setFormState("undefined");
+    };
+  }, [errors.hasDataErrors, errors.hasFormErrors]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
@@ -121,7 +132,7 @@ export const BookEventForm = ({
           setCPFError={setCPFError}
           setNameError={setNameError}
         />
-        {(errors.hasFormErrors || errors.hasDataErrors) && (
+        {formState === "error" && (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
