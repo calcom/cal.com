@@ -86,6 +86,8 @@ const PlainChat = () => {
     !restrictedPaths.some((path) => pathname?.startsWith(path.trim()));
 
   const checkScreenSize = useCallback(() => {
+    if (typeof window === "undefined") return;
+
     const isSmall = window.innerWidth < 768;
     setIsSmallScreen(isSmall);
 
@@ -255,7 +257,7 @@ const PlainChat = () => {
     }
   `;
 
-  if (!isAppDomain || isSmallScreen || !config) return null;
+  if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
 
   return (
     <>
