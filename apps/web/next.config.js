@@ -118,55 +118,60 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+const orgDomainMatcherConfig = {
+  root: nextJsOrgRewriteConfig.disableRootPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/",
+      },
 
-const matcherConfigRootPath = {
-  has: [
-    {
-      type: "host",
-      value: nextJsOrgRewriteConfig.orgHostPath,
-    },
-  ],
-  source: "/",
-};
+  rootEmbed: nextJsOrgRewriteConfig.disableRootEmbedPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/embed",
+      },
 
-const matcherConfigRootPathEmbed = {
-  has: [
-    {
-      type: "host",
-      value: nextJsOrgRewriteConfig.orgHostPath,
-    },
-  ],
-  source: "/embed",
-};
+  user: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserRoutePath,
+  },
 
-const matcherConfigUserRoute = {
-  has: [
-    {
-      type: "host",
-      value: nextJsOrgRewriteConfig.orgHostPath,
-    },
-  ],
-  source: orgUserRoutePath,
-};
+  userType: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeRoutePath,
+  },
 
-const matcherConfigUserTypeRoute = {
-  has: [
-    {
-      type: "host",
-      value: nextJsOrgRewriteConfig.orgHostPath,
-    },
-  ],
-  source: orgUserTypeRoutePath,
-};
-
-const matcherConfigUserTypeEmbedRoute = {
-  has: [
-    {
-      type: "host",
-      value: nextJsOrgRewriteConfig.orgHostPath,
-    },
-  ],
-  source: orgUserTypeEmbedRoutePath,
+  userTypeEmbed: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeEmbedRoutePath,
+  },
 };
 
 /** @type {import("next").NextConfig} */
@@ -322,29 +327,33 @@ const nextConfig = {
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  destination: `/team/${orgSlug}?isOrgProfile=1`,
+                }
+              : null,
+            orgDomainMatcherConfig.rootEmbed
+              ? {
+                  ...orgDomainMatcherConfig.rootEmbed,
+                  destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
-              destination: `/team/${orgSlug}?isOrgProfile=1`,
-            },
-            {
-              ...matcherConfigRootPathEmbed,
-              destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
-            },
-            {
-              ...matcherConfigUserRoute,
+              ...orgDomainMatcherConfig.user,
               destination: `/org/${orgSlug}/:user`,
             },
             {
-              ...matcherConfigUserTypeRoute,
+              ...orgDomainMatcherConfig.userType,
               destination: `/org/${orgSlug}/:user/:type`,
             },
             {
-              ...matcherConfigUserTypeEmbedRoute,
+              ...orgDomainMatcherConfig.userTypeEmbed,
               destination: `/org/${orgSlug}/:user/:type/embed`,
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
 
     let afterFiles = [
       {
@@ -470,17 +479,19 @@ const nextConfig = {
       ],
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  headers: [
+                    {
+                      key: "X-Cal-Org-path",
+                      value: `/team/${orgSlug}`,
+                    },
+                  ],
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
-              headers: [
-                {
-                  key: "X-Cal-Org-path",
-                  value: `/team/${orgSlug}`,
-                },
-              ],
-            },
-            {
-              ...matcherConfigUserRoute,
+              ...orgDomainMatcherConfig.user,
               headers: [
                 {
                   key: "X-Cal-Org-path",
@@ -489,7 +500,7 @@ const nextConfig = {
               ],
             },
             {
-              ...matcherConfigUserTypeRoute,
+              ...orgDomainMatcherConfig.userType,
               headers: [
                 {
                   key: "X-Cal-Org-path",
@@ -498,7 +509,7 @@ const nextConfig = {
               ],
             },
             {
-              ...matcherConfigUserTypeEmbedRoute,
+              ...orgDomainMatcherConfig.userTypeEmbed,
               headers: [
                 {
                   key: "X-Cal-Org-path",
@@ -508,7 +519,7 @@ const nextConfig = {
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
   },
   async redirects() {
     const redirects = [

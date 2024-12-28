@@ -41,6 +41,8 @@ const nextJsOrgRewriteConfig = {
   orgHostPath: getRegExpThatMatchesAllOrgDomains({
     webAppUrl: process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`,
   }),
+  // We disable root path rewrite because we want to serve dashboard on root path
+  disableRootPathRewrite: isSingleOrgModeEnabled,
 };
 
 exports.nextJsOrgRewriteConfig = nextJsOrgRewriteConfig;

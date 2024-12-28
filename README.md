@@ -492,6 +492,8 @@ If you want to have booker.yourcompany.com to be the domain used for both dashbo
 - Set the `NEXT_PUBLIC_WEBSITE_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBSITE_URL=https://booker.yourcompany.com`.
 - Set the `NEXTAUTH_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXTAUTH_URL=https://booker.yourcompany.com`.
 
+Note: It causes root to serve the dashboard and not the organization profile page which shows all bookable users in the organization.
+
 ## Integrations
 
 ### Obtaining the Google API Credentials
