@@ -5,7 +5,6 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import type { Dayjs } from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { ErrorCode } from "@calcom/lib/errorCodes";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { checkForConflicts } from "../conflictChecker/checkForConflicts";
@@ -140,18 +139,18 @@ export async function ensureAvailableUsers(
     }
   });
 
-  if (!availableUsers.length) {
-    loggerWithEventDetails.error(
-      `No available users found.`,
-      safeStringify({
-        startDateTimeUtc,
-        endDateTimeUtc,
-        input,
-      })
-    );
+  // if (!availableUsers.length) {
+  //   loggerWithEventDetails.error(
+  //     `No available users found.`,
+  //     safeStringify({
+  //       startDateTimeUtc,
+  //       endDateTimeUtc,
+  //       input,
+  //     })
+  //   );
 
-    throw new Error(ErrorCode.NoAvailableUsersFound);
-  }
+  //   throw new Error(ErrorCode.NoAvailableUsersFound);
+  // }
 
   return availableUsers;
 }
