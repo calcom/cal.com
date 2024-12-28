@@ -83,7 +83,7 @@ const PlainChat = () => {
     return (
       typeof window !== "undefined" &&
       window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-      !restrictedPaths.some((path) => pathname?.startsWith(path.trim()))
+      !restrictedPaths.some((path) => pathname?.includes(path.trim()))
     );
   }, [pathname]);
 
