@@ -47,6 +47,7 @@ logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
+  id?: string;
   appId: string | null;
   userId?: number | null;
   teamId?: number | null;
@@ -54,6 +55,8 @@ type InputWebhook = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   subscriberUrl: string;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 type InputWorkflow = {
@@ -111,7 +114,9 @@ type InputCredential = typeof TestData.credentials.google & {
   id?: number;
 };
 
-type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
+type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof TestData.selectedCalendars] & {
+  eventTypeId?: number | null;
+};
 
 type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
@@ -144,6 +149,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
+  completedOnboarding?: boolean;
 };
 
 export type InputEventType = {
@@ -154,6 +160,7 @@ export type InputEventType = {
   slotInterval?: number;
   userId?: number;
   minimumBookingNotice?: number;
+  useEventLevelSelectedCalendars?: boolean;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
    */
@@ -1243,6 +1250,8 @@ export function getOrganizer({
   organizationId,
   metadata,
   smsLockState,
+  completedOnboarding,
+  username,
 }: {
   name: string;
   email: string;
@@ -1257,10 +1266,14 @@ export function getOrganizer({
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
+  completedOnboarding?: boolean;
+  username?: string;
 }) {
+  username = username ?? TestData.users.example.username;
   return {
     ...TestData.users.example,
     name,
+    username,
     email,
     id,
     schedules,
@@ -1274,22 +1287,28 @@ export function getOrganizer({
     profiles: [],
     metadata,
     smsLockState,
+    completedOnboarding,
   };
 }
 
 export function getScenarioData(
   {
+    /**
+     * organizer has no special meaning. It is a regular user. It is supposed to be deprecated along with `usersApartFromOrganizer` and we should introduce a new `users` field instead
+     */
     organizer,
     eventTypes,
     usersApartFromOrganizer = [],
     apps = [],
+    users: _users,
     webhooks,
     workflows,
     bookings,
   }: {
-    organizer: ReturnType<typeof getOrganizer>;
+    organizer?: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
+    users?: ScenarioData["users"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
@@ -1297,7 +1316,13 @@ export function getScenarioData(
   },
   org?: { id: number | null } | undefined | null
 ) {
-  const users = [organizer, ...usersApartFromOrganizer];
+  if (_users && (usersApartFromOrganizer.length || organizer)) {
+    throw new Error("When users are provided, usersApartFromOrganizer and organizer should not be provided");
+  }
+  const users = _users ? _users : organizer ? [organizer, ...usersApartFromOrganizer] : [];
+  if (!users.length) {
+    throw new Error("No users are specified in any way");
+  }
   if (org) {
     const orgId = org.id;
     if (!orgId) {

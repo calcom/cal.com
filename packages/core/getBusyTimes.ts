@@ -44,6 +44,7 @@ export async function getBusyTimes(params: {
       })[]
     | null;
   bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 }) {
   const {
     credentials,
@@ -60,6 +61,7 @@ export async function getBusyTimes(params: {
     rescheduleUid,
     duration,
     bypassBusyCalendarTimes = false,
+    shouldServeCache,
   } = params;
 
   logger.silly(
@@ -239,11 +241,11 @@ export async function getBusyTimes(params: {
   if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(
-      username,
       credentials,
       startTime,
       endTime,
-      selectedCalendars
+      selectedCalendars,
+      shouldServeCache
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(

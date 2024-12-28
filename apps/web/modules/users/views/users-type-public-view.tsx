@@ -7,7 +7,7 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
+import type { EmbedProps } from "app/WithEmbedSSR";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
@@ -35,7 +35,7 @@ function Type({
   orgBannerUrl,
 }: PageProps) {
   const searchParams = useSearchParams();
-
+  const { profile, users, hidden, title } = eventData;
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
@@ -44,6 +44,16 @@ function Type({
         rescheduleUid={rescheduleUid ?? undefined}
         hideBranding={isBrandingHidden}
         isSEOIndexable={isSEOIndexable ?? true}
+        eventData={
+          profile && users && title && hidden !== undefined
+            ? {
+                profile,
+                users,
+                title,
+                hidden,
+              }
+            : undefined
+        }
         entity={eventData.entity}
         bookingData={booking}
       />

@@ -1,11 +1,13 @@
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Button } from "@calcom/ui";
 
 export default function NoPlatformPlan() {
+  const { t } = useLocale();
   return (
     <EmptyScreen
       Icon="credit-card"
-      headline="Subscription needed"
-      description="You are not subscribed to a Platform plan."
+      headline={t("subscription_needed")}
+      description={t("subscription_needed_description")}
       buttonRaw={
         <div className="flex gap-2">
           <Button

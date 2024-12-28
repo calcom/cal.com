@@ -65,6 +65,8 @@ export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES |
 
 export const IS_EUROPE = dayjs.tz.guess()?.indexOf("Europe") !== -1;
 
+export const CURRENT_TIMEZONE = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
+
 /** @deprecated use `WEBAPP_URL` */
 export const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`;
 export const LOGO = "/calcom-logo-white-word.svg";
@@ -189,3 +191,12 @@ export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
 export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/stop-recording.svg`
   : `https://app.cal.com/stop-recording.svg`;
+
+export const SCOPE_USERINFO_PROFILE = "https://www.googleapis.com/auth/userinfo.profile";
+export const SCOPE_USERINFO_EMAIL = "https://www.googleapis.com/auth/userinfo.email";
+export const GOOGLE_OAUTH_SCOPES = [SCOPE_USERINFO_PROFILE, SCOPE_USERINFO_EMAIL];
+export const GOOGLE_CALENDAR_SCOPES = [
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
+];
+export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
