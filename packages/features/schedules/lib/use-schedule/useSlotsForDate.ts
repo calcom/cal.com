@@ -35,6 +35,7 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
         const nextFortnightlyDay = dayjs(date).add(15, "day").format("YYYY-MM-DD");
 
         const nextDateSlots = slots && slots[nextWeekDay]?.map(({ time }) => dayjs(time).toISOString());
+        console.log(nextWeekDay, nextDateSlots);
 
         const filteredSlots = nextDateSlots
           ? slots[date].filter(({ time }) => {
@@ -43,7 +44,6 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
             })
           : slots[date];
 
-        console.log(nextWeekDay, nextDateSlots);
         return { slots: filteredSlots || [], date };
       });
   }, [dates, isTherapy, nextWeekDay, slots]);

@@ -87,7 +87,7 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
-  const therapyIds = [1375, 1379, 1383, 1389];
+  const therapyIds = [1375, 1379, 1383, 1389, 1523, 1518];
 
   const isTherapy = therapyIds.includes(event.data?.id ?? 0);
   const slotsPerDay = useSlotsForAvailableDates(dates, isTherapy, schedule?.slots);
