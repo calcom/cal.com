@@ -27,10 +27,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
     .nativeEnum(SalesforceRecordEnum)
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
-  // Another way to define z.boolean().optional() through z.any()
-  // Required to prevent tsc crash. I have no clue why it started crashing suddenly.
-  // But we need to improve the schemas of all apps that are combined into apps.schemas.generated.ts
-  ifFreeEmailDomainSkipOwnerCheck: optionalBooleanOnlyRunTimeValidation,
+  ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
