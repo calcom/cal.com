@@ -13,6 +13,8 @@ import utc from "dayjs/plugin/utc";
 
 import BusinessDaysPlugin from "./plugins/business-days-plugin";
 
+export type { ManipulateType } from "dayjs";
+
 dayjs.extend(customParseFormat);
 dayjs.extend(BusinessDaysPlugin);
 dayjs.extend(isBetween);
