@@ -1,4 +1,3 @@
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
@@ -37,7 +36,6 @@ export function useInitialFormValues({
   prefillFormParams,
   lastBookingResponse,
 }: UseInitialFormValuesProps) {
-  const searchParams = useSearchParams();
   const [initialValues, setDefaultValues] = useState<{
     responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
     bookingId?: number;
@@ -141,7 +139,6 @@ export function useInitialFormValues({
     name,
     username,
     prefillFormParams,
-    searchParams,
   ]);
 
   // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
