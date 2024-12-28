@@ -238,6 +238,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
     if (!showEventTypesStep) {
+      console.log("DEEL FIRST");
       return {
         redirect: {
           permanent: false,

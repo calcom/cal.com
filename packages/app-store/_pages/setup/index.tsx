@@ -5,6 +5,7 @@ import { DynamicComponent } from "../../_components/DynamicComponent";
 export const AppSetupMap = {
   alby: dynamic(() => import("../../alby/pages/setup")),
   "apple-calendar": dynamic(() => import("../../applecalendar/pages/setup")),
+  deel: dynamic(() => import("../../deel/pages/setup")),
   exchange: dynamic(() => import("../../exchangecalendar/pages/setup")),
   "exchange2013-calendar": dynamic(() => import("../../exchange2013calendar/pages/setup")),
   "exchange2016-calendar": dynamic(() => import("../../exchange2016calendar/pages/setup")),

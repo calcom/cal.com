@@ -139,10 +139,12 @@ const OnboardingPage = ({
 
   const maxSteps = useMemo(() => {
     if (!showEventTypesStep) {
+      console.log("DEEL");
       return 1;
     }
     return installableOnTeams ? STEPS.length : STEPS.length - 1;
   }, [showEventTypesStep, installableOnTeams]);
+  console.log("HERE: ", maxSteps);
 
   const utils = trpc.useContext();
 
