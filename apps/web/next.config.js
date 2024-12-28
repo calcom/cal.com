@@ -293,10 +293,6 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
-        source: "/router/:path*",
-        destination: "/apps/routing-forms/router/:path*",
-      },
-      {
         source: "/success/:path*",
         has: [
           {
@@ -594,7 +590,7 @@ const nextConfig = {
             value: orgHostPath,
           },
         ],
-        destination: "/event-types?openIntercom=true",
+        destination: "/event-types?openPlain=true",
         permanent: true,
       },
       {

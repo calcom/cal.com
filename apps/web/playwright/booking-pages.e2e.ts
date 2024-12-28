@@ -7,7 +7,6 @@ import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { test, todo } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
   bookOptinEvent,
@@ -55,15 +54,15 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
-    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage?type=meeting&title=30%20min"
+    "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D30%2Bmin"
   );
   // Verify Organizer Name in the URL
-  expect(ogImage).toContain("meetingProfileName=Test%20User");
+  expect(ogImage).toContain("meetingProfileName%3DTest%2BUser");
 });
 
 todo("check SSR and OG - Team Event Type");
 
-testBothFutureAndLegacyRoutes.describe("free user", () => {
+test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
     const free = await users.create(freeUserObj);
     await page.goto(`/${free.username}`);
@@ -99,7 +98,7 @@ testBothFutureAndLegacyRoutes.describe("free user", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("pro user", () => {
+test.describe("pro user", () => {
   test.beforeEach(async ({ page, users }) => {
     const pro = await users.create();
     await page.goto(`/${pro.username}`);
@@ -343,7 +342,7 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("prefill", () => {
+test.describe("prefill", () => {
   test("logged in", async ({ page, users }) => {
     const prefill = await users.create({ name: "Prefill User" });
     await prefill.apiLogin();
@@ -400,7 +399,7 @@ testBothFutureAndLegacyRoutes.describe("prefill", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
+test.describe("Booking on different layouts", () => {
   test.beforeEach(async ({ page, users }) => {
     const user = await users.create();
     await page.goto(`/${user.username}`);
@@ -457,7 +456,7 @@ testBothFutureAndLegacyRoutes.describe("Booking on different layouts", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
+test.describe("Booking round robin event", () => {
   test.beforeEach(async ({ page, users }) => {
     const teamMatesObj = [{ name: "teammate-1" }];
 

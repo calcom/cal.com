@@ -4,9 +4,8 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
 
-import { moveUserToOrg } from "@lib/orgMigration";
-
 import { test } from "./lib/fixtures";
+import { moveUserToOrg } from "./lib/orgMigration";
 import { IS_STRIPE_ENABLED, submitAndWaitForResponse } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });

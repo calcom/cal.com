@@ -1,13 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { IsBoolean, IsOptional, IsEnum, IsInt } from "class-validator";
 
 export class CreateOrgMembershipDto {
   @IsInt()
+  @ApiProperty()
   readonly userId!: number;
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional({ type: Boolean, default: false })
   readonly accepted?: boolean = false;
 
   @IsEnum(MembershipRole)
@@ -16,5 +18,6 @@ export class CreateOrgMembershipDto {
 
   @IsOptional()
   @IsBoolean()
+  @ApiPropertyOptional({ type: Boolean, default: false })
   readonly disableImpersonation?: boolean = false;
 }
