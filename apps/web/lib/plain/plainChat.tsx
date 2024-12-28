@@ -80,10 +80,12 @@ const PlainChat = () => {
 
   const isAppDomain = useMemo(() => {
     const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
+    const pathSegments = pathname?.split("/").filter(Boolean) || [];
+
     return (
       typeof window !== "undefined" &&
       window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-      !restrictedPaths.some((path) => pathname?.includes(path.trim()))
+      !restrictedPaths.some((path) => pathSegments.some((segment) => segment.startsWith(path.trim())))
     );
   }, [pathname]);
 
