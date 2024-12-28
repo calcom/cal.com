@@ -25,6 +25,9 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
   const slotsForDates = useMemo(() => {
     if (slots === undefined) return [];
 
+    console.log({ slots });
+    console.log({ dates });
+
     return dates
       .filter((date) => date !== null)
       .filter((date) => dayjs(date).isBefore(nextWeekDay) || !isTherapy)
@@ -32,7 +35,7 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
         slots: slots[`${date}`] || [],
         date,
       }));
-  }, [dates, slots]);
+  }, [dates, isTherapy, nextWeekDay, slots]);
 
   return slotsForDates;
 };
