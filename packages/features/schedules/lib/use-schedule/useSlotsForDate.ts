@@ -25,16 +25,27 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
   const slotsForDates = useMemo(() => {
     if (slots === undefined) return [];
 
-    console.log({ slots });
-    console.log({ dates });
-
     return dates
       .filter((date) => date !== null)
       .filter((date) => dayjs(date).isBefore(nextWeekDay) || !isTherapy)
-      .map((date) => ({
-        slots: slots[`${date}`] || [],
-        date,
-      }));
+      .map((date) => {
+        if (!isTherapy) return { slots: slots[date] || [], date };
+
+        const nextWeekDay = dayjs(date).add(7, "day").format("YYYY-MM-DD");
+        const nextFortnightlyDay = dayjs(date).add(15, "day").format("YYYY-MM-DD");
+
+        const nextDateSlots = slots && slots[nextWeekDay]?.map(({ time }) => dayjs(time).toISOString());
+
+        const filteredSlots = nextDateSlots
+          ? slots[date].filter(({ time }) => {
+              const nextWeekSchedule = dayjs(time).add(7, "day").toISOString();
+              return nextDateSlots.includes(nextWeekSchedule);
+            })
+          : slots[date];
+
+        console.log(nextWeekDay, nextDateSlots);
+        return { slots: filteredSlots || [], date };
+      });
   }, [dates, isTherapy, nextWeekDay, slots]);
 
   return slotsForDates;
