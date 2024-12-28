@@ -48,7 +48,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   EmptyScreen,
-  HeadSeo,
   HorizontalTabs,
   Icon,
   Label,
@@ -1013,8 +1012,6 @@ const EventTypesPage: React.FC = () => {
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <HeadSeo title={t("event_types_page_title")} description={t("event_types_page_subtitle")} />
-
       <InfiniteScrollMain
         profiles={getUserEventGroupsData?.profiles}
         eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
