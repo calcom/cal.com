@@ -1,9 +1,8 @@
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
+import { Page, type OrgTypePageProps } from "app/org/[orgSlug]/[user]/[type]/page";
 
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
-
-import { Page, type OrgTypePageProps } from "../page";
 
 const getEmbedData = withEmbedSsrAppDir<OrgTypePageProps>(getServerSideProps);
 
