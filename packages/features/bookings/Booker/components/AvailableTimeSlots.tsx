@@ -90,7 +90,8 @@ export const AvailableTimeSlots = ({
   const therapyIds = [1375, 1379, 1383, 1389, 1523, 1518];
 
   const isTherapy = therapyIds.includes(event.data?.id ?? 0);
-  const slotsPerDay = useSlotsForAvailableDates(dates, isTherapy, schedule?.slots);
+  console.log(dates);
+  const slotsPerDay = useSlotsForAvailableDates(dates, isTherapy, true, schedule?.slots);
 
   return (
     <>

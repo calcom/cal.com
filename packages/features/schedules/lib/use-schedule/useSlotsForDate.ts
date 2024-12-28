@@ -19,7 +19,12 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
   return slotsForDate;
 };
 
-export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = false, slots?: Slots) => {
+export const useSlotsForAvailableDates = (
+  dates: (string | null)[],
+  isTherapy = false,
+  weekly = true,
+  slots?: Slots
+) => {
   const nextWeekDay = dayjs().add(7, "day");
 
   const slotsForDates = useMemo(() => {
@@ -34,19 +39,24 @@ export const useSlotsForAvailableDates = (dates: (string | null)[], isTherapy = 
         const nextWeekDay = dayjs(date).add(7, "day").format("YYYY-MM-DD");
         const nextFortnightlyDay = dayjs(date).add(15, "day").format("YYYY-MM-DD");
 
-        const nextDateSlots = slots && slots[nextWeekDay]?.map(({ time }) => dayjs(time).toISOString());
+        const nextWeekSlots = slots && slots[nextWeekDay]?.map(({ time }) => dayjs(time).toISOString());
+        const nextFortnightlySlots =
+          slots && slots[nextFortnightlyDay]?.map(({ time }) => dayjs(time).toISOString());
 
-        const filteredSlots = nextDateSlots
-          ? slots[date].filter(({ time }) => {
-              const nextWeekSchedule = dayjs(time).add(7, "day").toISOString();
-              console.log(nextDateSlots, nextWeekSchedule, nextDateSlots.includes(nextWeekSchedule));
-              return nextDateSlots.includes(nextWeekSchedule);
-            })
-          : slots[date];
+        const filteredSlots =
+          nextWeekSlots && nextFortnightlySlots
+            ? slots[date].filter(({ time }) => {
+                const nextWeekSchedule = dayjs(time).add(7, "day").toISOString();
+                const nextFortnightlySchedule = dayjs(time).add(15, "day").toISOString();
+                return weekly
+                  ? nextWeekSlots.includes(nextWeekSchedule)
+                  : nextFortnightlySlots.includes(nextFortnightlySchedule);
+              })
+            : slots[date];
 
         return { slots: filteredSlots || [], date };
       });
-  }, [dates, isTherapy, nextWeekDay, slots]);
+  }, [dates, isTherapy, nextWeekDay, slots, weekly]);
 
   return slotsForDates;
 };
