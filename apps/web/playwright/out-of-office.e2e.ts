@@ -427,7 +427,6 @@ test.describe("Out of office", () => {
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
-    await page.waitForTimeout(1000);
     await addOOOButton.click();
     await reasonListRespPromise;
     await dateButton.click();
@@ -477,7 +476,6 @@ test.describe("Out of office", () => {
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
     await entriesListRespPromise;
-    await page.waitForTimeout(1000);
     await addOOOButton.click();
     await reasonListRespPromise;
     await dateButton.click();
