@@ -144,7 +144,6 @@ const OnboardingPage = ({
     }
     return installableOnTeams ? STEPS.length : STEPS.length - 1;
   }, [showEventTypesStep, installableOnTeams]);
-  console.log("HERE: ", maxSteps);
 
   const utils = trpc.useContext();
 

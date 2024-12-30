@@ -26,6 +26,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
   });
   // Check if credential exists
   if (!credential) {
+    console.log("Could not find credential", input.credentialId);
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: `Could not find credential ${input.credentialId}`,

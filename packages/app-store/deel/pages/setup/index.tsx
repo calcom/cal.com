@@ -8,14 +8,15 @@ import { trpc } from "@calcom/trpc";
 import { Button, showToast, TextField } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
-export default function PayPalSetup() {
+export default function DeelSetup() {
   const [deelApiKey, setDeelApiKey] = useState("");
   const [hrisProfileId, setHrisProfileId] = useState("");
   const router = useRouter();
   const { t } = useLocale();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "other", appId: "deel" });
-  const [paypalPaymentAppCredentials] = integrations.data?.items || [];
-  const [credentialId] = paypalPaymentAppCredentials?.userCredentialIds || [-1];
+  console.log(integrations.data?.items);
+  const [deelAppCredentials] = integrations.data?.items || [];
+  const [credentialId] = deelAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;
   const saveKeysMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
@@ -70,8 +71,8 @@ export default function PayPalSetup() {
                     saveKeysMutation.mutate({
                       credentialId,
                       key: {
-                        client_id: newClientId,
-                        secret_key: newSecretKey,
+                        deel_api_key: deelApiKey,
+                        hris_profile_id: hrisProfileId,
                       },
                     });
                   }}>
