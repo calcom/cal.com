@@ -264,7 +264,9 @@ const PlainChat = () => {
     }
   `;
 
-  if (false || !isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null; // temporary disable
+  const isDisabled = true; // temporary disable. should become a feature flag
+
+  if (isDisabled || !isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
 
   return (
     <>
