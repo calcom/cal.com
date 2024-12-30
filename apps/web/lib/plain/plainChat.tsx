@@ -79,11 +79,16 @@ const PlainChat = () => {
   const userEmail = session?.user?.email;
 
   const isAppDomain = useMemo(() => {
-    const restrictedPaths = process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || [];
+    const restrictedPathsSet = new Set(
+      (process.env.NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS?.split(",") || []).map((path) => path.trim())
+    );
+
+    const pathSegments = pathname?.split("/").filter(Boolean) || [];
+
     return (
       typeof window !== "undefined" &&
       window.location.origin === process.env.NEXT_PUBLIC_WEBAPP_URL &&
-      !restrictedPaths.some((path) => pathname?.startsWith(path.trim()))
+      !pathSegments.some((segment) => restrictedPathsSet.has(segment))
     );
   }, [pathname]);
 
