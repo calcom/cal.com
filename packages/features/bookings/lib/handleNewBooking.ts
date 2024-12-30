@@ -1175,7 +1175,6 @@ async function handler(
         reroutingFormResponses: reroutingFormResponses ?? null,
         reqBody: {
           user: reqBody.user,
-          metadata: reqBody.metadata,
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
@@ -1195,6 +1194,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
+        metadata: { ...reqBody.metadata, noEmail, reqAppsStatus },
       });
 
       if (booking?.userId) {
