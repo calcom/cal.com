@@ -14,7 +14,6 @@ export default function DeelSetup() {
   const router = useRouter();
   const { t } = useLocale();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "other", appId: "deel" });
-  console.log(integrations.data?.items);
   const [deelAppCredentials] = integrations.data?.items || [];
   const [credentialId] = deelAppCredentials?.userCredentialIds || [-1];
   const showContent = !!integrations.data && integrations.isSuccess && !!credentialId;

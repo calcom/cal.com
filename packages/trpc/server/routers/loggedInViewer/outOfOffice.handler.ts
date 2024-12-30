@@ -98,7 +98,6 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ],
     },
   });
-
   // don't allow infinite redirects
   if (existingOutOfOfficeEntry) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "booking_redirect_infinite_not_allowed" });
@@ -158,6 +157,48 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       toUserId: toUserId ? toUserId : null,
     },
   });
+
+  // Get Deel credentials (deel_api_key, hris_profile_id) for the user's organization
+  const deelCredentials = await prisma.credential.findFirst({
+    where: {
+      teamId: ctx.user.organizationId,
+      appId: "deel",
+    },
+    select: {
+      key: true,
+    },
+  });
+
+  const deelOOOPayload = {
+    start_date: startTimeUtc.toISOString(),
+    end_date: endTimeUtc.toISOString(),
+    time_off_type_id: input.reasonId.toString(),
+    recipient_profile_id: deelCredentials.key.hris_profile_id,
+    reason: input.notes,
+  };
+  const url = "https://api.letsdeel.com/rest/v2/time_offs";
+  const options = {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      authorization: `Bearer ${deelCredentials.key.deel_api_key}`,
+    },
+    body: JSON.stringify({ data: deelOOOPayload }),
+  };
+
+  // Create OOO entry in Deel
+  try {
+    const deelResponse = await fetch(url, options);
+    const deelData = await deelResponse.json();
+    if (deelData.status !== 201) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "deel_ooo_entry_creation_failed" });
+    }
+  } catch (err) {
+    console.error("Deel OOO entry creation failed", err);
+    throw new TRPCError({ code: "BAD_REQUEST", message: "deel_ooo_entry_creation_failed" });
+  }
+
   let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
   if (createdOrUpdatedOutOfOffice) {
     const findRedirect = await prisma.outOfOfficeEntry.findFirst({
