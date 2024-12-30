@@ -3,9 +3,10 @@ import type { Prisma } from "@prisma/client";
 import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import buildCalendarEvent from "./lib/buildCalendarEvent";
+// import buildCalendarEvent from "./lib/buildCalendarEvent";
 import { createCRMEventSchema } from "./schema";
 
 const log = logger.getSubLogger({ prefix: [`[[tasker] createCRMEvent`] });
@@ -14,15 +15,17 @@ export async function createCRMEvent(payload: string): Promise<void> {
   const parsedPayload = createCRMEventSchema.safeParse(JSON.parse(payload));
 
   if (!parsedPayload.success) {
-    throw new Error(`malformed payload: ${parsedPayload.error}`);
+    throw new Error(`malformed payload in createCRMEvent: ${parsedPayload.error}`);
   }
 
-  const { bookingUid } = parsedPayload.data;
-  // TODO remove credentialId from payload
+  const { event } = parsedPayload.data;
+
+  const bookingUid = event.uid;
 
   const booking = await prisma.booking.findUnique({
     where: {
       uid: bookingUid,
+      status: BookingStatus.ACCEPTED,
     },
     include: {
       user: {
@@ -67,7 +70,7 @@ export async function createCRMEvent(payload: string): Promise<void> {
     throw new Error(`event type app metadata not found for booking ${bookingUid}`);
   }
 
-  const calendarEvent = await buildCalendarEvent(bookingUid);
+  const calendarEvent = event;
 
   const bookingReferencesToCreate: Prisma.BookingReferenceUncheckedCreateInput[] = [];
 
