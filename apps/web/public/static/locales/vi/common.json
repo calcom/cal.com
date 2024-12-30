@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Tên chủ sở hữu cần thay đổi",
   "no_filter_set": "Chưa đặt bộ lọc",
   "booking_dry_run_successful": "Chạy thử đặt lịch thành công",
+  "booking_dry_run_successful_description": "Quá trình chạy thử đã hoàn tất thành công.",
   "dont_have_access_this_page": "Bạn không có quyền truy cập trang này",
   "you_need_admin_or_owner_privileges_to_access": "Để xem hoặc tương tác với trang này, bạn cần có quyền quản trị viên hoặc chủ sở hữu",
   "field_type": "Loại trường",

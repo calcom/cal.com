@@ -269,12 +269,15 @@ export async function scheduleTrigger({
   subscriberUrl,
   subscriber,
   triggerEvent,
+  isDryRun = false,
 }: {
   booking: { id: number; endTime: Date; startTime: Date };
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: WebhookTriggerEvents;
+  isDryRun?: boolean;
 }) {
+  if (isDryRun) return;
   try {
     const payload = JSON.stringify({ triggerEvent, ...booking });
 
@@ -308,6 +311,7 @@ export async function deleteWebhookScheduledTriggers({
   webhookId,
   userId,
   teamId,
+  isDryRun = false,
 }: {
   booking?: { id: number; uid: string };
   appId?: string | null;
@@ -315,7 +319,9 @@ export async function deleteWebhookScheduledTriggers({
   webhookId?: string;
   userId?: number;
   teamId?: number;
+  isDryRun?: boolean;
 }) {
+  if (isDryRun) return;
   try {
     if (appId && (userId || teamId)) {
       const where: Prisma.BookingWhereInput = {};
