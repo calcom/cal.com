@@ -10,6 +10,8 @@ import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
+import type { NoEmail } from "./getBookingData";
+import type { ReqAppsStatus } from "./types";
 import type {
   EventTypeId,
   AwaitedBookingData,
@@ -28,7 +30,6 @@ type CreateBookingParams = {
   rescheduledBy: string | undefined;
   reqBody: {
     user: ReqBodyWithEnd["user"];
-    metadata: ReqBodyWithEnd["metadata"];
     recurringEventId: ReqBodyWithEnd["recurringEventId"];
   };
   eventType: {
@@ -51,6 +52,11 @@ type CreateBookingParams = {
   };
   evt: CalendarEvent;
   originalRescheduledBooking: OriginalRescheduledBooking;
+  metadata: {
+    [key: string]: string | NoEmail | ReqAppsStatus;
+    noEmail?: NoEmail;
+    reqAppsStatus?: ReqAppsStatus;
+  };
 };
 
 function updateEventDetails(
@@ -85,6 +91,7 @@ export async function createBooking({
   routingFormResponseId,
   reroutingFormResponses,
   rescheduledBy,
+  metadata,
 }: CreateBookingParams & { rescheduledBy: string | undefined }) {
   updateEventDetails(evt, originalRescheduledBooking, input.changedOrganizer);
   const associatedBookingForFormResponse = routingFormResponseId
@@ -101,6 +108,7 @@ export async function createBooking({
     input,
     evt,
     originalRescheduledBooking,
+    metadata,
   });
 
   return await saveBooking(
@@ -211,6 +219,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     routingFormResponseId,
     reroutingFormResponses,
     rescheduledBy,
+    metadata,
   } = params;
 
   const attendeesData = getAttendeesData(evt);
@@ -234,7 +243,7 @@ function buildNewBookingData(params: CreateBookingParams) {
     location: evt.location,
     eventType: eventTypeRel,
     smsReminderNumber: input.smsReminderNumber,
-    metadata: reqBody.metadata,
+    metadata,
     attendees: {
       createMany: {
         data: attendeesData,
@@ -269,7 +278,7 @@ function buildNewBookingData(params: CreateBookingParams) {
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
       ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
-      ...reqBody.metadata,
+      ...metadata,
     };
     newBookingData.paid = originalRescheduledBooking.paid;
     newBookingData.fromReschedule = originalRescheduledBooking.uid;
