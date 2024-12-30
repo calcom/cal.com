@@ -241,7 +241,7 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22", true);
 
@@ -290,7 +290,7 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -331,7 +331,7 @@ test.describe("Out of office", () => {
     await page.getByTestId("add_entry_ooo").click();
     await reasonListRespPromise;
 
-    await page.locator('[data-testid="date-range"]').click();
+    await dateButton.click();
 
     await selectToAndFromDates(page, "13", "22");
 
