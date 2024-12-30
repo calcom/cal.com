@@ -15,6 +15,7 @@ export const apiHandlers = {
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   campsite: import("./campsite/api"),
+  chatbase: import("./chatbase/api"),
   clic: import("./clic/api"),
   closecom: import("./closecom/api"),
   cron: import("./cron/api"),
