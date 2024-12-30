@@ -5,6 +5,8 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Script from "next/script";
 import { useEffect, useState, useCallback, useMemo } from "react";
 
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+
 declare global {
   interface Window {
     Plain?: {
@@ -74,6 +76,7 @@ const PlainChat = () => {
   const { data: session } = useSession();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const isEmbed = useIsEmbed();
 
   const shouldOpenPlain = pathname === "/event-types" && searchParams?.has("openPlain");
   const userEmail = session?.user?.email;
@@ -264,9 +267,8 @@ const PlainChat = () => {
     }
   `;
 
-  const isDisabled = true; // temporary disable. should become a feature flag
-
-  if (isDisabled || !isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
+  // TODO: wrap in feature flag
+  if (isEmbed || !isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
 
   return (
     <>
