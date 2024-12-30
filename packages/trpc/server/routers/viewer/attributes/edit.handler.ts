@@ -52,6 +52,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
       type: input.type,
       teamId: org.id,
       isLocked: input.isLocked,
+      isWeightsEnabled: input.isWeightsEnabled,
     },
     select: {
       id: true,

@@ -3,12 +3,22 @@ import type { AppCategories, Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { CompleteEventType } from "@calcom/prisma/zod";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
-const handlePayment = async (
-  evt: CalendarEvent,
-  selectedEventType: Pick<CompleteEventType, "metadata" | "title">,
+const handlePayment = async ({
+  evt,
+  selectedEventType,
+  paymentAppCredentials,
+  booking,
+  bookerName,
+  bookerEmail,
+  bookerPhoneNumber,
+  isDryRun = false,
+}: {
+  evt: CalendarEvent;
+  selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;
@@ -16,18 +26,20 @@ const handlePayment = async (
       dirName: string;
       categories: AppCategories[];
     } | null;
-  },
+  };
   booking: {
     user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
     id: number;
     userId: number | null;
     startTime: { toISOString: () => string };
     uid: string;
-  },
-  bookerName: string,
-  bookerEmail: string,
-  bookerPhoneNumber?: string | null
-) => {
+  };
+  bookerName: string;
+  bookerEmail: string;
+  bookerPhoneNumber?: string | null;
+  isDryRun?: boolean;
+}) => {
+  if (isDryRun) return null;
   const paymentApp = (await appStore[
     paymentAppCredentials?.app?.dirName as keyof typeof appStore
   ]?.()) as PaymentApp;
@@ -40,15 +52,15 @@ const handlePayment = async (
 
   const paymentInstance = new PaymentService(paymentAppCredentials) as IAbstractPaymentService;
 
-  const paymentOption =
-    selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
+  const apps = eventTypeAppMetadataOptionalSchema.parse(selectedEventType?.metadata?.apps);
+  const paymentOption = apps?.[paymentAppCredentials.appId].paymentOption || "ON_BOOKING";
 
   let paymentData;
   if (paymentOption === "HOLD") {
     paymentData = await paymentInstance.collectCard(
       {
-        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+        amount: apps?.[paymentAppCredentials.appId].price,
+        currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
       paymentOption,
@@ -58,8 +70,8 @@ const handlePayment = async (
   } else {
     paymentData = await paymentInstance.create(
       {
-        amount: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].price,
-        currency: selectedEventType?.metadata?.apps?.[paymentAppCredentials.appId].currency,
+        amount: apps?.[paymentAppCredentials.appId].price,
+        currency: apps?.[paymentAppCredentials.appId].currency,
       },
       booking.id,
       booking.userId,

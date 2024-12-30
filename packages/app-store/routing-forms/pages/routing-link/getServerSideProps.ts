@@ -6,7 +6,7 @@ import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppG
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
-export async function isAuthorizedToViewTheForm({
+export function isAuthorizedToViewTheForm({
   user,
   currentOrgDomain,
 }: {
@@ -108,7 +108,7 @@ export const getServerSideProps = async function getServerSideProps(
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
 
-  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
+  if (!isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain })) {
     return {
       notFound: true,
     };
