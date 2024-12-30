@@ -216,7 +216,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const extendsEventType = appMetadata?.extendsFeature === "EventType";
 
   const isConferencing = isConferencingApp(appMetadata.categories);
-  console.log("IS CONFERENCING:", isConferencing);
   const showEventTypesStep = extendsEventType || isConferencing;
 
   const user = await getUser(session.user.id);

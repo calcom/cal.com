@@ -139,7 +139,6 @@ const OnboardingPage = ({
 
   const maxSteps = useMemo(() => {
     if (!showEventTypesStep) {
-      console.log("DEEL");
       return 1;
     }
     return installableOnTeams ? STEPS.length : STEPS.length - 1;

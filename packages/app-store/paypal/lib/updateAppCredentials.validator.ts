@@ -31,7 +31,6 @@ const handlePaypalValidations = async ({ input }: UpdateAppCredentialsOptions) =
 
   // Create webhook for this installation
   const webhookId = await paypalClient.createWebhook();
-  console.log("webhookId", webhookId);
   if (!webhookId) {
     // @TODO: make a button that tries to create the webhook again
     console.error("Failed to create webhook", webhookId);
