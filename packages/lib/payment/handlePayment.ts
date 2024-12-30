@@ -7,9 +7,18 @@ import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
-const handlePayment = async (
-  evt: CalendarEvent,
-  selectedEventType: Pick<CompleteEventType, "metadata" | "title">,
+const handlePayment = async ({
+  evt,
+  selectedEventType,
+  paymentAppCredentials,
+  booking,
+  bookerName,
+  bookerEmail,
+  bookerPhoneNumber,
+  isDryRun = false,
+}: {
+  evt: CalendarEvent;
+  selectedEventType: Pick<CompleteEventType, "metadata" | "title">;
   paymentAppCredentials: {
     key: Prisma.JsonValue;
     appId: EventTypeAppsList;
@@ -17,18 +26,20 @@ const handlePayment = async (
       dirName: string;
       categories: AppCategories[];
     } | null;
-  },
+  };
   booking: {
     user: { email: string | null; name: string | null; timeZone: string; username: string | null } | null;
     id: number;
     userId: number | null;
     startTime: { toISOString: () => string };
     uid: string;
-  },
-  bookerName: string,
-  bookerEmail: string,
-  bookerPhoneNumber?: string | null
-) => {
+  };
+  bookerName: string;
+  bookerEmail: string;
+  bookerPhoneNumber?: string | null;
+  isDryRun?: boolean;
+}) => {
+  if (isDryRun) return null;
   const paymentApp = (await appStore[
     paymentAppCredentials?.app?.dirName as keyof typeof appStore
   ]?.()) as PaymentApp;

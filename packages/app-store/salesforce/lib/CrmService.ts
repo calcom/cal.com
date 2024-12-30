@@ -1,5 +1,5 @@
-import type { TokenResponse } from "jsforce";
-import jsforce from "jsforce";
+import type { TokenResponse, Connection, QueryResult, Field } from "@jsforce/jsforce-node";
+import jsforce from "@jsforce/jsforce-node";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -64,7 +64,7 @@ const salesforceTokenSchema = z.object({
 
 export default class SalesforceCRMService implements CRM {
   private integrationName = "";
-  private conn!: Promise<jsforce.Connection>;
+  private conn!: Promise<Connection>;
   private log: typeof logger;
   private calWarnings: string[] = [];
   private appOptions: any;
@@ -87,6 +87,10 @@ export default class SalesforceCRMService implements CRM {
   private getClient = async (credential: CredentialPayload) => {
     const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+
+    if (!credentialKey.refresh_token)
+      throw new Error(`Refresh token is missing for credential ${credential.id}`);
+
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
               Needs further investigation ASAP */
@@ -463,7 +467,7 @@ export default class SalesforceCRMService implements CRM {
         );
 
         // Filter out any undefined results and ensure records exist
-        const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
+        const validOwnersQuery = ownersQuery.filter((query): query is QueryResult<ContactRecord> => {
           const firstRecord = query?.records?.[0];
           if (!firstRecord) return false;
 
@@ -838,7 +842,7 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     const fieldSet = new Set(fieldsToTest);
-    const foundFields: jsforce.Field[] = [];
+    const foundFields: Field[] = [];
 
     try {
       const salesforceEntity = await conn.describe(sobject);
@@ -984,7 +988,7 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail,
     calEventResponses,
   }: {
-    existingFields: jsforce.Field[];
+    existingFields: Field[];
     personRecord: Record<string, any>;
     onBookingWriteToRecordFields: Record<string, any>;
     startTime: string;
@@ -1141,7 +1145,7 @@ export default class SalesforceCRMService implements CRM {
 
   private async fetchPersonRecord(
     contactId: string,
-    existingFields: jsforce.Field[],
+    existingFields: Field[],
     personRecordType: SalesforceRecordEnum
   ): Promise<Record<string, any> | null> {
     const conn = await this.conn;
