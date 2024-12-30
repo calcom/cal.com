@@ -264,7 +264,7 @@ const PlainChat = () => {
     }
   `;
 
-  if (!isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null;
+  if (false || !isAppDomain || isSmallScreen || !config || typeof window === "undefined") return null; // temporary disable
 
   return (
     <>
