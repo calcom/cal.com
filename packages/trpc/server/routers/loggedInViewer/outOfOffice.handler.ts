@@ -171,11 +171,11 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   });
 
   if (!deelCredentials) {
-    throw new Error("No credentials found");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "no_deel_credentials" });
   }
-  const parsedCredentials = deelCredentialKeysSchema.safeParse(deelCredentials?.key);
+  const parsedCredentials = deelCredentialKeysSchema.safeParse(deelCredentials.key);
   if (!parsedCredentials.success) {
-    throw new Error("Credentials malformed");
+    throw new TRPCError({ code: "BAD_REQUEST", message: "malformed_deel_credentials" });
   }
 
   const deelOOOPayload = {

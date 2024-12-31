@@ -2905,5 +2905,7 @@
   "routing_form": "Routing Form",
   "something_unexpected_occurred": "Something unexpected occurred",
   "500_error_message": "It's not you, it's us.",
+  "no_deel_credentials": "No Deel credentials found",
+  "malformed_deel_credentials": "Malformed Deel credentials. Make sure you have the correct credentials",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

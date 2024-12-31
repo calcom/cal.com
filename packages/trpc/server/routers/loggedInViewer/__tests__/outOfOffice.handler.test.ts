@@ -1,38 +1,9 @@
+import prismaMock from "./../../../../../../tests/libs/__mocks__/prismaMock";
+
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import { vi } from "vitest";
 
-import { prisma } from "@calcom/prisma";
-
 import { outOfOfficeCreateOrUpdate } from "../outOfOffice.handler";
-
-const prismaMock = {
-  outOfOfficeEntry: {
-    findFirst: vi.fn().mockResolvedValue(undefined),
-    findUnique: vi.fn().mockResolvedValue(undefined),
-    upsert: vi.fn().mockResolvedValue(undefined),
-  },
-  credential: {
-    findFirst: vi.fn().mockResolvedValue({
-      key: JSON.stringify({
-        deel_api_key: "FAKE_DEEL_API_KEY",
-        hris_profile_id: "FAKE_HRIS_PROFILE_ID",
-      }),
-    }),
-  },
-};
-vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
-vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
-vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
-vi.spyOn(prisma.credential, "findFirst").mockImplementation(prismaMock.credential.findFirst);
-
-global.fetch = vi.fn();
-
-afterEach(() => {
-  prismaMock.outOfOfficeEntry.findFirst.mockClear();
-  prismaMock.outOfOfficeEntry.findUnique.mockClear();
-  prismaMock.outOfOfficeEntry.upsert.mockClear();
-  prismaMock.credential.findFirst.mockClear();
-});
 
 const mockUser = {
   id: 4,
@@ -47,7 +18,7 @@ const mockUser = {
   profiles: [],
   avatar: "",
   organization: null,
-  organizationId: null,
+  organizationId: 123,
   locale: "en",
   timeZone: "UTC",
   defaultScheduleId: null,
@@ -60,6 +31,46 @@ describe("outOfOfficeCreateOrUpdate", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.setSystemTime(new Date("2024-11-22T03:23:45Z"));
+
+    // Reset all mocks with default implementations
+    prismaMock.credential.findFirst.mockResolvedValue({
+      key: JSON.stringify({
+        deel_api_key: "FAKE_DEEL_API_KEY",
+        hris_profile_id: "FAKE_HRIS_PROFILE_ID",
+      }),
+    });
+
+    prismaMock.outOfOfficeEntry.findFirst.mockResolvedValue(null);
+    prismaMock.outOfOfficeEntry.findUnique.mockResolvedValue(null);
+    prismaMock.outOfOfficeEntry.upsert.mockResolvedValue({
+      id: 1,
+      userId: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      start: new Date("2024-11-23T23:00:00.000Z"),
+      end: new Date("2024-11-23T23:00:00.000Z"),
+      uuid: "uuid",
+      reasonId: 1,
+      toUserId: null,
+      notes: null,
+    });
+    prismaMock.credential.findFirst.mockResolvedValue({
+      key: {
+        deel_api_key: "FAKE_DEEL_API_KEY",
+        hris_profile_id: "FAKE_HRIS_PROFILE_ID",
+      },
+    });
+
+    // Reset fetch mock
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ status: 201 }),
+      status: 201,
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("should throw error if start date is after end date", async () => {
@@ -79,31 +90,38 @@ describe("outOfOfficeCreateOrUpdate", () => {
     );
   });
 
-  it("should handle timezone offset correctly", async () => {
+  it("should handle timezone offset correctly and create Deel OOO entry", async () => {
     const input = {
       dateRange: {
         startDate: new Date("2024-11-23T23:00:00.000Z"),
         endDate: new Date("2024-11-23T23:00:00.000Z"),
       },
-      offset: 60, // Paris timezone offset in minutes
+      offset: 60,
       reasonId: 1,
-      notes: "",
+      notes: "Test notes",
       toTeamUserId: null,
     };
+
     const startTimeUtc = "2024-11-24T00:00:00.000Z";
     const endTimeUtc = "2024-11-24T23:59:59.999Z";
-
-    // Mock Deel API response
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      json: vi.fn().mockResolvedValue({ status: 201 }),
-      status: 201,
-    });
 
     await outOfOfficeCreateOrUpdate({
       ctx: { user: mockUser },
       input,
     });
 
+    // Verify credential lookup
+    expect(prismaMock.credential.findFirst).toHaveBeenCalledWith({
+      where: {
+        teamId: mockUser.organizationId,
+        appId: "deel",
+      },
+      select: {
+        key: true,
+      },
+    });
+
+    // Verify Deel API call
     expect(global.fetch).toHaveBeenCalledWith("https://api.letsdeel.com/rest/v2/time_offs", {
       method: "POST",
       headers: {
@@ -117,12 +135,13 @@ describe("outOfOfficeCreateOrUpdate", () => {
           end_date: endTimeUtc,
           time_off_type_id: "1",
           recipient_profile_id: "FAKE_HRIS_PROFILE_ID",
-          reason: "",
+          reason: "Test notes",
         },
       }),
     });
 
-    expect(prisma.outOfOfficeEntry.findFirst).toHaveBeenNthCalledWith(1, {
+    // Verify OOO entry lookup
+    expect(prismaMock.outOfOfficeEntry.findFirst).toHaveBeenCalledWith({
       select: {
         toUserId: true,
         userId: true,
@@ -161,5 +180,47 @@ describe("outOfOfficeCreateOrUpdate", () => {
         toUserId: 4,
       },
     });
+  });
+
+  it("should throw error when Deel credentials are not found", async () => {
+    prismaMock.credential.findFirst.mockResolvedValueOnce(null);
+
+    const input = {
+      dateRange: {
+        startDate: new Date("2024-11-23T23:00:00.000Z"),
+        endDate: new Date("2024-11-23T23:00:00.000Z"),
+      },
+      offset: 60,
+      reasonId: 1,
+      notes: "",
+      toTeamUserId: null,
+    };
+
+    await expect(outOfOfficeCreateOrUpdate({ ctx: { user: mockUser }, input })).rejects.toThrow(
+      "no_deel_credentials"
+    );
+  });
+
+  it("should throw error when Deel API call fails", async () => {
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      json: () => Promise.resolve({ status: 400 }),
+      status: 400,
+    });
+
+    const input = {
+      dateRange: {
+        startDate: new Date("2024-11-23T23:00:00.000Z"),
+        endDate: new Date("2024-11-23T23:00:00.000Z"),
+      },
+      offset: 60,
+      reasonId: 1,
+      notes: "",
+      toTeamUserId: null,
+    };
+
+    await expect(outOfOfficeCreateOrUpdate({ ctx: { user: mockUser }, input })).rejects.toThrow(
+      "deel_ooo_entry_creation_failed"
+    );
   });
 });
