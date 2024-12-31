@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Unable to create user credential for Deel");
     }
   } catch (error: unknown) {
-    if (error instanceof Error || error instanceof HttpError) {
+    if (error instanceof Error) {
       return res.status(500).json({ message: error.message });
     }
     return res.status(500);
