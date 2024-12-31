@@ -11,15 +11,20 @@ const prismaMock = {
     findUnique: vi.fn().mockResolvedValue(undefined),
     upsert: vi.fn().mockResolvedValue(undefined),
   },
+  credential: {
+    findFirst: vi.fn().mockResolvedValue(undefined),
+  },
 };
 vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
 vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
 vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
+vi.spyOn(prisma.credential, "findFirst").mockImplementation(prismaMock.credential.findFirst);
 
 afterEach(() => {
   prismaMock.outOfOfficeEntry.findFirst.mockClear();
   prismaMock.outOfOfficeEntry.findUnique.mockClear();
   prismaMock.outOfOfficeEntry.upsert.mockClear();
+  prismaMock.credential.findFirst.mockClear();
 });
 
 const mockUser = {
