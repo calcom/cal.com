@@ -1,4 +1,5 @@
 import type { DestinationCalendar } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import type { z } from "zod";
 
@@ -9,11 +10,18 @@ import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handleAppsStatus } from "@calcom/features/bookings/lib/handleNewBooking/handleAppsStatus";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import logger from "@calcom/lib/logger";
+import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import prisma from "@calcom/prisma";
 import type { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
-import type { CalendarEvent } from "@calcom/types/Calendar";
-import type { AdditionalInformation } from "@calcom/types/Calendar";
+import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import type { CalendarEvent, AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
 class BookingListener {
   static async create({
@@ -23,20 +31,34 @@ class BookingListener {
     organizerUser,
     eventType,
     tOrganizer,
+    booking,
   }: {
     evt: CalendarEvent;
     allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
     eventTypeApps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
-    organizerUser: { email: string; destinationCalendar: DestinationCalendar | null; username: string };
-    eventType: { description: string };
+    organizerUser: {
+      id: number;
+      email: string;
+      destinationCalendar: DestinationCalendar | null;
+      username: string;
+    };
+    eventType: {
+      id: number;
+      description: string;
+      teamId?: number | null;
+      parentId?: number | null;
+      parent?: { id: number; teamId: number | null };
+      metadata: Prisma.JsonValue | null;
+    };
     tOrganizer: TFunction;
+    booking: { id: number; appsStatus?: AppsStatus[]; iCalUID: string; metadata: Prisma.JsonValue | null };
   }) {
     const log = logger.getSubLogger({ prefix: ["[BookingListener.create]"] });
 
     // Handle apps & creating booking references
     const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
 
-    const eventManager = new EventManager({ ...organizerUser, credentials: allCredentials }, eventTypeApps);
+    const eventManager = new EventManager({ ...organizerUser, credentials }, eventTypeApps);
 
     const { results, referencesToCreate } = await eventManager.create(evt);
 
@@ -50,7 +72,7 @@ class BookingListener {
     // to the default description when we are sending the emails.
     // evt.description = eventType.description;
 
-    const videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+    let videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
@@ -119,13 +141,10 @@ class BookingListener {
         additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
         additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
         additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
-        videoCallUrl =
-          additionalInformation.hangoutLink ||
-          organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
-          videoCallUrl;
+        evt.appsStatus = handleAppsStatus(results, booking);
+        videoCallUrl = additionalInformation.hangoutLink || evt.location || videoCallUrl;
 
-        if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
+        if (evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {
@@ -137,14 +156,26 @@ class BookingListener {
           });
         }
       }
-      if (noEmail !== true) {
+
+      const bookingMetadata = bookingMetadataSchema.parse(booking?.metadata || {});
+      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
+      const workflows = await getAllWorkflowsFromEventType(
+        {
+          ...eventType,
+          metadata: eventType.metadata,
+        },
+        organizerUser.id
+      );
+
+      if (bookingMetadata?.noEmail !== true) {
         let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
         isHostConfirmationEmailsDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
         isAttendeeConfirmationEmailDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
 
         if (isHostConfirmationEmailsDisabled) {
           isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
