@@ -12,11 +12,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { teamId } = req.query;
 
-  await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
-  const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
-
-  const appType = config.type;
   try {
+    await throwIfNotHaveAdminAccessToTeam({ teamId: Number(teamId) ?? null, userId: req.session.user.id });
+    const installForObject = teamId ? { teamId: Number(teamId) } : { userId: req.session.user.id };
+
+    const appType = config.type;
+
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
         type: appType,
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error("Unable to create user credential for Deel");
     }
   } catch (error: unknown) {
-    if (error instanceof Error) {
+    if (error instanceof Error || error instanceof HttpError) {
       return res.status(500).json({ message: error.message });
     }
     return res.status(500);
