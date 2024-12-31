@@ -827,7 +827,8 @@ export default function Success(props: PageProps) {
                                     )}`
                                   : ""
                               }`}
-                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
+                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2"
+                              target="_blank">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"
