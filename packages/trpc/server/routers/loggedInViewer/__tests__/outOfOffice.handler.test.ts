@@ -94,8 +94,8 @@ describe("outOfOfficeCreateOrUpdate", () => {
     const endTimeUtc = "2024-11-24T23:59:59.999Z";
 
     // Mock Deel API response
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      json: jest.fn().mockResolvedValue({ status: 201 }),
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      json: vi.fn().mockResolvedValue({ status: 201 }),
       status: 201,
     });
 
