@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Име на собственик за промяна",
   "no_filter_set": "Няма зададен филтър",
   "booking_dry_run_successful": "Тестовото резервиране е успешно",
+  "booking_dry_run_successful_description": "Тестовото изпълнение завърши успешно.",
   "dont_have_access_this_page": "Нямате достъп до тази страница",
   "you_need_admin_or_owner_privileges_to_access": "За да видите или взаимодействате с тази страница, трябва да имате администраторски права или да сте собственик",
   "field_type": "Тип на полето",
@@ -2891,5 +2892,12 @@
   "reassigned": "Преразпределен",
   "rerouted": "Пренасочен",
   "salesforce_assigned": "Възложен в Salesforce",
+  "router_position": "Позиция на рутера",
+  "show_matching_hosts": "Покажи съвпадащите хостове",
+  "no_active_queues": "Няма активни опашки за този вход",
+  "weight": "Тегло",
+  "calibration": "Калибриране",
+  "shortfall": "Недостиг",
+  "routing_form": "Форма за маршрутизиране",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

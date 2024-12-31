@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Имя владельца для изменения",
   "no_filter_set": "Фильтр не установлен",
   "booking_dry_run_successful": "Тестовое бронирование выполнено успешно",
+  "booking_dry_run_successful_description": "Пробный запуск успешно завершен.",
   "dont_have_access_this_page": "У вас нет доступа к этой странице",
   "you_need_admin_or_owner_privileges_to_access": "Для просмотра или взаимодействия с этой страницей необходимы права администратора или владельца",
   "field_type": "Тип поля",
@@ -2891,5 +2892,12 @@
   "reassigned": "Переназначено",
   "rerouted": "Перенаправлено",
   "salesforce_assigned": "Назначение в Salesforce",
+  "router_position": "Позиция роутера",
+  "show_matching_hosts": "Показать подходящие хосты",
+  "no_active_queues": "Нет активных очередей для этого входа",
+  "weight": "Вес",
+  "calibration": "Калибровка",
+  "shortfall": "Дефицит",
+  "routing_form": "Форма маршрутизации",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
