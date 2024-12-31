@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
@@ -739,6 +740,7 @@ export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
 
 export async function getAllWorkflowsFromEventType(
   eventType: {
+    id: number;
     workflows?: {
       workflow: WorkflowType;
     }[];
@@ -754,7 +756,18 @@ export async function getAllWorkflowsFromEventType(
 ) {
   if (!eventType) return [];
 
-  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
+  const eventTypeWorkflows = eventType?.workflows
+    ? eventType.workflows.map((workflowRel) => workflowRel.workflow)
+    : await prisma.workflow.findMany({
+        where: {
+          activeOn: {
+            some: {
+              eventTypeId: eventType.id,
+            },
+          },
+        },
+        select: workflowSelect,
+      });
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
