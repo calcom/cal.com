@@ -192,12 +192,15 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
+      evt.location || "",
+      bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
       attendeeName,
       name
     );
   } else if (template === WorkflowTemplates.RATING) {
     emailContent = emailRatingTemplate({
       isEditingMode: true,
+      locale: evt.organizer.language.locale,
       action,
       timeFormat: evt.organizer.timeFormat,
       startTime,
