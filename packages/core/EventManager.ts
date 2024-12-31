@@ -10,6 +10,7 @@ import { appKeysSchema as calVideoKeysSchema } from "@calcom/app-store/dailyvide
 import { getLocationFromApp, MeetLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import CRMScheduler from "@calcom/core/crmManager/tasker/crmScheduler";
+import { FeaturesRepository } from "@calcom/features/flags/features.repository";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import {
@@ -974,9 +975,14 @@ export default class EventManager {
   private async createAllCRMEvents(event: CalendarEvent) {
     const createdEvents = [];
 
+    const featureRepo = new FeaturesRepository();
+    const isTaskerEnabledForSalesforceCrm = event.team?.id
+      ? await featureRepo.checkIfTeamHasFeature(event.team.id, "salesforce-crm-tasker")
+      : false;
+
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
-      if (process.env.TASKER_ENABLE_CRM_EVENT_CREATION) {
+      if (isTaskerEnabledForSalesforceCrm) {
         if (!event.uid) {
           console.error(
             `Missing bookingId when scheduling CRM event creation on event type ${event?.eventTypeId}`
@@ -984,7 +990,7 @@ export default class EventManager {
           continue;
         }
 
-        await CRMScheduler.createEvent({ credentialId: credential.id, bookingUid: event.uid });
+        await CRMScheduler.createEvent({ bookingUid: event.uid });
         continue;
       }
 
