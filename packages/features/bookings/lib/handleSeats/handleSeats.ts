@@ -7,6 +7,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking";
 import createNewSeat from "./create/createNewSeat";
@@ -30,9 +32,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     subscriberOptions,
     eventTrigger,
     evt,
-    workflows,
     rescheduledBy,
     rescheduleReason,
+    organizerUser,
     isDryRun = false,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -108,6 +110,13 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...reqBodyMetadata,
     };
     try {
+      const workflows = await getAllWorkflowsFromEventType(
+        {
+          ...eventType,
+          metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+        },
+        organizerUser.id
+      );
       await scheduleWorkflowReminders({
         workflows,
         smsReminderNumber: smsReminderNumber || null,

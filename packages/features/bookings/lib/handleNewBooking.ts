@@ -1107,7 +1107,6 @@ async function handler(
       subscriberOptions,
       eventTrigger,
       responses,
-      workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
     });
