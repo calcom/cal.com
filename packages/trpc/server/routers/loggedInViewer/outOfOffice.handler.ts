@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
+import { deelCredentialKeysSchema } from "@calcom/app-store/deel/lib";
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
@@ -169,11 +170,19 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     },
   });
 
+  if (!deelCredentials) {
+    throw new Error("No credentials found");
+  }
+  const parsedCredentials = deelCredentialKeysSchema.safeParse(deelCredentials?.key);
+  if (!parsedCredentials.success) {
+    throw new Error("Credentials malformed");
+  }
+
   const deelOOOPayload = {
     start_date: startTimeUtc.toISOString(),
     end_date: endTimeUtc.toISOString(),
     time_off_type_id: input.reasonId.toString(),
-    recipient_profile_id: deelCredentials.key.hris_profile_id,
+    recipient_profile_id: parsedCredentials.data.hris_profile_id,
     reason: input.notes,
   };
   const url = "https://api.letsdeel.com/rest/v2/time_offs";
@@ -182,7 +191,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     headers: {
       accept: "application/json",
       "content-type": "application/json",
-      authorization: `Bearer ${deelCredentials.key.deel_api_key}`,
+      authorization: `Bearer ${parsedCredentials.data.deel_api_key}`,
     },
     body: JSON.stringify({ data: deelOOOPayload }),
   };
