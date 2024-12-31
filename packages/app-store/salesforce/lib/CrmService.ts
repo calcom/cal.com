@@ -1,5 +1,5 @@
-import type { TokenResponse, Connection, QueryResult, Field } from "@jsforce/jsforce-node";
-import jsforce from "@jsforce/jsforce-node";
+import type { TokenResponse, Connection, QueryResult, Field } from "jsforce";
+import jsforce from "jsforce";
 import { RRule } from "rrule";
 import { z } from "zod";
 

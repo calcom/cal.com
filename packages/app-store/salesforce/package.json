@@ -7,9 +7,10 @@
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
-    "@jsforce/jsforce-node": "^3.6.3"
+    "jsforce": "^1.11.0"
   },
   "devDependencies": {
-    "@calcom/types": "*"
+    "@calcom/types": "*",
+    "@types/jsforce": "^1.11.0"
   }
 }
