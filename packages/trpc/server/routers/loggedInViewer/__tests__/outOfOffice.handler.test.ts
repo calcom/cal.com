@@ -12,13 +12,20 @@ const prismaMock = {
     upsert: vi.fn().mockResolvedValue(undefined),
   },
   credential: {
-    findFirst: vi.fn().mockResolvedValue(undefined),
+    findFirst: vi.fn().mockResolvedValue({
+      key: JSON.stringify({
+        deel_api_key: "FAKE_DEEL_API_KEY",
+        hris_profile_id: "FAKE_HRIS_PROFILE_ID",
+      }),
+    }),
   },
 };
 vi.spyOn(prisma.outOfOfficeEntry, "findFirst").mockImplementation(prismaMock.outOfOfficeEntry.findFirst);
 vi.spyOn(prisma.outOfOfficeEntry, "findUnique").mockImplementation(prismaMock.outOfOfficeEntry.findUnique);
 vi.spyOn(prisma.outOfOfficeEntry, "upsert").mockImplementation(prismaMock.outOfOfficeEntry.upsert);
 vi.spyOn(prisma.credential, "findFirst").mockImplementation(prismaMock.credential.findFirst);
+
+global.fetch = vi.fn();
 
 afterEach(() => {
   prismaMock.outOfOfficeEntry.findFirst.mockClear();
@@ -86,9 +93,33 @@ describe("outOfOfficeCreateOrUpdate", () => {
     const startTimeUtc = "2024-11-24T00:00:00.000Z";
     const endTimeUtc = "2024-11-24T23:59:59.999Z";
 
+    // Mock Deel API response
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      json: jest.fn().mockResolvedValue({ status: 201 }),
+      status: 201,
+    });
+
     await outOfOfficeCreateOrUpdate({
       ctx: { user: mockUser },
       input,
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith("https://api.letsdeel.com/rest/v2/time_offs", {
+      method: "POST",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        authorization: `Bearer FAKE_DEEL_API_KEY`,
+      },
+      body: JSON.stringify({
+        data: {
+          start_date: startTimeUtc,
+          end_date: endTimeUtc,
+          time_off_type_id: "1",
+          recipient_profile_id: "FAKE_HRIS_PROFILE_ID",
+          reason: "",
+        },
+      }),
     });
 
     expect(prisma.outOfOfficeEntry.findFirst).toHaveBeenNthCalledWith(1, {
