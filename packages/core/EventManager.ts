@@ -990,7 +990,7 @@ export default class EventManager {
           continue;
         }
 
-        await CRMScheduler.createEvent({ credentialId: credential.id, event });
+        await CRMScheduler.createEvent({ bookingUid: event.uid });
         continue;
       }
 
