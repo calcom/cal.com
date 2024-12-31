@@ -1,9 +1,6 @@
 import { _generateMetadata } from "app/_utils";
-import { getTranslate } from "app/_utils";
 
-import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import CreateNewOutOfOfficeEntryButton from "@calcom/features/settings/outOfOffice/CreateNewOutOfOfficeEntryButton";
-import { OutOfOfficeEntriesList } from "@calcom/features/settings/outOfOffice/OutOfOfficeEntriesList";
+import { OutOfOfficeSettingsHeader } from "@calcom/features/settings/outOfOffice/OutOfOfficeSettingsHeader";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,16 +9,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const t = await getTranslate();
-
-  return (
-    <SettingsHeader
-      title={t("out_of_office")}
-      description={t("out_of_office_description")}
-      CTA={<CreateNewOutOfOfficeEntryButton />}>
-      <OutOfOfficeEntriesList />
-    </SettingsHeader>
-  );
+  return <OutOfOfficeSettingsHeader />;
 };
 
 export default Page;
