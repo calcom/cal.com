@@ -311,10 +311,24 @@ export const bookingConfirmPatchBodySchema = z.object({
   platformClientParams: PlatformClientParamsSchema.optional(),
 });
 
+const noEmail = z.boolean().optional();
+const appsStatus = z
+  .array(
+    z.object({
+      appName: z.string(),
+      success: z.number(),
+      failures: z.number(),
+      type: z.string(),
+      errors: z.string().array(),
+      warnings: z.string().array().optional(),
+    })
+  )
+  .optional();
+
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
-    noEmail: z.boolean().optional(),
+    noEmail,
     recurringCount: z.number().optional(),
     allRecurringDates: z
       .array(
@@ -325,18 +339,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       )
       .optional(),
     currentRecurringIndex: z.number().optional(),
-    appsStatus: z
-      .array(
-        z.object({
-          appName: z.string(),
-          success: z.number(),
-          failures: z.number(),
-          type: z.string(),
-          errors: z.string().array(),
-          warnings: z.string().array().optional(),
-        })
-      )
-      .optional(),
+    appsStatus,
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
   })
@@ -467,6 +470,8 @@ export const teamMetadataSchema = z
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
+    noEmail,
+    reqAppsStatus: appsStatus,
   })
   .and(z.record(z.string()))
   .nullable()
