@@ -14,7 +14,11 @@ async function postHandler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 403, message: "Missing Channel ID" });
   }
 
-  const selectedCalendar = await SelectedCalendarRepository.findByGoogleChannelId(
+  // There could be multiple selected calendars for the same googleChannelId for different eventTypes and same user
+  // Every such record has their googleChannel related fields set which are same
+  // So, it is enough to get the first selected calendar for this googleChannelId
+  // Further code gets all the selected calendars for this calendar's credential
+  const selectedCalendar = await SelectedCalendarRepository.findFirstByGoogleChannelId(
     req.headers["x-goog-channel-id"]
   );
 
@@ -32,6 +36,9 @@ async function postHandler(req: NextApiRequest) {
     });
   const { selectedCalendars } = credential;
   const calendar = await getCalendar(credential);
+
+  // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
+  // Necessary to do here so that it is ensure for all calendar apps
   await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
   return { message: "ok" };
 }

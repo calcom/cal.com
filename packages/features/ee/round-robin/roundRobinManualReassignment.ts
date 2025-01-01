@@ -346,7 +346,7 @@ export const roundRobinManualReassignment = async ({
   }
 
   if (hasOrganizerChanged) {
-    if (emailsEnabled) {
+    if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
       // send email with event updates to attendees
       await sendRoundRobinUpdatedEmailsAndSMS({
         calEvent: evtWithoutCancellationReason,
