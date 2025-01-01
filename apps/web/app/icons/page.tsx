@@ -3,13 +3,13 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 
 import { type IconName, IconSprites } from "@calcom/ui";
-import { lucideIconList } from "@calcom/ui/components/icon/icon-list.mjs";
 
+import { lucideIconList } from "../../../../packages/ui/components/icon/icon-list.mjs";
 import { IconGrid } from "./IconGrid";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
-  src: "../../../fonts/CalSans-SemiBold.woff2",
+  src: "../../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
   preload: true,
   display: "swap",
