@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
+import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1796,4 +1797,15 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  getUserRelevantTeamRoutingForms: authedProcedure.query(async ({ ctx }) => {
+    try {
+      const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
+        userId: ctx.user.id,
+      });
+
+      return routingForms;
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
 });

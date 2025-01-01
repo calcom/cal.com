@@ -153,6 +153,8 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/403",
+    "/500",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",
@@ -184,16 +186,16 @@ export const config = {
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
     "/workflows/:path*",
-    "/getting-started/:step/",
-    "/future/getting-started/:step/",
+    "/getting-started/:path*",
     "/apps",
     "/bookings/:status/",
-    "/future/bookings/:status/",
     "/video/:path*",
     "/teams",
     "/future/teams/",
     "/settings/:path*",
+    "/reschedule/:path*",
     "/availability/:path*",
+    "/booking/:path*",
   ],
 };
 

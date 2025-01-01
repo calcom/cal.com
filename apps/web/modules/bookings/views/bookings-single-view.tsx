@@ -48,7 +48,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -56,14 +56,13 @@ import {
   Badge,
   Button,
   EmailInput,
-  HeadSeo,
   useCalcomTheme,
   TextArea,
   showToast,
   EmptyScreen,
   Icon,
+  HeadSeo,
 } from "@calcom/ui";
-import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -231,7 +230,13 @@ export default function Success(props: PageProps) {
     t,
   };
 
-  const giphyAppData = getEventTypeAppData(eventType, "giphy");
+  const giphyAppData = getEventTypeAppData(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    "giphy"
+  );
   const giphyImage = giphyAppData?.thankYouPage;
   const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -436,7 +441,9 @@ export default function Success(props: PageProps) {
         </div>
       )}
       <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
-      <BookingPageTagManager eventType={eventType} />
+      <BookingPageTagManager
+        eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
+      />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
@@ -820,7 +827,8 @@ export default function Success(props: PageProps) {
                                     )}`
                                   : ""
                               }`}
-                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
+                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2"
+                              target="_blank">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"
@@ -1116,7 +1124,6 @@ const DisplayLocation = ({
   );
 
 Success.isBookingPage = true;
-Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];

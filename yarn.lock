@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.72"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.78"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3792,6 +3792,15 @@ __metadata:
 "@calcom/campsite@workspace:packages/app-store/campsite":
   version: 0.0.0-use.local
   resolution: "@calcom/campsite@workspace:packages/app-store/campsite"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/chatbase@workspace:packages/app-store/chatbase":
+  version: 0.0.0-use.local
+  resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -4493,14 +4502,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.72":
-  version: 0.0.72
-  resolution: "@calcom/platform-libraries@npm:0.0.72"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.78":
+  version: 0.0.78
+  resolution: "@calcom/platform-libraries@npm:0.0.78"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 62b73b413b341a2d36f43279a5268a06af9bbd8ee2ed6279406c9f8d3d214d52bc35aa02dd8b64a13fad863164bcfc5607cff1834c0a9af984abd40e87f80d47
+  checksum: b1d8b10aee37cd376f01086c1ef8b7fa82678e4136c4e96949934987ca4c8e4ba77704d8f6d3f29e4b5d473c2b3d2d57d70b9a7ff9509e70fab9e323a6ee2bb9
   languageName: node
   linkType: hard
 
