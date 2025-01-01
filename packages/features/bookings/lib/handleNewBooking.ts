@@ -70,6 +70,10 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
+} from "@calcom/prisma/zod-utils";
 import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
@@ -423,7 +427,10 @@ async function handler(
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const paymentAppData = getPaymentAppData(eventType);
+  const paymentAppData = getPaymentAppData({
+    ...eventType,
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+  });
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
@@ -1115,7 +1122,13 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
+  const workflows = await getAllWorkflowsFromEventType(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    organizerUser.id
+  );
 
   if (isTeamEventType) {
     evt.team = {
@@ -1160,6 +1173,7 @@ async function handler(
       responses,
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
+      isDryRun,
     });
 
     if (newBooking) {
@@ -1339,8 +1353,9 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
   const eventManager = !isDryRun
-    ? new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps)
+    ? new EventManager({ ...organizerUser, credentials }, apps)
     : buildDryRunEventManager();
 
   let videoCallUrl;
@@ -1828,15 +1843,16 @@ async function handler(
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
-    const payment = await handlePayment(
+    const payment = await handlePayment({
       evt,
-      eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
-      fullName,
+      bookerName: fullName,
       bookerEmail,
-      bookerPhoneNumber
-    );
+      bookerPhoneNumber,
+      isDryRun,
+    });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
@@ -1852,6 +1868,7 @@ async function handler(
         ...webhookData,
         paymentId: payment?.id,
       },
+      isDryRun,
     });
 
     req.statusCode = 201;
@@ -1894,6 +1911,7 @@ async function handler(
       //delete all scheduled triggers for meeting ended and meeting started of booking
       deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
         booking: originalRescheduledBooking,
+        isDryRun,
       });
     }
 
@@ -1905,6 +1923,7 @@ async function handler(
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+            isDryRun,
           })
         );
       }
@@ -1916,6 +1935,7 @@ async function handler(
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+            isDryRun,
           })
         );
       }
@@ -1929,13 +1949,23 @@ async function handler(
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await monitorCallbackAsync(handleWebhookTrigger, { subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    await monitorCallbackAsync(handleWebhookTrigger, { subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   }
 
   try {
@@ -1981,14 +2011,15 @@ async function handler(
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
-    await scheduleMandatoryReminder(
-      evtWithMetadata,
+    await scheduleMandatoryReminder({
+      evt: evtWithMetadata,
       workflows,
-      !isConfirmedByDefault,
-      !!eventType.owner?.hideBranding,
-      evt.attendeeSeatId,
-      noEmail && Boolean(platformClientId)
-    );
+      requiresConfirmation: !isConfirmedByDefault,
+      hideBranding: !!eventType.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
+      isPlatformNoEmail: noEmail && Boolean(platformClientId),
+      isDryRun,
+    });
   }
 
   try {
@@ -2001,6 +2032,7 @@ async function handler(
       isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
+      isDryRun,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -2015,6 +2047,7 @@ async function handler(
         eventTypeId,
         teamId,
         orgId,
+        isDryRun,
       });
     }
   } catch (error) {
