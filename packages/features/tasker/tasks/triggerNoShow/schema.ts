@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { TIME_UNIT } from "@calcom/features/ee/workflows/lib/constants";
+import {
+  TIME_UNIT,
+  WORKFLOW_ACTIONS,
+  WORKFLOW_TEMPLATES,
+  WORKFLOW_TRIGGER_EVENTS,
+} from "@calcom/ee/workflows/lib/constants";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 const commonSchema = z.object({
@@ -23,11 +28,27 @@ export const ZWebhook = z.object({
 });
 
 export const ZWorkflow = z.object({
-  id: z.string(),
-  trigger: z.enum([
-    WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-    WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
-  ]),
+  id: z.number(),
+  name: z.string(),
+  trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+  time: z.number().nullable(),
+  timeUnit: z.enum(TIME_UNIT).nullable(),
+  userId: z.number().nullable(),
+  teamId: z.number().nullable(),
+  steps: z
+    .object({
+      id: z.number(),
+      action: z.enum(WORKFLOW_ACTIONS),
+      sendTo: z.string().nullable(),
+      template: z.enum(WORKFLOW_TEMPLATES),
+      reminderBody: z.string().nullable(),
+      emailSubject: z.string().nullable(),
+      numberRequired: z.boolean().nullable(),
+      sender: z.string().nullable(),
+      includeCalendarEvent: z.boolean(),
+      numberVerificationPending: z.boolean(),
+    })
+    .array(),
 });
 
 export type TWorkflow = z.infer<typeof ZWorkflow>;
@@ -62,6 +83,18 @@ export type TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSch
 
 export const ZTriggerHostNoShowWorkflowPayloadSchema = commonSchema.extend({
   workflow: ZWorkflow,
+  smsReminderNumber: z.string().nullable(),
+  emailAttendeeSendToOverride: z.string().nullable(),
+  hideBranding: z.boolean().optional(),
+  seatReferenceUid: z.string().nullish(),
+  calendarEvent: z
+    .object({
+      type: z.string(),
+      title: z.string(),
+      startTime: z.string(),
+      endTime: z.string(),
+    })
+    .passthrough(),
 });
 
 export const ZTriggerHostNoShowWebhookPayloadSchema = commonSchema.extend({

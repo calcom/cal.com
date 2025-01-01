@@ -1,5 +1,6 @@
+import { processWorkflowStep } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Booking, Host } from "./common";
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
@@ -37,8 +38,7 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
   const result = await prepareNoShowTrigger(payload);
   if (!result) return;
 
-  const { booking, webhook, workflow, hostsThatDidntJoinTheCall, originalRescheduledBooking, participants } =
-    result;
+  const { booking, webhook, hostsThatDidntJoinTheCall, originalRescheduledBooking, participants } = result;
 
   if (webhook) {
     const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
@@ -55,9 +55,35 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
       );
     });
     await Promise.all(hostsNoShowPromises);
-  } else if (workflow) {
-    // TODO: Implement workflow
   }
 
   await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
 }
+
+export const triggerHostNoShowWorkflow = async (payload: string): Promise<void> => {
+  const result = await prepareNoShowTrigger(payload);
+  if (!result) return;
+
+  const { workflow } = result;
+
+  if (workflow) {
+    if (
+      workflow.steps.length === 0 ||
+      workflow.trigger !== WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+    )
+      return;
+
+    for (const step of workflow.steps) {
+      if (!result?.calendarEvent) {
+        continue;
+      }
+      await processWorkflowStep(workflow, step, {
+        calendarEvent: result?.calendarEvent,
+        emailAttendeeSendToOverride: result?.emailAttendeeSendToOverride,
+        smsReminderNumber: result?.smsReminderNumber ?? null,
+        hideBranding: result?.hideBranding,
+        seatReferenceUid: result?.seatReferenceUid,
+      });
+    }
+  }
+};

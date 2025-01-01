@@ -1985,6 +1985,12 @@ async function handler(
         orgId,
         workflows,
         isDryRun,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: evtWithMetadata,
+        isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
+        isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
+        hideBranding: !!eventType.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
       });
     }
   } catch (error) {

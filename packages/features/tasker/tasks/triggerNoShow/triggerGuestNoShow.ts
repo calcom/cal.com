@@ -1,5 +1,6 @@
+import { processWorkflowStep } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
 import type { Host } from "./common";
@@ -37,7 +38,6 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
     didGuestJoinTheCall,
     originalRescheduledBooking,
     participants,
-    workflow,
   } = result;
 
   if (webhook) {
@@ -55,7 +55,33 @@ export async function triggerGuestNoShow(payload: string): Promise<void> {
 
       await markAllGuestNoshowInBooking({ bookingId: booking.id, hostsThatJoinedTheCall });
     }
-  } else if (workflow) {
-    // TODO: Implement workflow
   }
 }
+
+export const triggerGuestNoShowWorkflow = async (payload: string): Promise<void> => {
+  const result = await prepareNoShowTrigger(payload);
+  if (!result) return;
+
+  const { workflow } = result;
+
+  if (workflow) {
+    if (
+      workflow.steps.length === 0 ||
+      workflow.trigger !== WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    )
+      return;
+
+    for (const step of workflow.steps) {
+      if (!result?.calendarEvent) {
+        continue;
+      }
+      await processWorkflowStep(workflow, step, {
+        calendarEvent: result?.calendarEvent,
+        emailAttendeeSendToOverride: result?.emailAttendeeSendToOverride,
+        smsReminderNumber: result?.smsReminderNumber ?? null,
+        hideBranding: result?.hideBranding,
+        seatReferenceUid: result?.seatReferenceUid,
+      });
+    }
+  }
+};

@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import type { ExtendedCalendarEvent } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -152,6 +153,11 @@ export const prepareNoShowTrigger = async (
   didGuestJoinTheCall: boolean;
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
+  smsReminderNumber?: string | null;
+  emailAttendeeSendToOverride?: string;
+  hideBranding?: boolean;
+  seatReferenceUid?: string;
+  calendarEvent?: ExtendedCalendarEvent;
 } | void> => {
   const { bookingId, ...rest } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 

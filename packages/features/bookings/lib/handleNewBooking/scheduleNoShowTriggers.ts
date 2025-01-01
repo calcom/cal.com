@@ -1,10 +1,11 @@
 import dayjs from "@calcom/dayjs";
+import type { ProcessWorkflowStepParams } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-type ScheduleNoShowTriggersArgs = {
+interface ScheduleNoShowTriggersArgs extends ProcessWorkflowStepParams {
   booking: {
     startTime: Date;
     id: number;
@@ -17,7 +18,9 @@ type ScheduleNoShowTriggersArgs = {
   oAuthClientId?: string | null;
   workflows: Workflow[];
   isDryRun?: boolean;
-};
+  isNotConfirmed?: boolean;
+  isFirstRecurringEvent?: boolean;
+}
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   const {
@@ -30,9 +33,15 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     oAuthClientId,
     workflows,
     isDryRun = false,
+    isNotConfirmed = false,
+    calendarEvent,
+    emailAttendeeSendToOverride = "",
+    smsReminderNumber,
+    hideBranding,
+    seatReferenceUid,
   } = args;
 
-  if (isDryRun) return;
+  if (isDryRun || isNotConfirmed) return;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
@@ -111,12 +120,17 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
           .toDate();
 
         return tasker.create(
-          "triggerGuestNoShowWebhook",
+          "triggerHostNoShowWorkflow",
           {
             triggerEvent: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
             // Prevents null values from being serialized
             workflow: { ...workflow, time: workflow.time, timeUnit: workflow.timeUnit },
+            calendarEvent,
+            emailAttendeeSendToOverride,
+            smsReminderNumber,
+            hideBranding,
+            seatReferenceUid,
           },
           { scheduledAt }
         );
@@ -138,12 +152,17 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
           .toDate();
 
         return tasker.create(
-          "triggerGuestNoShowWebhook",
+          "triggerGuestNoShowWorkflow",
           {
             triggerEvent: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
             bookingId: booking.id,
             // Prevents null values from being serialized
             workflow: { ...workflow, time: workflow.time, timeUnit: workflow.timeUnit },
+            calendarEvent,
+            emailAttendeeSendToOverride,
+            smsReminderNumber,
+            hideBranding,
+            seatReferenceUid,
           },
           { scheduledAt }
         );

@@ -11,6 +11,12 @@ type TaskPayloads = {
   triggerGuestNoShowWebhook: z.infer<
     typeof import("./tasks/triggerNoShow/schema").ZSendNoShowWebhookPayloadSchema
   >;
+  triggerHostNoShowWorkflow: z.infer<
+    typeof import("./tasks/triggerNoShow/schema").ZSendNoShowWebhookPayloadSchema
+  >;
+  triggerGuestNoShowWorkflow: z.infer<
+    typeof import("./tasks/triggerNoShow/schema").ZSendNoShowWebhookPayloadSchema
+  >;
   triggerFormSubmittedNoEventWebhook: z.infer<
     typeof import("./tasks/triggerFormSubmittedNoEvent/triggerFormSubmittedNoEventWebhook").ZTriggerFormSubmittedNoEventWebhookPayloadSchema
   >;
