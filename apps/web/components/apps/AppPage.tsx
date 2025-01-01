@@ -135,7 +135,11 @@ export const AppPage = ({
   const [existingCredentials, setExistingCredentials] = useState<
     NonNullable<typeof appDbQuery.data>["credentials"]
   >([]);
-  const [appInstalled, setAppInstalled] = useState(false);
+
+  /**
+   * Marks whether the app is installed for all possible teams and the user.
+   */
+  const [appInstalledForAllTargets, setAppInstalledForAllTargets] = useState(false);
 
   const appDbQuery = trpc.viewer.appCredentialsByType.useQuery({ appType: type });
 
@@ -146,11 +150,11 @@ export const AppPage = ({
       const credentialsCount = data?.credentials.length || 0;
       setExistingCredentials(data?.credentials || []);
 
-      const appInstalled =
+      const appInstalledForAllTargets =
         enabledOnTeams && data?.userAdminTeams
-          ? data?.userAdminTeams.length < credentialsCount
+          ? credentialsCount >= data?.userAdminTeams.length
           : credentialsCount > 0;
-      setAppInstalled(appInstalled);
+      setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
     [appDbQuery.data]
   );
@@ -188,7 +192,7 @@ export const AppPage = ({
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
               </Button>
-              {!isGlobal && !appInstalled && (
+              {!isGlobal && !appInstalledForAllTargets && (
                 <InstallAppButton
                   type={type}
                   disableInstall={disableInstall}
@@ -209,7 +213,7 @@ export const AppPage = ({
               )}
             </div>
           ) : (
-            !appInstalled && (
+            !appInstalledForAllTargets && (
               <InstallAppButton
                 type={type}
                 disableInstall={disableInstall}
