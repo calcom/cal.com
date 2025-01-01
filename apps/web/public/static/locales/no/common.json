@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Eiernavn som skal endres",
   "no_filter_set": "Ingen filter er satt",
   "booking_dry_run_successful": "Test av booking var vellykket",
+  "booking_dry_run_successful_description": "Testkjøringen ble fullført vellykket.",
   "dont_have_access_this_page": "Du har ikke tilgang til denne siden",
   "you_need_admin_or_owner_privileges_to_access": "For å se eller bruke denne siden, må du ha administrator- eller eierrettigheter",
   "field_type": "Felttype",

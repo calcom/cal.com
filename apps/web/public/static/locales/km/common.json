@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "ឈ្មោះម្ចាស់ដែលត្រូវផ្លាស់ប្តូរ",
   "no_filter_set": "មិនមានការកំណត់តម្រង",
   "booking_dry_run_successful": "ការសាកល្បងការកក់បានជោគជ័យ",
+  "booking_dry_run_successful_description": "ការសាកល្បងត្រូវបានបញ្ចប់ដោយជោគជ័យ។",
   "dont_have_access_this_page": "អ្នកមិនមានសិទ្ធិចូលប្រើទំព័រនេះទេ",
   "you_need_admin_or_owner_privileges_to_access": "ដើម្បីមើល ឬប្រើប្រាស់ទំព័រនេះ អ្នកត្រូវតែមានសិទ្ធិជាអ្នកគ្រប់គ្រង ឬម្ចាស់",
   "field_type": "ប្រភេទវាល",

@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Nom du propriétaire à modifier",
   "no_filter_set": "Aucun filtre défini",
   "booking_dry_run_successful": "Test de réservation réussi",
+  "booking_dry_run_successful_description": "Le test à blanc a été effectué avec succès.",
   "dont_have_access_this_page": "Vous n'avez pas accès à cette page",
   "you_need_admin_or_owner_privileges_to_access": "Pour voir ou interagir avec cette page, vous devez avoir des privilèges d'administrateur ou de propriétaire",
   "field_type": "Type de champ",

@@ -2216,8 +2216,8 @@
   "org_no_teams_yet": "This organization has no teams yet",
   "org_no_teams_yet_description": "If you are an administrator, be sure to create teams to be shown here.",
   "set_up": "Set up",
-  "my_profile": "My Profile",
-  "my_settings": "My Settings",
+  "my_profile": "My profile",
+  "my_settings": "My settings",
   "crm": "CRM",
   "messaging": "Messaging",
   "sender_id_info": "Name or number shown as the sender of an SMS (some countries do not allow alphanumeric sender IDs)",
@@ -2815,6 +2815,7 @@
   "salesforce_owner_name_to_change": "Owner name to change",
   "no_filter_set": "No filter set",
   "booking_dry_run_successful": "Booking dry run successful",
+  "booking_dry_run_successful_description": "The dry run was completed successfully.",
   "dont_have_access_this_page": "You don't have access to this page",
   "you_need_admin_or_owner_privileges_to_access": "In order to view or interact with this page, you must have admin or owner privileges",
   "field_type": "Field type",
@@ -2902,5 +2903,8 @@
   "calibration": "Calibration",
   "shortfall": "Shortfall",
   "routing_form": "Routing Form",
+  "something_unexpected_occurred": "Something unexpected occurred",
+  "500_error_message": "It's not you, it's us.",
+  "dry_run_mode_active": "You are doing a test booking.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

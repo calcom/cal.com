@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "변경할 소유자 이름",
   "no_filter_set": "설정된 필터 없음",
   "booking_dry_run_successful": "예약 테스트 실행 성공",
+  "booking_dry_run_successful_description": "테스트 실행이 성공적으로 완료되었습니다.",
   "dont_have_access_this_page": "이 페이지에 접근할 수 없습니다",
   "you_need_admin_or_owner_privileges_to_access": "이 페이지를 보거나 상호작용하려면 관리자 또는 소유자 권한이 필요합니다",
   "field_type": "필드 유형",

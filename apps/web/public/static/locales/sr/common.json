@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Ime vlasnika koje treba promeniti",
   "no_filter_set": "Nije postavljen filter",
   "booking_dry_run_successful": "Test rezervacije uspešno završen",
+  "booking_dry_run_successful_description": "Test je uspešno završen.",
   "dont_have_access_this_page": "Nemate pristup ovoj stranici",
   "you_need_admin_or_owner_privileges_to_access": "Da biste pregledali ili koristili ovu stranicu, morate imati administratorske ili vlasničke privilegije",
   "field_type": "Tip polja",

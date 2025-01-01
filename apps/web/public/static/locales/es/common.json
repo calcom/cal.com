@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Nombre del propietario a cambiar",
   "no_filter_set": "Ningún filtro establecido",
   "booking_dry_run_successful": "Prueba de reserva exitosa",
+  "booking_dry_run_successful_description": "La prueba de simulación se completó con éxito.",
   "dont_have_access_this_page": "No tienes acceso a esta página",
   "you_need_admin_or_owner_privileges_to_access": "Para ver o interactuar con esta página, debes tener privilegios de administrador o propietario",
   "field_type": "Tipo de campo",

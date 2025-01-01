@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Muudetava omaniku nimi",
   "no_filter_set": "Filter määramata",
   "booking_dry_run_successful": "Broneeringu proovikäivitus õnnestus",
+  "booking_dry_run_successful_description": "Proovijooks lõppes edukalt.",
   "dont_have_access_this_page": "Teil ei ole sellele lehele juurdepääsu",
   "you_need_admin_or_owner_privileges_to_access": "Selle lehe vaatamiseks või sellega suhtlemiseks peate omama administraatori või omaniku õigusi",
   "field_type": "Välja tüüp",

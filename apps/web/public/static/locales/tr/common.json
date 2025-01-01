@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Değiştirilecek sahip adı",
   "no_filter_set": "Filtre ayarlanmadı",
   "booking_dry_run_successful": "Rezervasyon test çalıştırması başarılı",
+  "booking_dry_run_successful_description": "Test çalıştırması başarıyla tamamlandı.",
   "dont_have_access_this_page": "Bu sayfaya erişiminiz yok",
   "you_need_admin_or_owner_privileges_to_access": "Bu sayfayı görüntülemek veya etkileşimde bulunmak için yönetici veya sahip ayrıcalıklarına sahip olmalısınız",
   "field_type": "Alan türü",
