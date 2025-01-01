@@ -143,6 +143,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
+    useEventLevelSelectedCalendars: false,
     ...eventType,
   };
 };

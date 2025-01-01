@@ -114,10 +114,8 @@ describe("filterHostByLeadThreshold", () => {
       where: {
         OR: [
           {
-            user: {
-              id: {
-                in: [2],
-              },
+            userId: {
+              in: [2],
             },
             OR: [
               {
