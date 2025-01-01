@@ -2899,5 +2899,7 @@
   "calibration": "Hiệu chuẩn",
   "shortfall": "Thiếu hụt",
   "routing_form": "Biểu mẫu định tuyến",
+  "something_unexpected_occurred": "Đã xảy ra lỗi không mong muốn",
+  "500_error_message": "Không phải lỗi của bạn, mà là của chúng tôi.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

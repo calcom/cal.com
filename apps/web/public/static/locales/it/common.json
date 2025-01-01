@@ -2899,5 +2899,7 @@
   "calibration": "Calibrazione",
   "shortfall": "Deficit",
   "routing_form": "Modulo di instradamento",
+  "something_unexpected_occurred": "Si è verificato un errore imprevisto",
+  "500_error_message": "Non è colpa tua, è colpa nostra.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

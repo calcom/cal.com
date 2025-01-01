@@ -2899,5 +2899,7 @@
   "calibration": "Kalibrasiya",
   "shortfall": "Çatışmazlıq",
   "routing_form": "Marşrutlama forması",
+  "something_unexpected_occurred": "Gözlənilməz bir xəta baş verdi",
+  "500_error_message": "Problem sizdə deyil, bizdədir.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

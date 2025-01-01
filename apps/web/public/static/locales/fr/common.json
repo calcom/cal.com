@@ -2899,5 +2899,7 @@
   "calibration": "Calibrage",
   "shortfall": "Déficit",
   "routing_form": "Formulaire de routage",
+  "something_unexpected_occurred": "Une erreur inattendue s'est produite",
+  "500_error_message": "Ce n'est pas vous, c'est nous.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2899,5 +2899,7 @@
   "calibration": "כיול",
   "shortfall": "חוסר",
   "routing_form": "טופס ניתוב",
+  "something_unexpected_occurred": "אירעה שגיאה בלתי צפויה",
+  "500_error_message": "זו לא את/ה, זה אנחנו",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

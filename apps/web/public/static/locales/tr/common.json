@@ -2899,5 +2899,7 @@
   "calibration": "Kalibrasyon",
   "shortfall": "Açık",
   "routing_form": "Yönlendirme formu",
+  "something_unexpected_occurred": "Beklenmedik bir durum oluştu",
+  "500_error_message": "Sorun sizde değil, bizde.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

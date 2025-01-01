@@ -2899,5 +2899,7 @@
   "calibration": "Calibratge",
   "shortfall": "Dèficit",
   "routing_form": "Formulari d'encaminament",
+  "something_unexpected_occurred": "S'ha produït un error inesperat",
+  "500_error_message": "No ets tu, som nosaltres.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
