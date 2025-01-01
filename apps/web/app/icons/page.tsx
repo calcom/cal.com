@@ -1,4 +1,4 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 
@@ -21,15 +21,16 @@ export const generateMetadata = async () => {
     () => ""
   );
 };
-export default function IconsPage() {
+export default async function IconsPage() {
   const icons = Array.from(lucideIconList).sort() as IconName[];
+  const t = await getTranslate();
 
   return (
     <div className={`${interFont.variable} ${calFont.variable}`}>
       <div className="bg-subtle flex h-screen">
         <IconSprites />
         <div className="bg-default m-auto min-w-full rounded-md p-10 text-right ltr:text-left">
-          <h1 className="text-emphasis font-cal text-2xl font-medium">Icons showcase</h1>
+          <h1 className="text-emphasis font-cal text-2xl font-medium">{t("icons_showcase")}</h1>
           <IconGrid title="Regular Icons" icons={icons} />
           <IconGrid
             title="Filled Icons"
