@@ -2901,5 +2901,6 @@
   "routing_form": "Formular de rutare",
   "something_unexpected_occurred": "A apărut o eroare neașteptată",
   "500_error_message": "Nu e din cauza ta, e din cauza noastră.",
+  "dry_run_mode_active": "Efectuați o rezervare de test.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
