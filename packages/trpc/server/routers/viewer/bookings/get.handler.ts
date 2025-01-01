@@ -354,24 +354,20 @@ export async function getBookings({
     }),
     prisma.booking.findMany({
       where: {
-        OR: [
-          {
-            eventType: {
-              parent: {
-                team: {
-                  members: {
-                    some: {
-                      userId: user.id,
-                      role: {
-                        in: ["ADMIN", "OWNER"],
-                      },
-                    },
+        eventType: {
+          parent: {
+            team: {
+              members: {
+                some: {
+                  userId: user.id,
+                  role: {
+                    in: ["ADMIN", "OWNER"],
                   },
                 },
               },
             },
           },
-        ],
+        },
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
