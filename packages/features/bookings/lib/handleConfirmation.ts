@@ -89,7 +89,6 @@ export async function handleConfirmation(args: {
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
-
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -339,14 +338,14 @@ export async function handleConfirmation(args: {
       const isFirstBooking = index === 0;
 
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
-        await scheduleMandatoryReminder(
-          evtOfBooking,
+        await scheduleMandatoryReminder({
+          evt: evtOfBooking,
           workflows,
-          false,
-          !!updatedBookings[index].eventType?.owner?.hideBranding,
-          evt.attendeeSeatId,
-          !emailsEnabled && Boolean(platformClientParams?.platformClientId)
-        );
+          requiresConfirmation: false,
+          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          seatReferenceUid: evt.attendeeSeatId,
+          isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
+        });
       }
 
       await scheduleWorkflowReminders({
