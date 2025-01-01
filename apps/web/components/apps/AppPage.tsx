@@ -99,7 +99,7 @@ export const AppPage = ({
    * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
    */
   const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
-  const enabledOnTeams = doesAppSupportTeamInstall({
+  const availableForTeams = doesAppSupportTeamInstall({
     appCategories: categories,
     concurrentMeetings: concurrentMeetings,
     isPaid: !!paid,
@@ -119,7 +119,7 @@ export const AppPage = ({
             step: AppOnboardingSteps.EVENT_TYPES_STEP,
           }),
       });
-    } else if (!enabledOnTeams) {
+    } else if (!availableForTeams) {
       mutation.mutate({ type });
     } else {
       router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
@@ -151,12 +151,12 @@ export const AppPage = ({
       setExistingCredentials(data?.credentials || []);
 
       const appInstalledForAllTargets =
-        enabledOnTeams && data?.userAdminTeams
+        availableForTeams && data?.userAdminTeams
           ? credentialsCount >= data?.userAdminTeams.length
           : credentialsCount > 0;
       setAppInstalledForAllTargets(appInstalledForAllTargets);
     },
-    [appDbQuery.data]
+    [appDbQuery.data, availableForTeams]
   );
 
   const dependencyData = trpc.viewer.appsRouter.queryForDependencies.useQuery(dependencies, {
@@ -182,6 +182,46 @@ export const AppPage = ({
       return <SkeletonButton className="h-10 w-24" />;
     }
 
+    const MultiInstallButtonEl = (
+      <InstallAppButton
+        type={type}
+        disableInstall={disableInstall}
+        teamsPlanRequired={teamsPlanRequired}
+        render={({ useDefaultComponent, ...props }) => {
+          if (useDefaultComponent) {
+            props = {
+              ...props,
+              onClick: () => {
+                handleAppInstall();
+              },
+              loading: isLoading,
+            };
+          }
+          return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
+        }}
+      />
+    );
+
+    const SingleInstallButtonEl = (
+      <InstallAppButton
+        type={type}
+        disableInstall={disableInstall}
+        teamsPlanRequired={teamsPlanRequired}
+        render={({ useDefaultComponent, ...props }) => {
+          if (useDefaultComponent) {
+            props = {
+              ...props,
+              onClick: () => {
+                handleAppInstall();
+              },
+              loading: isLoading,
+            };
+          }
+          return <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />;
+        }}
+      />
+    );
+
     return (
       <div className="flex items-center space-x-3">
         {isGlobal ||
@@ -192,52 +232,10 @@ export const AppPage = ({
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
               </Button>
-              {!isGlobal && !appInstalledForAllTargets && (
-                <InstallAppButton
-                  type={type}
-                  disableInstall={disableInstall}
-                  teamsPlanRequired={teamsPlanRequired}
-                  render={({ useDefaultComponent, ...props }) => {
-                    if (useDefaultComponent) {
-                      props = {
-                        ...props,
-                        onClick: () => {
-                          handleAppInstall();
-                        },
-                        loading: isLoading,
-                      };
-                    }
-                    return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
-                  }}
-                />
-              )}
+              {!isGlobal && !appInstalledForAllTargets && MultiInstallButtonEl}
             </div>
           ) : (
-            !appInstalledForAllTargets && (
-              <InstallAppButton
-                type={type}
-                disableInstall={disableInstall}
-                teamsPlanRequired={teamsPlanRequired}
-                render={({ useDefaultComponent, ...props }) => {
-                  if (useDefaultComponent) {
-                    props = {
-                      ...props,
-                      onClick: () => {
-                        handleAppInstall();
-                      },
-                      loading: isLoading,
-                    };
-                  }
-                  return (
-                    <InstallAppButtonChild
-                      credentials={appDbQuery.data?.credentials}
-                      paid={paid}
-                      {...props}
-                    />
-                  );
-                }}
-              />
-            )
+            !appInstalledForAllTargets && SingleInstallButtonEl
           ))}
 
         {existingCredentials.length > 0 && (
