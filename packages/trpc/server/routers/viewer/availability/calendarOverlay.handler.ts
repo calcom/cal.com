@@ -80,6 +80,8 @@ export const calendarOverlayHandler = async ({ ctx, input }: ListOptions) => {
     dateFrom,
     dateTo,
     composedSelectedCalendars,
+    undefined,
+    undefined,
     true
   );
 

@@ -269,7 +269,8 @@ type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: GetUserAvailabilityQuery,
-  initialData?: GetUserAvailabilityInitialData
+  initialData?: GetUserAvailabilityInitialData,
+  isOverlayUser?: boolean
 ) {
   const {
     username,
