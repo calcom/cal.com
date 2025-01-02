@@ -154,12 +154,12 @@ export const prepareNoShowTrigger = async (
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
   smsReminderNumber?: string | null;
-  emailAttendeeSendToOverride?: string;
+  emailAttendeeSendToOverride?: string | null;
   hideBranding?: boolean;
-  seatReferenceUid?: string;
+  seatReferenceUid?: string | null;
   calendarEvent?: ExtendedCalendarEvent;
 } | void> => {
-  const { bookingId, ...rest } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, calendarEvent, ...rest } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
   let originalRescheduledBooking = null;
@@ -235,6 +235,7 @@ export const prepareNoShowTrigger = async (
     didGuestJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
+    calendarEvent: calendarEvent as ExtendedCalendarEvent | undefined,
     ...rest,
   };
 };

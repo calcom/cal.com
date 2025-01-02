@@ -79,6 +79,15 @@ export const triggerNoShowPayloadSchema = z.object({
   ),
 });
 
+export const ZCalendarEvent = z
+  .object({
+    type: z.string(),
+    title: z.string(),
+    startTime: z.string(),
+    endTime: z.string(),
+  })
+  .passthrough();
+
 export type TTriggerNoShowPayloadSchema = z.infer<typeof triggerNoShowPayloadSchema>;
 
 export const ZTriggerHostNoShowWorkflowPayloadSchema = commonSchema.extend({
@@ -87,18 +96,12 @@ export const ZTriggerHostNoShowWorkflowPayloadSchema = commonSchema.extend({
   emailAttendeeSendToOverride: z.string().nullable(),
   hideBranding: z.boolean().optional(),
   seatReferenceUid: z.string().nullish(),
-  calendarEvent: z
-    .object({
-      type: z.string(),
-      title: z.string(),
-      startTime: z.string(),
-      endTime: z.string(),
-    })
-    .passthrough(),
+  calendarEvent: ZCalendarEvent,
 });
 
 export const ZTriggerHostNoShowWebhookPayloadSchema = commonSchema.extend({
   webhook: ZWebhook,
+  calendarEvent: ZCalendarEvent.nullish(),
 });
 
 export const ZSendNoShowWebhookPayloadSchema = z.union([
