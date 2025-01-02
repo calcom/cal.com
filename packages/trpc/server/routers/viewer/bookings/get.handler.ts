@@ -492,7 +492,7 @@ export async function getBookings({
         where: {
           id: {
             in: plainBookings
-              // .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+              .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
               .map((booking) => booking.id),
           },
         },
