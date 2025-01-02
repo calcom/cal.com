@@ -6,7 +6,9 @@ import type { z } from "zod";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
+import type { EventNameObjectType } from "@calcom/core/event";
 import monitorCallbackAsync from "@calcom/core/sentryWrapper";
+import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import { handleAppsStatus } from "@calcom/features/bookings/lib/handleNewBooking/handleAppsStatus";
@@ -18,7 +20,6 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent, AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
@@ -27,38 +28,47 @@ class BookingListener {
   static async create({
     evt,
     allCredentials,
-    eventTypeApps,
     organizerUser,
     eventType,
     tOrganizer,
     booking,
+    eventNameObject,
   }: {
     evt: CalendarEvent;
     allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
-    eventTypeApps: z.infer<typeof eventTypeAppMetadataOptionalSchema>;
     organizerUser: {
       id: number;
       email: string;
       destinationCalendar: DestinationCalendar | null;
-      username: string;
+      username: string | null;
     };
     eventType: {
       id: number;
-      description: string;
+      title: string;
+      description: string | null;
       teamId?: number | null;
       parentId?: number | null;
-      parent?: { id: number; teamId: number | null };
-      metadata: Prisma.JsonValue | null;
+      parent?: { id: number; teamId: number | null } | null;
+      metadata: z.infer<typeof EventTypeMetaDataSchema> | Prisma.JsonValue | null;
     };
     tOrganizer: TFunction;
-    booking: { id: number; appsStatus?: AppsStatus[]; iCalUID: string; metadata: Prisma.JsonValue | null };
+    booking: {
+      id: number;
+      appsStatus?: AppsStatus[];
+      iCalUID: string | null;
+      description: string | null;
+      customInputs: Prisma.JsonValue | null;
+      metadata: Prisma.JsonValue | null;
+    };
+    eventNameObject: EventNameObjectType;
   }) {
     const log = logger.getSubLogger({ prefix: ["[BookingListener.create]"] });
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
 
     // Handle apps & creating booking references
     const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
 
-    const eventManager = new EventManager({ ...organizerUser, credentials }, eventTypeApps);
+    const eventManager = new EventManager({ ...organizerUser, credentials }, eventTypeMetadata?.apps ?? {});
 
     const { results, referencesToCreate } = await eventManager.create(evt);
 
@@ -158,12 +168,11 @@ class BookingListener {
       }
 
       const bookingMetadata = bookingMetadataSchema.parse(booking?.metadata || {});
-      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
 
       const workflows = await getAllWorkflowsFromEventType(
         {
           ...eventType,
-          metadata: eventType.metadata,
+          metadata: eventType.metadata as Prisma.JsonValue,
         },
         organizerUser.id
       );
@@ -197,18 +206,18 @@ class BookingListener {
           {
             ...evt,
             additionalInformation,
-            additionalNotes,
-            customInputs,
+            additionalNotes: booking.description,
+            customInputs: booking.customInputs,
           },
           eventNameObject,
           isHostConfirmationEmailsDisabled,
           isAttendeeConfirmationEmailDisabled,
-          eventType.metadata
+          eventTypeMetadata
         );
       }
     }
-    // TODO - Apps
-    // TODO - Emails
+    // TODO - Apps :done:
+    // TODO - Emails :done:
     // TODO - workflows
     // TODO - webhooks
   }
