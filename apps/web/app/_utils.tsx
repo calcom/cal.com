@@ -33,7 +33,7 @@ const createI18nInstance = async (locale: string, ns: string) => {
   return _i18n;
 };
 
-const getTranslationWithCache = async (locale: string, ns: string = "common") => {
+const getTranslationWithCache = async (locale: string, ns = "common") => {
   const localeWithFallback = locale ?? "en";
   const i18n = await createI18nInstance(localeWithFallback, ns);
   return i18n.getFixedT(localeWithFallback, ns);

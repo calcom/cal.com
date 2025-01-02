@@ -24,6 +24,7 @@ let pages = (exports.pages = glob
         "global-error",
         "WithAppDirSsr",
         "WithEmbedSSR",
+        "WithEmbedSSR.test",
       ].some((prefix) => v.startsWith(prefix))
   ));
 

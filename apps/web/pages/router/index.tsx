@@ -2,7 +2,7 @@
 
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
-import { getServerSideProps } from "./getServerSideProps";
+import { getServerSideProps } from "../../server/lib/router/getServerSideProps";
 
 export default function Router({ message }: inferSSRProps<typeof getServerSideProps>) {
   return (

@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Ejernavn der skal ændres",
   "no_filter_set": "Intet filter indstillet",
   "booking_dry_run_successful": "Booking-testkørsel gennemført",
+  "booking_dry_run_successful_description": "Testkørslen blev gennemført med succes.",
   "dont_have_access_this_page": "Du har ikke adgang til denne side",
   "you_need_admin_or_owner_privileges_to_access": "For at kunne se eller interagere med denne side, skal du have administrator- eller ejerrettigheder",
   "field_type": "Felttype",
@@ -2891,5 +2892,12 @@
   "reassigned": "Omfordelt",
   "rerouted": "Omdirigeret",
   "salesforce_assigned": "Salesforce-tildeling",
+  "router_position": "Router-position",
+  "show_matching_hosts": "Vis matchende værter",
+  "no_active_queues": "Ingen aktive køer for dette input",
+  "weight": "Vægt",
+  "calibration": "Kalibrering",
+  "shortfall": "Underskud",
+  "routing_form": "Routing-formular",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
