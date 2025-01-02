@@ -41,8 +41,8 @@ export function DataTable<TData, TValue>({
   enableColumnResizing,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname();
-  const identifier = _identifier ?? pathname;
+  const pathname = usePathname() as string | null;
+  const identifier = _identifier ?? pathname ?? undefined;
 
   const { rows } = table.getRowModel();
 
@@ -78,8 +78,7 @@ export function DataTable<TData, TValue>({
     enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    // TODO: Figure out why 'identifier' somehow types to string | null
-    identifier: identifier || undefined,
+    identifier,
   });
 
   return (
