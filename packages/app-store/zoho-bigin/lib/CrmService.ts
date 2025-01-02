@@ -37,6 +37,8 @@ export default class BiginCrmService implements CRM {
   private readonly integrationName = "zoho-bigin";
   private readonly auth: { getToken: () => Promise<BiginToken> };
   private log: typeof logger;
+  private eventsSlug = "/bigin/v1/Events";
+  private contactsSlug = "/bigin/v1/Contacts";
 
   constructor(credential: CredentialPayload) {
     this.auth = this.biginAuth(credential);
@@ -132,7 +134,7 @@ export default class BiginCrmService implements CRM {
 
     const response = await axios({
       method: "post",
-      url: "https://www.zohoapis.in/bigin/v1/Contacts",
+      url: token.api_domain + this.contactsSlug,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${token.access_token}`,
@@ -161,15 +163,11 @@ export default class BiginCrmService implements CRM {
 
     const response = await axios({
       method: "get",
-      url: `https://www.zohoapis.in/bigin/v1/Contacts/search?criteria=${searchCriteria}`,
+      url: `${token.api_domain}${this.contactsSlug}/search?criteria=${searchCriteria}`,
       headers: {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
-    })
-      .then((data) => data.data)
-      .catch((e) => {
-        this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data);
-      });
+    }).then((data) => data.data);
 
     return response
       ? response.data.map((contact: BiginContact) => {
@@ -197,7 +195,7 @@ export default class BiginCrmService implements CRM {
 
     return axios({
       method: "post",
-      url: "https://www.zohoapis.in/bigin/v1/Events",
+      url: token.api_domain + this.eventsSlug,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${token.access_token}`,
@@ -255,7 +253,7 @@ export default class BiginCrmService implements CRM {
     };
 
     return axios
-      .put("https://www.zohoapis.in/bigin/v1/Events", JSON.stringify({ data: [biginEvent] }), {
+      .put(token.api_domain + this.eventsSlug, JSON.stringify({ data: [biginEvent] }), {
         headers: {
           "content-type": "application/json",
           authorization: `Zoho-oauthtoken ${token.access_token}`,
@@ -270,7 +268,7 @@ export default class BiginCrmService implements CRM {
   async deleteEvent(uid: string): Promise<void> {
     const token = await this.auth.getToken();
     return axios
-      .delete(`https://www.zohoapis.in/bigin/v1/Events?ids=${uid}`, {
+      .delete(`${token.api_domain}${this.eventsSlug}?ids=${uid}`, {
         headers: {
           "content-type": "application/json",
           authorization: `Zoho-oauthtoken ${token.access_token}`,
