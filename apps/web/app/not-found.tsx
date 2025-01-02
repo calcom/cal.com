@@ -1,5 +1,5 @@
-import { getFixedT } from "app/_utils";
-import { headers, cookies } from "next/headers";
+import { getTranslate } from "app/_utils";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 import {
@@ -46,9 +46,7 @@ function getPageInfo(pathname: string, host: string) {
 }
 
 async function NotFound() {
-  const cookiesList = cookies();
-  const locale = cookiesList.get("calNewLocale")?.value ?? "en";
-  const t = await getFixedT(locale);
+  const t = await getTranslate();
   const headersList = headers();
   const host = headersList.get("x-forwarded-host") ?? "";
   const pathname = headersList.get("x-pathname") ?? "";
