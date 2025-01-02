@@ -1,10 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -33,33 +33,19 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const profileName = event?.profile?.name ?? "";
   const profileImage = event?.profile.image;
   const title = event?.title ?? "";
-
-  const meeting = {
-    title,
-    profile: { name: profileName, image: profileImage },
-    users: [
-      ...(event?.users || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
-  };
-
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
-  );
-
-  return {
-    ...metadata,
-    robots: {
-      index: !(event?.hidden || !isSEOIndexable),
-      follow: !(event?.hidden || !isSEOIndexable),
+  const metadata = await generateEventBookingPageMetadata({
+    event: {
+      hidden: event?.hidden ?? false,
+      title,
+      users: event?.users ?? [],
     },
-  };
+    hideBranding: isBrandingHidden,
+    orgSlug: eventData?.entity.orgSlug ?? null,
+    isSEOIndexable: !!isSEOIndexable,
+    profile: { name: profileName, image: profileImage ?? "" },
+    isReschedule: !!rescheduleUid,
+  });
+  return metadata;
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 

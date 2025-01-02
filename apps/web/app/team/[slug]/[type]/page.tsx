@@ -1,10 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -26,34 +26,26 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
 
-  const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile.image;
-  const title = event?.title ?? "";
-  const meeting = {
-    title,
-    profile: { name: profileName, image: profileImage },
-    users: [
-      ...(event?.users || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
-  };
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData.entity.orgSlug ?? null)
-  );
-
-  return {
-    ...metadata,
-    robots: {
-      follow: !(event?.hidden || !isSEOIndexable),
-      index: !(event?.hidden || !isSEOIndexable),
+  return await generateEventBookingPageMetadata({
+    profile: {
+      name: event?.profile?.name ?? "",
+      image: event?.profile.image ?? "",
     },
-  };
+    event: {
+      title: event?.title ?? "",
+      hidden: event?.hidden ?? false,
+      users: [
+        ...(event?.users || []).map((user) => ({
+          name: `${user.name}`,
+          username: `${user.username}`,
+        })),
+      ],
+    },
+    hideBranding: isBrandingHidden,
+    orgSlug: eventData?.entity.orgSlug ?? null,
+    isSEOIndexable,
+    isReschedule: !!booking,
+  });
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
