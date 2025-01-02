@@ -466,6 +466,7 @@ export async function getBookings({
       .concat(bookingsQueryTeamMember)
       .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
+      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
   );
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
