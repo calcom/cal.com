@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
                       className={classNames(
                         "bg-subtle hover:bg-muted relative flex shrink-0 items-center",
                         header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "sticky top-0 z-20"
+                        meta?.sticky && "top-0 z-20 sm:sticky"
                       )}>
                       <div
                         className="flex h-full w-full items-center overflow-hidden"
@@ -250,7 +250,7 @@ function DataTableBody<TData>({
                       "flex shrink-0 items-center overflow-hidden",
                       variant === "compact" && "p-1.5",
                       meta?.sticky &&
-                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sticky"
+                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
                     )}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
