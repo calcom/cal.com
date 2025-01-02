@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
-import { useFilterValue, useDataTable } from "../../lib/hooks";
+import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
 import { ZNumberFilterValue } from "../../lib/types";
 

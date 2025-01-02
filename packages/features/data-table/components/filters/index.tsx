@@ -24,7 +24,7 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import { useDataTable } from "../../lib/hooks";
+import { useDataTable } from "../../hooks";
 import type { FilterableColumn, ExternalFilter } from "../../lib/types";
 import { FilterOptions } from "./FilterOptions";
 

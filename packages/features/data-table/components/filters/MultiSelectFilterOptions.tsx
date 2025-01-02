@@ -14,7 +14,7 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import { useDataTable, useFilterValue } from "../../lib/hooks";
+import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZMultiSelectFilterValue } from "../../lib/types";
 

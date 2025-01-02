@@ -332,7 +332,7 @@ export function RoutingFormResponsesTableContent({
     );
 
   const processedData = useMemo(() => {
-    if (isHeadersSuccess) return [];
+    if (!isHeadersSuccess) return [];
     return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
   }, [data, isHeadersSuccess]);
 

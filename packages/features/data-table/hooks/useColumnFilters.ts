@@ -1,34 +1,9 @@
-"use client";
+import { useMemo } from "react";
 
-import { useMemo, useContext } from "react";
-import type { z } from "zod";
-
-import { DataTableContext } from "./context";
-import type { ColumnFilter } from "./types";
-import { ZFilterValue } from "./types";
-import { isMultiSelectFilterValue } from "./utils";
-
-export function useDataTable() {
-  const context = useContext(DataTableContext);
-  if (!context) {
-    throw new Error("useDataTable must be used within a DataTableProvider");
-  }
-  return context;
-}
-
-export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
-  const { activeFilters } = useDataTable();
-  return useMemo(() => {
-    const value = activeFilters.find((filter) => filter.f === columnId)?.v;
-    if (schema && value) {
-      const result = schema.safeParse(value);
-      if (result.success) {
-        return result.data;
-      }
-    }
-    return undefined;
-  }, [activeFilters, columnId, schema]);
-}
+import type { ColumnFilter } from "../lib/types";
+import { ZFilterValue } from "../lib/types";
+import { isMultiSelectFilterValue } from "../lib/utils";
+import { useDataTable } from "./useDataTable";
 
 export function useColumnFilters(): ColumnFilter[] {
   const { activeFilters } = useDataTable();
