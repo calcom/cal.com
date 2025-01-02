@@ -140,7 +140,7 @@ export default class BiginCrmService implements CRM {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
       data: JSON.stringify({ data: contacts }),
-    });
+    }).then((data) => data.data);
 
     return response
       ? response.data.map((contact: BiginContact) => {
