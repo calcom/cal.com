@@ -4,8 +4,6 @@ import { generateUserProfilePageMetadata } from "app/generateBookingPageMetadata
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { UserRepository } from "@calcom/lib/server/repository/user";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -17,7 +15,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
   const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
-  const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
 
   const isOrg = !!profile?.organization;
   const allowSEOIndexing = !!(
@@ -27,7 +24,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   return await generateUserProfilePageMetadata({
     profile: {
       name: profile.name,
-      image: avatarUrl ?? "",
+      image: profile.image ?? "",
       username: profile.username ?? "",
       markdownStrippedBio: markdownStrippedBio,
     },

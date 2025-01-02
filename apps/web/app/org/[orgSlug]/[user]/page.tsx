@@ -8,7 +8,6 @@ import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
@@ -40,14 +39,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     });
   } else {
     const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
-    const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
 
     const isOrg = !!profile?.organization;
     const allowSEOIndexing =
       (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
 
     return await generateUserProfilePageMetadata({
-      profile: { name: profile.name, username: profile.username, image: avatarUrl, markdownStrippedBio },
+      profile: { name: profile.name, username: profile.username, image: profile.image, markdownStrippedBio },
       hideBranding: false,
       orgSlug: entity.orgSlug ?? null,
       isSEOIndexable: !!allowSEOIndexing,

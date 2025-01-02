@@ -33,19 +33,19 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const profileName = event?.profile?.name ?? "";
   const profileImage = event?.profile.image;
   const title = event?.title ?? "";
-
-  return await generateEventBookingPageMetadata({
+  const metadata = await generateEventBookingPageMetadata({
     event: {
       hidden: event?.hidden ?? false,
       title,
-      rescheduleUid: rescheduleUid ?? null,
       users: event?.users ?? [],
     },
     hideBranding: isBrandingHidden,
     orgSlug: eventData?.entity.orgSlug ?? null,
     isSEOIndexable: !!isSEOIndexable,
     profile: { name: profileName, image: profileImage ?? "" },
+    isReschedule: !!rescheduleUid,
   });
+  return metadata;
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 

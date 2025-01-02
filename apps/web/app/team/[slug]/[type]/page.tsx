@@ -34,7 +34,6 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     event: {
       title: event?.title ?? "",
       hidden: event?.hidden ?? false,
-      rescheduleUid: null,
       users: [
         ...(event?.users || []).map((user) => ({
           name: `${user.name}`,
@@ -45,6 +44,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     hideBranding: isBrandingHidden,
     orgSlug: eventData?.entity.orgSlug ?? null,
     isSEOIndexable,
+    isReschedule: !!booking,
   });
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);

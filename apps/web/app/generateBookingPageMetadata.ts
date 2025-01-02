@@ -36,7 +36,7 @@ type BaseMetadataArgs = {
   hideBranding: boolean;
   orgSlug: string | null;
   isSEOIndexable: boolean;
-  rescheduleUid?: string;
+  isReschedule?: boolean;
 };
 
 type TeamProfilePageArgs = BaseMetadataArgs & {
@@ -54,18 +54,17 @@ type EventBookingPageArgs = BaseMetadataArgs & {
   event: {
     title: string;
     hidden: boolean;
-    rescheduleUid: string | null;
     users: { name: string | null; username: string | null }[];
   };
 };
 
 export const generateEventBookingPageMetadata = async (props: EventBookingPageArgs) => {
-  const { profile, rescheduleUid, hideBranding, orgSlug, isSEOIndexable, event } = props;
+  const { profile, isReschedule, hideBranding, orgSlug, isSEOIndexable, event } = props;
   const fullOrigin = getOrgFullOrigin(orgSlug);
 
   const payload: MetadataPayload = {
-    title: (t) => `${rescheduleUid ? t("reschedule") : ""} ${event.title} | ${profile.name}`,
-    description: (t) => `${rescheduleUid ? t("reschedule") : ""} ${event.title}`,
+    title: (t) => `${isReschedule ? t("reschedule") : ""} ${event.title} | ${profile.name}`,
+    description: (t) => `${isReschedule ? t("reschedule") : ""} ${event.title}`,
     meeting: {
       title: event.title,
       profile: { name: profile.name, image: profile.image },
@@ -81,7 +80,13 @@ export const generateEventBookingPageMetadata = async (props: EventBookingPageAr
   };
 
   return {
-    ...generateMeetingMetadata(payload.meeting, payload.title, payload.description, hideBranding, fullOrigin),
+    ...(await generateMeetingMetadata(
+      payload.meeting,
+      payload.title,
+      payload.description,
+      hideBranding,
+      fullOrigin
+    )),
     robots: payload.robots,
   };
 };
@@ -105,7 +110,13 @@ export const generateUserProfilePageMetadata = async (props: UserProfilePageArgs
   };
 
   return {
-    ...generateMeetingMetadata(payload.meeting, payload.title, payload.description, hideBranding, fullOrigin),
+    ...(await generateMeetingMetadata(
+      payload.meeting,
+      payload.title,
+      payload.description,
+      hideBranding,
+      fullOrigin
+    )),
     robots: payload.robots,
   };
 };
@@ -128,7 +139,13 @@ export const generateTeamProfilePageMetadata = async (props: TeamProfilePageArgs
   };
 
   return {
-    ...generateMeetingMetadata(payload.meeting, payload.title, payload.description, hideBranding, fullOrigin),
+    ...(await generateMeetingMetadata(
+      payload.meeting,
+      payload.title,
+      payload.description,
+      hideBranding,
+      fullOrigin
+    )),
     robots: payload.robots,
   };
 };
