@@ -2,6 +2,8 @@ import { Prisma as PrismaClientType } from "@prisma/client";
 
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -18,6 +20,8 @@ type GetOptions = {
   };
   input: TGetInputSchema;
 };
+
+const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
@@ -471,13 +475,24 @@ export async function getBookings({
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
 
+  log.info(
+    `fetching all bookings for ${user.id}`,
+    safeStringify({
+      ids: plainBookings.map((booking) => booking.id),
+      orderBy,
+      filtersCombined,
+      take,
+      skip,
+    })
+  );
+
   const bookings = await Promise.all(
     (
       await prisma.booking.findMany({
         where: {
           id: {
             in: plainBookings
-              .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+              // .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
               .map((booking) => booking.id),
           },
         },
