@@ -37,6 +37,7 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  isDryRun?: boolean;
 }
 
 const processWorkflowStep = async (
@@ -159,7 +160,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
+    isDryRun = false,
   } = args;
+  if (isDryRun) return;
   if (isNotConfirmed || !workflows.length) return;
 
   for (const workflow of workflows) {

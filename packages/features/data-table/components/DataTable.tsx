@@ -15,7 +15,7 @@ import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
 
-export interface DataTableProps<TData, TValue> {
+export type DataTableProps<TData, TValue> = {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
@@ -27,7 +27,7 @@ export interface DataTableProps<TData, TValue> {
   children?: React.ReactNode;
   identifier?: string;
   enableColumnResizing?: boolean;
-}
+};
 
 export function DataTable<TData, TValue>({
   table,
@@ -78,7 +78,8 @@ export function DataTable<TData, TValue>({
     enabled: Boolean(enableColumnResizing),
     table,
     tableContainerRef,
-    identifier,
+    // TODO: Figure out why 'identifier' somehow types to string | null
+    identifier: identifier || undefined,
   });
 
   return (

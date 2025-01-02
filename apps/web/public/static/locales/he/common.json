@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "שם הבעלים לשינוי",
   "no_filter_set": "לא הוגדר סינון",
   "booking_dry_run_successful": "הרצת הניסיון של ההזמנה הצליחה",
+  "booking_dry_run_successful_description": "הריצה הניסיונית הושלמה בהצלחה.",
   "dont_have_access_this_page": "אין לך גישה לדף זה",
   "you_need_admin_or_owner_privileges_to_access": "כדי לצפות או לפעול בדף זה, עליך להיות בעל הרשאות מנהל או בעלים",
   "field_type": "סוג שדה",

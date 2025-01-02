@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse, localize, clickUntilDialogVisible } from "./lib/testUtils";
+import { submitAndWaitForResponse, localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -20,12 +20,18 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.getByTestId("reason_select").click();
 
@@ -71,12 +77,18 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    await page.goto(`/settings/my-account/out-of-office`);
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.getByTestId("reason_select").click();
 
@@ -152,7 +164,12 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    await page.goto(`/settings/my-account/out-of-office`);
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -211,14 +228,20 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
-    await dateButton.click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22", true);
 
@@ -254,14 +277,20 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
-    await dateButton.click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -270,8 +299,11 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
-    await dateButton.click();
+    await entriesListRespPromise;
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
+
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "11", "24");
 
@@ -286,14 +318,20 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
     await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = page.getByTestId("add_entry_ooo");
-    const dateButton = page.locator('[data-testid="date-range"]');
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
-    await dateButton.click();
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -302,8 +340,11 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
-    await dateButton.click();
+    await entriesListRespPromise;
+    await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
+
+    await page.locator('[data-testid="date-range"]').click();
 
     await selectToAndFromDates(page, "13", "22");
 
@@ -315,21 +356,31 @@ test.describe("Out of office", () => {
     const user = await users.create({ name: "userOne" });
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[data-testid="date-range"]');
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
 
     //Creates 2 OOO entries:
     //First OOO is created on Next month 1st - 3rd
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
 
     //Second OOO is created on Next month 4th - 6th
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "6");
     await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
@@ -349,14 +400,22 @@ test.describe("Out of office", () => {
 
     await owner.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[data-testid="date-range"]');
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", "member-1");
     await expect(
@@ -366,8 +425,10 @@ test.describe("Out of office", () => {
     //As member1, OOO is created on Next month 4th - 5th, forwarding to 'owner'
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
     await dateButton.click();
     await selectDateAndCreateOOO(page, "4", "5", "owner");
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
@@ -388,14 +449,22 @@ test.describe("Out of office", () => {
 
     await owner.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
-    const addOOOButton = await page.getByTestId("add_entry_ooo");
-    const dateButton = await page.locator('[data-testid="date-range"]');
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
     await dateButton.click();
     await selectDateAndCreateOOO(page, "1", "3", "member-1");
     await expect(
@@ -405,8 +474,10 @@ test.describe("Out of office", () => {
     //As member1, expect error while OOO is created on Next month 2nd - 5th, forwarding to 'owner'
     await member1User?.apiLogin();
     await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState();
-    await clickUntilDialogVisible(addOOOButton, dateButton, page, "outOfOfficeReasonList?batch=1");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
     await dateButton.click();
     await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
     await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
