@@ -26,7 +26,6 @@ const log = logger.getSubLogger({ prefix: ["[[pages/[user]]]"] });
 type UserPageProps = {
   trpcState: DehydratedState;
   profile: {
-    id: number;
     name: string;
     image: string;
     theme: string | null;
@@ -133,7 +132,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   const [user] = usersInOrgContext; //to be used when dealing with single user, not dynamic group
 
   const profile = {
-    id: user.id,
     name: user.name || user.username || "",
     image: getUserAvatarUrl({
       avatarUrl: user.avatarUrl,

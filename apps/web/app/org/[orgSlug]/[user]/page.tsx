@@ -6,7 +6,6 @@ import { cookies, headers } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
@@ -48,11 +47,10 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     };
   } else {
     const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
-    const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
 
     const meeting = {
       title: markdownStrippedBio,
-      profile: { name: `${profile.name}`, image: avatarUrl },
+      profile: { name: `${profile.name}`, image: profile.image },
       users: [
         {
           username: `${profile.username ?? ""}`,

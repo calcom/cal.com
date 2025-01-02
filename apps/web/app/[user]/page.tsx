@@ -5,7 +5,6 @@ import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
@@ -18,10 +17,9 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
 
   const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props;
-  const avatarUrl = await UserRepository.getAvatarUrl(profile.id);
   const meeting = {
     title: markdownStrippedBio,
-    profile: { name: `${profile.name}`, image: avatarUrl },
+    profile: { name: `${profile.name}`, image: profile.image },
     users: [
       {
         username: `${profile.username ?? ""}`,
