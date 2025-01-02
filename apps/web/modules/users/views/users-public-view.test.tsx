@@ -15,7 +15,6 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
     themeBasis: "dark",
     safeBio: "My Bio",
     profile: {
-      id: 1,
       name: "John Doe",
       image: "john-profile-url",
       theme: "dark",
