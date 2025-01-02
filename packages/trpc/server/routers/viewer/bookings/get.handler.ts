@@ -297,6 +297,12 @@ export async function getBookings({
     })
   ).map((membership) => membership.id);
 
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
+  };
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
@@ -348,11 +354,7 @@ export async function getBookings({
           {
             eventType: {
               team: {
-                members: {
-                  some: {
-                    id: { in: membershipIdsWhereUserIsAdminOwner },
-                  },
-                },
+                members: membershipConditionWhereUserIsAdminOwner,
               },
             },
           },
@@ -368,11 +370,7 @@ export async function getBookings({
         eventType: {
           parent: {
             team: {
-              members: {
-                some: {
-                  id: { in: membershipIdsWhereUserIsAdminOwner },
-                },
-              },
+              members: membershipConditionWhereUserIsAdminOwner,
             },
           },
         },
@@ -391,11 +389,7 @@ export async function getBookings({
                 some: {
                   team: {
                     isOrganization: true,
-                    members: {
-                      some: {
-                        id: { in: membershipIdsWhereUserIsAdminOwner },
-                      },
-                    },
+                    members: membershipConditionWhereUserIsAdminOwner,
                   },
                 },
               },
