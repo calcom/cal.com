@@ -1504,8 +1504,6 @@ describe("Event types Endpoints", () => {
           const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
           const fetchedEventType = responseBody.data;
 
-          console.log("HERE", fetchedEventType.bookingFields, expectedReturnSystemFields);
-
           expect(fetchedEventType.bookingFields.sort(orderBySlug)).toEqual(
             [
               {
