@@ -1,10 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateMeetingMetadata } from "app/_utils";
+import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { getOrgFullOrigin, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -35,33 +35,25 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   });
 
   const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile.image;
-  const title = event?.title ?? "";
-  const meeting = {
-    title,
-    profile: { name: profileName, image: profileImage },
-    users: [
-      ...(event?.users || []).map((user) => ({
-        name: `${user.name}`,
-        username: `${user.username}`,
-      })),
-    ],
-  };
-  const metadata = await generateMeetingMetadata(
-    meeting,
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
-  );
+  const profileImage = event?.profile.image ?? "";
 
-  return {
-    ...metadata,
-    robots: {
-      follow: !(event?.hidden || !isSEOIndexable),
-      index: !(event?.hidden || !isSEOIndexable),
+  return await generateEventBookingPageMetadata({
+    profile: { name: profileName, image: profileImage },
+    event: {
+      title: event?.title ?? "",
+      hidden: event?.hidden ?? false,
+      rescheduleUid: null,
+      users: [
+        ...(event?.users || []).map((user) => ({
+          name: `${user.name}`,
+          username: `${user.username}`,
+        })),
+      ],
     },
-  };
+    hideBranding: isBrandingHidden,
+    orgSlug: eventData?.entity.orgSlug ?? null,
+    isSEOIndexable: !!isSEOIndexable,
+  });
 };
 
 export const Page = async (props: OrgTypePageProps) => {
