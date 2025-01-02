@@ -283,6 +283,20 @@ export async function getBookings({
     },
   };
 
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
@@ -336,10 +350,7 @@ export async function getBookings({
               team: {
                 members: {
                   some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
-                    },
+                    id: { in: membershipIdsWhereUserIsAdminOwner },
                   },
                 },
               },
@@ -359,10 +370,7 @@ export async function getBookings({
             team: {
               members: {
                 some: {
-                  userId: user.id,
-                  role: {
-                    in: ["ADMIN", "OWNER"],
-                  },
+                  id: { in: membershipIdsWhereUserIsAdminOwner },
                 },
               },
             },
@@ -385,10 +393,7 @@ export async function getBookings({
                     isOrganization: true,
                     members: {
                       some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
-                        },
+                        id: { in: membershipIdsWhereUserIsAdminOwner },
                       },
                     },
                   },
