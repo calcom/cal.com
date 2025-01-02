@@ -207,7 +207,7 @@ class BookingListener {
             ...evt,
             additionalInformation,
             additionalNotes: booking.description,
-            customInputs: booking.customInputs,
+            customInputs: booking.customInputs as Prisma.JsonObject,
           },
           eventNameObject,
           isHostConfirmationEmailsDisabled,
