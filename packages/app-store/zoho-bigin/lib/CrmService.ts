@@ -143,9 +143,9 @@ export default class BiginCrmService implements CRM {
     }).then((data) => data.data);
 
     return response
-      ? response.data.map((contact: BiginContact) => {
+      ? response.data.map((contact: any) => {
           return {
-            id: contact.id,
+            id: contact.details.id,
             email: contact.Email,
           };
         })
