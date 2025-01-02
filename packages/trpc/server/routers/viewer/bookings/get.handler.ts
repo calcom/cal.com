@@ -466,7 +466,6 @@ export async function getBookings({
       .concat(bookingsQueryTeamMember)
       .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
-      .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
   );
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
@@ -477,7 +476,9 @@ export async function getBookings({
       await prisma.booking.findMany({
         where: {
           id: {
-            in: plainBookings.map((booking) => booking.id),
+            in: plainBookings
+              .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+              .map((booking) => booking.id),
           },
         },
         select: bookingSelect,
