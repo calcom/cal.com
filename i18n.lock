@@ -2904,4 +2904,6 @@ checksums:
     something_unexpected_occurred: 560f72eb138fa6adc640e75c1641f5b2
     500_error_message: e0d87346445004cdf52bb9ceb24ffe5e
     dry_run_mode_active: 921ba1004a593504ba9719886864d90e
+    icon_showcase: 0879657c77461a19cafbdaa1e168b95e
+    icons_showcase: 8771aa0011d8ffefbe9370312152ef6a
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

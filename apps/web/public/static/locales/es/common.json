@@ -2902,5 +2902,7 @@
   "something_unexpected_occurred": "Algo inesperado ha ocurrido",
   "500_error_message": "No eres tú, somos nosotros.",
   "dry_run_mode_active": "Estás haciendo una reserva de prueba.",
+  "icon_showcase": "Muestra de iconos",
+  "icons_showcase": "Muestra de iconos",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
