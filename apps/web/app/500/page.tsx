@@ -18,9 +18,7 @@ async function Error500({ searchParams }: { searchParams: { error?: string } }) 
   return (
     <div className="bg-subtle flex h-screen">
       <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
-        <h1 className="font-cal text-emphasis" style={{ fontSize: "3.75rem", lineHeight: 1 }}>
-          500
-        </h1>
+        <h1 className="font-cal text-emphasis text-6xl">500</h1>
         <h2 className="text-emphasis mt-6 text-2xl font-medium">{t("500_error_message")}</h2>
         <p className="text-default mb-6 mt-4 max-w-2xl text-sm">{t("something_went_wrong_on_our_end")}</p>
         {searchParams?.error && (
