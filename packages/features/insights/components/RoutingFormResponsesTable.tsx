@@ -289,18 +289,21 @@ export function RoutingFormResponsesTableContent({
   const memberUserId = selectedMemberUserId ?? undefined;
   const routingFormId = selectedRoutingFormId ?? undefined;
 
-  const { data: headers, isLoading: isHeadersLoading } =
-    trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-      {
-        userId,
-        teamId,
-        isAll: isAll ?? false,
-        routingFormId,
-      },
-      {
-        enabled: initialConfigIsReady,
-      }
-    );
+  const {
+    data: headers,
+    isLoading: isHeadersLoading,
+    isSuccess: isHeadersSuccess,
+  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+    {
+      userId,
+      teamId,
+      isAll: isAll ?? false,
+      routingFormId,
+    },
+    {
+      enabled: initialConfigIsReady,
+    }
+  );
 
   const { removeDisplayedExternalFilter, sorting, setSorting } = useDataTable();
 
@@ -329,14 +332,17 @@ export function RoutingFormResponsesTableContent({
     );
 
   const processedData = useMemo(() => {
-    if (isHeadersLoading) return [];
+    if (isHeadersSuccess) return [];
     return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
-  }, [data, isHeadersLoading]);
+  }, [data, isHeadersSuccess]);
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    if (!isHeadersSuccess) {
+      return [];
+    }
+    return [
       columnHelper.accessor("bookingAttendees", {
         id: "bookingAttendees",
         header: t("routing_form_insights_booked_by"),
@@ -380,7 +386,6 @@ export function RoutingFormResponsesTableContent({
         return columnHelper.accessor(`response.${fieldHeader.id}`, {
           id: fieldHeader.id,
           header: startCase(fieldHeader.label),
-          size: 200,
           enableSorting: false,
           cell: (info) => {
             const values = info.getValue();
@@ -420,7 +425,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("bookingStatusOrder", {
         id: "bookingStatusOrder",
         header: t("routing_form_insights_booking_status"),
-        size: 250,
         sortDescFirst: false,
         cell: (info) => (
           <div className="max-w-[250px]">
@@ -442,7 +446,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("bookingCreatedAt", {
         id: "bookingCreatedAt",
         header: t("routing_form_insights_booking_at"),
-        size: 250,
         enableColumnFilter: false,
         cell: (info) => (
           <div className="max-w-[250px]">
@@ -468,7 +471,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
-        size: 250,
         enableSorting: false,
         meta: {
           filter: { type: "text" },
@@ -485,7 +487,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("createdAt", {
         id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
-        size: 250,
         enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
@@ -493,9 +494,8 @@ export function RoutingFormResponsesTableContent({
           </div>
         ),
       }),
-    ],
-    [headers, t, copyToClipboard]
-  );
+    ];
+  }, [isHeadersSuccess, headers, t, copyToClipboard]);
 
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
@@ -504,7 +504,7 @@ export function RoutingFormResponsesTableContent({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
-      size: 200,
+      size: 150,
     },
     state: {
       sorting,

@@ -1,48 +1,42 @@
+import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import z from "zod";
 
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
+import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
+import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
+import { isAuthorizedToViewTheForm } from "@calcom/app-store/routing-forms/pages/routing-link/getServerSideProps";
+import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
+import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { TRPCError } from "@calcom/trpc/server";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
-
-import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
-import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
-import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { getSerializableForm } from "../../lib/getSerializableForm";
-import { findMatchingRoute } from "../../lib/processRoute";
-import { substituteVariables } from "../../lib/substituteVariables";
-import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { FormResponse } from "../../types/types";
-import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
-import { getUrlSearchParamsToForward } from "../routing-link/getUrlSearchParamsToForward";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
 
 const querySchema = z
   .object({
     form: z.string(),
-    slug: z.string(),
-    pages: z.array(z.string()),
   })
   .catchall(z.string().or(z.array(z.string())));
 
-function getNamedParams(params: { appPages: string[] } | undefined) {
-  const [embed] = params?.appPages || [];
-  return {
-    // There might not be item at index 0, so explicit assertion is needed
-    embed: embed as typeof embed | undefined,
-  };
+function hasEmbedPath(pathWithQuery: string) {
+  const onlyPath = pathWithQuery.split("?")[0];
+  return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma
-) {
+export const getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
   const queryParsed = querySchema.safeParse(context.query);
-  const { embed } = getNamedParams(context.params);
+  const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
-    isEmbed: !!embed,
+    isEmbed,
   };
 
   if (!queryParsed.success) {
@@ -51,42 +45,16 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { form: formId, slug: _slug, pages: _pages, ...fieldsResponses } = queryParsed.data;
+
+  // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
+  const { form: formId, ...fieldsResponses } = queryParsed.data;
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
-  const form = await prisma.app_RoutingForms_Form.findFirst({
-    where: {
-      id: formId,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          username: true,
-          movedToProfileId: true,
-          metadata: true,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
-        },
-      },
-      team: {
-        select: {
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-            },
-          },
-          slug: true,
-          metadata: true,
-        },
-      },
-    },
-  });
+  let timeTaken: Record<string, number | null> = {};
+
+  const formQueryStart = performance.now();
+  const form = await RoutingFormRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+  timeTaken.formQuery = performance.now() - formQueryStart;
 
   if (!form) {
     return {
@@ -95,20 +63,24 @@ export const getServerSideProps = async function getServerSideProps(
   }
 
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
+  const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
     ...form,
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
+  timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
-  if (!(await isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain }))) {
+  if (!isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain })) {
     return {
       notFound: true,
     };
   }
 
+  const getSerializableFormStart = performance.now();
   const serializableForm = await getSerializableForm({
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
+  timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
   const response: FormResponse = {};
   if (!serializableForm.fields) {
@@ -131,18 +103,13 @@ export const getServerSideProps = async function getServerSideProps(
 
   const decidedAction = matchingRoute.action;
 
-  const { createContext } = await import("@calcom/trpc/server/createContext");
-  const ctx = await createContext(context);
-
-  const { default: trpcRouter } = await import("@calcom/app-store/routing-forms/trpc/_router");
-  const caller = trpcRouter.createCaller(ctx);
   const { v4: uuidv4 } = await import("uuid");
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
   try {
-    const result = await caller.public.response({
-      formId: form.id,
+    const result = await handleResponse({
+      form: serializableForm,
       formFillerId: uuidv4(),
       response: response,
       chosenRouteId: matchingRoute.id,
@@ -150,6 +117,10 @@ export const getServerSideProps = async function getServerSideProps(
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
+    timeTaken = {
+      ...timeTaken,
+      ...result.timeTaken,
+    };
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -161,6 +132,9 @@ export const getServerSideProps = async function getServerSideProps(
       };
     }
   }
+
+  // TODO: To be done using sentry tracing
+  console.log("Server-Timing", getServerTimingHeader(timeTaken));
 
   //TODO: Maybe take action after successful mutation
   if (decidedAction.type === "customPageMessage") {
