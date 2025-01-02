@@ -5,58 +5,55 @@ import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma } from "@calcom/prisma";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
+import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
-import { getSerializableForm } from "../lib/getSerializableForm";
 import isRouter from "../lib/isRouter";
-import type { FormResponse } from "../types/types";
-import type { TResponseInputSchema } from "./response.schema";
-import { onFormSubmission } from "./utils";
+import { onFormSubmission } from "../trpc/utils";
+import type { FormResponse, SerializableForm } from "../types/types";
 
-const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/response.handler"] });
+type Form = SerializableForm<
+  App_RoutingForms_Form & {
+    user: {
+      id: number;
+      email: string;
+    };
+    team: {
+      parentId: number | null;
+    } | null;
+  }
+>;
 
-interface ResponseHandlerOptions {
-  ctx: {
-    prisma: PrismaClient;
-  };
-  input: TResponseInputSchema;
-}
-export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
-  const { prisma } = ctx;
+const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
+
+export const handleResponse = async ({
+  response,
+  form,
+  // Unused but probably should be used
+  // formFillerId,
+  chosenRouteId,
+}: {
+  response: z.infer<typeof ZResponseInputSchema>["response"];
+  form: Form;
+  formFillerId: string;
+  chosenRouteId: string | null;
+}) => {
   try {
-    const { response, formId, chosenRouteId } = input;
-    const form = await prisma.app_RoutingForms_Form.findFirst({
-      where: {
-        id: formId,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-      },
-    });
-    if (!form) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-      });
-    }
-
-    const serializableForm = await getSerializableForm({ form });
-    if (!serializableForm.fields) {
+    if (!form.fields) {
       // There is no point in submitting a form that doesn't have fields defined
       throw new TRPCError({
         code: "BAD_REQUEST",
       });
     }
 
+    const formTeamId = form.teamId;
+    const formOrgId = form.team?.parentId ?? null;
     const serializableFormWithFields = {
-      ...serializableForm,
-      fields: serializableForm.fields,
+      ...form,
+      fields: form.fields,
     };
 
     const missingFields = serializableFormWithFields.fields
@@ -120,7 +117,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
-
+    let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
         throw new TRPCError({
@@ -128,17 +125,25 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
           message: "Chosen route is a router",
         });
       }
-      const teamMembersMatchingAttributeLogicWithResult = form.teamId
-        ? await findTeamMembersMatchingAttributeLogic({
-            dynamicFieldValueOperands: {
-              response,
-              fields: serializableForm.fields || [],
-            },
-            attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-            fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
-            teamId: form.teamId,
-          })
-        : null;
+
+      const teamMembersMatchingAttributeLogicWithResult =
+        formTeamId && formOrgId
+          ? await findTeamMembersMatchingAttributeLogic(
+              {
+                dynamicFieldValueOperands: {
+                  response,
+                  fields: form.fields || [],
+                },
+                attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+                fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
+                teamId: formTeamId,
+                orgId: formOrgId,
+              },
+              {
+                enablePerf: true,
+              }
+            )
+          : null;
 
       moduleLogger.debug(
         "teamMembersMatchingAttributeLogic",
@@ -151,71 +156,17 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
               (member) => member.userId
             )
           : null;
+
+      timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
 
-    // const chosenRouteName = `Route ${chosenRouteIndex + 1}`;
-
-    // if (input.isPreview) {
-    //   // Detect if response has value for a field that isn't in the field list
-    //   const formFields = serializableFormWithFields.fields.map((field) => field.id);
-    //   const extraFields = Object.keys(response).filter((fieldId) => !formFields.includes(fieldId));
-    //   const attributeRoutingConfig =
-    //     "attributeRoutingConfig" in chosenRoute ? chosenRoute.attributeRoutingConfig ?? null : null;
-
-    //   let previewData = {
-    //     teamMemberIdsMatchingAttributeLogic,
-    //     chosenRoute: {
-    //       name: chosenRouteName,
-    //       action: "action" in chosenRoute ? chosenRoute.action : null,
-    //     },
-    //     skipContactOwner: attributeRoutingConfig?.skipContactOwner ?? false,
-    //     warnings: [] as string[],
-    //     errors: [] as string[],
-    //   };
-
-    //   if (extraFields.length > 0) {
-    //     // If response submitted directly through the /response.handler, it is useful to know which fields were non-existent
-    //     // If we reach here through router, all extra fields are already removed from here
-    //     previewData.warnings.push(
-    //       `Response contains values for non-existent fields: ${extraFields.join(", ")}`
-    //     );
-    //   }
-
-    //   // Check for values not present in options for SINGLE_SELECT and MULTISELECT fields
-    //   serializableFormWithFields.fields.forEach((field) => {
-    //     if (
-    //       field.type !== RoutingFormFieldType.SINGLE_SELECT &&
-    //       field.type !== RoutingFormFieldType.MULTI_SELECT
-    //     ) {
-    //       return;
-    //     }
-
-    //     const fieldResponse = response[field.id];
-
-    //     if (fieldResponse && fieldResponse.value) {
-    //       const values = Array.isArray(fieldResponse.value) ? fieldResponse.value : [fieldResponse.value];
-    //       const invalidValues = values.filter(
-    //         (value) => !field.options?.some((option) => option.id === value || option.label === value)
-    //       );
-    //       if (invalidValues.length > 0) {
-    //         previewData.errors.push(`Invalid value(s) for ${field.label}: ${invalidValues.join(", ")}`);
-    //       }
-    //     }
-    //   });
-
-    //   return {
-    //     isPreview: true,
-    //     previewData,
-    //     formResponse: null,
-    //     teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
-    //   };
-    // }
-
     const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
       data: {
-        formId,
+        // TODO: Why do we not save formFillerId available in the input?
+        // formFillerId,
+        formId: form.id,
         response: response,
         chosenRouteId,
       },
@@ -237,6 +188,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
           ? chosenRoute.attributeRoutingConfig
           : null
         : null,
+      timeTaken,
     };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -249,5 +201,3 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     throw e;
   }
 };
-
-export default responseHandler;

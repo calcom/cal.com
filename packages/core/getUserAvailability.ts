@@ -157,6 +157,45 @@ const _getUser = async (where: Prisma.UserWhereInput) => {
 
 type GetUser = Awaited<ReturnType<typeof getUser>>;
 
+export type GetUserAvailabilityInitialData = {
+  user?: GetUser;
+  eventType?: EventType;
+  currentSeats?: CurrentSeats;
+  rescheduleUid?: string | null;
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+    eventType: Pick<
+      PrismaEventType,
+      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+    > | null;
+    _count?: {
+      seatsReferences: number;
+    };
+  })[];
+  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+    user: Pick<User, "id" | "name">;
+    toUser: Pick<User, "id" | "username" | "name"> | null;
+    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
+  })[];
+  busyTimesFromLimitsBookings: EventBusyDetails[];
+};
+
+export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
+
+type GetUserAvailabilityQuery = {
+  withSource?: boolean;
+  username?: string;
+  userId?: number;
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
+};
+
 export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
 ): Promise<ReturnType<typeof _getCurrentSeats>> => {
@@ -222,47 +261,16 @@ export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
 export const getUserAvailability = async (
   ...args: Parameters<typeof _getUserAvailability>
-): Promise<ReturnType<typeof _getUserAvailability>> => {
+): Promise<GetUserAvailabilityResult> => {
   return monitorCallbackAsync(_getUserAvailability, ...args);
 };
 
+type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
-  query: {
-    withSource?: boolean;
-    username?: string;
-    userId?: number;
-    dateFrom: string;
-    dateTo: string;
-    eventTypeId?: number;
-    afterEventBuffer?: number;
-    beforeEventBuffer?: number;
-    duration?: number;
-    returnDateOverrides: boolean;
-    bypassBusyCalendarTimes: boolean;
-    shouldServeCache?: boolean;
-  },
-  initialData?: {
-    user?: GetUser;
-    eventType?: EventType;
-    currentSeats?: CurrentSeats;
-    rescheduleUid?: string | null;
-    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-      eventType: Pick<
-        PrismaEventType,
-        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-      > | null;
-      _count?: {
-        seatsReferences: number;
-      };
-    })[];
-    outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
-      user: Pick<User, "id" | "name">;
-      toUser: Pick<User, "id" | "username" | "name"> | null;
-      reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
-    })[];
-    busyTimesFromLimitsBookings: EventBusyDetails[];
-  }
+  query: GetUserAvailabilityQuery,
+  initialData?: GetUserAvailabilityInitialData
 ) {
   const {
     username,
@@ -656,22 +664,16 @@ const calculateOutOfOfficeRanges = (
   }, {});
 };
 
-type GetUserAvailabilityQuery = Parameters<typeof getUserAvailability>[0];
-type GetUserAvailabilityInitialData = NonNullable<Parameters<typeof getUserAvailability>[1]>;
-export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-const _getUsersAvailability = async ({
-  users,
-  query,
-  initialData,
-}: {
+type GetUsersAvailabilityProps = {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
     outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
-}) => {
+};
+
+const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
@@ -695,6 +697,6 @@ const _getUsersAvailability = async ({
 
 export const getUsersAvailability = async (
   ...args: Parameters<typeof _getUsersAvailability>
-): Promise<ReturnType<typeof _getUsersAvailability>> => {
+): Promise<Awaited<GetUserAvailabilityResult>[]> => {
   return monitorCallbackAsync(_getUsersAvailability, ...args);
 };
