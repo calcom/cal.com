@@ -1,7 +1,7 @@
 import { it, expect, describe, beforeAll } from "vitest";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { getSubdomainRegExp } = require("../../getSubdomainRegExp");
+import { getRegExpThatMatchesAllOrgDomains } from "../../getNextjsOrgRewriteConfig";
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { match, pathToRegexp } = require("next/dist/compiled/path-to-regexp");
 type MatcherRes = (path: string) => { params: Record<string, string> };
@@ -30,51 +30,64 @@ beforeAll(async () => {
 });
 
 describe("next.config.js - Org Rewrite", () => {
-  const orgHostRegExp = (subdomainRegExp: string) =>
-    // RegExp copied from pagesAndRewritePaths.js orgHostPath. Do make the change there as well.
-    new RegExp(`^(?<orgSlug>${subdomainRegExp})\\.(?!vercel\.app).*`);
-
-  describe("Host matching based on NEXT_PUBLIC_WEBAPP_URL", () => {
-    it("https://app.cal.com", () => {
-      const subdomainRegExp = getSubdomainRegExp("https://app.cal.com");
-      expect(orgHostRegExp(subdomainRegExp).exec("app.cal.com")).toEqual(null);
-      expect(orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups?.orgSlug).toEqual("company");
-      expect(orgHostRegExp(subdomainRegExp).exec("org.cal.com")?.groups?.orgSlug).toEqual("org");
-
-      expect(orgHostRegExp(subdomainRegExp).exec("localhost:3000")).toEqual(null);
+  describe("getRegExpThatMatchesAllOrgDomains", () => {
+    it("WEBAPP_URL=app.cal.com", () => {
+      const regExp = new RegExp(getRegExpThatMatchesAllOrgDomains({ webAppUrl: "app.cal.com" }));
+      expect(regExp.exec("acme.cal.com")?.groups?.orgSlug).toEqual("acme");
+      expect(regExp.exec("app.cal.com")).toEqual(null);
+      // Even though it matches abc. We shouldn't match it as it isn't a subdomain of cal.com(derived from WEBAPP_URL)
+      // We could fix the RegExp, but that might break some unexpected self-hosted scenarios. So, we can fix it separately.
+      expect(regExp.exec("abc.sdafasdf.com")?.groups?.orgSlug).toEqual("abc");
     });
 
-    it("app.cal.com", () => {
-      const subdomainRegExp = getSubdomainRegExp("app.cal.com");
-      expect(orgHostRegExp(subdomainRegExp).exec("app.cal.com")).toEqual(null);
-      expect(orgHostRegExp(subdomainRegExp).exec("company.app.cal.com")?.groups?.orgSlug).toEqual("company");
+    it("WEBAPP_URL=https://app.cal.com", () => {
+      const regExp = new RegExp(getRegExpThatMatchesAllOrgDomains({ webAppUrl: "https://app.cal.com" }));
+      expect(regExp.exec("acme.cal.com")?.groups?.orgSlug).toEqual("acme");
+      expect(regExp.exec("app.cal.com")).toEqual(null);
+
+      // This approach though not used by managed cal.com, but might be in use by self-hosted users.
+      expect(regExp.exec("acme.app.cal.com")?.groups?.orgSlug).toEqual("acme");
+
+      // TODO: Even though it gives abc orgSlug. We shouldn't match it as it isn't a subdomain of cal.com(derived from WEBAPP_URL)
+      // We could fix the RegExp, but that might break some unexpected self-hosted scenarios. So, we can fix it separately.
+      expect(regExp.exec("abc.sdafasdf.com")?.groups?.orgSlug).toEqual("abc");
     });
 
-    it("https://calcom.app.company.com", () => {
-      const subdomainRegExp = getSubdomainRegExp("https://calcom.app.company.com");
-      expect(orgHostRegExp(subdomainRegExp).exec("calcom.app.company.com")).toEqual(null);
-      expect(orgHostRegExp(subdomainRegExp).exec("acme.calcom.app.company.com")?.groups?.orgSlug).toEqual(
-        "acme"
+    it("WEBAPP_URL=https://booker.dashboard.company.com", () => {
+      const regExp = new RegExp(
+        getRegExpThatMatchesAllOrgDomains({ webAppUrl: "https://booker.dashboard.company.com" })
       );
+
+      // This approach though not used by managed cal.com, but might be in use by self-hosted users.
+      expect(regExp.exec("acme.booker.dashboard.company.com")?.groups?.orgSlug).toEqual("acme");
+      expect(regExp.exec("booker.dashboard.company.com")).toEqual(null);
     });
 
-    it("https://calcom.example.com", () => {
-      const subdomainRegExp = getSubdomainRegExp("https://calcom.example.com");
-      expect(orgHostRegExp(subdomainRegExp).exec("calcom.example.com")).toEqual(null);
-      expect(orgHostRegExp(subdomainRegExp).exec("acme.calcom.example.com")?.groups?.orgSlug).toEqual("acme");
-      // The following also matches which causes anything other than the domain in NEXT_PUBLIC_WEBAPP_URL to give 404
-      expect(orgHostRegExp(subdomainRegExp).exec("some-other.company.com")?.groups?.orgSlug).toEqual(
-        "some-other"
+    it("WEBAPP_URL=http://app.cal.local:3000", () => {
+      const regExp = new RegExp(
+        getRegExpThatMatchesAllOrgDomains({ webAppUrl: "http://app.cal.local:3000" })
       );
+      expect(regExp.exec("acme.cal.local:3000")?.groups?.orgSlug).toEqual("acme");
+      expect(regExp.exec("acme.app.cal.local:3000")?.groups?.orgSlug).toEqual("acme");
+      expect(regExp.exec("app.cal.local:3000")).toEqual(null);
     });
-    it("Should ignore Vercel preview URLs", () => {
-      const subdomainRegExp = getSubdomainRegExp("https://cal-xxxxxxxx-cal.vercel.app");
-      expect(
-        orgHostRegExp(subdomainRegExp).exec("https://cal-xxxxxxxx-cal.vercel.app")
-      ).toMatchInlineSnapshot("null");
-      expect(orgHostRegExp(subdomainRegExp).exec("cal-xxxxxxxx-cal.vercel.app")).toMatchInlineSnapshot(
-        "null"
-      );
+
+    it("Vercel Preview special handling - vercel.app. Cal.com deployed on vercel apps have different subdomains, so we can't consider them org domains", () => {
+      const regExp = new RegExp(getRegExpThatMatchesAllOrgDomains({ webAppUrl: "http://app.vercel.app" }));
+      // It is not matching on vercel.app but would have matched in any other case
+      expect(regExp.exec("acme.vercel.app")).toEqual(null);
+      expect(regExp.exec("app.vercel.app")).toEqual(null);
+    });
+
+    describe("NEXT_PUBLIC_SINGLE_ORG_MODE_ENABLED=1", () => {
+      process.env.NEXT_PUBLIC_SINGLE_ORG_MODE_ENABLED = "1";
+      it("WEBAPP_URL=http://app.cal.local:3000", () => {
+        const regExp = new RegExp(
+          getRegExpThatMatchesAllOrgDomains({ webAppUrl: "http://app.cal.local:3000" })
+        );
+        expect(regExp.exec("acme.cal.local:3000")?.groups?.orgSlug).toEqual("acme");
+        expect(regExp.exec("app.cal.local:3000")).toEqual(null);
+      });
     });
   });
 
