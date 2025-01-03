@@ -287,12 +287,33 @@ export async function getBookings({
     },
   };
 
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
+  };
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryManagedEvents,
     bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
@@ -337,18 +358,26 @@ export async function getBookings({
           {
             eventType: {
               team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
-                    },
-                  },
-                },
+                members: membershipConditionWhereUserIsAdminOwner,
               },
             },
           },
         ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        eventType: {
+          parent: {
+            team: {
+              members: membershipConditionWhereUserIsAdminOwner,
+            },
+          },
+        },
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
@@ -364,14 +393,7 @@ export async function getBookings({
                 some: {
                   team: {
                     isOrganization: true,
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
-                        },
-                      },
-                    },
+                    members: membershipConditionWhereUserIsAdminOwner,
                   },
                 },
               },
@@ -468,6 +490,7 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryManagedEvents)
       .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
