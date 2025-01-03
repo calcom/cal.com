@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
+import type { AvailableApp } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
@@ -15,7 +15,7 @@ type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
  * @returns A list of enabled app metadata & credentials tied to them
  */
 const getEnabledAppsFromCredentials = async (
-  credentials: CredentialDataWithTeamName[],
+  credentials: AvailableApp[],
   options?: {
     where?: Prisma.AppWhereInput;
     filterOnCredentials?: boolean;
