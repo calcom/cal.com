@@ -1,11 +1,8 @@
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
-import {
-  useTimePreferences,
-  mapBookingToMutationInput,
-  mapRecurringBookingToMutationInput,
-} from "@calcom/features/bookings/lib";
+import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
@@ -41,7 +38,7 @@ export const useHandleBookEvent = ({
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
   const duration = useBookerStore((state) => state.selectedDuration);
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const { t, i18n } = useLocale();

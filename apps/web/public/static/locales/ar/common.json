@@ -2899,5 +2899,10 @@
   "calibration": "المعايرة",
   "shortfall": "العجز",
   "routing_form": "نموذج التوجيه",
+  "something_unexpected_occurred": "حدث خطأ غير متوقع",
+  "500_error_message": "الخطأ من جانبنا، وليس من جانبك.",
+  "dry_run_mode_active": "أنت تقوم بحجز تجريبي.",
+  "icon_showcase": "معرض الأيقونات",
+  "icons_showcase": "معرض الأيقونات",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

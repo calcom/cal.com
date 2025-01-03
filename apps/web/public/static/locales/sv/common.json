@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrering",
   "shortfall": "Underskott",
   "routing_form": "Routingformulär",
+  "something_unexpected_occurred": "Något oväntat inträffade",
+  "500_error_message": "Det är inte ditt fel, det är vårt.",
+  "dry_run_mode_active": "Du gör en testbokning.",
+  "icon_showcase": "Ikonvisning",
+  "icons_showcase": "Ikonvisning",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

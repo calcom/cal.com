@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrasiya",
   "shortfall": "Çatışmazlıq",
   "routing_form": "Marşrutlama forması",
+  "something_unexpected_occurred": "Gözlənilməz bir xəta baş verdi",
+  "500_error_message": "Problem sizdə deyil, bizdədir.",
+  "dry_run_mode_active": "Siz test rezervasiyası edirsiniz.",
+  "icon_showcase": "İkon nümayişi",
+  "icons_showcase": "İkonların nümayişi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
