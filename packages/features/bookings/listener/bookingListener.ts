@@ -1,23 +1,27 @@
 import type { DestinationCalendar } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
-import type { z } from "zod";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import type { EventNameObjectType } from "@calcom/core/event";
 import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import dayjs from "@calcom/dayjs";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
+import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { handleAppsStatus } from "@calcom/features/bookings/lib/handleNewBooking/handleAppsStatus";
+import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -44,6 +48,7 @@ class BookingListener {
     eventNameObject,
     teamId,
     platformClientId,
+    bookerUrl,
   }: {
     evt: CalendarEvent;
     allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
@@ -53,15 +58,7 @@ class BookingListener {
       destinationCalendar: DestinationCalendar | null;
       username: string | null;
     };
-    eventType: {
-      id: number;
-      title: string;
-      description: string | null;
-      teamId?: number | null;
-      parentId?: number | null;
-      parent?: { id: number; teamId: number | null } | null;
-      metadata: z.infer<typeof EventTypeMetaDataSchema> | Prisma.JsonValue | null;
-    };
+    eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
     tOrganizer: TFunction;
     booking: {
       id: number;
@@ -73,10 +70,12 @@ class BookingListener {
       description: string | null;
       customInputs: Prisma.JsonValue | null;
       metadata: Prisma.JsonValue | null;
+      smsReminderNumber?: string | null;
     };
     eventNameObject: EventNameObjectType;
     teamId?: number | null;
     platformClientId?: string;
+    bookerUrl: string;
   }) {
     const log = logger.getSubLogger({ prefix: ["[BookingListener.create]"] });
     const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
@@ -327,9 +326,56 @@ class BookingListener {
       eventTrigger: WebhookTriggerEvents.BOOKING_CREATED,
       webhookData,
     });
+
+    const evtWithMetadata = {
+      ...evt,
+      metadata,
+      eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+      bookerUrl,
+    };
+
+    if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
+      await scheduleMandatoryReminder({
+        evt: evtWithMetadata,
+        workflows,
+        requiresConfirmation: false,
+        hideBranding: !!eventType.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
+        isPlatformNoEmail: bookingMetadata?.noEmail && Boolean(platformClientId),
+      });
+    }
+
+    try {
+      await monitorCallbackAsync(scheduleWorkflowReminders, {
+        workflows,
+        smsReminderNumber: booking?.smsReminderNumber || null,
+        calendarEvent: evtWithMetadata,
+        isNotConfirmed: false,
+        isRescheduleEvent: false,
+        isFirstRecurringEvent: false,
+        hideBranding: !!eventType.owner?.hideBranding,
+      });
+    } catch (error) {
+      log.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+    }
+
+    try {
+      if (booking.location === DailyLocationType || booking.location?.trim() === "") {
+        await monitorCallbackAsync(scheduleNoShowTriggers, {
+          booking: { startTime: booking.startTime, id: booking.id },
+          triggerForUser,
+          organizerUser: { id: organizerUser.id },
+          eventTypeId: eventType.id,
+          teamId,
+          orgId,
+        });
+      }
+    } catch (error) {
+      log.error("Error while scheduling no show triggers", JSON.stringify({ error }));
+    }
     // TODO - Apps :done:
     // TODO - Emails :done:
-    // TODO - workflows
+    // TODO - workflows :done:
     // TODO - webhooks :done:
     // TODO - update booking metadata
   }
