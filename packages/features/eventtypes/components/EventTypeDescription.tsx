@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import Link from "next/link";
 import { useMemo } from "react";
 import type { z } from "zod";
 
@@ -25,6 +26,7 @@ export type EventTypeDescriptionProps = {
   className?: string;
   shortenDescription?: boolean;
   isPublic?: boolean;
+  totalBookings?: number;
 };
 
 export const EventTypeDescription = ({
@@ -32,6 +34,7 @@ export const EventTypeDescription = ({
   className,
   shortenDescription,
   isPublic,
+  totalBookings,
 }: EventTypeDescriptionProps) => {
   const { t, i18n } = useLocale();
 
@@ -76,6 +79,7 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
+
           {eventType.schedulingType && eventType.schedulingType !== SchedulingType.MANAGED && (
             <li>
               <Badge variant="gray" startIcon="users">
@@ -134,6 +138,13 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           ) : null}
+          <li>
+            <Link href={`/insights?isAll=false&filter=event-type&eventTypeId=${eventType.id}`}>
+              <Badge variant="gray" startIcon="chart-bar">
+                <p>{t("event_type_insights", { numberOfBookings: totalBookings })} </p>
+              </Badge>
+            </Link>
+          </li>
         </ul>
       </div>
     </>
