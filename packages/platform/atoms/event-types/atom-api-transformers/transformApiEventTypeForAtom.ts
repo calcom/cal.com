@@ -352,18 +352,21 @@ function getBookingFields(
   if (!hasRescheduleReasonField) {
     systemAfterFields.push(systemAfterFieldRescheduleReason);
   }
+
+  const fieldsWithSystem = [...systemBeforeFields, ...transformedBookingFields, ...systemAfterFields];
+
   // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
   // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
   const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
   if (defaultFormValuesKeys.length) {
-    for (const field of transformedBookingFields) {
+    for (const field of fieldsWithSystem) {
       if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
         field.editable = "user-readonly";
       }
     }
   }
 
-  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(fieldsWithSystem);
 }
 
 function isCustomField(

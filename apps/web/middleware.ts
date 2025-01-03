@@ -180,7 +180,10 @@ export const config = {
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
-    "/booking/:path*",
+    "/org/:path*",
+    "/team/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 

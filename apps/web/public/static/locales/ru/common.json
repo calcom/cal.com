@@ -2899,5 +2899,10 @@
   "calibration": "Калибровка",
   "shortfall": "Дефицит",
   "routing_form": "Форма маршрутизации",
+  "something_unexpected_occurred": "Произошла непредвиденная ошибка",
+  "500_error_message": "Дело не в вас, а в нас.",
+  "dry_run_mode_active": "Вы выполняете тестовое бронирование.",
+  "icon_showcase": "Витрина иконок",
+  "icons_showcase": "Витрина иконок",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
