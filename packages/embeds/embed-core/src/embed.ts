@@ -14,7 +14,11 @@ export type { PrefillAndIframeAttrsConfig } from "./embed-iframe";
 
 // Exporting for consumption by @calcom/embed-core user
 export type { EmbedEvent } from "./sdk-action-manager";
-
+const visitId = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+  const r = (Math.random() * 16) | 0;
+  const v = c === "x" ? r : (r & 0x3) | 0x8;
+  return v.toString(16);
+});
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Rest<T extends any[] | undefined> = T extends [any, ...infer U] ? U : never;
 export type Message = {
@@ -187,6 +191,7 @@ type PrefillAndIframeAttrsConfigWithGuestAndColorScheme = PrefillAndIframeAttrsC
 };
 
 export class Cal {
+  disableEmbedLoader?: boolean;
   iframe?: HTMLIFrameElement;
 
   __config: InitConfig;
@@ -304,12 +309,22 @@ export class Cal {
 
     urlInstance.searchParams.set("embed", this.namespace);
 
+    if (visitId) {
+      urlInstance.searchParams.set("cal.visitId", visitId);
+    }
+    // Allow disabling loader without requiring forwardQueryParams to be true
+    if (this.disableEmbedLoader) {
+      urlInstance.searchParams.set("cal.embed.disableLoader", "true");
+    }
+
     if (embedConfig.debug) {
       urlInstance.searchParams.set("debug", `${embedConfig.debug}`);
     }
 
     // Keep iframe invisible, till the embedded calLink sets its color-scheme. This is so that there is no flash of non-transparent(white/black) background
-    iframe.style.visibility = "hidden";
+    if (!this.disableEmbedLoader) {
+      iframe.style.visibility = "hidden";
+    }
 
     if (embedConfig.uiDebug) {
       iframe.style.border = "1px solid green";
@@ -322,6 +337,7 @@ export class Cal {
       urlInstance.searchParams.append(key, value);
     }
     iframe.src = urlInstance.toString();
+    this.lifecycleEvent("iframe.created");
     return iframe;
   }
 
@@ -345,6 +361,17 @@ export class Cal {
         "*"
       );
     }
+  }
+
+  lifecycleEvent(eventName: string) {
+    this.doInIframe({
+      method: "lifecycleEvent",
+      arg: {
+        eventName,
+        eventTime: performance.now(),
+        visitId: visitId,
+      },
+    } as const);
   }
 
   constructor(namespace: string, q: Queue) {
@@ -502,6 +529,10 @@ class CalApi {
     this.cal.__config.calOrigin = calOrigin || origin || this.cal.__config.calOrigin;
 
     this.cal.__config = { ...this.cal.__config, ...restConfig };
+
+    const embedderPageSearchParams = new URLSearchParams(window.location.search);
+    const disableEmbedLoader = embedderPageSearchParams.get("cal.embed.disableLoader") === "true";
+    this.cal.disableEmbedLoader = disableEmbedLoader;
   }
 
   /**
@@ -578,7 +609,9 @@ class CalApi {
 
     containerEl.classList.add("cal-inline-container");
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
+    template.innerHTML = `<cal-inline ${
+      this.cal.disableEmbedLoader ? "disable-loader" : ""
+    } style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline><style>.cal-inline-container::-webkit-scrollbar{display:none}.cal-inline-container{scrollbar-width:none}</style>`;
     this.cal.inlineEl = template.content.children[0];
     this.cal.inlineEl.appendChild(iframe);
     containerEl.appendChild(template.content);
@@ -657,6 +690,7 @@ class CalApi {
     calOrigin?: string;
     __prerender?: boolean;
   }) {
+    this.cal.lifecycleEvent("modal.opened");
     const uid = this.modalUid || this.preloadedModalUid || String(Date.now()) || "0";
     const isConnectingToPreloadedModal = this.preloadedModalUid && !this.modalUid;
 
@@ -715,7 +749,9 @@ class CalApi {
     iframe.style.height = "100%";
     iframe.style.width = "100%";
     const template = document.createElement("template");
-    template.innerHTML = `<cal-modal-box uid="${uid}"></cal-modal-box>`;
+    template.innerHTML = `<cal-modal-box ${
+      this.cal.disableEmbedLoader ? "disable-loader" : ""
+    } uid="${uid}"></cal-modal-box>`;
     this.cal.modalBox = template.content.children[0];
     this.cal.modalBox.appendChild(iframe);
     if (__prerender) {

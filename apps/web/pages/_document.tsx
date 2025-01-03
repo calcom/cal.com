@@ -44,13 +44,15 @@ class MyDocument extends Document<Props> {
     const isEmbed =
       (parsedUrl.pathname.endsWith("/embed") || parsedUrl.searchParams.get("embedType") !== null) &&
       !isEmbedSnippetGeneratorPath;
+
+    const disableEmbedLoader = parsedUrl.searchParams.get("cal.embed.disableLoader") === "true";
     const embedColorScheme = parsedUrl.searchParams.get("ui.color-scheme");
     const initialProps = await Document.getInitialProps(ctx);
-    return { isEmbed, embedColorScheme, nonce, ...initialProps, newLocale };
+    return { isEmbed, embedColorScheme, disableEmbedLoader, nonce, ...initialProps, newLocale };
   }
 
   render() {
-    const { isEmbed, embedColorScheme } = this.props;
+    const { isEmbed, embedColorScheme, disableEmbedLoader } = this.props;
     const newLocale = this.props.newLocale || "en";
     const newDir = dir(newLocale);
 
@@ -130,7 +132,7 @@ class MyDocument extends Document<Props> {
                   // - gives it the appropriate styles if UI instruction is there.
                   // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
                   // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-                  visibility: "hidden",
+                  visibility: disableEmbedLoader ? "visible" : "hidden",
                 }
               : {}
           }>
