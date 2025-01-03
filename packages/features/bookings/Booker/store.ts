@@ -225,7 +225,12 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
   },
-  month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
+  month:
+    getQueryParam("month") ||
+    (getQueryParam("date") && dayjs(getQueryParam("date")).isValid()
+      ? dayjs(getQueryParam("date")).format("YYYY-MM")
+      : null) ||
+    dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
     if (!month) {
       removeQueryParam("month");
