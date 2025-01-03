@@ -120,7 +120,8 @@ async function NotFound() {
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
               {t(`404_the_${pageType.toLowerCase()}`)} <strong className="text-blue-500">{username}</strong>
-              {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+              {` ${t("is_still_available")}`} <span className="text-blue-500">{` ${t("register_now")}`}</span>
+              .
             </a>
           ) : (
             <span className="mt-2 inline-block text-lg">
