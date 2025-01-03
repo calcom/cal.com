@@ -13,6 +13,9 @@ export class TaskerFactory {
     // RedisTasker, TriggerDevTasker, TemporalIOTasker, AWSSQSTasker, etc.
     // TODO: Uncomment the following line when RedisTasker is implemented.
     // if (type === "redis") return new RedisTasker();
+
+    if (type === "trigger") return new TriggerTasker();
+
     // For now, we only have the InternalTasker.
     if (type === "internal") return new InternalTasker();
     // Default to InternalTasker
@@ -23,5 +26,11 @@ export class TaskerFactory {
 /** Shorthand for getting the default Tasker */
 export function getTasker() {
   const taskerFactory = new TaskerFactory();
+
+  // Get tasker type
+  if (process.env.TRIGGER_PROJECT_ID) {
+    return taskerFactory.createTasker("trigger");
+  }
+
   return taskerFactory.createTasker();
 }

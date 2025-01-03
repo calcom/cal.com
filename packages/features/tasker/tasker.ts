@@ -1,6 +1,6 @@
 import type { z } from "zod";
 
-export type TaskerTypes = "internal" | "redis";
+export type TaskerTypes = "internal" | "redis" | "trigger";
 type TaskPayloads = {
   sendEmail: string;
   sendWebhook: string;
