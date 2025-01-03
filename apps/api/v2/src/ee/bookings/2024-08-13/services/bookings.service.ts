@@ -17,6 +17,7 @@ import {
   handleNewRecurringBooking,
   getAllUserBookings,
   handleInstantMeeting,
+  getAllUserBookings2024,
   handleCancelBooking,
   roundRobinReassignment,
   roundRobinManualReassignment,
@@ -221,7 +222,7 @@ export class BookingsService_2024_08_13 {
   }
 
   async getBookings(queryParams: GetBookingsInput_2024_08_13, user: { email: string; id: number }) {
-    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings({
+    const fetchedBookings: { bookings: { id: number }[] } = await getAllUserBookings2024({
       bookingListingByStatus: queryParams.status || [],
       skip: queryParams.skip ?? 0,
       // note(Lauris): we substract -1 because getAllUSerBookings child function adds +1 for some reason

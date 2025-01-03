@@ -29,6 +29,7 @@ import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import getAllUserBookings2024 from "@calcom/lib/bookings/getAllUserBookings2024";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -44,6 +45,8 @@ import {
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export { getAllUserBookings2024 };
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };

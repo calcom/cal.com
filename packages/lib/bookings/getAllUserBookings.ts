@@ -102,7 +102,7 @@ const getAllUserBookings = async ({ ctx, filters, bookingListingByStatus, take, 
   };
 };
 
-function getOrderBy(
+export function getOrderBy(
   bookingListingByStatus: InputByStatus[],
   sort?: SortOptions
 ): Prisma.BookingOrderByWithAggregationInput {

@@ -134,10 +134,13 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   hosts!: BookingHost[];
 
-  @ApiProperty({ enum: ["cancelled", "accepted", "rejected", "pending"], example: "accepted" })
-  @IsEnum(["cancelled", "accepted", "rejected", "pending"])
+  @ApiProperty({
+    enum: ["cancelled", "accepted", "rejected", "pending", "awaitingHost"],
+    example: "accepted",
+  })
+  @IsEnum(["cancelled", "accepted", "rejected", "pending", "awaitingHost"])
   @Expose()
-  status!: "cancelled" | "accepted" | "rejected" | "pending";
+  status!: "cancelled" | "accepted" | "rejected" | "pending" | "awaitingHost";
 
   @ApiPropertyOptional({ type: String, example: "User requested cancellation" })
   @IsString()
