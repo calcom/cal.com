@@ -31,7 +31,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent({ fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink });
+  const event = useEvent({
+    fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+  });
   const bookerLayout = useBookerLayout(event.data);
 
   const selectedDate = searchParams?.get("date");

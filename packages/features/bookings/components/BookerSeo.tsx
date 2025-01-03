@@ -13,8 +13,8 @@ interface BookerSeoProps {
   isSEOIndexable?: boolean;
   isTeamEvent?: boolean;
   eventData?: Omit<
-    Pick<NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>, "profile" | "title" | "users" | "hidden">,
-    "profile" | "users"
+    Pick<NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>, "profile" | "title" | "hidden">,
+    "profile"
   > & {
     profile: {
       image: string | undefined;
@@ -63,6 +63,9 @@ export const BookerSeo = (props: BookerSeoProps) => {
   const profileName = event?.profile.name ?? "";
   const profileImage = event?.profile.image;
   const title = event?.title ?? "";
+
+  const eventUsers = (event as { users?: { name: string; username: string }[] })?.users || [];
+
   return (
     <HeadSeo
       origin={getOrgFullOrigin(entity.orgSlug ?? null)}
@@ -72,7 +75,7 @@ export const BookerSeo = (props: BookerSeoProps) => {
         title: title,
         profile: { name: profileName, image: profileImage },
         users: [
-          ...(event?.users || []).map((user) => ({
+          ...(eventUsers || []).map((user) => ({
             name: `${user.name}`,
             username: `${user.username}`,
           })),
