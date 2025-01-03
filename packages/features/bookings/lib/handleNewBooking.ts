@@ -1539,6 +1539,7 @@ async function handler(
         tOrganizer,
         booking,
         eventNameObject,
+        bookerUrl,
       });
     }
   } else {
