@@ -415,6 +415,8 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  const salesforceData = "https://deel.lightning.force.com/lightning/r/Account/XXX/view";
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -628,6 +630,19 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+                        {/* Additional links for hosts */}
+                        {userIsOwner && salesforceData && (
+                          <>
+                            <div className="mt-6 font-medium" />
+                            <div className="col-span-2 mt-6" data-testid="where">
+                              <DisplayLocation
+                                locationToDisplay={salesforceData}
+                                providerName={t("Salesforce")}
+                              />
+                            </div>
+                          </>
+                        )}
+
                         {props.paymentStatus && (
                           <>
                             <div className="mt-3 font-medium">
@@ -1114,7 +1129,7 @@ const DisplayLocation = ({
       href={locationToDisplay}
       target="_blank"
       title={locationToDisplay}
-      className={classNames("text-default flex items-center gap-2", className)}
+      className={classNames("text-default flex items-center gap-2 underline", className)}
       rel="noreferrer">
       {providerName || "Link"}
       <Icon name="external-link" className="text-default inline h-4 w-4" />
