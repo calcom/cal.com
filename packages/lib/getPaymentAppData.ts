@@ -38,6 +38,9 @@ export default function getPaymentAppData(
     appId: EventTypeAppsList | null;
     paymentOption: typeof paymentOptionEnum;
     credentialId?: number;
+    refundPolicy?: string;
+    refundDaysCount?: number;
+    refundCountCalendarDays?: boolean;
   } | null = null;
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
@@ -58,6 +61,9 @@ export default function getPaymentAppData(
       appId: null,
       paymentOption: "ON_BOOKING",
       credentialId: undefined,
+      refundPolicy: undefined,
+      refundDaysCount: undefined,
+      refundCountCalendarDays: undefined,
     }
   );
 }
