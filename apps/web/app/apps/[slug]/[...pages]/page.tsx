@@ -1,4 +1,3 @@
-// apps/web/app/apps/[slug]/[...pages]/page.tsx
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
