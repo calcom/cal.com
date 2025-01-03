@@ -89,7 +89,7 @@ async function NotFound() {
           <div className="text-center">
             <p className="text-sm font-semibold uppercase tracking-wide text-black">{t("error_404")}</p>
             <h1 className="font-cal mt-2 text-4xl font-extrabold text-gray-900 sm:text-5xl">
-              Feature is currently disabled
+              {t("feature_currently_disabled") ?? "Feature is currently disabled"}
             </h1>
           </div>
           <div className="mt-12">
@@ -214,7 +214,10 @@ export const generateMetadata = async () => {
   const isInsights = pathname?.startsWith("/insights");
 
   const metadata = await _generateMetadata(
-    (t) => (isInsights ? "Feature is currently disabled" : t("404_page_not_found")),
+    (t) =>
+      isInsights
+        ? t("feature_currently_disabled") ?? "Feature is currently disabled"
+        : t("404_page_not_found"),
     (t) => t("404_page_not_found")
   );
   return {
