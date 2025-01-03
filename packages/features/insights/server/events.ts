@@ -428,26 +428,28 @@ class EventsInsights {
       },
     });
 
-    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees[0] || null]));
+    const bookingMap = new Map(bookings.map((booking) => [booking.uid, booking.attendees]));
 
-    return csvData.map((bookingTimeStatus) => {
+    return csvData.flatMap((bookingTimeStatus) => {
       if (!bookingTimeStatus.uid) {
         // should not be reached because we filtered above
-        return bookingTimeStatus;
+        return [bookingTimeStatus];
       }
 
-      const booker = bookingMap.get(bookingTimeStatus.uid);
+      const attendees = bookingMap.get(bookingTimeStatus.uid);
 
-      if (!booker) {
-        return bookingTimeStatus;
+      if (!attendees?.length) {
+        return [bookingTimeStatus];
       }
 
-      return {
+      // Return a row for each attendee
+      return attendees.map((attendee, index) => ({
         ...bookingTimeStatus,
-        noShowGuest: booker.noShow,
-        bookerEmail: booker.email,
-        bookerName: booker.name,
-      };
+        noShowGuest: attendee.noShow,
+        guestEmail: attendee.email,
+        guestName: attendee.name,
+        isBooker: index === 0 ? "yes" : "no", // Mark the first attendee as the booker
+      }));
     });
   };
 
