@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -67,11 +67,18 @@ const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
 };
 
 export default function Bookings({ status }: { status: (typeof validStatuses)[number] }) {
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -151,7 +158,7 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
           <HorizontalTabs tabs={tabs} />
           <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
-        <FiltersContainer isFiltersVisible={isFiltersVisible} />
+        <FiltersContainer isFiltersVisible={isFiltersVisible || !!user?.isTeamAdminOrOwner} />
         <main className="w-full">
           <div className="flex w-full flex-col" ref={animationParentRef}>
             {query.status === "error" && (
