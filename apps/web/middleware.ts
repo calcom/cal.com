@@ -155,6 +155,7 @@ export const config = {
   matcher: [
     "/403",
     "/500",
+    "/router/:path*",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",

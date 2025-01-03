@@ -32,7 +32,7 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
@@ -43,7 +43,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     log.warn("Error parsing query", queryParsed.error);
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
@@ -59,7 +59,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   if (!form) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
@@ -73,7 +73,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   if (!isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain })) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   const getSerializableFormStart = performance.now();
@@ -170,14 +170,14 @@ export const getServerSideProps = async function getServerSideProps(context: Get
         }),
         permanent: false,
       },
-    };
+    } as const;
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
         destination: `${decidedAction.value}?${stringify(context.query)}`,
         permanent: false,
       },
-    };
+    } as const;
   }
 
   // TODO: Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
