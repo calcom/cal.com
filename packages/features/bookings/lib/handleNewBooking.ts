@@ -1541,6 +1541,23 @@ async function handler(
         eventNameObject,
         bookerUrl,
       });
+
+      req.statusCode = 201;
+      const bookingResponse = {
+        ...booking,
+        user: {
+          ...booking.user,
+          email: null,
+        },
+        paymentRequired: false,
+      };
+
+      return {
+        ...bookingResponse,
+        ...luckyUserResponse,
+        isDryRun,
+        ...(isDryRun ? { troubleshooterData } : {}),
+      };
     }
   } else {
     // If isConfirmedByDefault is false, then booking can't be considered ACCEPTED and thus EventManager has no role to play. Booking is created as PENDING
