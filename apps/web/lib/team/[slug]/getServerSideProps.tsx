@@ -55,7 +55,6 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
-  console.log("team/[slug]/getServerSideProps");
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
     context.req,
     context.params?.orgSlug ?? context.query?.orgSlug
@@ -81,7 +80,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isOrgView: isValidOrgDomain && isOrgProfile,
   });
 
-  console.log({ team });
   if (!isOrgContext && slug) {
     const redirect = await getTemporaryOrgRedirect({
       slugs: slug,
