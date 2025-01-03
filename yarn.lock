@@ -4138,7 +4138,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
-    dub: ^0.35.0
+    dub: ^0.46.9
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -23433,12 +23433,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dub@npm:^0.35.0":
-  version: 0.35.0
-  resolution: "dub@npm:0.35.0"
+"dub@npm:^0.46.9":
+  version: 0.46.9
+  resolution: "dub@npm:0.46.9"
   peerDependencies:
     zod: ">= 3"
-  checksum: 162bd1ff62b62044e3840d3128f341baa8d07828aaf9ca2e94a562b7196df857c1fcdbf2495edfd8b7055970eb1c64298a2265dca81cb4d7bdc65ddc97980905
+  checksum: 5ff91f4418e8108eb9a8c6735ff089fe80105e78c13761b017a352db9698717c4c0ec23ad9a2c7c944b6b02e0228c7b6bfc08cbbe542f09c25e86f706f0f4ce3
   languageName: node
   linkType: hard
 
