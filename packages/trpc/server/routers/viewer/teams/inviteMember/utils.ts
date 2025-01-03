@@ -358,6 +358,7 @@ export async function createNewUsersConnectToOrgIfExists({
                     })),
                   },
                 },
+                ...(timeZone && { timeZone }),
               },
             },
           },
