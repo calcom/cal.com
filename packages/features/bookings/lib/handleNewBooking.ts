@@ -676,8 +676,16 @@ async function handler(
           });
         }
 
+        const eventTypeHosts = eventType.hosts.length
+          ? eventType.hosts
+          : eventType.users.map((user) => ({ user, isFixed: false }));
+        const currentRRHostId = eventTypeHosts.find(
+          (host) =>
+            !host.isFixed &&
+            originalRescheduledBooking?.attendees.some((attendee) => attendee.email === host.user.email)
+        )?.user.id;
         const newLuckyUser = shouldUseSameRRHost
-          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
+          ? freeUsers.find((user) => user.id === (currentRRHostId ?? originalRescheduledBookingUserId))
           : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
@@ -1520,7 +1528,19 @@ async function handler(
             members: newBookedMembers,
             eventTypeMetadata: eventType.metadata,
           });
-          sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+          const reassignedTo = users.find(
+            (user) => !user.isFixed && newBookedMembers.some((member) => member.email === user.email)
+          );
+          sendRoundRobinCancelledEmailsAndSMS(
+            {
+              ...copyEventAdditionalInfo,
+              startTime: dayjs(originalRescheduledBooking.startTime).toString(),
+              endTime: dayjs(originalRescheduledBooking.endTime).toString(),
+            },
+            cancelledMembers,
+            eventType.metadata,
+            !!reassignedTo ? { name: reassignedTo.name, email: reassignedTo.email } : undefined
+          );
         }
       } else {
         if (!isDryRun) {
