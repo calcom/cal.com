@@ -4,9 +4,6 @@ import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadat
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 
@@ -22,28 +19,19 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData, isBrandingHidden } = props;
+  const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
-  const event = await EventRepository.getPublicEvent({
-    username,
-    eventSlug,
-    isTeamEvent: !!(props as TeamTypePageProps)?.teamId,
-    org: isValidOrgDomain ? currentOrgDomain : null,
-    fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
-  });
-
-  const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile.image ?? "";
+  const profileName = eventData?.profile?.name ?? "";
+  const profileImage = eventData?.profile.image ?? "";
 
   return await generateEventBookingPageMetadata({
     profile: { name: profileName, image: profileImage },
     event: {
-      title: event?.title ?? "",
-      hidden: event?.hidden ?? false,
+      title: eventData?.title ?? "",
+      hidden: eventData?.hidden ?? false,
       users: [
-        ...(event?.users || []).map((user) => ({
+        ...(eventData?.users || []).map((user) => ({
           name: `${user.name}`,
           username: `${user.username}`,
         })),
