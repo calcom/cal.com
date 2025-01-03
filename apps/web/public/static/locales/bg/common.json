@@ -2899,5 +2899,10 @@
   "calibration": "Калибриране",
   "shortfall": "Недостиг",
   "routing_form": "Форма за маршрутизиране",
+  "something_unexpected_occurred": "Възникна неочаквана грешка",
+  "500_error_message": "Не сте вие, ние сме.",
+  "dry_run_mode_active": "Правите тестова резервация.",
+  "icon_showcase": "Галерия с икони",
+  "icons_showcase": "Галерия с икони",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

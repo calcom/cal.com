@@ -2899,5 +2899,10 @@
   "calibration": "キャリブレーション",
   "shortfall": "不足",
   "routing_form": "ルーティングフォーム",
+  "something_unexpected_occurred": "予期せぬエラーが発生しました",
+  "500_error_message": "申し訳ありません。システム側で問題が発生しました。",
+  "dry_run_mode_active": "テスト予約を実行中です。",
+  "icon_showcase": "アイコンショーケース",
+  "icons_showcase": "アイコンショーケース",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
