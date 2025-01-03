@@ -16,6 +16,8 @@ const inputSchema = z.object({
     emailVerified: z.boolean().optional(),
     identityProvider: z.string().optional(),
     twoFactorEnabled: z.boolean().optional(),
+    lastActiveAt: z.string().optional(),
+    avatarUrl: z.string().optional(),
   }),
   cardKeys: z.array(z.string()),
 });
@@ -44,7 +46,7 @@ async function handler(request: Request) {
     return NextResponse.json({
       cards: [
         {
-          key: "customer-card",
+          key: "customer-cards",
           timeToLiveSeconds: null,
           components: [
             {
@@ -217,6 +219,30 @@ async function handler(request: Request) {
                 ],
               },
             },
+            {
+              componentSpacer: {
+                spacerSize: "M",
+              },
+            },
+            {
+              componentRow: {
+                rowMainContent: [
+                  {
+                    componentText: {
+                      text: "Last Active At",
+                      textColor: "MUTED",
+                    },
+                  },
+                ],
+                rowAsideContent: [
+                  {
+                    componentText: {
+                      text: customer.lastActiveAt || "Unknown",
+                    },
+                  },
+                ],
+              },
+            },
           ],
         },
       ],
@@ -234,7 +260,9 @@ async function handler(request: Request) {
         user.username || "Unknown",
         user.timeZone,
         user.emailVerified,
-        user.twoFactorEnabled
+        user.twoFactorEnabled,
+        user.lastActiveAt,
+        user.identityProvider
       );
     })
   );
