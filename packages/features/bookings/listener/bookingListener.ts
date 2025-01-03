@@ -182,6 +182,10 @@ class BookingListener {
       }
     }
 
+    await prisma.bookingReference.createMany({
+      data: referencesToCreate,
+    });
+
     const bookingMetadata = bookingMetadataSchema.parse(booking?.metadata || {});
 
     const workflows = await getAllWorkflowsFromEventType(
@@ -373,6 +377,21 @@ class BookingListener {
     } catch (error) {
       log.error("Error while scheduling no show triggers", JSON.stringify({ error }));
     }
+
+    await prisma.booking.update({
+      where: {
+        id: booking.id,
+      },
+      data: {
+        location: evt.location,
+        metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
+        references: {
+          createMany: {
+            data: referencesToCreate,
+          },
+        },
+      },
+    });
     // TODO - Apps :done:
     // TODO - Emails :done:
     // TODO - workflows :done:
