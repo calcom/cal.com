@@ -16,5 +16,5 @@ export default defineConfig({
       randomize: true,
     },
   },
-  dirs: ["./packages/features/tasker/trigger"],
+  dirs: ["./packages/features/tasker/tasks/trigger"],
 });

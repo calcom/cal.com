@@ -7,7 +7,7 @@ class BookingListener {
   static async create(bookingListenerCreateInput: BookingListenerCreateInput) {
     console.log("🚀 ~ BookingListener ~ TRIGGER_PROJECT_ID:", process.env.TRIGGER_PROJECT_ID);
     if (process.env.TRIGGER_PROJECT_ID) {
-      await tasker.create("bookingListener-create", { bookingId: booking.id });
+      await tasker.create("bookingListener-create", { bookingId: bookingListenerCreateInput.booking.id });
       return;
     }
 

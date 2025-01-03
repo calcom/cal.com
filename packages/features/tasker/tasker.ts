@@ -18,6 +18,7 @@ type TaskPayloads = {
     typeof import("./tasks/translateEventTypeData").ZTranslateEventDataPayloadSchema
   >;
   createCRMEvent: string;
+  "bookingListener-create": z.infer<typeof import("./tasks/trigger/create").bookingListenerCreateSchema>;
 };
 export type TaskTypes = keyof TaskPayloads;
 export type TaskHandler = (payload: string) => Promise<void>;
