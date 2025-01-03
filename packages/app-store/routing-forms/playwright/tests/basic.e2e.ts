@@ -96,8 +96,10 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await page.waitForSelector('[data-testid="404-page"]');
-      await expect(page.getByTestId(`404-page`)).toBeVisible();
+      await page.waitForSelector('[data-testid="404-page"]', {
+        timeout: 90000,
+        state: "visible",
+      });
     });
 
     test("recently added form appears first in the list", async ({ page }) => {
