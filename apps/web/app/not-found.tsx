@@ -1,4 +1,5 @@
-import { getTranslate } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
+import { WithLayout } from "app/layoutHOC";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -77,6 +78,10 @@ async function NotFound() {
     },
   ];
 
+  /**
+   * If we're on 404 and the route is insights it means it is disabled
+   * TODO: Abstract this for all disabled features
+   **/
   if (isInsights) {
     return (
       <div className="min-h-screen bg-white px-4" data-testid="404-page">
@@ -100,7 +105,7 @@ async function NotFound() {
     );
   }
 
-  if (!username) return null;
+  if (!username) return <></>;
 
   return (
     <div className="bg-default min-h-screen px-4" data-testid="404-page">
@@ -202,4 +207,24 @@ async function NotFound() {
   );
 }
 
-export default NotFound;
+export const generateMetadata = async () => {
+  const headersList = headers();
+  const pathname = headersList.get("x-pathname") ?? "";
+  const isInsights = pathname?.startsWith("/insights");
+
+  const metadata = await _generateMetadata(
+    (t) => (isInsights ? "Feature is currently disabled" : t("404_page_not_found")),
+    (t) => t("404_page_not_found")
+  );
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+};
+
+export default WithLayout({
+  ServerPage: NotFound,
+});
