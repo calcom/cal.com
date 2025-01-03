@@ -1619,8 +1619,8 @@ model Attribute {
   id String @id @default(uuid())
 
   // This is organization
-  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
   // This is organizationId
   teamId Int
 
@@ -1646,8 +1646,8 @@ model AttributeToUser {
   id String @id @default(uuid())
 
   // This is the membership of the organization
-  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  
+  member Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
   // This is the membership id of the organization
   memberId Int
 

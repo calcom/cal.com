@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "要更改的擁有者名稱",
   "no_filter_set": "未設定篩選條件",
   "booking_dry_run_successful": "預約測試成功",
+  "booking_dry_run_successful_description": "測試運行已成功完成。",
   "dont_have_access_this_page": "您無權存取此頁面",
   "you_need_admin_or_owner_privileges_to_access": "若要查看或使用此頁面，您必須具有管理員或擁有者權限",
   "field_type": "欄位類型",
@@ -2898,5 +2899,10 @@
   "calibration": "校準",
   "shortfall": "短缺",
   "routing_form": "路由表單",
+  "something_unexpected_occurred": "發生意外錯誤",
+  "500_error_message": "這不是您的問題，是我們這邊出錯了。",
+  "dry_run_mode_active": "您正在進行測試預約。",
+  "icon_showcase": "圖示展示",
+  "icons_showcase": "圖示展示",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

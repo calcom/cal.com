@@ -282,18 +282,21 @@ export function RoutingFormResponsesTableContent({
 
   const columnFilters = useColumnFilters();
 
-  const { data: headers, isLoading: isHeadersLoading } =
-    trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-      {
-        userId: selectedUserId ?? undefined,
-        teamId: selectedTeamId ?? undefined,
-        isAll: isAll ?? false,
-        routingFormId: selectedRoutingFormId ?? undefined,
-      },
-      {
-        enabled: initialConfigIsReady,
-      }
-    );
+  const {
+    data: headers,
+    isLoading: isHeadersLoading,
+    isSuccess: isHeadersSuccess,
+  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+    {
+      userId: selectedUserId ?? undefined,
+      teamId: selectedTeamId ?? undefined,
+      isAll: isAll ?? false,
+      routingFormId: selectedRoutingFormId ?? undefined,
+    },
+    {
+      enabled: initialConfigIsReady,
+    }
+  );
 
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
@@ -323,7 +326,7 @@ export function RoutingFormResponsesTableContent({
   const totalFetched = flatData.length;
 
   const processedData = useMemo(() => {
-    if (isHeadersLoading) return [];
+    if (!isHeadersSuccess) return [];
     return flatData.map((response) => {
       const row: RoutingFormTableRow = {
         id: response.id,
@@ -363,7 +366,7 @@ export function RoutingFormResponsesTableContent({
 
       return row;
     });
-  }, [flatData, headers, isHeadersLoading]);
+  }, [flatData, headers, isHeadersSuccess]);
 
   const statusOrder: Record<BookingStatus, number> = {
     [BookingStatus.ACCEPTED]: 1,
@@ -375,8 +378,12 @@ export function RoutingFormResponsesTableContent({
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    if (!isHeadersSuccess) {
+      return [];
+    }
+
+    return [
       columnHelper.accessor("routedToBooking", {
         id: "bookedBy",
         header: t("routing_form_insights_booked_by"),
@@ -412,7 +419,6 @@ export function RoutingFormResponsesTableContent({
         return columnHelper.accessor(fieldHeader.id, {
           id: fieldHeader.id,
           header: convertToTitleCase(fieldHeader.label),
-          size: 200,
           cell: (info) => {
             const values = info.getValue();
             if (isMultiSelect) {
@@ -456,7 +462,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("routedToBooking", {
         id: "bookingStatus",
         header: t("routing_form_insights_booking_status"),
-        size: 250,
         cell: (info) => (
           <div className="max-w-[250px]">
             <BookingStatusBadge booking={info.getValue()} />
@@ -480,7 +485,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("routedToBooking", {
         id: "bookingAt",
         header: t("routing_form_insights_booking_at"),
-        size: 250,
         enableColumnFilter: false,
         cell: (info) => (
           <div className="max-w-[250px]">
@@ -496,7 +500,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("routedToBooking", {
         id: "assignmentReason",
         header: t("routing_form_insights_assignment_reason"),
-        size: 250,
         meta: {
           filter: { type: "text" },
         },
@@ -515,7 +518,6 @@ export function RoutingFormResponsesTableContent({
       columnHelper.accessor("createdAt", {
         id: "submittedAt",
         header: t("routing_form_insights_submitted_at"),
-        size: 250,
         enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
@@ -523,9 +525,8 @@ export function RoutingFormResponsesTableContent({
           </div>
         ),
       }),
-    ],
-    [headers, t, copyToClipboard]
-  );
+    ];
+  }, [isHeadersSuccess, headers, t, copyToClipboard]);
 
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
@@ -534,7 +535,7 @@ export function RoutingFormResponsesTableContent({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
-      size: 200,
+      size: 150,
     },
     state: {
       columnFilters,

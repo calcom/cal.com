@@ -2216,7 +2216,7 @@
   "org_no_teams_yet": "此组织尚无团队",
   "org_no_teams_yet_description": "如果您是管理员，请务必创建要在此处显示的团队。",
   "set_up": "设置",
-  "my_profile": "我的个人资料",
+  "my_profile": "我的资料",
   "my_settings": "我的设置",
   "crm": "CRM",
   "messaging": "消息",
@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "要更改的所有者名称",
   "no_filter_set": "未设置筛选条件",
   "booking_dry_run_successful": "预订测试成功",
+  "booking_dry_run_successful_description": "测试运行已成功完成。",
   "dont_have_access_this_page": "您无权访问此页面",
   "you_need_admin_or_owner_privileges_to_access": "要查看或操作此页面，您必须拥有管理员或所有者权限",
   "field_type": "字段类型",
@@ -2898,5 +2899,10 @@
   "calibration": "校准",
   "shortfall": "缺口",
   "routing_form": "路由表单",
+  "something_unexpected_occurred": "发生了意外错误",
+  "500_error_message": "这不是您的问题，是我们的问题。",
+  "dry_run_mode_active": "您正在进行测试预订。",
+  "icon_showcase": "图标展示",
+  "icons_showcase": "图标展示",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

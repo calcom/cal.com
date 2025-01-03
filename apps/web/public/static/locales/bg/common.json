@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Име на собственик за промяна",
   "no_filter_set": "Няма зададен филтър",
   "booking_dry_run_successful": "Тестовото резервиране е успешно",
+  "booking_dry_run_successful_description": "Тестовото изпълнение завърши успешно.",
   "dont_have_access_this_page": "Нямате достъп до тази страница",
   "you_need_admin_or_owner_privileges_to_access": "За да видите или взаимодействате с тази страница, трябва да имате администраторски права или да сте собственик",
   "field_type": "Тип на полето",
@@ -2898,5 +2899,10 @@
   "calibration": "Калибриране",
   "shortfall": "Недостиг",
   "routing_form": "Форма за маршрутизиране",
+  "something_unexpected_occurred": "Възникна неочаквана грешка",
+  "500_error_message": "Не сте вие, ние сме.",
+  "dry_run_mode_active": "Правите тестова резервация.",
+  "icon_showcase": "Галерия с икони",
+  "icons_showcase": "Галерия с икони",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

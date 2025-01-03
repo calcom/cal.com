@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "שם הבעלים לשינוי",
   "no_filter_set": "לא הוגדר סינון",
   "booking_dry_run_successful": "הרצת הניסיון של ההזמנה הצליחה",
+  "booking_dry_run_successful_description": "הריצה הניסיונית הושלמה בהצלחה.",
   "dont_have_access_this_page": "אין לך גישה לדף זה",
   "you_need_admin_or_owner_privileges_to_access": "כדי לצפות או לפעול בדף זה, עליך להיות בעל הרשאות מנהל או בעלים",
   "field_type": "סוג שדה",
@@ -2898,5 +2899,10 @@
   "calibration": "כיול",
   "shortfall": "חוסר",
   "routing_form": "טופס ניתוב",
+  "something_unexpected_occurred": "אירעה שגיאה בלתי צפויה",
+  "500_error_message": "זו לא את/ה, זה אנחנו",
+  "dry_run_mode_active": "אתה מבצע הזמנת ניסיון.",
+  "icon_showcase": "תצוגת אייקון",
+  "icons_showcase": "תצוגת אייקונים",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
