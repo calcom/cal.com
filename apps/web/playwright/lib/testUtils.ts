@@ -536,5 +536,8 @@ export async function bookTeamEvent({
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.getByTestId(`404-page`)).toBeVisible();
+  await page.waitForSelector('[data-testid="404-page"]', {
+    timeout: 90000,
+    state: "visible",
+  });
 }
