@@ -3,16 +3,13 @@
 import Link from "next/link";
 
 import Shell from "@calcom/features/shell/Shell";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCard, SkeletonText } from "@calcom/ui";
 
 import type { CategoryDataProps } from "@lib/apps/categories/[category]/getStaticProps";
 
-export default function Apps({ apps }: CategoryDataProps) {
-  const searchParams = useCompatSearchParams();
+export default function Apps({ apps, category }: CategoryDataProps) {
   const { t, isLocaleReady } = useLocale();
-  const category = searchParams?.get("category");
 
   return (
     <>

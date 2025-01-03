@@ -23,5 +23,6 @@ export const getStaticProps = async (category: AppCategories) => {
   const apps = appStore.filter((app) => dbAppsSlugs.includes(app.slug));
   return {
     apps,
+    category,
   };
 };

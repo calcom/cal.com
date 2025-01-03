@@ -1,11 +1,10 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { AppCategories } from "@calcom/prisma/enums";
-import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
 
 import { getStaticProps } from "@lib/apps/categories/[category]/getStaticProps";
 
@@ -24,27 +23,16 @@ export const generateMetadata = async () => {
 
 export const generateStaticParams = async () => {
   const paths = Object.keys(AppCategories);
-  const isPrismaAvailable = await isPrismaAvailableCheck();
-
-  if (!isPrismaAvailable) {
-    // Database is not available at build time. Make sure we fall back to building these pages on demand
-    return [];
-  }
-
   return paths.map((category) => ({ category }));
 };
 
 async function Page({ params, searchParams }: PageProps) {
   const parsed = querySchema.safeParse({ ...params, ...searchParams });
   if (!parsed.success) {
-    notFound();
+    redirect("/apps/categories/calendar");
   }
 
   const props = await getStaticProps(parsed.data.category);
-
-  if (!props) {
-    notFound();
-  }
 
   return <CategoryPage {...props} />;
 }
