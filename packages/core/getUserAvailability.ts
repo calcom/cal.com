@@ -1,10 +1,10 @@
 import type {
   Booking,
-  Prisma,
   OutOfOfficeEntry,
   OutOfOfficeReason,
-  User,
+  Prisma,
   EventType as PrismaEventType,
+  User,
 } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 import { z } from "zod";
@@ -22,8 +22,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -270,7 +269,8 @@ type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
   query: GetUserAvailabilityQuery,
-  initialData?: GetUserAvailabilityInitialData
+  initialData?: GetUserAvailabilityInitialData,
+  isOverlayUser?: boolean
 ) {
   const {
     username,
@@ -403,6 +403,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentBookings: initialData?.currentBookings,
     bypassBusyCalendarTimes,
     shouldServeCache,
+    isOverlayUser,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [

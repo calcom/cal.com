@@ -3,7 +3,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
-import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
+import type { EventBusyDate, EventBusyData, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
@@ -50,8 +50,9 @@ const getCalendarsEvents = async (
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
-  shouldServeCache?: boolean
-): Promise<EventBusyDate[][]> => {
+  shouldServeCache?: boolean,
+  isOverlayUser?: boolean
+): Promise<EventBusyData[][]> => {
   const calendarCredentials = withCredentials
     .filter((credential) => credential.type.endsWith("_calendar"))
     // filter out invalid credentials - these won't work.
@@ -86,12 +87,13 @@ const getCalendarsEvents = async (
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await c.getAvailability(
-      dateFrom,
-      dateTo,
-      passedSelectedCalendars,
-      shouldServeCache
-    );
+    let eventBusyDates = [];
+    // we are getting event titles from only google calendar and office 365 calendar services for now
+    if (isOverlayUser && (type === "google_calendar" || type === "office365_calendar")) {
+      eventBusyDates = c.getEventList ? await c.getEventList(dateFrom, dateTo, passedSelectedCalendars) : [];
+    } else {
+      eventBusyDates = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars, shouldServeCache);
+    }
     performance.mark("eventBusyDatesEnd");
     performance.measure(
       `[getAvailability for ${selectedCalendarIds.join(", ")}][$1]'`,
