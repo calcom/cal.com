@@ -1,4 +1,3 @@
-// apps/web/modules/apps/[slug]/[...page]/pages-view.tsx
 "use client";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";

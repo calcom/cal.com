@@ -1,4 +1,3 @@
-// packages/app-store/routing-forms/pages/app-routing.config.tsx
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "../components/getServerSidePropsSingleForm";

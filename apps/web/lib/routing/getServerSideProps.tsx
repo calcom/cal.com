@@ -25,7 +25,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   await ssr.viewer.teamsAndUserProfilesQuery.prefetch();
   return {
     props: {
-      trpcState: ssr.dehydrate(),
+      trpcState: await ssr.dehydrate(),
     },
   };
 };
