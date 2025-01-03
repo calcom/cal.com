@@ -237,12 +237,13 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinReassignedEmailsAndSMS = async (
-  calEvent: CalendarEvent,
-  members: Person[],
-  reassignedTo: { name: string | null; email: string },
-  eventTypeMetadata?: EventTypeMetadata
-) => {
+export const sendRoundRobinReassignedEmailsAndSMS = async (args: {
+  calEvent: CalendarEvent;
+  members: Person[];
+  reassignedTo: { name: string | null; email: string };
+  eventTypeMetadata?: EventTypeMetadata;
+}) => {
+  const { calEvent, members, reassignedTo, eventTypeMetadata } = args;
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
