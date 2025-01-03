@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
@@ -18,7 +18,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug } = props;
+  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
@@ -31,12 +31,21 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   });
 
   const profileName = event?.profile?.name ?? "";
+  const profileImage = event?.profile.image;
   const title = event?.title ?? "";
-
-  return await _generateMetadata(
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
-  );
+  const metadata = await generateEventBookingPageMetadata({
+    event: {
+      hidden: event?.hidden ?? false,
+      title,
+      users: event?.users ?? [],
+    },
+    hideBranding: isBrandingHidden,
+    orgSlug: eventData?.entity.orgSlug ?? null,
+    isSEOIndexable: !!isSEOIndexable,
+    profile: { name: profileName, image: profileImage ?? "" },
+    isReschedule: !!rescheduleUid,
+  });
+  return metadata;
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 

@@ -4,7 +4,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
@@ -16,7 +15,7 @@ import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-mee
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const { slug: eventSlug, user: username } = await getData(context);
+  const { slug: eventSlug, user: username, isBrandingHidden } = await getData(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
@@ -34,9 +33,10 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
   return await _generateMetadata(
     () => `${title} | ${profileName}`,
-    () => `${title}`
+    () => `${title}`,
+    isBrandingHidden
   );
 };
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
-export default WithLayout({ getLayout, getData, Page })<"P">;
+export default WithLayout({ getData, Page, isBookingPage: true })<"P">;
