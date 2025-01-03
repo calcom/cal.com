@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import * as Sentry from "@sentry/nextjs";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { subtract } from "@calcom/lib/date-ranges";
 import { intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
@@ -190,26 +191,43 @@ export async function getBusyTimes(params: {
     getBookingsForBusyTimesSpan.end();
   }
 
-  const bookingSeatCountMap: { [x: string]: number } = {};
+  const bookingSeatCountMap = new Set<string>();
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-      if (rest._count?.seatsReferences) {
+      if (eventType?.seatsPerTimeSlot) {
         const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
-        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-        bookingSeatCountMap[bookedAt]++;
+        bookingSeatCountMap.add(bookedAt);
         // Seat references on the current event are non-blocking until the event is fully booked.
         if (
           // there are still seats available.
-          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
           // and this is the seated event, other event types should be blocked.
+          rest._count?.seatsReferences &&
+          rest._count.seatsReferences < eventType.seatsPerTimeSlot &&
           eventTypeId === eventType?.id
         ) {
+          if (eventType?.beforeEventBuffer || eventType?.afterEventBuffer) {
+            aggregate.push(
+              {
+                start: dayjs(startTime)
+                  .subtract((eventType.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+                  .toDate(),
+                end: dayjs(startTime).toDate(),
+              },
+              {
+                start: dayjs(endTime).toDate(),
+                end: dayjs(endTime)
+                  .add((eventType.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+                  .toDate(),
+              }
+            );
+          }
+
           // then we do not add the booking to the busyTimes.
           return aggregate;
         }
         // if it does get blocked at this point; we remove the bookingSeatCountMap entry
         // doing this allows using the map later to remove the ranges from calendar busy times.
-        delete bookingSeatCountMap[bookedAt];
+        bookingSeatCountMap.delete(bookedAt);
       }
       if (rest.uid === rescheduleUid) {
         return aggregate;
@@ -257,12 +275,13 @@ export async function getBusyTimes(params: {
       })
     );
 
-    const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
+    const openSeatsDateRanges: { start: Dayjs; end: Dayjs }[] = [];
+    bookingSeatCountMap.forEach((key) => {
       const [start, end] = key.split("<>");
-      return {
+      openSeatsDateRanges.push({
         start: dayjs(start),
         end: dayjs(end),
-      };
+      });
     });
 
     if (rescheduleUid) {
