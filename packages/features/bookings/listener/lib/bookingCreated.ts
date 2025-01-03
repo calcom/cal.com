@@ -1,19 +1,14 @@
-import type { DestinationCalendar } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
-import type { TFunction } from "next-i18next";
 
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { MeetLocationType } from "@calcom/app-store/locations";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
-import type { EventNameObjectType } from "@calcom/core/event";
 import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
-import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
-import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { handleAppsStatus } from "@calcom/features/bookings/lib/handleNewBooking/handleAppsStatus";
 import { scheduleNoShowTriggers } from "@calcom/features/bookings/lib/handleNewBooking/scheduleNoShowTriggers";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -35,7 +30,9 @@ import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
-import type { CalendarEvent, AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
+import type { AdditionalInformation } from "@calcom/types/Calendar";
+
+import type { BookingListenerCreateInput } from "../types";
 
 const bookingCreated = async ({
   evt,
@@ -48,34 +45,7 @@ const bookingCreated = async ({
   teamId,
   platformClientId,
   bookerUrl,
-}: {
-  evt: CalendarEvent;
-  allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
-  organizerUser: {
-    id: number;
-    email: string;
-    destinationCalendar: DestinationCalendar | null;
-    username: string | null;
-  };
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
-  tOrganizer: TFunction;
-  booking: {
-    id: number;
-    startTime: Date;
-    endTime: Date;
-    location?: string | null;
-    appsStatus?: AppsStatus[];
-    iCalUID: string | null;
-    description: string | null;
-    customInputs: Prisma.JsonValue | null;
-    metadata: Prisma.JsonValue | null;
-    smsReminderNumber?: string | null;
-  };
-  eventNameObject: EventNameObjectType;
-  teamId?: number | null;
-  platformClientId?: string;
-  bookerUrl: string;
-}) => {
+}: BookingListenerCreateInput) => {
   const log = logger.getSubLogger({ prefix: ["[BookingListener.create]"] });
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
 
