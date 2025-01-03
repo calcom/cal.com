@@ -32,6 +32,7 @@ import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import type { HorizontalTabItemProps } from "@calcom/ui";
 import {
   Alert,
   Badge,
@@ -89,6 +90,7 @@ interface InfiniteEventTypeListProps {
 
 interface InfiniteTeamsTabProps {
   activeEventTypeGroup: InfiniteEventTypeGroup;
+  hideSearch?: boolean;
 }
 
 const querySchema = z.object({
@@ -96,7 +98,7 @@ const querySchema = z.object({
 });
 
 const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
-  const { activeEventTypeGroup } = props;
+  const { activeEventTypeGroup, hideSearch } = props;
   const { t } = useLocale();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -124,19 +126,21 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
 
   return (
     <div>
-      <TextField
-        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
-        addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        addOnClassname="!border-muted"
-        containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
-        type="search"
-        value={searchTerm}
-        autoComplete="false"
-        onChange={(e) => {
-          setSearchTerm(e.target.value);
-        }}
-        placeholder={t("search")}
-      />
+      {!hideSearch && (
+        <TextField
+          className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+          addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+          addOnClassname="!border-muted"
+          containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
+          type="search"
+          value={searchTerm}
+          autoComplete="false"
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+          }}
+          placeholder={t("search")}
+        />
+      )}
       {!!activeEventTypeGroup && (
         <InfiniteEventTypeList
           pages={query?.data?.pages}
@@ -901,6 +905,7 @@ const InfiniteScrollMain = ({
   const searchParams = useCompatSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
+  const { t } = useLocale();
 
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
@@ -910,10 +915,11 @@ const InfiniteScrollMain = ({
     return <InfiniteSkeletonLoader />;
   }
 
-  const tabs = eventTypeGroups.map((item) => ({
+  const tabs: HorizontalTabItemProps[] = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
     avatar: item.profile.image,
+    linkShallow: true,
   }));
 
   const activeEventTypeGroup =
@@ -935,8 +941,34 @@ const InfiniteScrollMain = ({
     <>
       {eventTypeGroups.length >= 1 && (
         <>
-          <HorizontalTabs tabs={tabs} />
-          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
+          <div className="relative mb-8 flex items-center justify-between gap-4">
+            <div className="relative min-w-0 flex-grow overflow-hidden">
+              <HorizontalTabs
+                tabs={tabs}
+                className="no-scrollbar flex h-9 space-x-1 overflow-x-scroll whitespace-nowrap rounded-md"
+              />
+              <div className="from-background dark:from-darkgray-100 pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-white to-transparent" />
+            </div>
+            <TextField
+              className="max-w-64 bg-subtle !border-muted rounded-md !pl-0 focus:!ring-offset-0"
+              addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
+              addOnClassname="!border-muted"
+              containerClassName="min-w-64 focus:!ring-offset-0 h-9"
+              type="search"
+              autoComplete="false"
+              placeholder={t("search")}
+              onChange={(e) => {
+                const setSearchTerm = (window as Window & { setSearchTerm?: (term: string) => void })
+                  .setSearchTerm;
+                if (setSearchTerm) {
+                  setSearchTerm(e.target.value);
+                }
+              }}
+            />
+          </div>
+          <div className="mb-4">
+            <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} hideSearch={true} />
+          </div>
         </>
       )}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}

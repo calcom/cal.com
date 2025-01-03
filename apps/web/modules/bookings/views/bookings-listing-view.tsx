@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Fragment, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -23,7 +23,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import { validStatuses } from "~/bookings/lib/validStatuses";
+import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -147,8 +147,13 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
       title={t("bookings")}
       description={t("bookings_description")}>
       <div className="flex flex-col">
-        <div className="flex flex-row flex-wrap justify-between">
-          <HorizontalTabs tabs={tabs} />
+        <div className="relative mb-4 flex items-center justify-between gap-4">
+          <div className="relative min-w-0 flex-grow overflow-hidden">
+            <HorizontalTabs
+              tabs={tabs}
+              className="no-scrollbar flex h-9 space-x-1 overflow-x-scroll whitespace-nowrap rounded-md"
+            />
+          </div>
           <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
         </div>
         <FiltersContainer isFiltersVisible={isFiltersVisible} />
