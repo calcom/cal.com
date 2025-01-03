@@ -91,6 +91,7 @@ export const AppForm = ({
         { label: "Calendar", value: "calendar" },
         { label: "Conferencing", value: "conferencing" },
         { label: "CRM", value: "crm" },
+        { label: "AI", value: "ai" },
         { label: "Messaging", value: "messaging" },
         { label: "Payment", value: "payment" },
         { label: "Other", value: "other" },

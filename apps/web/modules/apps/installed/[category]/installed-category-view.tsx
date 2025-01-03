@@ -108,7 +108,7 @@ const IntegrationsContainer = ({
     analytics: "chart-bar",
     payment: "credit-card",
     other: "grid-3x3",
-    web3: "credit-card", // deprecated
+    ai: "ai",
     video: "video", // deprecated
     messaging: "mail",
     crm: "contact",
