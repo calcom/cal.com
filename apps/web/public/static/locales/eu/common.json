@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrazioa",
   "shortfall": "Gabezia",
   "routing_form": "Bideratze-formularioa",
+  "something_unexpected_occurred": "Ustekabeko zerbait gertatu da",
+  "500_error_message": "Ez zara zu, gu gara",
+  "dry_run_mode_active": "Proba-erreserba bat egiten ari zara.",
+  "icon_showcase": "Ikonoen erakusleihoa",
+  "icons_showcase": "Ikonoen erakusleihoa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
