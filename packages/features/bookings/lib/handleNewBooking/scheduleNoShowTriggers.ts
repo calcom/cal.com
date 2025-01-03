@@ -1,9 +1,11 @@
 import dayjs from "@calcom/dayjs";
+import type { ProcessWorkflowStepParams } from "@calcom/ee/workflows/lib/processWorkflowStep";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import tasker from "@calcom/features/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
-type ScheduleNoShowTriggersArgs = {
+interface ScheduleNoShowTriggersArgs extends ProcessWorkflowStepParams {
   booking: {
     startTime: Date;
     id: number;
@@ -14,8 +16,11 @@ type ScheduleNoShowTriggersArgs = {
   teamId?: number | null;
   orgId?: number | null;
   oAuthClientId?: string | null;
+  workflows: Workflow[];
   isDryRun?: boolean;
-};
+  isNotConfirmed?: boolean;
+  isFirstRecurringEvent?: boolean;
+}
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
   const {
@@ -26,10 +31,17 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     teamId,
     orgId,
     oAuthClientId,
+    workflows,
     isDryRun = false,
+    isNotConfirmed = false,
+    calendarEvent,
+    emailAttendeeSendToOverride = "",
+    smsReminderNumber,
+    hideBranding,
+    seatReferenceUid,
   } = args;
 
-  if (isDryRun) return;
+  if (isDryRun || isNotConfirmed) return;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
@@ -96,13 +108,69 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     })
   );
 
-  await Promise.all(noShowPromises);
+  const workflowHostsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+  );
 
-  // TODO: Support no show workflows
-  // const workflowHostsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
-  // );
-  // const workflowGuestsNoShow = workflows.filter(
-  //   (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-  // );
+  noShowPromises.push(
+    ...workflowHostsNoShow.map((workflow) => {
+      if (booking?.startTime && workflow.time && workflow.timeUnit) {
+        const scheduledAt = dayjs(booking.startTime)
+          .add(workflow.time, workflow.timeUnit.toLowerCase() as dayjs.ManipulateType)
+          .toDate();
+
+        return tasker.create(
+          "triggerHostNoShowWorkflow",
+          {
+            triggerEvent: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+            bookingId: booking.id,
+            // Prevents null values from being serialized
+            workflow: { ...workflow, time: workflow.time, timeUnit: workflow.timeUnit },
+            calendarEvent,
+            emailAttendeeSendToOverride,
+            smsReminderNumber,
+            hideBranding,
+            seatReferenceUid,
+          },
+          { scheduledAt }
+        );
+      }
+
+      return Promise.resolve();
+    })
+  );
+
+  const workflowGuestsNoShow = workflows.filter(
+    (workflow) => workflow.trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
+
+  noShowPromises.push(
+    ...workflowGuestsNoShow.map((workflow) => {
+      if (booking?.startTime && workflow.time && workflow.timeUnit) {
+        const scheduledAt = dayjs(booking.startTime)
+          .add(workflow.time, workflow.timeUnit.toLowerCase() as dayjs.ManipulateType)
+          .toDate();
+
+        return tasker.create(
+          "triggerGuestNoShowWorkflow",
+          {
+            triggerEvent: WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+            bookingId: booking.id,
+            // Prevents null values from being serialized
+            workflow: { ...workflow, time: workflow.time, timeUnit: workflow.timeUnit },
+            calendarEvent,
+            emailAttendeeSendToOverride,
+            smsReminderNumber,
+            hideBranding,
+            seatReferenceUid,
+          },
+          { scheduledAt }
+        );
+      }
+
+      return Promise.resolve();
+    })
+  );
+
+  await Promise.all(noShowPromises);
 };

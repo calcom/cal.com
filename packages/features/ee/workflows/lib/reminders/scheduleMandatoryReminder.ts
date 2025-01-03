@@ -5,7 +5,7 @@ import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
-import type { ExtendedCalendarEvent } from "./reminderScheduler";
+import type { ExtendedCalendarEvent } from "../processWorkflowStep";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 

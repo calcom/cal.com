@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import type { ExtendedCalendarEvent } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -8,7 +9,7 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
-import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
+import type { TWebhook, TTriggerNoShowPayloadSchema, TWorkflow } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
 
 type OriginalRescheduledBooking =
@@ -144,15 +145,21 @@ export const prepareNoShowTrigger = async (
   payload: string
 ): Promise<{
   booking: Booking;
-  webhook: TWebhook;
+  webhook?: TWebhook;
+  workflow?: TWorkflow;
   hostsThatDidntJoinTheCall: Host[];
   hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
   originalRescheduledBooking?: OriginalRescheduledBooking;
   participants: ParticipantsWithEmail;
+  smsReminderNumber?: string | null;
+  emailAttendeeSendToOverride?: string | null;
+  hideBranding?: boolean;
+  seatReferenceUid?: string | null;
+  calendarEvent?: ExtendedCalendarEvent;
 } | void> => {
-  const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
+  const { bookingId, calendarEvent, ...rest } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
   let originalRescheduledBooking = null;
@@ -176,7 +183,7 @@ export const prepareNoShowTrigger = async (
       "Booking is not accepted",
       safeStringify({
         bookingId,
-        webhook: { id: webhook.id },
+        ...rest,
       })
     );
 
@@ -191,7 +198,7 @@ export const prepareNoShowTrigger = async (
       "Daily video reference not found",
       safeStringify({
         bookingId,
-        webhook: { id: webhook.id },
+        ...rest,
       })
     );
     throw new Error(`Daily video reference not found in triggerHostNoShow with bookingId ${bookingId}`);
@@ -225,9 +232,10 @@ export const prepareNoShowTrigger = async (
     hostsThatJoinedTheCall,
     booking,
     numberOfHostsThatJoined,
-    webhook,
     didGuestJoinTheCall,
     originalRescheduledBooking,
     participants: participantsWithEmail,
+    calendarEvent: calendarEvent as ExtendedCalendarEvent | undefined,
+    ...rest,
   };
 };

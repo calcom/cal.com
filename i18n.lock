@@ -1266,8 +1266,8 @@ checksums:
     number_provided: 3486dd81e0aace30d7d39116a512dc77
     before_event_trigger: 8f4c3aa39367d1e1d22d0380ba73591c
     event_cancelled_trigger: b5d22f397e0f564fcf431032b75ff1af
-    after_hosts_cal_video_no_show: 3ad095ab31649d79abbaf4fff4460bf5
-    after_guests_cal_video_no_show: edf9db3ae09d0d89406efb1656d31820
+    after_hosts_cal_video_no_show_trigger: 3ad095ab31649d79abbaf4fff4460bf5
+    after_guests_cal_video_no_show_trigger: edf9db3ae09d0d89406efb1656d31820
     new_event_trigger: fbee38b5765412419941add7ff1e3fb9
     email_host_action: 9566929caf21c96cedc11447e1de34ff
     email_attendee_action: 3ca2ca348baef93742f3a1889ffcc96b

@@ -1,5 +1,6 @@
+import { processWorkflowStep } from "@calcom/ee/workflows/lib/processWorkflowStep";
 import { prisma } from "@calcom/prisma";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import type { Booking, Host } from "./common";
 import { calculateMaxStartTime, sendWebhookPayload, prepareNoShowTrigger, log } from "./common";
@@ -39,21 +40,50 @@ export async function triggerHostNoShow(payload: string): Promise<void> {
 
   const { booking, webhook, hostsThatDidntJoinTheCall, originalRescheduledBooking, participants } = result;
 
-  const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
+  if (webhook) {
+    const maxStartTime = calculateMaxStartTime(booking.startTime, webhook.time, webhook.timeUnit);
 
-  const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
-    return sendWebhookPayload(
-      webhook,
-      WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
-      booking,
-      maxStartTime,
-      participants,
-      originalRescheduledBooking,
-      host.email
-    );
-  });
-
-  await Promise.all(hostsNoShowPromises);
+    const hostsNoShowPromises = hostsThatDidntJoinTheCall.map((host) => {
+      return sendWebhookPayload(
+        webhook,
+        WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW,
+        booking,
+        maxStartTime,
+        participants,
+        originalRescheduledBooking,
+        host.email
+      );
+    });
+    await Promise.all(hostsNoShowPromises);
+  }
 
   await markHostsAsNoShowInBooking(booking, hostsThatDidntJoinTheCall);
 }
+
+export const triggerHostNoShowWorkflow = async (payload: string): Promise<void> => {
+  const result = await prepareNoShowTrigger(payload);
+  if (!result) return;
+
+  const { workflow } = result;
+
+  if (workflow) {
+    if (
+      workflow.steps.length === 0 ||
+      workflow.trigger !== WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW
+    )
+      return;
+
+    for (const step of workflow.steps) {
+      if (!result?.calendarEvent) {
+        continue;
+      }
+      await processWorkflowStep(workflow, step, {
+        calendarEvent: result?.calendarEvent,
+        emailAttendeeSendToOverride: result?.emailAttendeeSendToOverride ?? undefined,
+        smsReminderNumber: result?.smsReminderNumber ?? null,
+        hideBranding: result?.hideBranding,
+        seatReferenceUid: result?.seatReferenceUid ?? undefined,
+      });
+    }
+  }
+};
