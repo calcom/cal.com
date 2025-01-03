@@ -129,7 +129,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             className="mt-2 w-60"
             options={recordOptions}
             value={createEventOnSelectedOption}
-            onChange={(e) => {
+            onChange={(e?: { label: string; value: SalesforceRecordEnum }) => {
               if (e) {
                 setCreateEventOnSelectedOption(e);
                 setAppData("createEventOn", e.value);
@@ -365,7 +365,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Select
                       options={fieldTypeOptions}
                       value={writeToPersonObjectFieldType}
-                      onChange={(e) => {
+                      onChange={(e?: { label: string; value: SalesforceFieldType }) => {
                         if (e) {
                           setWriteToPersonObjectFieldType(e);
                           setNewOnBookingWriteToPersonObjectField({
@@ -382,7 +382,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                       <Select
                         options={dateFieldValueOptions}
                         value={dateFieldValue}
-                        onChange={(e) => {
+                        onChange={(e?: { label: string; value: DateFieldTypeData }) => {
                           if (e) {
                             setDateValue(e);
                             setNewOnBookingWriteToPersonObjectField({
@@ -408,7 +408,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     <Select
                       options={whenToWriteToRecordOptions}
                       value={whenToWriteToPersonRecord}
-                      onChange={(e) => {
+                      onChange={(e?: { label: string; value: WhenToWriteToRecord }) => {
                         if (e) {
                           setWhenToWriteToPersonRecord(e);
                           setNewOnBookingWriteToPersonObjectField({
@@ -507,7 +507,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                     className="mt-2 w-60"
                     options={checkOwnerOptions}
                     value={checkOwnerSelectedOption}
-                    onChange={(e) => {
+                    onChange={(e?: { label: string; value: SalesforceRecordEnum }) => {
                       if (e) {
                         setCheckOwnerSelectedOption(e);
                         setAppData("roundRobinSkipCheckRecordOn", e.value);

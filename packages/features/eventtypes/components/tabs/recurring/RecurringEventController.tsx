@@ -140,7 +140,7 @@ export default function RecurringEventController({
                         )}
                         innerClassNames={customClassNames?.frequencyUnitSelect?.innerClassNames}
                         isDisabled={recurringLocked.disabled}
-                        onChange={(event) => {
+                        onChange={(event?: { value: string }) => {
                           const newVal = {
                             ...recurringEventState,
                             freq: parseInt(event?.value || `${Frequency.WEEKLY}`),

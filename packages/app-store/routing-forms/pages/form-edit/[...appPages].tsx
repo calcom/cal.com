@@ -4,6 +4,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import type { ClassNamesState } from "react-select";
 import { v4 as uuidv4 } from "uuid";
 
 import Shell from "@calcom/features/shell/Shell";
@@ -235,11 +236,11 @@ function Field({
                   <SelectField
                     maxMenuHeight={200}
                     styles={{
-                      singleValue: (baseStyles) => ({
+                      singleValue: (baseStyles: ClassNamesState) => ({
                         ...baseStyles,
                         fontSize: "14px",
                       }),
-                      option: (baseStyles) => ({
+                      option: (baseStyles: ClassNamesState) => ({
                         ...baseStyles,
                         fontSize: "14px",
                       }),
@@ -248,7 +249,7 @@ function Field({
                     isDisabled={!!router}
                     containerClassName="data-testid-field-type"
                     options={FieldTypes}
-                    onChange={(option) => {
+                    onChange={(option: (typeof FieldTypes)[0]) => {
                       if (!option) {
                         return;
                       }

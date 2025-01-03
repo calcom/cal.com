@@ -314,7 +314,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     className="text-sm"
                     id="trigger-select"
                     isDisabled={props.readOnly}
-                    onChange={(val) => {
+                    onChange={(val: (typeof triggerOptions)[0]) => {
                       if (val) {
                         form.setValue("trigger", val.value);
                         const newTimeSectionText = getTimeSectionText(val.value, t);
@@ -446,7 +446,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isSearchable={false}
                         className="text-sm"
                         isDisabled={props.readOnly}
-                        onChange={(val) => {
+                        onChange={(val?: { value: WorkflowActions }) => {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
@@ -817,7 +817,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isSearchable={false}
                         className="text-sm"
                         isDisabled={props.readOnly}
-                        onChange={(val) => {
+                        onChange={(val: (typeof templateOptions)[0]) => {
                           if (val) {
                             const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
                             if (val.value === WorkflowTemplates.REMINDER) {
