@@ -364,6 +364,8 @@ export default function Success(props: PageProps) {
     bookingInfo.status
   );
 
+  const unconfirmedBookingLocationMessage = getSuccessPageLocationMessage(location, t, bookingInfo.status);
+
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
@@ -604,27 +606,16 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-3 font-medium">{t("where")}</div>
                             <div className="col-span-2 mt-3" data-testid="where">
-                              {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
-                                <DisplayLocation
-                                  locationToDisplay={locationToDisplay}
-                                  providerName={providerName}
-                                />
-                              ) : (
-                                <>
-                                  {!!formerTime && (
-                                    <DisplayLocation
-                                      locationToDisplay={locationToDisplay}
-                                      providerName={providerName}
-                                      className="line-through"
-                                    />
-                                  )}
-
-                                  <DisplayLocation
-                                    locationToDisplay={rescheduleLocationToDisplay}
-                                    providerName={rescheduleProviderName}
-                                  />
-                                </>
-                              )}
+                              <LocationToDisplay
+                                needsConfirmation={needsConfirmation}
+                                unconfirmedBookingLocationMessage={unconfirmedBookingLocationMessage}
+                                locationToDisplay={locationToDisplay}
+                                providerName={providerName}
+                                formerTime={formerTime}
+                                rescheduleLocation={rescheduleLocation}
+                                rescheduleLocationToDisplay={rescheduleLocationToDisplay}
+                                rescheduleProviderName={rescheduleProviderName}
+                              />
                             </div>
                           </>
                         )}
@@ -1124,6 +1115,55 @@ const DisplayLocation = ({
   );
 
 Success.isBookingPage = true;
+
+type LocationToDisplayProps = {
+  locationToDisplay: string;
+  needsConfirmation: boolean;
+  unconfirmedBookingLocationMessage: string;
+  providerName: string | undefined;
+  formerTime: string | undefined;
+  rescheduleLocation: string | undefined;
+  rescheduleLocationToDisplay: string;
+  rescheduleProviderName: string | undefined;
+};
+
+const LocationToDisplay = ({
+  locationToDisplay,
+  needsConfirmation,
+  unconfirmedBookingLocationMessage,
+  providerName,
+  formerTime,
+  rescheduleLocation,
+  rescheduleLocationToDisplay,
+  rescheduleProviderName,
+}: LocationToDisplayProps) => {
+  if (needsConfirmation) {
+    return <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />;
+  }
+
+  return (
+    <>
+      {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
+        <DisplayLocation locationToDisplay={locationToDisplay} providerName={providerName} />
+      ) : (
+        <>
+          {!!formerTime && (
+            <DisplayLocation
+              locationToDisplay={locationToDisplay}
+              providerName={providerName}
+              className="line-through"
+            />
+          )}
+
+          <DisplayLocation
+            locationToDisplay={rescheduleLocationToDisplay}
+            providerName={rescheduleProviderName}
+          />
+        </>
+      )}
+    </>
+  );
+};
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];
