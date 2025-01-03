@@ -1,4 +1,4 @@
-import type { TokenResponse } from "jsforce";
+import type { TokenResponse, Connection, QueryResult, Field } from "jsforce";
 import jsforce from "jsforce";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -17,6 +17,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
+import type { writeToRecordDataSchema } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -64,7 +65,7 @@ const salesforceTokenSchema = z.object({
 
 export default class SalesforceCRMService implements CRM {
   private integrationName = "";
-  private conn!: Promise<jsforce.Connection>;
+  private conn!: Promise<Connection>;
   private log: typeof logger;
   private calWarnings: string[] = [];
   private appOptions: any;
@@ -87,6 +88,10 @@ export default class SalesforceCRMService implements CRM {
   private getClient = async (credential: CredentialPayload) => {
     const { consumer_key, consumer_secret } = await getSalesforceAppKeys();
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
+
+    if (!credentialKey.refresh_token)
+      throw new Error(`Refresh token is missing for credential ${credential.id}`);
+
     try {
       /* XXX: This code results in 'Bad Request', which indicates something is wrong with our salesforce integration.
               Needs further investigation ASAP */
@@ -121,9 +126,11 @@ export default class SalesforceCRMService implements CRM {
     }
 
     return new jsforce.Connection({
-      clientId: consumer_key,
-      clientSecret: consumer_secret,
-      redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
+      oauth2: {
+        clientId: consumer_key,
+        clientSecret: consumer_secret,
+        redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
+      },
       instanceUrl: credentialKey.instance_url,
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,
@@ -471,7 +478,7 @@ export default class SalesforceCRMService implements CRM {
         );
 
         // Filter out any undefined results and ensure records exist
-        const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
+        const validOwnersQuery = ownersQuery.filter((query): query is QueryResult<ContactRecord> => {
           const firstRecord = query?.records?.[0];
           if (!firstRecord) return false;
 
@@ -850,7 +857,7 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     const fieldSet = new Set(fieldsToTest);
-    const foundFields: jsforce.Field[] = [];
+    const foundFields: Field[] = [];
 
     try {
       const salesforceEntity = await conn.describe(sobject);
@@ -991,10 +998,10 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail,
     calEventResponses,
   }: {
-    existingFields: jsforce.Field[];
+    existingFields: Field[];
     personRecord: Record<string, any>;
     onBookingWriteToRecordFields: Record<string, any>;
-    startTime: string;
+    startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
@@ -1021,7 +1028,7 @@ export default class SalesforceCRMService implements CRM {
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
           }
-        } else if (field.type === SalesforceFieldType.DATE) {
+        } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
             startTime,
@@ -1151,7 +1158,7 @@ export default class SalesforceCRMService implements CRM {
 
   private async fetchPersonRecord(
     contactId: string,
-    existingFields: jsforce.Field[],
+    existingFields: Field[],
     personRecordType: SalesforceRecordEnum
   ): Promise<Record<string, any> | null> {
     const conn = await this.conn;
@@ -1270,5 +1277,61 @@ export default class SalesforceCRMService implements CRM {
 
     const response = await checkIfFreeEmailDomain(attendeeEmail);
     return response;
+  }
+
+  async incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ) {
+    const conn = await this.conn;
+
+    let personRecord: { Id: string; Email: string; recordType: SalesforceRecordEnum } | null = null;
+
+    // Prioritize contacts over leads
+    const contactsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}'`
+    );
+
+    if (contactsQuery.records.length) {
+      personRecord = {
+        ...(contactsQuery.records[0] as { Id: string; Email: string }),
+        recordType: SalesforceRecordEnum.CONTACT,
+      };
+    }
+
+    const leadsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}'`
+    );
+
+    if (leadsQuery.records.length) {
+      personRecord = {
+        ...(leadsQuery.records[0] as { Id: string; Email: string }),
+        recordType: SalesforceRecordEnum.LEAD,
+      };
+    }
+
+    if (!personRecord) {
+      throw new Error(`No contact or lead found for email ${email}`);
+    }
+    // Ensure the fields exist on the record
+    const existingFields = await this.ensureFieldsExistOnObject(
+      Object.keys(writeToRecordObject),
+      personRecord.recordType
+    );
+
+    const writeOnRecordBody = await this.buildRecordUpdatePayload({
+      existingFields,
+      personRecord,
+      onBookingWriteToRecordFields: writeToRecordObject,
+    });
+    await conn
+      .sobject(personRecord.recordType)
+      .update({
+        Id: personRecord.Id,
+        ...writeOnRecordBody,
+      })
+      .catch((e) => {
+        this.log.error(`Error updating person record for contactId ${personRecord?.Id}`, e);
+      });
   }
 }

@@ -2899,6 +2899,7 @@
   "calibration": "Calibration",
   "shortfall": "Shortfall",
   "routing_form": "Routing Form",
+  "on_every_instance": "On every instance",
   "something_unexpected_occurred": "Something unexpected occurred",
   "500_error_message": "It's not you, it's us.",
   "dry_run_mode_active": "You are doing a test booking.",
