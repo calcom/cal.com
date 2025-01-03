@@ -4020,8 +4020,8 @@ __metadata:
     typescript: ^4.9.4
     vite: ^4.5.2
   peerDependencies:
-    react: ^18.2.0 || ^19.0.0
-    react-dom: ^18.2.0 || ^19.0.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
   languageName: unknown
   linkType: soft
 
@@ -4138,7 +4138,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
-    dub: ^0.46.10
+    dub: ^0.35.0
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -23433,12 +23433,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dub@npm:^0.46.10":
-  version: 0.46.10
-  resolution: "dub@npm:0.46.10"
+"dub@npm:^0.35.0":
+  version: 0.35.0
+  resolution: "dub@npm:0.35.0"
   peerDependencies:
     zod: ">= 3"
-  checksum: 28bc16f977695e9534bbb7fdcf4aeefda7864c7806fdfad5f68692faedfe4ab1dfc2a4cad315a6e3a81a4c913b12f8e6c8f009a0631f9e1cc8c6e525ae16f854
+  checksum: 162bd1ff62b62044e3840d3128f341baa8d07828aaf9ca2e94a562b7196df857c1fcdbf2495edfd8b7055970eb1c64298a2265dca81cb4d7bdc65ddc97980905
   languageName: node
   linkType: hard
 
