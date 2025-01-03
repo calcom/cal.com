@@ -38,7 +38,10 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import {
+  scheduleWorkflowReminders,
+  sendBookingRequestedRejectedReminders,
+} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -1972,6 +1975,22 @@ async function handler(
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
+  }
+
+  if (!isConfirmedByDefault) {
+    try {
+      await sendBookingRequestedRejectedReminders({
+        workflows,
+        smsReminderNumber: smsReminderNumber || null,
+        calendarEvent: evtWithMetadata,
+        bookingStatus: BookingStatus.PENDING,
+      });
+    } catch (error) {
+      loggerWithEventDetails.error(
+        "Error while sending booking requested workflow reminder",
+        JSON.stringify({ error })
+      );
+    }
   }
 
   try {

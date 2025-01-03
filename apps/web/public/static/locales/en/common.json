@@ -1267,6 +1267,8 @@
   "after_hosts_cal_video_no_show": "After hosts didn't join cal video",
   "after_guests_cal_video_no_show": "After guests didn't join cal video",
   "new_event_trigger": "when new event is booked",
+  "booking_requested_trigger": "When a booking request is received",
+  "booking_rejected_trigger": "When a booking is rejected",
   "email_host_action": "send email to host",
   "email_attendee_action": "send email to attendees",
   "sms_attendee_action": "Send SMS to attendee",
