@@ -6,11 +6,10 @@ export const dub = new Dub({
 
 // fetch Dub customer using their external ID (ID in our database)
 export const getDubCustomer = async (userId: string) => {
-  try {
-    return await dub.customers.get({
-      id: `ext_${userId}`,
-    });
-  } catch (error) {
-    return null;
-  }
+  const customer = await dub.customers.list({
+    externalId: userId,
+    includeExpandedFields: true,
+  });
+
+  return customer.length > 0 ? customer[0] : null;
 };
