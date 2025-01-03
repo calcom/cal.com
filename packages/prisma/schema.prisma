@@ -42,6 +42,12 @@ enum PeriodType {
   RANGE          @map("range")
 }
 
+enum DefaultView {
+  EVENT_TYPES
+  BOOKINGS
+  INSIGHTS
+}
+
 model Host {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
@@ -359,6 +365,7 @@ model User {
   NotificationsSubscriptions NotificationsSubscriptions[]
   referralLinkId             String?
   features                   UserFeatures[]
+  defaultView                DefaultView                  @default(EVENT_TYPES)
   reassignedBookings         Booking[]                    @relation("reassignByUser")
   createdAttributeToUsers    AttributeToUser[]            @relation("createdBy")
   updatedAttributeToUsers    AttributeToUser[]            @relation("updatedBy")
