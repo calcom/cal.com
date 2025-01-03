@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Nazwa właściciela do zmiany",
   "no_filter_set": "Brak ustawionego filtru",
   "booking_dry_run_successful": "Test rezerwacji zakończony pomyślnie",
+  "booking_dry_run_successful_description": "Test został zakończony pomyślnie.",
   "dont_have_access_this_page": "Nie masz dostępu do tej strony",
   "you_need_admin_or_owner_privileges_to_access": "Aby wyświetlić lub korzystać z tej strony, musisz mieć uprawnienia administratora lub właściciela",
   "field_type": "Typ pola",
@@ -2898,5 +2899,10 @@
   "calibration": "Kalibracja",
   "shortfall": "Niedobór",
   "routing_form": "Formularz routingu",
+  "something_unexpected_occurred": "Wystąpił nieoczekiwany błąd",
+  "500_error_message": "To nie Twoja wina, to nasza.",
+  "dry_run_mode_active": "Wykonujesz testową rezerwację.",
+  "icon_showcase": "Prezentacja ikon",
+  "icons_showcase": "Prezentacja ikon",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
