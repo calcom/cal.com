@@ -101,6 +101,7 @@ function EventTypeSingleLayout({
       backPath="/event-types"
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
+      withoutSeo={!isPlatform} // Metadata is handled by App Router Metadata API for Event Type Web Page
       CTA={
         <div className="flex items-center justify-end">
           {!formMethods.getValues("metadata")?.managedEventConfig && (
