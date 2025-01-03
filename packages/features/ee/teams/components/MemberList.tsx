@@ -1,7 +1,6 @@
 "use client";
 
 import { keepPreviousData } from "@tanstack/react-query";
-import type { ColumnFiltersState } from "@tanstack/react-table";
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -19,10 +18,12 @@ import type { Dispatch, SetStateAction } from "react";
 
 import {
   DataTable,
+  DataTableProvider,
   DataTableToolbar,
   DataTableFilters,
   DataTableSelectionBar,
   useFetchMoreOnBottomReached,
+  useColumnFilters,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { DynamicLink } from "@calcom/features/users/components/UserTable/BulkActions/DynamicLink";
@@ -150,6 +151,14 @@ interface Props {
 }
 
 export default function MemberList(props: Props) {
+  return (
+    <DataTableProvider>
+      <MemberListContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+function MemberListContent(props: Props) {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const { t, i18n } = useLocale();
   const { data: session } = useSession();
@@ -162,24 +171,26 @@ export default function MemberList(props: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.listMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-      teamId: props.team.id,
-    },
-    {
-      enabled: !!props.team.id,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-      refetchOnWindowFocus: true,
-      refetchOnMount: true,
-      staleTime: 0,
-    }
-  );
+  const { data, isPending, hasNextPage, fetchNextPage, isFetching } =
+    trpc.viewer.teams.listMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        searchTerm: debouncedSearchTerm,
+        teamId: props.team.id,
+        // TODO: send `columnFilters` to server for server side filtering
+        // filters: columnFilters,
+      },
+      {
+        enabled: !!props.team.id,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        refetchOnMount: true,
+        staleTime: 0,
+      }
+    );
 
-  // TODO (SEAN): Make Column filters a trpc query param so we can fetch serverside even if the data is not loaded
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const columnFilters = useColumnFilters();
   const [rowSelection, setRowSelection] = useState({});
 
   const removeMemberFromCache = ({
@@ -284,6 +295,7 @@ export default function MemberList(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         header: ({ table }) => (
           <Checkbox
@@ -391,7 +403,8 @@ export default function MemberList(props: Props) {
       },
       {
         id: "actions",
-        size: 80,
+        size: 90,
+        enableResizing: false,
         meta: {
           sticky: { position: "right" },
         },
@@ -624,7 +637,6 @@ export default function MemberList(props: Props) {
       columnFilters,
       rowSelection,
     },
-    onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -633,13 +645,12 @@ export default function MemberList(props: Props) {
     getRowId: (row) => `${row.id}`,
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
+  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
+    hasNextPage,
     fetchNextPage,
     isFetching,
-    totalFetched,
-    totalDBRowCount
-  );
+  });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
 
@@ -650,11 +661,12 @@ export default function MemberList(props: Props) {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">
             <DataTableToolbar.SearchBar table={table} onSearch={(value) => setDebouncedSearchTerm(value)} />
-            <DataTableFilters.FilterButton table={table} />
+            <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ColumnVisibilityButton table={table} />
             {isAdminOrOwner && (
               <DataTableToolbar.CTA

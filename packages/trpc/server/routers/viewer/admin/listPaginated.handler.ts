@@ -44,7 +44,9 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
   const users = await prisma.user.findMany({
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    where: searchFilters,
+    where: {
+      ...searchFilters,
+    },
     orderBy: {
       id: "asc",
     },

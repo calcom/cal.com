@@ -1,3 +1,4 @@
+import type { calendar_v3 } from "@googleapis/calendar";
 import type {
   BookingSeat,
   DestinationCalendar,
@@ -5,7 +6,6 @@ import type {
   SelectedCalendar as _SelectedCalendar,
 } from "@prisma/client";
 import type { Dayjs } from "dayjs";
-import type { calendar_v3 } from "@googleapis/calendar";
 import type { Time } from "ical.js";
 import type { TFunction } from "next-i18next";
 import type z from "zod";
@@ -217,6 +217,7 @@ export interface CalendarEvent {
   platformCancelUrl?: string | null;
   platformBookingUrl?: string | null;
   oneTimePassword?: string | null;
+  domainWideDelegationCredentialId?: string | null;
 }
 
 export interface EntryPoint {
@@ -247,6 +248,11 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   integrationTitle?: string;
 }
 
+/**
+ * null is to refer to user-level SelectedCalendar
+ */
+export type SelectedCalendarEventTypeIds = (number | null)[];
+
 export interface Calendar {
   createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
 
@@ -261,16 +267,29 @@ export interface Calendar {
   getAvailability(
     dateFrom: string,
     dateTo: string,
-    selectedCalendars: IntegrationCalendar[]
+    selectedCalendars: IntegrationCalendar[],
+    shouldServeCache?: boolean
   ): Promise<EventBusyDate[]>;
+
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
 
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
-
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown>;
+  unwatchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
 }
 
 /**

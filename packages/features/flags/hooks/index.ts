@@ -5,6 +5,7 @@ const initialData: AppFlags = {
   organizations: false,
   teams: false,
   "calendar-cache": false,
+  "calendar-cache-serve": false,
   emails: false,
   insights: false,
   webhooks: false,
@@ -14,6 +15,7 @@ const initialData: AppFlags = {
   "disable-signup": false,
   attributes: false,
   "organizer-request-email-v2": false,
+  "domain-wide-delegation": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

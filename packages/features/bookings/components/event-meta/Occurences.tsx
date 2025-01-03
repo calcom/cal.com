@@ -8,7 +8,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { Tooltip, Alert } from "@calcom/ui";
 import { Input } from "@calcom/ui";
 
-import { useTimePreferences } from "../../lib";
+import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 
 export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
@@ -23,7 +23,7 @@ export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurring
   );
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
-  const { timezone, timeFormat } = useTimePreferences();
+  const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
   // Set initial value in booker store.
   useEffect(() => {

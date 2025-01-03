@@ -109,6 +109,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
+    requiresConfirmationForFreeEmail: false,
     requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
@@ -142,6 +143,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     assignRRMembersUsingSegment: false,
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
+    useEventLevelSelectedCalendars: false,
     ...eventType,
   };
 };

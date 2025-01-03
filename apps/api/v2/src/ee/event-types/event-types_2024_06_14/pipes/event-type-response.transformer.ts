@@ -17,7 +17,7 @@ export class EventTypeResponseTransformPipe implements PipeTransform {
   private transformEventType(eventType: EventTypeResponse): EventTypeOutput_2024_06_14 {
     return plainToClass(
       EventTypeOutput_2024_06_14,
-      this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType),
+      this.outputEventTypesService.getResponseEventType(eventType.ownerId, eventType, false),
       { strategy: "exposeAll" }
     );
   }
