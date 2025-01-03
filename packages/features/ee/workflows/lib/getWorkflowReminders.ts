@@ -84,7 +84,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduledDate: {
-      lte: dayjs().toISOString(),
+      lt: dayjs().toISOString(),
     },
   };
 
