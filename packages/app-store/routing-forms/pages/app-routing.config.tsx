@@ -1,9 +1,10 @@
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
+import { getServerSideProps as getServerSidePropsForms } from "@lib/routing/getServerSideProps";
+
 import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "../components/getServerSidePropsSingleForm";
 import * as formEdit from "./form-edit/[...appPages]";
 import * as forms from "./forms/[...appPages]";
-import { getServerSideProps as getServerSidePropsForms } from "./forms/getServerSideProps";
 import * as LayoutHandler from "./layout-handler/[...appPages]";
 import * as Reporting from "./reporting/[...appPages]";
 import * as RouteBuilder from "./route-builder/[...appPages]";
