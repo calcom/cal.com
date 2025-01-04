@@ -147,6 +147,18 @@ const BookerComponent = ({
     }
   };
 
+  const checkRequiredFieldsFilled = (
+    fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"],
+    values: any
+  ): boolean => {
+    // We're skipping title field because it may not exist in form values
+    const requiredFields = fields.filter((field) => field.required && field.name !== "title");
+    return requiredFields.every((field) => {
+      const value = values[field.name];
+      return value !== undefined && value !== null && value !== "";
+    });
+  };
+
   useEffect(() => {
     if (event.isPending) {
       setBookerState("loading");
@@ -161,12 +173,17 @@ const BookerComponent = ({
       return;
     }
 
-    // Only call handleBookEvent if we're not already booking
-    if (bookerState !== "booking") {
-      setBookerState("booking");
-      handleBookEvent();
-    }
+    return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, handleBookEvent, bookerState]);
+
+  useEffect(() => {
+    if (event.data && bookingForm && event.data.bookingFields && bookingForm.getValues().responses) {
+      // Problem here is that this bookingForm is updated everytime you type
+      // The feature is that it should only run once when the state is in booking and the URL params fulfil the requirements
+      if (checkRequiredFieldsFilled(event.data.bookingFields, bookingForm.getValues().responses))
+        handleBookEvent();
+    }
+  }, [bookingForm, event.data, handleBookEvent]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {

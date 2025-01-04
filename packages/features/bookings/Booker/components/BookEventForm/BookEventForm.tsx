@@ -95,10 +95,7 @@ export const BookEventForm = ({
           // still change the timeslot, and comes back to the form, all their values
           // still exist. This gets cleared when the form is submitted.
           const values = bookingForm.getValues();
-
-          if (JSON.stringify(values) !== JSON.stringify(bookingData)) {
-            setFormValues(values);
-          }
+          setFormValues(values);
         }}
         form={bookingForm}
         handleSubmit={onSubmit}
