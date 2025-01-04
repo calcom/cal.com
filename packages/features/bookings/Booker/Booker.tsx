@@ -151,12 +151,43 @@ const BookerComponent = ({
     }
   };
 
+  const checkRequiredFieldsFilled = (
+    fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"],
+    values: any
+  ): boolean => {
+    // We're skipping title field because it may not exist in form values
+    const requiredFields = fields.filter((field) => field.required && field.name !== "title");
+    return requiredFields.every((field) => {
+      const value = values[field.name];
+      return value !== undefined && value !== null && value !== "";
+    });
+  };
+
   useEffect(() => {
-    if (event.isPending) return setBookerState("loading");
-    if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (event.isPending) {
+      setBookerState("loading");
+      return;
+    }
+    if (!selectedDate) {
+      setBookerState("selecting_date");
+      return;
+    }
+    if (!selectedTimeslot) {
+      setBookerState("selecting_time");
+      return;
+    }
+
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, handleBookEvent, bookerState]);
+
+  useEffect(() => {
+    if (event.data && bookingForm && event.data.bookingFields && bookingForm.getValues().responses) {
+      // Problem here is that this bookingForm is updated everytime you type
+      // The feature is that it should only run once when the state is in booking and the URL params fulfil the requirements
+      if (checkRequiredFieldsFilled(event.data.bookingFields, bookingForm.getValues().responses))
+        handleBookEvent();
+    }
+  }, [bookingForm, event.data, handleBookEvent]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {
@@ -270,9 +301,7 @@ const BookerComponent = ({
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
-
       {isBookingDryRun(searchParams) && <DryRunMessage isEmbed={isEmbed} />}
-
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
@@ -480,7 +509,6 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
-
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
         visible={bookerState === "booking" && shouldShowFormInDialog}>
