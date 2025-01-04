@@ -10,15 +10,15 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
-import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
-import type { Prisma, Booking, BookingReference } from "@calcom/prisma/client";
+import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -77,31 +77,25 @@ function extractAdditionalInformation(result: {
 async function updateBookingLocationInDb({
   booking,
   evt,
-  referencesToCreate,
+  references,
 }: {
   booking: {
     id: number;
     metadata: Booking["metadata"];
+    responses: Booking["responses"];
   };
   evt: Ensure<CalendarEvent, "location">;
-  referencesToCreate: Prisma.BookingReferenceCreateInput[];
+  references: PartialReference[];
 }) {
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
-
-  await BookingRepository.updateLocationById({
-    data: {
-      location: evt.location,
-      metadata: {
-        ...(typeof booking.metadata === "object" && booking.metadata),
-        ...bookingMetadataUpdate,
-      },
-      referencesToCreate,
-    },
-    where: {
-      id: booking.id,
-    },
+  const referencesToCreate = references.map((reference) => {
+    const { credentialId, ...restReference } = reference;
+    return {
+      ...restReference,
+      ...(credentialId && credentialId > 0 ? { credentialId } : {}),
+    };
   });
 
   await prisma.booking.update({
@@ -116,6 +110,13 @@ async function updateBookingLocationInDb({
       },
       references: {
         create: referencesToCreate,
+      },
+      responses: {
+        ...(typeof booking.responses === "object" && booking.responses),
+        location: {
+          value: evt.location,
+          optionValue: "",
+        },
       },
     },
   });
@@ -274,11 +275,17 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
     evt,
   });
 
-  await updateBookingLocationInDb({ booking, evt, referencesToCreate: updatedResult.referencesToCreate });
+  const additionalInformation = extractAdditionalInformation(updatedResult.results[0]);
+
+  await updateBookingLocationInDb({
+    booking,
+    evt: { ...evt, additionalInformation },
+    references: updatedResult.referencesToCreate,
+  });
 
   try {
     await sendLocationChangeEmailsAndSMS(
-      { ...evt, additionalInformation: extractAdditionalInformation(updatedResult.results[0]) },
+      { ...evt, additionalInformation },
       booking?.eventType?.metadata as EventTypeMetadata
     );
   } catch (error) {

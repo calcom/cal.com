@@ -16,12 +16,18 @@ export const routingFormOptions = z
   })
   .optional();
 
+const optionalBooleanOnlyRunTimeValidation = z
+  .any()
+  .refine((val) => typeof val === "boolean" || val === undefined)
+  .optional();
+
 export const appDataSchema = eventTypeAppCardZod.extend({
   roundRobinLeadSkip: z.boolean().optional(),
   roundRobinSkipCheckRecordOn: z
     .nativeEnum(SalesforceRecordEnum)
     .default(SalesforceRecordEnum.CONTACT)
     .optional(),
+  ifFreeEmailDomainSkipOwnerCheck: z.boolean().optional(),
   skipContactCreation: z.boolean().optional(),
   createEventOn: z.nativeEnum(SalesforceRecordEnum).default(SalesforceRecordEnum.CONTACT).optional(),
   createNewContactUnderAccount: z.boolean().optional(),
@@ -35,6 +41,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   sendNoShowAttendeeDataField: z.string().optional(),
   onBookingWriteToRecord: z.boolean().optional(),
   onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
+  ignoreGuests: z.boolean().optional(),
 });
 
 export const appKeysSchema = z.object({

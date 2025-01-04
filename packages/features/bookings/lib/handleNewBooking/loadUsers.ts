@@ -10,7 +10,7 @@ import {
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { withSelectedCalendars, UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
@@ -113,7 +113,8 @@ export const findUsersByUsername = async ({
         metadata: true,
       },
     })
-  ).map((user) => {
+  ).map((_user) => {
+    const user = withSelectedCalendars(_user);
     const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
     return {
       ...user,
