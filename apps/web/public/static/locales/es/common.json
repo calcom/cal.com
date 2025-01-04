@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Nombre del propietario a cambiar",
   "no_filter_set": "Ningún filtro establecido",
   "booking_dry_run_successful": "Prueba de reserva exitosa",
+  "booking_dry_run_successful_description": "La prueba de simulación se completó con éxito.",
   "dont_have_access_this_page": "No tienes acceso a esta página",
   "you_need_admin_or_owner_privileges_to_access": "Para ver o interactuar con esta página, debes tener privilegios de administrador o propietario",
   "field_type": "Tipo de campo",
@@ -2898,5 +2899,10 @@
   "calibration": "Calibración",
   "shortfall": "Déficit",
   "routing_form": "Formulario de enrutamiento",
+  "something_unexpected_occurred": "Algo inesperado ha ocurrido",
+  "500_error_message": "No eres tú, somos nosotros.",
+  "dry_run_mode_active": "Estás haciendo una reserva de prueba.",
+  "icon_showcase": "Muestra de iconos",
+  "icons_showcase": "Muestra de iconos",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
