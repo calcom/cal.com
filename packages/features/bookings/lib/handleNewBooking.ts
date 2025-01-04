@@ -81,6 +81,7 @@ import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventType } from "./handleNewBooking/getEventType";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
+import { getEventNameObject } from "./handleNewBooking/getEventnameObject";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
@@ -872,21 +873,19 @@ async function handler(
   const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
+
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
-  const eventNameObject = {
-    //TODO: Can we have an unnamed attendee? If not, I would really like to throw an error here.
+
+  const eventNameObject = getEventNameObject({
     attendeeName: fullName || "Nameless",
-    eventType: eventType.title,
+    eventType,
     eventName: evtName,
-    // we send on behalf of team if >1 round robin attendee | collective
-    teamName: eventType.schedulingType === "COLLECTIVE" || users.length > 1 ? eventType.team?.name : null,
-    // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
-    host: organizerUser.name || "Nameless",
+    numberOfUsers: users.length,
+    organizerName: organizerUser.name || "Nameless",
     location: bookingLocation,
-    eventDuration: eventType.length,
+    tOrganizer,
     bookingFields: { ...responses },
-    t: tOrganizer,
-  };
+  });
 
   const iCalUID = getICalUID({
     event: { iCalUID: originalRescheduledBooking?.iCalUID, uid: originalRescheduledBooking?.uid },

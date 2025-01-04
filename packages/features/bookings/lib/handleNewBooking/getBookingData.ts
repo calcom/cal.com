@@ -89,3 +89,4 @@ export type ReqAppsStatus = AwaitedBookingData["appsStatus"];
 export type SmsReminderNumber = AwaitedBookingData["smsReminderNumber"];
 export type EventTypeId = AwaitedBookingData["eventTypeId"];
 export type ReqBodyMetadata = ReqBodyWithEnd["metadata"];
+export type BookingResponses = AwaitedBookingData["responses"];
