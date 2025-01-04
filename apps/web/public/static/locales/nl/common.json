@@ -2899,5 +2899,10 @@
   "calibration": "Kalibratie",
   "shortfall": "Tekort",
   "routing_form": "Routeringsformulier",
+  "something_unexpected_occurred": "Er is iets onverwachts gebeurd",
+  "500_error_message": "Het ligt niet aan jou, het ligt aan ons.",
+  "dry_run_mode_active": "Je doet een testboeking.",
+  "icon_showcase": "Icoon overzicht",
+  "icons_showcase": "Iconen overzicht",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
