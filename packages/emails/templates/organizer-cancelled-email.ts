@@ -9,6 +9,7 @@ import type { Reassigned } from "./organizer-scheduled-email";
 export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
+    const subject = this.reassigned ? "event_reassigned_subject" : "event_cancelled_subject";
 
     return {
       icalEvent: generateIcsFile({
@@ -18,7 +19,7 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
       }),
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.t("event_cancelled_subject", {
+      subject: `${this.t(subject, {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
