@@ -128,7 +128,6 @@ const getStripePremiumUsernameUrl = async ({
 
   const checkoutSession = await stripe.checkout.sessions.create({
     mode: "subscription",
-    payment_method_types: ["card"],
     customer: customer.id,
     line_items: [
       {
