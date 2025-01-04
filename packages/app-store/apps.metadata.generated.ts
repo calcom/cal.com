@@ -39,6 +39,7 @@ import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
+import insihts_config_json from "./insihts/config.json";
 import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -139,6 +140,7 @@ export const appStoreMetadata = {
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
   "ics-feedcalendar": ics_feedcalendar_config_json,
+  insihts: insihts_config_json,
   intercom: intercom_config_json,
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
