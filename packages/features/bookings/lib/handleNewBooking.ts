@@ -43,7 +43,6 @@ import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -77,6 +76,7 @@ import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAn
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
+import { getBookerUrl } from "./handleNewBooking/getBookerUrl";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventType } from "./handleNewBooking/getEventType";
@@ -902,9 +902,7 @@ async function handler(
   });
 
   const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
-  const bookerUrl = eventType.team
-    ? await getBookerBaseUrl(eventType.team.parentId)
-    : await getBookerBaseUrl(organizerOrganizationId ?? null);
+  const bookerUrl = await getBookerUrl({ eventTypeTeam: eventType.team, organizerOrganizationId });
 
   const destinationCalendar = eventType.destinationCalendar
     ? [eventType.destinationCalendar]
