@@ -7,11 +7,19 @@ import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSid
 
 import Page, { type PageProps } from "~/apps/[slug]/setup/setup-view";
 
-export const generateMetadata = async ({ params }: _PageProps) => {
-  return await _generateMetadata(
-    () => `${params.slug}`,
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+  const { slug } = { ...params, ...searchParams };
+  const metadata = await _generateMetadata(
+    () => `${slug}`,
     () => ""
   );
+  return {
+    ...metadata,
+    robots: {
+      follow: false,
+      index: false,
+    },
+  };
 };
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
