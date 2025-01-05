@@ -1,6 +1,6 @@
 import tasker from "@calcom/features/tasker";
 
-import bookingCreated from "./lib/bookingCreated";
+import bookingCreated from "./lib/bookingCreated/bookingCreated";
 import type { BookingListenerCreateInput } from "./types";
 
 class BookingListener {

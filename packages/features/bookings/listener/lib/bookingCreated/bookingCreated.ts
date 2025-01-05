@@ -32,7 +32,7 @@ import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/z
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 
-import type { BookingListenerCreateInput } from "../types";
+import type { BookingListenerCreateInput } from "../../types";
 
 const bookingCreated = async ({
   evt,
