@@ -29,6 +29,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const formDescription = form?.description;
 
   const { pages } = p.data;
+  
   if (pages.includes("routing-link")) {
     return await _generateMetadata(
       () => `${formName} | Cal.com Forms`,
@@ -38,8 +39,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   }
 
   return await _generateMetadata(
-    (t) => t("routing_forms"),
-    (t) => t("routing_forms_description")
+    (t) => formName ?? t("routing_forms"),
+    (t) => formDescription ?? t("routing_forms_description")
   );
 };
 
