@@ -88,9 +88,9 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing",
-    href: "/routing",
+    href: "/routing/forms",
     icon: "split",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/forms") ?? false,
     moreOnMobile: true,
   },
   {
