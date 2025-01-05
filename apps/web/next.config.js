@@ -290,7 +290,7 @@ const nextConfig = {
     const beforeFiles = [
       {
         source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
+        destination: "/routing/routing-link/:formQuery*",
       },
       {
         source: "/success/:path*",
@@ -611,6 +611,11 @@ const nextConfig = {
       {
         source: "/apps/installed",
         destination: "/apps/installed/calendar",
+        permanent: true,
+      },
+      {
+        source: "/apps/routing-forms/:path*",
+        destination: "/routing/:path*",
         permanent: true,
       },
       {
