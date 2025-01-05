@@ -4,7 +4,7 @@ import type { TFunction } from "next-i18next";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
-import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import type { getEventType } from "@calcom/features/bookings/lib/handleNewBooking/getEventType";
 import type { CalendarEvent, AppsStatus } from "@calcom/types/Calendar";
 
 export type BookingListenerCreateInput = {
@@ -16,7 +16,7 @@ export type BookingListenerCreateInput = {
     destinationCalendar: DestinationCalendar | null;
     username: string | null;
   };
-  eventType: Awaited<ReturnType<typeof getEventTypesFromDB>>;
+  eventType: Awaited<ReturnType<typeof getEventType>>;
   tOrganizer: TFunction;
   booking: {
     id: number;
