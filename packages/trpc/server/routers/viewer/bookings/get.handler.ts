@@ -2,6 +2,8 @@ import { Prisma as PrismaClientType } from "@prisma/client";
 
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -18,6 +20,8 @@ type GetOptions = {
   };
   input: TGetInputSchema;
 };
+
+const log = logger.getSubLogger({ prefix: ["bookings.get"] });
 
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
@@ -283,12 +287,33 @@ export async function getBookings({
     },
   };
 
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
+  };
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryManagedEvents,
     bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
@@ -333,18 +358,26 @@ export async function getBookings({
           {
             eventType: {
               team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
-                    },
-                  },
-                },
+                members: membershipConditionWhereUserIsAdminOwner,
               },
             },
           },
         ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        eventType: {
+          parent: {
+            team: {
+              members: membershipConditionWhereUserIsAdminOwner,
+            },
+          },
+        },
         AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
@@ -360,14 +393,7 @@ export async function getBookings({
                 some: {
                   team: {
                     isOrganization: true,
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
-                        },
-                      },
-                    },
+                    members: membershipConditionWhereUserIsAdminOwner,
                   },
                 },
               },
@@ -464,6 +490,7 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryManagedEvents)
       .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
@@ -471,12 +498,25 @@ export async function getBookings({
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
 
+  log.info(
+    `fetching all bookings for ${user.id}`,
+    safeStringify({
+      ids: plainBookings.map((booking) => booking.id),
+      orderBy,
+      filtersCombined,
+      take,
+      skip,
+    })
+  );
+
   const bookings = await Promise.all(
     (
       await prisma.booking.findMany({
         where: {
           id: {
-            in: plainBookings.map((booking) => booking.id),
+            in: plainBookings
+              .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+              .map((booking) => booking.id),
           },
         },
         select: bookingSelect,
