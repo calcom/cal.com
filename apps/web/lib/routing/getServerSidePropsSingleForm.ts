@@ -1,21 +1,17 @@
-import type {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppSsrInit,
-  AppUser,
-} from "@calcom/types/AppGetServerSideProps";
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { prisma } from "@calcom/prisma";
+import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 
-import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
-import { getSerializableForm } from "../lib/getSerializableForm";
+import { ssrInit } from "@server/lib/ssr";
 
 export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
+  context: AppGetServerSidePropsContext
 ) {
   const ssr = await ssrInit(context);
-
+  const session = await getServerSession({ req: context.req });
+  const user = session?.user;
   if (!user) {
     return {
       redirect: {
@@ -37,7 +33,9 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormCreateEditAllowed = (await import("../lib/isFormCreateEditAllowed")).isFormCreateEditAllowed;
+  const isFormCreateEditAllowed = (
+    await import("@calcom/app-store/routing-forms/lib/isFormCreateEditAllowed")
+  ).isFormCreateEditAllowed;
   if (!(await isFormCreateEditAllowed({ userId: user.id, formId, targetTeamId: null }))) {
     return {
       redirect: {

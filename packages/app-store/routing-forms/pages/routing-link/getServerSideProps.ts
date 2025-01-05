@@ -1,7 +1,8 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
+import type { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
@@ -39,10 +40,7 @@ export function isAuthorizedToViewTheForm({
   return true;
 }
 
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma
-) {
+export const getServerSideProps = async function getServerSideProps(context: AppGetServerSidePropsContext) {
   const { params } = context;
   if (!params) {
     return {

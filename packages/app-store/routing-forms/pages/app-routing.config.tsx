@@ -1,8 +1,8 @@
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import { getServerSideProps as getServerSidePropsForms } from "@lib/routing/getServerSideProps";
+import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "@lib/routing/getServerSidePropsSingleForm";
 
-import { getServerSidePropsForSingleFormView as getServerSidePropsSingleForm } from "../components/getServerSidePropsSingleForm";
 import * as formEdit from "./form-edit/[...appPages]";
 import * as forms from "./forms/[...appPages]";
 import * as LayoutHandler from "./layout-handler/[...appPages]";
@@ -11,7 +11,6 @@ import * as RouteBuilder from "./route-builder/[...appPages]";
 import * as RoutingLink from "./routing-link/[...appPages]";
 import { getServerSideProps as getServerSidePropsRoutingLink } from "./routing-link/getServerSideProps";
 
-// Legacy routing config for pages router (can be removed after full migration)
 const routingConfig = {
   "form-edit": formEdit,
   "route-builder": RouteBuilder,
@@ -21,7 +20,6 @@ const routingConfig = {
   layoutHandler: LayoutHandler,
 };
 
-// Server-side props config (used by both app router and pages router)
 export const serverSidePropsConfig: Record<string, AppGetServerSideProps> = {
   forms: getServerSidePropsForms,
   "form-edit": getServerSidePropsSingleForm,

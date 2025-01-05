@@ -37,6 +37,8 @@ import {
   VerticalDivider,
 } from "@calcom/ui";
 
+import { getServerSidePropsForSingleFormView } from "@lib/routing/getServerSidePropsSingleForm";
+
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
@@ -45,7 +47,6 @@ import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/ty
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
-import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
