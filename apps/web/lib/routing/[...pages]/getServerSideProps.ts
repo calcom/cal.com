@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
+import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
@@ -11,7 +11,7 @@ import type { AppProps } from "@lib/app-providers";
 
 import { ssrInit } from "@server/lib/ssr";
 
-type AppPageType = {
+type RoutingPageType = {
   getServerSideProps?: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,35 +21,23 @@ type AppPageType = {
 
 type Found = {
   notFound: false;
-  Component: AppPageType["default"];
-  getServerSideProps: AppPageType["getServerSideProps"];
+  getServerSideProps: RoutingPageType["getServerSideProps"];
 };
 
 type NotFound = {
   notFound: true;
 };
 
-// TODO: It is a candidate for apps.*.generated.*
-const AppsRouting = {
-  typeform: TypeformRoutingConfig,
-};
-
-function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
-
-  if (!routingConfig) {
-    return {
-      notFound: true,
-    } as NotFound;
-  }
+function getRoute(pages: string[]) {
   const mainPage = pages[0];
-  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
-  if (!appPage) {
+  const getServerSideProps = routingServerSidePropsConfig[mainPage] as RoutingPageType["getServerSideProps"];
+
+  if (!getServerSideProps) {
     return {
       notFound: true,
     } as NotFound;
   }
-  return { notFound: false, Component: appPage.default, ...appPage } as Found;
+  return { notFound: false, getServerSideProps } as Found;
 }
 
 const paramsSchema = z.object({
@@ -76,17 +64,13 @@ export async function getServerSideProps(
 
   const appName = parsedParams.data.slug;
   const pages = parsedParams.data.pages;
-  const route = getRoute(appName, pages);
+  const route = getRoute(pages);
 
   if (route.notFound) {
     return { notFound: true };
   }
 
   if (route.getServerSideProps) {
-    // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
-    // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
-    // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-    params.appPages = pages.slice(1);
     const session = await getServerSession({ req });
     const user = session?.user;
     const app = await getAppWithMetadata({ slug: appName });
@@ -119,7 +103,7 @@ export async function getServerSideProps(
     return {
       props: {
         appName,
-        appUrl: app.simplePath || `/apps/${appName}`,
+        appUrl: app.simplePath,
         ...result.props,
       },
     };

@@ -21,7 +21,7 @@ const routingConfig = {
   layoutHandler: LayoutHandler,
 };
 
-export const serverSidePropsConfig: Record<string, AppGetServerSideProps> = {
+export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps> = {
   forms: getServerSidePropsForms,
   "form-edit": getServerSidePropsSingleForm,
   "route-builder": getServerSidePropsSingleForm,

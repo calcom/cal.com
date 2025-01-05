@@ -7,8 +7,8 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
 
-import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@lib/routing/[...pages]/getServerSideProps";
 
 import RoutingFormsPage, { getLayout } from "~/routing/[...pages]/pages-view";
 
