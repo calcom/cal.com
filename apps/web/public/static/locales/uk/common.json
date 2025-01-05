@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Ім'я власника для зміни",
   "no_filter_set": "Фільтр не встановлено",
   "booking_dry_run_successful": "Тестове бронювання успішне",
+  "booking_dry_run_successful_description": "Тестовий запуск успішно завершено.",
   "dont_have_access_this_page": "Ви не маєте доступу до цієї сторінки",
   "you_need_admin_or_owner_privileges_to_access": "Щоб переглядати або взаємодіяти з цією сторінкою, ви повинні мати права адміністратора або власника",
   "field_type": "Тип поля",
@@ -2898,5 +2899,10 @@
   "calibration": "Калібрування",
   "shortfall": "Дефіцит",
   "routing_form": "Форма маршрутизації",
+  "something_unexpected_occurred": "Сталося щось неочікуване",
+  "500_error_message": "Справа не у вас, а в нас.",
+  "dry_run_mode_active": "Ви робите тестове бронювання.",
+  "icon_showcase": "Галерея іконок",
+  "icons_showcase": "Галерея іконок",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

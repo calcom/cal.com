@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 
+import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../../state/store";
 
 function calculateMinutesFromStart(startHour: number, currentHour: number, currentMinute: number) {
@@ -19,7 +19,7 @@ export function CurrentTime() {
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
   }));
-  const { timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
 
   useEffect(() => {
     // Set the container scroll position based on the current time.

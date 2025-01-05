@@ -2811,6 +2811,7 @@
   "salesforce_owner_name_to_change": "Nome do proprietário a ser alterado",
   "no_filter_set": "Nenhum filtro definido",
   "booking_dry_run_successful": "Simulação de agendamento bem-sucedida",
+  "booking_dry_run_successful_description": "O teste simulado foi concluído com sucesso.",
   "dont_have_access_this_page": "Você não tem acesso a esta página",
   "you_need_admin_or_owner_privileges_to_access": "Para visualizar ou interagir com esta página, você deve ter privilégios de administrador ou proprietário",
   "field_type": "Tipo de campo",
@@ -2898,5 +2899,10 @@
   "calibration": "Calibração",
   "shortfall": "Déficit",
   "routing_form": "Formulário de roteamento",
+  "something_unexpected_occurred": "Algo inesperado aconteceu",
+  "500_error_message": "Não é você, somos nós.",
+  "dry_run_mode_active": "Você está fazendo um agendamento de teste.",
+  "icon_showcase": "Mostruário de ícones",
+  "icons_showcase": "Mostruário de ícones",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

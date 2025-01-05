@@ -20,7 +20,6 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/auth/error", process.env.APP_ROUTER_AUTH_ERROR_ENABLED === "1"] as const,
   ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
   ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
-  ["/team", process.env.APP_ROUTER_TEAM_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
     pathname,

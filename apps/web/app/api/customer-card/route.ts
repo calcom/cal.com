@@ -20,12 +20,13 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-export async function handler(request: Request) {
+async function handler(request: Request) {
   const headersList = headers();
   const requestBody = await request.json();
 
   // HMAC verification
   const incomingSignature = headersList.get("plain-request-signature");
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
     .update(JSON.stringify(requestBody))
     .digest("hex");
@@ -88,18 +89,8 @@ export async function handler(request: Request) {
                 rowAsideContent: [
                   {
                     componentBadge: {
-                      badgeLabel:
-                        customer.emailVerified === undefined
-                          ? "Unknown"
-                          : customer.emailVerified
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.emailVerified === undefined
-                          ? "YELLOW"
-                          : customer.emailVerified
-                          ? "GREEN"
-                          : "RED",
+                      badgeLabel: customer.emailVerified ? "Yes" : "No",
+                      badgeColor: customer.emailVerified ? "GREEN" : "RED",
                     },
                   },
                 ],
@@ -195,18 +186,8 @@ export async function handler(request: Request) {
                 rowAsideContent: [
                   {
                     componentBadge: {
-                      badgeLabel:
-                        customer.twoFactorEnabled === undefined
-                          ? "Unknown"
-                          : customer.twoFactorEnabled
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.twoFactorEnabled === undefined
-                          ? "YELLOW"
-                          : customer.twoFactorEnabled
-                          ? "GREEN"
-                          : "RED",
+                      badgeLabel: customer.twoFactorEnabled ? "Yes" : "No",
+                      badgeColor: customer.twoFactorEnabled ? "GREEN" : "RED",
                     },
                   },
                 ],
