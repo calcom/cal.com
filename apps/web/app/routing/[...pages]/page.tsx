@@ -22,6 +22,21 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   if (!p.success) {
     return notFound();
   }
+  const ctx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const data = await getData(ctx);
+  const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
+  const formName = form?.name;
+  const formDescription = form?.description;
+
+  const { pages } = p.data;
+  if (pages.includes("routing-link")) {
+    return await _generateMetadata(
+      () => `${formName} | Cal.com Forms`,
+      () => "",
+      true
+    );
+  }
+
   return await _generateMetadata(
     (t) => t("routing_forms"),
     (t) => t("routing_forms_description")
