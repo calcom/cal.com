@@ -8,7 +8,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { AppProps } from "@lib/app-providers";
 import type { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 
-type RoutingFormsPageType = {
+type RoutingPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,8 +18,8 @@ type RoutingFormsPageType = {
 
 type Found = {
   notFound: false;
-  Component: RoutingFormsPageType["default"];
-  getServerSideProps: RoutingFormsPageType["getServerSideProps"];
+  Component: RoutingPageType["default"];
+  getServerSideProps: RoutingPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -27,9 +27,9 @@ type NotFound = {
 };
 
 function getRoute(pages: string[]) {
-  const routingConfig = RoutingFormsRoutingConfig as unknown as Record<string, RoutingFormsPageType>;
+  const routingConfig = RoutingFormsRoutingConfig as unknown as Record<string, RoutingPageType>;
   const mainPage = pages[0];
-  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as RoutingFormsPageType);
+  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as RoutingPageType);
   if (!appPage) {
     return {
       notFound: true,
@@ -39,7 +39,7 @@ function getRoute(pages: string[]) {
 }
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-const RoutingFormsPage: RoutingFormsPageType["default"] = function RoutingFormsPage(props: PageProps) {
+const RoutingFormsPage: RoutingPageType["default"] = function RoutingFormsPage(props: PageProps) {
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
   const route = getRoute(pages);

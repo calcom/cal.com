@@ -7,9 +7,8 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
 
-// TODO: low priority - Create a separate getServerSideProps file for /routing
-import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { getServerSideProps } from "@lib/routing/[...pages]/getServerSideProps";
 
 import RoutingFormsPage, { getLayout } from "~/routing/[...pages]/pages-view";
 

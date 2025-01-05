@@ -10,7 +10,7 @@ import type { AppProps } from "@lib/app-providers";
 
 import { ssrInit } from "@server/lib/ssr";
 
-type AppPageType = {
+type RoutingPageType = {
   getServerSideProps?: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,8 +20,8 @@ type AppPageType = {
 
 type Found = {
   notFound: false;
-  Component: AppPageType["default"];
-  getServerSideProps: AppPageType["getServerSideProps"];
+  Component: RoutingPageType["default"];
+  getServerSideProps: RoutingPageType["getServerSideProps"];
 };
 
 type NotFound = {
@@ -29,7 +29,7 @@ type NotFound = {
 };
 
 function getRoute(pages: string[]) {
-  const routingConfig = RoutingFormsRoutingConfig as Record<string, AppPageType>;
+  const routingConfig = RoutingFormsRoutingConfig as Record<string, RoutingPageType>;
 
   if (!routingConfig) {
     return {
@@ -37,7 +37,7 @@ function getRoute(pages: string[]) {
     } as NotFound;
   }
   const mainPage = pages[0];
-  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
+  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as RoutingPageType);
   if (!appPage) {
     return {
       notFound: true,
