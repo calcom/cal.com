@@ -30,7 +30,6 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
-import { getServerSideProps } from "@lib/routing/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import {
@@ -41,6 +40,7 @@ import {
 } from "../../components/FormActions";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
+import { getServerSideProps } from "./getServerSideProps";
 
 function NewFormButton() {
   const { t } = useLocale();

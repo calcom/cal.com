@@ -1,13 +1,18 @@
-import type { GetServerSidePropsContext } from "next";
-
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
+import type {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppSsrInit,
+  AppUser,
+} from "@calcom/types/AppGetServerSideProps";
 
-import { ssrInit } from "@server/lib/ssr";
-
-export const getServerSideProps = async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession({ req: context.req });
-  if (!session?.user) {
+export const getServerSideProps = async function getServerSideProps(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser,
+  ssrInit: AppSsrInit
+) {
+  if (!user) {
     return {
       redirect: {
         permanent: false,
@@ -16,6 +21,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   }
   const ssr = await ssrInit(context);
+
   const filters = getTeamsFiltersFromQuery(context.query);
 
   await ssr.viewer.appRoutingForms.forms.prefetch({

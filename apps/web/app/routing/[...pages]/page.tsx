@@ -32,7 +32,13 @@ const getData = withAppDirSsr<GetServerSidePropsResult<any>>(getServerSideProps)
 
 const ServerPage = async ({ params, searchParams }: PageProps) => {
   const ctx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const props = await getData(ctx);
+  const props = await getData({
+    ...ctx,
+    params: {
+      slug: "routing-forms",
+      pages: params.pages,
+    },
+  });
   return <LegacyPage appName="routing-forms" {...props} />;
 };
 

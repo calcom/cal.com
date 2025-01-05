@@ -32,6 +32,7 @@ type NotFound = {
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
+  "routing-forms": RoutingFormsRoutingConfig,
   typeform: TypeformRoutingConfig,
 };
 
