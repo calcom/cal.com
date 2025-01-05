@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 const Page = () => {
-  redirect("/apps/routing-forms/forms");
+  redirect("/routing/forms");
 };
 
 export default Page;

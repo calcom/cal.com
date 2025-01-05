@@ -7,10 +7,11 @@ import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import z from "zod";
 
+// TODO: low priority - Create a separate getServerSideProps file for /routing
 import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import LegacyPage, { getLayoutRouting } from "~/apps/[slug]/[...pages]/pages-view";
+import RoutingFormsPage, { getLayout } from "~/routing/[...pages]/pages-view";
 
 const paramsSchema = z.object({
   pages: z.array(z.string()),
@@ -29,7 +30,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const formDescription = form?.description;
 
   const { pages } = p.data;
-  
+
   if (pages.includes("routing-link")) {
     return await _generateMetadata(
       () => `${formName} | Cal.com Forms`,
@@ -55,10 +56,10 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
       pages: params.pages,
     },
   });
-  return <LegacyPage {...props} />;
+  return <RoutingFormsPage {...props} />;
 };
 
 export default WithLayout({
-  getLayout: getLayoutRouting,
+  getLayout,
   ServerPage,
 });

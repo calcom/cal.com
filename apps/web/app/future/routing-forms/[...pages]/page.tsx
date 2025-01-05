@@ -13,7 +13,7 @@ const paramsSchema = z
 const Page = ({ params, searchParams }: PageProps) => {
   const { pages } = paramsSchema.parse({ ...params, ...searchParams });
 
-  redirect(`/apps/routing-forms/${pages.length ? pages.join("/") : ""}`);
+  redirect(`/routing/${pages.length ? pages.join("/") : ""}`);
 };
 
 export default Page;

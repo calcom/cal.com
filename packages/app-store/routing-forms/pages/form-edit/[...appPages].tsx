@@ -479,7 +479,7 @@ export default function FormEditPage({
 
 FormEditPage.getLayout = (page: React.ReactElement) => {
   return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
+    <Shell backPath="/routing/forms" withoutMain={true}>
       {page}
     </Shell>
   );

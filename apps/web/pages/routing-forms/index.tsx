@@ -5,7 +5,7 @@ export default function RoutingFormsIndex() {
 export const getServerSideProps = () => {
   return {
     redirect: {
-      destination: `/apps/routing-forms/forms`,
+      destination: `/routing/forms`,
       permanent: false,
     },
   };

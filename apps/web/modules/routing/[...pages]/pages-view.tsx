@@ -1,6 +1,6 @@
 "use client";
 
-import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -8,7 +8,7 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { AppProps } from "@lib/app-providers";
 import type { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 
-type AppPageType = {
+type RoutingFormsPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,32 +18,18 @@ type AppPageType = {
 
 type Found = {
   notFound: false;
-  Component: AppPageType["default"];
-  getServerSideProps: AppPageType["getServerSideProps"];
+  Component: RoutingFormsPageType["default"];
+  getServerSideProps: RoutingFormsPageType["getServerSideProps"];
 };
 
 type NotFound = {
   notFound: true;
 };
 
-// TODO: It is a candidate for apps.*.generated.*
-const AppsRouting = {
-  typeform: TypeformRoutingConfig,
-};
-
-function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as unknown as Record<
-    string,
-    AppPageType
-  >;
-
-  if (!routingConfig) {
-    return {
-      notFound: true,
-    } as NotFound;
-  }
+function getRoute(pages: string[]) {
+  const routingConfig = RoutingFormsRoutingConfig as unknown as Record<string, RoutingFormsPageType>;
   const mainPage = pages[0];
-  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
+  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as RoutingFormsPageType);
   if (!appPage) {
     return {
       notFound: true,
@@ -53,11 +39,10 @@ function getRoute(appName: string, pages: string[]) {
 }
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
-  const appName = props.appName;
+const RoutingFormsPage: RoutingFormsPageType["default"] = function RoutingFormsPage(props: PageProps) {
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
-  const route = getRoute(appName, pages);
+  const route = getRoute(pages);
 
   const componentProps = {
     ...props,
@@ -70,23 +55,10 @@ const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
   return <route.Component {...componentProps} />;
 };
 
-AppPage.isBookingPage = ({ router }) => {
-  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
-  if (route.notFound) {
-    return false;
-  }
-  const isBookingPage = route.Component.isBookingPage;
-  if (typeof isBookingPage === "function") {
-    return isBookingPage({ router });
-  }
-
-  return !!isBookingPage;
-};
-
-export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
+export const getLayout: NonNullable<(typeof RoutingFormsPage)["getLayout"]> = (page) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { slug, pages } = useParamsWithFallback();
-  const route = getRoute(slug as string, pages as string[]);
+  const { pages } = useParamsWithFallback();
+  const route = getRoute(pages as string[]);
 
   if (route.notFound) {
     return null;
@@ -97,4 +69,4 @@ export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
   return route.Component.getLayout(page);
 };
 
-export default AppPage;
+export default RoutingFormsPage;

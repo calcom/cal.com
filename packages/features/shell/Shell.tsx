@@ -26,7 +26,7 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
+  const isFullPageWithoutSidebar = pathname?.startsWith("/routing/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
   useBootIntercom();
