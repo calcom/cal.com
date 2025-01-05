@@ -10,7 +10,7 @@ import z from "zod";
 import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import LegacyPage, { getLayout } from "~/apps/[slug]/[...pages]/pages-view";
+import LegacyPage, { getLayoutRouting } from "~/apps/[slug]/[...pages]/pages-view";
 
 const paramsSchema = z.object({
   pages: z.array(z.string()),
@@ -39,10 +39,10 @@ const ServerPage = async ({ params, searchParams }: PageProps) => {
       pages: params.pages,
     },
   });
-  return <LegacyPage appName="routing-forms" {...props} />;
+  return <LegacyPage {...props} />;
 };
 
 export default WithLayout({
-  getLayout,
+  getLayout: getLayoutRouting,
   ServerPage,
 });

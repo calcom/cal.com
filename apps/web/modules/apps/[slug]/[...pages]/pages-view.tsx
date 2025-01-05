@@ -99,4 +99,18 @@ export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
   return route.Component.getLayout(page);
 };
 
+export const getLayoutRouting: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { pages } = useParamsWithFallback();
+  const route = getRoute("routing-forms", pages as string[]);
+
+  if (route.notFound) {
+    return null;
+  }
+  if (!route.Component.getLayout) {
+    return page;
+  }
+  return route.Component.getLayout(page);
+};
+
 export default AppPage;
