@@ -55,7 +55,6 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
-
   const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
     context.req,
     context.params?.orgSlug ?? context.query?.orgSlug

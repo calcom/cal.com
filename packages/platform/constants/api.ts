@@ -48,6 +48,7 @@ export const API_ERROR_CODES = [
 // Request headers
 export const X_CAL_SECRET_KEY = "x-cal-secret-key";
 export const X_CAL_CLIENT_ID = "x-cal-client-id";
+export const X_CAL_PLATFORM_EMBED = "x-cal-platform-embed";
 
 // HTTP status codes
 export const HTTP_CODE_TOKEN_EXPIRED = 498;
