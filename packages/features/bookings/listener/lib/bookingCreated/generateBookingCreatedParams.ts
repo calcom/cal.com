@@ -1,10 +1,18 @@
+import { getLocationValueForDB } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
+import { getEventName } from "@calcom/core/event";
 import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerUrl } from "@calcom/features/bookings/lib/handleNewBooking/getBookerUrl";
 import type { BookingResponses } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
 import { getEventType } from "@calcom/features/bookings/lib/handleNewBooking/getEventType";
 import { getEventNameObject } from "@calcom/features/bookings/lib/handleNewBooking/getEventnameObject";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { BookingListenerCreateInput } from "../../types";
 
@@ -24,6 +32,9 @@ const generateBookingCreatedParams: (params: {
           username: true,
           locale: true,
           name: true,
+          timeZone: true,
+          timeFormat: true,
+          metadata: true,
           credentials: {
             include: {
               user: {
@@ -38,9 +49,16 @@ const generateBookingCreatedParams: (params: {
       eventType: {
         select: {
           slug: true,
+          bookingFields: true,
+          locations: true,
+          hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
+          schedulingType: true,
+          destinationCalendar: true,
         },
       },
       attendees: true,
+      destinationCalendar: true,
     },
   });
 
@@ -89,6 +107,68 @@ const generateBookingCreatedParams: (params: {
     bookingFields: booking.responses as BookingResponses,
   });
 
+  const eventName = getEventName(eventNameObject);
+
+  const attendeesListPromises = booking.attendees.map(async (attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      timeZone: attendee.timeZone,
+      language: {
+        translate: await getTranslation(attendee.locale ?? "en", "common"),
+        locale: attendee.locale ?? "en",
+      },
+    };
+  });
+
+  const attendeesList = await Promise.all(attendeesListPromises);
+
+  const { conferenceCredentialId } = getLocationValueForDB(
+    booking.location ?? "",
+    (booking.eventType?.locations as LocationObject[]) || []
+  );
+
+  const destinationCalendar =
+    booking?.destinationCalendar ??
+    booking?.eventType?.destinationCalendar ??
+    booking?.user?.destinationCalendar;
+
+  const bookingMetadata = bookingMetadataSchema.parse(booking?.metadata || {});
+
+  const evt: CalendarEvent = {
+    bookerUrl,
+    type: eventType.slug,
+    title: eventName,
+    description: eventType.description,
+    additionalNotes: booking.description,
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
+    startTime: booking.startTime.toISOString(),
+    endTime: booking.endTime.toISOString(),
+    organizer: {
+      id: organizerUser.id,
+      name: organizerUser.name ?? "Nameless",
+      email: organizerUser.email,
+      username: organizerUser.username || undefined,
+      timeZone: organizerUser.timeZone,
+      language: { translate: tOrganizer, locale: organizerUser.locale ?? "en" },
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizerUser.timeFormat),
+    },
+    ...getCalEventResponses({
+      bookingFields: booking.eventType?.bookingFields ?? null,
+      booking,
+    }),
+    attendees: attendeesList,
+    location: booking.location,
+    conferenceCredentialId,
+    destinationCalendar: destinationCalendar ? [destinationCalendar] : [],
+    hideCalendarNotes: eventType.hideCalendarNotes,
+    hideCalendarEventDetails: eventType.hideCalendarEventDetails,
+    eventTypeId: eventType.id,
+    schedulingType: eventType.schedulingType,
+    iCalUID: booking.iCalUID,
+    iCalSequence: booking.iCalSequence,
+  };
+
   return {
     booking: {
       id: bookingId,
@@ -97,6 +177,10 @@ const generateBookingCreatedParams: (params: {
       title: booking.title,
       description: booking.description,
       location: booking.location,
+      appsStatus: bookingMetadata?.reqAppsStatus,
+      iCalUID: booking.iCalUID,
+      customInputs: booking.customInputs,
+      metadata: booking.metadata,
     },
     organizerUser,
     tOrganizer,
@@ -105,6 +189,7 @@ const generateBookingCreatedParams: (params: {
     teamId: eventType?.team?.id,
     bookerUrl,
     eventNameObject,
+    evt,
   };
 };
 
