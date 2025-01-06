@@ -476,7 +476,7 @@ export const EventAdvancedTab = ({
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
-  const reschedulingPastBookingsLocked = shouldLockDisableProps("alllowReschedulingPastBookings");
+  const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
@@ -895,7 +895,7 @@ export const EventAdvancedTab = ({
         )}
       />
       <Controller
-        name="alllowReschedulingPastBookings"
+        name="allowReschedulingPastBookings"
         render={({ field: { value, onChange } }) => (
           <SettingsToggle
             labelClassName={classNames("text-sm")}

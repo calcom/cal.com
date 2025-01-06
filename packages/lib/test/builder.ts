@@ -144,7 +144,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     rrSegmentQueryValue: null,
     autoTranslateDescriptionEnabled: false,
     useEventLevelSelectedCalendars: false,
-    alllowReschedulingPastBookings: false,
+    allowReschedulingPastBookings: false,
     ...eventType,
   };
 };

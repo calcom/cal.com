@@ -215,7 +215,7 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    ...(isBookingInPast && !booking.eventType.alllowReschedulingPastBookings
+    ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
       ? []
       : [
           {

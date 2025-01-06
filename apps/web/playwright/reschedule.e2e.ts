@@ -68,7 +68,7 @@ test.describe("Reschedule Tests", async () => {
         id: user.eventTypes[0].id,
       },
       data: {
-        alllowReschedulingPastBookings: true,
+        allowReschedulingPastBookings: true,
       },
     });
 
@@ -85,7 +85,7 @@ test.describe("Reschedule Tests", async () => {
         id: user.eventTypes[0].id,
       },
       data: {
-        alllowReschedulingPastBookings: false,
+        allowReschedulingPastBookings: false,
       },
     });
 

@@ -160,7 +160,7 @@ model EventType {
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
-  alllowReschedulingPastBookings          Boolean                   @default(false)
+  allowReschedulingPastBookings           Boolean                   @default(false)
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
