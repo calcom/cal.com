@@ -1,4 +1,5 @@
 import type { AppMeta } from "@calcom/types/App";
+import { appDataSchemas, appKeysSchemas } from "./apps.schemas.generated";
 
 // We have to import all the booker-apps config/metadata in here as without that we couldn't
 import type { appStoreMetadata as rawAppStoreMetadata } from "./apps.metadata.generated";
@@ -24,5 +25,11 @@ export const getNormalizedAppMetadata = (appMeta: RawAppStoreMetaData[keyof RawA
     dirName,
     isTemplate: metadata.isTemplate,
   });
+
+  const appDataSchema = appDataSchemas[dirName as keyof typeof appDataSchemas];
+  const appKeysSchema = appKeysSchemas[dirName as keyof typeof appKeysSchemas];
+  metadata.appData = appDataSchema.parse(metadata.appData);
+  metadata.key = appKeysSchema.parse(metadata.key);
+
   return metadata;
 };
