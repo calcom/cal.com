@@ -32,7 +32,6 @@ import {
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import { cpfMask } from "@calcom/features/form-builder/utils";
-import { APP_NAME } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -54,7 +53,6 @@ import {
   Avatar,
   Badge,
   Button,
-  EmailInput,
   EmptyScreen,
   HeadSeo,
   Icon,
@@ -485,6 +483,7 @@ export default function Success(props: PageProps) {
   const isNotAttendingSeatedEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
+  const isntAuthenticated = session === null && !(userIsOwner || props.hideBranding);
 
   const { description, rescheduleRoute } = useMemo(() => {
     const currentTime = dayjs();
@@ -948,19 +947,23 @@ export default function Success(props: PageProps) {
                                       {t("reschedule")}
                                     </Link>
                                   </span>
-                                  <span className="mx-2">{t("or_lowercase")}</span>
+                                  {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                                    <span className="mx-2">{t("or_lowercase")}</span>
+                                  )}
                                 </span>
                               )}
 
-                              <button
-                                data-testid="cancel"
-                                className={classNames(
-                                  "text-default underline",
-                                  props.recurringBookings && "ltr:mr-2 rtl:ml-2"
-                                )}
-                                onClick={() => setIsCancellationMode(true)}>
-                                {t("cancel")}
-                              </button>
+                              {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                                <button
+                                  data-testid="cancel"
+                                  className={classNames(
+                                    "text-default underline",
+                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                  )}
+                                  onClick={() => setIsCancellationMode(true)}>
+                                  {t("cancel")}
+                                </button>
+                              )}
                             </>
                           </div>
                         </>
@@ -1111,9 +1114,11 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    {!isEventCancelled && <RescheduleOrCancelWarning description={description} />}
-                    {!isEventCancelled && (
-                      <div className="flex justify-center mt-4">
+                    {!isEventCancelled && !isPastBooking && (
+                      <RescheduleOrCancelWarning description={description} />
+                    )}
+                    {!isEventCancelled && !isPastBooking && (
+                      <div className="mt-4 flex justify-center">
                         <span className=" text-xs">
                           Confira a nossa{" "}
                           <Link
@@ -1126,7 +1131,7 @@ export default function Success(props: PageProps) {
                       </div>
                     )}
 
-                    {session === null && !(userIsOwner || props.hideBranding) && (
+                    {/* {session === null && !(userIsOwner || props.hideBranding) && (
                       <>
                         <hr className="border-subtle mt-8" />
                         <div className="text-default pt-8 text-center text-xs">
@@ -1160,7 +1165,7 @@ export default function Success(props: PageProps) {
                           </form>
                         </div>
                       </>
-                    )}
+                    )} */}
                   </>
                 )}
                 {isFeedbackMode &&
