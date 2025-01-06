@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrierung",
   "shortfall": "Fehlmenge",
   "routing_form": "Routing-Formular",
+  "something_unexpected_occurred": "Ein unerwarteter Fehler ist aufgetreten",
+  "500_error_message": "Es liegt nicht an Ihnen, sondern an uns.",
+  "dry_run_mode_active": "Sie führen eine Testbuchung durch.",
+  "icon_showcase": "Icon-Übersicht",
+  "icons_showcase": "Icons-Übersicht",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
