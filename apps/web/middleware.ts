@@ -115,6 +115,7 @@ const routingForms = {
       url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
       return NextResponse.rewrite(url);
     }
+    return null;
   },
 };
 
