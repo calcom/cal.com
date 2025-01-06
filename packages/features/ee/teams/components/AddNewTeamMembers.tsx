@@ -26,14 +26,14 @@ import {
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
-const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
+const AddNewTeamMembers = () => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
-    { teamId, isOrg },
+    { teamId, isOrg: true },
     { enabled: session.status === "authenticated" }
   );
 
@@ -46,7 +46,7 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
-  return <AddNewTeamMembersForm teamId={teamId} isOrg={isOrg} />;
+  return <AddNewTeamMembersForm teamId={teamId} isOrg={true} />;
 };
 
 export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg?: boolean }) => {

@@ -1,19 +1,19 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
 
@@ -51,6 +51,10 @@ const CreateANewOrganizationFormChild = ({
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
+
+  const { setBillingPeriod, setPricePerSeat, setSeats, setOrgOwnerEmail, setName, setSlug } =
+    useOnboardingStore();
+
   const newOrganizationFormMethods = useForm<{
     name: string;
     seats: number;
@@ -67,48 +71,23 @@ const CreateANewOrganizationFormChild = ({
     },
   });
 
-  const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
-    onSuccess: async (data) => {
-      telemetry.event(telemetryEventTypes.org_created);
-      // This is necessary so that server token has the updated upId
-      await session.update({
-        upId: data.upId,
-      });
-      if (isAdmin && data.userId !== session.data?.user.id) {
-        // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
-        // He won't need to have access to the org directly in this way.
-        signIn("impersonation-auth", {
-          username: data.email,
-          callbackUrl: `/settings/organizations/${data.organizationId}/about`,
-        });
-      }
-      router.push(`/settings/organizations/${data.organizationId}/about`);
-    },
-    onError: (err) => {
-      if (err.message === "organization_url_taken") {
-        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
-      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
-        newOrganizationFormMethods.setError("slug", {
-          type: "custom",
-          message: t("problem_registering_domain"),
-        });
-      } else {
-        setServerErrorMessage(err.message);
-      }
-    },
-  });
-
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
         className="space-y-5"
         id="createOrg"
-        handleSubmit={(v) => {
-          if (!createOrganizationMutation.isPending) {
-            setServerErrorMessage(null);
-            createOrganizationMutation.mutate(v);
-          }
+        handleSubmit={(values) => {
+          // Save form data to Zustand store
+          setBillingPeriod(values.billingPeriod);
+          setPricePerSeat(values.pricePerSeat);
+          setSeats(values.seats);
+          setOrgOwnerEmail(values.orgOwnerEmail);
+          setName(values.name);
+          setSlug(values.slug);
+
+          // Navigate to next step
+          router.push("/settings/organizations/new/about");
         }}>
         <div>
           {serverErrorMessage && (
@@ -166,12 +145,13 @@ const CreateANewOrganizationFormChild = ({
                   defaultValue={value}
                   onChange={(e) => {
                     const email = e?.target.value;
-                    const slug = deriveSlugFromEmail(email);
                     newOrganizationFormMethods.setValue("orgOwnerEmail", email.trim());
                     if (newOrganizationFormMethods.getValues("slug") === "") {
+                      const slug = deriveSlugFromEmail(email);
                       newOrganizationFormMethods.setValue("slug", slug);
                     }
-                    newOrganizationFormMethods.setValue("name", deriveOrgNameFromEmail(email));
+                    const name = deriveOrgNameFromEmail(email);
+                    newOrganizationFormMethods.setValue("name", name);
                   }}
                   autoComplete="off"
                 />
@@ -313,9 +293,7 @@ const CreateANewOrganizationFormChild = ({
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            disabled={
-              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
-            }
+            disabled={newOrganizationFormMethods.formState.isSubmitting}
             color="primary"
             EndIcon="arrow-right"
             type="submit"

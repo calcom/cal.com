@@ -1,8 +1,10 @@
-import type { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+export const getServerSideProps = async (
+  context: GetServerSidePropsContext
+): Promise<GetServerSidePropsResult<{ isOrg?: boolean }>> => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const organizations = await getFeatureFlag(prisma, "organizations");
   // Check if organizations are enabled
@@ -16,7 +18,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      querySlug: querySlug ?? null,
+      isOrg: true as boolean,
     },
   };
 };

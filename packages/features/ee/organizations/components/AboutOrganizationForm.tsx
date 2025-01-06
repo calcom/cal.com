@@ -3,51 +3,33 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import z from "zod";
 
+import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { trpc } from "@calcom/trpc/react";
 import { Alert, Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
-
-const querySchema = z.object({
-  id: z.string(),
-});
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const routerQuery = useRouterQuery();
-  const { id: orgId } = querySchema.parse(routerQuery);
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const [image, setImage] = useState("");
+
+  const { setLogo, setBio } = useOnboardingStore();
 
   const aboutOrganizationFormMethods = useForm<{
     logo: string;
     bio: string;
   }>();
 
-  const updateOrganizationMutation = trpc.viewer.organizations.update.useMutation({
-    onSuccess: (data) => {
-      if (data.update) {
-        router.push(`/settings/organizations/${orgId}/onboard-members`);
-      }
-    },
-    onError: (err) => {
-      setServerErrorMessage(err.message);
-    },
-  });
-
   return (
     <>
       <Form
         form={aboutOrganizationFormMethods}
         className="space-y-5"
-        handleSubmit={(v) => {
-          if (!updateOrganizationMutation.isPending) {
-            setServerErrorMessage(null);
-            updateOrganizationMutation.mutate({ ...v, orgId });
-          }
+        handleSubmit={(values) => {
+          setLogo(values.logo);
+          setBio(values.bio);
+          router.push(`/settings/organizations/new/onboard-members`);
         }}>
         {serverErrorMessage && (
           <div>
@@ -109,9 +91,7 @@ export const AboutOrganizationForm = () => {
 
         <div className="flex">
           <Button
-            disabled={
-              aboutOrganizationFormMethods.formState.isSubmitting || updateOrganizationMutation.isPending
-            }
+            disabled={aboutOrganizationFormMethods.formState.isSubmitting}
             color="primary"
             EndIcon="arrow-right"
             type="submit"
