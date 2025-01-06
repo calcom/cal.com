@@ -23,7 +23,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     return notFound();
   }
   const ctx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const data = await getData(ctx);
+  const data = await getData({
+    ...ctx,
+    params: {
+      slug: "routing-forms",
+      pages: params.pages,
+    },
+  });
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
   const formName = form?.name;
   const formDescription = form?.description;

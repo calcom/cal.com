@@ -71,6 +71,7 @@ export async function getServerSideProps(
   }
 
   if (route.getServerSideProps) {
+    params.appPages = pages.slice(1);
     const session = await getServerSession({ req });
     const user = session?.user;
     const app = await getAppWithMetadata({ slug: appName });

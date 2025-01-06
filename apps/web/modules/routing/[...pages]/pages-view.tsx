@@ -1,7 +1,8 @@
 "use client";
 
+import { useParams } from "next/navigation";
+
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
@@ -40,8 +41,8 @@ function getRoute(pages: string[]) {
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const RoutingFormsPage: RoutingPageType["default"] = function RoutingFormsPage(props: PageProps) {
-  const params = useParamsWithFallback();
-  const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
+  const params = useParams();
+  const pages = Array.isArray(params?.pages) ? params.pages : params?.pages?.split("/") ?? [];
   const route = getRoute(pages);
 
   const componentProps = {
@@ -57,7 +58,8 @@ const RoutingFormsPage: RoutingPageType["default"] = function RoutingFormsPage(p
 
 export const getLayout: NonNullable<(typeof RoutingFormsPage)["getLayout"]> = (page) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { pages } = useParamsWithFallback();
+  const params = useParams();
+  const pages = Array.isArray(params?.pages) ? params.pages : params?.pages?.split("/") ?? [];
   const route = getRoute(pages as string[]);
 
   if (route.notFound) {
