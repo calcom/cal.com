@@ -64,3 +64,5 @@ async function Page({ params }: _PageProps) {
 }
 
 export default WithLayout({ getLayout: null, ServerPage: Page });
+
+export const dynamic = "force-dynamic";
