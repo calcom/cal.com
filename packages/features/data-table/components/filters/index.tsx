@@ -1,6 +1,8 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 import { forwardRef, useState, useMemo, useCallback, Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -22,8 +24,8 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useDataTable } from "../../hooks";
 import type { FilterableColumn, ExternalFilter } from "../../lib/types";
-import { convertToTitleCase, useDataTable } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -164,7 +166,7 @@ function AddFilterButtonComponent<TData>(
                     key={column.id}
                     onSelect={() => handleAddFilter(column.id)}
                     className="px-4 py-2">
-                    {convertToTitleCase(column.title)}
+                    {startCase(column.title)}
                   </CommandItem>
                 );
               })}
@@ -257,7 +259,7 @@ function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TDa
             <PopoverTrigger asChild>
               <Button color="secondary">
                 <Icon name={icon} className="mr-2 h-4 w-4" />
-                {convertToTitleCase(column.title)}
+                {startCase(column.title)}
                 <Icon name="chevron-down" className="ml-2 h-4 w-4" />
               </Button>
             </PopoverTrigger>
