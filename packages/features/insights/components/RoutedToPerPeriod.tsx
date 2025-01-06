@@ -33,6 +33,7 @@ import { useFilterContext } from "../context/provider";
 
 interface DownloadButtonProps {
   teamId?: number;
+  userId?: number;
   isAll?: boolean;
   routingFormId?: string;
   dateRange: [Dayjs, Dayjs, string | null];
@@ -41,6 +42,7 @@ interface DownloadButtonProps {
 }
 
 function DownloadButton({
+  userId,
   teamId,
   isAll,
   routingFormId,
@@ -57,6 +59,7 @@ function DownloadButton({
 
     try {
       const result = await utils.viewer.insights.routedToPerPeriodCsv.fetch({
+        userId: userId ?? undefined,
         teamId: teamId ?? undefined,
         startDate: dateRange[0]?.toISOString() ?? "",
         endDate: dateRange[1]?.toISOString() ?? "",
@@ -97,6 +100,7 @@ interface FormCardProps {
   onSearchChange: (value: string) => void;
   children: ReactNode;
   teamId?: number;
+  userId?: number;
   isAll?: boolean;
   routingFormId?: string;
   dateRange: [Dayjs, Dayjs, string | null];
@@ -109,6 +113,7 @@ function FormCard({
   onSearchChange,
   children,
   teamId,
+  userId,
   isAll,
   routingFormId,
   dateRange,
@@ -141,6 +146,7 @@ function FormCard({
                 />
               </div>
               <DownloadButton
+                userId={userId}
                 teamId={teamId}
                 isAll={isAll}
                 routingFormId={routingFormId}
@@ -214,7 +220,7 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
 export function RoutedToPerPeriod() {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { selectedTeamId, isAll, selectedRoutingFormId, dateRange } = filter;
+  const { selectedTeamId, selectedUserId, isAll, selectedRoutingFormId, dateRange } = filter;
   const [selectedPeriod, setSelectedPeriod] = useQueryState("selectedPeriod", {
     defaultValue: "perWeek",
   });
@@ -233,6 +239,7 @@ export function RoutedToPerPeriod() {
   const { data, fetchNextPage, isFetchingNextPage, hasNextPage, isLoading } =
     trpc.viewer.insights.routedToPerPeriod.useInfiniteQuery(
       {
+        userId: selectedUserId ?? undefined,
         teamId: selectedTeamId ?? undefined,
         startDate: dateRange[0]?.toISOString() ?? "",
         endDate: dateRange[1]?.toISOString() ?? "",
@@ -327,6 +334,7 @@ export function RoutedToPerPeriod() {
           onPeriodChange={setSelectedPeriod}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          userId={selectedUserId ?? undefined}
           teamId={selectedTeamId ?? undefined}
           isAll={isAll}
           routingFormId={selectedRoutingFormId ?? undefined}
@@ -369,6 +377,7 @@ export function RoutedToPerPeriod() {
         onPeriodChange={setSelectedPeriod}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        userId={selectedUserId ?? undefined}
         teamId={selectedTeamId ?? undefined}
         isAll={isAll}
         routingFormId={selectedRoutingFormId ?? undefined}

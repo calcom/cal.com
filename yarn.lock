@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.72"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.78"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3798,6 +3798,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/chatbase@workspace:packages/app-store/chatbase":
+  version: 0.0.0-use.local
+  resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/clic@workspace:packages/app-store/clic":
   version: 0.0.0-use.local
   resolution: "@calcom/clic@workspace:packages/app-store/clic"
@@ -4011,8 +4020,8 @@ __metadata:
     typescript: ^4.9.4
     vite: ^4.5.2
   peerDependencies:
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4493,14 +4502,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.72":
-  version: 0.0.72
-  resolution: "@calcom/platform-libraries@npm:0.0.72"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.78":
+  version: 0.0.78
+  resolution: "@calcom/platform-libraries@npm:0.0.78"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 62b73b413b341a2d36f43279a5268a06af9bbd8ee2ed6279406c9f8d3d214d52bc35aa02dd8b64a13fad863164bcfc5607cff1834c0a9af984abd40e87f80d47
+  checksum: b1d8b10aee37cd376f01086c1ef8b7fa82678e4136c4e96949934987ca4c8e4ba77704d8f6d3f29e4b5d473c2b3d2d57d70b9a7ff9509e70fab9e323a6ee2bb9
   languageName: node
   linkType: hard
 
@@ -4567,6 +4576,7 @@ __metadata:
   resolution: "@calcom/prisma@workspace:packages/prisma"
   dependencies:
     "@calcom/lib": "*"
+    "@faker-js/faker": 9.2.0
     "@prisma/client": ^5.4.2
     "@prisma/extension-accelerate": ^0.6.2
     "@prisma/generator-helper": ^5.4.2
@@ -6312,6 +6322,13 @@ __metadata:
     http-cookie-agent: ^5.0.4
     tough-cookie: ^4.1.3
   checksum: 6563d307517e19cc6e3b1b8a986c95606b9cbfa0a826c62a0ef255777540843e638b770ff69b125b4eb43aa05158707ccd9c07e6c1afaf0dc1731e0997ad83ea
+  languageName: node
+  linkType: hard
+
+"@faker-js/faker@npm:9.2.0":
+  version: 9.2.0
+  resolution: "@faker-js/faker@npm:9.2.0"
+  checksum: 7cbff7363f198c24aa1a25499f200a25506f80df577a419ae878b6bdd4aa901ecfe071ae3bbecf8afafa5542c825623d55f5884d44db7b12420c898241332cd1
   languageName: node
   linkType: hard
 

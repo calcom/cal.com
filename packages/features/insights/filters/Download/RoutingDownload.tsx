@@ -21,7 +21,7 @@ const RoutingDownload = () => {
   const { t } = useLocale();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const fetchBatch = async (cursor: number | null = null) => {
     const result = await utils.viewer.insights.rawRoutingData.fetch({
@@ -29,6 +29,7 @@ const RoutingDownload = () => {
       endDate: filter.dateRange[1].toISOString(),
       teamId: filter.selectedTeamId ?? undefined,
       userId: filter.selectedUserId ?? undefined,
+      memberUserId: filter.selectedMemberUserId ?? undefined,
       routingFormId: filter.selectedRoutingFormId ?? undefined,
       bookingStatus: filter.selectedBookingStatus ?? undefined,
       fieldFilter: filter.selectedRoutingFormFilter ?? undefined,

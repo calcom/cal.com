@@ -7,6 +7,7 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { useMemo, useReducer, useRef, useState } from "react";
 
 import {
+  DataTableProvider,
   DataTable,
   DataTableToolbar,
   DataTableFilters,
@@ -16,6 +17,10 @@ import {
   useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
+  isSingleSelectFilterValue,
+  isMultiSelectFilterValue,
+  singleSelectFilter,
+  multiSelectFilter,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -97,6 +102,14 @@ function reducer(state: UserTableState, action: UserTableAction): UserTableState
 }
 
 export function UserListTable() {
+  return (
+    <DataTableProvider>
+      <UserListTableContent />
+    </DataTableProvider>
+  );
+}
+
+function UserListTableContent() {
   const [dynamicLinkVisible, setDynamicLinkVisible] = useQueryState("dynamicLink", parseAsBoolean);
   const orgBranding = useOrgBranding();
   const domain = orgBranding?.fullDomain ?? WEBAPP_URL;
@@ -105,7 +118,7 @@ export function UserListTable() {
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
 
@@ -150,7 +163,6 @@ export function UserListTable() {
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
-  const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -164,62 +176,88 @@ export function UserListTable() {
         return [];
       }
       return (
-        (attributes?.map((attribute) => ({
-          id: attribute.id,
-          header: attribute.name,
-          meta: {
-            filterType: attribute.type.toLowerCase() === "text" ? "text" : "select",
-          },
-          size: 120,
-          accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
-          cell: ({ row }) => {
-            const attributeValues = row.original.attributes.filter(
-              (attr) => attr.attributeId === attribute.id
-            );
-            if (attributeValues.length === 0) return null;
-            return (
-              <div
-                className={classNames(
-                  attribute.type === "NUMBER" ? "flex w-full justify-center" : "flex flex-wrap"
-                )}>
-                {attributeValues.map((attributeValue, index) => {
-                  const isAGroupOption = attributeValue.contains?.length > 0;
-                  const suffix = attribute.isWeightsEnabled ? `${attributeValue.weight || 100}%` : undefined;
-                  return (
-                    <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
-                      <Badge
-                        variant={isAGroupOption ? "orange" : "gray"}
-                        className={classNames(suffix && "rounded-r-none")}>
-                        {attributeValue.value}
-                      </Badge>
+        (attributes?.map((attribute) => {
+          // TODO: We need to normalize AttributeOption table first
+          // so that we can have `number_value` column for numeric operations.
+          // Currently, `value` column is used for both text and number attributes.
+          //
+          // const isNumber = attribute.type === "NUMBER";
+          const isNumber = false;
+          const isText = attribute.type === "TEXT";
+          const isSingleSelect = attribute.type === "SINGLE_SELECT";
+          const isMultiSelect = attribute.type === "MULTI_SELECT";
+          const filterType = isNumber
+            ? "number"
+            : isText
+            ? "text"
+            : isSingleSelect
+            ? "single_select"
+            : "multi_select";
 
-                      {suffix ? (
+          return {
+            id: attribute.id,
+            header: attribute.name,
+            meta: {
+              filter: { type: filterType },
+            },
+            size: 120,
+            accessorFn: (data) => data.attributes.find((attr) => attr.attributeId === attribute.id)?.value,
+            cell: ({ row }) => {
+              const attributeValues = row.original.attributes.filter(
+                (attr) => attr.attributeId === attribute.id
+              );
+              if (attributeValues.length === 0) return null;
+              return (
+                <div className={classNames(isNumber ? "flex w-full justify-center" : "flex flex-wrap")}>
+                  {attributeValues.map((attributeValue) => {
+                    const isAGroupOption = attributeValue.contains?.length > 0;
+                    const suffix = attribute.isWeightsEnabled
+                      ? `${attributeValue.weight || 100}%`
+                      : undefined;
+                    return (
+                      <div className="mr-1 inline-flex shrink-0" key={attributeValue.id}>
                         <Badge
                           variant={isAGroupOption ? "orange" : "gray"}
-                          style={{
-                            backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
-                          }}
-                          className="rounded-l-none">
-                          {suffix}
+                          className={classNames(suffix && "rounded-r-none")}>
+                          {attributeValue.value}
                         </Badge>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          },
-          filterFn: (row, id, filterValue) => {
-            const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
 
-            if (isTextFilterValue(filterValue)) {
-              return attributeValues.some((attr) => textFilter(attr.value, filterValue));
-            }
+                        {suffix ? (
+                          <Badge
+                            variant={isAGroupOption ? "orange" : "gray"}
+                            style={{
+                              backgroundColor: "color-mix(in hsl, var(--cal-bg-emphasis), black 5%)",
+                            }}
+                            className="rounded-l-none">
+                            {suffix}
+                          </Badge>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            },
+            filterFn: (row, id, filterValue) => {
+              const attributeValues = row.original.attributes.filter((attr) => attr.attributeId === id);
 
-            if (attributeValues.length === 0) return false;
-            return attributeValues.some((attr) => filterValue.includes(attr.value));
-          },
-        })) as ColumnDef<UserTableUser>[]) ?? []
+              if (isTextFilterValue(filterValue)) {
+                return attributeValues.some((attr) => textFilter(attr.value, filterValue));
+              } else if (isSingleSelectFilterValue(filterValue)) {
+                return singleSelectFilter(
+                  attributeValues.map((attr) => attr.value),
+                  filterValue
+                );
+              } else if (isMultiSelectFilterValue(filterValue)) {
+                return multiSelectFilter(
+                  attributeValues.map((attr) => attr.value),
+                  filterValue
+                );
+              }
+              return false;
+            },
+          };
+        }) as ColumnDef<UserTableUser>[]) ?? []
       );
     };
     const cols: ColumnDef<UserTableUser>[] = [
@@ -504,6 +542,11 @@ export function UserListTable() {
     }
   };
 
+  if (!isSuccessAttributes) {
+    // do not render the table until the attributes are fetched
+    return null;
+  }
+
   return (
     <>
       <DataTable
@@ -512,9 +555,9 @@ export function UserListTable() {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
-        enableColumnResizing={{ name: "UserListTable" }}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root className="lg:max-w-screen-2xl">
+        <DataTableToolbar.Root>
           <div className="flex w-full flex-col gap-2 sm:flex-row">
             <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
               <DataTableToolbar.SearchBar
@@ -534,7 +577,7 @@ export function UserListTable() {
                 {t("download")}
               </DataTableToolbar.CTA>
               {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.FilterButton table={table} omit={["member"]} />
+              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
               {adminOrOwner && (
                 <DataTableToolbar.CTA
