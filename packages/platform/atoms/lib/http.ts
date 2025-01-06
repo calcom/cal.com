@@ -43,7 +43,7 @@ const http = (function () {
       return instance.defaults.headers.common?.[X_CAL_CLIENT_ID]?.toString() ?? "";
     },
     setPlatformEmbedHeader: (isEmbed: boolean) => {
-      instance.defaults.headers.common[X_CAL_PLATFORM_EMBED] = isEmbed;
+      instance.defaults.headers.common[X_CAL_PLATFORM_EMBED] = isEmbed?.toString() ?? "";
     },
     getPlatformEmbedHeader: () => {
       return instance.defaults.headers.common?.[X_CAL_PLATFORM_EMBED]?.toString() ?? "";
