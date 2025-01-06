@@ -427,8 +427,13 @@ class PublicEventTypeOutput {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => User)
+  @ApiPropertyOptional({ type: [User] })
+  users?: User[];
+
+  @ValidateNested({ each: true })
+  @Type(() => User)
   @ApiProperty({ type: [User] })
-  users!: User[];
+  firstThreeUsers!: User[];
 
   @IsObject()
   @ApiProperty({ type: Object })
