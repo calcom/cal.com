@@ -952,7 +952,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               slug: recurringSeatedTventTypeSlug,
             });
             expect(firstBooking.attendees.length).toEqual(2);
-            expect(firstBooking.attendees[0]).toEqual({
+            const firstAttendee = firstBooking.attendees.find(
+              (attendee) => attendee.name === nameAttendeeOne
+            );
+            expect(firstAttendee).toEqual({
               name: nameAttendeeOne,
               email: emailAttendeeOne,
               timeZone: body.attendee.timeZone,
@@ -965,7 +968,10 @@ describe("Bookings Endpoints 2024-08-13", () => {
               },
               metadata: createdRecurringSeatedBooking[0].attendees[0].metadata,
             });
-            expect(firstBooking.attendees[1]).toEqual({
+            const secondAttendee = firstBooking.attendees.find(
+              (attendee) => attendee.name === nameAttendeeTwo
+            );
+            expect(secondAttendee).toEqual({
               name: nameAttendeeTwo,
               email: emailAttendeeTwo,
               timeZone: body.attendee.timeZone,
