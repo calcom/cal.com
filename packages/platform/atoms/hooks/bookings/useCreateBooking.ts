@@ -1,7 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 
-import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
-import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiErrorResponse, ApiSuccessResponse } from "@calcom/platform-types";
@@ -25,24 +23,14 @@ export const useCreateBooking = (
     },
   }
 ) => {
-  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const createBooking = useMutation<ApiResponse<BookingResponse>, Error, UseCreateBookingInput>({
     mutationFn: (data) => {
-      return http
-        .post<ApiResponse<BookingResponse>>("/bookings", data, {
-          headers: {
-            ...http.instance.defaults.headers.common,
-            [X_CAL_CLIENT_ID]: isPlatformBookerEmbed
-              ? undefined
-              : http.instance.defaults.headers.common[X_CAL_CLIENT_ID],
-          },
-        })
-        .then((res) => {
-          if (res.data.status === SUCCESS_STATUS) {
-            return res.data;
-          }
-          throw new Error(res.data.error.message);
-        });
+      return http.post<ApiResponse<BookingResponse>>("/bookings", data).then((res) => {
+        if (res.data.status === SUCCESS_STATUS) {
+          return res.data;
+        }
+        throw new Error(res.data.error.message);
+      });
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {
