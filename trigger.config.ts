@@ -1,5 +1,5 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
-
+import { prismaExtension } from "@trigger.dev/build/extensions/prisma";
 export default defineConfig({
   project: "proj_azikxuswmesdkomryyhe",
   runtime: "node",
@@ -17,4 +17,11 @@ export default defineConfig({
     },
   },
   dirs: ["./packages/features/tasker/tasks/trigger"],
+  build: {
+    extensions: [
+      prismaExtension({
+        schema: "./packages/prisma/schema.prisma",
+      }),
+    ],
+  },
 });
