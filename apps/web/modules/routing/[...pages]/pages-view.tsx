@@ -42,7 +42,8 @@ export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 const RoutingFormsPage: RoutingPageType["default"] = function RoutingFormsPage(props: PageProps) {
   const params = useParams();
-  const pages = Array.isArray(params?.pages) ? params.pages : params?.pages?.split("/") ?? [];
+  const _pages = params?.pages ?? [];
+  const pages = Array.isArray(_pages) ? _pages : _pages.split("/");
   const route = getRoute(pages);
 
   const componentProps = {
@@ -59,7 +60,8 @@ const RoutingFormsPage: RoutingPageType["default"] = function RoutingFormsPage(p
 export const getLayout: NonNullable<(typeof RoutingFormsPage)["getLayout"]> = (page) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const params = useParams();
-  const pages = Array.isArray(params?.pages) ? params.pages : params?.pages?.split("/") ?? [];
+  const _pages = params?.pages ?? [];
+  const pages = Array.isArray(_pages) ? _pages : _pages.split("/");
   const route = getRoute(pages as string[]);
 
   if (route.notFound) {
