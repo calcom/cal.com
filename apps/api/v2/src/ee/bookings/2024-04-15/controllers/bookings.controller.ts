@@ -165,12 +165,11 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const oAuthClientId = clientId?.toString();
-    const isEmbedBool = this.transformToBoolean(isEmbed);
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
       const booking = await handleNewBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbedBool)
+        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed)
       );
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -198,12 +197,11 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
-    const isEmbedBool = this.transformToBoolean(isEmbed);
     if (bookingId) {
       try {
         req.body.id = parseInt(bookingId);
         const res = await handleCancelBooking(
-          await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbedBool)
+          await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
         );
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
@@ -256,7 +254,6 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
-    const isEmbedBool = this.transformToBoolean(isEmbed);
     try {
       const recurringEventId = uuidv4();
       for (const recurringEvent of req.body) {
@@ -266,7 +263,7 @@ export class BookingsController_2024_04_15 {
       }
 
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiRecurringBookingRequest(req, oAuthClientId, undefined, isEmbedBool)
+        await this.createNextApiRecurringBookingRequest(req, oAuthClientId, undefined, isEmbed)
       );
 
       createdBookings.forEach(async (booking) => {
@@ -296,11 +293,10 @@ export class BookingsController_2024_04_15 {
     @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
-    const isEmbedBool = this.transformToBoolean(isEmbed);
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbedBool)
+        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
       );
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
@@ -371,13 +367,13 @@ export class BookingsController_2024_04_15 {
     req: BookingRequest,
     oAuthClientId?: string,
     platformBookingLocation?: string,
-    isEmbed?: boolean
+    isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const requestId = req.get("X-Request-Id");
     const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(oAuthClientId, isEmbed)
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
     this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
       requestId,
@@ -395,12 +391,12 @@ export class BookingsController_2024_04_15 {
     req: BookingRequest,
     oAuthClientId?: string,
     platformBookingLocation?: string,
-    isEmbed?: boolean
+    isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
     const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(oAuthClientId, isEmbed)
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
     const requestId = req.get("X-Request-Id");
     this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
