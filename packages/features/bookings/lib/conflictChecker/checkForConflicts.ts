@@ -54,6 +54,6 @@ export function checkForConflicts({
     if (busyStartDate <= slotStartDate && busyEndDate >= slotEndDate) {
       return true;
     }
+    return false;
   });
-  return false;
 }
