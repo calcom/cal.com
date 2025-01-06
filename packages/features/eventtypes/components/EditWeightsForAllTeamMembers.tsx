@@ -128,7 +128,6 @@ export const EditWeightsForAllTeamMembers = ({
     }));
     onChange(updatedValue);
     setIsOpen(false);
-    showToast(t("weights_updated_successfully"), "success");
   };
 
   const handleDownloadCsv = () => {
