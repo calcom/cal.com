@@ -1,0 +1,16 @@
+{
+  "name": "@calcom/trigger.dev",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "@calcom/app-store": "*",
+    "@calcom/features": "*",
+    "@calcom/prisma": "*",
+    "@trigger.dev/sdk": "latest",
+    "jsdom": "^25.0.1",
+    "xhr": "^2.6.0"
+  },
+  "devDependencies": {
+    "@trigger.dev/build": "latest"
+  }
+}
