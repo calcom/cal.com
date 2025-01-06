@@ -2033,8 +2033,12 @@ checksums:
     event_end_time_info: dff59c43944ee9ec4f0b14788f916ead
     cancel_url_variable: 07203aef11c344e47a12a8dc3434a914
     cancel_url_info: 3e8674a30d8f4f5d59cb0023a1af3c56
+    cancel_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
+    cancel_reason_info: a9605eb91c41ba58cdb5eb2070a050c6
     reschedule_url_variable: 07bbd334e84c8b81712a1fddceef7349
     reschedule_url_info: 1f9481606ab3e2a958add0a670ccd43e
+    reschedule_reason_variable: 609311e1419bff44a9d3cfddf07947e6
+    reschedule_reason_info: c6ccdfc397ec76ddfe934fe46f016727
     invalid_event_name_variables: 04afea2e1a0eb553e9debf310ed0aa13
     select_all: ef9e1f8aaf1fbbdf868934209c85aea2
     default_conferencing_bulk_title: c5df8bbc4168913fc4772a695933c226
