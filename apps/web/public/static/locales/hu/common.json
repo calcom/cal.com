@@ -2899,5 +2899,10 @@
   "calibration": "Kalibráció",
   "shortfall": "Hiány",
   "routing_form": "Útválasztási űrlap",
+  "something_unexpected_occurred": "Váratlan hiba történt",
+  "500_error_message": "Nem ön a hibás, mi vagyunk.",
+  "dry_run_mode_active": "Tesztfoglalást végzel.",
+  "icon_showcase": "Ikon bemutató",
+  "icons_showcase": "Ikonok bemutatója",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
