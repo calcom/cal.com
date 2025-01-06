@@ -1,7 +1,6 @@
 import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -20,10 +19,8 @@ export const generateMetadata = async () => {
   );
 };
 
-const InstalledAppsWrapper = async ({ params, searchParams }: PageProps) => {
-  const parsedParams = querySchema.safeParse({
-    category: { ...params, ...searchParams }.category,
-  });
+const InstalledAppsWrapper = async ({ params }: PageProps) => {
+  const parsedParams = querySchema.safeParse(params);
 
   if (!parsedParams.success) {
     redirect("/apps/installed/calendar");

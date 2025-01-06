@@ -2,6 +2,7 @@ import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata, generateAppMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
 import { isPrismaAvailableCheck } from "@calcom/prisma/is-prisma-available-check";
@@ -10,9 +11,18 @@ import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
 
 import AppView from "~/apps/[slug]/slug-view";
 
+const paramsSchema = z.object({
+  slug: z.string(),
+});
+
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const _params = { ...params, ...searchParams };
-  const props = await getStaticProps(_params.slug as string);
+  const p = paramsSchema.safeParse(params);
+
+  if (!p.success) {
+    return notFound();
+  }
+
+  const props = await getStaticProps(p.data.slug);
 
   if (!props) {
     notFound();
@@ -37,9 +47,14 @@ export const generateStaticParams = async () => {
   return appStore.map(({ slug }) => ({ slug }));
 };
 
-async function Page({ params, searchParams }: _PageProps) {
-  const _params = { ...params, ...searchParams };
-  const props = await getStaticProps(_params.slug as string);
+async function Page({ params }: _PageProps) {
+  const p = paramsSchema.safeParse(params);
+
+  if (!p.success) {
+    return notFound();
+  }
+
+  const props = await getStaticProps(p.data.slug);
 
   if (!props) {
     notFound();
