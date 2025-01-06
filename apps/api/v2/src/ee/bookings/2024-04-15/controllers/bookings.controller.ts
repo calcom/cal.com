@@ -342,7 +342,7 @@ export class BookingsController_2024_04_15 {
     const res = { ...DEFAULT_PLATFORM_PARAMS };
 
     if (isEmbed) {
-      // embed should ignore oauth client settings
+      // embed should ignore oauth client settings and enable emails by default
       return { ...res, arePlatformEmailsEnabled: true };
     }
 
