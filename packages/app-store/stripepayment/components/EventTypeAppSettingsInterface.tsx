@@ -197,7 +197,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                       options={options}
                       isSearchable={false}
                       isDisabled={disabled}
-                      onChange={(option) => setAppData("refundCountCalendarDays", option?.value === 1)}
+                      onChange={(option: (typeof options)[0]) =>
+                        setAppData("refundCountCalendarDays", option?.value === 1)
+                      }
                       value={getSelectedOption()}
                       defaultValue={getSelectedOption()}
                     />

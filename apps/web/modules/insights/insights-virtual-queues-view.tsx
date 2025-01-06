@@ -31,7 +31,7 @@ export default function InsightsVirtualQueuesPage() {
         options={routingForms?.map((form) => ({ label: form.name, value: form.id })) ?? []}
         isLoading={isRoutingFormsLoading}
         className="w-60"
-        onChange={(e) => {
+        onChange={(e?: { label: string; value: string }) => {
           if (e && routingForms) {
             const form = routingForms.find((form) => form.id === e.value);
             setSelectedForm(form);
