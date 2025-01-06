@@ -275,6 +275,7 @@ const RoundRobinHosts = ({
                       teamMembers={teamMembers}
                       value={value}
                       onChange={onChange}
+                      assignAllTeamMembers={assignAllTeamMembers}
                     />
                   ) : null}
                 </SettingsToggle>

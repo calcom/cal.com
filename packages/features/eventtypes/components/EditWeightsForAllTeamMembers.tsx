@@ -94,13 +94,20 @@ interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
+  assignAllTeamMembers: boolean;
 }
 
-export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: Props) => {
+export const EditWeightsForAllTeamMembers = ({
+  teamMembers,
+  value,
+  onChange,
+  assignAllTeamMembers,
+}: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
   const localWeightsInitialValues = teamMembers.reduce<Record<string, number>>((acc, member) => {
+    // When assignAllTeamMembers is false, only include members that exist in value array
     // Find the member in the value array and use its weight if it exists
     const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
     acc[member.value] = memberInValue?.weight ?? 100;
@@ -195,8 +202,12 @@ export const EditWeightsForAllTeamMembers = ({ teamMembers, value, onChange }: P
         (member) =>
           member.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
           member.email.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-  }, [teamMembers, searchQuery, localWeights]);
+      )
+      .filter((member) => {
+        // When assignAllTeamMembers is false, only include members that exist in value array
+        return assignAllTeamMembers || value.some((host) => host.userId === parseInt(member.value, 10));
+      });
+  }, [teamMembers, localWeights, searchQuery, assignAllTeamMembers, value]);
 
   return (
     <>
