@@ -11,9 +11,9 @@ export const bookingListenerCreateSchema = z.object({
 export const createTask = async (payload: any) => {
   const { bookingId } = bookingListenerCreateSchema.parse(payload);
 
-  logger.log("🚀 ~ bookingListenerCreateTask ~ payload:", bookingId);
-  logger.log("This triggers", payload);
+  // logger.log("This triggers", payload);
   const bookingCreatedParams = await generateBookingCreatedParams({ bookingId });
+  logger.log("bookingCreatedParams", bookingCreatedParams);
   await BookingListener.create(bookingCreatedParams);
 
   return {
