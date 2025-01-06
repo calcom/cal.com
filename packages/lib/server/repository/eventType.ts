@@ -799,6 +799,7 @@ export class EventTypeRepository {
             id: true,
             bookingLimits: true,
             includeManagedEventsInLimits: true,
+            parentId: true,
           },
         },
         parent: {

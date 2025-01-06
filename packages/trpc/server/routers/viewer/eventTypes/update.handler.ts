@@ -27,6 +27,7 @@ import {
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -382,8 +383,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  for (const appKey in input.metadata?.apps) {
-    const app = input.metadata?.apps[appKey as keyof typeof appDataSchemas];
+  const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof appDataSchemas];
     // There should only be one enabled payment app in the metadata
     if (app.enabled && app.price && app.currency) {
       data.price = app.price;

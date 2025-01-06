@@ -14,9 +14,9 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZSingleSelectFilterValue } from "../../lib/types";
-import { useDataTable, useFilterValue } from "../../lib/utils";
 
 export type SingleSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "single_select" }>;
