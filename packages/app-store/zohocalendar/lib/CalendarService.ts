@@ -236,11 +236,11 @@ export default class ZohoCalendarService implements Calendar {
   }
 
   private parseDateTime = (dateTimeStr: string) => {
-    // Check if the string matches the date-only format (YYYYMMDDZ)
-    if (/^\d{8}Z$/.test(dateTimeStr)) {
-      return dayjs.utc(dateTimeStr.slice(0, 8), "YYYYMMDD");
-    }
-    return dayjs.utc(dateTimeStr, "YYYYMMDD[T]HHmmss[Z]");
+    const dateOnlyFormat = "YYYYMMDD";
+    const dateTimeFormat = "YYYYMMDD[T]HHmmss[Z]";
+    // Check if the string matches the date-only format (YYYYMMDDZ) or date-time format
+    const format = /^\d{8}Z$/.test(dateTimeStr) ? dateOnlyFormat : dateTimeFormat;
+    return dayjs.utc(dateTimeStr, format);
   };
 
   private async getBusyData(dateFrom: string, dateTo: string, userEmail: string) {
