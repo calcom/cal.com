@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { CAL_API_VERSION_HEADER, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 
 // Immediately Invoked Function Expression to create simple singleton class like
 
