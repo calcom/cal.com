@@ -2739,6 +2739,12 @@ checksums:
     month_to_date: 7f7e4653c67cdaab178faa332007b1a0
     year_to_date: 1de1bfcb57fc841987305d851383042a
     custom_range: c489facbacd8b2b232c9ea6aae568ae3
+    refund_policy: 74aa4e6958ec93a15d82c0229b986b3e
+    always: 1e1afee98f88029400e67f97a036f17f
+    never: 975007d8aae7e3af47897721a6961be8
+    payment_option: d2973c3836b23b23c12d1e2fd4471fa4
+    if_cancelled: 614c9a53dc3d57dea571359e7d87f5d4
+    before: e98ce9421a140ee7ea8ee67daec9a855
     show_all_columns: f8c81014fa436fa5baf3d0be325e2988
     toggle_columns: 33ea1f6185497c358ae57e79e327c266
     no_columns_found: c73ee3c789abf7838f3c39c661d74db0
