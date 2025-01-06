@@ -2899,5 +2899,10 @@
   "calibration": "校準",
   "shortfall": "短缺",
   "routing_form": "路由表單",
+  "something_unexpected_occurred": "發生意外錯誤",
+  "500_error_message": "這不是您的問題，是我們這邊出錯了。",
+  "dry_run_mode_active": "您正在進行測試預約。",
+  "icon_showcase": "圖示展示",
+  "icons_showcase": "圖示展示",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
