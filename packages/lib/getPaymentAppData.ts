@@ -8,7 +8,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
-export default function getPaymentAppData(
+export function getPaymentAppData(
   _eventType: Pick<BookerEvent, "price" | "currency"> & {
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   },
