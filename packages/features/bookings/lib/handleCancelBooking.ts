@@ -20,6 +20,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -155,8 +156,15 @@ export type HandleCancelBookingResponse = {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } =
-    bookingCancelInput.parse(req.body);
+  const {
+    id,
+    uid,
+    allRemainingBookings,
+    cancellationReason,
+    seatReferenceUid,
+    cancelledBy,
+    cancelSubsequentBookings,
+  } = bookingCancelInput.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
     bookingToDelete,
@@ -368,13 +376,16 @@ async function handler(req: CustomRequest) {
   await Promise.all(promises);
 
   const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+  const parsedMetadata = bookingMetadataSchema.safeParse(bookingToDelete.metadata || {});
 
   await sendCancelledReminders({
     workflows,
     smsReminderNumber: bookingToDelete.smsReminderNumber,
     evt: {
       ...evt,
-      metadata: { videoCallUrl: bookingMetadataSchema.parse(bookingToDelete.metadata || {})?.videoCallUrl },
+      ...(parsedMetadata.success && parsedMetadata.data?.videoCallUrl
+        ? { metadata: { videoCallUrl: parsedMetadata.data.videoCallUrl } }
+        : {}),
       bookerUrl,
       ...{
         eventType: {
@@ -403,14 +414,19 @@ async function handler(req: CustomRequest) {
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  if (bookingToDelete.eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
+  if (
+    bookingToDelete.eventType?.recurringEvent &&
+    bookingToDelete.recurringEventId &&
+    (allRemainingBookings || cancelSubsequentBookings)
+  ) {
     const recurringEventId = bookingToDelete.recurringEventId;
+    const gte = cancelSubsequentBookings ? bookingToDelete.startTime : new Date();
     // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
     await prisma.booking.updateMany({
       where: {
         recurringEventId,
         startTime: {
-          gte: new Date(),
+          gte,
         },
       },
       data: {
@@ -480,6 +496,13 @@ async function handler(req: CustomRequest) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    if (!!bookingToDelete.payment.length) {
+      await processPaymentRefund({
+        booking: bookingToDelete,
+        teamId,
+      });
+    }
   }
 
   /** TODO: Remove this without breaking functionality */

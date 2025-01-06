@@ -1,8 +1,9 @@
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
+import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
 
-import type { User } from "./MemberListItem";
+import type { User } from "./MemberList";
 
 interface Props {
   users: User[];
@@ -18,7 +19,6 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
   const deleteMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.lazyLoadMembers.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
@@ -31,7 +31,7 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button StartIcon="ban">{t("Delete")}</Button>
+        <DataTableSelectionBar.Button icon="ban">{t("Delete")}</DataTableSelectionBar.Button>
       </DialogTrigger>
       <ConfirmationDialogContent
         variety="danger"

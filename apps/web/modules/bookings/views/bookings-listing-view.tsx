@@ -11,14 +11,13 @@ import { FiltersContainer } from "@calcom/features/bookings/components/FiltersCo
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import Shell from "@calcom/features/shell/Shell";
+import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 
-import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
@@ -67,14 +66,9 @@ const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   unconfirmed: "unconfirmed_bookings",
 };
 
-const querySchema = z.object({
-  status: z.enum(validStatuses),
-});
-
-export default function Bookings() {
-  const params = useParamsWithFallback();
+export default function Bookings({ status }: { status: (typeof validStatuses)[number] }) {
   const { data: filterQuery } = useFilterQuery();
-  const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
+
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
@@ -88,7 +82,6 @@ export default function Bookings() {
       },
     },
     {
-      // first render has status `undefined`
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }

@@ -91,7 +91,7 @@ function Field({
     }) || [];
 
   const setOptions = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
   };
 
   const handleRemoveOptions = (index: number) => {
@@ -206,6 +206,9 @@ function Field({
               defaultValue={label || routerField?.label || ""}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
+              onChange={(e) => {
+                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+              }}
             />
           </div>
           <div className="mb-6 w-full">
@@ -220,7 +223,7 @@ function Field({
               // The identifier field will have the same value as the label field until it is changed
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
             />
           </div>
@@ -465,12 +468,12 @@ const FormEdit = ({
 };
 
 export default function FormEditPage({
-  form,
   appUrl,
+  ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
-      form={form}
+      {...props}
       appUrl={appUrl}
       Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
     />

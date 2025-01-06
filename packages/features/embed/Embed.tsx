@@ -13,11 +13,10 @@ import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
-import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import DatePicker from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,10 +40,18 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { useBookerTime } from "../bookings/Booker/components/hooks/useBookerTime";
+import { buildCssVarsPerTheme } from "./lib/buildCssVarsPerTheme";
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
 
 type EventType = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"] | undefined;
+type EmbedDialogProps = {
+  types: EmbedTypes;
+  tabs: EmbedTabs;
+  eventTypeHideOptionDisabled: boolean;
+  defaultBrandColor: { brandColor: string | null; darkBrandColor: string | null } | null;
+};
 
 const enum Theme {
   auto = "auto",
@@ -61,6 +68,19 @@ const queryParamsForDialog = [
   "date",
   "month",
 ];
+
+function chooseTimezone({
+  timezoneFromBookerStore,
+  timezoneFromTimePreferences,
+  userSettingsTimezone,
+}: {
+  timezoneFromBookerStore: string | null;
+  timezoneFromTimePreferences: string;
+  userSettingsTimezone: string | undefined;
+}) {
+  // We prefer user's timezone configured in settings at the moment - Might be a better idea to prefer timezoneFromTimePreferences over user settings as the user might be in different timezone
+  return timezoneFromBookerStore ?? userSettingsTimezone ?? timezoneFromTimePreferences;
+}
 
 function useRouterHelpers() {
   const router = useRouter();
@@ -139,15 +159,21 @@ const EmailEmbed = ({
   username,
   orgSlug,
   isTeamEvent,
+  userSettingsTimezone,
 }: {
   eventType?: EventType;
   username: string;
   orgSlug?: string;
   isTeamEvent: boolean;
+  userSettingsTimezone?: string;
 }) => {
   const { t, i18n } = useLocale();
-
-  const [timezone] = useTimePreferences((state) => [state.timezone]);
+  const { timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
 
   useInitializeBookerStore({
     username,
@@ -162,17 +188,19 @@ const EmailEmbed = ({
     (state) => [state.month, state.selectedDate, state.selectedDatesAndTimes],
     shallow
   );
-  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot] = useBookerStore(
-    (state) => [
-      state.setSelectedDate,
-      state.setMonth,
-      state.setSelectedDatesAndTimes,
-      state.setSelectedTimeslot,
-    ],
-    shallow
-  );
+  const [setSelectedDate, setMonth, setSelectedDatesAndTimes, setSelectedTimeslot, setTimezone] =
+    useBookerStore(
+      (state) => [
+        state.setSelectedDate,
+        state.setMonth,
+        state.setSelectedDatesAndTimes,
+        state.setSelectedTimeslot,
+        state.setTimezone,
+      ],
+      shallow
+    );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+  const schedule = useScheduleForEvent({ orgSlug, eventId: eventType?.id, isTeamEvent });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -299,7 +327,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} isDisabled />
+            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimezone(value)} />
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -314,6 +342,7 @@ const EmailEmbedPreview = ({
   month,
   selectedDateAndTime,
   calLink,
+  userSettingsTimezone,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -322,9 +351,15 @@ const EmailEmbedPreview = ({
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
   calLink: string;
+  userSettingsTimezone?: string;
 }) => {
   const { t } = useLocale();
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const { timeFormat, timezoneFromBookerStore, timezoneFromTimePreferences } = useBookerTime();
+  const timezone = chooseTimezone({
+    timezoneFromBookerStore,
+    timezoneFromTimePreferences,
+    userSettingsTimezone,
+  });
 
   if (!eventType) {
     return null;
@@ -385,7 +420,10 @@ const EmailEmbedPreview = ({
                 Object.keys(selectedDateAndTime)
                   .sort()
                   .map((key) => {
-                    const selectedDate = dayjs(key).tz(timezone).format("dddd, MMMM D, YYYY");
+                    const firstSlotOfSelectedDay = selectedDateAndTime[key][0];
+                    const selectedDate = dayjs(firstSlotOfSelectedDay)
+                      .tz(timezone)
+                      .format("dddd, MMMM D, YYYY");
                     return (
                       <table
                         key={key}
@@ -420,11 +458,11 @@ const EmailEmbedPreview = ({
                                       selectedDateAndTime[key].map((time) => {
                                         // If teamId is present on eventType and is not null, it means it is a team event.
                                         // So we add 'team/' to the url.
-                                        const bookingURL = `${WEBSITE_URL}/${
+                                        const bookingURL = `${eventType.bookerUrl}/${
                                           eventType.teamId !== null ? "team/" : ""
                                         }${username}/${eventType.slug}?duration=${
                                           eventType.length
-                                        }&date=${key}&month=${month}&slot=${time}`;
+                                        }&date=${key}&month=${month}&slot=${time}&cal.tz=${timezone}`;
                                         return (
                                           <td
                                             key={time}
@@ -488,7 +526,7 @@ const EmailEmbedPreview = ({
                 <a
                   className="more"
                   data-testid="see_all_available_times"
-                  href={`${eventType.bookerUrl}/${calLink}`}
+                  href={`${eventType.bookerUrl}/${calLink}?cal.tz=${timezone}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -525,13 +563,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   namespace,
   eventTypeHideOptionDisabled,
   types,
-}: {
+  defaultBrandColor,
+}: EmbedDialogProps & {
   embedType: EmbedType;
   embedUrl: string;
-  tabs: EmbedTabs;
   namespace: string;
   eventTypeHideOptionDisabled: boolean;
-  types: EmbedTypes;
 }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
@@ -553,6 +590,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     { id: parsedEventId },
     { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
+  const { data: userSettings } = trpc.viewer.me.useQuery();
 
   const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
 
@@ -578,6 +616,19 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const defaultConfig = {
     layout: BookerLayouts.MONTH_VIEW,
   };
+
+  const paletteDefaultValue = (paletteName: string) => {
+    if (paletteName === "brandColor") {
+      return defaultBrandColor?.brandColor ?? DEFAULT_LIGHT_BRAND_COLOR;
+    }
+
+    if (paletteName === "darkBrandColor") {
+      return defaultBrandColor?.darkBrandColor ?? DEFAULT_DARK_BRAND_COLOR;
+    }
+
+    return "#000000";
+  };
+
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
@@ -594,7 +645,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
-      brandColor: "#000000",
+      brandColor: defaultBrandColor?.brandColor ?? null,
+      darkBrandColor: defaultBrandColor?.darkBrandColor ?? null,
     },
   });
 
@@ -614,7 +666,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     return null;
   }
 
-  const addToPalette = (update: (typeof previewState)["palette"]) => {
+  const addToPalette = (update: Partial<(typeof previewState)["palette"]>) => {
     setPreviewState((previewState) => {
       return {
         ...previewState,
@@ -657,11 +709,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       theme: previewState.theme,
       layout: previewState.layout,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
-      styles: {
-        branding: {
-          ...previewState.palette,
-        },
-      },
+      cssVarsPerTheme: buildCssVarsPerTheme({
+        brandColor: previewState.palette.brandColor,
+        darkBrandColor: previewState.palette.darkBrandColor,
+      }),
     },
   });
 
@@ -750,6 +801,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             <EmailEmbed
               eventType={eventTypeData?.eventType}
               username={teamSlug ?? (data?.user.username as string)}
+              userSettingsTimezone={userSettings?.timeZone}
               orgSlug={data?.user?.org?.slug}
               isTeamEvent={!!teamSlug}
             />
@@ -994,7 +1046,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         </div>
                       ) : null}
                       {[
-                        { name: "brandColor", title: "Brand Color" },
+                        { name: "brandColor", title: "light_brand_color" },
+                        { name: "darkBrandColor", title: "dark_brand_color" },
                         // { name: "lightColor", title: "Light Color" },
                         // { name: "lighterColor", title: "Lighter Color" },
                         // { name: "lightestColor", title: "Lightest Color" },
@@ -1002,12 +1055,12 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         // { name: "medianColor", title: "Median Color" },
                       ].map((palette) => (
                         <Label key={palette.name} className="mb-6">
-                          <div className="mb-2">{palette.title}</div>
+                          <div className="mb-2">{t(palette.title)}</div>
                           <div className="w-full">
                             <ColorPicker
                               popoverAlign="start"
                               container={dialogContentRef?.current ?? undefined}
-                              defaultValue="#000000"
+                              defaultValue={paletteDefaultValue(palette.name)}
                               onChange={(color) => {
                                 addToPalette({
                                   [palette.name as keyof (typeof previewState)["palette"]]: color,
@@ -1100,6 +1153,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                         eventType={eventTypeData?.eventType}
                         emailContentRef={emailContentRef}
                         username={teamSlug ?? (data?.user.username as string)}
+                        userSettingsTimezone={userSettings?.timeZone}
                         month={month as string}
                         selectedDateAndTime={
                           selectedDatesAndTimes
@@ -1164,11 +1218,8 @@ export const EmbedDialog = ({
   types,
   tabs,
   eventTypeHideOptionDisabled,
-}: {
-  types: EmbedTypes;
-  tabs: EmbedTabs;
-  eventTypeHideOptionDisabled: boolean;
-}) => {
+  defaultBrandColor,
+}: EmbedDialogProps) => {
   const searchParams = useCompatSearchParams();
   const embedUrl = (searchParams?.get("embedUrl") || "") as string;
   const namespace = (searchParams?.get("namespace") || "") as string;
@@ -1184,6 +1235,7 @@ export const EmbedDialog = ({
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
+          defaultBrandColor={defaultBrandColor}
         />
       )}
     </Dialog>

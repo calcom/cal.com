@@ -1,7 +1,6 @@
 import type { EventType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -9,22 +8,11 @@ import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEven
 import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { md } from "@calcom/lib/markdownIt";
-import slugify from "@calcom/lib/slugify";
-import turndown from "@calcom/lib/turndownService";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  Editor,
-  Form,
-  showToast,
-  TextField,
-  Tooltip,
-} from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+
+import CreateEventTypeForm from "./CreateEventTypeForm";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -74,7 +62,6 @@ export default function CreateEventTypeDialog({
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const [firstRender, setFirstRender] = useState(true);
   const orgBranding = useOrgBranding();
 
   const {
@@ -115,22 +102,17 @@ export default function CreateEventTypeDialog({
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(onSuccessMutation, onErrorMutation);
 
-  const { register } = form;
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
+
+  const { data: team } = trpc.viewer.teams.get.useQuery(
+    { teamId: teamId ?? -1, isOrg: false },
+    { enabled: !!teamId }
+  );
 
   return (
     <Dialog
       name="new"
-      clearQueryParamsOnClose={[
-        "eventPage",
-        "teamId",
-        "type",
-        "description",
-        "title",
-        "length",
-        "slug",
-        "locations",
-      ]}>
+      clearQueryParamsOnClose={["eventPage", "type", "description", "title", "length", "slug", "locations"]}>
       <DialogContent
         type="creation"
         enableOverflow
@@ -138,106 +120,30 @@ export default function CreateEventTypeDialog({
         description={t("new_event_type_to_book_description")}>
         {teamId ? (
           <TeamEventTypeForm
-            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            teamSlug={team?.slug}
             teamId={teamId}
-            SubmitButton={SubmitButton}
-            onSuccessMutation={onSuccessMutation}
-            onErrorMutation={onErrorMutation}
-          />
-        ) : (
-          <Form
+            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            urlPrefix={urlPrefix}
+            isPending={createMutation.isPending}
             form={form}
+            isManagedEventType={isManagedEventType}
             handleSubmit={(values) => {
               createMutation.mutate(values);
-            }}>
-            <div className="mt-3 space-y-6 pb-11">
-              <TextField
-                label={t("title")}
-                placeholder={t("quick_chat")}
-                data-testid="event-type-quick-chat"
-                {...register("title")}
-                onChange={(e) => {
-                  form.setValue("title", e?.target.value);
-                  if (form.formState.touchedFields["slug"] === undefined) {
-                    form.setValue("slug", slugify(e?.target.value));
-                  }
-                }}
-              />
-
-              {urlPrefix && urlPrefix.length >= 21 ? (
-                <div>
-                  <TextField
-                    label={`${t("url")}: ${urlPrefix}`}
-                    required
-                    addOnLeading={
-                      <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                        <span className="max-w-24 md:max-w-56">
-                          /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                        </span>
-                      </Tooltip>
-                    }
-                    {...register("slug")}
-                    onChange={(e) => {
-                      form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                    }}
-                  />
-
-                  {isManagedEventType && (
-                    <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <TextField
-                    label={t("url")}
-                    required
-                    addOnLeading={
-                      <Tooltip
-                        content={`${urlPrefix}/${
-                          !isManagedEventType ? pageSlug : t("username_placeholder")
-                        }/`}>
-                        <span className="max-w-24 md:max-w-56">
-                          {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                        </span>
-                      </Tooltip>
-                    }
-                    {...register("slug")}
-                    onChange={(e) => {
-                      form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                    }}
-                  />
-                  {isManagedEventType && (
-                    <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-                  )}
-                </div>
-              )}
-              <>
-                <Editor
-                  getText={() => md.render(form.getValues("description") || "")}
-                  setText={(value: string) => form.setValue("description", turndown(value))}
-                  excludedToolbarItems={["blockType", "link"]}
-                  placeholder={t("quick_video_meeting")}
-                  firstRender={firstRender}
-                  setFirstRender={setFirstRender}
-                  maxHeight="200px"
-                />
-
-                <div className="relative">
-                  <TextField
-                    type="number"
-                    required
-                    min="10"
-                    placeholder="15"
-                    label={t("duration")}
-                    className="pr-4"
-                    {...register("length", { valueAsNumber: true })}
-                    addOnSuffix={t("minutes")}
-                  />
-                </div>
-              </>
-            </div>
-            {SubmitButton(createMutation.isPending)}
-          </Form>
+            }}
+            SubmitButton={SubmitButton}
+          />
+        ) : (
+          <CreateEventTypeForm
+            urlPrefix={urlPrefix}
+            isPending={createMutation.isPending}
+            form={form}
+            isManagedEventType={isManagedEventType}
+            handleSubmit={(values) => {
+              createMutation.mutate(values);
+            }}
+            SubmitButton={SubmitButton}
+            pageSlug={pageSlug}
+          />
         )}
       </DialogContent>
     </Dialog>

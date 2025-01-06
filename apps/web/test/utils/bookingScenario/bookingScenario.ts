@@ -7,6 +7,7 @@ import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
 import { v4 as uuidv4 } from "uuid";
+import { vi } from "vitest";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
@@ -23,7 +24,7 @@ import type {
   WorkflowTriggerEvents,
   WorkflowMethods,
 } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
+import type { PaymentOption, SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -35,12 +36,18 @@ import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
+// We don't need to test it. Also, it causes Formbricks error when imported
+vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
+  default: {},
+}));
+
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
 logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
+  id?: string;
   appId: string | null;
   userId?: number | null;
   teamId?: number | null;
@@ -48,6 +55,8 @@ type InputWebhook = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   subscriberUrl: string;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 type InputWorkflow = {
@@ -65,6 +74,21 @@ type InputWorkflow = {
   sendTo?: string;
 };
 
+type InputPayment = {
+  id?: number;
+  uid: string;
+  appId?: string | null;
+  bookingId: number;
+  amount: number;
+  fee: number;
+  currency: string;
+  success: boolean;
+  refunded: boolean;
+  data: Record<string, any>;
+  externalId: string;
+  paymentOption?: PaymentOption;
+};
+
 type InputWorkflowReminder = {
   id?: number;
   bookingUid: string;
@@ -78,6 +102,7 @@ type InputWorkflowReminder = {
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number | null;
 };
 /**
  * Data to be mocked
@@ -98,13 +123,16 @@ export type ScenarioData = {
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
   workflows?: InputWorkflow[];
+  payment?: InputPayment[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
   id?: number;
 };
 
-type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
+type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof TestData.selectedCalendars] & {
+  eventTypeId?: number | null;
+};
 
 type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
@@ -137,6 +165,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
+  completedOnboarding?: boolean;
 };
 
 export type InputEventType = {
@@ -147,6 +176,7 @@ export type InputEventType = {
   slotInterval?: number;
   userId?: number;
   minimumBookingNotice?: number;
+  useEventLevelSelectedCalendars?: boolean;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
    */
@@ -165,7 +195,7 @@ export type InputEventType = {
   };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
-  schedule?: InputUser["schedules"][number];
+  schedule?: InputUser["schedules"][number] | null;
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
@@ -193,6 +223,7 @@ type WhiteListedBookingProps = {
     // TODO: Make sure that all references start providing credentialId and then remove this intersection of optional credentialId
     credentialId?: number | null;
   })[];
+  user?: { id: number };
   bookingSeat?: Prisma.BookingSeatCreateInput[];
   createdAt?: string;
 };
@@ -221,6 +252,13 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
             id: host.userId,
           },
         },
+        schedule: host.scheduleId
+          ? {
+              connect: {
+                id: host.scheduleId,
+              },
+            }
+          : undefined,
       };
 
       await prismock.host.create({
@@ -400,6 +438,7 @@ async function addBookingsToDb(
   bookings: (Prisma.BookingCreateInput & {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     references: any[];
+    user?: { id: number };
   })[]
 ) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
@@ -490,6 +529,16 @@ export async function addBookings(bookings: InputBooking[]) {
         };
       }
 
+      if (booking?.user?.id) {
+        bookingCreate.user = {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          connect: {
+            id: booking.user.id,
+          },
+        };
+      }
+
       return bookingCreate;
     })
   );
@@ -499,6 +548,12 @@ export async function addBookings(bookings: InputBooking[]) {
 async function addWebhooksToDb(webhooks: any[]) {
   await prismock.webhook.createMany({
     data: webhooks,
+  });
+}
+
+async function addPaymentToDb(payment: InputPayment[]) {
+  await prismock.payment.createMany({
+    data: payment,
   });
 }
 
@@ -777,6 +832,7 @@ export async function createBookingScenario(data: ScenarioData) {
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
   const workflows = await addWorkflows(data.workflows || []);
+  await addPaymentToDb(data.payment || []);
 
   return {
     eventTypes,
@@ -784,12 +840,22 @@ export async function createBookingScenario(data: ScenarioData) {
   };
 }
 
+type TeamCreateReturnType = Awaited<ReturnType<typeof prismock.team.create>>;
+
+function assertNonNullableSlug<T extends { slug: string | null }>(
+  org: T
+): asserts org is T & { slug: string } {
+  if (org.slug === null) {
+    throw new Error("Slug cannot be null");
+  }
+}
+
 export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}) {
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -815,7 +881,7 @@ export async function createOrganization(orgData: {
       },
     });
   }
-
+  assertNonNullableSlug(org);
   return org;
 }
 
@@ -1073,6 +1139,11 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    EmptyAvailability: {
+      name: "Empty Availability",
+      availability: [],
+      timeZone: Timezones["+5:30"],
+    },
     IstWorkHoursWithDateOverride: (dateString: string) => ({
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
       availability: [
@@ -1202,6 +1273,8 @@ export function getOrganizer({
   organizationId,
   metadata,
   smsLockState,
+  completedOnboarding,
+  username,
 }: {
   name: string;
   email: string;
@@ -1216,10 +1289,14 @@ export function getOrganizer({
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
+  completedOnboarding?: boolean;
+  username?: string;
 }) {
+  username = username ?? TestData.users.example.username;
   return {
     ...TestData.users.example,
     name,
+    username,
     email,
     id,
     schedules,
@@ -1233,30 +1310,44 @@ export function getOrganizer({
     profiles: [],
     metadata,
     smsLockState,
+    completedOnboarding,
   };
 }
 
 export function getScenarioData(
   {
+    /**
+     * organizer has no special meaning. It is a regular user. It is supposed to be deprecated along with `usersApartFromOrganizer` and we should introduce a new `users` field instead
+     */
     organizer,
     eventTypes,
     usersApartFromOrganizer = [],
     apps = [],
+    users: _users,
     webhooks,
     workflows,
     bookings,
+    payment,
   }: {
-    organizer: ReturnType<typeof getOrganizer>;
+    organizer?: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
+    users?: ScenarioData["users"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
+    payment?: ScenarioData["payment"];
   },
   org?: { id: number | null } | undefined | null
 ) {
-  const users = [organizer, ...usersApartFromOrganizer];
+  if (_users && (usersApartFromOrganizer.length || organizer)) {
+    throw new Error("When users are provided, usersApartFromOrganizer and organizer should not be provided");
+  }
+  const users = _users ? _users : organizer ? [organizer, ...usersApartFromOrganizer] : [];
+  if (!users.length) {
+    throw new Error("No users are specified in any way");
+  }
   if (org) {
     const orgId = org.id;
     if (!orgId) {
@@ -1307,6 +1398,7 @@ export function getScenarioData(
     webhooks,
     bookings: bookings || [],
     workflows,
+    payment,
   } satisfies ScenarioData;
 }
 

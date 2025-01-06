@@ -1,6 +1,7 @@
 ---
 title: FAQ
 description: Answers to the most common questions about the Platform API and atoms.
+"icon": "comments"
 ---
 ### 1. What is an OAuth client?
 -  A platform OAuth client enables you communicate with our API and manage your users.
@@ -32,3 +33,22 @@ description: Answers to the most common questions about the Platform API and ato
 
 ### 7. Can recurring events be rescheduled?
 - No, at the moment you are only allowed to cancel a recurring event.
+
+### 8. Why toggle animation is not working in the AvailabilitySettings atom?
+- For the AvailabilitySettings toggle animation to work set the reading direction on the `<html>` element:
+ ```html
+ <html dir="ltr"> ... </html>
+ ```
+
+### 9. What are the authentification methods for making calls to the v2 API?
+Either of the two:
+- Setting `Authorization: Bearer <token>` header where `<token>` is access token of the managed user.
+- Setting `x-cal-client-id: <client-id>` and `x-cal-secret-key: <client-secret>` where `<client-id>` is OAuth client id and `<client-secret>` is OAuth client secret. Both can be copied from the dashboard.
+
+### 10. When am I charged and not charged ?
+- You are charged for scheduled booking only when the booking starts.
+- If a booking is rescheduled you are still charged once.
+- If a booking is cancelled then you are not charged for it.
+
+### 11. What happens if there are more bookings than in my plan?
+- You have to pay overage for each booking that exceeds the amount in your plan.

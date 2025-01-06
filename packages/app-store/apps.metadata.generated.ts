@@ -13,12 +13,14 @@ import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
+import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
 import deel_config_json from "./deel/config.json";
 import demodesk_config_json from "./demodesk/config.json";
+import dialpad_config_json from "./dialpad/config.json";
 import discord_config_json from "./discord/config.json";
 import eightxeight_config_json from "./eightxeight/config.json";
 import element_call_config_json from "./element-call/config.json";
@@ -48,6 +50,7 @@ import metapixel_config_json from "./metapixel/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import mock_payment_app_config_json from "./mock-payment-app/config.json";
 import n8n_config_json from "./n8n/config.json";
+import nextcloudtalk_config_json from "./nextcloudtalk/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
 import paypal_config_json from "./paypal/config.json";
@@ -74,6 +77,7 @@ import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import synthflow_config_json from "./synthflow/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
+import telli_config_json from "./telli/config.json";
 import basic_config_json from "./templates/basic/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_app_card_config_json from "./templates/event-type-app-card/config.json";
@@ -109,12 +113,14 @@ export const appStoreMetadata = {
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   campsite: campsite_config_json,
+  chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
   cron: cron_config_json,
   dailyvideo: dailyvideo__metadata_ts,
   deel: deel_config_json,
   demodesk: demodesk_config_json,
+  dialpad: dialpad_config_json,
   discord: discord_config_json,
   eightxeight: eightxeight_config_json,
   "element-call": element_call_config_json,
@@ -144,6 +150,7 @@ export const appStoreMetadata = {
   mirotalk: mirotalk_config_json,
   "mock-payment-app": mock_payment_app_config_json,
   n8n: n8n_config_json,
+  nextcloudtalk: nextcloudtalk_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
   paypal: paypal_config_json,
@@ -170,6 +177,7 @@ export const appStoreMetadata = {
   synthflow: synthflow_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
+  telli: telli_config_json,
   basic: basic_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-app-card": event_type_app_card_config_json,

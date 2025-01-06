@@ -12,7 +12,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";
 
-type LocationOption = {
+export type LocationOption = {
   label: string;
   value: EventLocationType["type"];
   icon?: string;

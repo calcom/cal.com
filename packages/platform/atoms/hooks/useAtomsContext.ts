@@ -8,6 +8,7 @@ import type http from "../lib/http";
 export interface IAtomsContextOptions {
   refreshUrl?: string;
   apiUrl: string;
+  readingDirection?: "ltr" | "rtl";
 }
 
 export interface IAtomsContext {
@@ -29,6 +30,8 @@ export interface IAtomsContext {
     exists: (key: translationKeys | string) => boolean;
   };
   organizationId: number;
+  userId?: number;
+  isEmbed?: boolean;
 }
 
 export const AtomsContext = createContext({
@@ -40,6 +43,7 @@ export const AtomsContext = createContext({
   getClient: () => {
     return;
   },
+  isEmbed: false,
 } as IAtomsContext);
 
 export const useAtomsContext = () => useContext(AtomsContext);

@@ -32,8 +32,10 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     evt,
     workflows,
     rescheduledBy,
+    isDryRun = false,
   } = newSeatedBookingObject;
-
+  // TODO: We could allow doing more things to support good dry run for seats
+  if (isDryRun) return;
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
 
   let resultBooking: HandleSeatsResultBooking = null;
@@ -95,7 +97,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails
     );
   } else {
-    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking);
+    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
   }
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
@@ -124,6 +126,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
+        isDryRun,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -149,7 +152,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduledBy,
     };
 
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData, isDryRun });
   }
 
   return resultBooking;

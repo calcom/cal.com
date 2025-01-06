@@ -2,8 +2,10 @@ import type { EventType as PrismaEventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
-import { prisma } from "@calcom/prisma";
+import { prisma, availabilityUserSelect } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -11,6 +13,8 @@ import { TRPCError } from "@trpc/server";
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
 import { LookupTarget, ProfileRepository } from "./profile";
+import type { UserWithLegacySelectedCalendars } from "./user";
+import { withSelectedCalendars } from "./user";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 type NotSupportedProps = "locations";
@@ -27,12 +31,40 @@ type IEventType = Ensure<
   "title" | "slug" | "length"
 >;
 
+type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }> = {
+  allSelectedCalendars: TSelectedCalendar[];
+};
+
+type HostWithLegacySelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null },
+  THost,
+  TUser
+> = THost & {
+  user: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>;
+};
+
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   name: true,
   avatarUrl: true,
   username: true,
   id: true,
 });
+
+function hostsWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number | null }, THost, TUser>(
+  hosts: HostWithLegacySelectedCalendars<TSelectedCalendar, THost, TUser>[]
+) {
+  return hosts.map((host) => ({
+    ...host,
+    user: withSelectedCalendars(host.user),
+  }));
+}
+
+function usersWithSelectedCalendars<
+  TSelectedCalendar extends { eventTypeId: number | null },
+  TUser extends { selectedCalendars: TSelectedCalendar[] }
+>(users: UserWithLegacySelectedCalendars<TSelectedCalendar, TUser>[]) {
+  return users.map((user) => withSelectedCalendars(user));
+}
 
 export class EventTypeRepository {
   private static generateCreateEventTypeData = (eventTypeCreateData: IEventType) => {
@@ -428,6 +460,7 @@ export class EventTypeRepository {
       length: true,
       isInstantEvent: true,
       instantMeetingExpiryTimeOffsetInSeconds: true,
+      instantMeetingParameters: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,
@@ -443,8 +476,17 @@ export class EventTypeRepository {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
+      autoTranslateDescriptionEnabled: true,
+      fieldTranslations: {
+        select: {
+          translatedText: true,
+          targetLocale: true,
+          field: true,
+        },
+      },
       recurringEvent: true,
       hideCalendarNotes: true,
       hideCalendarEventDetails: true,
@@ -459,6 +501,8 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
       rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
@@ -534,7 +578,7 @@ export class EventTypeRepository {
           userId: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
+          scheduleId: true,
         },
       },
       userId: true,
@@ -610,6 +654,8 @@ export class EventTypeRepository {
         },
       },
       secondaryEmailId: true,
+      maxLeadThreshold: true,
+      useEventLevelSelectedCalendars: true,
     });
 
     return await prisma.eventType.findFirst({
@@ -647,6 +693,56 @@ export class EventTypeRepository {
     });
   }
 
+  static async findByIdMinimal({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
+  static async findByIdIncludeHostsAndTeam({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        hosts: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                credentials: {
+                  select: credentialForCalendarServiceSelect,
+                },
+                selectedCalendars: true,
+              },
+            },
+            weight: true,
+            priority: true,
+            createdAt: true,
+          },
+        },
+        team: {
+          select: {
+            parentId: true,
+          },
+        },
+      },
+    });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    return {
+      ...eventType,
+      hosts: hostsWithSelectedCalendars(eventType.hosts),
+    };
+  }
+
   static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
     return await prisma.eventType.findMany({
       where: {
@@ -662,5 +758,136 @@ export class EventTypeRepository {
         ],
       },
     });
+  }
+
+  static async findForSlots({ id }: { id: number }) {
+    const eventType = await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        slug: true,
+        minimumBookingNotice: true,
+        length: true,
+        offsetStart: true,
+        seatsPerTimeSlot: true,
+        timeZone: true,
+        slotInterval: true,
+        beforeEventBuffer: true,
+        afterEventBuffer: true,
+        bookingLimits: true,
+        durationLimits: true,
+        assignAllTeamMembers: true,
+        schedulingType: true,
+        periodType: true,
+        periodStartDate: true,
+        periodEndDate: true,
+        onlyShowFirstAvailableSlot: true,
+        periodCountCalendarDays: true,
+        rescheduleWithSameRoundRobinHost: true,
+        periodDays: true,
+        metadata: true,
+        assignRRMembersUsingSegment: true,
+        rrSegmentQueryValue: true,
+        maxLeadThreshold: true,
+        useEventLevelSelectedCalendars: true,
+        team: {
+          select: {
+            id: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+            parentId: true,
+          },
+        },
+        parent: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        },
+        schedule: {
+          select: {
+            id: true,
+            availability: {
+              select: {
+                date: true,
+                startTime: true,
+                endTime: true,
+                days: true,
+              },
+            },
+            timeZone: true,
+          },
+        },
+        availability: {
+          select: {
+            date: true,
+            startTime: true,
+            endTime: true,
+            days: true,
+          },
+        },
+        hosts: {
+          select: {
+            isFixed: true,
+            createdAt: true,
+            user: {
+              select: {
+                credentials: { select: credentialForCalendarServiceSelect },
+                ...availabilityUserSelect,
+              },
+            },
+            schedule: {
+              select: {
+                availability: {
+                  select: {
+                    date: true,
+                    startTime: true,
+                    endTime: true,
+                    days: true,
+                  },
+                },
+                timeZone: true,
+                id: true,
+              },
+            },
+          },
+        },
+        users: {
+          select: {
+            credentials: { select: credentialForCalendarServiceSelect },
+            ...availabilityUserSelect,
+          },
+        },
+      },
+    });
+
+    if (!eventType) {
+      return eventType;
+    }
+
+    return {
+      ...eventType,
+      hosts: hostsWithSelectedCalendars(eventType.hosts),
+      users: usersWithSelectedCalendars(eventType.users),
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
+    };
+  }
+
+  static getSelectedCalendarsFromUser<TSelectedCalendar extends { eventTypeId: number | null }>({
+    user,
+    eventTypeId,
+  }: {
+    user: UserWithSelectedCalendars<TSelectedCalendar>;
+    eventTypeId: number;
+  }) {
+    return user.allSelectedCalendars.filter((calendar) => calendar.eventTypeId === eventTypeId);
   }
 }

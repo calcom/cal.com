@@ -2,19 +2,17 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { AppCategories } from "@prisma/client";
-import { usePathname, useRouter } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Icon } from "../..";
 import { EmptyScreen } from "../empty-screen";
+import { Icon } from "../icon";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -34,14 +32,14 @@ export function useShouldShowArrows() {
         right: !isAtEnd,
       });
     }
-  }, []);
+  }, [ref.current?.scrollWidth, ref.current?.clientWidth]);
 
   const calculateScroll = (e: UIEvent<HTMLUListElement>) => {
+    const target = e.currentTarget;
+    const isAtEnd = target.scrollWidth <= target.clientWidth + target.scrollLeft + 1;
     setShowArrowScroll({
-      left: e.currentTarget.scrollLeft > 0,
-      right:
-        Math.floor(e.currentTarget.scrollWidth) - Math.floor(e.currentTarget.offsetWidth) !==
-        Math.floor(e.currentTarget.scrollLeft),
+      left: target.scrollLeft > 0,
+      right: !isAtEnd,
     });
   };
 
@@ -59,14 +57,13 @@ interface CategoryTabProps {
   selectedCategory: string | null;
   categories: string[];
   searchText?: string;
+  onCategoryChange: (category: string | null) => void;
 }
 
-function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
-  const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+function CategoryTab({ selectedCategory, categories, searchText, onCategoryChange }: CategoryTabProps) {
   const { t } = useLocale();
-  const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
+
   const handleLeft = () => {
     if (ref.current) {
       ref.current.scrollLeft -= 100;
@@ -78,6 +75,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       ref.current.scrollLeft += 100;
     }
   };
+
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
       <h2 className="text-emphasis hidden text-base font-semibold leading-none sm:block">
@@ -90,7 +88,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             })}
       </h2>
       {leftVisible && (
-        <button onClick={handleLeft} className="absolute bottom-0 flex md:-top-1 md:left-1/2">
+        <button onClick={handleLeft} className="absolute bottom-0 flex  lg:left-1/2">
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <Icon name="chevron-left" className="text-subtle h-4 w-4" />
           </div>
@@ -103,9 +101,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ref={ref}>
         <li
           onClick={() => {
-            if (pathname !== null) {
-              router.replace(pathname);
-            }
+            onCategoryChange(null);
           }}
           className={classNames(
             selectedCategory === null ? "bg-emphasis text-default" : "bg-muted text-emphasis",
@@ -118,13 +114,9 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
             key={pos}
             onClick={() => {
               if (selectedCategory === cat) {
-                if (pathname !== null) {
-                  router.replace(pathname);
-                }
+                onCategoryChange(null);
               } else {
-                const _searchParams = new URLSearchParams(searchParams ?? undefined);
-                _searchParams.set("category", cat);
-                router.replace(`${pathname}?${_searchParams.toString()}`);
+                onCategoryChange(cat);
               }
             }}
             className={classNames(
@@ -136,7 +128,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         ))}
       </ul>
       {rightVisible && (
-        <button onClick={handleRight} className="absolute bottom-0 right-0 flex md:-top-1">
+        <button onClick={handleRight} className="absolute bottom-0 right-0 flex ">
           <div className="to-default flex h-12 w-5 bg-gradient-to-r from-transparent" />
           <div className="bg-default flex h-12 w-5 items-center justify-end">
             <Icon name="chevron-right" className="text-subtle h-4 w-4" />
@@ -148,22 +140,15 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
 }
 
 export function AllApps({ apps, searchText, categories, userAdminTeams }: AllAppsPropsType) {
-  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
-  const categoryQuery = searchParams?.get("category");
 
-  if (searchText) {
-    enableAnimation && enableAnimation(false);
-  }
-
-  useEffect(() => {
-    const queryCategory =
-      typeof categoryQuery === "string" && categories.includes(categoryQuery) ? categoryQuery : null;
-    setSelectedCategory(queryCategory);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryQuery]);
+  const handleCategoryChange = (category: string | null) => {
+    const validCategory =
+      category && typeof category === "string" && categories.includes(category) ? category : null;
+    setSelectedCategory(validCategory);
+  };
 
   const filteredApps = apps
     .filter((app) =>
@@ -182,7 +167,12 @@ export function AllApps({ apps, searchText, categories, userAdminTeams }: AllApp
 
   return (
     <div>
-      <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
+      <CategoryTab
+        selectedCategory={selectedCategory}
+        searchText={searchText}
+        categories={categories}
+        onCategoryChange={handleCategoryChange}
+      />
       {filteredApps.length ? (
         <div
           className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:500px)]:grid-cols-1 [@media(max-width:730px)]:grid-cols-1"

@@ -11,7 +11,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -58,7 +58,7 @@ export const getEventTypeById = async ({
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
+  const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const eventTeamMembershipsWithUserProfile = [];
@@ -103,7 +103,10 @@ export const getEventTypeById = async ({
 
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    schedule:
+      rawEventType.schedule?.id ||
+      (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
+      null,
     instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),

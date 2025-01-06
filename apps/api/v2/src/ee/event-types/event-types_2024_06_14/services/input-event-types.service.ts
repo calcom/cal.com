@@ -5,7 +5,7 @@ import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, BadRequestException } from "@nestjs/common";
 
 import {
-  transformBookingFieldsApiToInternal,
+  transformBookingFieldsApiRequestToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -20,6 +20,8 @@ import {
   transformEventColorsApiToInternal,
   validateCustomEventName,
   transformSeatsApiToInternal,
+  SystemField,
+  CustomField,
 } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -102,6 +104,7 @@ export class InputEventTypesService_2024_06_14 {
 
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -133,6 +136,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -150,6 +154,7 @@ export class InputEventTypesService_2024_06_14 {
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -189,6 +194,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
@@ -211,16 +217,27 @@ export class InputEventTypesService_2024_06_14 {
     inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
     hasMultipleLocations: boolean
   ) {
-    const defaultFieldsBefore = [systemBeforeFieldName, systemBeforeFieldEmail];
+    const customFields: (SystemField | CustomField)[] = inputBookingFields
+      ? transformBookingFieldsApiRequestToInternal(inputBookingFields)
+      : [];
+    const customFieldsWithoutNameEmail = customFields.filter(
+      (field) => field.type !== "name" && field.type !== "email"
+    );
+    const customNameField = customFields?.find((field) => field.type === "name");
+    const customEmailField = customFields?.find((field) => field.type === "email");
+
+    const defaultFieldsBefore: (SystemField | CustomField)[] = [
+      customNameField || systemBeforeFieldName,
+      customEmailField || systemBeforeFieldEmail,
+    ];
     // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
     if (hasMultipleLocations) {
       defaultFieldsBefore.push(systemBeforeFieldLocation);
     }
 
-    const customFields = transformBookingFieldsApiToInternal(inputBookingFields);
     const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
 
-    return [...defaultFieldsBefore, ...customFields, ...defaultFieldsAfter];
+    return [...defaultFieldsBefore, ...customFieldsWithoutNameEmail, ...defaultFieldsAfter];
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
