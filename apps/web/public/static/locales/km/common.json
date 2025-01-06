@@ -2899,5 +2899,10 @@
   "calibration": "ការកែតម្រូវ",
   "shortfall": "កង្វះខាត",
   "routing_form": "ទម្រង់ការបញ្ជូន",
+  "something_unexpected_occurred": "មានអ្វីមួយដែលមិនបានរំពឹងទុកបានកើតឡើង",
+  "500_error_message": "មិនមែនជាកំហុសរបស់អ្នកទេ គឺជាកំហុសរបស់យើង។",
+  "dry_run_mode_active": "អ្នកកំពុងធ្វើការកក់សាកល្បង។",
+  "icon_showcase": "ការបង្ហាញរូបតំណាង",
+  "icons_showcase": "ការបង្ហាញរូបតំណាងនានា",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
