@@ -2,7 +2,7 @@ import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_
 import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 import {
   CreateTeamEventTypeInput_2024_06_14,
@@ -13,12 +13,15 @@ import { SchedulingType } from "@calcom/prisma/client";
 
 @Injectable()
 export class InputOrganizationsEventTypesService {
+  private readonly logger = new Logger("InputOrganizationsEventTypesService");
+
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
+
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,
     teamId: number,
@@ -44,6 +47,7 @@ export class InputOrganizationsEventTypesService {
     transformedBody.useEventTypeDestinationCalendarEmail &&
       (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
 
+    this.logEvent('create', userId, teamId, transformedBody.id);
     return transformedBody;
   }
 
@@ -74,6 +78,7 @@ export class InputOrganizationsEventTypesService {
     transformedBody.useEventTypeDestinationCalendarEmail &&
       (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
 
+    this.logEvent('update', userId, teamId, eventTypeId);
     return transformedBody;
   }
 
@@ -233,6 +238,10 @@ export class InputOrganizationsEventTypesService {
         throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
       }
     }
+  }
+
+  private logEvent(action: string, userId: number, teamId: number, eventTypeId: number) {
+    this.logger.log(`User ${userId} performed ${action} action on event type ${eventTypeId} in team ${teamId}`);
   }
 }
 

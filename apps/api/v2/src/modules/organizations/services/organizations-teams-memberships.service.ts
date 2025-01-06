@@ -1,10 +1,12 @@
 import { CreateOrgTeamMembershipDto } from "@/modules/organizations/inputs/create-organization-team-membership.input";
 import { UpdateOrgTeamMembershipDto } from "@/modules/organizations/inputs/update-organization-team-membership.input";
 import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/repositories/organizations-teams-memberships.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsTeamsMembershipsService {
+  private readonly logger = new Logger("OrganizationsTeamsMembershipsService");
+
   constructor(
     private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository
   ) {}
@@ -14,6 +16,7 @@ export class OrganizationsTeamsMembershipsService {
       teamId,
       data
     );
+    this.logEvent('add', data.userId, teamId);
     return teamMembership;
   }
 
@@ -63,6 +66,11 @@ export class OrganizationsTeamsMembershipsService {
       teamId,
       membershipId
     );
+    this.logEvent('remove', membershipId, teamId);
     return teamMembership;
+  }
+
+  private logEvent(action: string, userId: number, teamId: number) {
+    this.logger.log(`User ${userId} performed ${action} action on team ${teamId}`);
   }
 }

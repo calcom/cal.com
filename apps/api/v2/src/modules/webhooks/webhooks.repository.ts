@@ -1,5 +1,5 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 
 import { Webhook } from "@calcom/prisma/client";
@@ -13,6 +13,8 @@ type WebhookInputData = Pick<
 
 @Injectable()
 export class WebhooksRepository {
+  private readonly logger = new Logger("WebhooksRepository");
+
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createUserWebhook(userId: number, data: WebhookInputData) {
@@ -24,9 +26,11 @@ export class WebhooksRepository {
 
   async createEventTypeWebhook(eventTypeId: number, data: WebhookInputData) {
     const id = uuidv4();
-    return this.dbWrite.prisma.webhook.create({
+    const webhook = await this.dbWrite.prisma.webhook.create({
       data: { ...data, id, eventTypeId },
     });
+    this.logEvent('create', eventTypeId, webhook.id);
+    return webhook;
   }
 
   async createOAuthClientWebhook(platformOAuthClientId: string, data: WebhookInputData) {
@@ -98,14 +102,21 @@ export class WebhooksRepository {
   }
 
   async deleteAllEventTypeWebhooks(eventTypeId: number) {
-    return this.dbWrite.prisma.webhook.deleteMany({
+    const result = await this.dbWrite.prisma.webhook.deleteMany({
       where: { eventTypeId },
     });
+    this.logEvent('delete', eventTypeId, null);
+    return result;
   }
 
   async deleteAllOAuthClientWebhooks(oAuthClientId: string) {
     return this.dbWrite.prisma.webhook.deleteMany({
       where: { platformOAuthClientId: oAuthClientId },
     });
+  }
+
+  private logEvent(action: string, eventTypeId: number, webhookId: string | null) {
+    const webhookIdText = webhookId ? `webhook ${webhookId}` : 'all webhooks';
+    this.logger.log(`Performed ${action} action on ${webhookIdText} for event type ${eventTypeId}`);
   }
 }

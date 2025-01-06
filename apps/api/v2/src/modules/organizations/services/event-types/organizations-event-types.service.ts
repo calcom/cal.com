@@ -42,7 +42,9 @@ export class OrganizationsEventTypesService {
       },
     });
 
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user);
+    const result = await this.teamsEventTypesService.updateTeamEventType(eventTypeCreated.id, teamId, body, user);
+    this.logEvent('create', user, teamId, eventTypeCreated.id);
+    return result;
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
@@ -86,10 +88,19 @@ export class OrganizationsEventTypesService {
     body: InputTeamEventTransformed_2024_06_14,
     user: UserWithProfile
   ): Promise<DatabaseTeamEventType | DatabaseTeamEventType[]> {
-    return this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user);
+    const result = await this.teamsEventTypesService.updateTeamEventType(eventTypeId, teamId, body, user);
+    this.logEvent('update', user, teamId, eventTypeId);
+    return result;
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {
-    return this.teamsEventTypesService.deleteTeamEventType(teamId, eventTypeId);
+    const result = await this.teamsEventTypesService.deleteTeamEventType(teamId, eventTypeId);
+    this.logEvent('delete', null, teamId, eventTypeId);
+    return result;
+  }
+
+  private logEvent(action: string, user: UserWithProfile | null, teamId: number, eventTypeId: number) {
+    const userId = user ? user.id : 'system';
+    this.logger.log(`User ${userId} performed ${action} action on event type ${eventTypeId} in team ${teamId}`);
   }
 }

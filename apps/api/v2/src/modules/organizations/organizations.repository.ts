@@ -2,10 +2,12 @@ import { PlatformPlan } from "@/modules/billing/types";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsRepository {
+  private readonly logger = new Logger("OrganizationsRepository");
+
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
@@ -130,5 +132,9 @@ export class OrganizationsRepository {
         isAdminAPIEnabled: true,
       },
     });
+  }
+
+  async logEvent(action: string, organizationId: number) {
+    this.logger.log(`Performed ${action} action on organization ${organizationId}`);
   }
 }

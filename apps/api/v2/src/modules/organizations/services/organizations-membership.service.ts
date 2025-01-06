@@ -1,11 +1,13 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 
 @Injectable()
 export class OrganizationsMembershipService {
+  private readonly logger = new Logger("OrganizationsMembershipService");
+
   constructor(private readonly organizationsMembershipRepository: OrganizationsMembershipRepository) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
@@ -38,6 +40,7 @@ export class OrganizationsMembershipService {
       organizationId,
       membershipId
     );
+    this.logEvent('delete', membershipId, organizationId);
     return membership;
   }
 
@@ -47,11 +50,17 @@ export class OrganizationsMembershipService {
       membershipId,
       data
     );
+    this.logEvent('update', membershipId, organizationId);
     return membership;
   }
 
   async createOrgMembership(organizationId: number, data: CreateOrgMembershipDto) {
     const membership = await this.organizationsMembershipRepository.createOrgMembership(organizationId, data);
+    this.logEvent('create', membership.id, organizationId);
     return membership;
+  }
+
+  private logEvent(action: string, membershipId: number, organizationId: number) {
+    this.logger.log(`Performed ${action} action on membership ${membershipId} in organization ${organizationId}`);
   }
 }

@@ -1,9 +1,11 @@
 import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { ConflictException, Injectable } from "@nestjs/common";
+import { ConflictException, Injectable, Logger } from "@nestjs/common";
 
 @Injectable()
 export class EventTypeWebhooksService {
+  private readonly logger = new Logger("EventTypeWebhooksService");
+
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async createEventTypeWebhook(eventTypeId: number, body: PipedInputWebhookType) {
@@ -14,11 +16,13 @@ export class EventTypeWebhooksService {
     if (existingWebhook) {
       throw new ConflictException("Webhook with this subscriber url already exists for this event type");
     }
-    return this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
+    const webhook = await this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
       ...body,
       payloadTemplate: body.payloadTemplate ?? null,
       secret: body.secret ?? null,
     });
+    this.logEvent('create', eventTypeId, webhook.id);
+    return webhook;
   }
 
   getEventTypeWebhooksPaginated(eventTypeId: number, skip: number, take: number) {
@@ -26,6 +30,13 @@ export class EventTypeWebhooksService {
   }
 
   async deleteAllEventTypeWebhooks(eventTypeId: number): Promise<{ count: number }> {
-    return this.webhooksRepository.deleteAllEventTypeWebhooks(eventTypeId);
+    const result = await this.webhooksRepository.deleteAllEventTypeWebhooks(eventTypeId);
+    this.logEvent('delete', eventTypeId, null);
+    return result;
+  }
+
+  private logEvent(action: string, eventTypeId: number, webhookId: string | null) {
+    const webhookIdText = webhookId ? `webhook ${webhookId}` : 'all webhooks';
+    this.logger.log(`Performed ${action} action on ${webhookIdText} for event type ${eventTypeId}`);
   }
 }

@@ -4,7 +4,7 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/upda
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { Injectable, ConflictException } from "@nestjs/common";
+import { Injectable, ConflictException, Logger } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
@@ -12,6 +12,8 @@ import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
+  private readonly logger = new Logger("OrganizationsUsersService");
+
   constructor(
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
     private readonly organizationsTeamsService: OrganizationsTeamsService,
@@ -101,6 +103,9 @@ export class OrganizationsUsersService {
       userId,
       userUpdateBody
     );
+
+    this.logEvent('update', userId, orgId);
+
     return user;
   }
 
@@ -116,5 +121,9 @@ export class OrganizationsUsersService {
     );
 
     if (isUsernameTaken) throw new ConflictException("Username is already taken");
+  }
+
+  private logEvent(action: string, userId: number, orgId: number) {
+    this.logger.log(`User ${userId} performed ${action} action in organization ${orgId}`);
   }
 }
