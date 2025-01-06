@@ -15,9 +15,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
+import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
-import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -64,8 +64,8 @@ const SlotItem = ({
   const { t } = useLocale();
 
   const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage?.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+  const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
   const { data: eventData } = event;
