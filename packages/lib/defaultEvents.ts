@@ -108,7 +108,7 @@ const commons = {
   workflows: [],
   users: [user],
   hosts: [],
-  firstThreeHosts: [],
+  subsetOfHosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,

@@ -15,7 +15,7 @@ export type BookerEventQuery = {
 };
 
 type BookerEventUser = Pick<
-  PublicEvent["firstThreeUsers"][number],
+  PublicEvent["subsetOfUsers"][number],
   "name" | "username" | "avatarUrl" | "weekStart" | "profile"
 > & {
   metadata?: undefined;
@@ -47,7 +47,7 @@ export type BookerEvent = Pick<
   | "description"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
-  | "firstThreeHosts"
+  | "subsetOfHosts"
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
@@ -55,7 +55,7 @@ export type BookerEvent = Pick<
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
 > & {
-  firstThreeUsers: BookerEventUser[];
+  subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
 } & { profile: BookerEventProfile };
 

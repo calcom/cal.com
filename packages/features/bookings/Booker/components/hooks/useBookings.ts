@@ -28,7 +28,7 @@ export interface IUseBookings {
           BookerEvent,
           | "id"
           | "slug"
-          | "firstThreeHosts"
+          | "subsetOfHosts"
           | "requiresConfirmation"
           | "isDynamic"
           | "metadata"
@@ -38,8 +38,8 @@ export interface IUseBookings {
           | "recurringEvent"
           | "schedulingType"
         > & {
-          firstThreeUsers: Pick<
-            BookerEvent["firstThreeUsers"][number],
+          subsetOfUsers: Pick<
+            BookerEvent["subsetOfUsers"][number],
             "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
           >[];
         })
@@ -187,9 +187,9 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
-      const users = !!event.data?.firstThreeHosts?.length
-        ? event.data?.firstThreeHosts.map((host) => host.user)
-        : event.data?.firstThreeUsers;
+      const users = !!event.data?.subsetOfHosts?.length
+        ? event.data?.subsetOfHosts.map((host) => host.user)
+        : event.data?.subsetOfUsers;
 
       const validDuration = event.data?.isDynamic
         ? duration || event.data?.length

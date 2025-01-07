@@ -273,7 +273,7 @@ export const getPublicEvent = async (
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
       // Clears meta data since we don't want to send this in the public api.
-      firstThreeUsers: users.map((user) => ({
+      subsetOfUsers: users.map((user) => ({
         ...user,
         metadata: undefined,
         bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
@@ -398,7 +398,7 @@ export const getPublicEvent = async (
           user: event.owner,
         })
       : null,
-    firstThreeHosts: hosts,
+    subsetOfHosts: hosts,
     hosts: fetchAllUsers ? hosts : undefined,
   };
 
@@ -482,7 +482,7 @@ export const getPublicEvent = async (
       : null,
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
-    firstThreeUsers: users,
+    subsetOfUsers: users,
     users: fetchAllUsers ? users : undefined,
     entity: {
       fromRedirectOfNonOrgLink,
@@ -522,11 +522,11 @@ type Event = Prisma.EventTypeGetPayload<typeof eventData>;
 
 type GetProfileFromEventInput = Omit<Event, "hosts"> & {
   hosts?: Event["hosts"];
-  firstThreeHosts: Event["hosts"];
+  subsetOfHosts: Event["hosts"];
 };
 
 function getProfileFromEvent(event: GetProfileFromEventInput) {
-  const { team, firstThreeHosts: hosts, owner } = event;
+  const { team, subsetOfHosts: hosts, owner } = event;
   const nonTeamprofile = hosts?.[0]?.user || owner;
   const profile = team || nonTeamprofile;
   if (!profile) throw new Error("Event has no owner");
@@ -567,7 +567,7 @@ async function getUsersFromEvent(
         profile: UserProfile;
       };
     })[];
-    firstThreeHosts: (Omit<Event["hosts"][number], "user"> & {
+    subsetOfHosts: (Omit<Event["hosts"][number], "user"> & {
       user: Event["hosts"][number]["user"] & {
         profile: UserProfile;
       };
@@ -575,9 +575,9 @@ async function getUsersFromEvent(
   },
   prisma: PrismaClient
 ) {
-  const { team, hosts, firstThreeHosts, owner, id } = event;
+  const { team, hosts, subsetOfHosts, owner, id } = event;
   if (team) {
-    const eventHosts = !!hosts?.length ? hosts : firstThreeHosts;
+    const eventHosts = !!hosts?.length ? hosts : subsetOfHosts;
     // getOwnerFromUsersArray is used here for backward compatibility when team event type has users[] but not hosts[]
     return eventHosts.length
       ? eventHosts.filter((host) => host.user.username).map(mapHostsToUsers)
