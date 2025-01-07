@@ -137,7 +137,7 @@ export default defineConfig({
           "lru-cache": "lru-cache",
           "next-auth/jwt": "next-auth/jwt",
           "memory-cache": "memory-cache",
-          jsforce: "@jsforce/jsforce-node",
+          "@jsforce-node": "@jsforce/jsforce-node",
           axios: "axios",
           qs: "qs",
           "qs-stringify": "qs-stringify",
