@@ -39,6 +39,13 @@ export class UserOOORepository {
     });
   }
 
+  async getUserOOOByIdAndUserId(oooId: number, userId: number) {
+    return this.dbRead.prisma.outOfOfficeEntry.findFirst({
+      where: { id: oooId, userId },
+      include: { reason: true },
+    });
+  }
+
   async getUserOOOPaginated(userId: number, skip: number, take: number) {
     return this.dbRead.prisma.outOfOfficeEntry.findMany({
       where: { userId },

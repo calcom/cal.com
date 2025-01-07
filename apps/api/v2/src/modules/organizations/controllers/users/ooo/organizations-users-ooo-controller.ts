@@ -7,6 +7,7 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
+import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
 import { CreateOutOfOfficeEntryDto, UpdateOutOfOfficeEntryDto } from "@/modules/ooo/inputs/ooo.input";
 import {
   UserOooOutputDto,
@@ -81,7 +82,7 @@ export class OrganizationsUsersOOOController {
   @Patch("/:oooId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(IsUserInOrg)
+  @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Update ooo entry of a user" })
   async updateOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
@@ -97,7 +98,7 @@ export class OrganizationsUsersOOOController {
   @Delete("/:oooId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
-  @UseGuards(IsUserInOrg)
+  @UseGuards(IsUserInOrg, IsUserOOO)
   @ApiOperation({ summary: "Delete ooo entry of a user" })
   async deleteOrganizationUserOOO(
     @Param("oooId", ParseIntPipe) oooId: number
