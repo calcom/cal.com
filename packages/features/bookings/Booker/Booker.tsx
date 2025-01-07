@@ -11,7 +11,7 @@ import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity/UnpublishedEntity";
 
@@ -20,6 +20,7 @@ import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
 import { DatePicker } from "./components/DatePicker";
+import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
@@ -32,6 +33,7 @@ import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
+import { isBookingDryRun } from "./utils/isBookingDryRun";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 
@@ -66,7 +68,7 @@ const BookerComponent = ({
   userLocale,
   hasValidLicense,
 }: BookerProps & WrappedBookerProps) => {
-  const { t } = useLocale();
+  const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -263,6 +265,8 @@ const BookerComponent = ({
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
+
+      {isBookingDryRun(searchParams) && <DryRunMessage isEmbed={isEmbed} />}
 
       <div
         className={classNames(

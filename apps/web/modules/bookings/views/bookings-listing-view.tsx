@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Fragment, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -13,7 +13,6 @@ import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import Shell from "@calcom/features/shell/Shell";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
@@ -24,7 +23,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import { validStatuses } from "~/bookings/lib/validStatuses";
+import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -67,17 +66,13 @@ const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   unconfirmed: "unconfirmed_bookings",
 };
 
-const querySchema = z.object({
-  status: z.enum(validStatuses),
-});
-
-export default function Bookings() {
-  const params = useParamsWithFallback();
+export default function Bookings({ status }: { status: (typeof validStatuses)[number] }) {
   const { data: filterQuery } = useFilterQuery();
-  const { status } = params ? querySchema.parse(params) : { status: "upcoming" as const };
+
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
