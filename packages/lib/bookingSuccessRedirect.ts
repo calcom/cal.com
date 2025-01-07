@@ -37,11 +37,7 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   ];
 
   const cpfParam = {
-    cpf: booking?.responses
-      ? booking.responses?.CPF
-        ? booking.responses?.CPF
-        : "12354678910"
-      : "12354678911",
+    cpf: (booking.responses?.CPF || "").replace(/\D/g, ""),
   };
 
   const params = (Object.keys(booking) as BookingResponseKey[])
