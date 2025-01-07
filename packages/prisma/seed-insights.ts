@@ -1,10 +1,11 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma } from "@prisma/client";
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, AssignmentReasonEnum } from "@calcom/prisma/enums";
 
 import { seedAttributes, seedRoutingFormResponses, seedRoutingForms } from "./seed-utils";
 
@@ -84,6 +85,52 @@ const shuffle = (
 
   return booking;
 };
+
+async function createAttendees(bookings: any[]) {
+  for (const booking of bookings) {
+    await prisma.attendee.createMany({
+      data: Array(Math.floor(Math.random() * 4))
+        .fill(null)
+        .map(() => {
+          return {
+            bookingId: booking.id,
+            timeZone: faker.location.timeZone(),
+            email: faker.internet.email(),
+            name: faker.person.fullName(),
+          };
+        }),
+    });
+  }
+}
+
+async function seedBookingAssignments() {
+  const assignmentReasons = [
+    AssignmentReasonEnum.ROUTING_FORM_ROUTING,
+    AssignmentReasonEnum.ROUTING_FORM_ROUTING_FALLBACK,
+    AssignmentReasonEnum.REASSIGNED,
+    AssignmentReasonEnum.REROUTED,
+    AssignmentReasonEnum.SALESFORCE_ASSIGNMENT,
+  ];
+  // Get all booking IDs
+  const bookings = await prisma.booking.findMany({
+    select: {
+      id: true,
+    },
+  });
+
+  // Take 20% of bookings randomly
+  const numberOfBookingsToAssign = Math.floor(bookings.length * 0.2);
+  const randomBookings = bookings.sort(() => Math.random() - 0.5).slice(0, numberOfBookingsToAssign);
+
+  // Create assignment reasons for the random bookings
+  await prisma.assignmentReason.createMany({
+    data: randomBookings.map((booking) => ({
+      bookingId: booking.id,
+      reasonString: faker.lorem.sentence(),
+      reasonEnum: assignmentReasons[Math.floor(Math.random() * assignmentReasons.length)],
+    })),
+  });
+}
 
 const prisma = new PrismaClient();
 async function main() {
@@ -209,6 +256,8 @@ async function main() {
     });
   }
 
+  const javascriptEventId = teamEvents.find((event) => event.slug === "team-javascript")?.id;
+  const salesEventId = teamEvents.find((event) => event.slug === "team-sales")?.id;
   const insightsMembers = await prisma.membership.findMany({
     where: {
       teamId: insightsTeam.id,
@@ -268,6 +317,8 @@ async function main() {
     ],
   });
 
+  await createAttendees(await prisma.booking.findMany());
+
   // Find owner of the organization
   const owner = orgMembers.find((m) => m.role === "OWNER" || m.role === "ADMIN");
 
@@ -285,6 +336,8 @@ async function main() {
   if (seededForm) {
     await seedRoutingFormResponses(seededForm, attributes, insightsTeam.id);
   }
+
+  await seedBookingAssignments();
 }
 main()
   .then(async () => {

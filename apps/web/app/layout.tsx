@@ -1,3 +1,4 @@
+import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -20,20 +21,15 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
 
-  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
+  const isEmbedSnippetGeneratorPath = pathname.startsWith("/event-types");
+  const isEmbed =
+    (pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null) &&
+    !isEmbedSnippetGeneratorPath;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: headers(), cookies: cookies() };
@@ -80,6 +76,46 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
+        <script
+          nonce={nonce}
+          id="headScript"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.calNewLocale = "${locale}";
+              (function applyTheme() {
+                try {
+                  const appTheme = localStorage.getItem('app-theme');
+                  if (!appTheme) return;
+
+                  let bookingTheme, username;
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('booking-theme:')) {
+                      bookingTheme = localStorage.getItem(key);
+                      username = key.split("booking-theme:")[1];
+                      break;
+                    }
+                  }
+
+                  const onReady = () => {
+                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
+
+                    if (document.body) {
+                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
+                    } else {
+                      requestAnimationFrame(onReady);
+                    }
+                  };
+
+                  requestAnimationFrame(onReady);
+                } catch (e) {
+                  console.error('Error applying theme:', e);
+                }
+              })();
+            `,
+          }}
+        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
@@ -112,7 +148,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        {children}
+        <TrpcProvider>{children}</TrpcProvider>
       </body>
     </html>
   );

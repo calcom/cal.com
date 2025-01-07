@@ -29,7 +29,7 @@ const EventAvailabilityTabPlatformWrapper = ({
   const scheduleId = formMethods.watch("schedule");
 
   const { isLoading: isSchedulePending, data: scheduleQueryData } = useSchedule(
-    scheduleId || (!props.isTeamEvent ? user?.defaultScheduleId : undefined) || undefined
+    scheduleId || user?.defaultScheduleId || undefined
   );
 
   const { data: schedulesQueryData, isLoading: isSchedulesPending } = useSchedules();

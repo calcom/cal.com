@@ -6,10 +6,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
@@ -58,6 +55,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      isPrivate: true,
       hideBranding: true,
       parent: {
         select: {
@@ -87,6 +85,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           metadata: true,
           length: true,
           hidden: true,
+          hosts: {
+            take: 3,
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  username: true,
+                },
+              },
+            },
+          },
         },
       },
       isOrganization: true,
@@ -103,21 +112,51 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       notFound: true,
     } as const;
   }
+  const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
 
   // INFO: This code was pulled from getPublicEvent and used here.
   // Calling the tRPC fetch to get the public event data is incredibly slow
   // for large teams and we don't want to add it back. Future refactors will happen
   // to speed up this call.
-  const usernameList = getUsernameList(teamSlug);
+  let users: { username: string; name: string }[] = [];
+
+  if (!team.isPrivate && eventData.hosts.length > 0) {
+    users = eventData.hosts
+      .filter((host) => host.user.username)
+      .map((host) => ({
+        username: host.user.username ?? "",
+        name: host.user.name ?? "",
+      }));
+  }
+  if (!team.isPrivate && eventData.hosts.length === 0) {
+    // a minimalistic version of `getOwnerFromUsersArray` in `getPublicEvent.ts`
+    // backward compatibility logic for team event types that have users[] but not hosts[]
+    const { users: data } = await prisma.eventType.findUniqueOrThrow({
+      where: { id: eventTypeId },
+      select: {
+        users: {
+          take: 1,
+          select: {
+            username: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (data.length > 0) {
+      users = [
+        {
+          username: data[0].username ?? "",
+          name: data[0].name ?? "",
+        },
+      ];
+    }
+  }
+
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
   const name = team.parent?.name ?? team.name ?? null;
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
-    usernameList,
-    orgSlug: team.parent?.slug || null,
-  });
-
-  const eventData = team.eventTypes[0];
-  const eventTypeId = eventData.id;
 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
@@ -169,11 +208,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           username: orgSlug ?? null,
         },
         title: eventData.title,
-        users: usersInOrgContext.map((user) => ({
-          ...user,
-          metadata: undefined,
-          bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
-        })),
+        users,
         hidden: eventData.hidden,
       },
       booking,

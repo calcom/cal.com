@@ -11,7 +11,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
@@ -19,6 +19,7 @@ import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -80,7 +81,9 @@ export const EventMeta = ({
   };
   locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -159,7 +162,7 @@ export const EventMeta = ({
               <div
                 // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
-                  __html: markdownToSafeHTML(translatedDescription ?? event.description),
+                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
                 }}
               />
             </EventMetaBlock>
@@ -214,7 +217,10 @@ export const EventMeta = ({
                       container: () => "max-w-full",
                     }}
                     value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

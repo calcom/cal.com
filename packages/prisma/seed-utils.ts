@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker";
 import type { Prisma, UserPermissionRole } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { uuid } from "short-uuid";
@@ -425,7 +426,9 @@ export async function seedAttributes(teamId: number) {
 export async function seedRoutingForms(
   teamId: number,
   userId: number,
-  attributeRaw: { id: string; options: { id: string; value: string }[] }[]
+  attributeRaw: { id: string; options: { id: string; value: string }[] }[],
+  javascriptEventId: number,
+  salesEventId: number
 ) {
   const seededForm = {
     id: "948ae412-d995-4865-885a-48302588de03",
@@ -434,14 +437,28 @@ export async function seedRoutingForms(
       {
         id: "8a898988-89ab-4cde-b012-31823f708642",
         value: "team/insights-team/team-javascript",
+        eventTypeId: javascriptEventId,
       },
       {
         id: "8b2224b2-89ab-4cde-b012-31823f708642",
         value: "team/insights-team/team-sales",
+        eventTypeId: salesEventId,
       },
     ],
-    formFieldFilled: {
+    formFieldLocation: {
+      id: "674c169a-e40a-492c-b4bb-6f5213873bd6",
+    },
+    formFieldSkills: {
       id: "83316968-45bf-4c9d-b5d4-5368a8d2d2a8",
+    },
+    formFieldEmail: {
+      id: "dd28ffcf-7029-401e-bddb-ce2e7496a1c1",
+    },
+    formFieldManager: {
+      id: "57734f65-8bbb-4065-9e71-fb7f0b7485f8",
+    },
+    formFieldRating: {
+      id: "f4e9fa6c-5c5d-4d8e-b15c-7f37e9d0c729",
     },
   };
 
@@ -468,7 +485,7 @@ export async function seedRoutingForms(
           action: {
             type: "eventTypeRedirectUrl",
             value: seededForm.routes[0].value,
-            eventTypeId: 1133,
+            eventTypeId: seededForm.routes[0].eventTypeId,
           },
           queryValue: {
             id: "aaba9988-cdef-4012-b456-719300f53ef8",
@@ -499,7 +516,7 @@ export async function seedRoutingForms(
           action: {
             type: "eventTypeRedirectUrl",
             value: seededForm.routes[1].value,
-            eventTypeId: 1133,
+            eventTypeId: seededForm.routes[1].eventTypeId,
           },
           queryValue: {
             id: "aaba9948-cdef-4012-b456-719300f53ef8",
@@ -538,13 +555,41 @@ export async function seedRoutingForms(
       ],
       fields: [
         {
-          id: seededForm.formFieldFilled.id,
+          id: seededForm.formFieldLocation.id,
+          type: "select",
+          label: "Location",
+          options: attributeRaw[1].options.map((opt) => ({
+            id: opt.id,
+            label: opt.value,
+          })),
+          required: true,
+        },
+        {
+          id: seededForm.formFieldSkills.id,
           type: "multiselect",
           label: "skills",
           options: attributeRaw[2].options.map((opt) => ({
             id: opt.id,
             label: opt.value,
           })),
+          required: true,
+        },
+        {
+          id: seededForm.formFieldEmail.id,
+          type: "email",
+          label: "Email",
+          required: true,
+        },
+        {
+          id: seededForm.formFieldManager.id,
+          type: "text",
+          label: "Manager",
+          required: true,
+        },
+        {
+          id: seededForm.formFieldRating.id,
+          type: "number",
+          label: "Rating",
           required: true,
         },
       ],
@@ -571,7 +616,19 @@ type SeededForm = {
     id: string;
     value: string;
   }[];
-  formFieldFilled: {
+  formFieldLocation: {
+    id: string;
+  };
+  formFieldSkills: {
+    id: string;
+  };
+  formFieldEmail: {
+    id: string;
+  };
+  formFieldManager: {
+    id: string;
+  };
+  formFieldRating: {
     id: string;
   };
 };
@@ -607,8 +664,11 @@ export async function seedRoutingFormResponses(
   for (const booking of bookings) {
     // Randomly select 1-3 skills from the form field options
     const numSkills = Math.floor(Math.random() * 3) + 1;
-    const shuffledOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
-    const selectedSkills = shuffledOptions.slice(0, numSkills);
+    const shuffledSkillOptions = [...attributeRaw[2].options].sort(() => Math.random() - 0.5);
+    const selectedSkills = shuffledSkillOptions.slice(0, numSkills);
+
+    const selectedLocation =
+      attributeRaw[1].options[Math.floor(Math.random() * attributeRaw[1].options.length)];
 
     // Generate a random date within the last 30 days
     const randomDate = dayjs()
@@ -623,9 +683,25 @@ export async function seedRoutingFormResponses(
         formFillerId: randomUUID(),
         createdAt: randomDate.toDate(),
         response: {
-          [seededForm.formFieldFilled.id]: {
+          [seededForm.formFieldLocation.id]: {
+            label: "Location",
+            value: selectedLocation.id,
+          },
+          [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),
+          },
+          [seededForm.formFieldEmail.id]: {
+            label: "Email",
+            value: faker.internet.email(),
+          },
+          [seededForm.formFieldManager.id]: {
+            label: "Manager",
+            value: faker.person.fullName(),
+          },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
           },
         },
       },
@@ -650,9 +726,25 @@ export async function seedRoutingFormResponses(
         formFillerId: randomUUID(),
         createdAt: randomDate.subtract(2, "hour").toDate(),
         response: {
-          [seededForm.formFieldFilled.id]: {
+          [seededForm.formFieldLocation.id]: {
+            label: "Location",
+            value: selectedLocation.id,
+          },
+          [seededForm.formFieldSkills.id]: {
             label: "skills",
             value: selectedSkills.map((opt) => opt.id),
+          },
+          [seededForm.formFieldEmail.id]: {
+            label: "Email",
+            value: faker.internet.email(),
+          },
+          [seededForm.formFieldManager.id]: {
+            label: "Manager",
+            value: faker.person.fullName(),
+          },
+          [seededForm.formFieldRating.id]: {
+            label: "Rating",
+            value: Math.floor(Math.random() * 5) + 1,
           },
         },
       },

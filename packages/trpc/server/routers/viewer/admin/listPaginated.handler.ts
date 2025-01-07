@@ -46,8 +46,6 @@ const listPaginatedHandler = async ({ input }: GetOptions) => {
     take: limit + 1, // We take +1 as itll be used for the next cursor
     where: {
       ...searchFilters,
-      // To bypass the excludeLockedUsersExtension
-      OR: [{ locked: false }, { locked: true }],
     },
     orderBy: {
       id: "asc",
