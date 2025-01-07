@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Provádíte testovací rezervaci.",
   "icon_showcase": "Ukázka ikon",
   "icons_showcase": "Ukázka ikon",
+  "choose_an_option": "Vyberte možnost",
+  "enter_option_value": "Zadejte hodnotu možnosti",
+  "remove_option": "Odebrat možnost",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
