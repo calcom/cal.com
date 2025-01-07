@@ -1,13 +1,21 @@
+import type { Dispatch, SetStateAction } from "react";
+import type { UseFormReturn } from "react-hook-form";
+
 import { HorizontalTabs } from "@calcom/ui";
 
 import type { getSerializableForm } from "../lib/getSerializableForm";
+import type { RoutingFormWithResponseCount } from "./SingleForm";
 
 export default function RoutingNavBar({
   form,
   appUrl,
+  hookForm,
+  setShowInfoLostDialog,
 }: {
   form: Awaited<ReturnType<typeof getSerializableForm>>;
   appUrl: string;
+  hookForm: UseFormReturn<RoutingFormWithResponseCount>;
+  setShowInfoLostDialog: Dispatch<SetStateAction<boolean>>;
 }) {
   const tabs = [
     {
@@ -17,6 +25,13 @@ export default function RoutingNavBar({
     {
       name: "Routing",
       href: `${appUrl}/route-builder/${form?.id}`,
+      onClick: () => {
+        if (hookForm.formState.isDirty) {
+          setShowInfoLostDialog(true);
+        } else {
+          window.location.href = `${appUrl}/route-builder/${form?.id}`;
+        }
+      },
     },
     {
       name: "Reporting",
