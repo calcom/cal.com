@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
+import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
@@ -16,7 +17,7 @@ import {
   SettingsToggle,
 } from "@calcom/ui";
 
-const AttributeFormSchema = z.object({
+const attributeFormSchema = z.object({
   attrName: z.string().min(1),
   isLocked: z.boolean().optional(),
   isWeightsEnabled: z.boolean().optional(),
@@ -33,7 +34,7 @@ const AttributeFormSchema = z.object({
   ),
 });
 
-type FormValues = z.infer<typeof AttributeFormSchema>;
+type AttributeFormValues = z.infer<typeof attributeFormSchema>;
 
 const AttributeTypeOptions = [
   { value: "TEXT", label: "Text" },
@@ -43,8 +44,8 @@ const AttributeTypeOptions = [
 ];
 
 interface AttributeFormProps {
-  initialValues?: FormValues;
-  onSubmit: (values: FormValues) => void;
+  initialValues?: AttributeFormValues;
+  onSubmit: (values: AttributeFormValues) => void;
   header: React.ReactNode;
 }
 
@@ -130,13 +131,13 @@ const NonGroupOption = ({
   option,
   index,
   form,
-  remove,
+  removeOption,
   setDeleteOptionDialog,
 }: {
   option: AttributeOption;
   index: number;
-  form: any;
-  remove: (index: number) => void;
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
   setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
 }) => {
   const { t } = useLocale();
@@ -157,7 +158,7 @@ const NonGroupOption = ({
             if (option.assignedUsers && option.assignedUsers > 0) {
               setDeleteOptionDialog({ id: index, open: true });
             } else {
-              remove(index);
+              removeOption(index);
             }
           }}
           title={t("remove_option")}
@@ -194,13 +195,13 @@ const GroupOption = ({
   option,
   index,
   form,
-  remove,
+  removeOption,
   setDeleteOptionDialog,
 }: {
   option: AttributeOption;
   index: number;
-  form: any;
-  remove: (index: number) => void;
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
   setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
 }) => {
   const { t } = useLocale();
@@ -220,7 +221,6 @@ const GroupOption = ({
           <Input {...form.register(`options.${index}.value`)} className="!mb-0 w-36" />
           <SelectField
             isMulti
-            isDisabled={!option.attributeOptionId}
             placeholder={t("choose_an_option")}
             options={nonGroupOptionsSelectFieldOptions}
             value={nonGroupOptionsSelectFieldSelectedValue}
@@ -242,7 +242,7 @@ const GroupOption = ({
             if (option.assignedUsers && option.assignedUsers > 0) {
               setDeleteOptionDialog({ id: index, open: true });
             } else {
-              remove(index);
+              removeOption(index);
             }
           }}
         />
@@ -256,13 +256,13 @@ const GroupOptions = ({
   fields,
   watchedOptions,
   form,
-  remove,
+  removeOption,
   setDeleteOptionDialog,
 }: {
-  fields: any[];
+  fields: FieldArrayWithId<AttributeFormValues, "options", "id">[];
   watchedOptions: AttributeOption[];
-  form: any;
-  remove: (index: number) => void;
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
   setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
 }) => {
   const { t } = useLocale();
@@ -279,7 +279,7 @@ const GroupOptions = ({
               option={watchedOptions[index]}
               index={index}
               form={form}
-              remove={remove}
+              removeOption={removeOption}
               setDeleteOptionDialog={setDeleteOptionDialog}
             />
           );
@@ -299,7 +299,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
     open: false,
   });
 
-  // Needed because useFieldArray overrides the id field
+  // Needed because fields returned by useFieldArray have their own id field overriding the id field of the option object.
   const initialValuesEnsuringThatOptionIdIsNotInId = initialValues
     ? {
         ...initialValues,
@@ -313,8 +313,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
       }
     : undefined;
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(AttributeFormSchema),
+  const form = useForm<AttributeFormValues>({
+    resolver: zodResolver(attributeFormSchema),
     defaultValues: initialValuesEnsuringThatOptionIdIsNotInId || {
       attrName: "",
       options: [{ value: "", isGroup: false }],
@@ -326,6 +326,39 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
     control: form.control,
     name: "options",
   });
+
+  const removeOption = (index: number) => {
+    // Update contains array of any group that has this option
+    const optionToRemove = watchedOptions[index];
+    if (!optionToRemove.isGroup && optionToRemove.attributeOptionId) {
+      const updatedOptions = getUpdatedOptionsAfterRemovingNonGroupOption({
+        optionToRemove,
+        watchedOptions,
+      });
+      form.setValue("options", updatedOptions);
+    }
+    remove(index);
+  };
+
+  const getUpdatedOptionsAfterRemovingNonGroupOption = ({
+    optionToRemove,
+    watchedOptions,
+  }: {
+    optionToRemove: AttributeOption;
+    watchedOptions: AttributeOption[];
+  }) => {
+    const attributeOptionIdToRemove = optionToRemove.attributeOptionId;
+    if (!attributeOptionIdToRemove) return watchedOptions;
+    return watchedOptions.map((option) => {
+      if (option.isGroup && option.contains) {
+        return {
+          ...option,
+          contains: option.contains.filter((id) => id !== attributeOptionIdToRemove),
+        };
+      }
+      return option;
+    });
+  };
 
   const watchedOptions = form.watch("options") as AttributeOption[];
   const watchedType = form.watch("type");
@@ -407,7 +440,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                       option={watchedOptions[index]}
                       index={index}
                       form={form}
-                      remove={remove}
+                      removeOption={removeOption}
                       setDeleteOptionDialog={setDeleteOptionDialog}
                     />
                   );
@@ -422,7 +455,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                 fields={fields}
                 watchedOptions={watchedOptions}
                 form={form}
-                remove={remove}
+                removeOption={removeOption}
                 setDeleteOptionDialog={setDeleteOptionDialog}
               />
               <Button
@@ -443,7 +476,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           title={t("delete_attribute")}
           confirmBtnText={t("delete")}
           onConfirm={() => {
-            remove(deleteOptionDialog.id as number);
+            removeOption(deleteOptionDialog.id as number);
             setDeleteOptionDialog({ id: undefined, open: false });
           }}
           loadingText={t("deleting_attribute")}>
