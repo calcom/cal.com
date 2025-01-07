@@ -4879,7 +4879,7 @@
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
-            "description": "Slug of the event type for which slots are being fetched.",
+            "description": "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
             "schema": {
               "type": "string"
             }
@@ -4888,7 +4888,8 @@
             "name": "usernameList",
             "required": false,
             "in": "query",
-            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "description": "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+            "example": "usernameList[]=bob",
             "schema": {
               "type": "array",
               "items": {
