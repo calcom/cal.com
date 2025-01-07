@@ -1114,10 +1114,8 @@ export default function Success(props: PageProps) {
                           </div>
                         </>
                       )}
-                    {!isEventCancelled && !isPastBooking && (
-                      <RescheduleOrCancelWarning description={description} />
-                    )}
-                    {!isEventCancelled && !isPastBooking && (
+                    {!isEventCancelled && <RescheduleOrCancelWarning description={description} />}
+                    {!isEventCancelled && (
                       <div className="mt-4 flex justify-center">
                         <span className=" text-xs">
                           Confira a nossa{" "}

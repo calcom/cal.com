@@ -89,7 +89,7 @@ export const BookEventForm = ({
     return () => {
       setFormState("undefined");
     };
-  }, [errors.hasDataErrors, errors.hasFormErrors]);
+  }, [errors.hasDataErrors, errors.hasFormErrors, formState]);
 
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;

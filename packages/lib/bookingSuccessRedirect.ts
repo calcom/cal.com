@@ -23,7 +23,7 @@ function getNewSeachParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "responses"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -36,11 +36,22 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "location",
   ];
 
-  return (Object.keys(booking) as BookingResponseKey[])
+  const cpfParam = {
+    cpf: booking?.responses
+      ? booking.responses?.CPF
+        ? booking.responses?.CPF
+        : "12354678910"
+      : "12354678911",
+  };
+
+  const params = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
     .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+
+  return { ...params, ...cpfParam };
 };
 
+// TODO
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
