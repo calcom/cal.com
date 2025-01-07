@@ -278,15 +278,13 @@ export const getPublicEvent = async (
         metadata: undefined,
         bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
       })),
-      ...(fetchAllUsers
-        ? {
-            users: users.map((user) => ({
-              ...user,
-              metadata: undefined,
-              bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
-            })),
-          }
-        : {}),
+      users: fetchAllUsers
+        ? users.map((user) => ({
+            ...user,
+            metadata: undefined,
+            bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
+          }))
+        : undefined,
       locations: privacyFilteredLocations(locations),
       profile: {
         weekStart: users[0].weekStart,
@@ -485,7 +483,7 @@ export const getPublicEvent = async (
     // Sets user data on profile object for easier access
     profile: getProfileFromEvent(eventWithUserProfiles),
     firstThreeUsers: users,
-    ...(fetchAllUsers ? { users } : {}),
+    users: fetchAllUsers ? users : undefined,
     entity: {
       fromRedirectOfNonOrgLink,
       considerUnpublished:
