@@ -18,7 +18,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import Shell from "@calcom/features/shell/Shell";
 import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -59,7 +58,6 @@ import {
   UserAvatarGroup,
 } from "@calcom/ui";
 
-import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
@@ -947,7 +945,6 @@ const InfiniteScrollMain = ({
 const EventTypesPage: React.FC = () => {
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
