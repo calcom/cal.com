@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -296,28 +296,26 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={pageProps.session ?? undefined}>
-        <PlainChat />
-        <CustomI18nextProvider {...propsWithoutNonce}>
-          <TooltipProvider>
-            <CalcomThemeProvider
-              themeBasis={props.pageProps.themeBasis}
-              nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage || isBookingPage}
-              router={props.router}>
-              <FeatureFlagsProvider>
-                <OrgBrandProvider>
-                  {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                  <CacheProvider>
-                    <MetaProvider>{props.children}</MetaProvider>
-                  </CacheProvider>
-                </OrgBrandProvider>
-              </FeatureFlagsProvider>
-            </CalcomThemeProvider>
-          </TooltipProvider>
-        </CustomI18nextProvider>
-      </SessionProvider>
+      <PlainChat />
+      <CustomI18nextProvider {...propsWithoutNonce}>
+        <TooltipProvider>
+          <CalcomThemeProvider
+            themeBasis={props.pageProps.themeBasis}
+            nonce={props.pageProps.nonce}
+            isThemeSupported={props.Component.isThemeSupported}
+            isBookingPage={props.Component.isBookingPage || isBookingPage}
+            router={props.router}>
+            <FeatureFlagsProvider>
+              <OrgBrandProvider>
+                {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+                <CacheProvider>
+                  <MetaProvider>{props.children}</MetaProvider>
+                </CacheProvider>
+              </OrgBrandProvider>
+            </FeatureFlagsProvider>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </CustomI18nextProvider>
     </EventCollectionProvider>
   );
 
