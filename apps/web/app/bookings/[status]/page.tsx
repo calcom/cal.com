@@ -4,6 +4,8 @@ import { WithLayout } from "app/layoutHOC";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { getLayout } from "@calcom/features/shell/navigation/NavigationLayoutAppDir";
+
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-listing-view";
 
@@ -30,4 +32,4 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return <BookingsList status={parsed.data.status} />;
 };
 
-export default WithLayout({ ServerPage: Page })<"P">;
+export default WithLayout({ getLayout, ServerPage: Page })<"P">;

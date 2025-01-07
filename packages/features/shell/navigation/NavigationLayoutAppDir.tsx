@@ -3,20 +3,22 @@
 import { ReactNode } from "react";
 
 import { TopNavContainer } from "../TopNav";
-import { MobileNavigationContainer } from "../navigation/Navigation";
+import { MobileNavigationContainer } from "./Navigation";
 
 type NavigationWrapperProps = {
   isPlatformUser?: boolean;
   backPath?: string | boolean;
   MobileNavigationContainer?: ReactNode;
   TopNavContainer?: ReactNode;
+  children: ReactNode;
 };
 
-export const NavigationWrapper = ({
+export const NavigationLayoutAppDir = ({
   isPlatformUser,
   backPath,
   TopNavContainer: TopNavContainerProp,
   MobileNavigationContainer: MobileNavigationContainerProp,
+  children,
 }: NavigationWrapperProps) => {
   return (
     <>
@@ -27,6 +29,11 @@ export const NavigationWrapper = ({
       {!backPath
         ? MobileNavigationContainerProp ?? <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
         : null}
+      {children}
     </>
   );
 };
+
+export const getLayout = (page: React.ReactElement) => (
+  <NavigationLayoutAppDir>{page}</NavigationLayoutAppDir>
+);

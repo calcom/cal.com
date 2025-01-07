@@ -2,7 +2,7 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 
-import { getLayout } from "@calcom/features/NavigationLayoutAppDir";
+import { getLayout } from "@calcom/features/shell/navigation/NavigationLayoutAppDir";
 
 // import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 // import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -38,4 +38,4 @@ const Page = async () => {
   }
 };
 
-export default WithLayout({ getServerLayout: getLayout, ServerPage: Page });
+export default WithLayout({ getLayout, ServerPage: Page });
