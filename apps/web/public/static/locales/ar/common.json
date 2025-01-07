@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "أنت تقوم بحجز تجريبي.",
   "icon_showcase": "معرض الأيقونات",
   "icons_showcase": "معرض الأيقونات",
+  "choose_an_option": "اختر خيارًا",
+  "enter_option_value": "أدخل قيمة الخيار",
+  "remove_option": "إزالة الخيار",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

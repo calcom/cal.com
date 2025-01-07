@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Sie führen eine Testbuchung durch.",
   "icon_showcase": "Icon-Übersicht",
   "icons_showcase": "Icons-Übersicht",
+  "choose_an_option": "Option auswählen",
+  "enter_option_value": "Optionswert eingeben",
+  "remove_option": "Option entfernen",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
