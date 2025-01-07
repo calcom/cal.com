@@ -4,7 +4,6 @@ export const dub = new Dub({
   token: process.env.DUB_API_KEY,
 });
 
-// fetch Dub customer using their external ID (ID in our database)
 export const getDubCustomer = async (userId: string) => {
   if (!process.env.DUB_API_KEY) {
     return null;
