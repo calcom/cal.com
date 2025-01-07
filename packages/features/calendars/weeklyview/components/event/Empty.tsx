@@ -3,10 +3,10 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 
 import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
+import { useBookerTime } from "../../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -39,7 +39,7 @@ type AvailableCellProps = {
 };
 
 export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
   const date = dayjs(day);
   const dateFormatted = date.format("YYYY-MM-DD");
   const slotsForToday = availableSlots && availableSlots[dateFormatted];
@@ -136,7 +136,7 @@ type CellProps = {
 };
 
 function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
-  const { timeFormat } = useTimePreferences();
+  const { timeFormat } = useBookerTime();
 
   const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({

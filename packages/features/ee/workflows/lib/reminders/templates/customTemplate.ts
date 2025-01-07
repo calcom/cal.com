@@ -20,7 +20,9 @@ export type VariablesType = {
   responses?: CalEventResponses | null;
   meetingUrl?: string;
   cancelLink?: string;
+  cancelReason?: string | null;
   rescheduleLink?: string;
+  rescheduleReason?: string | null;
   ratingUrl?: string;
   noShowUrl?: string;
   attendeeTimezone?: string;
@@ -83,7 +85,9 @@ const customTemplate = (
     .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
     .replaceAll("{TIMEZONE}", variables.timeZone || "")
     .replaceAll("{CANCEL_URL}", cancelLink)
+    .replaceAll("{CANCELLATION_REASON}", variables.cancelReason || "")
     .replaceAll("{RESCHEDULE_URL}", rescheduleLink)
+    .replaceAll("{RESCHEDULE_REASON}", variables.rescheduleReason || "")
     .replaceAll("{MEETING_URL}", variables.meetingUrl || "")
     .replaceAll("{RATING_URL}", variables.ratingUrl || "")
     .replaceAll("{NO_SHOW_URL}", variables.noShowUrl || "")

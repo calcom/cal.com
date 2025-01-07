@@ -20,14 +20,12 @@ checkRoute "$APP_ROUTER_AUTH_SAML_ENABLED" app/future/auth/saml-idp
 checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
 checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
 checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
-checkRoute "$APP_ROUTER_TEAM_ENABLED" app/future/team
 
 # These are routes that don't have and environment variable to enable or disable them
 # Will stop removing gradually as we test and confirm that they are working
 rm -rf \
    app/future/d\
    app/future/enterprise\
-   app/future/org\
    app/future/payment\
    app/future/reschedule\
    app/future/routing-forms\
