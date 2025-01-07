@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Teet testikäyntivarausta.",
   "icon_showcase": "Kuvakegalleria",
   "icons_showcase": "Kuvakegalleria",
+  "choose_an_option": "Valitse vaihtoehto",
+  "enter_option_value": "Syötä vaihtoehdon arvo",
+  "remove_option": "Poista vaihtoehto",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
