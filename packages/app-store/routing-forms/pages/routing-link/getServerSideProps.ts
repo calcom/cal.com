@@ -1,50 +1,9 @@
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import type { Prisma } from "@calcom/prisma/client";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 
 import { enrichFormWithMigrationData } from "../../enrichFormWithMigrationData";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-
-export function isAuthorizedToViewTheForm({
-  user,
-  currentOrgDomain,
-  team,
-}: {
-  user: {
-    username: string | null;
-    metadata: Prisma.JsonValue;
-    movedToProfileId: number | null;
-    profile: {
-      organization: { slug: string | null; requestedSlug: string | null } | null;
-    };
-    id: number;
-  };
-  currentOrgDomain: string | null;
-  team?: {
-    parent: {
-      slug: string | null;
-    } | null;
-  } | null;
-}) {
-  const formUser = {
-    ...user,
-    metadata: userMetadata.parse(user.metadata),
-  };
-  const orgSlug = formUser.profile.organization?.slug ?? formUser.profile.organization?.requestedSlug ?? null;
-  const teamOrgSlug = team?.parent?.slug ?? null;
-
-  if (!currentOrgDomain) {
-    // If not on org domain, let's allow serving any form belong to any organization so that even if the form owner is migrate to an organization, old links for the form keep working
-    return true;
-  } else if (currentOrgDomain === orgSlug || currentOrgDomain === teamOrgSlug) {
-    // If on org domain, allow if:
-    // 1. The form belongs to a user who is part of the organization (orgSlug matches)
-    // 2. The form belongs to a team that is part of the organization (teamOrgSlug matches)
-    return true;
-  }
-  return false;
-}
 
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
@@ -115,7 +74,9 @@ export const getServerSideProps = async function getServerSideProps(
     user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
   };
 
-  if (!isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })) {
+  if (
+    !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
+  ) {
     return {
       notFound: true,
     };
