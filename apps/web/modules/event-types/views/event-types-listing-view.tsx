@@ -9,7 +9,6 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -951,11 +950,9 @@ const EventTypesPage: React.FC & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = () => {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [showProfileBanner, setShowProfileBanner] = useState(false);
+  const [_showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
@@ -973,9 +970,6 @@ const EventTypesPage: React.FC & {
   });
 
   useEffect(() => {
-    if (searchParams?.get("openIntercom") === "true") {
-      open();
-    }
     /**
      * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
      * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
