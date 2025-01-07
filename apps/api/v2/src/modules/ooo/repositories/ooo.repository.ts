@@ -61,4 +61,40 @@ export class UserOOORepository {
       include: { reason: true },
     });
   }
+
+  async findExistingOooRedirect(userId: number, start: Date, end: Date, toUserId?: number) {
+    const existingOutOfOfficeEntry = await this.dbRead.prisma.outOfOfficeEntry.findFirst({
+      select: {
+        userId: true,
+        toUserId: true,
+      },
+      where: {
+        ...(toUserId && { userId: toUserId }),
+        toUserId: userId,
+        // Check for time overlap or collision
+        OR: [
+          // Outside of range
+          {
+            AND: [{ start: { lte: end } }, { end: { gte: start } }],
+          },
+          // Inside of range
+          {
+            AND: [{ start: { gte: start } }, { end: { lte: end } }],
+          },
+        ],
+      },
+    });
+
+    return existingOutOfOfficeEntry;
+  }
+
+  async getOooByUserIdAndTime(userId: number, start: Date, end: Date) {
+    return await this.dbRead.prisma.outOfOfficeEntry.findFirst({
+      where: {
+        userId,
+        start,
+        end,
+      },
+    });
+  }
 }

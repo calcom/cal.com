@@ -86,9 +86,11 @@ export class OrganizationsUsersOOOController {
   @ApiOperation({ summary: "Update ooo entry of a user" })
   async updateOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
+    @Param("oooId", ParseIntPipe) oooId: number,
+
     @Body() input: UpdateOutOfOfficeEntryDto
   ): Promise<UserOooOutputResponseDto> {
-    const ooo = await this.userOOOService.updateUserOOO(userId, input);
+    const ooo = await this.userOOOService.updateUserOOO(userId, oooId, input);
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" }),

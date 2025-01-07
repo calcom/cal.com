@@ -2684,6 +2684,146 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/users/{userId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
+        "summary": "Get all ooo entries of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
+        "summary": "Create an ooo entry for user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
+        "summary": "Update ooo entry of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
+        "summary": "Delete ooo entry of a user",
+        "parameters": [
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/webhooks": {
       "get": {
         "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
@@ -13445,6 +13585,74 @@
           },
           "secret": {
             "type": "string"
+          }
+        }
+      },
+      "CreateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T08:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T18:00:00.000Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "object",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "UpdateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T08:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T18:00:00.000Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "object",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation"
           }
         }
       },

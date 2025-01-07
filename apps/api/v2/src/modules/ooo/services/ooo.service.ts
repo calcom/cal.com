@@ -4,7 +4,8 @@ import {
   OutOfOfficeReason,
 } from "@/modules/ooo/inputs/ooo.input";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
-import { Injectable } from "@nestjs/common";
+import { UsersRepository } from "@/modules/users/users.repository";
+import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
 
 import { OutOfOfficeEntry } from "@calcom/prisma/client";
 
@@ -26,7 +27,10 @@ const OOO_REASON_TO_REASON_ID = {
 
 @Injectable()
 export class UserOOOService {
-  constructor(private readonly oooRepository: UserOOORepository) {}
+  constructor(
+    private readonly oooRepository: UserOOORepository,
+    private readonly usersRepository: UsersRepository
+  ) {}
 
   formatOooReason(ooo: OutOfOfficeEntry) {
     return {
@@ -37,7 +41,69 @@ export class UserOOOService {
     };
   }
 
+  isStartBeforeEnd(start?: Date, end?: Date) {
+    if ((end && !start) || (start && !end)) {
+      throw new BadRequestException("Please specify both ooo start and end time.");
+    }
+
+    if (start && end) {
+      if (start.getTime() > end.getTime()) {
+        throw new BadRequestException("Start date must be before end date.");
+      }
+    }
+    return true;
+  }
+
+  async checkUserEligibleForRedirect(userId: number, toUserId?: number) {
+    if (toUserId) {
+      const user = await this.usersRepository.findUserOOORedirectEligible(userId, toUserId);
+      if (!user) {
+        throw new BadRequestException("Cannot redirect to this user.");
+      }
+    }
+  }
+
+  async checkExistingOooRedirect(userId: number, start?: Date, end?: Date, toUserId?: number) {
+    if (start && end) {
+      const existingOooRedirect = await this.oooRepository.findExistingOooRedirect(
+        userId,
+        start,
+        end,
+        toUserId
+      );
+
+      if (existingOooRedirect) {
+        throw new ConflictException("Booking redirect infinite not allowed.");
+      }
+    }
+  }
+
+  async checkDuplicateOOOEntry(userId: number, start?: Date, end?: Date) {
+    if (start && end) {
+      const duplicateEntry = await this.oooRepository.getOooByUserIdAndTime(userId, start, end);
+
+      if (duplicateEntry) {
+        throw new ConflictException("Ooo entry already exists.");
+      }
+    }
+  }
+
+  checkRedirectToSelf(userId: number, toUserId?: number) {
+    if (toUserId && toUserId === userId) {
+      throw new BadRequestException("Cannot redirect to self.");
+    }
+  }
+
+  async checkIsValidOOO(userId: number, ooo: CreateOutOfOfficeEntryDto | UpdateOutOfOfficeEntryDto) {
+    this.isStartBeforeEnd(ooo.start, ooo.end);
+    await this.checkExistingOooRedirect(userId, ooo.start, ooo.end, ooo.toUserId);
+    await this.checkDuplicateOOOEntry(userId, ooo.start, ooo.end);
+    await this.checkRedirectToSelf(userId, ooo.toUserId);
+    await this.checkUserEligibleForRedirect(userId, ooo.toUserId);
+  }
+
   async createUserOOO(userId: number, body: CreateOutOfOfficeEntryDto) {
+    await this.checkIsValidOOO(userId, body);
     const { reason, ...rest } = body;
     const ooo = await this.oooRepository.createUserOOO({
       ...rest,
@@ -47,7 +113,8 @@ export class UserOOOService {
     return this.formatOooReason(ooo);
   }
 
-  async updateUserOOO(oooId: number, body: UpdateOutOfOfficeEntryDto) {
+  async updateUserOOO(userId: number, oooId: number, body: UpdateOutOfOfficeEntryDto) {
+    await this.checkIsValidOOO(userId, body);
     const { reason, ...rest } = body;
     const data = reason
       ? { ...rest, reasonId: OOO_REASON_TO_REASON_ID[reason ?? OutOfOfficeReason["UNSPECIFIED"]] }
