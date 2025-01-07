@@ -41,6 +41,18 @@ describe("isOriginAllowed", () => {
       const origin = "https://sub.mydomain.com/path/to/resource";
       expect(isOriginAllowed(origin, allowedOrigins)).toBe(true);
     });
+
+    it("should handle patterns with wildcard for routes correctly", () => {
+      const allowedOrigins = ["https://domain.com/*"];
+      const origin = "https://domain.com/dashboard";
+      expect(isOriginAllowed(origin, allowedOrigins)).toBe(true);
+    });
+
+    it("should handle patterns with wildcard for root route correctly", () => {
+      const allowedOrigins = ["https://domain.com*"];
+      const origin = "https://domain.com";
+      expect(isOriginAllowed(origin, allowedOrigins)).toBe(true);
+    });
   });
 
   describe("is not allowed", () => {

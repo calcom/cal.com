@@ -1,7 +1,6 @@
 import { getBucket } from "abTest/utils";
 import type { NextMiddleware, NextRequest } from "next/server";
 import { NextResponse, URLPattern } from "next/server";
-import z from "zod";
 
 import { FUTURE_ROUTES_ENABLED_COOKIE_NAME, FUTURE_ROUTES_OVERRIDE_COOKIE_NAME } from "@calcom/lib/constants";
 
@@ -22,8 +21,6 @@ const ROUTES: [URLPattern, boolean][] = [
   enabled,
 ]);
 
-const bucketSchema = z.union([z.literal("legacy"), z.literal("future")]);
-
 export const abTestMiddlewareFactory =
   (next: (req: NextRequest) => Promise<NextResponse<unknown>>): NextMiddleware =>
   async (req: NextRequest) => {
@@ -40,11 +37,9 @@ export const abTestMiddlewareFactory =
       return response;
     }
 
-    const safeParsedBucket = override
-      ? { success: true as const, data: "future" as const }
-      : bucketSchema.safeParse(req.cookies.get(FUTURE_ROUTES_ENABLED_COOKIE_NAME)?.value);
+    const bucketValue = override ? "future" : req.cookies.get(FUTURE_ROUTES_ENABLED_COOKIE_NAME)?.value;
 
-    if (!safeParsedBucket.success) {
+    if (!bucketValue || !["future", "legacy"].includes(bucketValue)) {
       // cookie does not exist or it has incorrect value
       const bucket = getBucket();
 
@@ -63,7 +58,7 @@ export const abTestMiddlewareFactory =
       return NextResponse.rewrite(url, response);
     }
 
-    if (safeParsedBucket.data === "legacy") {
+    if (bucketValue === "legacy") {
       return response;
     }
 

@@ -8,7 +8,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
-export default function getPaymentAppData(
+export function getPaymentAppData(
   _eventType: Pick<BookerEvent, "price" | "currency"> & {
     metadata: z.infer<typeof EventTypeMetaDataSchema>;
   },
@@ -38,6 +38,9 @@ export default function getPaymentAppData(
     appId: EventTypeAppsList | null;
     paymentOption: typeof paymentOptionEnum;
     credentialId?: number;
+    refundPolicy?: string;
+    refundDaysCount?: number;
+    refundCountCalendarDays?: boolean;
   } | null = null;
   for (const appId of paymentAppIds) {
     const appData = getEventTypeAppData(eventType, appId, forcedGet);
@@ -58,6 +61,9 @@ export default function getPaymentAppData(
       appId: null,
       paymentOption: "ON_BOOKING",
       credentialId: undefined,
+      refundPolicy: undefined,
+      refundDaysCount: undefined,
+      refundCountCalendarDays: undefined,
     }
   );
 }
