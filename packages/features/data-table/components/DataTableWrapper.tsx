@@ -6,7 +6,6 @@ import { useRef } from "react";
 import {
   DataTable,
   DataTableToolbar,
-  DataTableFilters,
   DataTablePagination,
   useFetchMoreOnBottomReached,
 } from "@calcom/features/data-table";
@@ -18,7 +17,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetching: boolean;
-  totalDBRowCount: number;
+  totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
   children: React.ReactNode;
@@ -54,23 +53,21 @@ export function DataTableWrapper<TData, TValue>({
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
       <DataTableToolbar.Root>
         <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">{ToolbarLeft}</div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-            {ToolbarRight}
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+            <div className="flex justify-start gap-2">{ToolbarLeft}</div>
+            <div className="grow" />
+            <div className="flex justify-end gap-2">{ToolbarRight}</div>
           </div>
         </div>
-        <div className="flex gap-2 justify-self-start">
-          <DataTableFilters.ActiveFilters table={table} />
-        </div>
+
+        {children}
       </DataTableToolbar.Root>
 
-      <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-        <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
-      </div>
-
-      {children}
+      {totalDBRowCount && (
+        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+        </div>
+      )}
     </DataTable>
   );
 }

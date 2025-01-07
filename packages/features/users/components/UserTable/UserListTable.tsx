@@ -11,6 +11,7 @@ import {
   DataTableProvider,
   DataTableToolbar,
   DataTableSelectionBar,
+  DataTableFilters,
   useColumnFilters,
   textFilter,
   isTextFilterValue,
@@ -565,6 +566,8 @@ function UserListTableContent() {
               data-testid="export-members-button">
               {t("download")}
             </DataTableToolbar.CTA>
+            <DataTableFilters.AddFilterButton table={table} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
             {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
@@ -585,6 +588,10 @@ function UserListTableContent() {
             )}
           </>
         }>
+        <div className="flex gap-2 justify-self-start">
+          <DataTableFilters.ActiveFilters table={table} />
+        </div>
+
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
           <DataTableSelectionBar.Root className="!bottom-16 md:!bottom-20">
             <DynamicLink table={table} domain={domain} />

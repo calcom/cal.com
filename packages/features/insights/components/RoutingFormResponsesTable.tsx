@@ -11,17 +11,16 @@ import {
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 import Link from "next/link";
-import { useRef, useMemo, useId } from "react";
+import { useMemo, useId } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import type { ExternalFilter } from "@calcom/features/data-table";
 import {
-  DataTableProvider,
-  DataTable,
-  DataTableSkeleton,
+  DataTableWrapper,
   DataTableFilters,
-  useFetchMoreOnBottomReached,
+  DataTableProvider,
+  DataTableSkeleton,
   useColumnFilters,
   multiSelectFilter,
   textFilter,
@@ -260,14 +259,9 @@ export function RoutingFormResponsesTable() {
   );
 }
 
-export function RoutingFormResponsesTableContent({
-  children,
-}: {
-  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
-}) {
+export function RoutingFormResponsesTableContent() {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const { copyToClipboard } = useCopy();
 
   const {
@@ -534,13 +528,6 @@ export function RoutingFormResponsesTableContent({
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
-    tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
-  });
-
   const externalFilters = useMemo<ExternalFilter[]>(
     () => [
       {
@@ -563,24 +550,23 @@ export function RoutingFormResponsesTableContent({
 
   return (
     <div className="flex-1">
-      <DataTable
+      <DataTableWrapper
         table={table}
-        tableContainerRef={tableContainerRef}
-        onScroll={(e) => {
-          if (hasNextPage) {
-            fetchMoreOnBottomReached(e.target as HTMLDivElement);
-          }
-        }}
-        enableColumnResizing={true}
-        isPending={isFetching && !data}>
-        <div className="header mb-4">
-          <div className="flex flex-wrap items-start gap-2">
+        isPending={isFetching && !data}
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        ToolbarLeft={
+          <>
             <TeamAndSelfList omitOrg={true} className="mb-0" />
             <DataTableFilters.AddFilterButton table={table} externalFilters={externalFilters} />
             <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
             <DataTableFilters.ActiveFilters table={table} externalFilters={externalFilters} />
             <ClearFilters />
-            <div className="grow" />
+          </>
+        }
+        ToolbarRight={
+          <>
             <DateSelect />
             <RoutingFormResponsesDownload
               startDate={startDate}
@@ -594,10 +580,10 @@ export function RoutingFormResponsesTableContent({
               sorting={sorting}
             />
             <DataTableFilters.ColumnVisibilityButton table={table} />
-          </div>
-          <RoutingKPICards />
-        </div>
-      </DataTable>
+          </>
+        }>
+        <RoutingKPICards />
+      </DataTableWrapper>
     </div>
   );
 }
