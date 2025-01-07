@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Siz test rezervasiyası edirsiniz.",
   "icon_showcase": "İkon nümayişi",
   "icons_showcase": "İkonların nümayişi",
+  "choose_an_option": "Seçim edin",
+  "enter_option_value": "Seçim dəyərini daxil edin",
+  "remove_option": "Seçimi sil",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

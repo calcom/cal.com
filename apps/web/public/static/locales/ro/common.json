@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Efectuați o rezervare de test.",
   "icon_showcase": "Prezentare pictograme",
   "icons_showcase": "Prezentare pictograme",
+  "choose_an_option": "Alege o opțiune",
+  "enter_option_value": "Introdu valoarea opțiunii",
+  "remove_option": "Elimină opțiunea",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

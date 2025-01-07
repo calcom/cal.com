@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Você está fazendo um agendamento de teste.",
   "icon_showcase": "Mostruário de ícones",
   "icons_showcase": "Mostruário de ícones",
+  "choose_an_option": "Escolha uma opção",
+  "enter_option_value": "Digite o valor da opção",
+  "remove_option": "Remover opção",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
