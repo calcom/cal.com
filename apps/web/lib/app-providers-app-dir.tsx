@@ -19,7 +19,6 @@ import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/p
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import PlainChat from "@lib/plain/plainChat";
