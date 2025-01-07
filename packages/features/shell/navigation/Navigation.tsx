@@ -226,8 +226,6 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
           <MobileNavigationItem key={item.name} item={item} />
         ))}
       </nav>
-      {/* add padding to content for mobile navigation*/}
-      <div className="block pt-12 md:hidden" />
     </>
   );
 };

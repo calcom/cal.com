@@ -17,10 +17,8 @@ import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
 import { SideBarContainer } from "./SideBar";
-import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
 import { useBanners } from "./banners/useBanners";
-import { MobileNavigationContainer } from "./navigation/Navigation";
 import { useAppTheme } from "./useAppTheme";
 
 const Layout = (props: LayoutProps) => {
@@ -226,24 +224,13 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-function MainContainer({
-  isPlatformUser,
-  MobileNavigationContainer: MobileNavigationContainerProp = (
-    <MobileNavigationContainer isPlatformNavigation={isPlatformUser} />
-  ),
-  TopNavContainer: TopNavContainerProp = <TopNavContainer />,
-  ...props
-}: LayoutProps) {
+function MainContainer({ ...props }: LayoutProps) {
   return (
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
-      {/* show top navigation for md and smaller (tablet and phones) */}
-      {TopNavContainerProp}
       <div className="max-w-full px-2 py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
-        {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
-        {!props.backPath ? MobileNavigationContainerProp : null}
       </div>
     </main>
   );
