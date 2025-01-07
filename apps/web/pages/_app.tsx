@@ -1,4 +1,5 @@
 import type { IncomingMessage } from "http";
+import { SessionProvider } from "next-auth/react";
 import type { AppContextType } from "next/dist/shared/lib/utils";
 import React, { useEffect } from "react";
 
@@ -17,9 +18,11 @@ function MyApp(props: AppProps) {
     }
   }, []);
 
-  const content = Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />;
-
-  return content;
+  return (
+    <SessionProvider session={pageProps.session ?? undefined}>
+      {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}
+    </SessionProvider>
+  );
 }
 
 declare global {

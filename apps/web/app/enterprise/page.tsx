@@ -1,8 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
-
 import EnterprisePage from "@components/EnterprisePage";
 
 export const generateMetadata = async () =>
@@ -11,4 +9,4 @@ export const generateMetadata = async () =>
     (t) => t("create_your_org_description")
   );
 
-export default WithLayout({ getLayout, Page: EnterprisePage })<"P">;
+export default WithLayout({ Page: EnterprisePage })<"P">;

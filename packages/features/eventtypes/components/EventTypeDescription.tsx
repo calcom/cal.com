@@ -5,12 +5,13 @@ import type { z } from "zod";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { Badge } from "@calcom/ui";
 
 export type EventTypeDescriptionProps = {
@@ -39,7 +40,10 @@ export const EventTypeDescription = ({
     [eventType.recurringEvent]
   );
 
-  const paymentAppData = getPaymentAppData(eventType);
+  const paymentAppData = getPaymentAppData({
+    ...eventType,
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+  });
 
   return (
     <>

@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { ZEditAttributeSchema } from "./edit.schema";
+import { getOptionsWithValidContains } from "./utils";
 
 type GetOptions = {
   ctx: {
@@ -114,29 +115,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
   return attributes;
 };
-
-/**
- * Ensures that contains has no non-existent sub-options
- */
-function getOptionsWithValidContains(options: ZEditAttributeSchema["options"]) {
-  return options.map(({ contains, ...option }) => {
-    if (!contains)
-      return {
-        ...option,
-        contains: [],
-      };
-    const possibleSubOptions = options
-      .filter((option) => !option.isGroup)
-      .filter((option): option is typeof option & { id: string } => option.id !== undefined);
-
-    const possibleSubOptionsIds = possibleSubOptions.map((option) => option.id);
-
-    return {
-      ...option,
-      contains: contains.filter((subOptionId) => possibleSubOptionsIds.includes(subOptionId)),
-    };
-  });
-}
 
 async function validateOptionsBelongToAttribute(
   options: ZEditAttributeSchema["options"],
