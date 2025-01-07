@@ -11,7 +11,6 @@ import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
@@ -307,10 +306,7 @@ const AppProviders = (props: AppPropsWithChildren) => {
             router={props.router}>
             <FeatureFlagsProvider>
               <OrgBrandProvider>
-                {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                <CacheProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
-                </CacheProvider>
+                <MetaProvider>{props.children}</MetaProvider>
               </OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
