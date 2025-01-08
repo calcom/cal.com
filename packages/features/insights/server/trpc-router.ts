@@ -3,7 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { ZColumnFilter } from "@calcom/features/data-table";
+import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -15,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
+import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -1600,6 +1601,7 @@ export const insightsRouter = router({
         cursor: z.number().optional(),
         limit: z.number().optional(),
         columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1616,6 +1618,33 @@ export const insightsRouter = router({
         memberUserId: input.memberUserId ?? null,
         limit: input.limit,
         columnFilters: input.columnFilters,
+        sorting: input.sorting,
+      });
+    }),
+  routingFormResponsesForDownload: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        cursor: z.number().optional(),
+        limit: z.number().optional(),
+        columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+        teamId: input.teamId ?? null,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
+        cursor: input.cursor,
+        userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
+        limit: input.limit ?? BATCH_SIZE,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
@@ -1796,4 +1825,15 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  getUserRelevantTeamRoutingForms: authedProcedure.query(async ({ ctx }) => {
+    try {
+      const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
+        userId: ctx.user.id,
+      });
+
+      return routingForms;
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
 });

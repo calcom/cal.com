@@ -181,7 +181,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createBooking,
     onSuccess: (booking) => {
       if (booking.isDryRun) {
-        showToast(t("booking_dry_run_successful"), "success");
+        router.push("/booking/dry-run-successful");
         return;
       }
       const { uid, paymentUid } = booking;
@@ -311,7 +311,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const booking = bookings[0] || {};
 
       if (booking.isDryRun) {
-        showToast(t("booking_dry_run_successful"), "success");
+        router.push("/booking/dry-run-successful");
         return;
       }
 
