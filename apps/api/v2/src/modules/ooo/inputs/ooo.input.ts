@@ -1,5 +1,7 @@
+import { BadRequestException } from "@nestjs/common";
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
-import { IsDateString, IsInt, IsOptional, IsString, IsEnum } from "class-validator";
+import { Transform } from "class-transformer";
+import { IsDate, IsInt, IsOptional, IsString, IsEnum, isDate } from "class-validator";
 
 export enum OutOfOfficeReason {
   UNSPECIFIED = "unspecified",
@@ -11,15 +13,40 @@ export enum OutOfOfficeReason {
 
 export type OutOfOfficeReasonType = `${OutOfOfficeReason}`;
 
+const isDateString = (dateString: string) => {
+  try {
+    const isoDateRegex = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{3})?Z$/;
+    return isoDateRegex.test(dateString);
+  } catch {
+    throw new BadRequestException("Invalid Date.");
+  }
+};
+
 export class CreateOutOfOfficeEntryDto {
-  @IsDateString()
+  @Transform(({ value }: { value: string }) => {
+    if (isDateString(value)) {
+      const date = new Date(value);
+      date.setUTCHours(0, 0, 0, 0);
+      return date;
+    }
+    throw new BadRequestException("Invalid Date.");
+  })
+  @IsDate()
   @ApiProperty({
     description: "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
     example: "2023-05-01T00:00:00.000Z",
   })
   start!: Date;
 
-  @IsDateString()
+  @Transform(({ value }: { value: string }) => {
+    if (isDateString(value)) {
+      const date = new Date(value);
+      date.setUTCHours(23, 59, 59, 999);
+      return date;
+    }
+    throw new BadRequestException("Invalid Date.");
+  })
+  @IsDate()
   @ApiProperty({
     description: "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
     example: "2023-05-10T23:59:59.999Z",

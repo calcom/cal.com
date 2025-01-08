@@ -20,6 +20,7 @@ export class UserOooOutputDto {
     description: "The ID of the user covering for the out of office period, if applicable.",
     example: 2,
   })
+  @Expose()
   readonly toUserId?: number;
 
   @IsInt()
@@ -43,6 +44,7 @@ export class UserOooOutputDto {
     description: "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
     example: "2023-05-01T00:00:00.000Z",
   })
+  @Expose()
   start!: Date;
 
   @IsDateString()
@@ -50,6 +52,7 @@ export class UserOooOutputDto {
     description: "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
     example: "2023-05-10T23:59:59.999Z",
   })
+  @Expose()
   end!: Date;
 
   @IsString()
@@ -58,6 +61,7 @@ export class UserOooOutputDto {
     description: "Optional notes for the out of office entry.",
     example: "Vacation in Hawaii",
   })
+  @Expose()
   notes?: string;
 
   @IsEnum(OutOfOfficeReason)
@@ -66,6 +70,7 @@ export class UserOooOutputDto {
     description: "the reason for the out of office entry, if applicable",
     example: "vacation",
   })
+  @Expose()
   reason?: OutOfOfficeReason;
 }
 

@@ -47,7 +47,7 @@ export class UserOOOService {
     }
 
     if (start && end) {
-      if (new Date(start).getTime() > new Date(end).getTime()) {
+      if (start.getTime() > end.getTime()) {
         throw new BadRequestException("Start date must be before end date.");
       }
     }
@@ -73,7 +73,7 @@ export class UserOOOService {
       );
 
       if (existingOooRedirect) {
-        throw new ConflictException("Booking redirect infinite not allowed.");
+        throw new BadRequestException("Booking redirect infinite not allowed.");
       }
     }
   }
