@@ -66,6 +66,11 @@ export class EmailDefaultFieldInput_2024_06_14 {
   @DocsProperty()
   label?: string;
 
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty()
+  required = true;
+
   @IsString()
   @IsOptional()
   @DocsProperty()
