@@ -84,6 +84,7 @@ enum VariantDescription {
   LESS_THAN_12_HOURS = "Para reagendar com menos de 12h de antecedência, será necessário pagar uma taxa de 50% do valor do serviço. Caso opte pelo cancelamento, você não terá direito à reembolso.",
   MORE_THAN_12_HOURS_LESS_THAN_7_DAYS = "Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
   MORE_THAN_7_DAYS = "Você pode reagendar este evento sem custo algum. Caso opte pelo cancelamento, você não terá direito à reembolso pois já se passaram mais de 7 dias da contratação do plano.",
+  NO_SHOW_PROFESSIONAL = "Infelizmente o profissional não pôde comparecer a este agendamento. Você tem direito ao reagendamento deste evento sem custo ou reembolso integral em caso de cancelamento.",
 }
 
 interface RescheduleOrCancelWarningProps {
@@ -96,6 +97,7 @@ interface EventType {
 
 interface BookingInfo {
   createdAt: string;
+  noShowHost: boolean;
   title: string;
   uid: string;
 }
@@ -165,6 +167,7 @@ export default function Success(props: PageProps) {
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
   const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
+  const [noShowHost, setNoShowHost] = useState<boolean>(false);
   const [eventTypes, setEventTypes] = useState<EventType | null>(null);
   const [appointmentType, setAppointmentType] = useState<BookingTypes | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -336,7 +339,7 @@ export default function Success(props: PageProps) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
       const getEventTypeSlugUrl =
-        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1146,1154,1246,1375,1379,1383,1389)";
+        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1154,1375,1379,1383,1389,1523,1518)";
       const getBookedTimeUrl = `https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?uid=eq.${bookingUID}`;
 
       fetch(getEventTypeSlugUrl, {
@@ -363,6 +366,7 @@ export default function Success(props: PageProps) {
         data.json().then((response: BookingInfo[]) => {
           const findedBooking = response[0];
           setPurchaseDate(dayjs(findedBooking?.createdAt));
+          setNoShowHost(!!findedBooking?.noShowHost);
           setAppointmentType((_prev) => {
             switch (true) {
               case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
@@ -380,7 +384,7 @@ export default function Success(props: PageProps) {
         });
       });
     }
-  }, [pathname]);
+  }, [eventTypes, pathname]);
 
   useEffect(() => {
     setCalculatedDuration(dayjs(bookingInfo.endTime).diff(dayjs(bookingInfo.startTime), "minutes"));
@@ -504,6 +508,21 @@ export default function Success(props: PageProps) {
     const cognitiveBehavioralTherapy = appointmentType === BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
 
     switch (true) {
+      case noShowHost && medicalAppointments:
+        return {
+          description: VariantDescription.NO_SHOW_PROFESSIONAL,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+        };
+      case noShowHost && occupationalTherapy:
+        return {
+          description: VariantDescription.NO_SHOW_PROFESSIONAL,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+        };
+      case noShowHost && cognitiveBehavioralTherapy:
+        return {
+          description: VariantDescription.NO_SHOW_PROFESSIONAL,
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+        };
       case urgentMedicalAppointments:
         return {
           description: VariantDescription.URGENT_MEDICAL_APPOINTMENT,
