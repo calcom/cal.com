@@ -650,6 +650,9 @@ export default function Success(props: PageProps) {
     return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
   })();
 
+  const isCancelableOrRescheduble =
+    !requiresLoginToUpdate && (!needsConfirmation || !userIsOwner) && isReschedulable && !isRejectionMode;
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       <GifModal
@@ -947,66 +950,63 @@ export default function Success(props: PageProps) {
                         </div>
                       </>
                     )}
-                    {!requiresLoginToUpdate &&
-                      (!needsConfirmation || !userIsOwner) &&
-                      isReschedulable &&
-                      !isRejectionMode &&
-                      (!isCancellationMode ? (
-                        <>
-                          <hr className="border-subtle mb-8" />
-                          <div className="text-center last:pb-0">
-                            <span className="text-emphasis ltr:mr-2 rtl:ml-2">
-                              Deseja fazer alguma alteração?
-                            </span>
-                            <>
-                              {!props.recurringBookings && (
-                                <span className="text-default inline">
-                                  <span className="underline" data-testid="reschedule-link">
-                                    <Link href={rescheduleRoute} legacyBehavior>
-                                      {t("reschedule")}
-                                    </Link>
-                                  </span>
-                                  {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
-                                    <span className="mx-2">{t("or_lowercase")}</span>
-                                  )}
+                    {isCancelableOrRescheduble && isCancellationMode && (
+                      <>
+                        <hr className="border-subtle mb-8" />
+                        <div className="text-center last:pb-0">
+                          <span className="text-emphasis ltr:mr-2 rtl:ml-2">
+                            Deseja fazer alguma alteração?
+                          </span>
+                          <>
+                            {!props.recurringBookings && (
+                              <span className="text-default inline">
+                                <span className="underline" data-testid="reschedule-link">
+                                  <Link href={rescheduleRoute} legacyBehavior>
+                                    {t("reschedule")}
+                                  </Link>
                                 </span>
-                              )}
+                                {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                                  <span className="mx-2">{t("or_lowercase")}</span>
+                                )}
+                              </span>
+                            )}
 
-                              {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
-                                <button
-                                  data-testid="cancel"
-                                  className={classNames(
-                                    "text-default underline",
-                                    props.recurringBookings && "ltr:mr-2 rtl:ml-2"
-                                  )}
-                                  onClick={() => setIsCancellationMode(true)}>
-                                  {t("cancel")}
-                                </button>
-                              )}
-                            </>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <hr className="border-subtle" />
-                          <CancelBooking
-                            booking={{
-                              uid: bookingInfo?.uid,
-                              title: bookingInfo?.title,
-                              id: bookingInfo?.id,
-                            }}
-                            profile={{ name: props.profile.name, slug: props.profile.slug }}
-                            recurringEvent={eventType.recurringEvent}
-                            team={eventType?.team?.name}
-                            setIsCancellationMode={setIsCancellationMode}
-                            theme={isSuccessBookingPage ? props.profile.theme : "light"}
-                            allRemainingBookings={allRemainingBookings}
-                            seatReferenceUid={seatReferenceUid}
-                            bookingCancelledEventProps={bookingCancelledEventProps}
-                            currentUserEmail={currentUserEmail}
-                          />
-                        </>
-                      ))}
+                            {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                              <button
+                                data-testid="cancel"
+                                className={classNames(
+                                  "text-default underline",
+                                  props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                                )}
+                                onClick={() => setIsCancellationMode(true)}>
+                                {t("cancel")}
+                              </button>
+                            )}
+                          </>
+                        </div>
+                      </>
+                    )}
+                    {isCancelableOrRescheduble && !isCancellationMode && (
+                      <>
+                        <hr className="border-subtle" />
+                        <CancelBooking
+                          booking={{
+                            uid: bookingInfo?.uid,
+                            title: bookingInfo?.title,
+                            id: bookingInfo?.id,
+                          }}
+                          profile={{ name: props.profile.name, slug: props.profile.slug }}
+                          recurringEvent={eventType.recurringEvent}
+                          team={eventType?.team?.name}
+                          setIsCancellationMode={setIsCancellationMode}
+                          theme={isSuccessBookingPage ? props.profile.theme : "light"}
+                          allRemainingBookings={allRemainingBookings}
+                          seatReferenceUid={seatReferenceUid}
+                          bookingCancelledEventProps={bookingCancelledEventProps}
+                          currentUserEmail={currentUserEmail}
+                        />
+                      </>
+                    )}
                     {!isCancelled && isRejectionMode && (
                       <>
                         <hr className="border-subtle" />

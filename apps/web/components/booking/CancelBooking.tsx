@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,21 +37,14 @@ type Props = {
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
-  useEffect(() => console.log("crash here - 1"), []);
   const { t } = useLocale();
-  useEffect(() => console.log("crash here - 2"), []);
   const router = useRouter();
-  useEffect(() => console.log("crash here - 3"), []);
   const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
     props;
-  useEffect(() => console.log("crash here - 4"), []);
   const [loading, setLoading] = useState(false);
-  useEffect(() => console.log("crash here - 5"), []);
   const telemetry = useTelemetry();
-  useEffect(() => console.log("crash here - 6"), []);
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
 
-  useEffect(() => console.log("crash here - 7"), []);
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
       node.scrollIntoView({ behavior: "smooth" });
