@@ -426,11 +426,13 @@ export default class SalesforceCRMService implements CRM {
         (includeOwner || forRoundRobinSkip) &&
         !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]));
 
+      const includeAccountRecordType = forRoundRobinSkip && recordToSearch === SalesforceRecordEnum.ACCOUNT;
+
       return records.map((record) => {
         return {
-          id: record?.Id || "",
+          id: includeAccountRecordType ? record?.AccountId : record?.Id || "",
           email: record?.Email || "",
-          recordType: record?.attributes?.type,
+          recordType: includeAccountRecordType ? SalesforceRecordEnum.ACCOUNT : record?.attributes?.type,
           ...(includeOwnerData && {
             ownerId: record?.OwnerId,
             // Handle if Account is nested
