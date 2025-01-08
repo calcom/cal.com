@@ -45,7 +45,7 @@ async function syncCustomAttributesToUser({
     return;
   }
 
-  const customAttributes = getAttributesFromScimPayload(event);
+  const customAttributes = getAttributesFromScimPayload({ event, directoryId });
   await assignValueToUserInOrgBulk({
     orgId: org.id,
     userId: user.id,
@@ -69,11 +69,6 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
     select: dSyncUserSelect,
   });
 
-  // User is already a part of that org
-  if (user && UserRepository.isAMemberOfOrganization({ user, organizationId }) && eventData.active) {
-    return;
-  }
-
   const translation = await getTranslation(user?.locale || "en", "common");
 
   const org = await getTeamOrThrow(organizationId);
@@ -84,36 +79,37 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
 
   if (user) {
     if (eventData.active) {
-      // If data.active is true then provision the user into the org
-      const addedUser = await inviteExistingUserToOrg({
-        user: user as UserWithMembership,
-        org,
-        translation,
-      });
-
-      await sendExistingUserTeamInviteEmails({
-        currentUserName: user.username,
-        currentUserTeamName: org.name,
-        existingUsersWithMemberships: [
-          {
-            ...addedUser,
-            profile: null,
-          },
-        ],
-        language: translation,
-        isOrg: true,
-        teamId: org.id,
-        isAutoJoin: true,
-        currentUserParentTeamName: org?.parent?.name,
-        orgSlug: org.slug,
-      });
-
-      await syncCustomAttributesToUser({
-        event,
-        userEmail,
-        org,
-        directoryId,
-      });
+      if (UserRepository.isAMemberOfOrganization({ user, organizationId })) {
+        await syncCustomAttributesToUser({
+          event,
+          userEmail,
+          org,
+          directoryId,
+        });
+      } else {
+        // If data.active is true then provision the user into the org
+        const addedUser = await inviteExistingUserToOrg({
+          user: user as UserWithMembership,
+          org,
+          translation,
+        });
+        await sendExistingUserTeamInviteEmails({
+          currentUserName: user.username,
+          currentUserTeamName: org.name,
+          existingUsersWithMemberships: [
+            {
+              ...addedUser,
+              profile: null,
+            },
+          ],
+          language: translation,
+          isOrg: true,
+          teamId: org.id,
+          isAutoJoin: true,
+          currentUserParentTeamName: org?.parent?.name,
+          orgSlug: org.slug,
+        });
+      }
     } else {
       // If data.active is false then remove the user from the org
       await removeUserFromOrg({

@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.78"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.79"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4020,8 +4020,8 @@ __metadata:
     typescript: ^4.9.4
     vite: ^4.5.2
   peerDependencies:
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4502,14 +4502,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.78":
-  version: 0.0.78
-  resolution: "@calcom/platform-libraries@npm:0.0.78"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.79":
+  version: 0.0.79
+  resolution: "@calcom/platform-libraries@npm:0.0.79"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: b1d8b10aee37cd376f01086c1ef8b7fa82678e4136c4e96949934987ca4c8e4ba77704d8f6d3f29e4b5d473c2b3d2d57d70b9a7ff9509e70fab9e323a6ee2bb9
+  checksum: 078aa998c58039cb73040fbb7f6ca271231e1000f81dd7c60855efe6f6e981c4c1eaf89cf9a216140626cb0907957f2a9872232ecb3f909ef4fca5aa3eaa2fd7
   languageName: node
   linkType: hard
 
