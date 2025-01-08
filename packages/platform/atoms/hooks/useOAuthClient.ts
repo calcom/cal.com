@@ -36,7 +36,7 @@ export const useOAuthClient = ({
   }, [apiUrl, refreshUrl]);
 
   useEffect(() => {
-    if (!isEmbed && clientId && http.getUrl() && prevClientId !== clientId) {
+    if (clientId && http.getUrl() && prevClientId !== clientId) {
       try {
         http
           .get<ApiResponse<{ client: string; organizationId: number; name: string }>>(`/provider/${clientId}`)
