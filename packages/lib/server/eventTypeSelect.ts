@@ -12,6 +12,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   length: true,
   title: true,
   requiresConfirmation: true,
+  requiresConfirmationForFreeEmail: true,
   requiresConfirmationWillBlockSlot: true,
   autoTranslateDescriptionEnabled: true,
   position: true,
@@ -62,4 +63,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   rrSegmentQueryValue: true,
   assignRRMembersUsingSegment: true,
   maxLeadThreshold: true,
+  useEventLevelSelectedCalendars: true,
 });

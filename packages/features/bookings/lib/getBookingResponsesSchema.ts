@@ -162,7 +162,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          if (!bookingField.hidden) {
+          if (!bookingField.hidden && bookingField.required) {
             // Email RegExp to validate if the input is a valid email
             if (!emailSchema.safeParse(value).success) {
               ctx.addIssue({
@@ -181,6 +181,18 @@ function preprocess<T extends z.ZodType>({
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: m("exclude_emails_match_found_error_message"),
+              });
+            }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
               });
             }
           }

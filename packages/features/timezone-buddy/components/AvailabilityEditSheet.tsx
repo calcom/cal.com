@@ -1,4 +1,4 @@
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
@@ -48,14 +48,28 @@ const useSettings = () => {
   };
 };
 
-const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]; disabled?: boolean }) => {
+const DateOverride = ({
+  workingHours,
+  disabled,
+  handleSubmit,
+}: {
+  workingHours: WorkingHours[];
+  disabled?: boolean;
+  handleSubmit: (data: AvailabilityFormValues) => void;
+}) => {
   const { userTimeFormat } = useSettings();
 
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const { getValues } = useFormContext();
   const excludedDates = fields.map((field) => dayjs(field.ranges[0].start).utc().format("YYYY-MM-DD"));
   const { t } = useLocale();
+
+  const handleAvailabilityUpdate = async () => {
+    const updatedValues = getValues() as AvailabilityFormValues;
+    handleSubmit(updatedValues);
+  };
   return (
     <div className="">
       <Label>{t("date_overrides")}</Label>
@@ -67,12 +81,16 @@ const DateOverride = ({ workingHours, disabled }: { workingHours: WorkingHours[]
           hour12={Boolean(userTimeFormat === 12)}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
+          handleAvailabilityUpdate={handleAvailabilityUpdate}
         />
         <DateOverrideInputDialog
           userTimeFormat={userTimeFormat}
           workingHours={workingHours}
           excludedDates={excludedDates}
-          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          onChange={(ranges) => {
+            ranges.forEach((range) => append({ ranges: [range] }));
+            handleAvailabilityUpdate();
+          }}
           Trigger={
             <Button color="secondary" StartIcon="plus" data-testid="add-override" disabled={disabled}>
               {t("add_an_override")}
@@ -120,7 +138,6 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
     onSuccess: async () => {
       await utils.viewer.availability.listTeam.invalidate();
       showToast(t("success"), "success");
-      props.onOpenChange(false);
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -140,19 +157,23 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
 
   const watchTimezone = form.watch("timeZone");
 
+  const handleSubmit = ({ dateOverrides, ...values }: AvailabilityFormValues) => {
+    updateMutation.mutate({
+      scheduleId: data.id,
+      dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+      ...values,
+    });
+  };
+
   return (
     <Sheet open={props.open} onOpenChange={props.onOpenChange}>
       <Form
         form={form}
         id="availability-form"
-        handleSubmit={async ({ dateOverrides, ...values }) => {
+        handleSubmit={async (data) => {
           // Just blocking on a UI side -> Backend will also do the validation
           if (!hasEditPermission) return;
-          updateMutation.mutate({
-            scheduleId: data.id,
-            dateOverrides: dateOverrides.flatMap((override) => override.ranges),
-            ...values,
-          });
+          handleSubmit(data);
         }}>
         <SheetContent>
           <SheetHeader>
@@ -205,6 +226,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 <DateOverride
                   workingHours={data.workingHours}
                   disabled={!hasEditPermission || !data.hasDefaultSchedule}
+                  handleSubmit={handleSubmit}
                 />
               )}
             </div>

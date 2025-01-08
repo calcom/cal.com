@@ -70,6 +70,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     bookingFields: eventTypeBookingFields,
     assignRRMembersUsingSegment: z.boolean().optional(),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.optional(),
+    useEventLevelSelectedCalendars: z.boolean().optional(),
   })
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);

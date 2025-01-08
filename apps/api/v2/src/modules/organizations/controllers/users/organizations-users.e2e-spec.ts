@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EmailService } from "@/modules/email/email.service";
+import { GetOrgUsersWithProfileOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -233,10 +234,18 @@ describe("Organizations Users Endpoints", () => {
     it("should get all org users", async () => {
       const { body } = await request(app.getHttpServer()).get(`/v2/organizations/${org.id}/users`);
 
-      const userData = body.data;
+      const userData = body.data as GetOrgUsersWithProfileOutput[];
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(4);
+      console.log(
+        "profiles",
+        { userData },
+        userData.map((u) => u.profile)
+      );
+      expect(userData.find((u) => u.profile.username === "member1@org.com")).toBeDefined();
+      expect(userData.find((u) => u.profile.username === "member2@org.com")).toBeDefined();
+      expect(userData.find((u) => u.profile.username === "member3@org.com")).toBeDefined();
 
       expect(userData.filter((user: { email: string }) => user.email === nonMemberEmail).length).toBe(0);
     });
@@ -250,12 +259,13 @@ describe("Organizations Users Endpoints", () => {
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
-      const userData = body.data;
+      const userData = body.data as GetOrgUsersWithProfileOutput[];
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(1);
 
-      expect(userData.filter((user: { email: string }) => user.email === userEmail).length).toBe(1);
+      expect(userData.filter((user) => user.email === userEmail).length).toBe(1);
+      expect(userData.find((u) => u.profile.username === user.username)).toBeDefined();
     });
 
     it("should get users within the specified emails array", async () => {
