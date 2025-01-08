@@ -1,0 +1,18 @@
+---
+omitFromSearch: true
+---
+
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.startsWith('/docs/how-to-guides/how-to-hide-and-prefill-booking-question-in-embeds')) {
+      window.location.href = "https://cal.com/docs/how-to-guides/bookings/how-to-hide-and-prefill-booking-question-in-embeds";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

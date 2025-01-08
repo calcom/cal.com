@@ -1,0 +1,97 @@
+---
+title: Pre-fill fields/questions
+---
+{% label /%}
+
+You can pre-fill all the fields/questions on the booking form by using their corresponding **identifiers** that you can see under Advanced -> Booking Questions.
+
+e.g. for the following field(shown in screenshot), the field would show up as *Agree with your rules* and its identifier is *agreed*. So, we would use *agreed* as query param name to prefill the field.
+![](/docs/images/i1600x899-lK5qA-PWor5w_nda2mw.png)
+
+This can include the user’s name and email, notes, guests, event location, Reason for reschedule. You can prefill any field added by you as well.
+
+You can add anywhere in the booking flow before the booking form page or in the booking form page itself. Simply add these in the URL and you're good to go!
+
+Pre-filling booking fields can save a lot of time and speed up processes with filling out these forms, and assist with a smooth integration with your existing website or app.
+
+An example URL with a few prefill fields is given below:
+```
+https://cal.com/johndoe/book?type=12345&duration=30&email=johndoe%40example.com&notes=Test+Notes
+```
+You can integrate the prefill-fields with your booking page URL in a similar way.
+
+## Pre-filling all fields
+
+**A sample booking form with various fields prefilled.**
+![](/docs/images/i1600x899--qO8QnRKDrjU_kyp2hw.png)
+
+
+**Here is how the fields are setup**
+![](/docs/images/i1600x899-0PXSUpvs2z-W_wox48k.png)
+
+Here is the query used to prefill that form above.
+
+```
+name=John Doe&email=johndoe@example.com&notes=Test Notes&Text=TEXT&number=123&select=Option 1&Multiselect=Option 1&Multiselect=Option 2&guests=b&phone=+91&agreed=true
+```
+
+
+### Fields with multiple values
+For questions that accept multiple values, you can pass them multiple times using same identifier. So, e.g. Multiselect has been passed twice and thus it prefills both the values.
+
+Similarly, you can pass *guests* twice to add one more guest.
+
+## Prefilling location
+Different type of locations are selected using different values of location. location param value has to be a valid JSON.
+
+### Pre-filling Attendee Address
+```
+...other-params...&location={"value":"attendeeInPerson","optionValue":"Delhi"}
+```
+![](/docs/images/i1600x899-Ty_oorQmXnjJ_cm5ysq.png)
+
+
+### Pre-selecting Organizer Address in Location
+```
+...other-params...&location={"value":"inPerson","optionValue":""}
+```
+![](/docs/images/i1600x899-AlmOt5E4diMC_nkjeb4.png)
+
+
+### Pre-filling Attendee Phone
+```
+...other-params...&location={"value":"phone","optionValue":"%2B919999999999"}
+```
+*Note: %2B is encoded form of +*
+![](/docs/images/i1600x899-wVkiblWj8CDH_iwhwrd.png)
+
+### Pre-selecting Link Meeting
+```
+...other-params...&location={"value":"link","optionValue":""}
+```
+![](/docs/images/i1600x899-sGCDXGlvVYT4_uwhpa8.png)
+
+### Pre-selecting a video meeting
+Specify location param like this
+```
+...other-params...&location={"value":"integrations:{VIDEO_APP_IDENTIFIER}","optionValue":""}
+```
+| App Name | {VIDEO_APP_IDENTIFIER} |
+| --- | --- |
+| Zoom | zoom |
+| Cal Video | daily
+| Office365 | office365_video
+| Facetime | facetime_video
+| Campfire | campfire_video
+| Around Video | around_video
+| Ping | ping_video
+| Riverside | riverside_video
+| Signal | signal_video
+| Sirius | sirius_video
+| Telegram | telegram_video
+| Whatsapp | whatsapp_video
+| Whereby | whereby_video
+
+
+
+

@@ -1,0 +1,16 @@
+---
+title: "Slots"
+---
+
+You can use the slots endpoint to get bookable slots for any user or team event type
+
+{% note %}
+In your request query, You can either pass 
+
+- a direct `eventTypeId`, or
+- a `usernameList/eventTypeSlug` combination.
+{% /note %}
+
+## Get user or team event type slots
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/slots" /%}

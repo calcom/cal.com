@@ -1,0 +1,53 @@
+---
+title: "Quick start"
+---
+
+## Get your API keys
+
+Your API requests are authenticated using API keys. Any request that doesn't include an API key will return an error.
+
+You can generate an API key from **Settings >** [**Security**](https://app.cal.com/settings/security) within the application. There you will find the API keys section which allows you to generate a key for use.
+
+More information on this can be found in the [Authentication]() page.
+
+## Install the library
+
+The best way to interact with our API is using a good HTTP client like **axios**:
+
+{% tabs %}
+{% tab title="Node" %}
+```
+# Install via NPM
+npm install --save axios
+
+# Install via Yarn
+yarn add axios
+```
+{% /tab %}
+{% tab title="Python" %}
+```
+# Install via pip
+pip install --upgrade requests
+```
+{% /tab %}
+{% /tabs %}
+
+## Make your first request
+
+To make your first request, send an authenticated request to the event-types endpoint. This will list all of your event types.
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/event-types" /%}
+
+Take a look at how you might call this method using our official libraries, or via `curl`:
+
+{% tabs %}
+{% tab title="curl" %}
+```
+curl https://api.cal.com/v1/event-types?apiKey=cal_test_xxxxxx
+```
+{% /tab %}
+{% /tabs %}
+
+## Try our Postman Collection
+
+We've created a small collection of frequently made API calls that you can try in our [Postman Collection](https://www.postman.com/calcom/workspace/cd670dd8-b36d-4aee-8ab2-9044122e30d1/collection/20666831-b92a1d73-bfcc-4a5f-9ef5-cb117d49c904)

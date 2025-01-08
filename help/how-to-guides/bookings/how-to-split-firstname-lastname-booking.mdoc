@@ -1,0 +1,51 @@
+---
+title: "How to split fullname into firstname and lastname in the public booking page"
+---
+
+By default, Cal.com booking page has a fullname text input field for the scheduler to put their name in. This usually works just fine for most people. However, at times, it is preferable to take the firstname and lastname of the scheduler as separate inputs in the booking form.
+
+Cal.com provides the option to split the fullname input field in the booking form into firstname and lastname. To do that, you can do the following:
+
+1. Head to the event type settings where you wish to split the fullname into firstname and lastname.
+2. Click on the Advanced tab.
+3. Scroll to the Booking questions section.
+4. Click on the **Edit** button in front of "Your   name"
+    {% img src="/docs/images/i1600x900-WWEmqSwAOD4e_zntxhy.png" /%}
+5. In the dialog that opens, click on the toggle that says `Split "Full name" into "First name" and "last name"`.
+    {% img src="/docs/images/i1600x900-je1Ro4IEzLFM_gm67e9.png" /%}
+6. Fill the label and optional placeholder values, and click on **save**.
+    {% img src="/docs/images/i1600x900-5uEMac44YaIi_fqr7ov.png" /%}
+7. Remember to click on the **save** button in the event type settings as well.
+8. Head to the public booking page of this event type, you will notice the fullname is now split into firstname and lastname with the labels provided by you in step number 6.
+    {% img src="/docs/images/i1600x900-lyOWGLVGiBPA_iia5p8.png" /%}
+
+You're all set!
+
+{% note %}
+### How this affects the Booking API requests
+Please note that in case of API requests, your usual **responses object**
+```JSON
+    "responses": {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "location": {
+            "optionValue": "",
+            "value": "Acme Industries"
+        }
+    }
+```
+will now be updated to allow **name** to be converted into object containing **firstName** and **lastName** as follows:
+```JSON
+    "responses": {
+        "name": {
+            "firstName": "John",
+            "lastName": "Doe"
+        },
+        "email": "john.doe@example.com",
+        "location": {
+            "optionValue": "",
+            "value": "Acme Industries"
+        }
+    }
+````
+{% /note %}

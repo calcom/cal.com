@@ -1,0 +1,14 @@
+---
+title: "Syncing third party apps with your self-hosted Cal.com"
+---
+{% label type="paid"/%}
+
+If you are self-hosting [Cal.com](http://Cal.com) and have implemented 3rd party integrations on your platform, you can now use those integrations on your Cal.com instance.
+
+{% note %}
+This only works if you have integrated [Cal.com](http://cal.com/) into your platform. Users **must** consent to give access to your platform, and you are simply using [Cal.com](http://cal.com/)'s code within your platform.
+{% /note %}
+
+At a high level, users will add the app on your platform. When the credentials are made, you will hit a webhook on your instance of [Cal.com](http://Cal.com) to add those credentials to your Cal.com database. When your instance of Cal.com uses that app and the credentials are expired, it will then make a request to your platform for new credentials.
+
+[Here's a guide](https://cal.com/docs/how-to-guides/syncing-third-party-apps-with-self-hosted-cal-com) to help you make use of this feature. 

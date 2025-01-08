@@ -1,0 +1,57 @@
+---
+title: "Setting up SCIM with Okta"
+---
+1. Set SAML_DATABASE_URL to a Postgres database. Please use a different database than the main Cal instance since the migrations are separate for this database. For example `postgresql://postgres:@localhost:5450/cal-saml`. If you are using a self-signed certificate for Postgres then use the `sslmode=no-verify` query param in the database URL. For example `postgresql://postgres:@localhost:5450/cal-saml?sslmode=no-verify`.
+2. Set SAML_ADMINS to a comma separated list of admin emails who can configure the OIDC.
+3. Create an application with your OIDC provider. For example, in Okta, once you create an account, you can click on Applications on the sidebar menu:
+    {%img src="/docs/images/i1600x900-oVjaQ0tU3AnO_wrzp85.png" /%}
+4. Click on `Create App Integration`
+    {%img src="/docs/images/i1600x900-wrIlZkLdZ6kL_wf7mxn.png" /%}
+5. Select SAML or OIDC in the modal form, along with Web App and click Next.
+    - Note you will have to fill in the appropriate fields for the SAML or OIDC setup to continue.
+    - [SAML Setup](/docs/introduction/quick-start/self-hosting/sso-setup#setting-up-saml-login)
+    - [OIDC Setup](/docs/how-to-guides/how-to-setup-oidc-with-okta)
+    {%img src="/docs/images/i1600x900-IfRWYg8XuCMI_tkwyft.png" /%}
+6. Once the application is created, under General -> App Settings, click "Edit" and click the checkbox "Enable SCIM provisioning
+"
+    {%img src="/docs/images/scim/app-settings-enable-scim.webp" /%}
+7. Next go to your instance of Cal.com and navigate to `{BASE_URL}/settings/organization/dsync` and click configure.
+    {%img src="/docs/images/scim/dsync-configure.webp" /%}
+8. In the "Configure Directory Sync" from choose a directory sync name and choose "Okta SCIM v2.0" as the "Directory Provider"
+    {%img src="/docs/images/scim/dsync-configure-provider.webp" /%}
+9. Take note of the "SCIM Base URL" and "SCIM Bearer Token"
+    {%img src="/docs/images/scim/dsync-configure-info.webp" /%}
+10. Okta go to your application. Navigate to the "Provisioning" tab and click "Integration" under "Settings".
+    {%img src="/docs/images/scim/okta-dsync-options.webp" /%}
+    - Under "SCIM connector base URL" enter the "SCIM Base URL" from Cal.com
+    - Under "Unique identifier field for users" enter "email"
+    - Under "Supported provisioning actions" enable: 
+        - "Import New Users and Profile Updates" 
+        - "Push New Users" 
+        - "Push Profile Updates" 
+        - "Push Groups"
+    - Under "Authentication Mode" choose "HTTP Header"
+    - Under "Authentication" enter the "SCIM Bearer Token" from Cal.com
+    - When you hit save it will make a test call to the "SCIM Base URL"
+11. When you hit save navigate to "To App" settings, still under the "Provisioning" tab
+12. Under "Provisioning to App" click "Edit" and enable:
+    - "Create User"
+    - "Update User Attributes"
+    - "Deactivate User"
+12. Under "{Your application name} Attribute Mapping", remove all fields except for:
+    - "username"
+    - "givenName"
+    - "familyName"
+    - "email"
+    - "displayName"
+13. Set each of these of these properties to "Map from Okta Profile" and the related field. Under "Apply On" select "Create and Update"
+    {%img src="/docs/images/scim/okta-property-settings.webp" /%}
+14. You can now assign users and groups to the app.
+
+## Mapping Okta Groups to Cal.com Teams
+When provisioning groups to your organization, Okta groups can be mapped to teams within your organization and users will be auto assigned to these teams.
+
+On `{BASE_URL}/settings/organization/dsync` there is a table with the teams under your organization. Click on "Add group name" to map the Okta group to the team. **Note:
+The group name must be spelt exactly as it is shown on Okta.**. When you push the group to your organization then those users will automatically be added to the team.
+
+{%img src="/docs/images/scim/group-team-mapping.webp" /%}

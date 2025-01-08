@@ -1,0 +1,412 @@
+---
+title: "Bookings"
+---
+
+
+The bookings object holds all the necessary information regarding the booking of an event.
+
+## Booking Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the booking, generated automatically"
+        },
+        uid: {
+            type: "string",
+            description: "Unique identifier for the booking"
+        },
+        idempotencyKey: {
+            type: "string",
+            description: "Optional UID based on slot start/end time & email to prevent duplicates"
+        },
+        user: {
+            type: "User Object",
+            description: "The user associated with the booking. Please check the [Users](https://cal.com/docs/enterprise-features/api/api-reference/v1/users) endpoint for details on the User Object"
+        },
+        userId: {
+            type: "integer",
+            description: "The ID of the user associated with the booking"
+        },
+        userPrimaryEmail: {
+            type: "email",
+            description: "User's email at the time of booking"
+        },
+        references: {
+            type: "BookingReference Object[]",
+            description: "References associated with the booking. Please check the [Booking Reference](https://cal.com/docs/enterprise-features/api/api-reference/v1/booking-references) endpoint for details on the BookingReference Object"
+        },
+        eventType: {
+            type: "EventType Object",
+            description: "The event type associated with the booking. Please check the [Event Type](https://cal.com/docs/enterprise-features/api/api-reference/v1/event-types) endpoint for details on the EventType Object"
+        },
+        eventTypeId: {
+            type: "integer",
+            description: "The ID of the event type associated with the booking"
+        },
+        title: {
+            type: "string",
+            description: "The title of the booking"
+        },
+        description: {
+            type: "string",
+            description: "The description of the booking"
+        },
+        responses: {
+            type: "json",
+            description: "Responses for the booking questions"
+        },
+        startTime: {
+            type: "DateTime",
+            description: "The start time of the booking"
+        },
+        endTime: {
+            type: "DateTime",
+            description: "The end time of the booking"
+        },
+        attendees: {
+            type: "Attendee Object[]",
+            description: "List of attendees for the booking. Please check the [Attendee](https://cal.com/docs/enterprise-features/api/api-reference/v1/attendees) endpoint for details on the Attendee Object"
+        },
+        createdAt: {
+            type: "DateTime",
+            description: "The creation time of the booking"
+        },
+        updatedAt: {
+            type: "DateTime",
+            description: "The last update time of the booking"
+        },
+        status: {
+            type: "enum",
+            description: "The current status of the booking. Please check the [Booking Status Enums](https://cal.com/docs/enterprise-features/api/api-reference/v1/bookings#booking-status-constants) for details on the Booking Status constants"
+        },
+        paid: {
+            type: "boolean",
+            description: "Whether the booking is paid"
+        },
+        payment: {
+            type: "Payment Object[]",
+            description: "List of payments for the booking. Please check the [Payment](https://cal.com/docs/enterprise-features/api/api-reference/v1/payments) endpoint for details on the Payment Object"
+        },
+        destinationCalendar: {
+            type: "DestinationCalendar Object",
+            description: "The destination calendar associated with the booking. Please check the [Destination Calendar](https://cal.com/docs/enterprise-features/api/api-reference/v1/destination-calendar) endpoint for details on the Destination Calendar Object"
+        },
+        destinationCalendarId: {
+            type: "integer",
+            description: "The ID of the destination calendar associated with the booking"
+        },
+        cancellationReason: {
+            type: "string",
+            description: "Reason for cancellation"
+        },
+        rejectionReason: {
+            type: "string",
+            description: "Reason for rejection"
+        },
+        dynamicEventSlugRef: {
+            type: "string",
+            description: "Reference for dynamic event slug"
+        },
+        dynamicGroupSlugRef: {
+            type: "string",
+            description: "Reference for dynamic group slug"
+        },
+        rescheduled: {
+            type: "boolean",
+            description: "Whether the booking is rescheduled"
+        },
+        fromReschedule: {
+            type: "string",
+            description: "Source of reschedule"
+        },
+        recurringEventId: {
+            type: "string",
+            description: "ID of the recurring event"
+        },
+        smsReminderNumber: {
+            type: "string",
+            description: "SMS reminder number"
+        },
+        workflowReminders: {
+            type: "WorkflowReminder Object[]",
+            description: "List of workflow reminders for the booking."
+        },
+        seatsReferences: {
+            type: "BookingSeat Object[]",
+            description: "References for booking seats"
+        },
+        metadata: {
+            type: "json",
+            description: "Metadata associated with the booking"
+        },
+        isRecorded: {
+            type: "boolean",
+            description: "Whether the booking is recorded"
+        },
+        iCalUID: {
+            type: "string",
+            description: "iCal UID for the booking"
+        },
+        iCalSequence: {
+            type: "integer",
+            description: "iCal sequence for the booking"
+        },
+        instantMeetingToken: {
+            type: "InstantMeetingToken Object",
+            description: "Token for instant meeting"
+        },
+        rating: {
+            type: "integer",
+            description: "Rating for the booking"
+        },
+        ratingFeedback: {
+            type: "string",
+            description: "Feedback for the rating"
+        },
+        noShowHost: {
+            type: "boolean",
+            description: "Whether the host was a no-show"
+        },
+        scheduledTriggers: {
+            type: "WebhookScheduledTriggers Object[]",
+            description: "Scheduled triggers for the booking"
+        }
+    },
+} /%}
+
+#### Booking Status Constants
+
+{% jsonSchemaRenderer type="Enum Constant" schema={
+    properties: {
+        CANCELLED: {
+            type: "string",
+            description: "If the booking is cancelled",
+        },
+        ACCEPTED: {
+            type: "string",
+            description: "If the booking is accepted or confirmed",
+        },
+        REJECTED: {
+            type: "string",
+            description: "If the booking request is rejected",
+        },
+        PENDING: {
+            type: "string",
+            description: "If the booking it yet to be confirmed or rejected",
+        },
+        AWAITING_HOST: {
+            type: "string",
+            description: "If the booking is awaiting host"
+        }
+    },
+} /%}
+
+#### Location Object
+
+The location object defines the meeting/event location and is defined within the `responses object` in the Booking Object. The responses object contains the information filled in by the user to the [booking questions](https://cal.com/docs/core-features/event-types/booking-questions). 
+
+You can simply copy the object in the description below and paste it **inside** the `responses object` of the booking payload. An example of this for `zoom` as booking location would be:
+
+```javascript
+    {
+        ...,
+        "responses": {
+            ...,
+            "location": {
+                "value": "integrations:zoom",
+                "optionValue": ""
+            },
+        }
+        ...,
+    }
+```
+
+Depending on the location selected, the location object can be one of the following:
+
+{% jsonSchemaRenderer type="Location object for" schema={
+    properties: {
+        HostPhone: {
+            type: "json",
+            description: "{'value': 'userPhone', 'optionValue': ''}",
+        },
+        AttendeePhone: {
+            type: "json",
+            description: "{'value': 'phone', 'optionValue': '+1 234 567 890'}",
+        },
+        Link: {
+            type: "json",
+            description: "{'value': 'link', 'optionValue': ''}",
+        },
+        HostInPersonAddress: {
+            type: "json",
+            description: "{'value': 'inPerson', 'optionValue': ''}",
+        },
+        AttendeeInPersonAddress: {
+            type: "json",
+            description: "{'value': 'attendeeInPerson', 'optionValue': 'Acme HQ'}",
+        },
+        CalVideo: {
+            type: "json",
+            description: "{'value': 'integrations:daily', 'optionValue': ''}",
+        },
+        GoogleMeet: {
+            type: "json",
+            description: "{'value': 'integrations:google:meet', 'optionValue': ''}",
+        },
+        Zoom: {
+            type: "json",
+            description: "{'value': 'integrations:zoom', 'optionValue': ''}",
+        },
+        AroundVideo: {
+            type: "json",
+            description: "{'value': 'integrations:around_video', 'optionValue': ''}",
+        },
+        CampfireVideo: {
+            type: "json",
+            description: "{'value': 'integrations:campfire_video', 'optionValue': ''}",
+        },
+        DemodeskVideo: {
+            type: "json",
+            description: "{'value': 'integrations:demodesk_video', 'optionValue': ''}",
+        },
+        DiscordVideo: {
+            type: "json",
+            description: "{'value': 'integrations:discord_video', 'optionValue': ''}",
+        },
+        FacetimeVideo: {
+            type: "json",
+            description: "{'value': 'integrations:facetime_video', 'optionValue': ''}",
+        },
+        MirotalkVideo: {
+            type: "json",
+            description: "{'value': 'integrations:mirotalk_video', 'optionValue': ''}",
+        },
+        WherebyVideo: {
+            type: "json",
+            description: "{'value': 'integrations:whereby_video', 'optionValue': ''}",
+        },
+        Huddle: {
+            type: "json",
+            description: "{'value': 'integrations:huddle01', 'optionValue': ''}",
+        }
+    },
+} /%}
+
+#### Example Booking Object
+
+```js
+{
+    "id": 789,
+    "uid": "unique-booking-identifier",
+    "idempotencyKey": "unique-idempotency-key",
+    "user": [User Object],
+    "userId": 456,
+    "userPrimaryEmail": "john.doe@example.com",
+    "references": [BookingReference Object[]],
+    "eventType": [EventType Object],
+    "eventTypeId": 101,
+    "title": "Business Meeting",
+    "description": "Quarterly business review meeting",
+    "responses": {
+        "name": "Ilaria",
+        "email": "igrassi@learnn.com",
+        "guests": [],
+        "location": [Location Object]
+    },
+    "startTime": "2024-07-20T10:00:00Z",
+    "endTime": "2024-07-20T11:00:00Z",
+    "attendees": [Attendee Object[]],
+    "createdAt": "2024-07-19T08:00:00Z",
+    "updatedAt": "2024-07-19T09:00:00Z",
+    "status": "confirmed",
+    "paid": true,
+    "payment": [Payment Object[]],
+    "destinationCalendar": [DestinationCalendar Object],
+    "destinationCalendarId": 202,
+    "cancellationReason": "Client requested reschedule",
+    "rejectionReason": "Not applicable",
+    "dynamicEventSlugRef": "event-slug-reference",
+    "dynamicGroupSlugRef": "group-slug-reference",
+    "rescheduled": false,
+    "fromReschedule": "Not applicable",
+    "recurringEventId": "recurring-event-123",
+    "smsReminderNumber": "+1234567890",
+    "workflowReminders": [WorkflowReminder Object[]],
+    "seatsReferences": [BookingSeat Object[]],
+    "metadata": {
+        "metaKey1": "metaValue1",
+    },
+    "isRecorded": true,
+    "iCalUID": "ical-uid-123456",
+    "iCalSequence": 1,
+    "instantMeetingToken": [InstantMeetingToken Object],
+    "rating": 5,
+    "ratingFeedback": "Excellent meeting",
+    "noShowHost": false,
+    "scheduledTriggers": [WebhookScheduledTriggers Object[]]
+}
+
+```
+
+
+These routes allow you to CRUD bookings within Cal.com
+
+## Admin access
+
+This endpoint supports System Wide Admin access, as well as Organization Wide Admin access. 
+
+> As an Organization Admin, you can now query bookings for your Organization members for GET, POST, PATCH, and DELETE
+
+
+## Pagination
+
+We have added pagination to this endpoint to handle large responses. You can now use the `take` and `page` query parameters to get the specific batch of bookings you need. 
+
+- `take`: The maximum number of bookings you want in a batch.
+- `page`: The page number to retrieve the bookings from, based on the total number of bookings divided by `take`.
+
+### Example:
+If there are 100 total bookings and you set `take` to 25, there will be 4 pages of bookings. To get bookings 26-50, set `page` to 2.
+
+### Usage:
+- `take`: Maximum number of bookings per batch (e.g., 25)
+- `page`: Page number to retrieve (e.g., 2)
+
+This way, you can easily navigate through large sets of bookings by specifying how many bookings you want per batch and which batch to retrieve.
+
+> **Note: Pagination is optional, in the absence of `take` and `page`, the response will contain all bookings.**
+
+## Find all bookings
+
+This API call lists all the bookings of the user making the call.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/bookings" /%}
+
+{% note %}
+Please note that the use of userId for filtering the bookings in the GET request is an ADMIN only call. This will not yeild the filtering for non-admin API calls
+{% /note %}
+
+## Create a new booking
+
+This API call is used to create a new booking.
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/bookings" /%}
+
+## Find a booking
+
+This API call is used to retrieve a specific booking of the user, identified by the booking id.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/bookings/{id}" /%}
+
+## Edit an existing booking
+
+This API call is used to edit a specific booking of the user, identified by the booking id. Currently, you can only change the `title`, `start`, `end`, `status` and `description` of the booking. 
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/bookings/{id}" /%}
+
+## Cancel an existing booking
+
+This API call is used to cancel a specific booking of the user, identified by the booking id.
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/bookings/{id}/cancel" /%}
+
+{% note %} 
+To reschedule a booking, simply cancel the original booking using the Cancel Booking API call, and then proceed to make a new booking using the Create Booking API call.
+{% /note %}

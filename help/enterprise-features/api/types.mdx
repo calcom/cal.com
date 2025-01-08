@@ -1,0 +1,18 @@
+---
+omitFromSearch: true
+---
+
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.endsWith('/docs/enterprise-features/api/types')) {
+      window.location.href = "https://cal.com/docs/enterprise-features/api/api-reference";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

@@ -1,0 +1,291 @@
+---
+title: "Teams"
+---
+
+The teams endpoint allows you to programmatically CRUD team data.
+
+## Team Object
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the team, generated automatically"
+        },
+        name: {
+            type: "string",
+            description: "The name of the team",
+            constraints: {
+                minLength: 1
+            }
+        },
+        slug: {
+            type: "string",
+            description: "The slug of the team"
+        },
+        logoUrl: {
+            type: "string",
+            description: "The URL of the team's logo"
+        },
+        calVideoLogo: {
+            type: "string",
+            description: "The URL of the Cal video logo for the team"
+        },
+        appLogo: {
+            type: "string",
+            description: "The URL of the app logo for the team"
+        },
+        appIconLogo: {
+            type: "string",
+            description: "The URL of the app icon logo for the team"
+        },
+        bio: {
+            type: "string",
+            description: "The biography or description of the team"
+        },
+        hideBranding: {
+            type: "boolean",
+            description: "Indicates whether branding is hidden for the team",
+            default: false
+        },
+        isPrivate: {
+            type: "boolean",
+            description: "Indicates whether the team is private",
+            default: false
+        },
+        hideBookATeamMember: {
+            type: "boolean",
+            description: "Indicates whether the 'Book a Team Member' option is hidden",
+            default: false
+        },
+        members: {
+            type: "Membership[]",
+            description: "List of members in the team"
+        },
+        eventTypes: {
+            type: "EventType[]",
+            description: "List of event types associated with the team"
+        },
+        workflows: {
+            type: "Workflow[]",
+            description: "List of workflows associated with the team"
+        },
+        createdAt: {
+            type: "DateTime",
+            description: "The date and time when the team was created"
+        },
+        metadata: {
+            type: "json",
+            description: "Metadata associated with the team"
+        },
+        theme: {
+            type: "string",
+            description: "The theme associated with the team"
+        },
+        brandColor: {
+            type: "string",
+            description: "The brand color of the team"
+        },
+        darkBrandColor: {
+            type: "string",
+            description: "The dark brand color of the team"
+        },
+        verifiedNumbers: {
+            type: "VerifiedNumber[]",
+            description: "List of verified numbers associated with the team"
+        },
+        verifiedEmails: {
+            type: "VerifiedEmail[]",
+            description: "List of verified emails associated with the team"
+        },
+        bannerUrl: {
+            type: "string",
+            description: "The URL of the team's banner"
+        },
+        parentId: {
+            type: "integer",
+            description: "The ID of the parent team, if any"
+        },
+        parent: {
+            type: "Team Object",
+            description: "The parent team, if any",
+            relation: "organization"
+        },
+        children: {
+            type: "Team[]",
+            description: "List of child teams under this team",
+            relation: "organization"
+        },
+        orgUsers: {
+            type: "User[]",
+            description: "List of users in the organization's scope",
+            relation: "scope"
+        },
+        inviteTokens: {
+            type: "VerificationToken[]",
+            description: "List of invite tokens associated with the team"
+        },
+        webhooks: {
+            type: "Webhook[]",
+            description: "List of webhooks associated with the team"
+        },
+        timeFormat: {
+            type: "integer",
+            description: "Time format used by the team"
+        },
+        timeZone: {
+            type: "string",
+            description: "Time zone associated with the team",
+            default: "Europe/London"
+        },
+        weekStart: {
+            type: "string",
+            description: "The start day of the week for the team",
+            default: "Sunday"
+        },
+        routingForms: {
+            type: "App_RoutingForms_Form[]",
+            description: "List of routing forms associated with the team"
+        },
+        apiKeys: {
+            type: "ApiKey[]",
+            description: "List of API keys associated with the team"
+        },
+        credentials: {
+            type: "Credential[]",
+            description: "List of credentials associated with the team"
+        },
+        accessCodes: {
+            type: "AccessCode[]",
+            description: "List of access codes associated with the team"
+        },
+        isOrganization: {
+            type: "boolean",
+            description: "Indicates whether the team is an organization",
+            default: false
+        },
+        organizationSettings: {
+            type: "OrganizationSettings Object",
+            description: "Settings for the organization associated with the team"
+        },
+        instantMeetingTokens: {
+            type: "InstantMeetingToken[]",
+            description: "List of instant meeting tokens associated with the team"
+        },
+        orgProfiles: {
+            type: "Profile[]",
+            description: "List of profiles associated with the organization"
+        },
+        pendingPayment: {
+            type: "boolean",
+            description: "Indicates whether there is a pending payment for the team",
+            default: false
+        },
+        dsyncTeamGroupMapping: {
+            type: "DSyncTeamGroupMapping[]",
+            description: "List of DSync team group mappings associated with the team"
+        },
+        isPlatform: {
+            type: "boolean",
+            description: "Indicates whether the team is part of the platform",
+            default: false
+        },
+        platformOAuthClient: {
+            type: "PlatformOAuthClient[]",
+            description: "List of platform OAuth clients associated with the team"
+        },
+        smsLockState: {
+            type: "SMSLockState",
+            description: "The SMS lock state of the team",
+            default: "UNLOCKED"
+        },
+        platformBilling: {
+            type: "PlatformBilling Object",
+            description: "Billing information for the platform associated with the team"
+        },
+        activeOrgWorkflows: {
+            type: "WorkflowsOnTeams[]",
+            description: "List of active organization workflows associated with the team"
+        }
+    }
+}
+/%}
+
+#### Example Team Object
+
+```js
+{
+    "id": 1234,
+    "name": "Development Team",
+    "slug": "development-team",
+    "logoUrl": "https://example.com/logos/dev-team-logo.png",
+    "calVideoLogo": "https://example.com/logos/cal-video-logo.png",
+    "appLogo": "https://example.com/logos/app-logo.png",
+    "appIconLogo": "https://example.com/logos/app-icon-logo.png",
+    "bio": "This team focuses on developing new features and improving the platform.",
+    "hideBranding": false,
+    "isPrivate": true,
+    "hideBookATeamMember": false,
+    "members": [Membership Object[]],
+    "eventTypes": [EventType Object[]],
+    "workflows": [Workflow Object[]],
+    "createdAt": "2024-07-01T12:00:00Z",
+    "metadata": [Metadata Object],
+    "theme": "light",
+    "brandColor": "#FF5733",
+    "darkBrandColor": "#C70039",
+    "verifiedNumbers": [VerifiedNumber Object[]],
+    "verifiedEmails": [VerifiedEmail Object[]],
+    "bannerUrl": "https://example.com/banners/dev-team-banner.png",
+    "parentId": 5678,
+    "parent": [Team Object],
+    "children": [Team Object[]],
+    "orgUsers": [User Object[]],
+    "inviteTokens": [VerificationToken Object[]],
+    "webhooks": [Webhook Object[]],
+    "timeFormat": 24,
+    "timeZone": "America/New_York",
+    "weekStart": "Monday",
+    "routingForms": [App_RoutingForms_Form Object[]],
+    "apiKeys": [ApiKey Object[]],
+    "credentials": [Credential Object[]],
+    "accessCodes": [AccessCode Object[]],
+    "isOrganization": true,
+    "organizationSettings": [OrganizationSettings Object],
+    "instantMeetingTokens": [InstantMeetingToken Object[]],
+    "orgProfiles": [Profile Object[]],
+    "pendingPayment": false,
+    "dsyncTeamGroupMapping": [DSyncTeamGroupMapping Object[]],
+    "isPlatform": false,
+    "platformOAuthClient": [PlatformOAuthClient Object[]],
+    "smsLockState": "UNLOCKED",
+    "platformBilling": [PlatformBilling Object],
+    "activeOrgWorkflows": [WorkflowsOnTeams Object[]]
+}
+
+```
+
+
+## Find all teams
+
+Get a list of all teams you are an owner or member of
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/teams" /%}
+
+## Create a new team
+
+Create a new team
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/teams" /%}
+
+## Find a team
+
+Get a specific team you are an owner or member of
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/teams/{teamId}" /%}
+
+## Edit an existing team
+
+Modify details of an existing team that you are an owner of
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/teams/{teamId}" /%}
+
+## Remove an existing team
+
+Remove a team you're an owner of
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/teams/{teamId}" /%}

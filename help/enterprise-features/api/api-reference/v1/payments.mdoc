@@ -1,0 +1,97 @@
+---
+title: Payments
+---
+
+You can use the payments endpoint to get information about payments in your bookings
+
+## Payments Object
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the payment, generated automatically"
+        },
+        uid: {
+            type: "string",
+            description: "Unique identifier for the payment"
+        },
+        appId: {
+            type: "string",
+            description: "The ID of the app associated with the payment"
+        },
+        app: {
+            type: "App Object",
+            description: "The app associated with the payment"
+        },
+        bookingId: {
+            type: "integer",
+            description: "The ID of the booking associated with the payment"
+        },
+        booking: {
+            type: "Booking Object",
+            description: "The booking associated with the payment"
+        },
+        amount: {
+            type: "integer",
+            description: "The amount of the payment"
+        },
+        fee: {
+            type: "integer",
+            description: "The fee associated with the payment"
+        },
+        currency: {
+            type: "string",
+            description: "The currency of the payment"
+        },
+        success: {
+            type: "boolean",
+            description: "Indicates whether the payment was successful"
+        },
+        refunded: {
+            type: "boolean",
+            description: "Indicates whether the payment was refunded"
+        },
+        data: {
+            type: "json",
+            description: "Additional data related to the payment"
+        },
+        externalId: {
+            type: "string",
+            description: "External ID associated with the payment, usually from a payment gateway"
+        },
+        paymentOption: {
+            type: "PaymentOption",
+            description: "The payment option used",
+            default: "ON_BOOKING"
+        }
+    }
+}
+/%}
+
+#### Example Payments Object
+```js
+{
+    "id": 12345,
+    "uid": "pay_9876543210abcdef",
+    "appId": "app_123abc",
+    "app": "[App Object]",
+    "bookingId": 54321,
+    "booking": "[Booking Object]",
+    "amount": 10000,
+    "fee": 250,
+    "currency": "USD",
+    "success": true,
+    "refunded": false,
+    "data": [Payment Data Object],
+    "externalId": "ext_abcdefghijklmno",
+    "paymentOption": "ON_BOOKING"
+}
+
+```
+## Find all payments
+Get a list of all payments made to your cal.com bookings
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/payments" /%}
+
+## Find a payment
+Get details of a specific payment
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/payments/{id}" /%}

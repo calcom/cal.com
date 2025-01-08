@@ -1,0 +1,19 @@
+---
+title: "Versioning"
+---
+
+All endpoints and examples are designated with a specific version. Versions vary per endpoint and are not global.
+
+The response shape of a certain endpoint is not guaranteed to be fixed over time. In particular, we might add new keys to responses without bumping a version endpoint, which will be noted in the changelog.
+
+To ensure the security and correctness of your application, make sure to only read the keys from the response that your application needs. Don't proxy entire responses to third-parties without validation.
+
+Old versions of each endpoint are supported for as long as possible. When we intend to deprecate, we will notify users in the changelog section.
+
+Endpoint versions follow the base URL and come before the endpoint. For example:
+
+```
+https://api.cal.com/v1/users
+```
+
+Using version `1` of the users endpoint.

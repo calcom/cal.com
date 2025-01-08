@@ -1,0 +1,13 @@
+---
+title: "E2E testing"
+---
+
+Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If you are running locally, as the documentation within `.env.example` mentions, the value should be `http://localhost:3000`.
+
+```
+# In a terminal just run:
+yarn test-e2e
+
+# To open last HTML report run:
+yarn playwright show-report test-results/reports/playwright-html-report
+```

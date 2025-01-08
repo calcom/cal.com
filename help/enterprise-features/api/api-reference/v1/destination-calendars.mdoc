@@ -1,0 +1,103 @@
+---
+title: "Destination calendars"
+---
+
+The destination-calendars endpoint in Cal.com's API suite maps bookings for event types to particular calendars, such that the bookings show up as events on that calendar. 
+{% note %}
+Please note that this endpoint does not create new credentials, but only utilizes existing credentials to create a destination calendar, where the booked events would be created.
+{% /note %}
+
+## Destination Calendar Object
+
+{% jsonSchemaRenderer schema={
+        properties: {
+            id: {
+                type: "integer",
+                description: "The ID of the destination calendar, generated automatically"
+            },
+            integration: {
+                type: "string",
+                description: "The integration type of the destination calendar"
+            },
+            externalId: {
+                type: "string",
+                description: "The external ID of the destination calendar"
+            },
+            primaryEmail: {
+                type: "string",
+                description: "The primary email of the destination calendar"
+            },
+            user: {
+                type: "User Object",
+                description: "The user associated with the destination calendar. Please check the [Users](https://cal.com/docs/enterprise-features/api/api-reference/v1/users) endpoint for details on the User Object"
+            },
+            userId: {
+                type: "integer",
+                description: "The ID of the user associated with the destination calendar"
+            },
+            booking: {
+                type: "Bookings Object[]",
+                description: "List of bookings associated with this destination calendar. Please check the [Bookings](https://cal.com/docs/enterprise-features/api/api-reference/v1/bookings) endpoint for details on the Booking Object"
+            },
+            eventType: {
+                type: "EventType Object",
+                description: "The event type associated with the destination calendar. Please check the [EventType](https://cal.com/docs/enterprise-features/api/api-reference/v1/event-types) endpoint for details on the EventType Object"
+            },
+            eventTypeId: {
+                type: "integer",
+                description: "The ID of the event type associated with the destination calendar"
+            },
+            credentialId: {
+                type: "integer",
+                description: "The ID of the credential associated with the destination calendar"
+            },
+            credential: {
+                type: "Credential Object",
+                description: "The credential associated with the destination calendar"
+            }
+        }
+    }
+/%}
+
+#### Example Destination Calendar Object
+
+```js
+{
+    "id": 101,
+    "integration": "google_calendar",
+    "externalId": "johndoe@example.com",
+    "primaryEmail": "calendar@example.com",
+    "user": [User Object],
+    "userId": 1,
+    "booking": [Booking Object[]],
+    "eventType": [EventType Object],
+    "eventTypeId": 301,
+    "credentialId": 401,
+    "credential": [Credential Object]
+}
+```
+
+## Find all destination calendars
+
+This API call is used to get all the destination calendars of the user. A destination calendar can be global, or associated specifically with an event type. When the `eventTypeId` is `null`, the destination calendar is global. 
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/destination-calendars" /%}
+
+## Create a new destination calendar
+
+This API call is used to create a new destination calendar of the user.
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/destination-calendars" /%}
+
+## Find a destination calendar
+
+This API call is used to get a specific destination calendar of the user identified by destination calendar id.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/destination-calendars/{id}" /%}
+
+## Edit an existing destination calendar
+
+This API call is used to get modify a specific destination calendar of the user identified by destination calendar id.
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/destination-calendars/{id}" /%}
+
+## Remove an existing destination calendar
+
+This API call is used to remove a specific destination calendar of the user identified by destination calendar id.
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/destination-calendars/{id}" /%}

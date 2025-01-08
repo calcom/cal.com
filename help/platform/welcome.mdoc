@@ -1,0 +1,493 @@
+---
+title: Welcome to Platform! 
+description: The one stop destination to build your next scheduling business.
+---
+
+{% img src="/docs/images/Platform_banner.png" width="800" height="800" /%}
+
+Platform is the best choice for starting a scheduling business. You can white-label the design or change every line of code to make it work for you. It consists of our newly created set of apis and plug and play UI components called atoms.
+
+{% pageLink
+    href="https://app.cal.com/signup?redirect=https://app.cal.com/settings/platform/new"
+    heading="" %}
+    Get started
+  {% /pageLink %}
+
+## Atoms
+
+Atoms are customizable UI components handling scheduling on behalf of your users. Everything from the frontend to the backend is being handled by the atom, all you need to is import the atom and drop it in your code and you're good to go.
+
+## How to use atoms
+
+Here's some examples around how you can use atoms in your project.
+
+### 1. Google Calendar connect atom
+
+The below code snippet renders the Google calendar connect button which syncs a user's google calendar.  
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function Connect() {
+  return (
+    <main>
+      <Connect.GoogleCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of any atom, you can pass in custom css styles via a className prop.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function Connect() {
+  return (
+    <main>
+      <Connect.GoogleCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+    </main>
+  )
+}
+```
+
+This is how the google calendar connect button actually looks like
+
+{% img src="/docs/images/gcal_atom.png" /%}
+
+### 2. Outlook Calendar connect atom
+
+The below code snippet renders the Outlook calendar connect button which syncs a user's outlook calendar.  
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.OutlookCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of the atom, you can pass in custom css styles via the className prop. Additionally, if you want to pass in a custom redirect url that can be done via the redir prop.
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.OutlookCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" redir="http://localhost:4321/calendars" />
+    </main>
+  )
+}
+```
+
+This is how the outlook calendar connect button actually looks like
+
+{% img src="/docs/images/outlook_calendar.png" /%}
+
+### 3. Apple Calendar connect atom
+
+The below code snippet renders the Apple calendar connect button which syncs a user's apple calendar.  
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.AppleCalendar />
+    </main>
+  )
+}
+```
+
+If you need to customize the appearance of the atom, you can pass in custom css styles via the className prop. 
+
+```js
+import { Connect } from "@calcom/atoms";
+
+export default function ConnectCalendar() {
+  return (
+    <main>
+      <Connect.AppleCalendar className="h-[40px] bg-gradient-to-r from-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+    </main>
+  )
+}
+```
+
+This is how the apple calendar connect button actually looks like.
+
+{% img src="/docs/images/apple_calendar_atom.png" /%}
+
+The apple calendar atom works a bit differently than outlook and google calendar. We don't get redirected to an OAuth consent page, instead a modal appears which prompts us to create an app specific password to use with Cal.com; this is how the modal looks like
+
+{% img src="/docs/images/AppleCalendarModal.png" /%}
+
+{% note type="info" %}If you try to put your Apple Id password in the above password field, it will throw an error. It only accepts an app specific password generated from https://appleid.apple.com/account/manage.{% /note %}
+
+### 4. Availability settings atom
+
+The below code snippet renders the availability settings atom through which a user can set their available time slots.
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    <>
+  )
+}
+```
+
+This is how the availability settings atom actually looks like
+
+{% img src="/docs/images/AvailabilitySettings.png" /%}
+
+If a user wishes to add further adjustments to their availability for special occasions or events, they can use the date overrides feature. Date overrides enables users to pick any date that they're currently available and set specific hours for availability on that day or mark themselves entirely unavailable. Once that day is passed, the date override is automatically deleted.
+
+The below code snippet renders date overrides into the availability settings atom
+
+```js
+import { AvailabilitySettings } from "@calcom/atoms";
+
+export default function Availability() {
+  return (
+    <>
+       <AvailabilitySettings
+          enableOverrides={true}
+          onUpdateSuccess={() => {
+            console.log("Updated schedule successfully");
+          }}
+          onDeleteSuccess={() => {
+            console.log("Deleted schedule successfully");
+          }}
+       />
+    <>
+  )
+}
+```
+
+This is how the availability settings atom actually looks like with date overrides
+
+{% img src="/docs/images/DateOverrides.png" /%}
+
+When a user tries to add date overrides for their availability, a modal appears which prompts the user to select the date and availability they want to override.
+
+{% img src="/docs/images/DateOverridesModal.png" /%}
+
+After successfully adding a date override, this is how the availability settings atom looks like
+
+{% img src="/docs/images/AvailibilitySettingsWithDateOverrides.png" /%}
+
+
+If the toggle buttons are not working, then you need to set reading direction on the html tag like this `<html dir="ltr"> ... </html>`
+
+### 5. Booker atom
+
+The below code snippet renders the booker atom through which a user can be booked for any event that they have set.
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+         }}
+      />
+    <>
+  )
+}
+```
+
+This is how the booker atom actually looks like
+
+{% img src="/docs/images/BookerAtom.jpg" /%}
+
+It is also possible to change the booker layout into a week or column view, you just need to pass in the view prop the layout you want to use. The layouts are as follows: **MONTH_VIEW,** **WEEK_VIEW** and **COLUMN_VIEW**.
+
+Below code snippet renders the booker atom with the week view layout.
+
+```js
+import { Booker } from "@calcom/atoms";
+
+export default function Booker( props : BookerProps ) {
+  return (
+    <>
+      <Booker
+        view="WEEK_VIEW"
+        eventSlug={props.eventTypeSlug}
+        username={props.calUsername}
+        onCreateBookingSuccess={() => {
+          console.log("booking created successfully");
+         }}
+      />
+    <>
+  )
+}
+```
+
+This is how the week view layout atom will look like. Both the week and column layouts come with an Overlay Calendar feature, which allows users to overlay multiple calendars on top of their primary calendar.
+
+{% img src="/docs/images/CalendarOverlay.jpg" /%}
+
+{% img src="/docs/images/OverlayCalendarColumn.png" /%}
+
+{% note type="info" %}For the time being, the Booker atom does not include the Out Of Office feature.{% /note %}
+
+### 6. Calendar settings atom
+
+The below code snippet renders the calendar settings atom through which you can configure how your event types interact with your calendars. The atom gives you the ability to select where to add events when you're booked. Additionally, you can also select which calendars you want to check for conflicts to prevent double bookings.
+
+```js
+import { CalendarSettings } from "@calcom/atoms";
+
+export default function CalendarSettingsComponent( props : CalendarSettingsComponentProps ) {
+  return (
+    <>
+      <CalendarSettings />
+    <>
+  )
+}
+```
+
+This is how the calendar settings atom will look like
+
+{% img src="/docs/images/CalendarSettingsAtom.png" /%}
+
+Additionally, if you wish to select either the Destination Calendar or the Selected Calendar, we also provide atoms specifically designed for this purpose.
+
+**1. Destination calendar settings atom**
+
+The below code snippet renders the destination calendar settings atom. Through this atom you can select which calendar you want to add events to when you're booked.
+
+```js
+import { DestinationCalendarSettings } from "@calcom/atoms";
+
+export default function DestinationCalendars( props : DestinationCalendarsProps ) {
+  return (
+    <>
+      <DestinationCalendarSettings classNames="mx-5" statusLoader={<>Loading...</>} />
+    <>
+  )
+}
+```
+This is how the destination calendar settings atom will look like.
+
+{% img src="/docs/images/DestinationCalendarSetting.png" /%}
+
+**2. Selected calendar settings atom**
+
+The below code snippet renders the selected calendar settings atom. Through this atom you can select which calendars you want to check for conflicts to prevent double bookings.
+
+```js
+import { SelectedCalendarSettings } from "@calcom/atoms";
+
+export default function SelectedCalendars( props : SelectedCalendarsProps ) {
+  return (
+    <>
+      <SelectedCalendarSettings classNames="mx-5 mb-6" />
+    <>
+  )
+}
+```
+This is how the selected calendar settings atom will look like
+
+{% img src="/docs/images/SelectedCalendarSetting.png" /%}
+
+### Dark theme
+
+To enable the dark theme in Cal.com atoms, you need to make use of the customClassNames prop. Here’s how to do it step-by-step:
+
+1.Browse Atoms Reference:
+
+Go to the Cal.com [atoms reference](https://cal.com/docs/platform/atoms-reference#props).
+Search for "customClassNames" on the page. Atoms that support this prop can have a dark mode.
+
+2.Set Up Dark Mode:
+
+In your code, you need to manually set the background color using Tailwind classes.
+Add a dark class to the containerClassName within the customClassNames prop and then specify the background color using Tailwind CSS.
+Example Implementation:
+
+```js
+<AvailabilitySettings
+    customClassNames={{
+        containerClassName: "dark bg-black"
+    }}
+/>
+```
+
+In this example, the dark class is added to containerClassName, and the background color is set to black (bg-black).
+
+## Platform apis
+
+We've also created a set of new and scalable apis for our platform customers called v2 which we plan to make the successor for our v1 apis. Internally all the atoms use the new platform apis to handle scheduling.
+
+## How to use platform apis
+
+Once you set up an OAuth client and create a managed user for that particular OAuth client you're ready to use the platform api. Below are some examples around how you can use the platform api endpoints in your project.
+
+### 1. me 
+
+The `/me` endpoint returns a response containing all the info about a managed user. It includes properties such as the name, email, id, timeZone of that particular user and much more. The below code snippet shows a custom hook that uses the `/me` endpoint to return all the data of a managed user.
+
+```js
+// custom hook that returns info managed user
+export const useMe = async () => {
+  const response = await fetch("https://api.cal.com/v2/ee/me", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // replace accessToken value with value of your access token
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+
+  return data;
+};
+```
+
+The below code snippet shows how the returned response looks like.
+
+```js
+{
+  "status": "success",
+  "data": {
+      "id": 48,
+      "email": "skybezagxi@example.com",
+      "timeFormat": 12,
+      "defaultScheduleId": 107,
+      "weekStart": "Sunday",
+      "timeZone": "Asia/Calcutta",
+      "username": "skybezagxi",
+      "name": "John Jones"
+  }
+}
+```
+
+### 2. schedules
+
+The `/schedules` endpoint returns a given schedule for a managed user based on the id of that particular schedule. The below code snippet shows a custom hook that uses the `/schedules` endpoint to return the default schedule of a managed user.
+
+```js
+// custom hook that returns the schedule of a managed user
+export const useGetUserSchedule = async () => {
+  // replace scheduleId with id of your schedule
+  const response = await fetch(`https://api.cal.com/v2/schedules/${scheduleId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // replace accessToken value with value of your access token
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  const data = await response.json();
+
+  return data;
+}; 
+```
+
+The below code snippet shows how the returned response looks like.
+
+```js
+{
+  "status": "success",
+  "data": {
+    "id": 107,
+    "name": "Default Schedule",
+    "isManaged": false,
+    "workingHours": [
+        {
+            "days": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ],
+            "startTime": 540,
+            "endTime": 1020,
+            "userId": 48
+        }
+    ],
+    "schedule": [
+         {
+             "id": 106,
+             "userId": 48,
+             "eventTypeId": null,
+             "days": [
+                 1,
+                 2,
+                 3,
+                 4,
+                 5
+             ],
+             "startTime": "1970-01-01T09:00:00.000Z",
+             "endTime": "1970-01-01T17:00:00.000Z",
+             "date": null,
+             "scheduleId": 107
+         }
+    ],
+    "availability": [
+        [],
+        [
+            {
+                "start": "2024-04-07T09:00:00.000Z",
+                "end": "2024-04-07T17:00:00.000Z"
+            }
+        ],
+        [
+            {
+                "start": "2024-04-07T09:00:00.000Z",
+                "end": "2024-04-07T17:00:00.000Z"  
+            }
+        ],
+        [
+            {
+                "start": "2024-04-07T09:00:00.000Z",
+                "end": "2024-04-07T17:00:00.000Z"
+            }
+        ],       
+        [
+            {
+                "start": "2024-04-07T09:00:00.000Z",
+                "end": "2024-04-07T17:00:00.000Z"
+            }
+        ],
+        [
+            {
+                "start": "2024-04-07T09:00:00.000Z",
+                "end": "2024-04-07T17:00:00.000Z"
+            }
+        ],                 
+        []
+    ],
+    "timeZone": "Asia/Calcutta",
+    "dateOverrides": [],
+    "isDefault": true,
+    "isLastSchedule": true,
+    "readOnly": false
+  }
+} 
+```
+
+To check all the available endpoints click [here](https://api.cal.com/v2/docs#/)

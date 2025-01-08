@@ -1,0 +1,152 @@
+---
+title: "Me"
+---
+
+You can use the me endpoint to get your profile details
+
+## Me Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the user, generated automatically"
+        },
+        username: {
+            type: "string",
+            description: "The username of the user"
+        },
+        name: {
+            type: "string",
+            description: "The name of the user"
+        },
+        email: {
+            type: "email",
+            description: "The email of the user"
+        },
+        emailVerified: {
+            type: "DateTime",
+            description: "The date and time when the user's email was verified"
+        },
+        bio: {
+            type: "string",
+            description: "The biography of the user"
+        },
+        avatar: {
+            type: "string",
+            description: "The avatar URL of the user"
+        },
+        timeZone: {
+            type: "string",
+            description: "The time zone of the user",
+            default: "Europe/London"
+        },
+        weekStart: {
+            type: "string",
+            description: "The start day of the week for the user",
+            default: "Sunday"
+        },
+        endTime: {
+            type: "integer",
+            description: "The end time for the user's availability",
+            default: 1440
+        },
+        bufferTime: {
+            type: "integer",
+            description: "The buffer time for the user"
+        },
+        appTheme: {
+            type: "string",
+            description: "The app theme for the user"
+        },
+        theme: {
+            type: "string",
+            description: "The booking page theme for the user"
+        },
+        defaultScheduleId: {
+            type: "integer",
+            description: "The ID of the default schedule for the user"
+        },
+        locale: {
+            type: "string",
+            description: "The locale of the user"
+        },
+        timeFormat: {
+            type: "integer",
+            description: "The time format for the user",
+            default: 12
+        },
+        hideBranding: {
+            type: "boolean",
+            description: "Whether to hide branding for the user",
+            default: false
+        },
+        brandColor: {
+            type: "string",
+            description: "The brand color for the user"
+        },
+        darkBrandColor: {
+            type: "string",
+            description: "The dark brand color for the user"
+        },
+        allowDynamicBooking: {
+            type: "boolean",
+            description: "Whether the user allows dynamic booking",
+            default: true
+        },
+        createdDate: {
+            type: "DateTime",
+            description: "The date when the user was created"
+        },
+        verified: {
+            type: "boolean",
+            description: "Whether the user is verified",
+            default: false
+        },
+        invitedTo: {
+            type: "integer",
+            description: "The ID of the event to which the user was invited"
+        },
+        role: {
+            type: "UserPermissionRole",
+            description: "The role of the user",
+            default: "USER"
+        }
+    }
+}
+/%}
+
+#### Example Me Object
+
+```js
+{
+    "id": 1,
+    "username": "johndoe",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "emailVerified": "2024-08-01T12:00:00Z",
+    "bio": "Software engineer with a passion for open-source technologies.",
+    "avatar": "https://example.com/avatar/johndoe.jpg",
+    "timeZone": "America/New_York",
+    "weekStart": "Monday",
+    "endTime": 1380,
+    "bufferTime": 15,
+    "appTheme": "light",
+    "theme": "modern",
+    "defaultScheduleId": 101,
+    "locale": "en-US",
+    "timeFormat": 24,
+    "hideBranding": true,
+    "brandColor": "#FF5733",
+    "darkBrandColor": "#C70039",
+    "allowDynamicBooking": true,
+    "createdDate": "2024-07-15T09:30:00Z",
+    "verified": true,
+    "invitedTo": 1001,
+    "role": "ADMIN"
+}
+```
+
+## Get your profile details
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/me" /%}

@@ -1,0 +1,46 @@
+---
+title: "API reference"
+---
+
+## API Versions
+
+We offer two versions of our API: the legacy version (V1) and the latest V2 version. While both versions are currently available, we highly recommend using the V2 API in all your integrations and applications.
+
+### Why Use V2?
+
+The V2 API includes numerous enhancements and new features that are not available in V1. It has been designed to be more efficient, secure, and easier to use. V2 reflects our commitment to providing the best possible developer experience and ensuring that your applications can take advantage of the latest advancements in our platform.
+
+### Key Differences
+
+- **Performance Improvements**: V2 has been optimized for better performance and scalability.
+- **User friendly response objects**: In V2 we have focused heavily on improving the response object for a better User Experience.
+- **Enhanced Security**: V2 includes improved security measures to protect your data.
+
+### Admin access
+
+With V2 we're supporting System Wide Admin access and Organization Admin access. 
+
+#### Key points
+
+- The system wide admin has access to all resources via regular endpoints.
+- The organization admin has dedicated endpoints allowing them organization wide resource access. These endpoints follow the general path of `/organizations/:orgId/<resource>`.
+- The API Key can be created [here](https://app.cal.com/settings/developer/api-keys) and depending on the role of the user, their API scope will be settled. That is, 
+    - **System-wide Admin**: Access to all resources system-wide
+    - **Organization Owner/Admin**: Access to all resources organization-wide
+    - **Non-Admin**: Access to all resources that belong to the user
+
+We are committed to supporting our community during this transition. If you have any questions or need assistance with migrating to the V2 API, please contact our support team.
+
+Thank you for your understanding and cooperation.
+
+{% pageLink
+    href="/enterprise-features/api/api-reference/v1"
+    heading="Proceed to V1 Endpoints Spec" %}
+    V1 Endpoints
+{% /pageLink %}
+
+{% pageLink
+    href="https://api.cal.com/v2/docs"
+    heading="Proceed to V2 Endpoints Spec" %}
+    V2 Endpoints
+{% /pageLink %}

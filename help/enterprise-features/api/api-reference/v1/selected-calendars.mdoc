@@ -1,0 +1,75 @@
+---
+title: "Selected calendars"
+---
+
+The selected calendar endpoint in Cal.com's API suite allows you to CRUD calendars to check for booking conflicts
+
+## Selected Calendar Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        user: {
+            type: "User Object",
+            description: "The user associated with the selected calendar"
+        },
+        userId: {
+            type: "integer",
+            description: "The ID of the user associated with the selected calendar"
+        },
+        integration: {
+            type: "string",
+            description: "The integration type of the selected calendar"
+        },
+        externalId: {
+            type: "string",
+            description: "The external ID of the selected calendar"
+        },
+        credential: {
+            type: "Credential Object",
+            description: "The credential associated with the selected calendar"
+        },
+        credentialId: {
+            type: "integer",
+            description: "The ID of the credential associated with the selected calendar"
+        }
+    }    
+} /%}
+
+#### Example Selected Calendar Object
+
+```js
+{
+    "user": [User Object],
+    "userId": 42,
+    "integration": "Google Calendar",
+    "externalId": "google-calendar-987654321",
+    "credential": [Credential Object],
+    "credentialId": 101
+}
+
+```
+
+## Find all selected calendars
+
+Use this endpoint to list down all the calendars selected to check for conflicts when bookers book you
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/selected-calendars" /%}
+
+## Create a new selected calendar
+
+Use this endpoint to create a new selected calendar to check for conflicts when bookers book you
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/selected-calendars" /%}
+
+## Find a selected calendar
+
+Use this endpoint to get details of a specific calendar selected to check for conflicts when bookers book you. Please use the compound id for identifying the specific calendar (`{userId}_{integration}_{externalId}`) 
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}
+
+## Edit an existing selected calendar
+
+Use this endpoint to modify details of a specific calendar selected to check for conflicts when bookers book you. Please use the compound id for identifying the specific calendar (`{userId}_{integration}_{externalId}`)
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}
+
+## Remove an existing selected calendar
+
+Use this endpoint to remove a specific calendar selected to no longer check for conflicts when bookers book you. Please use the compound id for identifying the specific calendar (`{userId}_{integration}_{externalId}`)
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/selected-calendars/{userId}_{integration}_{externalId}" /%}

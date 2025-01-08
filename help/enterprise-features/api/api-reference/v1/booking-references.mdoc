@@ -1,0 +1,103 @@
+---
+title: "Booking References"
+---
+
+The booking-references endpoint maps meeting details to bookings. For example, if you're using `Cal Video` as the video conferencing meeting location, this BookingReferences Object will contain all the meeting details such as meeting URL, meeting ID, any password associated with it, etc.
+
+## Booking Reference Object
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The `id` of the booking reference, generated automatically",
+        },
+        type: {
+            type: "string",
+            description: "The type of the booking reference. Eg. `daily_video` for Cal Video"
+        },
+        uid: {
+            type: "string",
+            description: "The meeting uid",
+        },
+        meetingId: {
+            type: "string",
+            description: "The meeting Id",
+        },
+        thirdPartyRecurringEventId: {
+            type: "string",
+            description: "In case of a recurring event, this will hold the third-party recurring event Id",
+        },
+        meetingPassword: {
+            type: "string",
+            description: "The meeting room password"
+        },
+        meetingUrl: {
+            type: "URL",
+            description: "The meeting room URL"
+        },
+        booking: {
+            type: "Booking Object",
+            description: "The booking object linked to this booking reference via the `bookingId`. Please check the [Bookings](https://cal.com/docs/enterprise-features/api/api-reference/v1/bookings) endpoint for details on the Booking Object"
+        },
+        bookingId: {
+            type: "integer",
+            description: "The `id` of the booking linked to this booking reference"
+        },
+        externalCalendarId: {
+            type: "string",
+            description: "The external Calendar Id of the linked booking"
+        },
+        deleted: {
+            type: "boolean",
+            description: "If the booking reference is deleted"
+        },
+        credentialId: {
+            type: "integer",
+            description: "The credential Id"
+        },
+    }
+} /%}
+
+#### Example Booking References Object
+
+```js
+{
+    "booking_reference": {
+        "id": 313131,
+        "type": "daily_video",
+        "bookingId": 252525,
+        "uid": "kI812345lKdMGCG5Afas",
+        "meetingId": "kI812345lKdMGCG5Afas",
+        "meetingPassword": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyIjoia0k4b2hMbDJ3amxLZE1HQ0c1QWYiLCJleHAiOjE3MjI0OTc0MDAsIm8iOnRydWUsImVydWkiOmZhbHNlLCJkIjoiYmJkOThhNzEtMTljOS00YmIxLWE1YzUtY2FmMWVjNWJkMTA1IiwiaWF0IjoxNzIwODY4MjY5fQ.BhS8knskb_2LN5NCQShbrEnUuPH1chkpJcPqDOY9Ypc",
+        "meetingUrl": "https://meetco.daily.co/kI812345lKdMGCG5Afas",
+        "deleted": null
+    }
+}
+```
+
+
+
+## Find all booking references
+
+This endpoint can be used to fetch all booking-references of all bookings of the user.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/booking-references" /%}
+
+## Create a new booking reference
+
+This endpoint can be used to create a booking-reference for a booking of the user.
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/booking-references" /%}
+
+## Find a booking reference
+
+This endpoint can be used to fetch a booking-reference for a booking of the user.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/booking-references/{id}" /%}
+
+## Edit an existing booking reference
+
+This endpoint can be used to edit one of the fields of a booking-reference for a booking of the user.
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/booking-references/{id}" /%}
+
+## Remove an existing booking reference
+
+This endpoint can be used to delete a booking-reference for a booking of the user.
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/booking-references/{id}" /%}

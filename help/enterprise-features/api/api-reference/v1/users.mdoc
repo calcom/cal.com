@@ -1,0 +1,448 @@
+---
+title: "Users"
+---
+
+The users endpoint allows you to CRUD users within your Cal.com instance.
+
+{% note type="warning" %}
+In self-hosted enterprise instances, user endpoints are exclusively designated for performing Create, Read, Update, and Delete (CRUD) operations. 
+
+Please note that the Users Endpoint is **not accessible on our hosted platform**, as these actions are primarily reserved for administrative API requests. The only exception is the GET request, which permits retrieval of individual user information (non-admin) associated with the originating request, i.e. the user who made the request. 
+
+Also note that Team/Organization admins **will not** be able to access the data of their team members either for the reason mentioned above.
+{% /note %}
+
+## User Object
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the user, generated automatically"
+        },
+        username: {
+            type: "string",
+            description: "The username of the user"
+        },
+        name: {
+            type: "string",
+            description: "The name of the user"
+        },
+        email: {
+            type: "email",
+            description: "The email of the user"
+        },
+        emailVerified: {
+            type: "DateTime",
+            description: "The date and time when the user's email was verified"
+        },
+        password: {
+            type: "UserPassword Object",
+            description: "The password information for the user"
+        },
+        bio: {
+            type: "string",
+            description: "The biography of the user"
+        },
+        avatarUrl: {
+            type: "string",
+            description: "The URL of the user's avatar"
+        },
+        timeZone: {
+            type: "string",
+            description: "The time zone of the user",
+            default: "Europe/London"
+        },
+        travelSchedules: {
+            type: "TravelSchedule[]",
+            description: "List of travel schedules associated with the user"
+        },
+        weekStart: {
+            type: "string",
+            description: "The start day of the week for the user",
+            default: "Sunday"
+        },
+        bufferTime: {
+            type: "integer",
+            description: "The buffer time for the user",
+            default: 0
+        },
+        hideBranding: {
+            type: "boolean",
+            description: "Indicates whether branding is hidden for the user",
+            default: false
+        },
+        theme: {
+            type: "string",
+            description: "The theme of the booking page for the user"
+        },
+        appTheme: {
+            type: "string",
+            description: "The app theme for the user"
+        },
+        createdDate: {
+            type: "DateTime",
+            description: "The date when the user was created"
+        },
+        trialEndsAt: {
+            type: "DateTime",
+            description: "The date when the user's trial ends"
+        },
+        eventTypes: {
+            type: "EventType[]",
+            description: "List of event types associated with the user",
+            relation: "user_eventtype"
+        },
+        credentials: {
+            type: "Credential[]",
+            description: "List of credentials associated with the user"
+        },
+        teams: {
+            type: "Membership[]",
+            description: "List of teams the user is a member of"
+        },
+        bookings: {
+            type: "Booking[]",
+            description: "List of bookings associated with the user"
+        },
+        schedules: {
+            type: "Schedule[]",
+            description: "List of schedules associated with the user"
+        },
+        defaultScheduleId: {
+            type: "integer",
+            description: "The ID of the default schedule for the user"
+        },
+        selectedCalendars: {
+            type: "SelectedCalendar[]",
+            description: "List of selected calendars associated with the user"
+        },
+        completedOnboarding: {
+            type: "boolean",
+            description: "Indicates whether the user has completed onboarding",
+            default: false
+        },
+        locale: {
+            type: "string",
+            description: "The locale of the user"
+        },
+        timeFormat: {
+            type: "integer",
+            description: "The time format for the user",
+            default: 12
+        },
+        twoFactorSecret: {
+            type: "string",
+            description: "The secret key for two-factor authentication"
+        },
+        twoFactorEnabled: {
+            type: "boolean",
+            description: "Indicates whether two-factor authentication is enabled",
+            default: false
+        },
+        backupCodes: {
+            type: "string",
+            description: "Backup codes for two-factor authentication"
+        },
+        identityProvider: {
+            type: "IdentityProvider",
+            description: "The identity provider used by the user",
+            default: "CAL"
+        },
+        identityProviderId: {
+            type: "string",
+            description: "The ID of the identity provider for the user"
+        },
+        availability: {
+            type: "Availability[]",
+            description: "List of availability settings for the user"
+        },
+        invitedTo: {
+            type: "integer",
+            description: "The ID of the event to which the user was invited"
+        },
+        webhooks: {
+            type: "Webhook[]",
+            description: "List of webhooks associated with the user"
+        },
+        brandColor: {
+            type: "string",
+            description: "The brand color of the user"
+        },
+        darkBrandColor: {
+            type: "string",
+            description: "The dark brand color of the user"
+        },
+        destinationCalendar: {
+            type: "DestinationCalendar Object",
+            description: "The destination calendar associated with the user"
+        },
+        allowDynamicBooking: {
+            type: "boolean",
+            description: "Indicates whether the user allows dynamic booking",
+            default: true
+        },
+        allowSEOIndexing: {
+            type: "boolean",
+            description: "Indicates whether the user allows SEO indexing",
+            default: true
+        },
+        receiveMonthlyDigestEmail: {
+            type: "boolean",
+            description: "Indicates whether the user receives a monthly digest email",
+            default: true
+        },
+        metadata: {
+            type: "json",
+            description: "Metadata associated with the user"
+        },
+        verified: {
+            type: "boolean",
+            description: "Indicates whether the user is verified",
+            default: false
+        },
+        role: {
+            type: "UserPermissionRole",
+            description: "The role of the user",
+            default: "USER"
+        },
+        disableImpersonation: {
+            type: "boolean",
+            description: "Indicates whether impersonation is disabled for the user",
+            default: false
+        },
+        impersonatedUsers: {
+            type: "Impersonations[]",
+            description: "List of users impersonated by this user",
+            relation: "impersonated_user"
+        },
+        impersonatedBy: {
+            type: "Impersonations[]",
+            description: "List of users who impersonated this user",
+            relation: "impersonated_by_user"
+        },
+        apiKeys: {
+            type: "ApiKey[]",
+            description: "List of API keys associated with the user"
+        },
+        accounts: {
+            type: "Account[]",
+            description: "List of accounts associated with the user"
+        },
+        sessions: {
+            type: "Session[]",
+            description: "List of sessions associated with the user"
+        },
+        Feedback: {
+            type: "Feedback[]",
+            description: "List of feedback provided by the user"
+        },
+        ownedEventTypes: {
+            type: "EventType[]",
+            description: "List of event types owned by the user",
+            relation: "owner"
+        },
+        workflows: {
+            type: "Workflow[]",
+            description: "List of workflows associated with the user"
+        },
+        routingForms: {
+            type: "App_RoutingForms_Form[]",
+            description: "List of routing forms associated with the user",
+            relation: "routing-form"
+        },
+        verifiedNumbers: {
+            type: "VerifiedNumber[]",
+            description: "List of verified numbers associated with the user"
+        },
+        verifiedEmails: {
+            type: "VerifiedEmail[]",
+            description: "List of verified emails associated with the user"
+        },
+        hosts: {
+            type: "Host[]",
+            description: "List of hosts associated with the user"
+        },
+        organizationId: {
+            type: "integer",
+            description: "The ID of the organization associated with the user"
+        },
+        organization: {
+            type: "Team Object",
+            description: "The organization associated with the user",
+            relation: "scope"
+        },
+        accessCodes: {
+            type: "AccessCode[]",
+            description: "List of access codes associated with the user"
+        },
+        bookingRedirects: {
+            type: "OutOfOfficeEntry[]",
+            description: "List of booking redirects associated with the user"
+        },
+        bookingRedirectsTo: {
+            type: "OutOfOfficeEntry[]",
+            description: "List of booking redirects to this user",
+            relation: "toUser"
+        },
+        locked: {
+            type: "boolean",
+            description: "Indicates whether the user account is locked",
+            default: false
+        },
+        platformOAuthClients: {
+            type: "PlatformOAuthClient[]",
+            description: "List of platform OAuth clients associated with the user"
+        },
+        AccessToken: {
+            type: "AccessToken[]",
+            description: "List of access tokens associated with the user"
+        },
+        RefreshToken: {
+            type: "RefreshToken[]",
+            description: "List of refresh tokens associated with the user"
+        },
+        PlatformAuthorizationToken: {
+            type: "PlatformAuthorizationToken[]",
+            description: "List of platform authorization tokens associated with the user"
+        },
+        profiles: {
+            type: "Profile[]",
+            description: "List of profiles associated with the user"
+        },
+        movedToProfileId: {
+            type: "integer",
+            description: "The ID of the profile the user has moved to"
+        },
+        movedToProfile: {
+            type: "Profile Object",
+            description: "The profile the user has moved to",
+            relation: "moved_to_profile"
+        },
+        secondaryEmails: {
+            type: "SecondaryEmail[]",
+            description: "List of secondary emails associated with the user"
+        },
+        isPlatformManaged: {
+            type: "boolean",
+            description: "Indicates whether the user is platform managed",
+            default: false
+        },
+        OutOfOfficeReasons: {
+            type: "OutOfOfficeReason[]",
+            description: "List of out-of-office reasons associated with the user"
+        },
+        smsLockState: {
+            type: "SMSLockState",
+            description: "The SMS lock state of the user",
+            default: "UNLOCKED"
+        }
+    }
+} 
+/%}
+
+#### Example User Object
+
+```js
+{
+    "id": 1001,
+    "username": "johndoe",
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "emailVerified": "2024-08-01T12:00:00Z",
+    "password": [UserPassword Object],
+    "bio": "A software engineer with a passion for open-source.",
+    "avatarUrl": "https://example.com/avatar/johndoe.jpg",
+    "timeZone": "Europe/London",
+    "travelSchedules": [TravelSchedule Object[]],
+    "weekStart": "Monday",
+    "bufferTime": 15,
+    "hideBranding": false,
+    "theme": "modern",
+    "appTheme": "light",
+    "createdDate": "2024-07-15T09:00:00Z",
+    "trialEndsAt": "2024-09-15T09:00:00Z",
+    "eventTypes": [EventType Object[]],
+    "credentials": [Credential Object[]],
+    "teams": [Membership Object[]],
+    "bookings": [Booking Object[]],
+    "schedules": [Schedule Object[]],
+    "defaultScheduleId": 2001,
+    "selectedCalendars": [SelectedCalendar Object[]],
+    "completedOnboarding": true,
+    "locale": "en-US",
+    "timeFormat": 24,
+    "twoFactorSecret": "secret123",
+    "twoFactorEnabled": true,
+    "backupCodes": "backupcode123",
+    "identityProvider": "CAL",
+    "identityProviderId": "provider123",
+    "availability": [Availability Object[]],
+    "invitedTo": 3001,
+    "webhooks": [Webhook Object[]],
+    "brandColor": "#FF5733",
+    "darkBrandColor": "#C70039",
+    "destinationCalendar": [DestinationCalendar Object],
+    "allowDynamicBooking": true,
+    "allowSEOIndexing": true,
+    "receiveMonthlyDigestEmail": true,
+    "metadata": [Metadata Object],
+    "verified": true,
+    "role": "ADMIN",
+    "disableImpersonation": false,
+    "impersonatedUsers": [Impersonations Object[]],
+    "impersonatedBy": [Impersonations Object[]],
+    "apiKeys": [ApiKey Object[]],
+    "accounts": [Account Object[]],
+    "sessions": [Session Object[]],
+    "Feedback": [Feedback Object[]],
+    "ownedEventTypes": [EventType Object[]],
+    "workflows": [Workflow Object[]],
+    "routingForms": [App_RoutingForms_Form Object[]],
+    "verifiedNumbers": [VerifiedNumber Object[]],
+    "verifiedEmails": [VerifiedEmail Object[]],
+    "hosts": [Host Object[]],
+    "organizationId": 4001,
+    "organization": [Team Object],
+    "accessCodes": [AccessCode Object[]],
+    "bookingRedirects": [OutOfOfficeEntry Object[]],
+    "bookingRedirectsTo": [OutOfOfficeEntry Object[]],
+    "locked": false,
+    "platformOAuthClients": [PlatformOAuthClient Object[]],
+    "AccessToken": [AccessToken Object[]],
+    "RefreshToken": [RefreshToken Object[]],
+    "PlatformAuthorizationToken": [PlatformAuthorizationToken Object[]],
+    "profiles": [Profile Object[]],
+    "movedToProfileId": 5001,
+    "movedToProfile": [Profile Object],
+    "secondaryEmails": [SecondaryEmail Object[]],
+    "isPlatformManaged": false,
+    "OutOfOfficeReasons": [OutOfOfficeReason Object[]],
+    "smsLockState": "UNLOCKED"
+}
+
+```
+
+## Find all users
+
+Get a list of all the users in your self hosted instance
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/users" /%}
+
+## Find a user
+
+Get details of a specific user in your self hosted instance
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+## Edit an existing user
+
+Modify details of an existing user in your self hosted instance
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+## Remove an existing user
+
+Remove a user from your self hosted instance
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/users/{userId}" /%}
+
+### Create a new user
+
+Add a user in your self hosted instance
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/users" /%}

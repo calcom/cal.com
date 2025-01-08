@@ -1,0 +1,134 @@
+---
+title: "Webhooks"
+---
+
+These routes allow you to CRUD webhooks within Cal.com.
+
+## Webhook Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "string",
+            description: "The ID of the webhook, generated automatically"
+        },
+        userId: {
+            type: "integer",
+            description: "The ID of the user associated with the webhook"
+        },
+        teamId: {
+            type: "integer",
+            description: "The ID of the team associated with the webhook"
+        },
+        eventTypeId: {
+            type: "integer",
+            description: "The ID of the event type associated with the webhook"
+        },
+        platformOAuthClientId: {
+            type: "string",
+            description: "The ID of the platform OAuth Client"
+        },
+        subscriberUrl: {
+            type: "string",
+            description: "The URL to which the webhook payload will be sent"
+        },
+        payloadTemplate: {
+            type: "string",
+            description: "The template for the payload sent by the webhook"
+        },
+        createdAt: {
+            type: "DateTime",
+            description: "The date and time when the webhook was created"
+        },
+        active: {
+            type: "boolean",
+            description: "Indicates whether the webhook is active",
+            default: true
+        },
+        eventTriggers: {
+            type: "WebhookTriggerEvents[]",
+            description: "The events that trigger the webhook"
+        },
+        user: {
+            type: "User Object",
+            description: "The user associated with the webhook"
+        },
+        team: {
+            type: "Team Object",
+            description: "The team associated with the webhook"
+        },
+        eventType: {
+            type: "EventType Object",
+            description: "The event type associated with the webhook"
+        },
+        platformOAuthClient: {
+            type: "PlatformOAuthClient Object",
+            description: "The Platform OAuth Client associated with the webhook"
+        },        
+        app: {
+            type: "App Object",
+            description: "The app associated with the webhook"
+        },
+        appId: {
+            type: "string",
+            description: "The ID of the app associated with the webhook"
+        },
+        secret: {
+            type: "string",
+            description: "The secret key used to verify the webhook's payload"
+        },
+        platform: {
+            type: "boolean",
+            description: "Indicates whether the webhook is platform-wide",
+            default: false
+        },
+        scheduledTriggers: {
+            type: "WebhookScheduledTriggers[]",
+            description: "Scheduled triggers associated with the webhook"
+        }
+    }
+} /%}
+
+#### Webhook Object Example
+
+```js
+{
+    "id": "asdad-21ed-sdasd1q2ea-dasd3123sadasdasdasxc",
+    "userId": 42,
+    "teamId": 7,
+    "eventTypeId": 101,
+    "subscriberUrl": "https://example.com/webhook-handler",
+    "payloadTemplate": "",
+    "createdAt": "2024-08-01T12:00:00Z",
+    "active": true,
+    "eventTriggers": [Event Triggers Enum[]],
+    "user": [User Object],
+    "team": [Team Object],
+    "eventType": [EventType Object],
+    "app": [App Object],
+    "appId": "app_123abc",
+    "secret": "shh_very_secret_key",
+    "platform": false,
+    "scheduledTriggers": [ScheduledTriggers Object[]]
+}
+```
+
+## Find all webhooks
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/webhooks" /%}
+
+## Create a new webhook
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/webhooks" /%}
+
+## Find a webhook
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/webhooks/{id}" /%}
+
+## Edit an existing webhook
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/webhooks/{id}" /%}
+
+## Delete a webhook
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/webhooks/{id}" /%}

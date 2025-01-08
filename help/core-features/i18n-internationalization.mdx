@@ -1,0 +1,18 @@
+---
+omitFromSearch: true
+---
+
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.startsWith('/docs/core-features/i18n-internationalization')) {
+      window.location.href = "https://cal.com/docs/core-features/";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

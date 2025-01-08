@@ -1,0 +1,86 @@
+---
+title: Atoms reference
+description: Everything related to atoms from props to styling.
+---
+
+## Props 
+
+Below is a list of tables that contains all the available props each atom contains.
+
+{% note type="info" %}Please ensure all custom classnames are valid [Tailwind CSS](https://tailwindcss.com/) classnames.{% /note %}
+
+### 1. Google calendar connect atom
+
+{% atomTable atom="google calendar" /%}
+
+### 2. Outlook calendar connect atom
+
+{% atomTable atom="outlook calendar" /%}
+
+### 3. Apple calendar connect atom
+
+{% atomTable atom="apple calendar" /%}
+
+### 4. Availability settings atom
+
+{% atomTable atom="availability settings" /%}
+
+### 5. Booker atom
+
+{% atomTable atom="booker" /%}
+
+{% note type="info" %}Booker embed atom shares the same prop interface as the Booker atom. Hence, you can pass in the same props to both the Booker Embed atom and the Booker atom.{% /note %}
+
+### 6. Calendar settings atom
+
+{% atomTable atom="calendar settings" /%}
+
+### 7. Destination calendar settings atom
+
+{% atomTable atom="destination calendar settings" /%}
+
+### 8. Selected calendar settings atom
+
+{% atomTable atom="selected calendar settings" /%}
+
+## Styling
+
+Below is a list of tables that contains all the available classnames that can be used for each atom.
+
+### 1. Google calendar connect atom
+
+{% classnamesTable atom="google calendar" /%}
+
+### 2. Outlook calendar connect atom
+
+{% classnamesTable atom="outlook calendar" /%}
+
+### 3. Apple calendar connect atom
+
+{% classnamesTable atom="apple calendar" /%}
+
+### 4. Availability settings atom
+
+Availability settings atom accepts custom styles via the **customClassNames** prop. All the props that we see below fall under this **customClassNames** prop.
+
+{% classnamesTable atom="availability settings" /%}
+
+### 5. Booker atom
+
+Booker atom accepts custom styles via the **customClassNames** prop. All the props that we see below fall under this **customClassNames** prop. In terms of styling there are four major classnames for the Booker, i.e. **bookerContainer**, **eventMetaCustomClassNames**, **datePickerCustomClassNames** and **availableTimeSlotsCustomClassNames**. Most of the classnames below fall under one of these sub classes.
+
+{% classnamesTable atom="booker" /%}
+
+### 6. Calendar settings atom
+
+{% classnamesTable atom="calendar settings" /%}
+
+### 7. Destination calendar settings atom
+
+{% classnamesTable atom="destination calendar settings" /%}
+
+### 8. Selected calendar settings atom
+
+{% classnamesTable atom="selected calendar settings" /%}
+
+{% note type="info" %}Please note that sometimes the custom classnames may fail to override the styling with the classnames that you might have passed via props. That is because the **clsx** utility function that we use to override classnames inside our components has some limitations. A simple get around to solve this issue is to just prefix your classnames with **!** property just before passing in any classname.{% /note %}

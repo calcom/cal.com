@@ -1,0 +1,18 @@
+---
+omitFromSearch: true
+---
+
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.startsWith('/docs/introduction/quick-start/self-hosting/installation/platform')) {
+      window.location.href = "https://cal.com/docs/platform/welcome";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

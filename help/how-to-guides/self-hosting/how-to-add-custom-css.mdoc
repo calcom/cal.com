@@ -1,0 +1,32 @@
+---
+title: "How to add custom CSS"
+---
+
+{% note type="warning" %}Adding or modifying CSS counts as changing the code, so as per [our license](https://github.com/calcom/cal.com/blob/main/LICENSE) **you must either open-source your modified version or purchase an enterprise license.**{% /note %}
+
+Cal.com uses [TailwindCSS](https://tailwindcss.com/) as a replacement for traditional CSS styling within the application, but some people prefer to add CSS styles themselves.
+
+CSS files should be stored in the `styles` directory within the codebase.
+
+Within the `styles` directory, you will find two CSS files, `fonts.css` and `global.css`. We suggest not to add to these files, and instead create new CSS files and import them into the application. This helps reduce conflicts when pulling in changes that we've made to either of the existing CSS files.
+
+### Adding new stylesheets
+
+Firstly, create the CSS file inside the `styles` directory.
+
+Then, open the `pages/_app.tsx` file, and you will see the following two lines:
+
+```js
+import "../styles/fonts.css";
+import "../styles/globals.css";
+```
+
+Duplicate one of these import statements and change the path to link to your new CSS stylesheet, like so:
+
+```js
+import "../styles/your-new-stylesheet.css";
+```
+
+{% note type="info" %}These styles will apply to all pages and components in your application.{% /note %}
+
+Due to the global nature of stylesheets, and to avoid conflicts, you may **only import them inside** **`pages/_app.tsx`**.

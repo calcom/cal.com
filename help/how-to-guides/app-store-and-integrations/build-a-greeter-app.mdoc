@@ -1,0 +1,76 @@
+---
+title: "Build a greeter app"
+---
+
+## Building a **Greeter** app
+
+**Step 1:** Create an app with the title "**Greeter".** Run the following command and provide the information it is looking for.
+
+```
+yarn app-store create
+```
+
+{% loom src="https://cdn.iframe.ly/AK13z2x"
+legend="Step-1"
+/%}
+
+**Step 2:** App is created now. Go and install it.
+
+**Step 3:** The app is installed but it doesn't do anything because we haven't written any code to make it do something. Let's add a button in the main navigation that greets the user
+
+1. Create a component `greeter/components/GreeterButton.tsx` - You can name it whatever you want.
+
+2. Import this component in `Shell.tsx` and add it wherever you want to so that the button is available on all pages.
+
+```js
+/**
+ * GreeterButton.tsx
+ * It creates a button that can be added anywhere. The button is visible only if the app is installed.
+ */
+import useApp from "@calcom/lib/hooks/useApp";
+import showToast from "@calcom/lib/notification";
+import { Button } from "@calcom/ui";
+
+import useMeQuery from "@lib/hooks/useMeQuery";
+
+export default function GreeterButton() {
+  const { data: user } = useMeQuery();
+  const { data: greeterApp } = useApp("greeter");
+  // Make sure that greeterApp is installed. We shouldn't show the button when app is not installed
+  if (!user || !greeterApp) {
+    return null;
+  }
+  return (
+    <Button
+      onClick={() => {
+        showToast("Hello, " + user.name, "success");
+      }}
+    >
+      Greet Me!
+    </Button>
+  );
+}
+```
+
+```;
+/**
+ * Shell.tsx
+ */
+// ...
+import GreeterButton from "@calcom/app-store/greeter/components/GreeterButton";
+// ...
+
+<GreeterButton />;
+```
+
+{% img src="/docs/images/i1280x250-dXnl-QuzSMbl_xydd9y.png" /%}
+
+
+A sample line where I used the component in the demo
+
+{% loom src="https://www.loom.com/embed/b0fd31cc11444799af7a6f12a01d4321"
+legend="Step-3" /%}
+
+
+
+That's it. You now have a fully functional Greeter app. This is the simplest possible demonstration of how you can build an app and what it can do. There are simply no restrictions on what an app can achieve.

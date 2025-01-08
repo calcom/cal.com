@@ -1,0 +1,37 @@
+---
+title: "Authentication"
+---
+
+The Cal.com API uses API keys to authenticate requests. You can view and manage your API keys in your settings page under the security tab in Cal.com.
+
+{% img src="/docs/images/i1600x899-DllqhV6w_3Vj_oxtjov.png" /%}
+
+API Keys are under Settings > Security
+
+Test mode secret keys have the prefix `cal_` and live mode secret keys have the prefix `cal_live_`.
+
+Your API keys carry many privileges, so be sure to keep them secure! Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.
+
+For API V1, you need to send the API KEY via URL Query Params. Provide your API key as a query param like: 
+```
+https://api.cal.com/v1/?apiKey=cal_live_xxxxxx
+```
+
+For API V2, you need to send the API key in the Authorization header using the Bearer scheme. For example, the request would go something like: 
+```
+'Authorization': 'Bearer YOUR_API_KEY'
+```
+in your request header.
+
+All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail.
+
+{% note %} 
+**For Organization or System-wide Admins:**
+
+The API Key can be created [here](https://app.cal.com/settings/developer/api-keys) and depending on the role of the user, their API scope will be settled.
+
+- **System-wide Admin**: Access to all resources system-wide
+- **Organization Owner/Admin**: Access to all resources organization-wide
+- **Non-Admin**: Access to all resources that belong to the user
+
+{% /note %}

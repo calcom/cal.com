@@ -1,0 +1,98 @@
+---
+title: "Attendees"
+---
+
+The attendees object is associated with a booking and contains information of the attendee of that booking. A single booking may contain more than one attendees.
+
+
+## Attendee Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The `id` of the attendee, generated automatically",
+        },
+        email: {
+            type: "email",
+            description: "Email of the attendee",
+        },
+        name: {
+            type: "string",
+            description: "Name of the attendee",
+        },
+        timeZone: {
+            type: "enum",
+            description: "TimeZone identifier of the attendee, must be a supported timeZone",
+        },
+        locale: {
+            type: "enum",
+            description: "Lowercase abbreviation of the locale, eg. `en`, `fr`, etc.",
+        },
+        booking: {
+            type: "Booking Object",
+            description: "The booking object linked to this attendee via the `bookingId`. Please check the [Bookings](https://cal.com/docs/enterprise-features/api/api-reference/v1/bookings) endpoint for details on the Booking Object",
+        },
+        bookingId: {
+            type: "integer",
+            description: "The `id` of the booking linked to this attendee. All attendees are linked to a booking/event they are supposed to attend or have attended",
+        },
+        bookingSeat: {
+            type: "BookingSeat Object",
+            description: "Contains Booking Seat information in case of Seated events",
+        },
+        noShow: {
+            type: "boolean",
+            description: "Whether the attendee was a no-show for the meeting/event",
+        },
+    }
+} /%}
+
+#### Example Attendee Object
+
+```js
+{
+    id: 123,
+    email: "jane.doe@example.com",
+    name: "Jane Doe",
+    timeZone: "Asia/Dubai",
+    locale: "en",
+    booking: [Booking Object],
+    bookingId: 343,
+    bookingSeat: [BookingSeat Object],
+    noShow: false,
+  }
+```
+
+
+The attendees endpoint in Cal.com's API suite allows you to CRUD the data related to **who** is attending a particular booked event. 
+
+## Find all attendees
+
+This API call lists all attendees of all the bookings of the user making the call. In case of system-wide Admins, this will return all attendees of all bookings
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/attendees" /%}
+
+## Create a new attendee
+
+This API call is used to add attendees to your existing bookings. The user making the call can only add attendees to their own bookings (where they are the hosts). If the call is made by a system-wide Admin, the attendee can be added to any booking.
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/attendees" /%}
+
+## Find an attendee
+
+This API call is used to fetch a specific attendee identified by their `id`. This is only returned if the attendee belongs to one of the bookings belonging to the user making the request.
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/attendees/{id}" /%}
+
+## Edit an existing attendee
+
+This API call is used to modify details a specific attendee identified by their `id`. This is only successful if the attendee belongs to one of the bookings belonging to the user making the request, and the request body contains acceptable data.
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/attendees/{id}" /%}
+
+## Remove an existing attendee
+
+This API call is used to remove an attendee (and unlink them from the parent booking) identified by their `id`. This is only successful if the attendee belongs to one of the bookings belonging to the user making the request.
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/attendees/{id}" /%}

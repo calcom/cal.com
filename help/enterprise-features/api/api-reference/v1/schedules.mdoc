@@ -1,0 +1,79 @@
+---
+title: Schedules
+---
+
+The schedules endpoint in Cal.com's API suite allows you to set out time blocks when you want to show availability.
+
+## Schedule Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The ID of the schedule, generated automatically"
+        },
+        user: {
+            type: "User Object",
+            description: "The user associated with the schedule"
+        },
+        userId: {
+            type: "integer",
+            description: "The ID of the user associated with the schedule"
+        },
+        eventType: {
+            type: "EventType[]",
+            description: "The event types associated with the schedule"
+        },
+        name: {
+            type: "string",
+            description: "The name of the schedule"
+        },
+        timeZone: {
+            type: "string",
+            description: "The time zone of the schedule"
+        },
+        availability: {
+            type: "Availability[]",
+            description: "The availability settings for the schedule"
+        }
+    }
+} /%}
+
+#### Example Schedule Object
+
+```js
+{
+    "id": 101,
+    "user": [User Object],
+    "userId": 1,
+    "eventType": [EventType Object[]],
+    "name": "John's Weekly Schedule",
+    "timeZone": "America/New_York",
+    "availability": [Availability Object[]]
+}
+```
+
+## Find all schedules
+
+Use this endpoint to list all schedules associated with your profile
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/schedules" /%}
+
+## Create a new schedule
+
+Use this endpoint to create a new schedule for your Cal.com account
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/schedules" /%}
+
+## Find a schedule
+
+Use this endpoint to list details of a specific schedule associated with your profile
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/schedules/{id}" /%}
+
+## Edit an existing schedule
+
+Use this endpoint to edit details of a specific schedule associated with your profile
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/schedules/{id}" /%}
+
+## Remove an existing schedule
+
+Use this endpoint to remove a specific schedule associated with your profile
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/schedules/{id}" /%}

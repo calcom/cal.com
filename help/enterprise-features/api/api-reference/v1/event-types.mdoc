@@ -1,0 +1,448 @@
+---
+title: "Event types"
+---
+
+These routes allow you to CRUD event types within Cal.com.
+
+## Event Type Object
+
+{% jsonSchemaRenderer schema={
+  properties: {
+      id: {
+          type: "integer",
+          description: "The ID of the event type, generated automatically"
+      },
+      title: {
+          type: "string",
+          description: "The title of the event type"
+      },
+      slug: {
+          type: "string",
+          description: "The slug of the event type"
+      },
+      description: {
+          type: "string",
+          description: "The description of the event type"
+      },
+      position: {
+          type: "integer",
+          description: "The position of the event type",
+      },
+      locations: {
+          type: "Locations Object[]",
+          description: "The locations for the event type. Please refer to [Locations Object](https://cal.com/docs/enterprise-features/api/api-reference/v1/event-types#locations-object-structure) for more details"
+      },
+      length: {
+          type: "integer",
+          description: "The length of the event type"
+      },
+      offsetStart: {
+          type: "integer",
+          description: "The start offset of the event type",
+          default: 0
+      },
+      hidden: {
+          type: "boolean",
+          description: "Whether the event type is hidden",
+          default: false
+      },
+      hosts: {
+          type: "Host[]",
+          description: "The hosts associated with the event type"
+      },
+      users: {
+          type: "User[]",
+          description: "The users associated with the event type",
+          relation: "user_eventtype"
+      },
+      owner: {
+          type: "User Object",
+          description: "The owner of the event type",
+          relation: "owner"
+      },
+      userId: {
+          type: "integer",
+          description: "The ID of the user who owns the event type"
+      },
+      profileId: {
+          type: "integer",
+          description: "The ID of the profile associated with the event type"
+      },
+      profile: {
+          type: "Profile Object",
+          description: "The profile associated with the event type"
+      },
+      team: {
+          type: "Team Object",
+          description: "The team associated with the event type"
+      },
+      teamId: {
+          type: "integer",
+          description: "The ID of the team associated with the event type"
+      },
+      hashedLink: {
+          type: "HashedLink Object",
+          description: "The hashed link associated with the event type"
+      },
+      bookings: {
+          type: "Booking[]",
+          description: "The bookings associated with the event type"
+      },
+      availability: {
+          type: "Availability[]",
+          description: "The availability for the event type"
+      },
+      webhooks: {
+          type: "Webhook[]",
+          description: "The webhooks associated with the event type"
+      },
+      destinationCalendar: {
+          type: "DestinationCalendar Object",
+          description: "The destination calendar associated with the event type"
+      },
+      eventName: {
+          type: "string",
+          description: "The name of the event"
+      },
+      customInputs: {
+          type: "EventTypeCustomInput[]",
+          description: "Custom inputs for the event type"
+      },
+      parentId: {
+          type: "integer",
+          description: "The ID of the parent event type"
+      },
+      parent: {
+          type: "EventType Object",
+          description: "The parent event type",
+          relation: "managed_eventtype"
+      },
+      children: {
+          type: "EventType[]",
+          description: "The child event types",
+          relation: "managed_eventtype"
+      },
+      bookingFields: {
+          type: "json",
+          description: "Booking fields for the event type"
+      },
+      timeZone: {
+          type: "string",
+          description: "Time zone of the event type"
+      },
+      periodType: {
+          type: "PeriodType",
+          description: "The period type of the event type",
+          default: "UNLIMITED"
+      },
+      periodStartDate: {
+          type: "DateTime",
+          description: "The start date of the period"
+      },
+      periodEndDate: {
+          type: "DateTime",
+          description: "The end date of the period"
+      },
+      periodDays: {
+          type: "integer",
+          description: "Number of days in the period"
+      },
+      periodCountCalendarDays: {
+          type: "boolean",
+          description: "Whether the period counts calendar days"
+      },
+      lockTimeZoneToggleOnBookingPage: {
+          type: "boolean",
+          description: "Whether the time zone toggle is locked on the booking page",
+          default: false
+      },
+      requiresConfirmation: {
+          type: "boolean",
+          description: "Whether the event type requires confirmation",
+          default: false
+      },
+      requiresBookerEmailVerification: {
+          type: "boolean",
+          description: "Whether the event type requires email verification",
+          default: false
+      },
+      recurringEvent: {
+          type: "json",
+          description: "Recurring event settings"
+      },
+      disableGuests: {
+          type: "boolean",
+          description: "Whether guests are disabled for the event type",
+          default: false
+      },
+      hideCalendarNotes: {
+          type: "boolean",
+          description: "Whether calendar notes are hidden",
+          default: false
+      },
+      minimumBookingNotice: {
+          type: "integer",
+          description: "Minimum booking notice",
+          default: 120
+      },
+      beforeEventBuffer: {
+          type: "integer",
+          description: "Buffer time before the event",
+          default: 0
+      },
+      afterEventBuffer: {
+          type: "integer",
+          description: "Buffer time after the event",
+          default: 0
+      },
+      seatsPerTimeSlot: {
+          type: "integer",
+          description: "Seats available per time slot"
+      },
+      onlyShowFirstAvailableSlot: {
+          type: "boolean",
+          description: "Whether to only show the first available slot",
+          default: false
+      },
+      seatsShowAttendees: {
+          type: "boolean",
+          description: "Whether to show attendees in the seats",
+          default: false
+      },
+      seatsShowAvailabilityCount: {
+          type: "boolean",
+          description: "Whether to show the availability count in the seats",
+          default: true
+      },
+      schedulingType: {
+          type: "SchedulingType",
+          description: "The scheduling type of the event type"
+      },
+      schedule: {
+          type: "Schedule Object",
+          description: "The schedule associated with the event type"
+      },
+      scheduleId: {
+          type: "integer",
+          description: "The ID of the schedule associated with the event type"
+      },
+      price: {
+          type: "integer",
+          description: "Price of the event type",
+          default: 0
+      },
+      currency: {
+          type: "string",
+          description: "Currency of the event type",
+          default: "usd"
+      },
+      slotInterval: {
+          type: "integer",
+          description: "Slot interval of the event type"
+      },
+      metadata: {
+          type: "json",
+          description: "Metadata of the event type"
+      },
+      successRedirectUrl: {
+          type: "string",
+          description: "URL to redirect to upon successful booking"
+      },
+      forwardParamsSuccessRedirect: {
+          type: "boolean",
+          description: "Whether to forward parameters to the success redirect URL",
+          default: true
+      },
+      workflows: {
+          type: "WorkflowsOnEventTypes[]",
+          description: "Workflows associated with the event type"
+      },
+      bookingLimits: {
+          type: "json",
+          description: "Booking limits for the event type"
+      },
+      durationLimits: {
+          type: "json",
+          description: "Duration limits for the event type"
+      },
+      isInstantEvent: {
+          type: "boolean",
+          description: "Whether the event type is an instant event",
+          default: false
+      },
+      instantMeetingExpiryTimeOffsetInSeconds: {
+          type: "integer",
+          description: "Expiry time offset for instant meetings in seconds",
+          default: 90
+      },
+      assignAllTeamMembers: {
+          type: "boolean",
+          description: "Whether to assign all team members to the event type",
+          default: false
+      },
+      useEventTypeDestinationCalendarEmail: {
+          type: "boolean",
+          description: "Whether to use event type destination calendar email",
+          default: false
+      },
+      aiPhoneCallConfig: {
+          type: "AIPhoneCallConfiguration Object",
+          description: "AI phone call configuration for the event type"
+      },
+      secondaryEmailId: {
+          type: "integer",
+          description: "ID of the secondary email associated with the event type"
+      },
+      secondaryEmail: {
+          type: "SecondaryEmail Object",
+          description: "Secondary email associated with the event type"
+      }
+    }
+  }
+/%}
+
+#### Locations Object Structure
+
+The locations object defines the options for meeting location in the form of an array of objects. [booking questions](https://cal.com/docs/core-features/event-types/booking-questions). 
+
+An example of this for `zoom` & `google meet` as event type location options would be:
+
+```javascript
+    {
+        ...,
+        "locations": [{
+            "type": "integrations:zoom",
+        },
+        {
+            "type": "integrations:google:meet",
+        }],
+        ...,
+    }
+```
+
+Depending on the location selected, the location object can be one of the
+
+
+#### Example Event Types Object
+
+```js
+{
+    "id": 123,
+    "title": "Team Meeting",
+    "slug": "team-meeting",
+    "description": "Weekly sync-up meeting for the team.",
+    "position": 1,
+    "locations": [Locations Object],
+    "length": 60,
+    "offsetStart": 5,
+    "hidden": false,
+    "hosts": [Host Object[]],
+    "users": [User Object[]],
+    "owner": [User Object],
+    "userId": 1,
+    "profileId": 10,
+    "profile": [Profile Object],
+    "team": [Team Object],
+    "teamId": 20,
+    "hashedLink": {
+        "hash": "abc123",
+        "url": "https://example.com/event/abc123"
+    },
+    "bookings": [Bookings Object[]],
+    "availability": [Availability Object[]],
+    "webhooks": [Webhooks Object[]],
+    "destinationCalendar": [Destination Calendar Object],
+    "eventName": "Team Sync",
+    "parentId": 122,
+    "parent": [Parent EventType Object],
+    "children": [Children EventType Object[]],
+    "bookingFields": [Booking Fields Objects[]],
+    "timeZone": "America/New_York",
+    "periodType": "LIMITED",
+    "periodStartDate": "2024-01-01T00:00:00Z",
+    "periodEndDate": "2024-12-31T23:59:59Z",
+    "periodDays": 365,
+    "periodCountCalendarDays": true,
+    "lockTimeZoneToggleOnBookingPage": true,
+    "requiresConfirmation": true,
+    "requiresBookerEmailVerification": false,
+    "recurringEvent": {},
+    "disableGuests": false,
+    "hideCalendarNotes": false,
+    "minimumBookingNotice": 24,
+    "beforeEventBuffer": 10,
+    "afterEventBuffer": 10,
+    "seatsPerTimeSlot": 10,
+    "onlyShowFirstAvailableSlot": true,
+    "seatsShowAttendees": true,
+    "seatsShowAvailabilityCount": true,
+    "schedulingType": "fixed",
+    "schedule": [Schedule Object],
+    "scheduleId": 500,
+    "price": 100,
+    "currency": "usd",
+    "slotInterval": 30,
+    "metadata": {},
+    "successRedirectUrl": "https://example.com/thank-you",
+    "forwardParamsSuccessRedirect": true,
+    "workflows": [Workflows Object[]],
+    "bookingLimits": {},
+    "durationLimits": {},
+    "isInstantEvent": false,
+    "instantMeetingExpiryTimeOffsetInSeconds": 120,
+    "assignAllTeamMembers": false,
+    "useEventTypeDestinationCalendarEmail": false,
+    "aiPhoneCallConfig": {},
+    "secondaryEmailId": 50,
+    "secondaryEmail": [Secondary Email Object]
+}
+
+```
+
+## Find all event types
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/event-types" /%}
+
+## Find all team event types
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/teams/{teamId}/event-types" /%}
+
+## Create a new event type
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/event-types" /%}
+
+### Managed Event Types
+
+To create a Managed Event Type via API, pass in a request of similar structure as a team event type, except the following:
+  - `schedulingType` should be set to `MANAGED`
+  - `metadata` should contain something like
+  ```js
+      {
+        "config": {
+          "useHostSchedulesForTeamEvent": false
+        },
+        "managedEventConfig": {
+          "unlockedFields": {
+            "locations": true,
+            "scheduleId": true,
+            "destinationCalendar": true
+          }
+        }
+      }
+  ```
+This should create a parent event type of scheduling type `MANAGED`. Next, create a child event type which essentially connects to this parent event-type, but is of an individual user instead of being a team event. The request should be pretty much the same, except without a `teamId` or `schedulingType` and with a `userId`.
+
+
+## Find an event type
+
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+## Edit an existing event type
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+## Remove an existing event type
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/event-types/{id}" /%}
+
+

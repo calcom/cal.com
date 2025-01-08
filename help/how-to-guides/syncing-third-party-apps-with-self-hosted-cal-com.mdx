@@ -1,0 +1,18 @@
+---
+omitFromSearch: true
+---
+
+import { useEffect } from "react"
+
+export const Redirect = () => {
+  useEffect(() => {
+    {/* Only perform the redirect on the published site (no need in the preview) */}
+    if (window.location.pathname?.startsWith('/docs/how-to-guides/syncing-third-party-apps-with-self-hosted-cal-com')) {
+      window.location.href = "https://cal.com/docs/how-to-guides/app-store-and-integrations/syncing-third-party-apps-with-self-hosted-cal-com";
+    }
+  }, [])
+  
+  return <></>
+}
+
+<Redirect />

@@ -1,0 +1,118 @@
+---
+title: "Availabilities"
+---
+
+The availabilities object is associated with the general availability of the user. An availability is used in relation to the user's schedule, which can also be managed via API in the [Schedules](https://cal.com/docs/enterprise-features/api/api-reference/v1/schedules) endpoint.
+
+A general flow of setting up an availability via API V1 would require the user to:
+
+1. Create an availability using the POST request to this endpoint.
+2. Take note of the `id` from the response of the POST request.
+3. Create a schedule (or use an existing schedule) in the Schedules endpoint making sure to use the `id` received in step 2.
+
+{% note %}
+The freebusy data is superimposed on their availability by their calendar integrations and are handled within their integrated calendars, thus they cannot be managed in this endpoint.
+{% /note %}
+
+## Availability Object
+
+{% jsonSchemaRenderer schema={
+    properties: {
+        id: {
+            type: "integer",
+            description: "The `id` of the availability, generated automatically",
+        },
+        user: {
+            type: "User Object",
+            description: "The User Object linked to this availability via the `userId`. Please check the [Users](https://cal.com/docs/enterprise-features/api/api-reference/v1/users) endpoint for details on the User Object",
+        },
+        userId: {
+            type: "integer",
+            description: "The `id` of the user used to connect the User Object",
+        },
+        eventType: {
+            type: "EventType Object",
+            description: "The EventType Object linked to this availability via the `eventTypeId`. Please check the [EventTypes](https://cal.com/docs/enterprise-features/api/api-reference/v1/event-types) endpoint for details on the EventType Object",
+        },
+        eventTypeId: {
+            type: "integer",
+            description: "The `id` of the event type used to connect the EventType Object",
+        },
+        days: {
+            "type": "array",
+            "items": {
+                "type": "integer",
+                "enum": [0, 1, 2, 3, 4, 5, 6]
+            },
+            description: "Array of integers (0-6) representing days of the week, where 0=Sunday and 6=Saturday.",
+        },
+        startTime: {
+            type: "DateTime",
+            description: "The start of the availability of the user on defined `days`. Ex: 1970-01-01T09:00:00.000Z where only the time is considered, so in this example the start time is 09:00:000Z.",
+        },
+        endTime: {
+            type: "DateTime",
+            description: "The end of the availability of the user on defined `days`. Ex: 1970-01-01T17:00:00.000Z where only the time is considered, so in this example the start time is 17:00:000Z.",
+        },
+        date: {
+            type: "DateTime",
+            description: "This represents date override and the entire DateTime value is considered. ([Learn more about Date Overrides](https://cal.com/docs/core-features/availability/date-overrides))",
+        },
+        Schedule: {
+            type: "Schedule Object",
+            description: "The Schedule Object linked to this availability via the `scheduleId`. Please check the [Schedules](https://cal.com/docs/enterprise-features/api/api-reference/v1/schedules) endpoint for details on the Schedule Object",
+        },
+        scheduleId: {
+            type: "integer",
+            description: "The `id` of the event type used to connect the Schedule Object",
+        },
+    }
+} /%}
+
+#### Example Availability Object
+
+```js
+{
+    "availability": {
+        "id": 1234567,
+        "startTime": "1970-01-01T09:00:00.000Z",
+        "endTime": "1970-01-01T17:00:00.000Z",
+        "date": null,
+        "scheduleId": 3456,
+        "days": [
+            1,
+            2,
+            3,
+            4,
+            5
+        ],
+        "Schedule": {
+            "userId": 444
+        }
+    }
+}
+```
+
+
+The availabilities endpoint in Cal.com's API suite allows you to map schedules to an event type.
+
+## Create a new availability
+
+Use this endpoint to create a new availability and link to an existing schedule.
+
+{% openapidoc method="POST" url="https://api.cal.com/docs" path="/availabilities" /%}
+
+## Find an availability
+
+This endpoint can be used to fetch an existing availability by the availability `id`.
+{% openapidoc method="GET" url="https://api.cal.com/docs" path="/availabilities/{id}" /%}
+
+## Edit an existing availability
+
+This endpoint can be used to modify an existing availability such as linking to a different schedule, or changing the days and times of the availability.
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/availabilities/{id}" /%}
+
+## Remove an existing availability
+
+This endpoint is used to delete an existing availability that is no longer needed. **Once deleted, this cannot be undone**.
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/availabilities/{id}" /%}

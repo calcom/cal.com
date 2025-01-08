@@ -1,0 +1,89 @@
+---
+title: Documentation
+description: Welcome to the official Cal.com docs. To help get you started, we've put together a few resources to help you learn about how to use Cal.com. We have also provided advanced documentation covering how to build on top of Cal.com both in the codebase, by API and more. These guides will go into depth on how you can best integrate and extend Cal.com for your needs.
+hugeTitle: true
+fullWidth: true
+omitFeedback: true
+---
+
+import { Button } from "@components/uicomp/button"
+import { PlainCard } from "@components/common-alt/plaincard"
+import { Discord } from "@components/icons-alt/discord"
+import { GitHub } from "@components/icons-alt/github"
+import { Twitter } from "@components/icons-alt/twitter"
+import config from "@project-config"
+
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mt-12">
+  <div>
+    ## Quick start
+
+    Feeling like an eager beaver? Jump in to the quick start docs and get making your first request:
+
+    <div className="flex">
+      <Button size="smb" variant="pill" href="/docs/introduction/quick-start">
+        Get started
+      </Button>
+    </div>
+  </div>
+  <div className="col-span-2">
+    <img className="border border-neutral-100 rounded-md overflow-hidden" src="/docs/images/i1436x808-0nKukNzRRdrO_pyvmqa.png" />
+  </div>
+</div>
+
+
+## Core Features
+
+If you would like to get right into exploring our core features which are available to you for free, you can head straight to our Core Features section:
+
+    <div className="flex">
+      <Button size="smb" variant="pill" href="/docs/core-features/event-types">
+        Explore
+      </Button>
+    </div>
+
+## Enterprise Features
+
+Cal.com offers a variety of premium features which can be accessed through aquiring the enterprise license. To get an idea of what you get in return for the enterprise license, you can head to our Enterprise Features section:
+
+    <div className="flex">
+      <Button size="smb" variant="pill" href="/docs/enterprise-features/teams">
+        Explore
+      </Button>
+    </div>
+
+
+## Cal.com API
+
+The Cal.com API is a REST-styled API that gives full control over the entire Cal.com platform by providing all the resources available to our customers, exposed as simple HTTP endpoints.
+The Cal.com API is organized around REST. Our API has predictable resource-oriented URLs, accepts JSON-encoded request bodies, returns JSON-encoded responses, and uses standard HTTP response codes, authentication, and verbs.
+
+
+### Want to deep dive?
+
+Dive a little deeper and start exploring our API reference to get an idea of everything that's possible with the API:
+
+<Button size="smb" variant="pill" href="/docs/enterprise-features/api/api-reference">API Reference →</Button>
+
+
+## Join the community
+
+<div className="not-prose grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mt-6">
+    <PlainCard
+      href={config?.links?.discord}
+      cta="Join Discord"
+      description="Ask questions, give feedback, contribute"
+      customBackground="#141414"
+      Icon={Discord} />
+    <PlainCard
+      href={config?.links?.twitter}
+      cta="Follow on Twitter"
+      description="Follow for releases, announcements, demos"
+      customBackground="#141414"
+      Icon={Twitter} />
+    <PlainCard
+      href={config?.links?.github}
+      cta="Fork us on GitHub"
+      description="Get access to the full Cal.com source code"
+      customBackground="#141414"
+      Icon={GitHub} />
+</div>

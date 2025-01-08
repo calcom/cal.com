@@ -1,0 +1,175 @@
+---
+title: "Allowing Bookings That Meet a Custom Internal Criteria"
+---
+
+This guide will walk you through a process of creating a robust system for managing event bookings. The system will evaluate each booking against custom-defined internal criteria, and allow or reject the booking accordingly. The process makes use of webhooks and API calls to efficiently manage and update booking status in real-time.
+
+Let's say, you are managing bookings for an Executive Book Club working with an internal credit based system. The idea is to only allow or confirm bookings when the booker has enough credit to his name in the internal system.
+
+**Step 1: Define Your Booking and Criteria Models**
+
+Create a cal.com event type with the following customizations:
+
+{% img
+src="/docs/images/i1600x900-4QPYQbLxNfhM_h61gn0.png"
+legend="An event type that requires confirmation"
+ /%}
+
+ This would ensure that any booking made using this event-type would first need to be confirmed by the host, which in this case is the internal automated system.
+
+**Step 2: Setting Up a Webhook for Booking Creation Events**
+
+Next, you need to setup a webhook so that when an event or a meeting is booked, it will send the payload (including the information of the booker) to a desired subscriber URL, which is where you would handle the internal criterion to decide whether to **confirm** the booking or **reject** it.
+
+{% img src="/docs/images/i1600x899-ft-Tc1-rtnzD_nijrmb.png" /%}
+
+{% note %}
+Please ensure that you have enabled this webhook and the subscriber URL here. Also, please make sure it is the location/URL where you handle the payload and further processing.
+{% /note %}
+
+The default payload is generally of the following format:
+
+```
+{
+    "triggerEvent": "BOOKING_CREATED",
+    "createdAt": "2023-05-24T09:30:00.538Z",
+    "payload": {
+        "type": "60min",
+        "title": "60min between Pro Example and John Doe",
+        "description": "",
+        "additionalNotes": "",
+        "customInputs": {},
+        "startTime": "2023-05-25T09:30:00Z",
+        "endTime": "2023-05-25T10:30:00Z",
+        "organizer": {
+            "id": 5,
+            "name": "Pro Example",
+            "email": "pro@example.com",
+            "username": "pro",
+            "timeZone": "Asia/Kolkata",
+            "language": {
+                "locale": "en"
+            },
+            "timeFormat": "h:mma"
+        },
+        "responses": {
+            "name": {
+                "label": "your_name",
+                "value": "John Doe"
+            },
+            "email": {
+                "label": "email_address",
+                "value": "john.doe@example.com"
+            },
+            "location": {
+                "label": "location",
+                "value": {
+                    "optionValue": "",
+                    "value": "inPerson"
+                }
+            },
+            "notes": {
+                "label": "additional_notes"
+            },
+            "guests": {
+                "label": "additional_guests"
+            },
+            "rescheduleReason": {
+                "label": "reschedule_reason"
+            }
+        },
+        "userFieldsResponses": {},
+        "attendees": [
+            {
+                "email": "john.doe@example.com",
+                "name": "John Doe",
+                "timeZone": "Asia/Kolkata",
+                "language": {
+                    "locale": "en"
+                }
+            }
+        ],
+        "location": "Calcom HQ",
+        "destinationCalendar": {
+            "id": 10,
+            "integration": "apple_calendar",
+            "externalId": "https://caldav.icloud.com/1234567/calendars/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/",
+            "userId": 5,
+            "eventTypeId": null,
+            "credentialId": 1
+        },
+        "hideCalendarNotes": false,
+        "requiresConfirmation": null,
+        "eventTypeId": 7,
+        "seatsShowAttendees": true,
+        "seatsPerTimeSlot": null,
+        "uid": "bFJeNb2uX8ANpT3JL5EfXw",
+        "appsStatus": [
+            {
+                "appName": "Apple Calendar",
+                "type": "apple_calendar",
+                "success": 1,
+                "failures": 0,
+                "errors": [],
+                "warnings": []
+            }
+        ],
+        "eventTitle": "60min",
+        "eventDescription": "",
+        "price": 0,
+        "currency": "usd",
+        "length": 60,
+        "bookingId": 91,
+        "metadata": {},
+        "status": "ACCEPTED"
+    }
+}
+```
+**Step 3: Create a webhook handler**
+
+Your subscriber URL that receives the webhook payload needs to handle it.
+
+When a request comes in, the handler retrieves the booking details from the request body. It then fetches the user details based on the "responses" field in the booking and checks if the user meets the internal criteria. If they do, the handler makes a **PATCH** request to the /bookings API to update the status of the booking to **ACCEPTED**. If not, the booking status is updated to **REJECTED**. We can explore this in the next step.
+
+**Step 4: Updating the booking status automatically**
+
+Finally, you can update the booking status from step 3 by sending API calls to:
+```
+{{URL}}/v1/bookings/{id}
+```
+
+{% note %}
+Please make sure to replace {{URL}} with your own custom base URL if you are self-hosting the API, or by https://api.cal.com/ if you are on cal.com cloud. Also, replace {id} with the bookingId you receive in the webhook payload.
+{% /note %}
+
+Let's say the booker fulfils the criteria required for a successful booking, you can send the following API call with the status as "ACCEPTED":
+
+{% openapidoc method="PATCH" url="https://api.cal.com/docs" path="/bookings/{id}" /%}
+
+On the other hand, if your internal system decides that the required criteria is not met, you can simply cancel the meeting request by sending the following API call:
+
+{% openapidoc method="DELETE" url="https://api.cal.com/docs" path="/bookings/{id}/cancel" /%}
+
+That's it.
+
+### A step by step top-level representation of the booking criteria verification and status update
+
+**Step 1**: Receive a request from the webhook.
+
+**Step 2**: Extract the body of the request. The body will contain the booking details.
+
+**Step 3**: Based on the booking details, extract the identifier for the user who made the booking.
+
+**Step 4**: Use the extracted user identifier to fetch detailed information about the user from your internal database or system.
+
+**Step 5**: Once user details are fetched, verify the user against your defined internal criteria.
+
+**Step 6**: If the user meets the internal criteria:
+
+1. Prepare a PATCH request for the `/bookings/{id}` API endpoint. This request should contain the booking identifier and a status of `ACCEPTED`.
+2. Send the PATCH request to the API.
+
+**Step 7**: If the user does not meet the internal criteria:
+- Send the DELETE request for the `/bookings/{id}/cancel` API endpoint. You may provide a cancellation ```reason``` and automate it for clarity.
+
+{% note %} Always ensure that you handle any exceptions or errors that may occur during these steps, such as the inability to fetch user details or failure to send a PATCH request. This is crucial to maintaining the reliability and robustness of your application. {% /note %}
