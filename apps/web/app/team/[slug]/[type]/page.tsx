@@ -18,24 +18,16 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData, isBrandingHidden } = props;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
-  const event = await EventRepository.getPublicEvent({
-    username,
-    eventSlug,
-    isTeamEvent: true,
-    org: isValidOrgDomain ? currentOrgDomain : null,
-    fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
-  });
-
   return await generateEventBookingPageMetadata({
     profile: {
-      name: event?.profile?.name ?? "",
-      image: event?.profile.image ?? "",
+      name: eventData?.profile?.name ?? "",
+      image: eventData?.profile.image ?? "",
     },
     event: {
-      title: event?.title ?? "",
-      hidden: event?.hidden ?? false,
+      title: eventData?.title ?? "",
+      hidden: eventData?.hidden ?? false,
       users: [
-        ...(event?.users || []).map((user) => ({
+        ...(eventData?.users || []).map((user) => ({
           name: `${user.name}`,
           username: `${user.username}`,
         })),

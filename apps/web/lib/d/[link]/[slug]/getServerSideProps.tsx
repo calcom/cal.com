@@ -121,6 +121,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,

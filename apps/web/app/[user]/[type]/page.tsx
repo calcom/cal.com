@@ -18,26 +18,17 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug, isSEOIndexable, eventData, isBrandingHidden } = props;
+  const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
   const rescheduleUid = booking?.uid;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
-  const event = await EventRepository.getPublicEvent({
-    username,
-    eventSlug,
-    isTeamEvent: false,
-    org: isValidOrgDomain ? currentOrgDomain : null,
-    fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
-  });
-
-  const profileName = event?.profile?.name ?? "";
-  const profileImage = event?.profile.image;
-  const title = event?.title ?? "";
+  const profileName = eventData?.profile?.name ?? "";
+  const profileImage = eventData?.profile.image;
+  const title = eventData?.title ?? "";
   const metadata = await generateEventBookingPageMetadata({
     event: {
-      hidden: event?.hidden ?? false,
+      hidden: eventData?.hidden ?? false,
       title,
-      users: event?.users ?? [],
+      users: eventData?.users ?? [],
     },
     hideBranding: isBrandingHidden,
     orgSlug: eventData?.entity.orgSlug ?? null,
