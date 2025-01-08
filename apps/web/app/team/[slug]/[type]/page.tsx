@@ -4,9 +4,6 @@ import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadat
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EventRepository } from "@calcom/lib/server/repository/event";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
@@ -15,8 +12,7 @@ import LegacyPage, { type PageProps as LegacyPageProps } from "~/team/type-view"
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData, isBrandingHidden } = props;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
+  const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
 
   return await generateEventBookingPageMetadata({
     profile: {
