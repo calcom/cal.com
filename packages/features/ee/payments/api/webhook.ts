@@ -18,6 +18,7 @@ import { handlePaymentSuccess } from "@calcom/lib/payment/handlePaymentSuccess";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["[paymentWebhook]"] });
 
@@ -75,9 +76,10 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   if (!requiresConfirmation) {
     const allCredentials = await getAllCredentials(user, eventType);
 
+    const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
     const eventManager = new EventManager(
       { ...user, credentials: allCredentials },
-      eventType?.metadata?.apps
+      metadata?.apps
     );
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };

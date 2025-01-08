@@ -13,11 +13,12 @@ import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
-import type { Prisma, Booking, BookingReference } from "@calcom/prisma/client";
+import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -76,7 +77,7 @@ function extractAdditionalInformation(result: {
 async function updateBookingLocationInDb({
   booking,
   evt,
-  referencesToCreate,
+  references,
 }: {
   booking: {
     id: number;
@@ -84,11 +85,18 @@ async function updateBookingLocationInDb({
     responses: Booking["responses"];
   };
   evt: Ensure<CalendarEvent, "location">;
-  referencesToCreate: Prisma.BookingReferenceCreateInput[];
+  references: PartialReference[];
 }) {
   const bookingMetadataUpdate = {
     videoCallUrl: getVideoCallUrlFromCalEvent(evt),
   };
+  const referencesToCreate = references.map((reference) => {
+    const { credentialId, ...restReference } = reference;
+    return {
+      ...restReference,
+      ...(credentialId && credentialId > 0 ? { credentialId } : {}),
+    };
+  });
 
   await prisma.booking.update({
     where: {
@@ -272,7 +280,7 @@ export async function editLocationHandler({ ctx, input }: EditLocationOptions) {
   await updateBookingLocationInDb({
     booking,
     evt: { ...evt, additionalInformation },
-    referencesToCreate: updatedResult.referencesToCreate,
+    references: updatedResult.referencesToCreate,
   });
 
   try {

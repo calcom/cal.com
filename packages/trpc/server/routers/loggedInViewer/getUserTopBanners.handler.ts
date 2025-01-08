@@ -27,7 +27,7 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
 
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,
-    ctx.user.selectedCalendars,
+    ctx.user.userLevelSelectedCalendars,
     ctx.user.destinationCalendar?.externalId
   );
 

@@ -22,6 +22,7 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
+import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 type CredentialForCalendarService<T> = T extends null
@@ -259,20 +260,50 @@ const cleanIntegrationKeys = (
   return rest;
 };
 
+/**
+ * Get months between given dates
+ * @returns ["2023-04", "2024-05"]
+ */
+const getMonths = (dateFrom: string, dateTo: string): string[] => {
+  const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
+  for (
+    let i = 1;
+    dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
+    dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
+    i++
+  ) {
+    months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
+  }
+  return months;
+};
+
 export const getBusyCalendarTimes = async (
-  username: string,
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
-  selectedCalendars: SelectedCalendar[]
+  selectedCalendars: SelectedCalendar[],
+  shouldServeCache?: boolean,
+  includeTimeZone?: boolean
 ) => {
-  let results: EventBusyDate[][] = [];
+  let results: (EventBusyDate & { timeZone?: string })[][] = [];
+  // const months = getMonths(dateFrom, dateTo);
   try {
     // Subtract 11 hours from the start date to avoid problems in UTC- time zones.
     const startDate = dayjs(dateFrom).subtract(11, "hours").format();
     // Add 14 hours from the start date to avoid problems in UTC+ time zones.
     const endDate = dayjs(dateTo).endOf("month").add(14, "hours").format();
-    results = await getCalendarsEvents(withCredentials, startDate, endDate, selectedCalendars);
+
+    if (includeTimeZone) {
+      results = await getCalendarsEventsWithTimezones(withCredentials, startDate, endDate, selectedCalendars);
+    } else {
+      results = await getCalendarsEvents(
+        withCredentials,
+        startDate,
+        endDate,
+        selectedCalendars,
+        shouldServeCache
+      );
+    }
   } catch (e) {
     log.warn(safeStringify(e));
   }

@@ -11,8 +11,8 @@ import type { TSetDestinationCalendarInputSchema } from "./setDestinationCalenda
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
-  selectedCalendars: SessionUser["selectedCalendars"];
   email: SessionUser["email"];
+  userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
 };
 
 type SetDestinationCalendarOptions = {
@@ -27,8 +27,10 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
   const { integration, externalId, eventTypeId } = input;
   const credentials = await getUsersCredentials(user);
   const calendarCredentials = await getCalendarCredentials(credentials);
-  const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-
+  const { connectedCalendars } = await getConnectedCalendars(
+    calendarCredentials,
+    user.userLevelSelectedCalendars
+  );
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
   const calendar = allCals.find(

@@ -61,6 +61,8 @@ describe("rateLimitApiKey middleware", () => {
       reset: Date.now(),
     };
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     (checkRateLimitAndThrowError as any).mockImplementationOnce(({ onRateLimiterResponse }) => {
       onRateLimiterResponse(rateLimiterResponse);
     });
