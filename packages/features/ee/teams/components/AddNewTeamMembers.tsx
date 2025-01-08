@@ -26,14 +26,14 @@ import {
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 
-const AddNewTeamMembers = () => {
+const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
   const searchParams = useCompatSearchParams();
   const session = useSession();
   const telemetry = useTelemetry();
 
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
   const teamQuery = trpc.viewer.teams.get.useQuery(
-    { teamId, isOrg: true },
+    { teamId, isOrg },
     { enabled: session.status === "authenticated" }
   );
 

@@ -1,11 +1,12 @@
 "use client";
 
-import AddNewTeamMembers from "@calcom/features/ee/teams/components/AddNewTeamMembers";
 import { WizardLayout } from "@calcom/ui";
+
+import AddNewTeamMembers from "./_components/OnboardMembersView";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={3} maxSteps={5}>
+    <WizardLayout currentStep={4} maxSteps={5}>
       {page}
     </WizardLayout>
   );

@@ -29,7 +29,7 @@ export const AboutOrganizationForm = () => {
         handleSubmit={(values) => {
           setLogo(values.logo);
           setBio(values.bio);
-          router.push(`/settings/organizations/new/onboard-members`);
+          router.push(`/settings/organizations/new/add-teams`);
         }}>
         {serverErrorMessage && (
           <div>

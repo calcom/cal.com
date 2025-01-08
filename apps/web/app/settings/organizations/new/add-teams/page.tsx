@@ -2,9 +2,9 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps } from "@calcom/features/ee/organizations/pages/organization";
+import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
 
-import LegacyPage, { LayoutWrapper } from "~/settings/organizations/[id]/add-teams-view";
+import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/add-teams-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -12,10 +12,9 @@ export const generateMetadata = async () =>
     (t) => t("create_your_teams_description")
   );
 
-const getData = withAppDirSsr(getServerSideProps);
-
 export default WithLayout({
-  Page: LegacyPage,
+  requiresLicense: true,
   getLayout: LayoutWrapper,
-  getData,
+  Page: LegacyPage,
+  getData: withAppDirSsr(getServerSideProps),
 });

@@ -1,3 +1,3 @@
 export { CreateANewOrganizationForm } from "./CreateANewOrganizationForm";
 export { AboutOrganizationForm } from "./AboutOrganizationForm";
-export { AddNewTeamsForm } from "./AddNewTeamsForm";
+export { AddNewTeamsForm } from "@calcom/web/modules/settings/organizations/new/_components/AddNewTeamsForm";

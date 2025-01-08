@@ -3,7 +3,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/organizations/new/about-view";
 
@@ -17,5 +16,5 @@ export default WithLayout({
   requiresLicense: true,
   getLayout: LayoutWrapper,
   Page: LegacyPage,
-  getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
+  getData: withAppDirSsr(getServerSideProps),
 });

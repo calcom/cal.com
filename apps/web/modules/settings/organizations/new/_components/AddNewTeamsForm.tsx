@@ -1,18 +1,24 @@
 "use client";
 
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Button, CheckboxField, Form, Icon, showToast, TextField } from "@calcom/ui";
+import {
+  Button,
+  CheckboxField,
+  Form,
+  Icon,
+  TextField,
+  SkeletonText,
+  SkeletonContainer,
+  SkeletonButton,
+} from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -34,43 +40,50 @@ const schema = z.object({
 });
 
 export const AddNewTeamsForm = () => {
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const routerQuery = useRouterQuery();
+  const { data: teams, isLoading } = trpc.viewer.teams.listOwnedTeams.useQuery();
 
-  const { id: orgId } = querySchema.parse(routerQuery);
-
-  const { data: org } = trpc.viewer.teams.get.useQuery({ teamId: orgId, isOrg: true });
-
-  if (!teams || !org) {
-    return null;
+  if (isLoading) {
+    return (
+      <SkeletonContainer as="div" className="space-y-6">
+        <div className="space-y-4">
+          <SkeletonText className="h-4 w-32" />
+          <div className="space-y-2">
+            {[...Array(2)].map((_, i) => (
+              <div key={i} className="flex items-center space-x-2">
+                <SkeletonText className="h-5 w-5" />
+                <SkeletonText className="h-8 w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-4">
+          <SkeletonText className="h-4 w-32" />
+          <div className="space-y-2">
+            {[...Array(3)].map((_, i) => (
+              <SkeletonText key={i} className="h-10 w-full" />
+            ))}
+          </div>
+        </div>
+        <SkeletonButton className="w-full" />
+      </SkeletonContainer>
+    );
   }
 
-  const orgWithRequestedSlug = {
-    ...org,
-    requestedSlug: org.metadata.requestedSlug ?? null,
-  };
-
-  const regularTeams = teams.filter((team) => !team.parentId);
-  return <AddNewTeamsFormChild org={orgWithRequestedSlug} teams={regularTeams} />;
+  return <AddNewTeamsFormChild teams={(teams ?? []).map(({ id, name, slug }) => ({ id, name, slug }))} />;
 };
 
-const AddNewTeamsFormChild = ({
-  teams,
-  org,
-}: {
-  org: { id: number; slug: string | null; requestedSlug: string | null };
-  teams: { id: number; name: string; slug: string | null }[];
-}) => {
+const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; slug: string | null }[] }) => {
   const { t } = useLocale();
   const router = useRouter();
   const [counter, setCounter] = useState(1);
+  const { slug: orgRequestedSlug, setTeams } = useOnboardingStore();
   const form = useForm({
     defaultValues: {
       teams: [{ name: "" }],
       moveTeams: teams.map((team) => ({
         id: team.id,
         shouldMove: false,
-        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: org.slug || org.requestedSlug }),
+        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: orgRequestedSlug }),
       })),
     }, // Set initial values
     resolver: async (data) => {
@@ -90,25 +103,10 @@ const AddNewTeamsFormChild = ({
       }
     },
   });
-  const session = useSession();
-  const isAdmin =
-    session.data?.user?.role === UserPermissionRole.ADMIN ||
-    session.data?.user?.impersonatedBy?.role === UserPermissionRole.ADMIN;
-
-  const allowWizardCompletionWithoutUpgrading = !IS_TEAM_BILLING_ENABLED_CLIENT || isAdmin;
   const { register, control, watch, getValues } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "teams",
-  });
-
-  const publishOrgMutation = trpc.viewer.organizations.publish.useMutation({
-    onSuccess(data) {
-      router.push(data.url);
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
   });
 
   const handleCounterIncrease = () => {
@@ -123,35 +121,29 @@ const AddNewTeamsFormChild = ({
     setCounter((prevCounter) => prevCounter - 1);
   };
 
-  const createTeamsMutation = trpc.viewer.organizations.createTeams.useMutation({
-    async onSuccess(data) {
-      if (data.duplicatedSlugs.length) {
-        showToast(t("duplicated_slugs_warning", { slugs: data.duplicatedSlugs.join(", ") }), "warning");
-        // Server will return array of duplicated slugs, so we need to wait for user to read the warning
-        // before pushing to next page
-        setTimeout(() => handleSuccessRedirect, 3000);
-      } else {
-        handleSuccessRedirect();
-      }
-
-      function handleSuccessRedirect() {
-        if (allowWizardCompletionWithoutUpgrading) {
-          router.push(`/event-types`);
-          return;
-        }
-        // mutate onSuccess will take care of routing to the correct place.
-        publishOrgMutation.mutate();
-      }
-    },
-    onError: (error) => {
-      showToast(t(error.message), "error");
-    },
-  });
-
   const handleFormSubmit = () => {
     const fields = getValues("teams");
     const moveTeams = getValues("moveTeams");
-    createTeamsMutation.mutate({ orgId: org.id, moveTeams, teamNames: fields.map((field) => field.name) });
+
+    const teamsBeingMoved = moveTeams.map((team) => {
+      return {
+        id: team.id,
+        isBeingMigrated: team.shouldMove,
+        slug: team.newSlug,
+      };
+    });
+
+    const newTeams = fields.map((team) => {
+      return {
+        id: -1,
+        isBeingMigrated: false,
+        slug: getSuggestedSlug({ teamSlug: team.name, orgSlug: orgRequestedSlug }),
+        name: team.name,
+      };
+    });
+
+    setTeams([...teamsBeingMoved, ...newTeams]);
+    router.push(`/settings/organizations/new/onboard-members`);
   };
 
   const moveTeams = watch("moveTeams");
@@ -227,7 +219,6 @@ const AddNewTeamsFormChild = ({
           <Button
             StartIcon="plus"
             color="secondary"
-            disabled={createTeamsMutation.isPending}
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
             className="my-1">
@@ -239,9 +230,8 @@ const AddNewTeamsFormChild = ({
           color="primary"
           className="mt-6 w-full justify-center"
           data-testId="continue_or_checkout"
-          disabled={createTeamsMutation.isPending || createTeamsMutation.isSuccess}
           onClick={handleFormSubmit}>
-          {allowWizardCompletionWithoutUpgrading ? t("continue") : t("checkout")}
+          {t("continue")}
         </Button>
       </Form>
     </>
