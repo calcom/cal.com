@@ -24,7 +24,6 @@ import type { EventResult } from "@calcom/types/EventManager";
 import getCalendarsEvents from "./getCalendarsEvents";
 import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
-const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 type CredentialForCalendarService<T> = T extends null
   ? null
   : T & {
@@ -36,6 +35,8 @@ type CredentialForCalendarService<T> = T extends null
         };
       } | null;
     };
+
+const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 function _buildDelegatedTo({
   domainWideDelegation,
@@ -144,10 +145,6 @@ export const getCalendarCredentials = async (credentials: Array<CredentialPayloa
       : [];
   });
 
-  console.log("calendarCredentials", {
-    calendarCredentials: JSON.stringify(calendarCredentials),
-    credentials: JSON.stringify(credentials),
-  });
   return calendarCredentials;
 };
 
@@ -256,23 +253,6 @@ const cleanIntegrationKeys = (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { credentials, credential, ...rest } = appIntegration;
   return rest;
-};
-
-/**
- * Get months between given dates
- * @returns ["2023-04", "2024-05"]
- */
-const getMonths = (dateFrom: string, dateTo: string): string[] => {
-  const months: string[] = [dayjs(dateFrom).format("YYYY-MM")];
-  for (
-    let i = 1;
-    dayjs(dateFrom).add(i, "month").isBefore(dateTo) ||
-    dayjs(dateFrom).add(i, "month").isSame(dateTo, "month");
-    i++
-  ) {
-    months.push(dayjs(dateFrom).add(i, "month").format("YYYY-MM"));
-  }
-  return months;
 };
 
 export const getBusyCalendarTimes = async (

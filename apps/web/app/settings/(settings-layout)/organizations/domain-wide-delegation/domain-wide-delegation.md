@@ -48,7 +48,7 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 - Disabling a workspace platform stops it from being used for any new organizations and also disables any DWD using the workspace platform from being edited.
    - It still all existing DWDs to keep on working
 - Adding any number of DWDs for a particular workspace always gives the same Client ID as DWD uses the workspace's default Service Account.
-- Deleting or Disabling a DWD is identical in terms of it disabling DWD immediately. The only difference is that deleting a DWD removes it from the database.
+- We should disable DWD and not delete it when we want to stop using it temporarily. Deleting DWD also removes all the seletedCalendar entries connected to it. 
 
 ### How apps/installed loads the credentials
 1. Identify the logged in user's email

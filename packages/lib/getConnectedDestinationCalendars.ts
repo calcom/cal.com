@@ -26,6 +26,34 @@ export type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
 >;
 
+const _ensureNoConflictingNonDwdConnectedCalendar = <
+  T extends { integration: { slug: string }; domainWideDelegationCredentialId?: string | null }
+>(
+  connectedCalendars: T[]
+) => {
+  return connectedCalendars.filter((connectedCalendar, index, array) => {
+    const allCalendarsWithSameAppSlug = array.filter(
+      (cal) => cal.integration.slug === connectedCalendar.integration.slug
+    );
+
+    // If no other calendar with this slug, keep it
+    if (allCalendarsWithSameAppSlug.length === 1) return true;
+
+    const dwdCalendarsWithSameAppSlug = allCalendarsWithSameAppSlug.filter(
+      (cal) => cal.domainWideDelegationCredentialId
+    );
+    if (!dwdCalendarsWithSameAppSlug.length) {
+      return true;
+    }
+
+    if (connectedCalendar.domainWideDelegationCredentialId) {
+      return true;
+    }
+
+    return false;
+  });
+};
+
 async function handleNoConnectedCalendars(user: UserWithCalendars) {
   log.debug(`No connected calendars, deleting destination calendar if it exists for user ${user.id}`);
 
@@ -320,7 +348,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   }
 
   return {
-    connectedCalendars,
+    connectedCalendars: _ensureNoConflictingNonDwdConnectedCalendar(connectedCalendars),
     destinationCalendar: {
       ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,
