@@ -323,7 +323,7 @@ const RoundRobinHosts = ({
           <>
             <Controller<FormValues>
               name="isRRWeightsEnabled"
-              render={({ field: { value: isRRWeightsEnabledValue, onChange } }) => (
+              render={({ field: { value, onChange } }) => (
                 <SettingsToggle
                   title={t("enable_weights")}
                   description={weightDescription}
