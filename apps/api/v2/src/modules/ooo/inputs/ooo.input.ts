@@ -15,14 +15,14 @@ export class CreateOutOfOfficeEntryDto {
   @IsDateString()
   @ApiProperty({
     description: "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
-    example: "2023-05-01T08:00:00.000Z",
+    example: "2023-05-01T00:00:00.000Z",
   })
   start!: Date;
 
   @IsDateString()
   @ApiProperty({
     description: "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
-    example: "2023-05-10T18:00:00.000Z",
+    example: "2023-05-10T23:59:59.999Z",
   })
   end!: Date;
 

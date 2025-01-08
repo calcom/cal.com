@@ -47,7 +47,7 @@ export class UserOOOService {
     }
 
     if (start && end) {
-      if (start.getTime() > end.getTime()) {
+      if (new Date(start).getTime() > new Date(end).getTime()) {
         throw new BadRequestException("Start date must be before end date.");
       }
     }
