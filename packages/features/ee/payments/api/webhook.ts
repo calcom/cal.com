@@ -75,12 +75,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
   });
   if (!requiresConfirmation) {
     const allCredentials = await getAllCredentials(user, eventType);
-
     const metadata = eventTypeMetaDataSchemaWithTypedApps.parse(eventType?.metadata);
-    const eventManager = new EventManager(
-      { ...user, credentials: allCredentials },
-      metadata?.apps
-    );
+    const eventManager = new EventManager({ ...user, credentials: allCredentials }, metadata?.apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
     bookingData.status = BookingStatus.ACCEPTED;

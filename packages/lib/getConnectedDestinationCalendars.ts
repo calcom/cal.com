@@ -1,4 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -14,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["getConnectedDestinationCalendarsAndE
 type ReturnTypeGetConnectedCalendars = Awaited<ReturnType<typeof getConnectedCalendars>>;
 type ConnectedCalendarsFromGetConnectedCalendars = ReturnTypeGetConnectedCalendars["connectedCalendars"];
 
-export type UserWithCalendars = Pick<User, "id"> & {
+export type UserWithCalendars = Pick<User, "id" | "email"> & {
   allSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   userLevelSelectedCalendars: Pick<SelectedCalendar, "externalId" | "integration" | "eventTypeId">[];
   destinationCalendar: DestinationCalendar | null;
@@ -69,6 +71,7 @@ async function handleNoDestinationCalendar({
     integration = "",
     externalId = "",
     credentialId,
+    domainWideDelegationCredentialId,
     email: primaryEmail,
   } = connectedCalendars[0].primary ?? {};
 
@@ -91,8 +94,14 @@ async function handleNoDestinationCalendar({
       userId: user.id,
       integration,
       externalId,
-      credentialId,
       primaryEmail,
+      ...(!isDomainWideDelegationCredential({ credentialId })
+        ? {
+            credentialId,
+          }
+        : {
+            domainWideDelegationCredentialId,
+          }),
     },
   });
 
@@ -231,9 +240,14 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
+  const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+    user,
+  });
+  const allCredentials = [...userCredentials, ...domainWideDelegationCredentials];
+
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   // get user's credentials + their connected integrations
-  const calendarCredentials = getCalendarCredentials(userCredentials);
+  const calendarCredentials = await getCalendarCredentials(allCredentials);
 
   // get all the connected integrations' calendars (from third party)
   const getConnectedCalendarsResult = await getConnectedCalendars(

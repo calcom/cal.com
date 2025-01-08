@@ -52,11 +52,6 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  * credentials, this should also get globally available apps.
  */
 function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
-  const delegatedToPayloadForNonDwdCredential = {
-    delegatedToId: null,
-    delegatedTo: null,
-  };
-
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
     const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
@@ -79,7 +74,6 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         team: {
           name: "Global",
         },
-        ...delegatedToPayloadForNonDwdCredential,
       };
       logger.debug(
         `${appMeta.type} is a global app, injecting credential`,
@@ -111,7 +105,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     });
 
     return reducedArray;
-  }, [] as (App & { credential: CredentialForCalendarServiceWithTeamName; credentials: CredentialForCalendarServiceWithTeamName[]; locationOption: LocationOption | null })[]);
+  }, [] as (App & { credential: CredentialDataWithTeamName; credentials: CredentialDataWithTeamName[]; locationOption: LocationOption | null })[]);
 
   return apps;
 }

@@ -117,8 +117,7 @@ export async function getAllDomainWideDelegationCredentialsForUser({
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
-  const domainWideDelegationRepository = new DomainWideDelegationRepository();
-  const domainWideDelegation = await domainWideDelegationRepository.findByUser({
+  const domainWideDelegation = await DomainWideDelegationRepository.findByUser({
     user: {
       email: user.email,
     },

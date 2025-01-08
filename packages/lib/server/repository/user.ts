@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -830,7 +831,14 @@ export class UserRepository {
     }
 
     const userWithSelectedCalendars = withSelectedCalendars(user);
-    return userWithSelectedCalendars;
+    const { credentials, ...restUser } = userWithSelectedCalendars;
+
+    return {
+      ...restUser,
+      credentials: credentials.concat(
+        await getAllDomainWideDelegationCalendarCredentialsForUser({ user: restUser })
+      ),
+    };
   }
 
   static async findUnlockedUserForSession({ userId }: { userId: number }) {

@@ -21,8 +21,15 @@ export const getCalendarsEventsWithTimezones = async (
     .filter((credential) => credential.type === "google_calendar")
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
+  // There might not be many credentials as one credential means one Integration(like Google Calendar, Outlook Calendar, etc.)
+  // So, it is okay to do getCredentialForCalendarService for all of them, separately here
+  const credentialsForCalendarService = await Promise.all(
+    calendarCredentials.map((credential) => getCredentialForCalendarService(credential))
+  );
 
-  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
+  const calendars = await Promise.all(
+    credentialsForCalendarService.map((credential) => getCalendar(credential))
+  );
 
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */

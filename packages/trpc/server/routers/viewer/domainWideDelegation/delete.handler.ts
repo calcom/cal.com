@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationDeleteSchema } from "./schema";
 
@@ -13,8 +13,7 @@ export default async function handler({
 }) {
   const { id } = input;
 
-  const domainWideDelegationRepository = await DomainWideDelegation.init();
-  await domainWideDelegationRepository.deleteById({ id });
+  await DomainWideDelegationRepository.deleteById({ id });
 
   return { id };
 }

@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
-import { DomainWideDelegation } from "@calcom/features/domain-wide-delegation/domain-wide-delegation";
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
+import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
@@ -20,8 +20,7 @@ const assertWorkspaceConfigured = async ({
   domainWideDelegationId: string;
   user: { id: number; email: string; organizationId: number | null };
 }) => {
-  const domainWideDelegationRepository = await DomainWideDelegation.init();
-  const domainWideDelegation = await domainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
       id: domainWideDelegationId,
     }
@@ -61,9 +60,7 @@ export default async function toggleEnabledHandler({
     });
   }
 
-  const domainWideDelegationRepository = await DomainWideDelegation.init();
-
-  const updatedDomainWideDelegation = await domainWideDelegationRepository.updateById({
+  const updatedDomainWideDelegation = await DomainWideDelegationRepository.updateById({
     id: input.id,
     data: {
       enabled: input.enabled,

@@ -2083,6 +2083,7 @@ export const createDwdCredential = async (orgId: number) => {
           id: orgId,
         },
       },
+      // @ts-expect-error - TODO: fix this
       serviceAccountKey: workspace.defaultServiceAccountKey,
     },
   });

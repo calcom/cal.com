@@ -63,9 +63,8 @@ async function _getCredentialsWithAppAndTheirDwdMap(credentials: Array<Credentia
   });
 
   const delegatedToIds = _getDwdIds(credentialsWithApp);
-  const domainWideDelegationRepository = new DomainWideDelegationRepository();
   const domainWideDelegations =
-    await domainWideDelegationRepository.findByIdsIncludeSensitiveServiceAccountKey(delegatedToIds);
+    await DomainWideDelegationRepository.findByIdsIncludeSensitiveServiceAccountKey(delegatedToIds);
 
   const dwdMap = new Map(domainWideDelegations.map((d) => [d.id, d]));
 
@@ -107,8 +106,7 @@ export async function getCredentialForCalendarService<
       delegatedTo: null,
     } as CredentialForCalendarService<T>;
   }
-  const domainWideDelegationRepository = new DomainWideDelegationRepository();
-  const domainWideDelegation = await domainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
+  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
       id: credential.delegatedToId,
     }
