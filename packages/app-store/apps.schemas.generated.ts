@@ -15,6 +15,7 @@ import { appDataSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appDataSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appDataSchema as gtm_zod_ts } from "./gtm/zod";
 import { appDataSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appDataSchema as insihts_zod_ts } from "./insihts/zod";
 import { appDataSchema as intercom_zod_ts } from "./intercom/zod";
 import { appDataSchema as jelly_zod_ts } from "./jelly/zod";
 import { appDataSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
@@ -63,6 +64,7 @@ export const appDataSchemas = {
   googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  insihts: insihts_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,
