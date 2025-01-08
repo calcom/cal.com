@@ -32,6 +32,8 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const defaultStatus = "upcoming";
   const bookingListingByStatus = [input.filters.status || defaultStatus];
 
+  console.log("THIS IS FILTERS IN URL", input.filters);
+
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
     bookingListingByStatus: bookingListingByStatus,
@@ -76,6 +78,20 @@ export async function getBookings({
   skip: number;
 }) {
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+
+  console.log("FILTERS TO BE QUERIED", filters);
+
+  if (filters?.attendeeEmails && filters.attendeeEmails.length > 0) {
+    bookingWhereInputFilters.attendeeEmails = {
+      attendees: {
+        some: {
+          email: {
+            in: filters.attendeeEmails.map((email) => email.trim()),
+          },
+        },
+      },
+    };
+  }
 
   if (filters?.teamIds && filters.teamIds.length > 0) {
     bookingWhereInputFilters.teamIds = {
@@ -494,6 +510,8 @@ export async function getBookings({
       .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
+
+  console.log("PLAIN BOOKINGS", plainBookings);
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
