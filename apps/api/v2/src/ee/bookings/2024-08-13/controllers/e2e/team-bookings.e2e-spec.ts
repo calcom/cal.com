@@ -406,7 +406,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
           eventTypeId: phoneOnlyEventTypeId,
           attendee: {
             name: "alice",
-            phoneNumber: "+919876543210",
             email: "test@test.com",
             timeZone: "Europe/Madrid",
             language: "es",
