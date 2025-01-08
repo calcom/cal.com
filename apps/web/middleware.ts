@@ -194,10 +194,7 @@ export const config = {
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
-    "/org/:path*",
-    "/team/:path*",
-    "/:user/:type/",
-    "/:user/",
+    "/booking/:path*",
   ],
 };
 

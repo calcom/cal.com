@@ -8,35 +8,38 @@ import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomain
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/d/[link]/[slug]/getServerSideProps";
-import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
+import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
-import Type from "~/d/[link]/d-type-view";
+import type { PageProps } from "~/team/type-view";
+import TypePage from "~/team/type-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const pageProps = await getData(legacyCtx);
-
-  const { booking, user: username, slug: eventSlug, isTeamEvent } = pageProps;
-  const rescheduleUid = booking?.uid;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req);
-  const org = isValidOrgDomain ? currentOrgDomain : null;
+  const props = await getData(legacyCtx);
+  const { user: username, slug: eventSlug, booking } = props;
+  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
   const event = await EventRepository.getPublicEvent({
     username,
     eventSlug,
-    isTeamEvent,
-    org,
+    isTeamEvent: true,
+    org: isValidOrgDomain ? currentOrgDomain : null,
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
 
   const profileName = event?.profile?.name ?? "";
   const title = event?.title ?? "";
+
   return await _generateMetadata(
-    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
+    (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`
   );
 };
-
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
-export default WithLayout({ getLayout: null, Page: Type, getData })<"P">;
+
+export default WithLayout({
+  Page: TypePage,
+  getData,
+  getLayout: null,
+  isBookingPage: true,
+})<"P">;
