@@ -1,5 +1,5 @@
 const glob = require("glob");
-const { getSubdomainRegExp } = require("./getSubdomainRegExp");
+const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
@@ -24,6 +24,7 @@ let pages = (exports.pages = glob
         "global-error",
         "WithAppDirSsr",
         "WithEmbedSSR",
+        "WithEmbedSSR.test",
       ].some((prefix) => v.startsWith(prefix))
   ));
 
@@ -34,10 +35,7 @@ let pages = (exports.pages = glob
 // [^/]+ makes the RegExp match the full path, it seems like a partial match doesn't work.
 // book$ ensures that only /book is excluded from rewrite(which is at the end always) and not /booked
 
-let subdomainRegExp = (exports.subdomainRegExp = getSubdomainRegExp(
-  process.env.NEXT_PUBLIC_WEBAPP_URL || `https://${process.env.VERCEL_URL}`
-));
-exports.orgHostPath = `^(?<orgSlug>${subdomainRegExp})\\.(?!vercel\.app).*`;
+exports.nextJsOrgRewriteConfig = nextJsOrgRewriteConfig;
 
 /**
  * Returns a regex that matches all existing routes, virtual routes (like /forms, /router, /success etc) and nextjs special paths (_next, public)

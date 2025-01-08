@@ -8,10 +8,12 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import cn from "@calcom/lib/classNames";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import {
@@ -42,6 +44,7 @@ import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -676,8 +679,11 @@ export const TestFormDialog = ({
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
+  const { data: user } = useMeQuery();
+
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -898,13 +904,27 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                     </div>
                   ) : null}
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex gap-2">
                     <Button
                       color="secondary"
                       data-testid="test-preview"
                       onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
+                    {IS_CALCOM && (
+                      <Tooltip content={t("contact_our_support_team")} side="right">
+                        <Button
+                          target="_blank"
+                          color="minimal"
+                          href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                            user?.email ?? ""
+                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
+                            form.id
+                          )}`}>
+                          {t("need_help")}
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                   {form.routes?.every(isFallbackRoute) && (
                     <Alert
@@ -926,7 +946,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   )}
                 </div>
                 <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <RoutingNavBar
+                    appUrl={appUrl}
+                    form={form}
+                    hookForm={hookForm}
+                    setShowInfoLostDialog={setShowInfoLostDialog}
+                  />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               </div>
@@ -934,6 +959,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
       <TestFormDialog
         form={uptoDateForm}
         isTestPreviewOpen={isTestPreviewOpen}
