@@ -19,23 +19,23 @@ interface EventData {
   schedulingType: SchedulingType | null;
   metadata: Prisma.JsonValue | null;
   length: number;
-  hosts: {
-    user: {
-      email: string;
-    };
-  }[];
 }
 
 const returnNullValue = { email: null, recordType: null, crmAppSlug: null };
 
 async function findUserByEmailWhoIsAHostOfEventType({
   email,
-  eventData,
+  eventTypeId,
 }: {
   email: string;
-  eventData: EventData;
+  eventTypeId: number;
 }) {
-  return !!eventData.hosts.find((host) => host.user.email === email);
+  return prisma.user.findFirst({
+    where: {
+      email,
+      hosts: { some: { eventTypeId } },
+    },
+  });
 }
 
 function getRoutingFormResponseIdFromQuery(query: ParsedUrlQuery) {
@@ -124,7 +124,7 @@ async function getOwnerEmailFromCrm(
   // Determine if the contactOwner is a part of the event type
   const contactOwnerQuery = await findUserByEmailWhoIsAHostOfEventType({
     email: crmContactOwner.email,
-    eventData,
+    eventTypeId: eventData.id,
   });
   if (!contactOwnerQuery) return returnNullValue;
   return crmContactOwner;
@@ -138,13 +138,11 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   eventTypeId,
   attributeRoutingConfig,
   crmAppSlug,
-  eventData,
 }: {
   bookerEmail: string;
   eventTypeId: number;
   attributeRoutingConfig: AttributeRoutingConfig | null;
   crmAppSlug: string;
-  eventData: EventData;
 }) {
   const nullReturnValue = { email: null, skipContactOwner: false, recordType: "" };
 
@@ -163,7 +161,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   if (!userEmail) return nullReturnValue;
 
   // Determine if the user is a part of the event type
-  const userQuery = await findUserByEmailWhoIsAHostOfEventType({ email: userEmail, eventData });
+  const userQuery = await findUserByEmailWhoIsAHostOfEventType({ email: userEmail, eventTypeId });
 
   if (!userQuery) return nullReturnValue;
 
@@ -207,7 +205,6 @@ async function getTeamMemberEmailForResponseOrContact({
       eventTypeId,
       attributeRoutingConfig,
       crmAppSlug,
-      eventData,
     });
 
     if (skipContactOwner) return returnNullValue;
