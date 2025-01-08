@@ -59,6 +59,7 @@
     "googleapis": "^84.0.0",
     "helmet": "^7.1.0",
     "ioredis": "^5.3.2",
+    "jsforce": "^1.11.0",
     "luxon": "^3.4.4",
     "nest-winston": "^1.9.4",
     "next-auth": "^4.22.1",
@@ -96,9 +97,6 @@
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.0",
     "typescript": "^4.9.4"
-  },
-  "resolutions": {
-    "@calcom/platform-libraries-0.0.2/jsforce": "npm:@jsforce/jsforce-node"
   },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"
