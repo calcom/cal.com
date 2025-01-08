@@ -173,8 +173,6 @@ export const config = {
     "/login",
     "/auth/login",
     "/future/auth/login",
-    "/event-types",
-    "/future/event-types/",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps/:path*",

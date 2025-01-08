@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Estás haciendo una reserva de prueba.",
   "icon_showcase": "Muestra de iconos",
   "icons_showcase": "Muestra de iconos",
+  "choose_an_option": "Elige una opción",
+  "enter_option_value": "Ingresa el valor de la opción",
+  "remove_option": "Eliminar opción",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
