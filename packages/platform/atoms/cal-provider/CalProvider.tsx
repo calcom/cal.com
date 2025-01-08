@@ -112,6 +112,10 @@ export function CalProvider({
     }
   }, [accessToken]);
 
+  useEffect(() => {
+    http.setPlatformEmbedHeader(isEmbed);
+  }, [isEmbed]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
