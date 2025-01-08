@@ -12291,13 +12291,13 @@
             "format": "date-time",
             "type": "string",
             "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-01T08:00:00.000Z"
+            "example": "2023-05-01T00:00:00.000Z"
           },
           "end": {
             "format": "date-time",
             "type": "string",
             "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-10T18:00:00.000Z"
+            "example": "2023-05-10T23:59:59.999Z"
           },
           "notes": {
             "type": "string",
@@ -12324,13 +12324,13 @@
             "format": "date-time",
             "type": "string",
             "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-01T08:00:00.000Z"
+            "example": "2023-05-01T00:00:00.000Z"
           },
           "end": {
             "format": "date-time",
             "type": "string",
             "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
-            "example": "2023-05-10T18:00:00.000Z"
+            "example": "2023-05-10T23:59:59.999Z"
           },
           "notes": {
             "type": "string",
