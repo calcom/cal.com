@@ -43,7 +43,7 @@
     "@calcom/trpc": "*",
     "@calcom/tsconfig": "*",
     "@calcom/ui": "*",
-    "@crabnebula/taurify-api": "^0.1.0",
+    "@crabnebula/taurify-api": "^0.1.10",
     "@daily-co/daily-js": "^0.59.0",
     "@daily-co/daily-react": "^0.17.2",
     "@dub/analytics": "^0.0.15",
@@ -191,7 +191,7 @@
     "postcss": "^8.4.18",
     "tailwindcss": "^3.3.3",
     "tailwindcss-animate": "^1.0.6",
-    "taurify": "^0.0.39",
+    "taurify": "^0.0.43",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4"
   },

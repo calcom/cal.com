@@ -5021,7 +5021,7 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@calcom/ui": "*"
-    "@crabnebula/taurify-api": ^0.1.0
+    "@crabnebula/taurify-api": ^0.1.10
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
@@ -5161,7 +5161,7 @@ __metadata:
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
     tailwindcss-radix: ^2.6.0
-    taurify: ^0.0.39
+    taurify: ^0.0.43
     ts-node: ^10.9.1
     turndown: ^7.1.3
     typescript: ^4.9.4
@@ -5540,10 +5540,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@crabnebula/taurify-api@npm:^0.1.0":
-  version: 0.1.7
-  resolution: "@crabnebula/taurify-api@npm:0.1.7"
-  checksum: 9a081ade046ee935748c780517e6259b780f980d47fa5966fa0ba554cd6057a256b749aa38c6333fee7bdf3871322bcf0b23b6b0929389baf0f142959e98059f
+"@crabnebula/taurify-api@npm:^0.1.10":
+  version: 0.1.10
+  resolution: "@crabnebula/taurify-api@npm:0.1.10"
+  checksum: 18fbc934f4d87a5a77ab1cef77a3e402f89e372c95a4609077be62da99d9b653533d8574987d6edccfc8fb282acb3fc5bf8944f634c7e39868dbb7d1e27cbdae
   languageName: node
   linkType: hard
 
@@ -42027,42 +42027,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"taurify-binding-darwin-arm64@npm:0.0.39":
-  version: 0.0.39
-  resolution: "taurify-binding-darwin-arm64@npm:0.0.39"
+"taurify-binding-darwin-arm64@npm:0.0.43":
+  version: 0.0.43
+  resolution: "taurify-binding-darwin-arm64@npm:0.0.43"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"taurify-binding-darwin-x64@npm:0.0.39":
-  version: 0.0.39
-  resolution: "taurify-binding-darwin-x64@npm:0.0.39"
+"taurify-binding-darwin-x64@npm:0.0.43":
+  version: 0.0.43
+  resolution: "taurify-binding-darwin-x64@npm:0.0.43"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"taurify-binding-linux-x64-gnu@npm:0.0.39":
-  version: 0.0.39
-  resolution: "taurify-binding-linux-x64-gnu@npm:0.0.39"
+"taurify-binding-linux-x64-gnu@npm:0.0.43":
+  version: 0.0.43
+  resolution: "taurify-binding-linux-x64-gnu@npm:0.0.43"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"taurify-binding-win32-x64-msvc@npm:0.0.39":
-  version: 0.0.39
-  resolution: "taurify-binding-win32-x64-msvc@npm:0.0.39"
+"taurify-binding-win32-x64-msvc@npm:0.0.43":
+  version: 0.0.43
+  resolution: "taurify-binding-win32-x64-msvc@npm:0.0.43"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"taurify@npm:^0.0.39":
-  version: 0.0.39
-  resolution: "taurify@npm:0.0.39"
+"taurify@npm:^0.0.43":
+  version: 0.0.43
+  resolution: "taurify@npm:0.0.43"
   dependencies:
-    taurify-binding-darwin-arm64: 0.0.39
-    taurify-binding-darwin-x64: 0.0.39
-    taurify-binding-linux-x64-gnu: 0.0.39
-    taurify-binding-win32-x64-msvc: 0.0.39
+    taurify-binding-darwin-arm64: 0.0.43
+    taurify-binding-darwin-x64: 0.0.43
+    taurify-binding-linux-x64-gnu: 0.0.43
+    taurify-binding-win32-x64-msvc: 0.0.43
   dependenciesMeta:
     taurify-binding-darwin-arm64:
       optional: true
@@ -42074,7 +42074,7 @@ __metadata:
       optional: true
   bin:
     taurify: taurify.js
-  checksum: b6293708721164db378df3c7eab7b4ead7d7290eae2ac3f35ae56eef70906bc8795f8c3e2c9b9a38f494555a2444d2232e683d37cf78f38b2625237d63d8c26b
+  checksum: 11487ebd60a2ba938ce3e331ac8c17b4f609d73f9e80c11ba1716bad5e540ca20bf40270d4e61c74dbf273ab833a1961bdecbad0ecd2d8972c2267062abab90c
   languageName: node
   linkType: hard
 
