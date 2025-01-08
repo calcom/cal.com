@@ -235,6 +235,14 @@ export default class ZohoCalendarService implements Calendar {
     }
   }
 
+  private parseDateTime = (dateTimeStr: string) => {
+    const dateOnlyFormat = "YYYYMMDD";
+    const dateTimeFormat = "YYYYMMDD[T]HHmmss[Z]";
+    // Check if the string matches the date-only format (YYYYMMDDZ) or date-time format
+    const format = /^\d{8}Z$/.test(dateTimeStr) ? dateOnlyFormat : dateTimeFormat;
+    return dayjs.utc(dateTimeStr, format);
+  };
+
   private async getBusyData(dateFrom: string, dateTo: string, userEmail: string) {
     const query = stringify({
       sdate: dateFrom,
@@ -256,8 +264,8 @@ export default class ZohoCalendarService implements Calendar {
         .filter((freebusy: FreeBusy) => freebusy.fbtype === "busy")
         .map((freebusy: FreeBusy) => ({
           // using dayjs utc plugin because by default, dayjs parses and displays in local time, which causes a mismatch
-          start: dayjs.utc(freebusy.startTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
-          end: dayjs.utc(freebusy.endTime, "YYYYMMDD[T]HHmmss[Z]").toISOString(),
+          start: this.parseDateTime(freebusy.startTime).toISOString(),
+          end: this.parseDateTime(freebusy.endTime).toISOString(),
         })) || []
     );
   }
