@@ -14,6 +14,7 @@ describe("CalendarManager tests", () => {
           access_token: "google_calendar_key",
         },
         invalid: false,
+        delegatedTo: null,
       };
 
       const credentials = [
@@ -32,7 +33,7 @@ describe("CalendarManager tests", () => {
 
       const calendarCredentials = await getCalendarCredentials(credentials);
       expect(calendarCredentials).toHaveLength(1);
-      expect(calendarCredentials[0].credential).toBe(googleCalendarCredentials);
+      expect(calendarCredentials[0].credential).toEqual(googleCalendarCredentials);
     });
   });
 });

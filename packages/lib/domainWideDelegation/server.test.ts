@@ -24,7 +24,7 @@ describe("getAllDomainWideDelegationCredentialsForUser", () => {
     mockRepository = {
       findByUser: mockFindByUser,
     };
-    vi.spyOn(DomainWideDelegationRepository.prototype, "findByUser").mockImplementation(mockFindByUser);
+    vi.spyOn(DomainWideDelegationRepository, "findByUser").mockImplementation(mockFindByUser);
   });
 
   it("should return empty array when no DWD found", async () => {

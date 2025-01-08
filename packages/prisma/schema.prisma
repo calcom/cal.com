@@ -1,6 +1,8 @@
 // This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Comment to purge cache
+
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")

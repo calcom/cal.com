@@ -4,11 +4,14 @@
 
 ### Important
   - Bugs
-    - [ ] Seems like when a user who has connected calendar with certain calendars enabled/disabled, then enabling DWD for the domain, the DWD credential connected SelectedCalendars aren't synced
+    - [x] Duplicate Calendar connections in apps/installed if a user already had connected calendar and DWD is enabled.
   - Manual Testing
     - If a user has connected a calendar, and then DWD is enabled.
-  - Tests
-    - [ ] Booking Scenario Tests that would verify that correct payload is given to CalendarService when DWD is enabled
+    - [x] Inviting a new user. 
+      - Verified that Google Calendar is shown pre-installed. 
+      - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
+  - TODO:
+    - [x] Troubleshooter
     - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
     - [x] setDestinationCalendar.handler.ts tests to verify that when DWD is enabled it still correctly sets the destination calendar. 
     - [x] getConnectedDestinationCalendars tests.
@@ -31,19 +34,10 @@
   - [ ] Confirmation for DwD deletion and disabling
   - [ ] If DWD is enabled and the org member doesn't exist in Google Workspace, and the user has connected personal account, should we correctly use the personal account?
 
-### To discuss
-  - 
-    
 ### Security
   - [x] We don't let any one user see the added service account key from UI.
   - [ ] We intend to implement Workload Identity Federation in the future.
   
-### Testing 
-- [x] Inviting a new user. 
-  - Verified that Google Calendar is shown pre-installed. 
-  - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
-- [x] Troubleshooter
-
 ### Documentation
 - After enabling domain-wide delegation, the credential is shown pre-installed and the connection can't be removed(or the app can't be uninstalled by user)
 - Steps
