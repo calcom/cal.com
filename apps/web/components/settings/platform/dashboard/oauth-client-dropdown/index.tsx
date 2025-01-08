@@ -31,7 +31,6 @@ export const OAuthClientsDropdown = ({
           <DropdownMenuContent>
             {oauthClients.map((client) => {
               const isDisabled = selectedClientName === client.name;
-              console.log("isDisabled: ", client.name, isDisabled);
               return (
                 <DropdownMenuItem
                   key={client.id}
