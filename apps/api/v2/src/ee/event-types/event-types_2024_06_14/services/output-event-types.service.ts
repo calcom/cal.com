@@ -22,7 +22,7 @@ import {
   InternalLocation,
   BookingFieldSchema,
   getBookingFieldsWithSystemFields,
-} from "@calcom/platform-libraries-0.0.0";
+} from "@calcom/platform-libraries";
 import {
   TransformFutureBookingsLimitSchema_2024_06_14,
   BookerLayoutsTransformedSchema,
