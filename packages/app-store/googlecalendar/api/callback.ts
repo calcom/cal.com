@@ -1,6 +1,9 @@
-import { google } from "googleapis";
+import { calendar_v3 } from "@googleapis/calendar";
+import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
+import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import {
   GOOGLE_CALENDAR_SCOPES,
@@ -12,7 +15,6 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
-import { GoogleService } from "@calcom/lib/server/service/google";
 import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -43,7 +45,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   const redirect_uri = `${WEBAPP_URL_FOR_OAUTH}/api/integrations/googlecalendar/callback`;
 
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+  const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
@@ -66,16 +68,25 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       return;
     }
 
-    // Set the primary calendar as the first selected calendar
-
     oAuth2Client.setCredentials(key);
 
-    const calendar = google.calendar({
-      version: "v3",
+    const gcalCredential = await CredentialRepository.create({
+      userId: req.session.user.id,
+      key,
+      appId: "google-calendar",
+      type: "google_calendar",
+    });
+
+    const gCalService = new GoogleCalendarService({
+      ...gcalCredential,
+      user: null,
+    });
+
+    const calendar = new calendar_v3.Calendar({
       auth: oAuth2Client,
     });
 
-    const primaryCal = await GoogleService.getPrimaryCalendar(calendar);
+    const primaryCal = await gCalService.getPrimaryCalendar(calendar);
 
     // If we still don't have a primary calendar skip creating the selected calendar.
     // It can be toggled on later.
@@ -89,13 +100,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
     // Only attempt to update the user's profile photo if the user has granted the required scope
     if (grantedScopes.includes(SCOPE_USERINFO_PROFILE)) {
-      await GoogleService.updateProfilePhoto(oAuth2Client, req.session.user.id);
+      await updateProfilePhotoGoogle(oAuth2Client, req.session.user.id);
     }
-
-    const gcalCredential = await GoogleService.createGoogleCalendarCredential({
-      key,
-      userId: req.session.user.id,
-    });
 
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,
@@ -106,10 +112,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // Wrapping in a try/catch to reduce chance of race conditions-
     // also this improves performance for most of the happy-paths.
     try {
-      await GoogleService.upsertSelectedCalendar({
-        credentialId: gcalCredential.id,
+      await gCalService.upsertSelectedCalendar({
+        // First install should add a user-level selectedCalendar only.
+        eventTypeId: null,
         externalId: selectedCalendarWhereUnique.externalId,
-        userId: selectedCalendarWhereUnique.userId,
       });
     } catch (error) {
       let errorMessage = "something_went_wrong";
@@ -146,8 +152,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const existingGoogleMeetCredential = await GoogleService.findGoogleMeetCredential({
+  const existingGoogleMeetCredential = await CredentialRepository.findFirstByUserIdAndType({
     userId: req.session.user.id,
+    type: "google_video",
   });
 
   // If the user already has a google meet credential, there's nothing to do in here
@@ -160,7 +167,12 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await GoogleService.createGoogleMeetsCredential({ userId: req.session.user.id });
+  await CredentialRepository.create({
+    userId: req.session.user.id,
+    type: "google_video",
+    key: {},
+    appId: "google-meet",
+  });
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })

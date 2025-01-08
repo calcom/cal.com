@@ -4,7 +4,11 @@ import { cloneDeep } from "lodash";
 import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
+import {
+  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendRoundRobinUpdatedEmailsAndSMS,
+} from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -26,7 +30,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata, PlatformClientParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { handleRescheduleEventManager } from "./handleRescheduleEventManager";
@@ -37,9 +41,13 @@ import { getTeamMembers } from "./utils/getTeamMembers";
 export const roundRobinReassignment = async ({
   bookingId,
   orgId,
+  emailsEnabled = true,
+  platformClientParams,
 }: {
   bookingId: number;
   orgId: number | null;
+  emailsEnabled?: boolean;
+  platformClientParams?: PlatformClientParams;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
@@ -288,6 +296,7 @@ export const roundRobinReassignment = async ({
       booking,
     }),
     location: bookingLocation,
+    ...(platformClientParams ? platformClientParams : {}),
   };
 
   const credentials = await prisma.credential.findMany({
@@ -321,18 +330,20 @@ export const roundRobinReassignment = async ({
   const { cancellationReason, ...evtWithoutCancellationReason } = evtWithAdditionalInfo;
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmailsAndSMS({
-    calEvent: evtWithoutCancellationReason,
-    members: [
-      {
-        ...reassignedRRHost,
-        name: reassignedRRHost.name || "",
-        username: reassignedRRHost.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
-        language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
-      },
-    ],
-  });
+  if (emailsEnabled) {
+    await sendRoundRobinScheduledEmailsAndSMS({
+      calEvent: evtWithoutCancellationReason,
+      members: [
+        {
+          ...reassignedRRHost,
+          name: reassignedRRHost.name || "",
+          username: reassignedRRHost.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+          language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
+        },
+      ],
+    });
+  }
 
   if (previousRRHost) {
     // Send to cancelled RR host
@@ -365,24 +376,33 @@ export const roundRobinReassignment = async ({
       });
     }
 
-    await sendRoundRobinCancelledEmailsAndSMS(
-      cancelledRRHostEvt,
-      [
-        {
-          ...previousRRHost,
-          name: previousRRHost.name || "",
-          username: previousRRHost.username || "",
-          timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-          language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-        },
-      ],
-      eventType?.metadata as EventTypeMetadata,
-      { name: reassignedRRHost.name, email: reassignedRRHost.email }
-    );
+    if (emailsEnabled) {
+      await sendRoundRobinCancelledEmailsAndSMS(
+        cancelledRRHostEvt,
+        [
+          {
+            ...previousRRHost,
+            name: previousRRHost.name || "",
+            username: previousRRHost.username || "",
+            timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+            language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+          },
+        ],
+        eventType?.metadata as EventTypeMetadata,
+        { name: reassignedRRHost.name, email: reassignedRRHost.email }
+      );
+    }
   }
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
+    if (emailsEnabled && dayjs(evt.startTime).isAfter(dayjs())) {
+      // send email with event updates to attendees
+      await sendRoundRobinUpdatedEmailsAndSMS({
+        calEvent: evtWithoutCancellationReason,
+      });
+    }
+
     const scheduledWorkflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,

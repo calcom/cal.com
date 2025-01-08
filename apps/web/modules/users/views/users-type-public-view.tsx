@@ -1,13 +1,12 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
@@ -23,30 +22,11 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-function Type({
-  slug,
-  user,
-  isEmbed,
-  booking,
-  isBrandingHidden,
-  isSEOIndexable,
-  rescheduleUid,
-  eventData,
-  orgBannerUrl,
-}: PageProps) {
+function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
   const searchParams = useSearchParams();
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={rescheduleUid ?? undefined}
-        hideBranding={isBrandingHidden}
-        isSEOIndexable={isSEOIndexable ?? true}
-        entity={eventData.entity}
-        bookingData={booking}
-      />
       <Booker
         username={user}
         eventSlug={slug}

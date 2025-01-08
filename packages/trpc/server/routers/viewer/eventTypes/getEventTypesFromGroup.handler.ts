@@ -71,7 +71,7 @@ export const getEventTypesFromGroup = async ({
               position: "desc",
             },
             {
-              id: "asc",
+              id: "desc",
             },
           ],
           limit,
@@ -94,7 +94,7 @@ export const getEventTypesFromGroup = async ({
               position: "desc",
             },
             {
-              id: "asc",
+              id: "desc",
             },
           ],
           limit,
@@ -108,8 +108,8 @@ export const getEventTypesFromGroup = async ({
       if (a.position !== b.position) {
         return b.position - a.position;
       }
-      // Then by id in ascending order
-      return a.id - b.id;
+      // Then by id in descending order
+      return b.id - a.id;
     });
 
     eventTypes.push(...userEventTypes);
@@ -136,7 +136,7 @@ export const getEventTypesFromGroup = async ({
             position: "desc",
           },
           {
-            id: "asc",
+            id: "desc",
           },
         ],
       })) ?? [];
@@ -172,6 +172,7 @@ export const getEventTypesFromGroup = async ({
     mappedEventTypes.forEach((evType) => {
       evType.users = [];
       evType.hosts = [];
+      evType.children = [];
     });
 
   return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };

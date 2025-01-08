@@ -1,6 +1,7 @@
+import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -9,9 +10,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
+import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
+import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
-import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -29,9 +31,9 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
-import { GoogleService } from "@calcom/lib/server/service/google";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -625,8 +627,9 @@ export const getOptions = ({
         const grantedScopes = account.scope?.split(" ") ?? [];
         if (
           account.provider === "google" &&
-          !(await GoogleService.findFirstGoogleCalendarCredential({
+          !(await CredentialRepository.findFirstByAppIdAndUserId({
             userId: user.id as number,
+            appId: "google-calendar",
           })) &&
           GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
         ) {
@@ -638,37 +641,44 @@ export const getOptions = ({
             token_type: account.token_type,
             expires_at: account.expires_at,
           };
-
-          const gcalCredential = await GoogleService.createGoogleCalendarCredential({
+          const gcalCredential = await CredentialRepository.create({
             userId: user.id as number,
             key: credentialkey,
+            appId: "google-calendar",
+            type: "google_calendar",
+          });
+          const gCalService = new GoogleCalendarService({
+            ...gcalCredential,
+            user: null,
           });
 
           if (
-            !(await GoogleService.findGoogleMeetCredential({
+            !(await CredentialRepository.findFirstByUserIdAndType({
               userId: user.id as number,
+              type: "google_video",
             }))
           ) {
-            await GoogleService.createGoogleMeetsCredential({
+            await CredentialRepository.create({
+              type: "google_video",
+              key: {},
               userId: user.id as number,
+              appId: "google-meet",
             });
           }
 
-          const oAuth2Client = new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+          const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
           oAuth2Client.setCredentials(credentialkey);
-          const calendar = google.calendar({
-            version: "v3",
+          const calendar = new calendar_v3.Calendar({
             auth: oAuth2Client,
           });
-          const primaryCal = await GoogleService.getPrimaryCalendar(calendar);
+          const primaryCal = await gCalService.getPrimaryCalendar(calendar);
           if (primaryCal?.id) {
-            await GoogleService.createSelectedCalendar({
-              credentialId: gcalCredential.id,
-              userId: user.id as number,
+            await gCalService.createSelectedCalendar({
               externalId: primaryCal.id,
+              userId: user.id as number,
             });
           }
-          await GoogleService.updateProfilePhoto(oAuth2Client, user.id as number);
+          await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
         }
 
         return {
@@ -1030,12 +1040,6 @@ export const getOptions = ({
             );
           }
         }
-
-        postHogClient().capture(user.id.toString(), "Sign Up", {
-          email: user.email,
-          name: user.name,
-          username: user.username,
-        });
       }
     },
   },

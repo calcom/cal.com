@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { DataTable, DataTableToolbar } from "@calcom/features/data-table";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import type { DateRange } from "@calcom/lib/date-ranges";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -78,7 +79,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
   const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
-      loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
+      loggedInUsersTz: CURRENT_TIMEZONE,
       startDate: browsingDate.startOf("day").toISOString(),
       endDate: browsingDate.endOf("day").toISOString(),
       searchString: debouncedSearchString,
@@ -95,6 +96,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "member",
         accessorFn: (data) => data.username,
         header: "Member",
+        size: 200,
         cell: ({ row }) => {
           const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
@@ -125,6 +127,7 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
         id: "timezone",
         accessorFn: (data) => data.timeZone,
         header: "Timezone",
+        size: 160,
         cell: ({ row }) => {
           const { timeZone } = row.original;
           const timeRaw = dayjs().tz(timeZone);
@@ -146,6 +149,9 @@ export function AvailabilitySliderTable(props: { userTimeFormat: number | null; 
       },
       {
         id: "slider",
+        meta: {
+          autoWidth: true,
+        },
         header: () => {
           return (
             <div className="flex items-center space-x-2">
