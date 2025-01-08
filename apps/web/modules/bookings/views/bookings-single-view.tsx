@@ -96,6 +96,7 @@ interface EventType {
 }
 
 interface BookingInfo {
+  cancelledBy: string;
   createdAt: string;
   noShowHost: boolean;
   title: string;
@@ -366,7 +367,7 @@ export default function Success(props: PageProps) {
         data.json().then((response: BookingInfo[]) => {
           const findedBooking = response[0];
           setPurchaseDate(dayjs(findedBooking?.createdAt));
-          setNoShowHost(!!findedBooking?.noShowHost);
+          setNoShowHost(!!findedBooking?.noShowHost && !!findedBooking?.cancelledBy);
           setAppointmentType((_prev) => {
             switch (true) {
               case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
@@ -625,6 +626,7 @@ export default function Success(props: PageProps) {
     currentUserEmail,
     eventTypes,
     isPastBooking,
+    noShowHost,
     props.profile.slug,
     purchaseDate,
     seatReferenceUid,
@@ -950,7 +952,7 @@ export default function Success(props: PageProps) {
                         </div>
                       </>
                     )}
-                    {isCancelableOrRescheduble && isCancellationMode && (
+                    {isCancelableOrRescheduble && !isCancellationMode && (
                       <>
                         <hr className="border-subtle mb-8" />
                         <div className="text-center last:pb-0">
@@ -986,7 +988,7 @@ export default function Success(props: PageProps) {
                         </div>
                       </>
                     )}
-                    {isCancelableOrRescheduble && !isCancellationMode && (
+                    {isCancelableOrRescheduble && isCancellationMode && (
                       <>
                         <hr className="border-subtle" />
                         <CancelBooking
