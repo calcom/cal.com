@@ -3,7 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
 import { memo, useEffect, useState } from "react";
 import { z } from "zod";
@@ -18,7 +18,6 @@ import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsF
 import Shell from "@calcom/features/shell/Shell";
 import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -47,7 +46,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   EmptyScreen,
-  HeadSeo,
   HorizontalTabs,
   Icon,
   Label,
@@ -60,7 +58,6 @@ import {
   UserAvatarGroup,
 } from "@calcom/ui";
 
-import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
@@ -256,7 +253,7 @@ export const InfiniteEventTypeList = ({
   const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { copyToClipboard } = useCopy();
   const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -373,7 +370,7 @@ export const InfiniteEventTypeList = ({
 
   // inject selection data into url for correct router history
   const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup) => {
-    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+    const newSearchParams = new URLSearchParams(searchParams?.toString() ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
       if (value === null) newSearchParams.delete(key);
@@ -897,7 +894,7 @@ const InfiniteScrollMain = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  const searchParams = useCompatSearchParams();
+  const searchParams = useSearchParams();
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
@@ -945,11 +942,9 @@ const InfiniteScrollMain = ({
   );
 };
 
-const EventTypesPage: React.FC & {
-  PageWrapper?: AppProps["Component"]["PageWrapper"];
-  getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+const EventTypesPage: React.FC = () => {
   const { t } = useLocale();
+  const searchParams = useSearchParams();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
@@ -1003,18 +998,13 @@ const EventTypesPage: React.FC & {
   return (
     <Shell
       withoutMain={false}
-      title="Event Types"
-      description="Create events to share for people to book on your calendar."
+      title={t("event_types_page_title")}
+      description={t("event_types_page_subtitle")}
       withoutSeo
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
       CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <HeadSeo
-        title="Event Types"
-        description="Create events to share for people to book on your calendar."
-      />
-
       <InfiniteScrollMain
         profiles={getUserEventGroupsData?.profiles}
         eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
