@@ -1,4 +1,3 @@
-import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -11,6 +10,7 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -21,20 +21,15 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
 
-  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
+  const isEmbedSnippetGeneratorPath = pathname.startsWith("/event-types");
+  const isEmbed =
+    (pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null) &&
+    !isEmbedSnippetGeneratorPath;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: headers(), cookies: cookies() };
@@ -84,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script
           nonce={nonce}
           id="headScript"
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             __html: `
               window.calNewLocale = "${locale}";
@@ -152,7 +148,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <TrpcProvider>{children}</TrpcProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -32,7 +32,7 @@ import {
 } from "../internal-to-api/booking-fields";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiRequestToInternal,
+  transformBookingFieldsApiToInternal,
   transformSelectOptionsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -151,7 +151,7 @@ describe("transformLocationsApiToInternal", () => {
   });
 });
 
-describe("transformBookingFieldsApiRequestToInternal", () => {
+describe("transformBookingFieldsApiToInternal", () => {
   it("should transform name field", () => {
     const bookingField: InputBookingField_2024_06_14 = {
       type: "name",
@@ -176,7 +176,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
 
     const expectedOutput: SystemField[] = [expectedField];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -201,7 +201,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -238,7 +238,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -275,7 +275,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -312,7 +312,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -349,7 +349,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -386,7 +386,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -425,7 +425,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -456,14 +456,13 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill: false,
         hidden: false,
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -500,7 +499,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -531,14 +530,13 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill: false,
         hidden: false,
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -569,14 +567,13 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill: false,
         hidden: false,
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -612,7 +609,7 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });
@@ -646,14 +643,13 @@ describe("transformBookingFieldsApiRequestToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill,
         hidden: false,
       },
     ];
 
-    const result = transformBookingFieldsApiRequestToInternal(input);
+    const result = transformBookingFieldsApiToInternal(input);
 
     expect(result).toEqual(expectedOutput);
   });

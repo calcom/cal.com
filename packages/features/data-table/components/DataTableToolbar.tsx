@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
 import { Button, Input } from "@calcom/ui";
 
-import { useColumnFilters } from "../lib/utils";
+import { useColumnFilters } from "../hooks";
 
 interface DataTableToolbarProps extends ComponentPropsWithoutRef<"div"> {
   children: React.ReactNode;
