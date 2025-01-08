@@ -97,6 +97,9 @@
     "tsconfig-paths": "^4.1.0",
     "typescript": "^4.9.4"
   },
+  "resolutions": {
+    "@calcom/platform-libraries-0.0.2/jsforce": "npm:@jsforce/jsforce-node"
+  },
   "prisma": {
     "schema": "../../../packages/prisma/schema.prisma"
   }
