@@ -2920,5 +2920,7 @@
   "choose_an_option": "Choose an option",
   "enter_option_value": "Enter option value",
   "remove_option": "Remove option",
+  "managed_users": "Managed Users",
+  "managed_users_description": "See all the managed users created by your OAuth client",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

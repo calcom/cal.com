@@ -10,13 +10,13 @@ import {
 
 type OAuthClientsDropdownProps = {
   oauthClients: PlatformOAuthClient[];
-  initialClientName: string;
-  handleChange: (clientId: string, clientName: string) => void;
+  selectedClientName: PlatformOAuthClient["name"];
+  handleChange: (value: PlatformOAuthClient) => void;
 };
 
 export const OAuthClientsDropdown = ({
   oauthClients,
-  initialClientName,
+  selectedClientName,
   handleChange,
 }: OAuthClientsDropdownProps) => {
   return (
@@ -24,24 +24,22 @@ export const OAuthClientsDropdown = ({
       {Array.isArray(oauthClients) && oauthClients.length > 0 ? (
         <Dropdown modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button color="secondary" EndIcon="chevron-down">
-              {initialClientName}
+            <Button type="button" color="secondary" EndIcon="chevron-down">
+              {selectedClientName}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             {oauthClients.map((client) => {
+              const isDisabled = selectedClientName === client.name;
+              console.log("isDisabled: ", client.name, isDisabled);
               return (
-                <div key={client.id}>
-                  {initialClientName !== client.name ? (
-                    <DropdownMenuItem className="outline-none">
-                      <DropdownItem type="button" onClick={() => handleChange(client.id, client.name)}>
-                        {client.name}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  ) : (
-                    <></>
-                  )}
-                </div>
+                <DropdownMenuItem
+                  key={client.id}
+                  className={`outline-none ${isDisabled ? "cursor-not-allowed opacity-20" : ""}`}>
+                  <DropdownItem type="button" onClick={() => !isDisabled && handleChange(client)}>
+                    {client.name}
+                  </DropdownItem>
+                </DropdownMenuItem>
               );
             })}
           </DropdownMenuContent>
