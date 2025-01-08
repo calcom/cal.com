@@ -129,7 +129,7 @@ export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@c
 
 export {
   // note(Lauris): Api to internal
-  transformBookingFieldsApiRequestToInternal,
+  transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -158,6 +158,9 @@ export {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
 } from "@calcom/lib/event-types/transformers";
 
 export type {
