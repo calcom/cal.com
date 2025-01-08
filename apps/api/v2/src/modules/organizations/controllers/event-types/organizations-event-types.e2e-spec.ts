@@ -603,16 +603,67 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           const data = responseBody.data;
           expect(data.bookingFields).toEqual([
-            { isDefault: true, type: "name", slug: "name", required: true },
-            { isDefault: true, type: "email", slug: "email", required: false, label: "Email" },
-            { isDefault: true, required: false, slug: "rescheduleReason", type: "textarea" },
             {
-              isDefault: false,
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: false,
+              label: "Email",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
               type: "phone",
               slug: "attendeePhoneNumber",
               required: true,
-              label: "Phone number",
-              placeholder: "",
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
             },
           ]);
         });
