@@ -37,7 +37,10 @@ export class GetAvailableSlotsInput {
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: "Slug of the event type for which slots are being fetched." })
+  @ApiPropertyOptional({
+    description:
+      "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
+  })
   eventTypeSlug?: string;
 
   @IsArray()
@@ -45,7 +48,9 @@ export class GetAvailableSlotsInput {
   @IsOptional()
   @ApiPropertyOptional({
     type: [String],
-    description: "Only for dynamic events - list of usernames for which slots are being fetched.",
+    description:
+      "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+    example: "usernameList[]=bob",
   })
   usernameList?: string[];
 

@@ -3592,6 +3592,7 @@
       "get": {
         "operationId": "CalendarsController_getBusyTimes",
         "summary": "Get busy times",
+        "description": "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
         "parameters": [
           {
             "name": "loggedInUsersTz",
@@ -3599,6 +3600,26 @@
             "in": "query",
             "description": "The timezone of the logged in user represented as a string",
             "example": "America/New_York",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "description": "The starting date for the busy times query",
+            "example": "2023-10-01",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "description": "The ending date for the busy times query",
+            "example": "2023-10-31",
             "schema": {
               "type": "string"
             }
@@ -5118,7 +5139,7 @@
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
-            "description": "Slug of the event type for which slots are being fetched.",
+            "description": "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
             "schema": {
               "type": "string"
             }
@@ -5127,7 +5148,8 @@
             "name": "usernameList",
             "required": false,
             "in": "query",
-            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "description": "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+            "example": "usernameList[]=bob",
             "schema": {
               "type": "array",
               "items": {
@@ -5551,6 +5573,257 @@
         },
         "tags": [
           "Teams"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/event-types": {
+      "post": {
+        "operationId": "TeamsEventTypesController_createTeamEventType",
+        "summary": "Create an event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
+        ]
+      },
+      "get": {
+        "operationId": "TeamsEventTypesController_getTeamEventTypes",
+        "summary": "Get a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": false,
+            "in": "query",
+            "description": "Slug of team event type to return.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}": {
+      "get": {
+        "operationId": "TeamsEventTypesController_getTeamEventType",
+        "summary": "Get an event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
+        ]
+      },
+      "patch": {
+        "operationId": "TeamsEventTypesController_updateTeamEventType",
+        "summary": "Update a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTeamEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
+        ]
+      },
+      "delete": {
+        "operationId": "TeamsEventTypesController_deleteTeamEventType",
+        "summary": "Delete a team event type",
+        "parameters": [
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteTeamEventTypeOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
+        ]
+      }
+    },
+    "/v2/teams/{teamId}/event-types/{eventTypeId}/create-phone-call": {
+      "post": {
+        "operationId": "TeamsEventTypesController_createPhoneCall",
+        "summary": "Create a phone call",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePhoneCallInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePhoneCallOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Teams / Event Types"
         ]
       }
     },
@@ -6726,6 +6999,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6733,7 +7010,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "AddressFieldInput_2024_06_14": {
@@ -6763,6 +7041,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6770,7 +7052,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "TextFieldInput_2024_06_14": {
@@ -6800,6 +7083,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6807,7 +7094,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "NumberFieldInput_2024_06_14": {
@@ -6837,6 +7125,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6844,7 +7136,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "TextAreaFieldInput_2024_06_14": {
@@ -6874,6 +7167,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6881,7 +7178,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "SelectFieldInput_2024_06_14": {
@@ -6921,6 +7219,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6929,7 +7231,8 @@
           "label",
           "required",
           "placeholder",
-          "options"
+          "options",
+          "hidden"
         ]
       },
       "MultiSelectFieldInput_2024_06_14": {
@@ -6965,6 +7268,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -6972,7 +7279,8 @@
           "slug",
           "label",
           "required",
-          "options"
+          "options",
+          "hidden"
         ]
       },
       "MultiEmailFieldInput_2024_06_14": {
@@ -7002,6 +7310,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -7009,7 +7321,8 @@
           "slug",
           "label",
           "required",
-          "placeholder"
+          "placeholder",
+          "hidden"
         ]
       },
       "CheckboxGroupFieldInput_2024_06_14": {
@@ -7045,6 +7358,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -7052,7 +7369,8 @@
           "slug",
           "label",
           "required",
-          "options"
+          "options",
+          "hidden"
         ]
       },
       "RadioGroupFieldInput_2024_06_14": {
@@ -7088,6 +7406,10 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
@@ -7095,7 +7417,8 @@
           "slug",
           "label",
           "required",
-          "options"
+          "options",
+          "hidden"
         ]
       },
       "BooleanFieldInput_2024_06_14": {
@@ -7120,13 +7443,18 @@
           },
           "disableOnPrefill": {
             "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
           "type",
           "slug",
           "label",
-          "required"
+          "required",
+          "hidden"
         ]
       },
       "BusinessDaysWindow_2024_06_14": {
@@ -7414,7 +7742,7 @@
           "type"
         ]
       },
-      "NameFieldInput_2024_06_14": {
+      "NameDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -7439,7 +7767,7 @@
           "placeholder"
         ]
       },
-      "EmailFieldInput_2024_06_14": {
+      "EmailDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -7462,6 +7790,126 @@
           "type",
           "label",
           "placeholder"
+        ]
+      },
+      "TitleDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "title",
+            "description": "only allowed value for type is `title`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=journey`,      the title field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "NotesDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "notes",
+            "description": "only allowed value for type is `notes`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=journey`,      the notes field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "GuestsDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "guests",
+            "description": "only allowed value for type is `guests`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=bob@cal.com`,      the guests field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "RescheduleReasonDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "rescheduleReason",
+            "description": "only allowed value for type is `rescheduleReason`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=travel`,      the rescheduleReason field will be prefilled with this value and disabled."
+          }
+        },
+        "required": [
+          "slug"
         ]
       },
       "BookerLayouts_2024_06_14": {
@@ -7594,10 +8042,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -8131,125 +8591,218 @@
           },
           "required": {
             "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
           }
         },
         "required": [
           "isDefault",
           "slug",
           "type",
-          "required"
+          "required",
+          "hidden"
         ]
       },
       "RescheduleReasonDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "title",
+              "notes",
+              "guests"
+            ],
+            "example": "rescheduleReason",
+            "description": "only allowed value for type is `rescheduleReason`",
+            "default": "rescheduleReason"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=busy`,      the reschedule reason field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "rescheduleReason"
-          },
           "type": {
             "type": "string",
             "default": "textarea"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
-          "isDefault",
           "slug",
-          "type",
-          "required"
+          "isDefault",
+          "type"
         ]
       },
       "TitleDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "title",
+              "notes",
+              "guests"
+            ],
+            "example": "title",
+            "description": "only allowed value for type is `title`",
+            "default": "title"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=masterclass`,      the title field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "title"
-          },
           "type": {
             "type": "string",
             "default": "text"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
-          "isDefault",
           "slug",
-          "type",
-          "required"
+          "isDefault",
+          "type"
         ]
       },
       "NotesDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "title",
+              "notes",
+              "guests"
+            ],
+            "example": "notes",
+            "description": "only allowed value for type is `notes`",
+            "default": "notes"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=hello`,      the notes field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "notes"
-          },
           "type": {
             "type": "string",
             "default": "textarea"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
-          "isDefault",
           "slug",
-          "type",
-          "required"
+          "isDefault",
+          "type"
         ]
       },
       "GuestsDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string",
+            "enum": [
+              "name",
+              "email",
+              "title",
+              "notes",
+              "guests"
+            ],
+            "example": "guests",
+            "description": "only allowed value for type is `guests`",
+            "default": "guests"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=lauris@cal.com`,      the guests field will be prefilled with this value and disabled."
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "guests"
-          },
           "type": {
             "type": "string",
             "default": "multiemail"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
-          "isDefault",
           "slug",
-          "type",
-          "required"
+          "isDefault",
+          "type"
         ]
       },
       "AddressFieldOutput_2024_06_14": {
@@ -8295,6 +8848,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `address` and the URL contains query parameter `&address=1234 Main St, London`,      the address field will be prefilled with this value and disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8307,6 +8864,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8348,6 +8906,10 @@
           "disableOnPrefill": {
             "type": "boolean"
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8360,6 +8922,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8412,6 +8975,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `notify-me` and the URL contains query parameter `&notify-me=true`,      the checkbox will be selected and the checkbox field will be disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8425,6 +8992,7 @@
           "label",
           "required",
           "options",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8471,6 +9039,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=alice@gmail.com&consultants=bob@gmail.com`,      the these emails will be added and none more can be added."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8483,6 +9055,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8535,6 +9108,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `consultants` and the URL contains query parameter `&consultants=en&language=it`,      the 'en' and 'it' will be selected and the select field will be disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8548,6 +9125,7 @@
           "label",
           "required",
           "options",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8594,6 +9172,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `calories-per-day` and the URL contains query parameter `&calories-per-day=3000`,      the number field will be prefilled with this value and disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8606,6 +9188,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8650,6 +9233,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `phone` and the URL contains query parameter `&phone=1234567890`,      the phone field will be prefilled with this value and disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8662,6 +9249,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8714,6 +9302,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8727,6 +9319,7 @@
           "label",
           "required",
           "options",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8783,6 +9376,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' will be selected and the select field will be disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8796,6 +9393,7 @@
           "label",
           "required",
           "options",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8842,6 +9440,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `dear-diary` and the URL contains query parameter `&dear-diary=Today I shipped a feature`,      the text area will be prefilled with this value and disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8854,6 +9456,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -8900,6 +9503,10 @@
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `who-referred-you` and the URL contains query parameter `&who-referred-you=bob`,      the text field will be prefilled with this value and disabled."
           },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
           "isDefault": {
             "type": "object",
             "default": false,
@@ -8912,6 +9519,7 @@
           "slug",
           "label",
           "required",
+          "hidden",
           "isDefault"
         ]
       },
@@ -9325,10 +9933,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -10902,10 +11522,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -11727,10 +12359,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"

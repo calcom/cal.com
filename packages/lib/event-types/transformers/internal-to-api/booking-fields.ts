@@ -26,62 +26,83 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "email":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             label: field.label,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "location":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "rescheduleReason":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "title":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "notes":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "guests":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
           };
         case "attendeePhoneNumber":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
+            hidden: !!field.hidden,
           };
         default:
           return {
@@ -101,9 +122,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "address":
           return {
@@ -111,9 +133,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "text":
           return {
@@ -121,9 +144,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "number":
           return {
@@ -131,9 +155,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "textarea":
           return {
@@ -141,9 +166,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "multiemail":
           return {
@@ -151,9 +177,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "boolean":
           return {
@@ -161,8 +188,9 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
-            disableOnPrefill: field.disableOnPrefill,
+            required: !!field.required,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "select":
           return {
@@ -170,10 +198,11 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             options: field.options ? field.options.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "multiselect":
           return {
@@ -181,9 +210,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "checkbox":
           return {
@@ -191,9 +221,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         case "radio":
           return {
@@ -201,9 +232,10 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
-            disableOnPrefill: field.disableOnPrefill,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
           };
         default:
           return {
@@ -237,6 +269,7 @@ const CustomFieldsSchema = z.object({
   type: CustomFieldTypeEnum,
   label: z.string(),
   labelAsSafeHtml: z.string().optional(),
+  hidden: z.boolean().optional(),
   sources: z.array(
     z.object({
       id: z.literal("user"),
@@ -341,37 +374,37 @@ const PhoneSystemFieldSchema = SystemFieldSchema.extend({
 const EmailSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("email"),
   type: z.literal("email"),
-  required: z.literal(true),
+  required: z.boolean(),
 });
 
 const RescheduleReasonSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("rescheduleReason"),
   type: z.literal("textarea"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const LocationReasonSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("location"),
   type: z.literal("radioInput"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const TitleSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("title"),
   type: z.literal("text"),
-  required: z.literal(true),
+  required: z.boolean(),
 });
 
 const NotesSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("notes"),
   type: z.literal("textarea"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 const GuestsSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("guests"),
   type: z.literal("multiemail"),
-  required: z.literal(false),
+  required: z.boolean(),
 });
 
 export type NameSystemField = z.infer<typeof NameSystemFieldSchema>;
@@ -453,6 +486,22 @@ export const systemBeforeFieldEmail: EmailSystemField = {
   ],
 };
 
+export const systemBeforeFieldPhone: PhoneSystemField = {
+  defaultLabel: "phone_number",
+  type: "phone",
+  name: "attendeePhoneNumber",
+  required: false,
+  hidden: true,
+  editable: "system-but-optional",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
 export const systemBeforeFieldLocation: LocationReasonSystemField = {
   defaultLabel: "location",
   type: "radioInput",
@@ -478,6 +527,56 @@ export const systemBeforeFieldLocation: LocationReasonSystemField = {
       placeholder: "",
     },
   },
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldTitle: TitleSystemField = {
+  defaultLabel: "what_is_this_meeting_about",
+  type: "text",
+  name: "title",
+  editable: "system-but-optional",
+  required: true,
+  hidden: true,
+  defaultPlaceholder: "",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldNotes: NotesSystemField = {
+  defaultLabel: "additional_notes",
+  type: "textarea",
+  name: "notes",
+  editable: "system-but-optional",
+  required: false,
+  defaultPlaceholder: "share_additional_notes",
+  sources: [
+    {
+      label: "Default",
+      id: "default",
+      type: "default",
+    },
+  ],
+};
+
+export const systemAfterFieldGuests: GuestsSystemField = {
+  defaultLabel: "additional_guests",
+  type: "multiemail",
+  editable: "system-but-optional",
+  name: "guests",
+  defaultPlaceholder: "email",
+  required: false,
+  hidden: false,
   sources: [
     {
       label: "Default",

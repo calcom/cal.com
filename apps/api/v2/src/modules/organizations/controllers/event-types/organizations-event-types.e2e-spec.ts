@@ -677,53 +677,48 @@ describe("Organizations Event Types Endpoints", () => {
           const fetchedEventType = responseBody.data;
 
           expect(fetchedEventType.bookingFields).toEqual([
-            {
-              isDefault: true,
-              type: "name",
-              slug: "name",
-              required: true,
-            },
-            {
-              isDefault: true,
-              type: "email",
-              slug: "email",
-              required: true,
-            },
-            {
-              isDefault: true,
-              required: false,
-              slug: "attendeePhoneNumber",
-              type: "phone",
-            },
+            { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
+            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+            { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
             {
               isDefault: true,
               type: "radioInput",
               slug: "location",
               required: false,
+              disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
-              type: "text",
-              slug: "title",
               required: true,
+              slug: "title",
+              type: "text",
+              disableOnPrefill: false,
+              hidden: true,
             },
             {
               isDefault: true,
-              type: "textarea",
-              slug: "notes",
               required: false,
-            },
-            {
-              isDefault: true,
-              type: "multiemail",
               slug: "guests",
-              required: false,
+              type: "multiemail",
+              disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
-              type: "textarea",
-              slug: "rescheduleReason",
               required: false,
+              slug: "rescheduleReason",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              required: false,
+              slug: "notes",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
             },
           ]);
         });

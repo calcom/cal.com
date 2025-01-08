@@ -6,6 +6,7 @@ import { z } from "zod";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -189,12 +190,22 @@ export default class SalesforceCRMService implements CRM {
       confirmedCustomFieldInputs[field.name] = appOptions.onBookingWriteToEventObjectMap[field.name];
     }
 
-    const ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+    let ownerId = null;
+    if (event?.organizer?.email) {
+      ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
+    } else {
+      this.log.warn("salesforceCreateEvent: No organizer email found for event", event.uid, event?.organizer);
+    }
+
     /**
      * Current code assume that contacts is not empty.
      * I'm not going to reject the promise since I don't know if this is a valid assumption.
      **/
     const [firstContact] = contacts;
+
+    if (!firstContact?.id) {
+      this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
+    }
 
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
@@ -225,7 +236,7 @@ export default class SalesforceCRMService implements CRM {
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         firstContact.id,
         event.startTime,
-        event.organizer.email,
+        event.organizer?.email,
         event.responses,
         event?.uid
       );
@@ -431,7 +442,10 @@ export default class SalesforceCRMService implements CRM {
       }
 
       // Handle owner information
-      if (includeOwner || forRoundRobinSkip) {
+      if (
+        (includeOwner || forRoundRobinSkip) &&
+        !(await this.shouldSkipAttendeeIfFreeEmailDomain(emailArray[0]))
+      ) {
         const ownerIds: Set<string> = new Set();
 
         if (accountOwnerId) {
@@ -444,17 +458,15 @@ export default class SalesforceCRMService implements CRM {
           });
         }
 
-        if (ownerIds.size === 0) {
-          log.warn("No owner IDs found for records");
-          return [];
-        }
-
-        const ownersQuery = await Promise.all(
-          Array.from(ownerIds).map(async (ownerId) => {
-            const result = await this.getSalesforceUserFromUserId(ownerId);
-            return result;
-          })
-        );
+        const ownersQuery =
+          ownerIds.size > 0
+            ? await Promise.all(
+                Array.from(ownerIds).map(async (ownerId) => {
+                  const result = await this.getSalesforceUserFromUserId(ownerId);
+                  return result;
+                })
+              )
+            : [];
 
         // Filter out any undefined results and ensure records exist
         const validOwnersQuery = ownersQuery.filter((query): query is jsforce.QueryResult<ContactRecord> => {
@@ -466,14 +478,9 @@ export default class SalesforceCRMService implements CRM {
           );
         });
 
-        if (validOwnersQuery.length === 0) {
-          log.warn("No valid owner records found");
-          return [];
-        }
-
         return records
           .map((record) => {
-            if (!record?.Id || !record?.OwnerId) {
+            if (!record?.Id) {
               log.warn("Invalid record data", { record });
               return null;
             }
@@ -481,11 +488,6 @@ export default class SalesforceCRMService implements CRM {
             const ownerEmail = accountOwnerId
               ? validOwnersQuery[0]?.records[0]?.Email
               : validOwnersQuery.find((user) => user.records[0]?.Id === record.OwnerId)?.records[0]?.Email;
-
-            if (!ownerEmail) {
-              log.warn("Could not find owner email", { recordId: record.Id, ownerId: record.OwnerId });
-              return null;
-            }
 
             return {
               id: record.Id,
@@ -542,6 +544,10 @@ export default class SalesforceCRMService implements CRM {
           });
         })
       );
+    }
+
+    if (contactsToCreate[0]?.email) {
+      this.log.warn(`createContact: no attendee email found `, contactsToCreate);
     }
 
     if (createEventOn === SalesforceRecordEnum.LEAD) {
@@ -922,7 +928,7 @@ export default class SalesforceCRMService implements CRM {
   private async writeToPersonRecord(
     contactId: string,
     startTime: string,
-    organizerEmail: string,
+    organizerEmail?: string,
     calEventResponses?: CalEventResponses | null,
     bookingUid?: string | null
   ) {
@@ -978,7 +984,7 @@ export default class SalesforceCRMService implements CRM {
     onBookingWriteToRecordFields: Record<string, any>;
     startTime: string;
     bookingUid?: string | null;
-    organizerEmail: string;
+    organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
   }): Promise<Record<string, any>> {
     const writeOnRecordBody: Record<string, any> = {};
@@ -1100,6 +1106,9 @@ export default class SalesforceCRMService implements CRM {
       return new Date(startTime).toISOString();
     }
     if (fieldValue === DateFieldTypeData.BOOKING_CREATED_DATE && bookingUid) {
+      if (!organizerEmail) {
+        this.log.warn(`No organizer email found for bookingUid ${bookingUid}`);
+      }
       const booking = await prisma.booking.findFirst({
         where: { uid: bookingUid },
         select: { createdAt: true },
@@ -1241,5 +1250,13 @@ export default class SalesforceCRMService implements CRM {
 
     if (companyValue === onBookingWriteToRecordFields[companyFieldName]) return;
     return companyValue;
+  }
+
+  private async shouldSkipAttendeeIfFreeEmailDomain(attendeeEmail: string) {
+    const appOptions = this.getAppOptions();
+    if (!appOptions.ifFreeEmailDomainSkipOwnerCheck) return false;
+
+    const response = await checkIfFreeEmailDomain(attendeeEmail);
+    return response;
   }
 }

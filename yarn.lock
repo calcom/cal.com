@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.73"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.79"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3798,6 +3798,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/chatbase@workspace:packages/app-store/chatbase":
+  version: 0.0.0-use.local
+  resolution: "@calcom/chatbase@workspace:packages/app-store/chatbase"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/clic@workspace:packages/app-store/clic":
   version: 0.0.0-use.local
   resolution: "@calcom/clic@workspace:packages/app-store/clic"
@@ -4010,8 +4019,8 @@ __metadata:
     typescript: ^4.9.4
     vite: ^4.5.2
   peerDependencies:
-    react: ^18.2.0
-    react-dom: ^18.2.0
+    react: ^18.2.0 || ^19.0.0
+    react-dom: ^18.2.0 || ^19.0.0
   languageName: unknown
   linkType: soft
 
@@ -4492,14 +4501,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.73":
-  version: 0.0.73
-  resolution: "@calcom/platform-libraries@npm:0.0.73"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.79":
+  version: 0.0.79
+  resolution: "@calcom/platform-libraries@npm:0.0.79"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 9b35d2edcf9c928da98047c919effb9e8534d433fbd7e7a90305cbbb079eafe2113c5c78d6aff7672e8202e1ae9f35b087e4d445e22db54617dad6cf74501f59
+  checksum: 078aa998c58039cb73040fbb7f6ca271231e1000f81dd7c60855efe6f6e981c4c1eaf89cf9a216140626cb0907957f2a9872232ecb3f909ef4fca5aa3eaa2fd7
   languageName: node
   linkType: hard
 

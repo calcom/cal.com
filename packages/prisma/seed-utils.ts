@@ -426,7 +426,9 @@ export async function seedAttributes(teamId: number) {
 export async function seedRoutingForms(
   teamId: number,
   userId: number,
-  attributeRaw: { id: string; options: { id: string; value: string }[] }[]
+  attributeRaw: { id: string; options: { id: string; value: string }[] }[],
+  javascriptEventId: number,
+  salesEventId: number
 ) {
   const seededForm = {
     id: "948ae412-d995-4865-885a-48302588de03",
@@ -435,10 +437,12 @@ export async function seedRoutingForms(
       {
         id: "8a898988-89ab-4cde-b012-31823f708642",
         value: "team/insights-team/team-javascript",
+        eventTypeId: javascriptEventId,
       },
       {
         id: "8b2224b2-89ab-4cde-b012-31823f708642",
         value: "team/insights-team/team-sales",
+        eventTypeId: salesEventId,
       },
     ],
     formFieldLocation: {
@@ -481,7 +485,7 @@ export async function seedRoutingForms(
           action: {
             type: "eventTypeRedirectUrl",
             value: seededForm.routes[0].value,
-            eventTypeId: 1133,
+            eventTypeId: seededForm.routes[0].eventTypeId,
           },
           queryValue: {
             id: "aaba9988-cdef-4012-b456-719300f53ef8",
@@ -512,7 +516,7 @@ export async function seedRoutingForms(
           action: {
             type: "eventTypeRedirectUrl",
             value: seededForm.routes[1].value,
-            eventTypeId: 1133,
+            eventTypeId: seededForm.routes[1].eventTypeId,
           },
           queryValue: {
             id: "aaba9948-cdef-4012-b456-719300f53ef8",

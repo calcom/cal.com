@@ -1,12 +1,11 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, useEffect } from "react";
+import React, { cloneElement } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import classNames from "@calcom/lib/classNames";
@@ -16,7 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
-import usePostHog from "../ee/event-tracking/lib/posthog/userPostHog";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -27,18 +25,11 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-  const postHog = usePostHog();
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
-  useBootIntercom();
-  useFormbricks();
 
-  useEffect(() => {
-    if (!props.isPublic) {
-      postHog.identify();
-    }
-  }, [props.isPublic, postHog]);
+  useFormbricks();
 
   return (
     <>

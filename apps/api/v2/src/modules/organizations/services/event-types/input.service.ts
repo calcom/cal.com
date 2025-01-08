@@ -1,5 +1,5 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
@@ -17,7 +17,7 @@ export class InputOrganizationsEventTypesService {
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
     private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly orgEventTypesRepository: OrganizationsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
   async transformAndValidateCreateTeamEventTypeInput(
     userId: number,
@@ -115,7 +115,7 @@ export class InputOrganizationsEventTypesService {
     const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
     const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
-    const dbEventType = await this.orgEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+    const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
 
     if (!dbEventType) {
       throw new BadRequestException("Event type to update not found");
@@ -144,7 +144,7 @@ export class InputOrganizationsEventTypesService {
   ) {
     let eventType = null;
     if (eventTypeId) {
-      eventType = await this.orgEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
+      eventType = await this.teamsEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
       if (!eventType || eventType.schedulingType !== "MANAGED") {
         return undefined;
       }
