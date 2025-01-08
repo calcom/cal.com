@@ -240,7 +240,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues, control } = useFormContext<FormValues>();
+  const { setValue, getValues, control, formState } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
@@ -274,7 +274,10 @@ const RoundRobinHosts = ({
                     <EditWeightsForAllTeamMembers
                       teamMembers={teamMembers}
                       value={value}
-                      onChange={onChange}
+                      onChange={(hosts) => {
+                        const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+                        setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                      }}
                       assignAllTeamMembers={assignAllTeamMembers}
                     />
                   ) : null}
