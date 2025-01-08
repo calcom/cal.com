@@ -319,15 +319,15 @@ const RoundRobinHosts = ({
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
+        {!assignRRMembersUsingSegment && (
           <>
             <Controller<FormValues>
               name="isRRWeightsEnabled"
-              render={({ field: { value, onChange } }) => (
+              render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
                 <SettingsToggle
                   title={t("enable_weights")}
                   description={weightDescription}
-                  checked={value}
+                  checked={isRRWeightsEnabled}
                   switchContainerClassName={customClassNames?.enableWeights?.container}
                   labelClassName={customClassNames?.enableWeights?.label}
                   descriptionClassName={customClassNames?.enableWeights?.description}
