@@ -60,14 +60,13 @@ class Attendee {
     type: String,
     description: "The email of the attendee.",
     example: "john.doe@example.com",
-    default: "", // Kept the default empty string
   })
   @IsOptional()
   @Validate((value: string) => !value || isEmail(value), {
     message: "Invalid email format",
   })
   @RequireEmailOrPhone()
-  email = ""; // Default to empty string
+  email?: string;
 
   @ApiProperty({
     type: String,

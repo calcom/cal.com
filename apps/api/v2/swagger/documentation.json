@@ -14469,8 +14469,7 @@
           "email": {
             "type": "string",
             "description": "The email of the attendee.",
-            "example": "john.doe@example.com",
-            "default": ""
+            "example": "john.doe@example.com"
           },
           "timeZone": {
             "type": "string",
