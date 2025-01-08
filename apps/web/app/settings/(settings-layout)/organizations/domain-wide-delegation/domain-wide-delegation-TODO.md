@@ -1,9 +1,12 @@
 ## Version 1.0
+
 ### Important
-  - [ ] Add a feature flag to enable/disable domain-wide delegation
-    - Disabling
-      - should remove settings/organizations/domain-wide-delegation link from UI
-      - No DWD credential should be considered
+
+### Important
+  - Bugs
+    - [ ] Seems like when a user who has connected calendar with certain calendars enabled/disabled, then enabling DWD for the domain, the DWD credential connected SelectedCalendars aren't synced
+  - Manual Testing
+    - If a user has connected a calendar, and then DWD is enabled.
   - Tests
     - [ ] Booking Scenario Tests that would verify that correct payload is given to CalendarService when DWD is enabled
     - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.

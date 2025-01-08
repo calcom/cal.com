@@ -34,7 +34,7 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
       - User must be a member of the Google Workspace to be able to enable DWD as there is a validation if the user's calendar can be accessed through the service account
     - Get the Client ID from there
     - Go to your Google Admin Console (admin-google-com)
-    - Navigate to Security → API Controls → Manage Domain-Wide Delegation
+    - Navigate to Security → Access and Data Controls -> API controls -> Manage Domain-Wide Delegation
     - Here, you'll authorize the Client ID(Unique ID) to access the Google Calendar API
     - Add the necessary API scopes for Google Calendar(Full access to Google Calendar)
         https://www.googleapis.com/auth/calendar
@@ -42,10 +42,24 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 ## How Domain-Wide Delegation works
 - cal.com instance admin needs to create a workspace platform which requires Service Account Key.
 - After this, organization owner can create a domain-wide-delegation for that workspace platform and a domain of their choice.
-- No Credential table entry is created at the moment but the workspace platform's related apps will be considered as "installed" for the users with email matchind dwd domain. An in-memory credential like object is created for this purpose. It allows avoiding creation of thousands of records for all the members of the organization when dwd is enabled.
+- No Credential table entry is created till now but the workspace platform's related apps will be considered as "installed" for the users with email matchind dwd domain. An in-memory credential like object is created for this purpose. It allows avoiding creation of thousands of records for all the members of the organization when dwd is enabled.
 - DWD Credential is applicable to Users only. 
    - For team, we don't use dwd credential as you can impersonate a user and not team through Dwd credential. Currently supported apps(Google Calendar and Google Meet) don't support team installation, so we could simply allow enabling DWD without any issues.
 - Disabling a workspace platform stops it from being used for any new organizations and also disables any DWD using the workspace platform from being edited.
    - It still all existing DWDs to keep on working
 - Adding any number of DWDs for a particular workspace always gives the same Client ID as DWD uses the workspace's default Service Account.
 - Deleting or Disabling a DWD is identical in terms of it disabling DWD immediately. The only difference is that deleting a DWD removes it from the database.
+
+### How apps/installed loads the credentials
+1. Identify the logged in user's email
+2. Identify the domainWideDelegations for that email's domain
+3. Build in-memory credentials for the domainWideDelegations and use them along with the actual credentials(that user might have connected) of the user
+4. We don't show the non-dwd connected calendar(if there is a corresponding dwd connected calendar). Though we use the non-dwd credentials to identify the selected calendars, for the dwd connected calendar.
+
+
+
+Notes when testing locally
+- You need to enable the feature through feature flag.
+- You could use Acme org and login as owner1-acme@example.com
+- Make sure to change the email of the user above to your workspace owner's email(other member's email might also work). This is necessary otherwise you won't be able to enable DWD for the organization.
+   - Note: After changing the email, you would have to logout and login again as required by NextAuth

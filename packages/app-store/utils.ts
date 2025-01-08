@@ -56,6 +56,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
     delegatedToId: null,
     delegatedTo: null,
   };
+
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
     const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 

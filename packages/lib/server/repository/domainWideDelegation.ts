@@ -200,4 +200,21 @@ export class DomainWideDelegationRepository implements IDomainWideDelegationRepo
       },
     });
   }
+
+  async findByIdsIncludeSensitiveServiceAccountKey(ids: string[]) {
+    if (ids.length === 0) return [];
+    const domainWideDelegations = await prisma.domainWideDelegation.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+        enabled: true,
+      },
+      select: domainWideDelegationSelectIncludesServiceAccountKey,
+    });
+
+    return domainWideDelegations
+      .map((dwd) => DomainWideDelegationRepository.withParsedServiceAccountKey(dwd))
+      .filter((dwd): dwd is NonNullable<typeof dwd> => dwd !== null);
+  }
 }

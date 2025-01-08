@@ -56,4 +56,8 @@ export class MockDomainWideDelegationRepository implements IDomainWideDelegation
   async findDelegationsWithServiceAccount(_args: { organizationId: number }) {
     return [];
   }
+
+  async findByIdsIncludeSensitiveServiceAccountKey(_ids: string[]) {
+    return [];
+  }
 }

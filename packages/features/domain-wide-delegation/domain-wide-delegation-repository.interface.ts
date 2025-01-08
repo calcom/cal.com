@@ -56,4 +56,14 @@ export interface IDomainWideDelegationRepository {
       serviceAccountKey: any;
     })[]
   >;
+
+  findByIdsIncludeSensitiveServiceAccountKey(ids: string[]): Promise<
+    (DomainWideDelegationSafeSelect & {
+      serviceAccountKey: any;
+      workspacePlatform: {
+        name: string;
+        slug: string;
+      };
+    })[]
+  >;
 }
