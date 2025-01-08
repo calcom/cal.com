@@ -57,15 +57,13 @@ class BookingListener {
 
     const { results, referencesToCreate } = await eventManager.create(evt);
 
-    // TODO check if this is needed
-    // if (evt.location) {
-    //     booking.location = evt.location;
-    // }
+    if (evt.location) {
+      booking.location = evt.location;
+    }
 
-    // TODO check if this is needed
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
-    // evt.description = eventType.description;
+    evt.description = eventType.description;
 
     let videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
