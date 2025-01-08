@@ -1,6 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
+import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
@@ -15,7 +15,7 @@ import LegacyPage, { type PageProps as LegacyPageProps } from "~/team/type-view"
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData, isBrandingHidden } = props;
+  const { user: username, slug: eventSlug, booking } = props;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
 
   const event = await EventRepository.getPublicEvent({
@@ -26,26 +26,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
   });
 
-  return await generateEventBookingPageMetadata({
-    profile: {
-      name: event?.profile?.name ?? "",
-      image: event?.profile.image ?? "",
-    },
-    event: {
-      title: event?.title ?? "",
-      hidden: event?.hidden ?? false,
-      users: [
-        ...(event?.users || []).map((user) => ({
-          name: `${user.name}`,
-          username: `${user.username}`,
-        })),
-      ],
-    },
-    hideBranding: isBrandingHidden,
-    orgSlug: eventData?.entity.orgSlug ?? null,
-    isSEOIndexable,
-    isReschedule: !!booking,
-  });
+  const profileName = event?.profile?.name ?? "";
+  const title = event?.title ?? "";
+
+  return await _generateMetadata(
+    (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`
+  );
 };
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
