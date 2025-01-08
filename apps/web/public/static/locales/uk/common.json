@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Ви робите тестове бронювання.",
   "icon_showcase": "Галерея іконок",
   "icons_showcase": "Галерея іконок",
+  "choose_an_option": "Оберіть опцію",
+  "enter_option_value": "Введіть значення опції",
+  "remove_option": "Видалити опцію",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

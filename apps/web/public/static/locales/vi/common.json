@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Bạn đang thực hiện đặt lịch thử nghiệm.",
   "icon_showcase": "Trưng bày biểu tượng",
   "icons_showcase": "Trưng bày các biểu tượng",
+  "choose_an_option": "Chọn một tùy chọn",
+  "enter_option_value": "Nhập giá trị tùy chọn",
+  "remove_option": "Xóa tùy chọn",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
