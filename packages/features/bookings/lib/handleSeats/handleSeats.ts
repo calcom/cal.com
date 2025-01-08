@@ -34,6 +34,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     evt,
     rescheduledBy,
     organizerUser,
+    rescheduleReason,
     isDryRun = false,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -121,6 +122,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
+          rescheduleReason,
           ...{
             metadata,
             eventType: {

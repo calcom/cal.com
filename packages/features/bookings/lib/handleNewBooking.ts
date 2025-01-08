@@ -46,7 +46,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -1760,6 +1760,7 @@ async function handler(
 
   const evtWithMetadata = {
     ...evt,
+    rescheduleReason,
     metadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
     bookerUrl,
