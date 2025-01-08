@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Stai effettuando una prenotazione di prova.",
   "icon_showcase": "Galleria delle icone",
   "icons_showcase": "Galleria delle icone",
+  "choose_an_option": "Scegli un'opzione",
+  "enter_option_value": "Inserisci il valore dell'opzione",
+  "remove_option": "Rimuovi opzione",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Robíte testovaciu rezerváciu.",
   "icon_showcase": "Ukážka ikony",
   "icons_showcase": "Ukážka ikon",
+  "choose_an_option": "Vyberte možnosť",
+  "enter_option_value": "Zadajte hodnotu možnosti",
+  "remove_option": "Odstrániť možnosť",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
