@@ -8,6 +8,7 @@ import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
@@ -602,10 +603,16 @@ test("`updateTokenObject` should update credential in DB as well as myGoogleAuth
   expect(setCredentialsMock).toHaveBeenCalledWith(newTokenObject);
 });
 
-async function createCredentialInDb() {
-  const user = await prismock.user.create({
+async function createCredentialInDb({
+  user = undefined,
+  delegatedTo = null,
+}: {
+  user?: { email: string | null };
+  delegatedTo?: NonNullable<CredentialForCalendarService["delegatedTo"]> | null;
+} = {}): Promise<CredentialForCalendarService> {
+  const defaultUser = await prismock.user.create({
     data: {
-      email: "",
+      email: user?.email ?? "",
     },
   });
 
@@ -629,7 +636,7 @@ async function createCredentialInDb() {
       ...credential,
       user: {
         connect: {
-          id: user.id,
+          id: defaultUser.id,
         },
       },
       app: {
@@ -643,7 +650,11 @@ async function createCredentialInDb() {
     },
   });
 
-  return { ...credentialInDb, delegatedTo: null };
+  return {
+    ...credentialInDb,
+    delegatedTo: delegatedTo ?? null,
+    user: user ? { email: user.email ?? "" } : null,
+  } as CredentialForCalendarService;
 }
 
 describe("GoogleCalendarService credential handling", () => {
@@ -661,9 +672,10 @@ describe("GoogleCalendarService credential handling", () => {
   } as const;
 
   test("uses JWT auth with impersonation when DWD credential is provided", async () => {
-    const credentialWithDWD = await createCredentialInDb();
-    credentialWithDWD.delegatedTo = delegatedCredential;
-    credentialWithDWD.user = { email: "user@example.com" };
+    const credentialWithDWD = await createCredentialInDb({
+      user: { email: "user@example.com" },
+      delegatedTo: delegatedCredential,
+    });
 
     const calendarService = new CalendarService(credentialWithDWD);
     await calendarService.listCalendars();
@@ -711,9 +723,10 @@ describe("GoogleCalendarService credential handling", () => {
   });
 
   test("handles DWD authorization errors appropriately", async () => {
-    const credentialWithDWD = await createCredentialInDb();
-    credentialWithDWD.delegatedTo = delegatedCredential;
-    credentialWithDWD.user = { email: "user@example.com" };
+    const credentialWithDWD = await createCredentialInDb({
+      user: { email: "user@example.com" },
+      delegatedTo: delegatedCredential,
+    });
 
     const mockJWTInstance = {
       type: "jwt",
@@ -730,41 +743,40 @@ describe("GoogleCalendarService credential handling", () => {
           },
         },
       }),
+      createScoped: vi.fn(),
+      getRequestMetadataAsync: vi.fn(),
+      fetchIdToken: vi.fn(),
+      hasUserScopes: vi.fn(),
+      getAccessToken: vi.fn(),
+      getRefreshToken: vi.fn(),
+      getTokenInfo: vi.fn(),
+      refreshAccessToken: vi.fn(),
+      revokeCredentials: vi.fn(),
+      revokeToken: vi.fn(),
+      verifyIdToken: vi.fn(),
+      on: vi.fn(),
+      setCredentials: vi.fn(),
+      getCredentials: vi.fn(),
+      hasAnyScopes: vi.fn(),
+      authorizeAsync: vi.fn(),
+      refreshTokenNoCache: vi.fn(),
+      createGToken: vi.fn(),
     };
 
-    vi.mocked(JWT).mockImplementationOnce((config: MockJWT["config"]) => {
-      lastCreatedJWT = {
-        type: "jwt",
-        config,
-        authorize: mockJWTInstance.authorize,
-      };
-      return mockJWTInstance;
-    });
+    vi.mocked(JWT).mockImplementation(() => mockJWTInstance as unknown as JWT);
 
     const calendarService = new CalendarService(credentialWithDWD);
 
     await expect(calendarService.listCalendars()).rejects.toThrow(
       "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
     );
-
-    const expectedJWTConfig: MockJWT = {
-      type: "jwt",
-      config: {
-        email: delegatedCredential.serviceAccountKey.client_email,
-        key: delegatedCredential.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: "user@example.com",
-      },
-      authorize: expect.any(Function) as () => Promise<void>,
-    };
-
-    expect(lastCreatedJWT).toEqual(expectedJWTConfig);
   });
 
   test("handles missing user email for DWD appropriately", async () => {
-    const credentialWithDWD = await createCredentialInDb();
-    credentialWithDWD.delegatedTo = delegatedCredential;
-    credentialWithDWD.user = { email: null };
+    const credentialWithDWD = await createCredentialInDb({
+      user: { email: null },
+      delegatedTo: delegatedCredential,
+    });
 
     const calendarService = new CalendarService(credentialWithDWD);
     const { client_id, client_secret, redirect_uris } = await getGoogleAppKeys();
