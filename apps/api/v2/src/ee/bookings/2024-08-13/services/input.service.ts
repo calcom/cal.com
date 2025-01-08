@@ -77,29 +77,12 @@ export class InputBookingsService_2024_08_13 {
     private readonly bookingSeatRepository: BookingSeatRepository
   ) {}
 
-  private validateAttendeeContact(attendee: CreateBookingInput_2024_08_13["attendee"]) {
-    const hasPhoneNumber = !!attendee.phoneNumber?.trim();
-    const hasEmail = !!attendee.email?.trim();
-
-    if (!hasPhoneNumber && !hasEmail) {
-      throw new BadRequestException("At least one contact method (email or phone number) must be provided");
-    }
-
-    return {
-      ...attendee,
-      email: attendee.email ?? "",
-    };
-  }
-
   async createBookingRequest(
     request: Request,
     body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
   ): Promise<BookingRequest> {
     const bodyTransformed = await this.transformInputCreateBooking(body);
     const oAuthClientParams = await this.getOAuthClientParams(body.eventTypeId);
-
-    const validatedAttendee = this.validateAttendeeContact(body.attendee);
-    body.attendee = validatedAttendee;
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
@@ -177,12 +160,12 @@ export class InputBookingsService_2024_08_13 {
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
             attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           }
         : {
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
             attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           },
     };

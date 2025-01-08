@@ -13,7 +13,6 @@ import { Request } from "express";
 import { z } from "zod";
 
 import {
-  handleNewBooking,
   handleNewRecurringBooking,
   getAllUserBookings,
   handleInstantMeeting,
@@ -23,6 +22,7 @@ import {
   handleMarkNoShow,
   confirmBookingHandler,
 } from "@calcom/platform-libraries";
+import { handleNewBooking } from "@calcom/platform-libraries-0.0.0";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInput,

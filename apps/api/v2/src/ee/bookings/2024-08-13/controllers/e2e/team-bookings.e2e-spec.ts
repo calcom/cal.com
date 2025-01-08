@@ -406,7 +406,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           eventTypeId: phoneOnlyEventTypeId,
           attendee: {
             name: "alice",
-            email: "test@test.com",
+            phoneNumber: "+919876543210",
             timeZone: "Europe/Madrid",
             language: "es",
           },
@@ -438,7 +438,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.attendees.length).toEqual(1);
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
-                email: "test@test.com",
+                email: "919876543210@sms.cal.com",
                 phoneNumber: body.attendee.phoneNumber,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
