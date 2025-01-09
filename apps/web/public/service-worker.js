@@ -1,4 +1,5 @@
 self.addEventListener("push", async (event) => {
+  console.log("push event", event);
   let notificationData = event.data.json();
 
   const allClients = await clients.matchAll({
@@ -6,10 +7,20 @@ self.addEventListener("push", async (event) => {
     includeUncontrolled: true,
   });
 
-  if (!allClients.length) {
-    console.log("No open tabs, skipping the push notification.");
-    return;
-  }
+  console.log("allClients", allClients);
+
+  // if (allClients.length) {
+  //   allClients.forEach(client => {
+  //     client.postMessage({
+  //       type: 'PLAY_NOTIFICATION_SOUND'
+  //     })
+  //   })
+  // }
+
+  // if (!allClients.length) {
+  //   console.log("No open tabs, skipping the push notification.");
+  //   return;
+  // }
 
   const title = notificationData.title || "You have a new notification from Cal.com";
   const image = "https://cal.com/api/logo?type=icon";
@@ -27,39 +38,70 @@ self.addEventListener("push", async (event) => {
   };
 
   const existingNotifications = await self.registration.getNotifications();
+  console.log("existingNotifications", existingNotifications);
 
   // Display each existing notification again to make sure old ones can still be clicked
-  existingNotifications.forEach((notification) => {
+  // Show each existing notification again with a unique tag
+  const showExistingPromises = existingNotifications.map((notification, index) => {
     const options = {
       body: notification.body,
       icon: notification.icon,
       badge: notification.badge,
       data: notification.data,
-      silent: notification.silent,
+      silent: true, // Don't play sound for re-shown notifications
       vibrate: notification.vibrate,
       requireInteraction: notification.requireInteraction,
-      tag: notification.tag,
+      tag: `existing-notification-${Date.now()}-${index}`, // Ensure unique tag
     };
-    self.registration.showNotification(notification.title, options);
+    return self.registration.showNotification(notification.title, options);
   });
 
-  // Show the new notification
-  self.registration.showNotification(title, newNotificationOptions);
+  const firstClient = allClients[0];
+  if (firstClient) {
+    firstClient.postMessage({
+      type: 'PLAY_NOTIFICATION_SOUND'
+    })
+  }
+
+    // Wait for all notifications to be shown
+    event.waitUntil(
+      Promise.all([
+        ...showExistingPromises,
+        self.registration.showNotification(title, newNotificationOptions)
+      ])
+    );
+
 });
 
 self.addEventListener("notificationclick", (event) => {
+  // Notify all clients to stop the sound
+  const stopSound = async () => {
+    const allClients = await clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    })
+
+    allClients.forEach(client => {
+      client.postMessage({
+        type: 'STOP_NOTIFICATION_SOUND'
+      })
+    })
+  }
+
   if (!event.action) {
     // Normal Notification Click
-    event.notification.close();
-    const url = event.notification.data.url;
-    event.waitUntil(self.clients.openWindow(url));
+    event.notification.close()
+    const url = event.notification.data.url
+    stopSound()
+    event.waitUntil(self.clients.openWindow(url))
   }
 
   switch (event.action) {
     case "connect-action":
-      event.notification.close();
-      const url = event.notification.data.url;
-      event.waitUntil(self.clients.openWindow(url));
-      break;
+      event.notification.close()
+      const url = event.notification.data.url
+      stopSound()
+      event.waitUntil(self.clients.openWindow(url))
+      break
   }
-});
+})

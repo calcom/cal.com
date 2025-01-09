@@ -44,6 +44,7 @@ export const sendNotification = async ({
       actions,
       requireInteraction,
     });
+    console.log("sendendcasdcasdcsad", payload);
     await webpush.sendNotification(subscription, payload);
   } catch (error) {
     console.error("Error sending notification", error);

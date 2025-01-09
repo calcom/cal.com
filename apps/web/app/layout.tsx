@@ -6,6 +6,7 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { prepareRootMetadata } from "@lib/metadata";
@@ -124,6 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
         <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        <NotificationSoundHandler />
       </body>
     </html>
   );

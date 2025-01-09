@@ -13,9 +13,10 @@ import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications } from "@calcom/lib/hooks/useNotifications";
+import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -43,6 +44,7 @@ const Layout = (props: LayoutProps) => {
       )}
       <div>
         <Toaster position="bottom-right" />
+        <NotificationSoundHandler />
       </div>
 
       <TimezoneChangeDialog />
@@ -195,7 +197,7 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
+              {props.heading === "Bookings" && buttonToShow && (
                 <Button
                   color="primary"
                   onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
@@ -211,7 +213,7 @@ export function ShellMain(props: LayoutProps) {
                       : "allow_browser_notifications"
                   )}
                 </Button>
-              )} */}
+              )}
             </header>
           )}
         </div>

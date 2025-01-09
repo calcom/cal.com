@@ -11,9 +11,10 @@ export enum ButtonState {
   DENIED = "denied",
 }
 
-export const useNotifications = () => {
+export function useNotifications() {
   const [buttonToShow, setButtonToShow] = useState<ButtonState>(ButtonState.NONE);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasAudioPermission, setHasAudioPermission] = useState(false);
   const { t } = useLocale();
 
   const { mutate: addSubscription } = trpc.viewer.addNotificationsSubscription.useMutation({
@@ -42,23 +43,35 @@ export const useNotifications = () => {
   });
 
   useEffect(() => {
-    const decideButtonToShow = async () => {
+    const checkPermissions = async () => {
       if (!("Notification" in window)) {
         console.log("Notifications not supported");
+        return;
       }
 
       const registration = await navigator.serviceWorker?.getRegistration();
       if (!registration) return;
+
       const subscription = await registration.pushManager.getSubscription();
+      const notificationPermission = Notification.permission;
 
-      const permission = Notification.permission;
+      if (notificationPermission === "granted" && subscription) {
+        try {
+          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          await audioContext.resume();
+          setHasAudioPermission(true);
+        } catch (error) {
+          console.error("Could not initialize audio context:", error);
+          setHasAudioPermission(false);
+        }
+      }
 
-      if (permission === ButtonState.DENIED) {
+      if (notificationPermission === ButtonState.DENIED) {
         setButtonToShow(ButtonState.DENIED);
         return;
       }
 
-      if (permission === "default") {
+      if (notificationPermission === "default") {
         setButtonToShow(ButtonState.ALLOW);
         return;
       }
@@ -71,11 +84,33 @@ export const useNotifications = () => {
       setButtonToShow(ButtonState.DISABLE);
     };
 
-    decideButtonToShow();
+    checkPermissions();
   }, []);
+
+  const requestAudioPermission = async () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      await audioContext.resume();
+
+      // Create and play a silent buffer to initialize audio context
+      const buffer = audioContext.createBuffer(1, 1, 22050);
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+      setHasAudioPermission(true);
+      return true;
+    } catch (error) {
+      console.error("Could not get audio permission:", error);
+      setHasAudioPermission(false);
+      return false;
+    }
+  };
 
   const enableNotifications = async () => {
     setIsLoading(true);
+
+    // Request notification permission
     const permissionResponse = await Notification.requestPermission();
 
     if (permissionResponse === ButtonState.DENIED) {
@@ -91,12 +126,13 @@ export const useNotifications = () => {
       return;
     }
 
-    const registration = await navigator.serviceWorker?.getRegistration();
-
-    if (!registration) {
-      // This will not happen ideally as the button will not be shown if the service worker is not registered
-      return;
+    // Request audio permission if notifications were granted
+    if (permissionResponse === "granted") {
+      await requestAudioPermission();
     }
+
+    const registration = await navigator.serviceWorker?.getRegistration();
+    if (!registration) return;
 
     let subscription: PushSubscription;
     try {
@@ -105,7 +141,6 @@ export const useNotifications = () => {
         applicationServerKey: urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""),
       });
     } catch (error) {
-      // This happens in Brave browser as it does not have a push service
       console.error(error);
       setIsLoading(false);
       setButtonToShow(ButtonState.NONE);
@@ -148,10 +183,11 @@ export const useNotifications = () => {
   return {
     buttonToShow,
     isLoading,
+    hasAudioPermission,
     enableNotifications,
     disableNotifications,
   };
-};
+}
 
 const urlB64ToUint8Array = (base64String: string) => {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
