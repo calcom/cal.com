@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-const Page = () => {
+const Page = async () => {
   redirect("/routing/forms");
 };
 

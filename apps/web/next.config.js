@@ -626,11 +626,6 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: "/apps/routing-forms/:path*",
-        destination: "/routing/:path*",
-        permanent: true,
-      },
-      {
         source: "/settings/organizations/platform/:path*",
         destination: "/settings/platform",
         permanent: true,
