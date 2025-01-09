@@ -145,6 +145,8 @@ const triggerBrowserNotifications = async (args: {
       title: title,
       body: "User is waiting for you to join. Click to Connect",
       url: connectAndJoinUrl,
+      type: "INSTANT_MEETING",
+      requireInteraction: true,
       actions: [
         {
           action: "connect-action",

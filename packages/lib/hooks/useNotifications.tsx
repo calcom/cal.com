@@ -14,7 +14,6 @@ export enum ButtonState {
 export function useNotifications() {
   const [buttonToShow, setButtonToShow] = useState<ButtonState>(ButtonState.NONE);
   const [isLoading, setIsLoading] = useState(false);
-  const [hasAudioPermission, setHasAudioPermission] = useState(false);
   const { t } = useLocale();
 
   const { mutate: addSubscription } = trpc.viewer.addNotificationsSubscription.useMutation({
@@ -55,17 +54,6 @@ export function useNotifications() {
       const subscription = await registration.pushManager.getSubscription();
       const notificationPermission = Notification.permission;
 
-      if (notificationPermission === "granted" && subscription) {
-        try {
-          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-          await audioContext.resume();
-          setHasAudioPermission(true);
-        } catch (error) {
-          console.error("Could not initialize audio context:", error);
-          setHasAudioPermission(false);
-        }
-      }
-
       if (notificationPermission === ButtonState.DENIED) {
         setButtonToShow(ButtonState.DENIED);
         return;
@@ -87,30 +75,16 @@ export function useNotifications() {
     checkPermissions();
   }, []);
 
-  const requestAudioPermission = async () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      await audioContext.resume();
-
-      // Create and play a silent buffer to initialize audio context
-      const buffer = audioContext.createBuffer(1, 1, 22050);
-      const source = audioContext.createBufferSource();
-      source.buffer = buffer;
-      source.connect(audioContext.destination);
-      source.start(0);
-      setHasAudioPermission(true);
-      return true;
-    } catch (error) {
-      console.error("Could not get audio permission:", error);
-      setHasAudioPermission(false);
-      return false;
-    }
-  };
-
   const enableNotifications = async () => {
     setIsLoading(true);
 
-    // Request notification permission
+    if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) {
+      console.error("VAPID public key is missing");
+      setIsLoading(false);
+      showToast(t("browser_notifications_configuration_error"), "error");
+      return;
+    }
+
     const permissionResponse = await Notification.requestPermission();
 
     if (permissionResponse === ButtonState.DENIED) {
@@ -126,36 +100,37 @@ export function useNotifications() {
       return;
     }
 
-    // Request audio permission if notifications were granted
-    if (permissionResponse === "granted") {
-      await requestAudioPermission();
-    }
-
     const registration = await navigator.serviceWorker?.getRegistration();
-    if (!registration) return;
+    if (!registration) {
+      console.error("Service worker registration not found");
+      setIsLoading(false);
+      showToast(t("browser_notifications_not_supported"), "error");
+      return;
+    }
 
     let subscription: PushSubscription;
     try {
+      const vapidKey = urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""),
+        applicationServerKey: vapidKey,
       });
+      addSubscription(
+        { subscription: JSON.stringify(subscription) },
+        {
+          onError: async (error) => {
+            console.error("Subscription error:", error);
+            await subscription.unsubscribe();
+          },
+        }
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Push subscription error:", error);
       setIsLoading(false);
       setButtonToShow(ButtonState.NONE);
       showToast(t("browser_notifications_not_supported"), "error");
       return;
     }
-
-    addSubscription(
-      { subscription: JSON.stringify(subscription) },
-      {
-        onError: async () => {
-          await subscription.unsubscribe();
-        },
-      }
-    );
   };
 
   const disableNotifications = async () => {
@@ -183,7 +158,6 @@ export function useNotifications() {
   return {
     buttonToShow,
     isLoading,
-    hasAudioPermission,
     enableNotifications,
     disableNotifications,
   };
