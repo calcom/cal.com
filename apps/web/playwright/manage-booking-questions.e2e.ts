@@ -30,6 +30,7 @@ test.describe.configure({ mode: "parallel" });
 test.describe("Manage Booking Questions", () => {
   test.afterEach(async ({ users }) => {
     await users.deleteAll();
+    await prisma.webhook.deleteMany({});
   });
 
   test.describe("For User EventType", () => {
@@ -161,6 +162,7 @@ test.describe("Manage Booking Questions", () => {
               },
             },
           });
+          webhookReceiver.close();
         });
       });
 
@@ -364,7 +366,7 @@ async function runTestStepsCommonForTeamAndUserEventType(
           await webhookReceiver.waitForRequestCount(1);
 
           const [request] = webhookReceiver.requestList;
-
+          webhookReceiver.close();
           // @ts-expect-error body is unknown
           const payload = request.body.payload;
 
@@ -727,6 +729,8 @@ async function expectWebhookToBeCalled(
   const body = request.body;
 
   expect(body).toMatchObject(expectedBody);
+
+  webhookReceiver.close();
 }
 
 test.describe("Text area min and max characters text", () => {
