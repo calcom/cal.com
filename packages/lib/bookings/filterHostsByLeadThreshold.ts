@@ -13,19 +13,20 @@ function getMostRecentDate(dates: Date[]): Date {
   return dates.reduce((mostRecent, current) => (current > mostRecent ? current : mostRecent));
 }
 
-const computeLeadOffsets = async <T = Record<string, unknown>>({
-  hosts,
-  eventTypeId,
-}: {
-  eventTypeId: number;
-  hosts: (T & {
-    isFixed: false;
+const computeLeadOffsets = async <
+  T extends {
     createdAt: Date;
     user: {
       id: number;
       email: string;
     };
-  })[];
+  }
+>({
+  hosts,
+  eventTypeId,
+}: {
+  eventTypeId: number;
+  hosts: T[];
 }) => {
   if (!hosts.length) return [];
   // use either the beginning of the month, of the most recently added host; whichever is most recent
@@ -85,45 +86,49 @@ export const _filterHostByLeadThreshold = ({
 /*
  * Filter the hosts by lead threshold, disqualifying hosts that have exceeded the maximum
  *
+ * NOTE: This function cleans up the leadOffset value so can't be used afterwards.
+ *
  * @throws errorCodes.MAX_LEAD_THRESHOLD_FALSY
  */
-export const filterHostsByLeadThreshold = async <T = Record<string, unknown>>({
+export const filterHostsByLeadThreshold = async <
+  T extends {
+    isFixed: false; // ensure no fixed hosts are passed.
+    createdAt: Date;
+    user: {
+      id: number;
+      email: string;
+    };
+  }
+>({
   hosts,
   maxLeadThreshold,
   eventTypeId,
 }: {
-  hosts: ({ isFixed: boolean; createdAt: Date; user: { id: number; email: string } } & T)[];
+  hosts: T[];
   maxLeadThreshold: number | null;
   eventTypeId: number;
 }): Promise<Omit<T, "leadOffset">[]> => {
-  if (maxLeadThreshold === null) return hosts;
-  // Calculate offsets for non-fixed hosts only once
+  if (maxLeadThreshold === null) {
+    return hosts; // don't apply filter.
+  }
   const computedRoundRobinHosts = await computeLeadOffsets<T>({
     eventTypeId,
-    hosts: hosts.filter((host) => !host.isFixed).map((host) => ({ ...host, isFixed: false as const })),
+    hosts,
   });
-  // Track indices of non-fixed hosts for easy mapping back to the original order
-  let roundRobinIndex = 0;
-  return hosts
-    .map((host) => {
-      if (host.isFixed) {
-        // Return fixed hosts as they are
-        return host as Omit<T, "leadOffset">;
-      } else {
-        // Apply lead threshold filtering on round-robin hosts
-        const roundRobinHost = { ...computedRoundRobinHosts[roundRobinIndex++] };
-        if (
-          _filterHostByLeadThreshold({
-            host: roundRobinHost,
-            maxLeadThreshold,
-          })
-        ) {
-          // cleanup with destructure to remove leadOffset
-          const { leadOffset, ...roundRobinHostWithoutLeadOffset } = roundRobinHost;
-          return roundRobinHostWithoutLeadOffset;
-        }
-        return null;
+  return computedRoundRobinHosts
+    .filter((host) => {
+      if (
+        _filterHostByLeadThreshold({
+          host,
+          maxLeadThreshold,
+        })
+      ) {
+        return true;
       }
+      return false;
     })
-    .filter((host): host is Omit<T, "leadOffset"> => host !== null);
+    .map((host) => {
+      const { leadOffset, ...hostWithoutLeadOffset } = host;
+      return hostWithoutLeadOffset;
+    });
 };
