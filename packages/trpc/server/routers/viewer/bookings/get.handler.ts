@@ -164,6 +164,18 @@ export async function getBookings({
     };
   }
 
+  if (filters?.attendeeEmails && filters.attendeeEmails.length > 0) {
+    bookingWhereInputFilters.attendeeEmails = {
+      attendees: {
+        some: {
+          email: {
+            in: filters.attendeeEmails.map((email) => email.trim()),
+          },
+        },
+      },
+    };
+  }
+
   if (filters?.attendeeEmail) {
     bookingWhereInputFilters.attendeeEmail = {
       attendees: {

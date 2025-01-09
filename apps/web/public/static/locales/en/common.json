@@ -1817,6 +1817,7 @@
   "radio": "Radio",
   "google_meet_warning": "In order to use Google Meet, you must set your destination calendar to a Google Calendar",
   "individual": "Individual",
+  "all_attendees_filter_label": "All Attendees",
   "all_bookings_filter_label": "All Bookings",
   "all_users_filter_label": "All Users",
   "all_event_types_filter_label": "All Event Types",

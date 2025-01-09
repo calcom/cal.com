@@ -7,6 +7,7 @@ export const ZGetInputSchema = z.object({
     status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]).optional(),
     eventTypeIds: z.number().array().optional(),
     attendeeEmail: z.string().optional(),
+    attendeeEmails: z.string().array().optional(),
     attendeeName: z.string().optional(),
     afterStartDate: z.string().optional(),
     beforeEndDate: z.string().optional(),

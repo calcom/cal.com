@@ -23,6 +23,7 @@ type GetOptions = {
     userIds?: number[] | undefined;
     eventTypeIds?: number[] | undefined;
     attendeeEmail?: string;
+    attendeeEmails?: string[];
     attendeeName?: string;
   };
   sort?: SortOptions;
