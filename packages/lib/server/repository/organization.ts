@@ -367,7 +367,13 @@ export class OrganizationRepository {
         id: true,
       },
     });
-    return !org;
+
+    if (org) {
+      return false;
+    }
+
+    const reservedSubdomains = (process.env.RESERVED_SUBDOMAINS || "").split(",").map((s) => s.trim());
+    return !reservedSubdomains.includes(slug);
   }
 
   static utils = {
