@@ -68,14 +68,14 @@
           ]
         },
         {
-  "group": "Calendars",
-  "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
-  "iconType": "custom",
-  "pages": [
-    "calendars/how-to-add-google-calendar",
-    "calendars/how-to-add-apple-calendar"
-  ]
-},
+          "group": "Calendars",
+          "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
+          "iconType": "solid",
+          "pages": [
+            "calendars/how-to-add-google-calendar",
+            "calendars/how-to-add-apple-calendar",
+          ]
+        },
         {
           "group": "Event Types",
           "icon": "calendar",
