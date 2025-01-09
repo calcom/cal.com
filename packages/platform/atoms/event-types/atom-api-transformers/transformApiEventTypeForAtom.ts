@@ -174,6 +174,8 @@ export function transformApiTeamEventTypeForAtom(
     ...rest
   } = eventType;
 
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
   const isDefault = isDefaultEvent(rest.title);
 
   const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
@@ -260,6 +262,7 @@ export function transformApiTeamEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
