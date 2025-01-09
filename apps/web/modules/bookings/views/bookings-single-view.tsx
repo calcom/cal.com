@@ -5,7 +5,7 @@ import classNames from "classnames";
 import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
@@ -166,18 +166,17 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const nextSearchParams = useSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
   const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
   const [noShowHost, setNoShowHost] = useState<boolean>(false);
   const [eventTypes, setEventTypes] = useState<EventType | null>(null);
   const [appointmentType, setAppointmentType] = useState<BookingTypes | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isCancellationMode, setIsCancellationMode] = useState(searchParams.get("cancel") === "true");
 
   const {
     allRemainingBookings,
     isSuccessBookingPage,
-    cancel: isCancellationMode,
     reject: isRejectionMode,
     formerTime,
     email,
@@ -262,22 +261,6 @@ export default function Success(props: PageProps) {
   const sendFeedback = async (rating: string, comment: string) => {
     mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
   };
-
-  function setIsCancellationMode(value: boolean) {
-    let formattedKeys = nextSearchParams.keys().toArray();
-
-    if (value) formattedKeys.push("cancel");
-    else formattedKeys = formattedKeys.filter((key) => key !== "cancel");
-
-    const params = formattedKeys.reduce((acc, key, index) => {
-      if (key === "cancel") return index === 0 ? "?cancel=true" : `${acc}&cancel=true`;
-      return index === 0
-        ? `?${key}=${nextSearchParams.get(key)}`
-        : `${acc}&${key}=${nextSearchParams.get(key)}`;
-    }, "");
-
-    router.replace(`${pathname}?${params}`);
-  }
 
   function setIsRejectionMode() {
     const _searchParams = new URLSearchParams(searchParams ?? undefined);
@@ -1003,7 +986,7 @@ export default function Success(props: PageProps) {
                           profile={{ name: props.profile.name, slug: props.profile.slug }}
                           recurringEvent={eventType.recurringEvent}
                           team={eventType?.team?.name}
-                          setIsCancellationMode={setIsCancellationMode}
+                          setIsCancellationMode={() => setIsCancellationMode(!isCancellationMode)}
                           theme={isSuccessBookingPage ? props.profile.theme : "light"}
                           allRemainingBookings={allRemainingBookings}
                           seatReferenceUid={seatReferenceUid}
