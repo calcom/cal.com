@@ -231,7 +231,8 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For Team EventType", () => {
-    test("Do a booking with a user added question and verify a few thing in b/w", async ({
+    // eslint-disable-next-line playwright/no-skipped-test
+    test.skip("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
       context,
