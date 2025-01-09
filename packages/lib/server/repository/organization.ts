@@ -372,7 +372,10 @@ export class OrganizationRepository {
       return false;
     }
 
-    const reservedSubdomains = (process.env.RESERVED_SUBDOMAINS || "").split(",").map((s) => s.trim());
+    const reservedSubdomains = (process.env.RESERVED_SUBDOMAINS || "")
+      .split(",")
+      .map((s) => s.trim().replace(/^"(.*)"$/, "$1")); // Remove surrounding quotes
+
     return !reservedSubdomains.includes(slug);
   }
 
