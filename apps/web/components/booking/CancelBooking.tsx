@@ -1,9 +1,8 @@
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { collectPageParameters, telemetryEventTypes } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Icon, TextArea } from "@calcom/ui";
 
@@ -38,20 +37,22 @@ type Props = {
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
-  const router = useRouter();
-  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
-    props;
-  const [loading, setLoading] = useState(false);
-  const telemetry = useTelemetry();
-  const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
+  // const router = useRouter();
+  // const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
+  //   props;
+  // const [loading, setLoading] = useState(false);
+  // const telemetry = useTelemetry();
+  // const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
 
-  const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
-    if (node !== null) {
-      node.scrollIntoView({ behavior: "smooth" });
-      node.focus();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
+  //   if (node !== null) {
+  //     node.scrollIntoView({ behavior: "smooth" });
+  //     node.focus();
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
+
+  return <div>Isso é um log</div>;
 
   return (
     <>
