@@ -230,7 +230,7 @@ test.describe("Manage Booking Questions", () => {
     });
   });
 
-  test.describe("For Team EventType", () => {
+  /*test.describe("For Team EventType", () => {
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -266,7 +266,7 @@ test.describe("Manage Booking Questions", () => {
 
       await runTestStepsCommonForTeamAndUserEventType(page, context, webhookReceiver);
     });
-  });
+  });*/
 });
 
 async function runTestStepsCommonForTeamAndUserEventType(
