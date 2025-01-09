@@ -104,7 +104,7 @@ export const AddNewTeamMembersForm = () => {
           </form>
         </div>
 
-        {invitedMembers.length > 0 && uniqueMembers?.length === 0 && (
+        {(invitedMembers.length > 0 || uniqueMembers?.length > 0) && (
           <ul
             className="border-subtle divide-subtle max-h-[300px] divide-y overflow-y-auto rounded-md border"
             data-testid="pending-member-list">

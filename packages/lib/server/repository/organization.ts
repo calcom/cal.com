@@ -357,6 +357,19 @@ export class OrganizationRepository {
     return org?.calVideoLogo;
   }
 
+  static async checkSlugIsAvailable({ slug }: { slug: string }) {
+    const org = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        slug,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !org;
+  }
+
   static utils = {
     /**
      * Gets the organization setting if the team is an organization.

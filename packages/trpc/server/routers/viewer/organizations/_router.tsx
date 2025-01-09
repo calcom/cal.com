@@ -14,6 +14,7 @@ import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
+import { ZCheckAvailableSlug } from "./checkAvailableSlug.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
@@ -32,6 +33,13 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
+  checkAvailableSlug: authedProcedure.input(ZCheckAvailableSlug).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("checkAvailableSlug"),
+      () => import("./checkAvailableSlug.handler")
+    );
+    return handler(opts);
+  }),
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);

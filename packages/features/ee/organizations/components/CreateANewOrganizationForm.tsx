@@ -14,7 +14,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
-import type { Ensure } from "@calcom/types/utils";
+import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
 
 function extractDomainFromEmail(email: string) {
@@ -31,7 +31,7 @@ export const CreateANewOrganizationForm = () => {
   if (!session.data) {
     return null;
   }
-  return <CreateANewOrganizationFormChild session={session} />;
+  return <CreateANewOrganizationFormChild session={session.data} />;
 };
 
 enum BillingPeriod {
@@ -42,15 +42,15 @@ enum BillingPeriod {
 const CreateANewOrganizationFormChild = ({
   session,
 }: {
-  session: Ensure<SessionContextValue, "data">;
+  session: SessionContextValue["data"];
   isPlatformOrg?: boolean;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.data.user.email ?? "";
+  const isAdmin = session.user.role === UserPermissionRole.ADMIN;
+  const defaultOrgOwnerEmail = session.user.email ?? "";
 
   const { setBillingPeriod, setPricePerSeat, setSeats, setOrgOwnerEmail, setName, setSlug } =
     useOnboardingStore();
@@ -71,14 +71,26 @@ const CreateANewOrganizationFormChild = ({
     },
   });
 
+  const utils = trpc.useUtils();
+
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
         className="space-y-5"
         id="createOrg"
-        handleSubmit={(values) => {
-          // Save form data to Zustand store
+        handleSubmit={async (values) => {
+          setServerErrorMessage(null);
+          const isSlugAvailable = await utils.viewer.organizations.checkAvailableSlug.fetch({
+            slug: values.slug,
+          });
+          if (!isSlugAvailable) {
+            newOrganizationFormMethods.setError("slug", {
+              message: t("organization_slug_taken"),
+            });
+            return;
+          }
+
           setBillingPeriod(values.billingPeriod);
           setPricePerSeat(values.pricePerSeat);
           setSeats(values.seats);
@@ -293,7 +305,7 @@ const CreateANewOrganizationFormChild = ({
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            disabled={newOrganizationFormMethods.formState.isSubmitting}
+            loading={newOrganizationFormMethods.formState.isSubmitting}
             color="primary"
             EndIcon="arrow-right"
             type="submit"
