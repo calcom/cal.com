@@ -61,7 +61,6 @@ import {
   useCalcomTheme,
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
-import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -991,7 +990,7 @@ export default function Success(props: PageProps) {
                     {isCancelableOrRescheduble && isCancellationMode && (
                       <>
                         <hr className="border-subtle" />
-                        <CancelBooking
+                        {/* <CancelBooking
                           booking={{
                             uid: bookingInfo?.uid,
                             title: bookingInfo?.title,
@@ -1006,7 +1005,7 @@ export default function Success(props: PageProps) {
                           seatReferenceUid={seatReferenceUid}
                           bookingCancelledEventProps={bookingCancelledEventProps}
                           currentUserEmail={currentUserEmail}
-                        />
+                        /> */}
                       </>
                     )}
                     {!isCancelled && isRejectionMode && (
