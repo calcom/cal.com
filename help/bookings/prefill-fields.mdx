@@ -1,0 +1,101 @@
+---
+title: Pre-fill fields/questions
+---
+
+You can pre-fill all the fields/questions on the booking form by using their corresponding **identifiers** that you can see under Advanced -> Booking Questions.
+
+e.g. for the following field(shown in screenshot), the field would show up as *Agree with your rules* and its identifier is *agreed*. So, we would use
+
+[![](https://downloads.intercomcdn.com/i/o/1198198797/bfc5b45f2c0ac0a6704f1a40/i1600x899-lK5qA-PWor5w_nda2mw.png?expires=1736325000&signature=000158c0966e05bb5d50ed593b6a94d04c908568625cc3d18d9a68541f449da6&req=dSEuHsh3lYZWXvMW1HO4zR%2BTJg3Fl6l4ywMHZCHu9egE5fWqiRo4u%2BWPHXxD%0AfGr0JKz%2B%2BGcs7dmJJh4%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198797/bfc5b45f2c0ac0a6704f1a40/i1600x899-lK5qA-PWor5w_nda2mw.png?expires=1736325000&signature=000158c0966e05bb5d50ed593b6a94d04c908568625cc3d18d9a68541f449da6&req=dSEuHsh3lYZWXvMW1HO4zR%2BTJg3Fl6l4ywMHZCHu9egE5fWqiRo4u%2BWPHXxD%0AfGr0JKz%2B%2BGcs7dmJJh4%3D%0A)
+
+*agreed* as query param name to prefill the field.
+
+This can include the user’s name and email, notes, guests, event location, Reason for reschedule. You can prefill any field added by you as well.
+
+You can add anywhere in the booking flow before the booking form page or in the booking form page itself. Simply add these in the URL and you're good to go!
+
+Pre-filling booking fields can save a lot of time and speed up processes with filling out these forms, and assist with a smooth integration with your existing website or app.
+
+An example URL with a few prefill fields is given below:
+```https://cal.com/johndoe/book?type=12345&duration=30&email=johndoe%40example.com&notes=Test+Notes```
+You can integrate the prefill-fields with your booking page URL in a similar way.
+
+## Pre-filling all fields
+
+**A sample booking form with various fields prefilled.**
+
+[![](https://downloads.intercomcdn.com/i/o/1198198793/7bc4b1b4b584d4824880d5da/i1600x899--qO8QnRKDrjU_kyp2hw.png?expires=1736325000&signature=10a3362b2faab0ec78c8e2ffa1bbb1fc5f7b9dab0e15298152e335f3661ea6cd&req=dSEuHsh3lYZWWvMW1HO4za%2ByuRsspnytuNu0%2FFrf6odTakjQnLnHIsBeeJvQ%0ANsCB4u65V8zAB1DolSA%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198793/7bc4b1b4b584d4824880d5da/i1600x899--qO8QnRKDrjU_kyp2hw.png?expires=1736325000&signature=10a3362b2faab0ec78c8e2ffa1bbb1fc5f7b9dab0e15298152e335f3661ea6cd&req=dSEuHsh3lYZWWvMW1HO4za%2ByuRsspnytuNu0%2FFrf6odTakjQnLnHIsBeeJvQ%0ANsCB4u65V8zAB1DolSA%3D%0A)
+
+**Here is how the fields are setup**
+
+[![](https://downloads.intercomcdn.com/i/o/1198198798/d0baeba0d2e0e4f3161075ec/i1600x899-0PXSUpvs2z-W_wox48k.png?expires=1736325000&signature=89f6fde016650f907ef3e033088a45ad16657821dd3941e78ed62ee264b9b714&req=dSEuHsh3lYZWUfMW1HO4zb4YAwmw7asrMlnecn80g7UbIo4WLX9UdTxHu0J3%0AQjwXhXtQ6eI%2BWusGR%2BY%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198798/d0baeba0d2e0e4f3161075ec/i1600x899-0PXSUpvs2z-W_wox48k.png?expires=1736325000&signature=89f6fde016650f907ef3e033088a45ad16657821dd3941e78ed62ee264b9b714&req=dSEuHsh3lYZWUfMW1HO4zb4YAwmw7asrMlnecn80g7UbIo4WLX9UdTxHu0J3%0AQjwXhXtQ6eI%2BWusGR%2BY%3D%0A)
+
+Here is the query used to prefill that form above.
+
+```
+name=John Doe&email=johndoe@example.com&notes=Test Notes&Text=TEXT&number=123&select=Option 1&Multiselect=Option 1&Multiselect=Option 2&guests=b&phone=+91&agreed=true
+```
+## Fields with multiple values
+
+For questions that accept multiple values, you can pass them multiple times using same identifier. So, e.g. Multiselect has been passed twice and thus it prefills both the values.
+
+Similarly, you can pass *guests* twice to add one more guest.
+
+## Prefilling location
+
+Different type of locations are selected using different values of location. location param value has to be a valid JSON.
+
+## Pre-filling Attendee Address
+
+```
+...other-params...&location={"value":"attendeeInPerson","optionValue":"Delhi"}
+```
+[![](https://downloads.intercomcdn.com/i/o/1198198795/149eb8a19c7c9b87e9207cda/i1600x899-Ty_oorQmXnjJ_cm5ysq.png?expires=1736325000&signature=b5595771bfc49d36da0b4e67f8440a2c5c874c674c799c6d9023b1593c5fc465&req=dSEuHsh3lYZWXPMW1HO4zXIZpSF682jQ431%2F0%2B57t2z4o8aUSXcM9w0n8f8e%0Aa5feONJm%2FqwDk3Nxf5g%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198795/149eb8a19c7c9b87e9207cda/i1600x899-Ty_oorQmXnjJ_cm5ysq.png?expires=1736325000&signature=b5595771bfc49d36da0b4e67f8440a2c5c874c674c799c6d9023b1593c5fc465&req=dSEuHsh3lYZWXPMW1HO4zXIZpSF682jQ431%2F0%2B57t2z4o8aUSXcM9w0n8f8e%0Aa5feONJm%2FqwDk3Nxf5g%3D%0A)
+
+## Pre-selecting Organizer Address in Location
+
+```
+...other-params...&location={"value":"inPerson","optionValue":""}
+```
+
+[![](https://downloads.intercomcdn.com/i/o/1198198794/4983c503a9ce5201e0c1bba8/i1600x899-AlmOt5E4diMC_nkjeb4.png?expires=1736325000&signature=4d46fb2749e119580fab04853978f7338ae1b49f7b47c27bcc0e1496745ad183&req=dSEuHsh3lYZWXfMW1HO4zfhh%2BpZqpU47epa9VDhCuWvhAe0fXXhWclcsJTld%0AHrJR7dP6os%2FtnThVdsI%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198794/4983c503a9ce5201e0c1bba8/i1600x899-AlmOt5E4diMC_nkjeb4.png?expires=1736325000&signature=4d46fb2749e119580fab04853978f7338ae1b49f7b47c27bcc0e1496745ad183&req=dSEuHsh3lYZWXfMW1HO4zfhh%2BpZqpU47epa9VDhCuWvhAe0fXXhWclcsJTld%0AHrJR7dP6os%2FtnThVdsI%3D%0A)
+## Pre-filling Attendee Phone
+
+```
+...other-params...&location={"value":"phone","optionValue":"%2B919999999999"}
+```
+
+*Note: %2B is encoded form of +*
+
+[![](https://downloads.intercomcdn.com/i/o/1198198790/02943b0276723d5effc1ed0b/i1600x899-wVkiblWj8CDH_iwhwrd.png?expires=1736325000&signature=1244214d7c9fcfd16b6edc4b71a4267c3a0bf9c4ad5c91a93ee447cd65c1b3f9&req=dSEuHsh3lYZWWfMW1HO4zQf94cG%2FKVtkygk%2BlF1g7HiXVwSfutAPEbSq%2B3Jv%0A3p3Pf5Mj3PVQ%2F3avvp8%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198790/02943b0276723d5effc1ed0b/i1600x899-wVkiblWj8CDH_iwhwrd.png?expires=1736325000&signature=1244214d7c9fcfd16b6edc4b71a4267c3a0bf9c4ad5c91a93ee447cd65c1b3f9&req=dSEuHsh3lYZWWfMW1HO4zQf94cG%2FKVtkygk%2BlF1g7HiXVwSfutAPEbSq%2B3Jv%0A3p3Pf5Mj3PVQ%2F3avvp8%3D%0A)
+
+## Pre-selecting Link Meeting
+
+```
+...other-params...&location={"value":"link","optionValue":""}
+```
+
+[![](https://downloads.intercomcdn.com/i/o/1198198791/0db8619aabbf65a0fa3709fd/i1600x899-sGCDXGlvVYT4_uwhpa8.png?expires=1736325000&signature=c48817776ddbbe02a9df71b8a9e3f44fcd90c48584ead67834eb2e820f3a1bdc&req=dSEuHsh3lYZWWPMW1HO4zZBGiRHaqpAigQ%2BNxkzSzI7cRhRRKup7Hujf8NW7%0ATAW65srvCSLYe46eo%2BU%3D%0A)](https://downloads.intercomcdn.com/i/o/1198198791/0db8619aabbf65a0fa3709fd/i1600x899-sGCDXGlvVYT4_uwhpa8.png?expires=1736325000&signature=c48817776ddbbe02a9df71b8a9e3f44fcd90c48584ead67834eb2e820f3a1bdc&req=dSEuHsh3lYZWWPMW1HO4zZBGiRHaqpAigQ%2BNxkzSzI7cRhRRKup7Hujf8NW7%0ATAW65srvCSLYe46eo%2BU%3D%0A)
+## Pre-selecting a video meeting
+
+Specify location param like this
+
+```
+...other-params...&location={"value":"integrations:{VIDEO_APP_IDENTIFIER}","optionValue":""}
+```
+
+| **App Name** | **`{VIDEO\_APP\_IDENTIFIER}`** |
+| --- | --- |
+| Zoom | zoom |
+| Cal Video | daily |
+| Office365 | office365\_video |
+| Facetime | facetime\_video |
+| Campfire | campfire\_video |
+| Around Video | around\_video |
+| Ping | ping\_video |
+| Riverside | riverside\_video |
+| Signal | signal\_video |
+| Sirius | sirius\_video |
+| Telegram | telegram\_video |
+| Whatsapp | whatsapp\_video |
+| Whereby | whereby\_video |
