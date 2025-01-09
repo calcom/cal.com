@@ -69,7 +69,7 @@
         },
         {
           "group": "Calendars",
-          "icon": "play",
+          "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
           "iconType": "solid",
           "pages": [
             "calendars/how-to-add-google-calendar",
