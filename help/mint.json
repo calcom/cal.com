@@ -68,6 +68,15 @@
           ]
         },
         {
+  "group": "Calendars",
+  "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
+  "iconType": "custom",
+  "pages": [
+    "calendars/how-to-add-google-calendar",
+    "calendars/how-to-add-apple-calendar"
+  ]
+},
+        {
           "group": "Event Types",
           "icon": "calendar",
           "iconType": "solid",
@@ -168,16 +177,6 @@
             "apps-and-integrations/syncing-third-party"
           ]
         },
-        {
-          "group": "Developers",
-          "icon": "terminal",
-          "iconType": "solid",
-          "pages": [
-            "apps-and-integrations/oauth",
-            "apps-and-integrations/open-source",
-            "webhooks"
-          ]
-        }
       ]
     }
   ],
