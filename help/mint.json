@@ -68,6 +68,12 @@
           ]
         },
         {
+          "group": "Calendars",
+          "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
+          "iconType": "custom",
+          "pages": ["calendars/how-to-add-google-calendar", "calendars/how-to-add-apple-calendar"]
+        },
+        {
           "group": "Event Types",
           "icon": "calendar",
           "iconType": "solid",
@@ -126,11 +132,7 @@
           "group": "Bookings",
           "icon": "calendar-check",
           "iconType": "solid",
-          "pages": [
-            "bookings/no-show",
-            "bookings/paid-bookings",
-            "bookings/prefill-fields"
-          ]
+          "pages": ["bookings/no-show", "bookings/paid-bookings", "bookings/prefill-fields"]
         },
         {
           "group": "Embedding",
@@ -149,10 +151,7 @@
           "group": "Auth and Provisioning",
           "icon": "user-lock",
           "iconType": "solid",
-          "pages": [
-            "auth-and-provision/scim-okta",
-            "auth-and-provision/oidc-with-okta"
-          ]
+          "pages": ["auth-and-provision/scim-okta", "auth-and-provision/oidc-with-okta"]
         },
         {
           "group": "Apps and Integrations",
@@ -166,16 +165,6 @@
             "apps-and-integrations/build-greeter-app",
             "apps-and-integrations/how-to-build-an-app",
             "apps-and-integrations/syncing-third-party"
-          ]
-        },
-        {
-          "group": "Developers",
-          "icon": "terminal",
-          "iconType": "solid",
-          "pages": [
-            "apps-and-integrations/oauth",
-            "apps-and-integrations/open-source",
-            "webhooks"
           ]
         }
       ]
