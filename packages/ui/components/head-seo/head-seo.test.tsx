@@ -42,6 +42,9 @@ vi.mock("@calcom/lib/OgImages", async () => {
     constructGenericImage() {
       return "constructGenericImage";
     },
+    constructMeetingImage() {
+      return "constructMeetingImage";
+    },
   };
 });
 
@@ -133,6 +136,14 @@ describe("Tests for HeadSeo component", () => {
     await waitFor(async () => {
       const mockedNextSeoEl = container.querySelector("#mocked-next-seo");
       expect(mockedNextSeoEl?.getAttribute("title")).toEqual(`${basicProps.title}`);
+    });
+  });
+
+  test("Should render with meeting props", async () => {
+    const { container } = render(<HeadSeo {...basicProps} meeting={{} as HeadSeoProps["meeting"]} />);
+    await waitFor(async () => {
+      const mockedNextSeoEl = container.querySelector("#mocked-next-seo");
+      expect(mockedNextSeoEl?.getAttribute("image")).toContain("constructMeetingImage");
     });
   });
 });
