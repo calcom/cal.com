@@ -21,7 +21,9 @@ afterEach(() => {
 
 describe("filterHostsBySameRoundRobinHost", () => {
   it("skips filter if rescheduleWithSameRoundRobinHost set to false", async () => {
-    const hosts = [{ isFixed: true, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } }];
+    const hosts = [
+      { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+    ];
     expect(
       filterHostsBySameRoundRobinHost({
         hosts,
@@ -47,8 +49,8 @@ describe("filterHostsBySameRoundRobinHost", () => {
     prismaMock.booking.findFirst.mockResolvedValue({ userId: 1 });
 
     const hosts = [
-      { isFixed: false, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
-      { isFixed: false, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
+      { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+      { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
     ];
     // Same host should be selected
     expect(
