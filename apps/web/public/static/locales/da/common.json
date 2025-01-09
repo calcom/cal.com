@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Du foretager en testbooking.",
   "icon_showcase": "Ikonoversigt",
   "icons_showcase": "Ikonoversigt",
+  "choose_an_option": "Vælg en mulighed",
+  "enter_option_value": "Indtast værdi for mulighed",
+  "remove_option": "Fjern mulighed",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

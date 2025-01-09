@@ -4,6 +4,7 @@ import React from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { ScrollableArea, Badge, Button, Avatar } from "@calcom/ui";
 
@@ -58,9 +59,13 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
             </small>
           </div>
           {Boolean(description) && (
-            <div className="text-subtle line-clamp-4 break-words  text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600">
-              {description}
-            </div>
+            <div
+              className="text-subtle line-clamp-4 break-words text-sm sm:max-w-[650px] [&>*:not(:first-child)]:hidden [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+              // eslint-disable-next-line react/no-danger
+              dangerouslySetInnerHTML={{
+                __html: markdownToSafeHTML(description),
+              }}
+            />
           )}
           <div className="mt-2 flex flex-row flex-wrap gap-2">
             {Boolean(durations.length) &&
