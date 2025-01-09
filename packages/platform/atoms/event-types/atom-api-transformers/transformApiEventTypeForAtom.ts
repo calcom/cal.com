@@ -29,6 +29,7 @@ import {
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
+  EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
@@ -68,6 +69,7 @@ export function transformApiEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   return {
     ...rest,
@@ -129,6 +131,7 @@ export function transformApiEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
@@ -170,6 +173,8 @@ export function transformApiTeamEventTypeForAtom(
     bookingWindow,
     ...rest
   } = eventType;
+
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -257,6 +262,7 @@ export function transformApiTeamEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
