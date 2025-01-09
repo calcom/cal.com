@@ -115,8 +115,6 @@ export async function loadAndValidateUsers({
     contactOwnerEmail,
   });
 
-  console.log({ qualifiedHosts, fallbackHosts });
-
   if (qualifiedHosts.length) {
     // remove users that are not in the qualified hosts array
     const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
