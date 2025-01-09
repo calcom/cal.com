@@ -68,6 +68,15 @@
           ]
         },
         {
+          "group": "Calendars",
+          "icon": "play",
+          "iconType": "solid",
+          "pages": [
+            "calendars/how-to-add-google-calendar",
+            "calendars/how-to-add-apple-calendar",
+          ]
+        },
+        {
           "group": "Event Types",
           "icon": "calendar",
           "iconType": "solid",
