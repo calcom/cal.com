@@ -90,6 +90,14 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
+  const workflows = await getAllWorkflowsFromEventType(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    organizerUser.id
+  );
+
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
     resultBooking = await rescheduleSeatedBooking(
@@ -100,7 +108,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails
     );
   } else {
-    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
+    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, workflows, reqBodyMetadata);
   }
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
@@ -110,13 +118,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...reqBodyMetadata,
     };
     try {
-      const workflows = await getAllWorkflowsFromEventType(
-        {
-          ...eventType,
-          metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
-        },
-        organizerUser.id
-      );
       await scheduleWorkflowReminders({
         workflows,
         smsReminderNumber: smsReminderNumber || null,

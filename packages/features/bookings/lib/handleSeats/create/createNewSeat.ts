@@ -15,6 +15,7 @@ import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
+import type { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
@@ -23,6 +24,7 @@ import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
   seatedBooking: SeatedBooking,
+  workflows: Awaited<ReturnType<typeof getAllWorkflowsFromEventType>>,
   metadata?: Record<string, string>
 ) => {
   const {
@@ -38,7 +40,6 @@ const createNewSeat = async (
     fullName,
     bookerEmail,
     responses,
-    workflows,
     bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
