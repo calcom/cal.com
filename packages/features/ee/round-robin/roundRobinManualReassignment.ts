@@ -329,9 +329,9 @@ export const roundRobinManualReassignment = async ({
   };
 
   if (previousRRHost && emailsEnabled) {
-    await sendRoundRobinReassignedEmailsAndSMS(
-      cancelledEvt,
-      [
+    await sendRoundRobinReassignedEmailsAndSMS({
+      calEvent: cancelledEvt,
+      members: [
         {
           ...previousRRHost,
           name: previousRRHost.name || "",
@@ -340,9 +340,9 @@ export const roundRobinManualReassignment = async ({
           language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
         },
       ],
-      { name: newUser.name, email: newUser.email },
-      eventType?.metadata as EventTypeMetadata
-    );
+      reassignedTo: { name: newUser.name, email: newUser.email },
+      eventTypeMetadata: eventType?.metadata as EventTypeMetadata,
+    });
   }
 
   if (hasOrganizerChanged) {
