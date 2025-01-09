@@ -24,7 +24,7 @@ export const filterHostsBySameRoundRobinHost = async <
     !rescheduleWithSameRoundRobinHost ||
     isRerouting({ rescheduleUid, routedTeamMemberIds })
   ) {
-    return [];
+    return hosts;
   }
   const originalRescheduledBooking = await prisma.booking.findFirst({
     where: {
