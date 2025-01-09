@@ -32,14 +32,14 @@ export function useShouldShowArrows() {
         right: !isAtEnd,
       });
     }
-  }, []);
+  }, [ref.current?.scrollWidth, ref.current?.clientWidth]);
 
   const calculateScroll = (e: UIEvent<HTMLUListElement>) => {
+    const target = e.currentTarget;
+    const isAtEnd = target.scrollWidth <= target.clientWidth + target.scrollLeft + 1;
     setShowArrowScroll({
-      left: e.currentTarget.scrollLeft > 0,
-      right:
-        Math.floor(e.currentTarget.scrollWidth) - Math.floor(e.currentTarget.offsetWidth) !==
-        Math.floor(e.currentTarget.scrollLeft),
+      left: target.scrollLeft > 0,
+      right: !isAtEnd,
     });
   };
 
