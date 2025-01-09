@@ -55,7 +55,6 @@ export const mapBookingToMutationInput = ({
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
   const _isDryRun = isBookingDryRun(searchParams);
   const _cacheParam = searchParams?.get("cal.cache");
-  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
 
   return {
     ...values,
@@ -86,7 +85,8 @@ export const mapBookingToMutationInput = ({
     // In case of rerouting, the form responses are actually the responses that we need to update.
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
     _isDryRun,
-    _shouldServeCache,
+    // Don't send _shouldServeCache if it's not set
+    ...(_cacheParam ? { _shouldServeCache: _cacheParam === "true" } : {}),
   };
 };
 
