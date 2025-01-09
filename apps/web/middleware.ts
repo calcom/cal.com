@@ -175,6 +175,7 @@ export const config = {
     "/future/auth/login",
     "/workflows/:path*",
     "/getting-started/:path*",
+    "/event-types/:path*",
     "/apps/:path*",
     "/routing/:path*",
     "/bookings/:status/",
