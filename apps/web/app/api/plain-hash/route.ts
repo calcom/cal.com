@@ -38,7 +38,7 @@ async function handler(request: Request) {
     hash,
     email: session.user.email || "user@example.com",
     shortName,
-    appId: process.env.PLAIN_CHAT_ID,
+    appId: process.env.NEXT_PUBLIC_PLAIN_CHAT_ID,
     fullName: session.user.name || "User",
     chatAvatarUrl: session.user.avatarUrl || "",
   });
