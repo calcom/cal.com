@@ -1,23 +1,26 @@
 import type { Prisma, User } from "@prisma/client";
 
-import { getFieldResponse } from "@calcom/app-store/routing-forms/trpc/utils";
 import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes, children1Schema } from "@calcom/app-store/routing-forms/zod";
+import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
+import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
+import { raqbQueryValueSchema } from "@calcom/lib/raqb/zod";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
+
+import { mergeOverlappingRanges } from "../date-ranges";
 
 const log = logger.getSubLogger({ prefix: ["getLuckyUser"] });
-async function getAttributesQueryValue() {
-  const { getAttributesQueryValue } = (await import("@calcom/app-store/routing-forms/lib/raqbUtils"))
-    .acrossQueryValueCompatiblity;
-  return getAttributesQueryValue;
-}
-
+const { getAttributesQueryValue } = acrossQueryValueCompatiblity;
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
 };
@@ -63,14 +66,19 @@ interface GetLuckyUserParams<T extends PartialUser> {
   eventType: { id: number; isRRWeightsEnabled: boolean; team: { parentId?: number | null } | null };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
-    user: { id: number; email: string };
+    user: {
+      id: number;
+      email: string;
+      credentials: CredentialPayload[];
+      userLevelSelectedCalendars: SelectedCalendar[];
+    };
     createdAt: Date;
     weight?: number | null;
   }[];
   routingFormResponse: RoutingFormResponse | null;
 }
 // === dayjs.utc().startOf("month").toDate();
-const startOfMonth = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
+const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
@@ -137,20 +145,15 @@ function getHostsWithCalibration({
   hosts,
   allRRHostsBookingsOfThisMonth,
   allRRHostsCreatedThisMonth,
+  oooData,
 }: {
   hosts: { userId: number; email: string; createdAt: Date }[];
   allRRHostsBookingsOfThisMonth: PartialBooking[];
   allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
+  oooData: OOODataType;
 }) {
-  const existingBookings = allRRHostsBookingsOfThisMonth;
-
-  // Return early if there are no new hosts or no existing bookings
-  if (allRRHostsCreatedThisMonth.length === 0 || existingBookings.length === 0) {
-    return hosts.map((host) => ({ ...host, calibration: 0 }));
-  }
-
   // Helper function to calculate calibration for a new host
-  function calculateCalibration(newHost: { userId: number; createdAt: Date }) {
+  function calculateNewHostCalibration(newHost: { userId: number; createdAt: Date }) {
     const existingBookingsBeforeAdded = existingBookings.filter(
       (booking) => booking.userId !== newHost.userId && booking.createdAt < newHost.createdAt
     );
@@ -163,7 +166,7 @@ function getHostsWithCalibration({
         ? existingBookingsBeforeAdded.length / hostsAddedBefore.length
         : 0;
     log.debug(
-      "calculateCalibration",
+      "calculateNewHostCalibration",
       safeStringify({
         newHost,
         existingBookingsBeforeAdded: existingBookingsBeforeAdded.length,
@@ -173,17 +176,53 @@ function getHostsWithCalibration({
     );
     return calibration;
   }
-  // Calculate calibration for each new host and store in a Map
-  const newHostsWithCalibration = new Map(
-    allRRHostsCreatedThisMonth.map((newHost) => [
-      newHost.userId,
-      { ...newHost, calibration: calculateCalibration(newHost) },
-    ])
-  );
-  // Map hosts with their respective calibration values
+
+  const existingBookings = allRRHostsBookingsOfThisMonth;
+
+  const oooCalibration = new Map<number, number>();
+
+  oooData.forEach(({ userId, oooEntries }) => {
+    let calibration = 0;
+
+    oooEntries.forEach((oooEntry) => {
+      const bookingsInTimeframe = existingBookings.filter(
+        (booking) =>
+          booking.createdAt >= oooEntry.start &&
+          booking.createdAt <= oooEntry.end &&
+          booking.userId !== userId // attendee email check is missing here in case of fixed hosts
+      );
+
+      // - 1 because the we need to exclude the current user
+      calibration += bookingsInTimeframe.length / (hosts.length - 1);
+    });
+
+    oooCalibration.set(userId, calibration);
+  });
+
+  let newHostsWithCalibration: Map<
+    number,
+    {
+      calibration: number;
+      userId: number;
+      createdAt: Date;
+    }
+  > = new Map();
+
+  if (allRRHostsCreatedThisMonth.length && existingBookings.length) {
+    // Calculate calibration for each new host and store in a Map
+    newHostsWithCalibration = new Map(
+      allRRHostsCreatedThisMonth.map((newHost) => [
+        newHost.userId,
+        { ...newHost, calibration: calculateNewHostCalibration(newHost) },
+      ])
+    );
+    // Map hosts with their respective calibration values
+  }
+
   return hosts.map((host) => ({
     ...host,
-    calibration: newHostsWithCalibration.get(host.userId)?.calibration ?? 0,
+    calibration:
+      (newHostsWithCalibration.get(host.userId)?.calibration ?? 0) + (oooCalibration.get(host.userId) ?? 0),
   }));
 }
 
@@ -209,6 +248,8 @@ function getUsersWithHighestPriority<T extends PartialUser & { priority?: number
   return usersWithHighestPriority;
 }
 
+type OOODataType = { userId: number; oooEntries: { start: Date; end: Date }[] }[];
+
 function filterUsersBasedOnWeights<
   T extends PartialUser & {
     weight?: number | null;
@@ -221,6 +262,7 @@ function filterUsersBasedOnWeights<
   allRRHostsBookingsOfThisMonth,
   allRRHostsCreatedThisMonth,
   attributeWeights,
+  oooData,
 }: GetLuckyUserParams<T> & FetchedData) {
   //get all bookings of all other RR hosts that are not available
 
@@ -232,6 +274,7 @@ function filterUsersBasedOnWeights<
     }),
     allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
+    oooData,
   });
 
   // Calculate the total calibration and weight of all round-robin hosts
@@ -334,6 +377,30 @@ function filterUsersBasedOnWeights<
   };
 }
 
+async function getCurrentMonthCalendarBusyTimes(
+  usersWithCredentials: {
+    id: number;
+    email: string;
+    credentials: CredentialPayload[];
+    userLevelSelectedCalendars: SelectedCalendar[];
+  }[]
+): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
+  return Promise.all(
+    usersWithCredentials.map((user) =>
+      getBusyCalendarTimes(
+        user.credentials,
+        startOfMonth().toISOString(),
+        new Date().toISOString(),
+        user.userLevelSelectedCalendars,
+        true
+      ).then((busyTimes) => ({
+        userId: user.id,
+        busyTimes,
+      }))
+    )
+  );
+}
+
 async function getCurrentMonthsBookings({
   eventTypeId,
   users,
@@ -346,7 +413,7 @@ async function getCurrentMonthsBookings({
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
-    startDate: startOfMonth,
+    startDate: startOfMonth(),
     endDate: new Date(),
     virtualQueuesData,
   });
@@ -366,6 +433,7 @@ export async function getLuckyUser<
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
+    oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
   const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
@@ -377,6 +445,7 @@ export async function getLuckyUser<
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
+    oooData,
   });
 
   return luckyUser;
@@ -395,6 +464,7 @@ type FetchedData = {
       }[]
     | null;
   virtualQueuesData?: VirtualQueuesDataType | null;
+  oooData: OOODataType;
 };
 
 export function getLuckyUser_requiresDataToBePreFetched<
@@ -410,6 +480,7 @@ export function getLuckyUser_requiresDataToBePreFetched<
     allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
+    oooData,
   } = getLuckyUserParams;
 
   // there is only one user
@@ -434,6 +505,7 @@ export function getLuckyUser_requiresDataToBePreFetched<
       bookingsOfNotAvailableUsersOfThisMonth,
       allRRHostsBookingsOfThisMonth,
       allRRHostsCreatedThisMonth,
+      oooData,
     });
     availableUsers = remainingUsersAfterWeightFilter;
     usersAndTheirBookingShortfalls = _usersAndTheirBookingShortfalls;
@@ -457,6 +529,13 @@ export function getLuckyUser_requiresDataToBePreFetched<
     }),
     usersAndTheirBookingShortfalls,
   };
+}
+
+function isFullDayEvent(date1: Date, date2: Date) {
+  const MILLISECONDS_IN_A_DAY = 24 * 60 * 60 * 1000;
+  const difference = Math.abs(date1.getTime() - date2.getTime());
+
+  if (difference % MILLISECONDS_IN_A_DAY === 0) return true;
 }
 
 async function fetchAllDataNeededForCalculations<
@@ -493,12 +572,14 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const [
+    currentMonthUserBusyTimes,
     currentMonthBookingsOfAvailableUsers,
     bookingsOfNotAvailableUsersOfThisMonth,
     allRRHostsBookingsOfThisMonth,
     allRRHostsCreatedThisMonth,
     organizersWithLastCreated,
   ] = await Promise.all([
+    getCurrentMonthCalendarBusyTimes(allRRHosts.map((host) => host.user)),
     getCurrentMonthsBookings({
       eventTypeId: eventType.id,
       users: availableUsers.map((user) => {
@@ -529,7 +610,7 @@ async function fetchAllDataNeededForCalculations<
         eventTypeId: eventType.id,
         isFixed: false,
         createdAt: {
-          gte: startOfMonth,
+          gte: startOfMonth(),
         },
       },
     }),
@@ -574,6 +655,70 @@ async function fetchAllDataNeededForCalculations<
     }),
   ]);
 
+  const userFullDayBusyTimes = new Map<number, { start: Date; end: Date }[]>();
+
+  currentMonthUserBusyTimes.forEach((userBusyTime) => {
+    const fullDayBusyTimes = userBusyTime.busyTimes
+      .filter((busyTime) => {
+        //timeZone is always defined when calling getBusyCalendarTimes with includeTimeZone true
+        if (!busyTime.timeZone) return false;
+
+        // make sure start date and end date is converted to 00:00 for full day busy events
+        const timezoneOffset = dayjs(busyTime.start).tz(busyTime.timeZone).utcOffset() * 60000;
+        let start = new Date(new Date(busyTime.start).getTime() + timezoneOffset);
+        const end = new Date(new Date(busyTime.end).getTime() + timezoneOffset);
+
+        // needed for full day busy events that started the month before
+        const earliestStartTime = new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1));
+        if (start < earliestStartTime) start = earliestStartTime;
+
+        return end.getTime() < new Date().getTime() && isFullDayEvent(start, end);
+      })
+      .map((busyTime) => ({ start: new Date(busyTime.start), end: new Date(busyTime.end) }));
+
+    userFullDayBusyTimes.set(userBusyTime.userId, fullDayBusyTimes);
+  });
+
+  // get cal.com OOO data
+  const oooEntries = await prisma.outOfOfficeEntry.findMany({
+    where: {
+      userId: {
+        in: allRRHosts.map((host) => host.user.id),
+      },
+      end: {
+        lte: new Date(),
+        gte: startOfMonth(),
+      },
+    },
+    select: {
+      start: true,
+      end: true,
+      userId: true,
+    },
+  });
+
+  const oooEntriesGroupedByUserId = new Map<number, { start: Date; end: Date }[]>();
+
+  oooEntries.forEach((entry) => {
+    if (!oooEntriesGroupedByUserId.has(entry.userId)) {
+      oooEntriesGroupedByUserId.set(entry.userId, []);
+    }
+    oooEntriesGroupedByUserId.get(entry.userId)!.push({ start: entry.start, end: entry.end });
+  });
+
+  const oooData: { userId: number; oooEntries: { start: Date; end: Date }[] }[] = [];
+
+  userFullDayBusyTimes.forEach((fullDayBusyTimes, userId) => {
+    const oooEntriesForUser = oooEntriesGroupedByUserId.get(userId) || [];
+    const combinedEntries = [...oooEntriesForUser, ...fullDayBusyTimes];
+    const oooEntries = mergeOverlappingRanges(combinedEntries);
+
+    oooData.push({
+      userId,
+      oooEntries,
+    });
+  });
+
   const endTime = performance.now();
   log.info(`fetchAllDataNeededForCalculations took ${endTime - startTime}ms`);
 
@@ -586,6 +731,7 @@ async function fetchAllDataNeededForCalculations<
       allRRHostsCreatedThisMonth: allRRHostsCreatedThisMonth.length,
       virtualQueuesData,
       attributeWeights,
+      oooData,
     })
   );
 
@@ -597,6 +743,7 @@ async function fetchAllDataNeededForCalculations<
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
+    oooData,
   };
 }
 
@@ -618,6 +765,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
+    oooData,
   } = await fetchAllDataNeededForCalculations(getLuckyUserParams);
 
   log.info(
@@ -660,6 +808,7 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
         organizersWithLastCreated,
         attributeWeights,
         virtualQueuesData,
+        oooData,
       });
 
     if (!usersAndTheirBookingShortfalls.length) {
@@ -791,17 +940,18 @@ async function getQueueAndAttributeWeightData<T extends PartialUser & { priority
     const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
 
     if (chosenRoute && "attributesQueryValue" in chosenRoute) {
-      const parsedAttributesQueryValue = children1Schema.parse(chosenRoute.attributesQueryValue);
+      const parsedAttributesQueryValue = raqbQueryValueSchema.parse(chosenRoute.attributesQueryValue);
 
-      const attributesQueryValueWithLabel = (await getAttributesQueryValue())({
+      const attributesQueryValueWithLabel = getAttributesQueryValue({
         attributesQueryValue: chosenRoute.attributesQueryValue,
         attributes: [attributeWithWeights],
-        response,
-        fields: routingFormResponse.form.fields as Fields,
-        getFieldResponse: getFieldResponse,
+        dynamicFieldValueOperands: {
+          fields: (routingFormResponse.form.fields as Fields) || [],
+          response,
+        },
       });
 
-      const parsedAttributesQueryValueWithLabel = children1Schema.parse(attributesQueryValueWithLabel);
+      const parsedAttributesQueryValueWithLabel = raqbQueryValueSchema.parse(attributesQueryValueWithLabel);
 
       if (parsedAttributesQueryValueWithLabel && parsedAttributesQueryValueWithLabel.children1) {
         averageWeightsHosts = getAverageAttributeWeights(
@@ -871,15 +1021,15 @@ function getAverageAttributeWeights<
           );
 
           allRRHosts.forEach((rrHost) => {
-            const weight = attributeOptionWithUsers?.assignedUsers.find(
+            const assignedUser = attributeOptionWithUsers?.assignedUsers.find(
               (assignedUser) => rrHost.user.id === assignedUser.member.userId
-            )?.weight;
+            );
 
-            if (weight) {
+            if (assignedUser) {
               if (allRRHostsWeights.has(rrHost.user.id)) {
-                allRRHostsWeights.get(rrHost.user.id)?.push(weight);
+                allRRHostsWeights.get(rrHost.user.id)?.push(assignedUser.weight ?? 100);
               } else {
-                allRRHostsWeights.set(rrHost.user.id, [weight]);
+                allRRHostsWeights.set(rrHost.user.id, [assignedUser.weight ?? 100]);
               }
             }
           });
@@ -900,6 +1050,7 @@ function getAverageAttributeWeights<
     "getAverageAttributeWeights",
     safeStringify({ allRRHosts, attributesQueryValueChild, attributeWithWeights, averageWeightsHosts })
   );
+
   return averageWeightsHosts;
 }
 

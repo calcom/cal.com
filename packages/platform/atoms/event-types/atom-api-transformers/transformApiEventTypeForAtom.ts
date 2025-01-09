@@ -1,5 +1,5 @@
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { CustomField, SystemField } from "@calcom/lib/event-types/transformers";
+import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
   transformBookingFieldsApiToInternal,
@@ -8,13 +8,18 @@ import {
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
   transformRecurrenceApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
-  CustomFieldOutput_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
   InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
@@ -24,20 +29,38 @@ import {
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
+  EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
 
 export function transformApiEventTypeForAtom(
-  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
+  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, recurrence, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    bookingFields,
+    users,
+    recurrence,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -46,6 +69,7 @@ export function transformApiEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   return {
     ...rest,
@@ -101,7 +125,28 @@ export function transformApiEventTypeForAtom(
         upId: `usr-${user.id}`,
       },
     })),
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      ...metadata,
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
@@ -110,10 +155,30 @@ export function transformApiTeamEventTypeForAtom(
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, recurrence, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    hosts,
+    bookingFields,
+    recurrence,
+    team,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
+
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   const isDefault = isDefaultEvent(rest.title);
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -131,15 +196,16 @@ export function transformApiTeamEventTypeForAtom(
     isDefault,
     isDynamic: false,
     profile: {
-      username: "team",
-      name: "team",
-      weekStart: "Sunday",
-      image: "",
-      brandColor: null,
-      darkBrandColor: null,
-      theme: null,
+      username: team?.slug ?? "team",
+      name: team?.name,
+      weekStart: team?.weekStart ?? "Sunday",
+      image: team?.logoUrl,
+      brandColor: team?.brandColor ?? null,
+      darkBrandColor: team?.darkBrandColor ?? null,
+      theme: team?.theme ?? null,
       bookerLayouts,
     },
+    bannerUrl: team?.bannerUrl,
     entity: entity
       ? {
           ...entity,
@@ -153,9 +219,9 @@ export function transformApiTeamEventTypeForAtom(
           fromRedirectOfNonOrgLink: true,
           considerUnpublished: false,
           orgSlug: null,
-          teamSlug: null,
-          name: null,
-          logoUrl: undefined,
+          teamSlug: team?.slug,
+          name: team?.name,
+          logoUrl: team?.logoUrl,
         },
     hosts: hosts.map((host) => ({
       user: {
@@ -171,6 +237,7 @@ export function transformApiTeamEventTypeForAtom(
       },
     })),
     users: hosts.map((host) => ({
+      ...host,
       metadata: undefined,
       bookerUrl: getBookerBaseUrlSync(null),
       profile: {
@@ -189,6 +256,27 @@ export function transformApiTeamEventTypeForAtom(
       },
     })),
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      ...metadata,
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
@@ -247,53 +335,57 @@ function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  // note(Lauris): the peculiar thing about returning atom booking fields using v2 event type is that v2 event type has more possible
-  // booking field outputs than inputs due to default system fields that cant be passed as inputs, which is why we take v2 from response
-  // only the custom fields and default editable fields aka fields that can be passed as inputs for event type booking fields.
-  const customFields: (SystemField | CustomField)[] = bookingFields
-    ? transformBookingFieldsApiToInternal(
-        bookingFields.filter((field) => isCustomField(field) || isDefaultEditableField(field))
-      )
-    : [];
-
-  const customFieldsWithoutNameEmail = customFields.filter(
-    (field) => field.type !== "name" && field.type !== "email"
+  const transformedBookingFields = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isKnownField(field))
   );
-  const customNameField = customFields?.find((field) => field.type === "name");
-  const customEmailField = customFields?.find((field) => field.type === "email");
 
-  const systemBeforeFields: SystemField[] = [
-    customNameField || systemBeforeFieldName,
-    customEmailField || systemBeforeFieldEmail,
-    systemBeforeFieldLocation,
-  ];
+  const hasNameField = transformedBookingFields.some((field) => field.name === "name");
+  const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
+  const hasLocationField = transformedBookingFields.some((field) => field.name === "location");
+  const hasRescheduleReasonField = transformedBookingFields.some(
+    (field) => field.name === "rescheduleReason"
+  );
 
-  const systemAfterFields: SystemField[] = [systemAfterFieldRescheduleReason];
+  const systemBeforeFields: SystemField[] = [];
+  if (!hasNameField) {
+    systemBeforeFields.push(systemBeforeFieldName);
+  }
+  if (!hasEmailField) {
+    systemBeforeFields.push(systemBeforeFieldEmail);
+  }
+  if (!hasLocationField) {
+    systemBeforeFields.push(systemBeforeFieldLocation);
+  }
+  const systemAfterFields: SystemField[] = [];
+  if (!hasRescheduleReasonField) {
+    systemAfterFields.push(systemAfterFieldRescheduleReason);
+  }
 
-  const transformedBookingFields: (SystemField | CustomField)[] = [
-    ...systemBeforeFields,
-    ...customFieldsWithoutNameEmail,
-    ...systemAfterFields,
-  ];
+  const fieldsWithSystem = [...systemBeforeFields, ...transformedBookingFields, ...systemAfterFields];
 
   // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
   // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
   const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
   if (defaultFormValuesKeys.length) {
-    for (const field of transformedBookingFields) {
+    for (const field of fieldsWithSystem) {
       if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
         field.editable = "user-readonly";
       }
     }
   }
 
-  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(fieldsWithSystem);
 }
 
-function isCustomField(
+function isKnownField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
-): field is CustomFieldOutput_2024_06_14 {
-  return field.type !== "unknown" && !field.isDefault;
+): field is KnownBookingField_2024_06_14 {
+  return field.type !== "unknown";
+}
+
+function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {
+  const res = transformFutureBookingLimitsApiToInternal(inputBookingWindow);
+  return !!res ? res : {};
 }
 
 function isDefaultEditableField(

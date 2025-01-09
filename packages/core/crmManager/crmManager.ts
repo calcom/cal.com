@@ -1,6 +1,6 @@
 import getCrm from "@calcom/app-store/_utils/getCrm";
 import logger from "@calcom/lib/logger";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, CalEventResponses } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { CRM, ContactCreateInput } from "@calcom/types/CrmService";
 
@@ -19,7 +19,7 @@ export default class CrmManager {
     const crmService = await getCrm(credential, this.appOptions);
     this.crmService = crmService;
 
-    if (this.crmService === null) {
+    if (!this.crmService) {
       console.log("💀 Error initializing CRM service");
       log.error("CRM service initialization failed");
     }
@@ -29,22 +29,27 @@ export default class CrmManager {
 
   public async createEvent(event: CalendarEvent, appOptions?: any) {
     const crmService = await this.getCrmService(this.credential);
-    const { skipContactCreation } = crmService?.getAppOptions() || {};
+    if (!crmService) return;
+    const { skipContactCreation = false, ignoreGuests = false } = crmService.getAppOptions() || {};
+    const eventAttendees = ignoreGuests ? [event.attendees[0]] : event.attendees;
     // First see if the attendees already exist in the crm
-    let contacts = (await this.getContacts({ emails: event.attendees.map((a) => a.email) })) || [];
+    let contacts = (await this.getContacts({ emails: eventAttendees.map((a) => a.email) })) || [];
     // Ensure that all attendees are in the crm
-    if (contacts.length == event.attendees.length) {
-      return await crmService?.createEvent(event, contacts);
+    if (contacts.length == eventAttendees.length) {
+      return await crmService.createEvent(event, contacts);
     }
 
     if (skipContactCreation) return;
+    const contactSet = new Set(contacts.map((c) => c.email));
     // Figure out which contacts to create
-    const contactsToCreate = event.attendees.filter(
-      (attendee) => !contacts.some((contact) => contact.email === attendee.email)
+    const contactsToCreate = eventAttendees.filter((attendee) => !contactSet.has(attendee.email));
+    const createdContacts = await this.createContacts(
+      contactsToCreate,
+      event.organizer?.email,
+      event.responses
     );
-    const createdContacts = await this.createContacts(contactsToCreate, event.organizer?.email);
     contacts = contacts.concat(createdContacts);
-    return await crmService?.createEvent(event, contacts);
+    return await crmService.createEvent(event, contacts);
   }
 
   public async updateEvent(uid: string, event: CalendarEvent) {
@@ -67,9 +72,14 @@ export default class CrmManager {
     return contacts;
   }
 
-  public async createContacts(contactsToCreate: ContactCreateInput[], organizerEmail?: string) {
+  public async createContacts(
+    contactsToCreate: ContactCreateInput[],
+    organizerEmail?: string,
+    calEventResponses?: CalEventResponses | null
+  ) {
     const crmService = await this.getCrmService(this.credential);
-    const createdContacts = (await crmService?.createContacts(contactsToCreate, organizerEmail)) || [];
+    const createdContacts =
+      (await crmService?.createContacts(contactsToCreate, organizerEmail, calEventResponses)) || [];
     return createdContacts;
   }
 

@@ -6,6 +6,7 @@ import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLe
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -22,7 +23,16 @@ type Users = (Awaited<ReturnType<typeof loadUsers>>[number] & {
 
 type EventType = Pick<
   NewBookingEventType,
-  "hosts" | "users" | "id" | "userId" | "schedulingType" | "maxLeadThreshold"
+  | "hosts"
+  | "users"
+  | "id"
+  | "userId"
+  | "schedulingType"
+  | "maxLeadThreshold"
+  | "team"
+  | "assignAllTeamMembers"
+  | "assignRRMembersUsingSegment"
+  | "rrSegmentQueryValue"
 >;
 
 type InputProps = {
@@ -33,6 +43,7 @@ type InputProps = {
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
+  isSameHostReschedule: boolean;
 };
 
 export async function loadAndValidateUsers({
@@ -43,6 +54,7 @@ export async function loadAndValidateUsers({
   logger,
   routedTeamMemberIds,
   contactOwnerEmail,
+  isSameHostReschedule,
 }: InputProps): Promise<Users> {
   let users: Users = await loadUsers({
     eventType,
@@ -80,7 +92,7 @@ export async function loadAndValidateUsers({
       logger.warn({ message: "NewBooking: eventTypeUser.notFound" });
       throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
     }
-    users.push(eventTypeUser);
+    users.push(withSelectedCalendars(eventTypeUser));
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
@@ -101,7 +113,7 @@ export async function loadAndValidateUsers({
       email: host.user.email,
       user: host.user,
     })),
-    maxLeadThreshold: eventType.maxLeadThreshold,
+    maxLeadThreshold: isSameHostReschedule ? null : eventType.maxLeadThreshold,
   });
   if (qualifiedHosts.length) {
     // remove users that are not in the qualified hosts array

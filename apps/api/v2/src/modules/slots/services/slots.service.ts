@@ -1,8 +1,10 @@
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { SlotsRepository } from "@/modules/slots/slots.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
 
+import { SlotFormat } from "@calcom/platform-enums";
 import { ReserveSlotInput } from "@calcom/platform-types";
 
 @Injectable()

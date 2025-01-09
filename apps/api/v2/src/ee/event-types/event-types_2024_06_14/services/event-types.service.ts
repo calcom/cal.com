@@ -74,8 +74,13 @@ export class EventTypesService_2024_06_14 {
     await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
 
-  async getEventTypeByUsernameAndSlug(username: string, eventTypeSlug: string) {
-    const user = await this.usersRepository.findByUsername(username);
+  async getEventTypeByUsernameAndSlug(
+    username: string,
+    eventTypeSlug: string,
+    orgSlug?: string,
+    orgId?: number
+  ) {
+    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
     if (!user) {
       return null;
     }
@@ -92,8 +97,8 @@ export class EventTypesService_2024_06_14 {
     };
   }
 
-  async getEventTypesByUsername(username: string) {
-    const user = await this.usersRepository.findByUsername(username);
+  async getEventTypesByUsername(username: string, orgSlug?: string, orgId?: number) {
+    const user = await this.usersRepository.findByUsername(username, orgSlug, orgId);
     if (!user) {
       return [];
     }
@@ -152,27 +157,26 @@ export class EventTypesService_2024_06_14 {
   }
 
   async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
-    const { username, eventSlug, usernames } = queryParams;
-
+    const { username, eventSlug, usernames, orgSlug, orgId } = queryParams;
     if (username && eventSlug) {
-      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug);
+      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug, orgSlug, orgId);
       return eventType ? [eventType] : [];
     }
 
     if (username) {
-      return await this.getEventTypesByUsername(username);
+      return await this.getEventTypesByUsername(username, orgSlug, orgId);
     }
 
     if (usernames) {
-      const dynamicEventType = await this.getDynamicEventType(usernames);
+      const dynamicEventType = await this.getDynamicEventType(usernames, orgSlug, orgId);
       return [dynamicEventType];
     }
 
     return [];
   }
 
-  async getDynamicEventType(usernames: string[]) {
-    const users = await this.usersService.getByUsernames(usernames);
+  async getDynamicEventType(usernames: string[], orgSlug?: string, orgId?: number) {
+    const users = await this.usersService.getByUsernames(usernames, orgSlug, orgId);
     const usersFiltered: UserWithProfile[] = [];
     for (const user of users) {
       if (user) {

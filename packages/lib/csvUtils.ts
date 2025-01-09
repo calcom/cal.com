@@ -96,7 +96,8 @@ export const generateHeaderFromReactTable = (table: Table<UserTableUser>): strin
 export const generateCsvRawForMembersTable = (
   headers: string[],
   rows: UserTableUser[],
-  ATTRIBUTE_IDS: string[]
+  ATTRIBUTE_IDS: string[],
+  orgDomain: string
 ): string => {
   if (!headers.length) {
     throw new Error("The header is empty.");
@@ -120,21 +121,29 @@ export const generateCsvRawForMembersTable = (
       if (!acc[attr.attributeId]) {
         acc[attr.attributeId] = [];
       }
-      acc[attr.attributeId].push(attr.value);
+      acc[attr.attributeId].push({
+        value: attr.value,
+        weight: attr.weight ?? undefined,
+      });
       return acc;
-    }, {} as Record<string, string[]>);
+    }, {} as Record<string, { value: string; weight: number | undefined }[]>);
 
     const requiredColumns = [
       email, // Members column
-      `${window.location.origin}/${username}`, // Link column
+      `${orgDomain}/${username}`, // Link column
       role, // Role column
       sanitizeValue(teams.map((team) => team.name).join(",")), // Teams column
     ];
 
     // Add attribute columns
-    const attributeColumns = ATTRIBUTE_IDS.map((attrId) =>
-      attributeMap[attrId] ? sanitizeValue(attributeMap[attrId].join(",")) : ""
-    );
+    const attributeColumns = ATTRIBUTE_IDS.map((attrId) => {
+      const attributes = attributeMap[attrId];
+      if (!attributes?.length) return "";
+
+      return sanitizeValue(
+        attributes.map((attr) => (attr.weight ? `${attr.value} (${attr.weight}%)` : attr.value)).join(",")
+      );
+    });
 
     return [...requiredColumns, ...attributeColumns];
   });

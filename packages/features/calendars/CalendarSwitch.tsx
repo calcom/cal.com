@@ -17,9 +17,18 @@ export type ICalendarSwitchProps = {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
+  eventTypeId: number | null;
+  disabled?: boolean;
 };
+
+type UserCalendarSwitchProps = Omit<ICalendarSwitchProps, "eventTypeId">;
+
+type EventCalendarSwitchProps = ICalendarSwitchProps & {
+  eventTypeId: number;
+};
+
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
+  const { title, externalId, type, isChecked, name, credentialId, eventTypeId, disabled } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -28,6 +37,9 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       const body = {
         integration: type,
         externalId: externalId,
+        // new URLSearchParams does not accept numbers
+        credentialId: String(credentialId),
+        ...(eventTypeId ? { eventTypeId: String(eventTypeId) } : {}),
       };
 
       if (isOn) {
@@ -36,7 +48,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ ...body, credentialId }),
+          body: JSON.stringify(body),
         });
 
         if (!res.ok) {
@@ -70,14 +82,19 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
         <Switch
           id={externalId}
           checked={checkedInternal}
-          disabled={mutation.isPending}
+          disabled={disabled || mutation.isPending}
           onCheckedChange={async (isOn: boolean) => {
             setCheckedInternal(isOn);
             await mutation.mutate({ isOn });
           }}
         />
       </div>
-      <label className="ml-3 break-all text-sm font-medium leading-5" htmlFor={externalId}>
+      <label
+        className={classNames(
+          "ml-3 break-all text-sm font-medium leading-5",
+          disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer"
+        )}
+        htmlFor={externalId}>
         {name}
       </label>
       {!!props.destination && (
@@ -91,6 +108,14 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       )}
     </div>
   );
+};
+
+export const UserCalendarSwitch = (props: UserCalendarSwitchProps) => {
+  return <CalendarSwitch {...props} eventTypeId={null} />;
+};
+
+export const EventCalendarSwitch = (props: EventCalendarSwitchProps) => {
+  return <CalendarSwitch {...props} />;
 };
 
 export { CalendarSwitch };

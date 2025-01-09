@@ -1,9 +1,9 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
+import { ZodError } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -33,7 +33,7 @@ import {
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { fieldSchema, type fieldsSchema } from "./schema";
+import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -460,7 +460,7 @@ function FieldEditDialog({
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    resolver: zodResolver(fieldSchema),
+    //resolver: zodResolver(fieldSchema),
   });
   const formFieldType = fieldForm.getValues("type");
 
@@ -574,10 +574,43 @@ function FieldEditDialog({
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
 
-                    {fieldType.value === "email" && fieldForm.getValues("name") === "email" && (
+                    {formFieldType === "email" && (
+                      <InputField
+                        {...fieldForm.register("requireEmails")}
+                        containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("requireEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("requireEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
+                        label={t("require_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {formFieldType === "email" && (
                       <InputField
                         {...fieldForm.register("excludeEmails")}
                         containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("excludeEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("excludeEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
                         label={t("exclude_emails_that_contain")}
                         placeholder="gmail.com, hotmail.com, ..."
                       />
@@ -700,9 +733,10 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTMLClient(field.label || "") || t(field.defaultLabel || ""),
+            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
           }}
         />
       );

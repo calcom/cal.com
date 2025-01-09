@@ -3,6 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -14,6 +15,7 @@ import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
 import { RoutingEventsInsights } from "./routing-events";
+import { VirtualQueuesInsights } from "./virtual-queues";
 
 const UserBelongsToTeamInput = z.object({
   teamId: z.coerce.number().optional().nullable(),
@@ -236,6 +238,10 @@ const emptyResponseEventsByStatus = {
     count: 0,
     deltaPrevious: 0,
   },
+  no_show_guest: {
+    count: 0,
+    deltaPrevious: 0,
+  },
   csat: {
     count: 0,
     deltaPrevious: 0,
@@ -304,16 +310,20 @@ export const insightsRouter = router({
       countGroupedByStatus,
       totalRatingsAggregate,
       totalCSAT,
+      totalNoShowGuests,
       lastPeriodCountGroupedByStatus,
       lastPeriodTotalRatingsAggregate,
       lastPeriodTotalCSAT,
+      lastPeriodTotalNoShowGuests,
     ] = await Promise.all([
       EventsInsights.countGroupedByStatus(baseWhereCondition),
       EventsInsights.getAverageRating(baseWhereCondition),
       EventsInsights.getTotalCSAT(baseWhereCondition),
+      EventsInsights.getTotalNoShowGuests(baseWhereCondition),
       EventsInsights.countGroupedByStatus(lastPeriodBaseCondition),
       EventsInsights.getAverageRating(lastPeriodBaseCondition),
       EventsInsights.getTotalCSAT(lastPeriodBaseCondition),
+      EventsInsights.getTotalNoShowGuests(lastPeriodBaseCondition),
     ]);
 
     const baseBookingsCount = countGroupedByStatus["_all"];
@@ -360,6 +370,10 @@ export const insightsRouter = router({
         count: totalNoShow,
         deltaPrevious: EventsInsights.getPercentage(totalNoShow, lastPeriodTotalNoShow),
       },
+      no_show_guest: {
+        count: totalNoShowGuests,
+        deltaPrevious: EventsInsights.getPercentage(totalNoShowGuests, lastPeriodTotalNoShowGuests),
+      },
       rating: {
         count: averageRating,
         deltaPrevious: EventsInsights.getPercentage(averageRating, lastPeriodAverageRating),
@@ -379,6 +393,7 @@ export const insightsRouter = router({
       result.rescheduled.count === 0 &&
       result.cancelled.count === 0 &&
       result.no_show.count === 0 &&
+      result.no_show_guest.count === 0 &&
       result.rating.count === 0
     ) {
       return emptyResponseEventsByStatus;
@@ -482,6 +497,7 @@ export const insightsRouter = router({
           Rescheduled: 0,
           Cancelled: 0,
           "No-Show (Host)": 0,
+          "No-Show (Guest)": 0,
         };
 
         const countsForDateRange = countsByStatus[formattedDate];
@@ -492,6 +508,7 @@ export const insightsRouter = router({
           EventData["Rescheduled"] = countsForDateRange["rescheduled"] || 0;
           EventData["Cancelled"] = countsForDateRange["cancelled"] || 0;
           EventData["No-Show (Host)"] = countsForDateRange["noShowHost"] || 0;
+          EventData["No-Show (Guest)"] = countsForDateRange["noShowGuests"] || 0;
         }
         return EventData;
       });
@@ -899,7 +916,7 @@ export const insightsRouter = router({
     };
 
     // Validate if user belongs to org as admin/owner
-    if (user.organizationId) {
+    if (user.organizationId && user.organization.isOrgAdmin) {
       const teamsFromOrg = await ctx.insightsDb.team.findMany({
         where: {
           parentId: user.organizationId,
@@ -1536,10 +1553,11 @@ export const insightsRouter = router({
   }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
-    .input(z.object({ teamId: z.number().optional(), isAll: z.boolean() }))
+    .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
-      const { teamId, isAll } = input;
+      const { userId, teamId, isAll } = input;
       return await RoutingEventsInsights.getRoutingFormsForFilters({
+        userId,
         teamId,
         isAll,
         organizationId: ctx.user.organizationId ?? undefined,
@@ -1569,6 +1587,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
         userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
         bookingStatus: input.bookingStatus ?? null,
         fieldFilter: input.fieldFilter ?? null,
       });
@@ -1581,13 +1600,8 @@ export const insightsRouter = router({
         routingFormId: z.string().optional(),
         cursor: z.number().optional(),
         limit: z.number().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
+        columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1601,14 +1615,46 @@ export const insightsRouter = router({
         routingFormId: input.routingFormId ?? null,
         cursor: input.cursor,
         userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
         limit: input.limit,
-        bookingStatus: input.bookingStatus ?? null,
-        fieldFilter: input.fieldFilter ?? null,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
+      });
+    }),
+  routingFormResponsesForDownload: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        cursor: z.number().optional(),
+        limit: z.number().optional(),
+        columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+        teamId: input.teamId ?? null,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
+        cursor: input.cursor,
+        userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
+        limit: input.limit ?? BATCH_SIZE,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure
     .input(
-      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+      z.object({
+        userId: z.number().optional(),
+        teamId: z.number().optional(),
+        isAll: z.boolean(),
+        routingFormId: z.string().optional(),
+      })
     )
     .query(async ({ input, ctx }) => {
       const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
@@ -1619,7 +1665,12 @@ export const insightsRouter = router({
     }),
   failedBookingsByField: userBelongsToTeamProcedure
     .input(
-      z.object({ teamId: z.number().optional(), isAll: z.boolean(), routingFormId: z.string().optional() })
+      z.object({
+        userId: z.number().optional(),
+        teamId: z.number().optional(),
+        isAll: z.boolean(),
+        routingFormId: z.string().optional(),
+      })
     )
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getFailedBookingsByRoutingFormGroup({
@@ -1630,18 +1681,22 @@ export const insightsRouter = router({
   routingFormResponsesHeaders: userBelongsToTeamProcedure
     .input(
       z.object({
+        userId: z.number().optional(),
         teamId: z.number().optional(),
         isAll: z.boolean(),
         routingFormId: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormHeaders({
+      const headers = await RoutingEventsInsights.getRoutingFormHeaders({
+        userId: input.userId ?? null,
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId ?? null,
       });
+
+      return headers || [];
     }),
   rawRoutingData: userBelongsToTeamProcedure
     .input(
@@ -1658,8 +1713,18 @@ export const insightsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { teamId, startDate, endDate, userId, isAll, routingFormId, bookingStatus, fieldFilter, cursor } =
-        input;
+      const {
+        teamId,
+        startDate,
+        endDate,
+        userId,
+        memberUserId,
+        isAll,
+        routingFormId,
+        bookingStatus,
+        fieldFilter,
+        cursor,
+      } = input;
 
       if (!teamId && !userId) {
         return { data: [], hasMore: false, nextCursor: null };
@@ -1671,6 +1736,7 @@ export const insightsRouter = router({
           startDate,
           endDate,
           userId,
+          memberUserId,
           isAll: isAll ?? false,
           organizationId: ctx.user.organizationId,
           routingFormId,
@@ -1692,4 +1758,82 @@ export const insightsRouter = router({
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
     }),
+  routedToPerPeriod: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        cursor: z
+          .object({
+            userCursor: z.number().optional(),
+            periodCursor: z.string().optional(),
+          })
+          .optional(),
+        routingFormId: z.string().optional(),
+        limit: z.number().optional(),
+        searchQuery: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { teamId, userId, startDate, endDate, period, cursor, limit, isAll, routingFormId, searchQuery } =
+        input;
+
+      return await RoutingEventsInsights.routedToPerPeriod({
+        userId: userId ?? null,
+        teamId: teamId ?? null,
+        startDate,
+        endDate,
+        period,
+        cursor: cursor?.periodCursor,
+        userCursor: cursor?.userCursor,
+        limit,
+        isAll: isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: routingFormId ?? null,
+        searchQuery: searchQuery,
+      });
+    }),
+  routedToPerPeriodCsv: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        period: z.enum(["perDay", "perWeek", "perMonth"]),
+        searchQuery: z.string().optional(),
+        routingFormId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { startDate, endDate } = input;
+      try {
+        const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
+          userId: input.userId ?? null,
+          teamId: input.teamId ?? null,
+          startDate,
+          endDate,
+          isAll: input.isAll ?? false,
+          organizationId: ctx.user.organizationId ?? null,
+          routingFormId: input.routingFormId ?? null,
+          period: input.period,
+          searchQuery: input.searchQuery,
+        });
+
+        const csvString = RoutingEventsInsights.objectToCsv(csvData);
+        const downloadAs = `routed-to-${input.period}-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
+
+        return { data: csvString, filename: downloadAs };
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+      }
+    }),
+  getUserRelevantTeamRoutingForms: authedProcedure.query(async ({ ctx }) => {
+    try {
+      const routingForms = await VirtualQueuesInsights.getUserRelevantTeamRoutingForms({
+        userId: ctx.user.id,
+      });
+
+      return routingForms;
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
 });

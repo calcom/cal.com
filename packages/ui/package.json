@@ -20,7 +20,6 @@
     "./command": "./components/command/index.ts",
     "./createButton": "./components/createButton/index.ts",
     "./credits": "./components/credits/index.ts",
-    "./data-table": "./components/data-table/index.ts",
     "./dialog": "./components/dialog/index.ts",
     "./disconnect-calendar-integration": "./components/disconnect-calendar-integration/index.ts",
     "./divider": "./components/divider/index.ts",
@@ -55,6 +54,7 @@
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
     "./components/form/timezone-select/TimezoneSelect": "./components/form/timezone-select/index.ts",
+    "./components/table/TableNew": "./components/table/TableNew.tsx",
     "./__mocks__/ui": "./__mocks__/ui.tsx"
   },
   "license": "MIT",
@@ -92,8 +92,7 @@
     "react-day-picker": "^8.10.1",
     "react-hook-form": "^7.43.3",
     "react-inlinesvg": "^4.1.3",
-    "react-select": "^5.7.0",
-    "react-virtual": "^2.10.4"
+    "react-select": "^5.7.0"
   },
   "devDependencies": {
     "@calcom/config": "*",
