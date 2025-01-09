@@ -1,9 +1,9 @@
 {
     "name": "Cal",
     "logo": {
-      "light": "/logo/light.png",
-      "dark": "/logo/dark.png"
-    },
+    "dark": "https://cal.com/calcom-help-light.svg",
+    "light": "https://cal.com/calcom-help.svg"
+  },
     "favicon": "/favicon.png",
     "colors": {
       "primary": "#141414",
