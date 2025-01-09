@@ -15,7 +15,7 @@ const paramsSchema = z.object({
   slug: z.string(),
 });
 
-export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
+export const generateMetadata = async ({ params }: _PageProps) => {
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
