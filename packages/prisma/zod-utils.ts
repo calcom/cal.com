@@ -311,7 +311,7 @@ export const bookingConfirmPatchBodySchema = z.object({
   platformClientParams: PlatformClientParamsSchema.optional(),
 });
 
-const noEmail = z.boolean().optional();
+const noEmailSchema = z.boolean().optional();
 const appsStatus = z
   .array(
     z.object({
@@ -328,7 +328,7 @@ const appsStatus = z
 // `responses` is merged with it during handleNewBooking call because `responses` schema is dynamic and depends on eventType
 export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
-    noEmail,
+    noEmail: noEmailSchema,
     recurringCount: z.number().optional(),
     allRecurringDates: z
       .array(
@@ -470,10 +470,10 @@ export const teamMetadataSchema = z
 export const bookingMetadataSchema = z
   .object({
     videoCallUrl: z.string().optional(),
-    noEmail,
+    noEmail: noEmailSchema,
     reqAppsStatus: appsStatus,
   })
-  .and(z.record(z.string()))
+  .passthrough()
   .nullable()
   .describe("BookingMetadata");
 
