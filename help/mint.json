@@ -27,9 +27,9 @@
     },
     "anchors": [
       {
-        "name": "Community",
-        "icon": "discord",
-        "url": "https://discord.com/invite/calcom"
+        "name": "Developer",
+        "icon": "code",
+        "url": "https://cal.com/docs"
       },
       {
         "name": "GitHub",
