@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
-import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLeadThreshold";
+import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -105,16 +105,18 @@ export async function loadAndValidateUsers({
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
-  const qualifiedHosts = await filterHostsByLeadThreshold({
-    eventTypeId: eventType.id,
-    hosts: eventType.hosts.map((host) => ({
-      isFixed: host.isFixed,
-      createdAt: host.createdAt,
-      email: host.user.email,
-      user: host.user,
-    })),
-    maxLeadThreshold: isSameHostReschedule ? null : eventType.maxLeadThreshold,
+  const { qualifiedHosts, fallbackHosts } = await findQualifiedHosts({
+    eventType: {
+      ...eventType,
+      rescheduleWithSameRoundRobinHost: isSameHostReschedule,
+    },
+    routedTeamMemberIds: routedTeamMemberIds || [],
+    rescheduleUid: null,
+    contactOwnerEmail,
   });
+
+  console.log({ qualifiedHosts, fallbackHosts });
+
   if (qualifiedHosts.length) {
     // remove users that are not in the qualified hosts array
     const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));

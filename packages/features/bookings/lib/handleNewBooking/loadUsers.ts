@@ -65,7 +65,7 @@ const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEve
   });
   const matchingHosts = await findMatchingHostsWithEventSegment({
     eventType,
-    normalizedHosts: hosts ?? fallbackHosts,
+    hosts: hosts ?? fallbackHosts,
   });
   return matchingHosts.map(({ user, isFixed, priority, weight, createdAt }) => ({
     ...user,

@@ -1,4 +1,5 @@
 import { vi, it, describe, expect, afterEach } from "vitest";
+import type { Mock } from "vitest";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
@@ -6,13 +7,15 @@ import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { findQualifiedHosts } from "./findQualifiedHosts";
 
 // Mock the filterHostsByLeadThreshold function
-vi.mock("./filterHostsByLeadThreshold", () => ({
-  filterHostsByLeadThreshold: vi.fn(),
-}));
+vi.mock("./filterHostsByLeadThreshold", () => {
+  return {
+    filterHostsByLeadThreshold: vi.fn(),
+  };
+});
 
 // Clear call history after each test
 afterEach(() => {
-  (filterHostsByLeadThreshold as vi.Mock).mockClear();
+  (filterHostsByLeadThreshold as Mock).mockClear();
 });
 
 describe("findQualifiedHosts", async () => {
@@ -25,6 +28,9 @@ describe("findQualifiedHosts", async () => {
           id: 2,
           email: "hellouser2@email.com",
         },
+        priority: undefined,
+        weight: undefined,
+        email: "hellouser2@email.com",
       },
       {
         isFixed: false,
@@ -33,11 +39,14 @@ describe("findQualifiedHosts", async () => {
           id: 1,
           email: "hellouser@email.com",
         },
+        email: "hellouser@email.com",
+        priority: undefined,
+        weight: undefined,
       },
     ];
 
     // Configure the mock return value
-    (filterHostsByLeadThreshold as vi.Mock).mockResolvedValue(hosts);
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(hosts);
 
     // Define the input for the test
     const eventType = {
@@ -46,13 +55,26 @@ describe("findQualifiedHosts", async () => {
       users: [],
       schedulingType: SchedulingType.ROUND_ROBIN,
       maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      team: {
+        id: 1,
+        parentId: null,
+      },
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts(eventType);
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+    });
 
     // Verify the result
-    expect(result).toEqual(hosts);
+    expect(result).toStrictEqual({ qualifiedHosts: hosts, fallbackHosts: [] });
   });
 
   it("should return hosts after valid input with users", async () => {
@@ -74,20 +96,33 @@ describe("findQualifiedHosts", async () => {
       users,
       schedulingType: null,
       maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      team: {
+        id: 1,
+        parentId: null,
+      },
     };
 
     // Call the function under test
-    const result = await findQualifiedHosts(eventType);
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+    });
 
     // Verify the result
-    expect(result).toEqual(
-      users.map((user) => ({
+    expect(result).toEqual({
+      qualifiedHosts: users.map((user) => ({
         user: user,
         isFixed: true,
         email: user.email,
         createdAt: null,
-      }))
-    );
+      })),
+    });
 
     expect(filterHostsByLeadThreshold).not.toHaveBeenCalled();
   });

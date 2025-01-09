@@ -16,11 +16,7 @@ import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEvent
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
-import {
-  findMatchingHostsWithEventSegment,
-  getRoutedHostsWithContactOwnerAndFixedHosts,
-} from "@calcom/lib/bookings/getRoutedUsers";
-import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -324,19 +320,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-
-  const eventHosts = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
-    eventType,
-    !!input.rescheduleUid
-  );
-  const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
-    eventType,
-    normalizedHosts: eventHosts,
-  });
+  // when an empty array is given we should prefer to have it handled as if this wasn't given at all
+  // we don't want to return no availability in this case.
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
 
-  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   const skipContactOwner = shouldIgnoreContactOwner({
     skipContactOwner: input.skipContactOwner ?? null,
     rescheduleUid: input.rescheduleUid ?? null,
@@ -344,17 +332,22 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
-  const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts: hostsAfterSegmentMatching,
-    routedTeamMemberIds,
-    contactOwnerEmail,
-  });
+
+  const { qualifiedHosts, fallbackHosts } = await monitorCallbackAsync(
+    findQualifiedHosts<GetAvailabilityUser>,
+    {
+      eventType,
+      rescheduleUid: input.rescheduleUid ?? null,
+      routedTeamMemberIds,
+      contactOwnerEmail,
+    }
+  );
 
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
       eventType,
-      hosts: routedHostsWithContactOwnerAndFixedHosts,
+      hosts: qualifiedHosts,
       contactOwnerEmail,
       loggerWithEventDetails,
       startTime,
@@ -363,31 +356,27 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       shouldServeCache,
     });
 
-  // If contact skipping, determine if there's availability within two weeks
-  if (contactOwnerEmail && aggregatedAvailability.length > 0) {
+  // Fairness and Contact Owner disqualification reasons need Availability within 2 weeks
+  // if not, we attempt to re-open.
+  if (fallbackHosts && fallbackHosts.length > 0) {
     const twoWeeksFromNow = dayjs().add(2, "week");
-    const diff = aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day");
-
+    // there are fallback hosts, so check availability
+    const diff =
+      aggregatedAvailability.length > 0 ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day") : 1; // no aggregatedAvailability so we diff to +1
     if (diff > 0) {
-      const routedHostsAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
-        (host) => host.email !== contactOwnerEmail
-      );
-
-      if (routedHostsAndFixedHosts.length > 0) {
-        // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-          await calculateHostsAndAvailabilities({
-            input,
-            eventType,
-            hosts: routedHostsAndFixedHosts,
-            contactOwnerEmail,
-            loggerWithEventDetails,
-            startTime,
-            endTime,
-            bypassBusyCalendarTimes,
-            shouldServeCache,
-          }));
-      }
+      // if the first available slot is more than 2 weeks from now, round robin as normal
+      ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
+        await calculateHostsAndAvailabilities({
+          input,
+          eventType,
+          hosts: fallbackHosts,
+          contactOwnerEmail,
+          loggerWithEventDetails,
+          startTime,
+          endTime,
+          bypassBusyCalendarTimes,
+          shouldServeCache,
+        }));
     }
   }
 
@@ -634,7 +623,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hostsAfterSegmentMatching: hostsAfterSegmentMatching.map((host) => ({
+          hostsAfterSegmentMatching: qualifiedHosts.map((host) => ({
             userId: host.user.id,
           })),
         },
@@ -886,29 +875,6 @@ const calculateHostsAndAvailabilities = async ({
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
 }) => {
-  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
-  if (
-    input.rescheduleUid &&
-    eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    // If it is rerouting, we should not force reschedule with same host.
-    // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-    !isRerouting({ rescheduleUid: input.rescheduleUid, routedTeamMemberIds })
-  ) {
-    const originalRescheduledBooking = await prisma.booking.findFirst({
-      where: {
-        uid: input.rescheduleUid,
-        status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
-        },
-      },
-      select: {
-        userId: true,
-      },
-    });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
-  }
-
   const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
     contactOwnerEmail,
     hosts,
