@@ -61,7 +61,6 @@ self.addEventListener("push", async (event) => {
 });
 
 self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
 
   if (event.notification.data?.type === "INSTANT_MEETING") {
     const stopSound = async () => {

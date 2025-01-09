@@ -121,8 +121,6 @@ const triggerBrowserNotifications = async (args: {
     },
   });
 
-  console.log("subscribers", subscribers);
-
   const promises = subscribers.map((sub) => {
     const subscription = sub.user?.NotificationsSubscriptions?.[0]?.subscription;
     if (!subscription) return Promise.resolve();
