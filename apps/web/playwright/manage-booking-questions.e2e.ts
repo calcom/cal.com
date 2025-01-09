@@ -231,11 +231,11 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For Team EventType", () => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip("Do a booking with a user added question and verify a few thing in b/w", async ({
+    test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
       context,
+      webhooks,
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
       test.setTimeout(testInfo.timeout * 3);
@@ -255,7 +255,7 @@ test.describe("Manage Booking Questions", () => {
       });
 
       const teamId = team?.id;
-      const webhookReceiver = await addWebhook(undefined, teamId);
+      const { webhookReceiver } = await webhooks.createTeamReceiver();
 
       await test.step("Go to First Team Event", async () => {
         await page.getByTestId(`horizontal-tab-${team?.name}`).click();
@@ -273,7 +273,7 @@ test.describe("Manage Booking Questions", () => {
 async function runTestStepsCommonForTeamAndUserEventType(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  webhookReceiver: Awaited<ReturnType<typeof addWebhook>>
+  webhookReceiver: any
 ) {
   await page.click('[href$="tabName=advanced"]');
 
