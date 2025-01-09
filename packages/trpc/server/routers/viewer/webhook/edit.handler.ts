@@ -40,7 +40,11 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     where: {
       id,
     },
-    data,
+    data: {
+      ...data,
+      time: data.time ?? null,
+      timeUnit: data.timeUnit ?? null,
+    },
   });
 
   if (data.active) {
