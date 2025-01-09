@@ -70,6 +70,7 @@ export type Attribute = {
   slug: string;
   type: AttributeType;
   id: string;
+  isWeightsEnabled?: boolean;
   options: {
     id: string;
     value: string;
