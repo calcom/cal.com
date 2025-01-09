@@ -7,7 +7,7 @@ import type { getAllCredentials } from "@calcom/features/bookings/lib/getAllCred
 import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { CalendarEvent, AppsStatus } from "@calcom/types/Calendar";
 
-export type BookingListenerCreateInput = {
+export type BookingCreatedServiceCreateInput = {
   evt: CalendarEvent;
   allCredentials: Awaited<ReturnType<typeof getAllCredentials>>;
   organizerUser: {

@@ -32,9 +32,9 @@ import { EventTypeMetaDataSchema, bookingMetadataSchema } from "@calcom/prisma/z
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation } from "@calcom/types/Calendar";
 
-import type { BookingListenerCreateInput } from "./types";
+import type { BookingCreatedServiceCreateInput } from "./types";
 
-class BookingListener {
+class BookingCreatedService {
   static async create({
     evt,
     allCredentials,
@@ -46,7 +46,7 @@ class BookingListener {
     teamId,
     platformClientId,
     bookerUrl,
-  }: BookingListenerCreateInput) {
+  }: BookingCreatedServiceCreateInput) {
     const log = logger.getSubLogger({ prefix: ["[BookingListener.create]"] });
     const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
 
@@ -368,4 +368,4 @@ class BookingListener {
   }
 }
 
-export default BookingListener;
+export default BookingCreatedService;

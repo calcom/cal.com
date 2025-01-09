@@ -31,7 +31,7 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import BookingListener from "@calcom/features/bookings/listener/bookingListener";
+import BookingCreatedService from "@calcom/features/bookings/postBookingServices/bookingCreatedService";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -1531,7 +1531,7 @@ async function handler(
     // Create a booking
   } else if (isConfirmedByDefault) {
     if (!isDryRun) {
-      await BookingListener.create({
+      await BookingCreatedService.create({
         evt,
         allCredentials,
         organizerUser,
