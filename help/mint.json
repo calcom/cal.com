@@ -173,10 +173,9 @@
         ]
       }
     ],
-    "footerSocials":
-      {
-          "twitter": "https://twitter.com/calcom?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
-          "linkedin": "https://www.linkedin.com/company/cal-com/",
-          "discord": "https://discord.com/invite/calcom"
-      }
+    "footerSocials": {
+        "x": "https://x.com/calcom",
+        "github": "https://github.com/calcom",
+        "linkedin": "https://www.linkedin.com/company/cal-com"
+    }
   }
