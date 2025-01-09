@@ -62,6 +62,5 @@ SELECT
 FROM "App_RoutingForms_FormResponse" r
 LEFT JOIN "App_RoutingForms_Form" f ON r."formId" = f.id
 LEFT JOIN "Booking" b ON r."routedToBookingUid" = b.uid
-LEFT JOIN attendees_agg att ON b.id = att."bookingId"
 LEFT JOIN "users" u ON b."userId" = u.id
 LEFT JOIN assignment_reasons_agg ar ON b.id = ar."bookingId";
