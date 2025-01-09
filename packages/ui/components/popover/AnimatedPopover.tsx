@@ -53,13 +53,13 @@ export const AnimatedPopover = ({
         <button
           ref={ref}
           className={classNames(
-            "hover:border-emphasis border-default text-default hover:text-emphasis radix-state-open:border-emphasis radix-state-open:outline-none radix-state-open:ring-2 radix-state-open:ring-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer",
+            "width:max-content hover:border-emphasis border-default text-default hover:text-emphasis radix-state-open:border-emphasis radix-state-open:outline-none radix-state-open:ring-2 radix-state-open:ring-emphasis mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer",
             popoverTriggerClassNames
           )}>
           {Trigger ? (
             Trigger
           ) : (
-            <div className="max-w-36 flex items-center">
+            <div className="flex items-center">
               <Tooltip content={prefix ? `${prefix}${text}` : text}>
                 <div className="flex select-none truncate font-medium">
                   {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
@@ -83,7 +83,7 @@ export const AnimatedPopover = ({
       <Popover.Content side="bottom" align={align} asChild>
         <div
           className={classNames(
-            "bg-default border-subtle scroll-bar absolute z-50 mt-1 max-h-64 w-56 select-none overflow-y-auto rounded-md border py-[2px] shadow-md focus-within:outline-none",
+            "bg-default border-subtle scroll-bar min-w-56 absolute z-50 mt-1 max-h-64 select-none overflow-y-auto rounded-md border py-[2px] shadow-md focus-within:outline-none",
             align === "end" && "-translate-x-[228px]"
           )}>
           {children}
