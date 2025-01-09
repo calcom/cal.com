@@ -231,14 +231,13 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For Team EventType", () => {
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip("Do a booking with a user added question and verify a few thing in b/w", async ({
+    test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
       context,
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 3);
+      // test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
