@@ -10,8 +10,8 @@ const paramsSchema = z
     pages: [],
   });
 
-const Page = ({ params, searchParams }: PageProps) => {
-  const { pages } = paramsSchema.parse({ ...params, ...searchParams });
+const Page = ({ params }: PageProps) => {
+  const { pages } = paramsSchema.parse(params);
 
   redirect(`/routing/${pages.length ? pages.join("/") : ""}`);
 };
