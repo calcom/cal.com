@@ -259,6 +259,8 @@ test.describe("Manage Booking Questions", () => {
       const { webhookReceiver } = await webhooks.createTeamReceiver();
 
       await test.step("Go to First Team Event", async () => {
+        await page.goto("/event-types");
+        await page.waitForSelector('[data-testid="event-types"]');
         await page.getByTestId(`horizontal-tab-${team?.name}`).click();
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
