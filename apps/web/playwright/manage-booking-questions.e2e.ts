@@ -236,10 +236,9 @@ test.describe("Manage Booking Questions", () => {
       page,
       users,
       context,
-      webhooks,
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 3);
+      test.setTimeout(testInfo.timeout * 4);
       const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
@@ -256,11 +255,9 @@ test.describe("Manage Booking Questions", () => {
       });
 
       const teamId = team?.id;
-      const { webhookReceiver } = await webhooks.createTeamReceiver();
+      const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
-        await page.goto("/event-types");
-        await page.waitForSelector('[data-testid="event-types"]');
         await page.getByTestId(`horizontal-tab-${team?.name}`).click();
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
@@ -276,7 +273,7 @@ test.describe("Manage Booking Questions", () => {
 async function runTestStepsCommonForTeamAndUserEventType(
   page: Page,
   context: PlaywrightTestArgs["context"],
-  webhookReceiver: any
+  webhookReceiver: Awaited<ReturnType<typeof addWebhook>>
 ) {
   await page.click('[href$="tabName=advanced"]');
 
