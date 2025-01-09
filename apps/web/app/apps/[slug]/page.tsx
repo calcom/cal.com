@@ -1,5 +1,5 @@
 import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata, generateAppMetadata } from "app/_utils";
+import { generateAppMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -65,4 +65,4 @@ async function Page({ params }: _PageProps) {
 
 export default WithLayout({ getLayout: null, ServerPage: Page });
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
