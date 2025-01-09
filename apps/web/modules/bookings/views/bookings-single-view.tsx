@@ -142,7 +142,7 @@ export default function Success(props: PageProps) {
   const status = bookingInfo?.status;
   const reschedule = bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = bookingInfo.cancellationReason || bookingInfo.rejectionReason;
-  const cancelledBy = bookingInfo.cancelledBy;
+  const cancelledBy = bookingInfo.cancelledBy || "Guest User";
 
   const attendees = bookingInfo?.attendees;
 
