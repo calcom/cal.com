@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
+import { AttendeesFilter } from "@calcom/features/bookings/components/AttendeesFilter";
 import { PeopleFilter } from "@calcom/features/bookings/components/PeopleFilter";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { StartTimeFilters } from "@calcom/features/filters/components/StartTimeFilters";
@@ -22,6 +23,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
     <div ref={animationParentRef}>
       {isFiltersVisible ? (
         <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
+          <AttendeesFilter />
           <PeopleFilter />
           <EventTypeFilter />
           <TeamsFilter />
