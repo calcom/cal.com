@@ -73,7 +73,7 @@ export const AttendeesFilter = () => {
             onChange={(e) => {
               if (e.target.checked) {
                 pushItemToKey("attendeeEmails", attendee.email);
-              } else if (!e.target.checked) {
+              } else  {
                 removeItemByKeyAndValue("attendeeEmails", attendee.email);
               }
             }}
