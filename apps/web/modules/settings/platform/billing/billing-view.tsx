@@ -13,6 +13,16 @@ import { useGetUserAttributes } from "@components/settings/platform/hooks/useGet
 
 import { CtaRow } from "~/settings/billing/billing-view";
 
+declare global {
+  interface Window {
+    Plain?: {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      init: (config: any) => void;
+      open: () => void;
+    };
+  }
+}
+
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
