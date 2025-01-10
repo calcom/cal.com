@@ -379,9 +379,9 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsString()
   @DocsPropertyOptional({
-    description: `Customizable event name with valid variables: 
-      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, 
-      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, 
+    description: `Customizable event name with valid variables:
+      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},
+      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},
       {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}`,
     example: "{Event type title} between {Organiser} and {Scheduler}",
   })

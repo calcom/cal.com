@@ -1713,6 +1713,8 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+
+  @@index([bookingId])
 }
 
 enum EventTypeAutoTranslatedField {
