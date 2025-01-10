@@ -90,6 +90,7 @@ function DelegationListItemActions({
           {
             id: "delete",
             label: t("delete"),
+            disabled: true,
             onClick: () => onDelete(delegation.id),
             icon: "trash",
           },
