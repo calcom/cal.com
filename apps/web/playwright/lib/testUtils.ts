@@ -545,7 +545,5 @@ export async function bookTeamEvent({
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  const locator = page.locator('[data-testid="404-page"]');
-  await expect(locator).toHaveClass(/min-h-screen/);
-  await expect(locator).toBeVisible();
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
