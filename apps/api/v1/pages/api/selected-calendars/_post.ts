@@ -4,6 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import prisma from "@calcom/prisma";
 
 import {
@@ -53,7 +54,11 @@ import {
 async function postHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
-  const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
+  const args: {
+    data: Prisma.SelectedCalendarUncheckedCreateInput;
+  } = {
+    data: { ...body, userId },
+  };
 
   if (!isSystemWideAdmin && bodyUserId)
     throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
@@ -64,7 +69,7 @@ async function postHandler(req: NextApiRequest) {
     args.data.userId = bodyUserId;
   }
 
-  const data = await prisma.selectedCalendar.create(args);
+  const data = await SelectedCalendarRepository.create(args.data);
 
   data.credentialId && (await BookingReferenceRepository.reconnectWithNewCredential(data.credentialId));
 

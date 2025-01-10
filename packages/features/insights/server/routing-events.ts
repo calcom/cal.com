@@ -1,14 +1,28 @@
 import { Prisma } from "@prisma/client";
+// eslint-disable-next-line no-restricted-imports
+import mapKeys from "lodash/mapKeys";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 
 import {
   zodFields as routingFormFieldsSchema,
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
+import type {
+  ColumnFilter,
+  TypedColumnFilter,
+  ColumnFilterType,
+  SortingState,
+} from "@calcom/features/data-table";
+import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
+import { type ResponseValue, ZResponse } from "../lib/types";
+
 type RoutingFormInsightsTeamFilter = {
+  userId?: number | null;
   teamId?: number | null;
   isAll: boolean;
   organizationId?: number | null;
@@ -18,22 +32,26 @@ type RoutingFormInsightsTeamFilter = {
 type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
   startDate?: string;
   endDate?: string;
-  userId?: number | null;
+  memberUserId?: number | null;
   searchQuery?: string | null;
   bookingStatus?: BookingStatus | "NO_BOOKING" | null;
   fieldFilter?: {
     fieldId: string;
     optionId: string;
   } | null;
+  columnFilters: ColumnFilter[];
 };
+
+type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
 
 class RoutingEventsInsights {
   private static async getWhereForTeamOrAllTeams({
+    userId,
     teamId,
     isAll,
     organizationId,
     routingFormId,
-  }: RoutingFormInsightsTeamFilter) {
+  }: RoutingFormInsightsTeamFilter): Promise<WhereForTeamOrAllTeams> {
     // Get team IDs based on organization if applicable
     let teamIds: number[] = [];
     if (isAll && organizationId) {
@@ -51,23 +69,21 @@ class RoutingEventsInsights {
     }
 
     // Base where condition for forms
-    const formsWhereCondition: Prisma.App_RoutingForms_FormWhereInput = {
-      ...(teamIds.length > 0 && {
-        teamId: {
-          in: teamIds,
-        },
-      }),
+    const formsWhereCondition: WhereForTeamOrAllTeams = {
+      ...(teamIds.length > 0
+        ? {
+            teamId: {
+              in: teamIds,
+            },
+          }
+        : {
+            userId: userId ?? -1,
+            teamId: null,
+          }),
       ...(routingFormId && {
         id: routingFormId,
       }),
     };
-
-    if (teamIds.length === 0 && !routingFormId) {
-      if (!organizationId) {
-        throw new Error("Organization ID is required");
-      }
-      formsWhereCondition.teamId = organizationId;
-    }
 
     return formsWhereCondition;
   }
@@ -80,12 +96,14 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    memberUserId,
     searchQuery,
     bookingStatus,
     fieldFilter,
-  }: RoutingFormInsightsFilter) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters">) {
     // Get team IDs based on organization if applicable
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -101,13 +119,13 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus || searchQuery
+      ...(memberUserId || bookingStatus || searchQuery
         ? {
             ...(bookingStatus === "NO_BOOKING"
               ? { routedToBooking: null }
               : {
                   routedToBooking: {
-                    ...(userId && { userId }),
+                    ...(memberUserId && { userId: memberUserId }),
                     ...(searchQuery && {
                       user: {
                         OR: [
@@ -163,16 +181,23 @@ class RoutingEventsInsights {
   }
 
   static async getRoutingFormsForFilters({
+    userId,
     teamId,
     isAll,
     organizationId,
   }: {
+    userId?: number;
     teamId?: number;
     isAll: boolean;
     organizationId?: number | undefined;
     routingFormId?: string | undefined;
   }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({ teamId, isAll, organizationId });
+    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+    });
     return await prisma.app_RoutingForms_Form.findMany({
       where: formsWhereCondition,
       select: {
@@ -197,17 +222,73 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    fieldFilter,
-    bookingStatus,
-  }: RoutingFormInsightsFilter & { cursor?: number; limit?: number }) {
+    memberUserId,
+    columnFilters,
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
       routingFormId,
     });
 
-    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
+    const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
+      if (filter.value.type === "text") {
+        return {
+          ...filter.value,
+          data: {
+            ...filter.value.data,
+            operand: filter.value.data.operand.toLowerCase(),
+          },
+        };
+      }
+      return filter.value;
+    };
+
+    const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
+    const bookingAssignmentReason = columnFilters.find(
+      (filter) => filter.id === "bookingAssignmentReason"
+    ) as TypedColumnFilter<"text"> | undefined;
+    const assignmentReasonValue = bookingAssignmentReason
+      ? getLowercasedFilterValue(bookingAssignmentReason)
+      : undefined;
+
+    const responseFilters = columnFilters.filter(
+      (filter) => filter.id !== "bookingStatusOrder" && filter.id !== "bookingAssignmentReason"
+    );
+
+    const whereClause: Prisma.RoutingFormResponseWhereInput = {
+      ...(formsTeamWhereCondition.id !== undefined && {
+        formId: formsTeamWhereCondition.id as string | Prisma.StringFilter<"RoutingFormResponse">,
+      }),
+      ...(formsTeamWhereCondition.teamId !== undefined && {
+        formTeamId: formsTeamWhereCondition.teamId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      }),
+      ...(formsTeamWhereCondition.userId !== undefined && {
+        formUserId: formsTeamWhereCondition.userId as number | Prisma.IntFilter<"RoutingFormResponse">,
+      }),
+
+      // bookingStatus
+      ...(bookingStatusOrder &&
+        makeWhereClause({ columnName: "bookingStatusOrder", filterValue: bookingStatusOrder.value })),
+
+      // bookingAssignmentReason
+      ...(assignmentReasonValue &&
+        makeWhereClause({
+          columnName: "bookingAssignmentReasonLowercase",
+          filterValue: assignmentReasonValue,
+        })),
+
+      // memberUserId
+      ...(memberUserId && { bookingUserId: memberUserId }),
+
+      // createdAt
       ...(startDate &&
         endDate && {
           createdAt: {
@@ -215,92 +296,170 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus
-        ? {
-            ...(bookingStatus === "NO_BOOKING"
-              ? { routedToBooking: null }
-              : {
-                  routedToBooking: {
-                    ...(userId && { userId }),
-                    ...(bookingStatus && { status: bookingStatus }),
-                  },
-                }),
-          }
-        : {}),
-      ...(fieldFilter && {
-        response: {
-          path: [fieldFilter.fieldId, "value"],
-          array_contains: [fieldFilter.optionId],
-        },
+
+      // AND clause
+      ...(responseFilters.length > 0 && {
+        AND: responseFilters.map((fieldFilter) => {
+          return makeWhereClause({
+            columnName: "responseLowercase",
+            filterValue: getLowercasedFilterValue(fieldFilter),
+            json: { path: [fieldFilter.id, "value"] },
+          });
+        }),
       }),
-      form: formsTeamWhereCondition,
     };
 
-    const totalResponsePromise = prisma.app_RoutingForms_FormResponse.count({
-      where: responsesWhereCondition,
+    const totalResponsePromise = prisma.routingFormResponse.count({
+      where: whereClause,
     });
 
-    const responsesPromise = prisma.app_RoutingForms_FormResponse.findMany({
+    const responsesPromise = prisma.routingFormResponse.findMany({
       select: {
         id: true,
         response: true,
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        routedToBooking: {
-          select: {
-            uid: true,
-            status: true,
-            createdAt: true,
-            attendees: {
-              select: {
-                timeZone: true,
-                email: true,
-              },
-            },
-            user: {
-              select: { id: true, name: true, email: true, avatarUrl: true },
-            },
-            assignmentReason: {
-              select: { reasonString: true },
-            },
-          },
-        },
+        formId: true,
+        formName: true,
+        bookingUid: true,
+        bookingStatus: true,
+        bookingStatusOrder: true,
+        bookingCreatedAt: true,
+        bookingAttendees: true,
+        bookingUserId: true,
+        bookingUserName: true,
+        bookingUserEmail: true,
+        bookingUserAvatarUrl: true,
+        bookingAssignmentReason: true,
+        bookingStartTime: true,
+        bookingEndTime: true,
         createdAt: true,
       },
-      where: responsesWhereCondition,
-      orderBy: {
-        createdAt: "desc",
-      },
+      where: whereClause,
+      orderBy: sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
       take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
       cursor: cursor ? { id: cursor } : undefined,
     });
 
     const [totalResponses, responses] = await Promise.all([totalResponsePromise, responsesPromise]);
 
-    // Parse response data
-    const parsedResponses = responses.map((r) => {
-      const responseData = routingFormResponseInDbSchema.parse(r.response);
-      return { ...r, response: responseData };
-    });
+    const hasNextPage = responses.length > (limit ?? 0);
+    const responsesToReturn = responses.slice(0, limit ? limit : responses.length);
+    type Response = Omit<
+      (typeof responsesToReturn)[number],
+      "response" | "responseLowercase" | "bookingAttendees"
+    > & {
+      response: Record<string, ResponseValue>;
+      responseLowercase: Record<string, ResponseValue>;
+      bookingAttendees?: { name: string; email: string; timeZone: string }[];
+    };
 
     return {
       total: totalResponses,
-      data: parsedResponses,
-      nextCursor: responses.length > (limit ?? 0) ? responses[responses.length - 1].id : undefined,
+      data: responsesToReturn as Response[],
+      nextCursor: hasNextPage ? responsesToReturn[responsesToReturn.length - 1].id : undefined,
+    };
+  }
+
+  static async getRoutingFormPaginatedResponsesForDownload({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    memberUserId,
+    columnFilters,
+    sorting,
+  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
+    sorting: SortingState;
+    cursor?: number;
+    limit?: number;
+  }) {
+    const headersPromise = this.getRoutingFormHeaders({
+      userId,
+      teamId,
+      isAll,
+      organizationId,
+      routingFormId,
+    });
+    const dataPromise = this.getRoutingFormPaginatedResponses({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId,
+      routingFormId,
+      cursor,
+      userId,
+      memberUserId,
+      limit,
+      columnFilters,
+      sorting,
+    });
+
+    const [headers, data] = await Promise.all([headersPromise, dataPromise]);
+
+    const dataWithFlatResponse = data.data.map((item) => {
+      const { bookingAttendees } = item;
+      const responseParseResult = ZResponse.safeParse(item.response);
+      const response = responseParseResult.success ? responseParseResult.data : {};
+
+      const fields = (headers || []).reduce((acc, header) => {
+        const id = header.id;
+        if (!response[id]) {
+          acc[header.label] = "";
+          return acc;
+        }
+        if (header.type === "select") {
+          acc[header.label] = header.options?.find((option) => option.id === response[id].value)?.label;
+        } else if (header.type === "multiselect" && Array.isArray(response[id].value)) {
+          acc[header.label] = (response[id].value as string[])
+            .map((value) => header.options?.find((option) => option.id === value)?.label)
+            .filter((label): label is string => label !== undefined)
+            .sort()
+            .join(", ");
+        } else {
+          acc[header.label] = response[id].value as string;
+        }
+        return acc;
+      }, {} as Record<string, string | undefined>);
+
+      return {
+        "Response ID": item.id,
+        "Form Name": item.formName,
+        "Submitted At": item.createdAt.toISOString(),
+        "Has Booking": item.bookingUid !== null,
+        "Booking Status": item.bookingStatus || "NO_BOOKING",
+        "Booking Created At": item.bookingCreatedAt?.toISOString() || "",
+        "Booking Start Time": item.bookingStartTime?.toISOString() || "",
+        "Booking End Time": item.bookingEndTime?.toISOString() || "",
+        "Attendee Name": (bookingAttendees as any)?.[0]?.name,
+        "Attendee Email": (bookingAttendees as any)?.[0]?.email,
+        "Attendee Timezone": (bookingAttendees as any)?.[0]?.timeZone,
+        "Assignment Reason": item.bookingAssignmentReason || "",
+        "Routed To Name": item.bookingUserName || "",
+        "Routed To Email": item.bookingUserEmail || "",
+        ...mapKeys(fields, (_, key) => startCase(key)),
+      };
+    });
+
+    return {
+      data: dataWithFlatResponse,
+      nextCursor: data.nextCursor,
     };
   }
 
   static async getRoutingFormFieldOptions({
+    userId,
     teamId,
     isAll,
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       routingFormId,
@@ -321,12 +480,14 @@ class RoutingEventsInsights {
   }
 
   static async getFailedBookingsByRoutingFormGroup({
+    userId,
     teamId,
     isAll,
     routingFormId,
     organizationId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -339,6 +500,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it doest exist but TS isnt smart enough when its unmber or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -452,12 +617,14 @@ class RoutingEventsInsights {
   }
 
   static async getRoutingFormHeaders({
+    userId,
     teamId,
     isAll,
     organizationId,
     routingFormId,
   }: RoutingFormInsightsTeamFilter) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -478,6 +645,7 @@ class RoutingEventsInsights {
       return {
         id: f.id,
         label: f.label,
+        type: f.type,
         options: f.options,
       };
     });
@@ -493,12 +661,14 @@ class RoutingEventsInsights {
     organizationId,
     routingFormId,
     userId,
+    memberUserId,
     bookingStatus,
     fieldFilter,
     take,
     skip,
-  }: RoutingFormInsightsFilter & { take?: number; skip?: number }) {
+  }: Omit<RoutingFormInsightsFilter, "columnFilters"> & { take?: number; skip?: number }) {
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -552,13 +722,13 @@ class RoutingEventsInsights {
             lte: dayjs(endDate).endOf("day").toDate(),
           },
         }),
-      ...(userId || bookingStatus
+      ...(memberUserId || bookingStatus
         ? {
             ...(bookingStatus === "NO_BOOKING"
               ? { routedToBooking: null }
               : {
                   routedToBooking: {
-                    ...(userId && { userId }),
+                    ...(memberUserId && { userId: memberUserId }),
                     ...(bookingStatus && { status: bookingStatus }),
                   },
                 }),
@@ -663,6 +833,7 @@ class RoutingEventsInsights {
   }
 
   static async routedToPerPeriod({
+    userId,
     teamId,
     isAll,
     organizationId,
@@ -695,6 +866,7 @@ class RoutingEventsInsights {
 
     // Build the team conditions for the WHERE clause
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -707,6 +879,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -730,7 +906,7 @@ class RoutingEventsInsights {
       }>
     >`
       WITH routed_responses AS (
-        SELECT DISTINCT ON (b."userId") 
+        SELECT DISTINCT ON (b."userId")
           b."userId",
           u.id,
           u.name,
@@ -758,6 +934,20 @@ class RoutingEventsInsights {
 
     const hasMoreUsers = users.length === limit;
 
+    // Return early if no users found
+    if (users.length === 0) {
+      return {
+        users: {
+          data: [],
+          nextCursor: undefined,
+        },
+        periodStats: {
+          data: [],
+          nextCursor: undefined,
+        },
+      };
+    }
+
     // Get periods with pagination
     const periodStats = await prisma.$queryRaw<
       Array<{
@@ -770,7 +960,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -792,7 +982,7 @@ class RoutingEventsInsights {
       ),
       -- Generate combinations for paginated periods
       date_user_combinations AS (
-        SELECT 
+        SELECT
           period_start,
           user_id as "userId"
         FROM paginated_periods
@@ -800,7 +990,7 @@ class RoutingEventsInsights {
       ),
       -- Count bookings per user per period
       booking_counts AS (
-        SELECT 
+        SELECT
           b."userId",
           date_trunc(${dayjsPeriod}, b."createdAt") as period_start,
           COUNT(DISTINCT b.id)::integer as total
@@ -814,13 +1004,13 @@ class RoutingEventsInsights {
         GROUP BY 1, 2
       )
       -- Join everything together
-      SELECT 
+      SELECT
         c."userId",
         c.period_start,
         COALESCE(b.total, 0)::integer as total
       FROM date_user_combinations c
-      LEFT JOIN booking_counts b ON 
-        b."userId" = c."userId" AND 
+      LEFT JOIN booking_counts b ON
+        b."userId" = c."userId" AND
         b.period_start = c.period_start
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
@@ -830,7 +1020,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -848,7 +1038,7 @@ class RoutingEventsInsights {
         total_bookings: number;
       }>
     >`
-      SELECT 
+      SELECT
         b."userId",
         COUNT(*)::integer as total_bookings
       FROM "App_RoutingForms_FormResponse" r
@@ -904,6 +1094,7 @@ class RoutingEventsInsights {
   }
 
   static async routedToPerPeriodCsv({
+    userId,
     teamId,
     isAll,
     organizationId,
@@ -930,6 +1121,7 @@ class RoutingEventsInsights {
 
     // Build the team conditions for the WHERE clause
     const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
+      userId,
       teamId,
       isAll,
       organizationId,
@@ -942,6 +1134,10 @@ class RoutingEventsInsights {
     if (formsWhereCondition.teamId?.in) {
       // @ts-expect-error same as above
       teamConditions.push(`f."teamId" IN (${formsWhereCondition.teamId.in.join(",")})`);
+    }
+    // @ts-expect-error it does exist but TS isn't smart enough when it's number or int filter
+    if (!formsWhereCondition.teamId?.in && userId) {
+      teamConditions.push(`f."userId" = ${userId}`);
     }
     if (routingFormId) {
       teamConditions.push(`f.id = '${routingFormId}'`);
@@ -965,7 +1161,7 @@ class RoutingEventsInsights {
       }>
     >`
       WITH routed_responses AS (
-        SELECT DISTINCT ON (b."userId") 
+        SELECT DISTINCT ON (b."userId")
           b."userId",
           u.id,
           u.name,
@@ -998,7 +1194,7 @@ class RoutingEventsInsights {
       WITH RECURSIVE date_range AS (
         SELECT date_trunc(${dayjsPeriod}, ${startDate}::timestamp) as date
         UNION ALL
-        SELECT date + (CASE 
+        SELECT date + (CASE
           WHEN ${dayjsPeriod} = 'day' THEN interval '1 day'
           WHEN ${dayjsPeriod} = 'week' THEN interval '1 week'
           WHEN ${dayjsPeriod} = 'month' THEN interval '1 month'
@@ -1010,14 +1206,14 @@ class RoutingEventsInsights {
         SELECT unnest(ARRAY[${Prisma.join(usersQuery.map((u) => u.id))}]) as user_id
       ),
       date_user_combinations AS (
-        SELECT 
+        SELECT
           date as period_start,
           user_id as "userId"
         FROM date_range
         CROSS JOIN all_users
       ),
       booking_counts AS (
-        SELECT 
+        SELECT
           b."userId",
           date_trunc(${dayjsPeriod}, b."createdAt") as period_start,
           COUNT(DISTINCT b.id)::integer as total
@@ -1030,13 +1226,13 @@ class RoutingEventsInsights {
         ${whereClause}
         GROUP BY 1, 2
       )
-      SELECT 
+      SELECT
         c."userId",
         c.period_start,
         COALESCE(b.total, 0)::integer as total
       FROM date_user_combinations c
-      LEFT JOIN booking_counts b ON 
-        b."userId" = c."userId" AND 
+      LEFT JOIN booking_counts b ON
+        b."userId" = c."userId" AND
         b.period_start = c.period_start
       ORDER BY c.period_start ASC, c."userId" ASC
     `;
@@ -1048,7 +1244,7 @@ class RoutingEventsInsights {
         total_bookings: number;
       }>
     >`
-      SELECT 
+      SELECT
         b."userId",
         COUNT(*)::integer as total_bookings
       FROM "App_RoutingForms_FormResponse" r

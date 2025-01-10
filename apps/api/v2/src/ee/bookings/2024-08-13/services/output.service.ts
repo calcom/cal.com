@@ -1,4 +1,11 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import {
+  defaultBookingMetadata,
+  defaultBookingResponses,
+  defaultSeatedBookingData,
+  defaultSeatedBookingMetadata,
+} from "@/lib/safe-parse/default-responses-booking";
+import { safeParse } from "@/lib/safe-parse/safe-parse";
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
@@ -30,9 +37,10 @@ export const bookingResponsesSchema = z
     guests: z.array(z.string()).optional(),
     rescheduleReason: z.string().optional(),
   })
-  .passthrough();
+  .passthrough()
+  .describe("BookingResponses");
 
-export const seatedBookingResponsesSchema = z
+export const seatedBookingDataSchema = z
   .object({
     responses: z
       .object({
@@ -47,7 +55,10 @@ export const seatedBookingResponsesSchema = z
       })
       .passthrough(),
   })
-  .passthrough();
+  .passthrough()
+  .describe("SeatedBookingData");
+
+const seatedBookingMetadataSchema = z.object({}).catchall(z.string()).describe("SeatedBookingMetadata");
 
 type DatabaseUser = { id: number; name: string | null; email: string; username: string | null };
 
@@ -61,6 +72,7 @@ type DatabaseBooking = Booking & {
     email: string;
     timeZone: string;
     locale: string | null;
+    phoneNumber?: string | null;
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
@@ -72,8 +84,6 @@ type BookingWithUser = Booking & { user: DatabaseUser | null };
 
 type DatabaseMetadata = z.infer<typeof bookingMetadataSchema>;
 
-const seatedBookingMetadataSchema = z.object({}).catchall(z.string());
-
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
   constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
@@ -82,8 +92,12 @@ export class OutputBookingsService_2024_08_13 {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
-    const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
-    const metadata = bookingMetadataSchema.parse(databaseBooking.metadata);
+    const bookingResponses = safeParse(
+      bookingResponsesSchema,
+      databaseBooking.responses,
+      defaultBookingResponses
+    );
+    const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
 
     const booking = {
@@ -108,6 +122,7 @@ export class OutputBookingsService_2024_08_13 {
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
+        phoneNumber: attendee.phoneNumber ?? undefined,
       })),
       guests: bookingResponses.guests,
       location,
@@ -167,8 +182,12 @@ export class OutputBookingsService_2024_08_13 {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
-    const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
-    const metadata = bookingMetadataSchema.parse(databaseBooking.metadata);
+    const bookingResponses = safeParse(
+      bookingResponsesSchema,
+      databaseBooking.responses,
+      defaultBookingResponses
+    );
+    const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
 
     const booking = {
@@ -225,7 +244,7 @@ export class OutputBookingsService_2024_08_13 {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
-    const metadata = bookingMetadataSchema.parse(databaseBooking.metadata);
+    const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
 
     const booking = {
@@ -254,7 +273,11 @@ export class OutputBookingsService_2024_08_13 {
 
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = seatedBookingResponsesSchema.parse(attendee.bookingSeat?.data);
+      const { responses } = safeParse(
+        seatedBookingDataSchema,
+        attendee.bookingSeat?.data,
+        defaultSeatedBookingData
+      );
 
       const attendeeData = {
         name: attendee.name,
@@ -267,7 +290,11 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
+      attendeeParsed.metadata = safeParse(
+        seatedBookingMetadataSchema,
+        attendee.bookingSeat?.metadata,
+        defaultSeatedBookingMetadata
+      );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
 
@@ -320,7 +347,7 @@ export class OutputBookingsService_2024_08_13 {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
-    const metadata = bookingMetadataSchema.parse(databaseBooking.metadata);
+    const metadata = safeParse(bookingMetadataSchema, databaseBooking.metadata, defaultBookingMetadata);
     const location = metadata?.videoCallUrl || databaseBooking.location;
 
     const booking = {
@@ -353,7 +380,11 @@ export class OutputBookingsService_2024_08_13 {
 
     // note(Lauris): I don't know why plainToClass erases booking.attendees[n].responses so attaching manually
     parsed.attendees = databaseBooking.attendees.map((attendee) => {
-      const { responses } = seatedBookingResponsesSchema.parse(attendee.bookingSeat?.data);
+      const { responses } = safeParse(
+        seatedBookingDataSchema,
+        attendee.bookingSeat?.data,
+        defaultSeatedBookingData
+      );
 
       const attendeeData = {
         name: attendee.name,
@@ -366,7 +397,11 @@ export class OutputBookingsService_2024_08_13 {
       };
       const attendeeParsed = plainToClass(SeatedAttendee, attendeeData, { strategy: "excludeAll" });
       attendeeParsed.bookingFieldsResponses = responses || {};
-      attendeeParsed.metadata = seatedBookingMetadataSchema.parse(attendee.bookingSeat?.metadata);
+      attendeeParsed.metadata = safeParse(
+        seatedBookingMetadataSchema,
+        attendee.bookingSeat?.metadata,
+        defaultSeatedBookingMetadata
+      );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
       return attendeeParsed;

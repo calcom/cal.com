@@ -187,6 +187,7 @@ describe("transformBookingFieldsApiToInternal", () => {
       label: "Your email",
       placeholder: "bob@gmail.com",
       disableOnPrefill: true,
+      required: true,
     };
 
     const input: InputBookingField_2024_06_14[] = [bookingField];
@@ -232,6 +233,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -267,6 +270,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -302,6 +307,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -337,6 +344,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -372,6 +381,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -409,6 +420,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         required: bookingField.required,
         placeholder: bookingField.placeholder,
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -443,8 +456,9 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -480,6 +494,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         editable: "user",
         required: bookingField.required,
         placeholder: bookingField.placeholder,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -514,8 +530,9 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -550,8 +567,9 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -586,6 +604,8 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
+        disableOnPrefill: false,
+        hidden: false,
       },
     ];
 
@@ -623,9 +643,9 @@ describe("transformBookingFieldsApiToInternal", () => {
         ],
         editable: "user",
         required: bookingField.required,
-        placeholder: "",
         options: transformSelectOptionsApiToInternal(bookingField.options),
         disableOnPrefill,
+        hidden: false,
       },
     ];
 
