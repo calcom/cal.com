@@ -24,6 +24,7 @@ export type DataTableProps<TData, TValue> = {
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
   "data-testid"?: string;
+  hideHeader?: boolean;
   children?: React.ReactNode;
   identifier?: string;
   enableColumnResizing?: boolean;
@@ -37,6 +38,7 @@ export function DataTable<TData, TValue>({
   onRowMouseclick,
   onScroll,
   children,
+  hideHeader,
   identifier: _identifier,
   enableColumnResizing,
   ...rest
@@ -104,60 +106,62 @@ export function DataTable<TData, TValue>({
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
-          <TableHeader className="sticky top-0 z-10">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta;
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{
-                        ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                        ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
-                        width: `var(--header-${kebabCase(header?.id)}-size)`,
-                      }}
-                      className={classNames(
-                        "relative flex shrink-0 items-center",
-                        header.column.getCanSort()
-                          ? "bg-subtle hover:bg-muted cursor-pointer select-none"
-                          : "",
-                        meta?.sticky && "top-0 z-20 sm:sticky"
-                      )}>
-                      <div
-                        className="flex h-full w-full items-center overflow-hidden"
-                        onClick={header.column.getToggleSortingHandler()}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(header.column.columnDef.header, header.getContext())}
-                        {header.column.getIsSorted() && (
-                          <Icon
-                            name="arrow-up"
-                            className="ml-2 h-4 w-4"
-                            style={{
-                              transform:
-                                header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                              transition: "transform 0.2s ease-in-out",
-                            }}
+          {!hideHeader && (
+            <TableHeader className="sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
+                  {headerGroup.headers.map((header) => {
+                    const meta = header.column.columnDef.meta;
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{
+                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
+                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                          width: `var(--header-${kebabCase(header?.id)}-size)`,
+                        }}
+                        className={classNames(
+                          "relative flex shrink-0 items-center",
+                          header.column.getCanSort()
+                            ? "bg-subtle hover:bg-muted cursor-pointer select-none"
+                            : "",
+                          meta?.sticky && "top-0 z-20 sm:sticky"
+                        )}>
+                        <div
+                          className="flex h-full w-full items-center overflow-hidden"
+                          onClick={header.column.getToggleSortingHandler()}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                          {header.column.getIsSorted() && (
+                            <Icon
+                              name="arrow-up"
+                              className="ml-2 h-4 w-4"
+                              style={{
+                                transform:
+                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
+                                transition: "transform 0.2s ease-in-out",
+                              }}
+                            />
+                          )}
+                        </div>
+                        {Boolean(enableColumnResizing) && header.column.getCanResize() && (
+                          <div
+                            onMouseDown={header.getResizeHandler()}
+                            onTouchStart={header.getResizeHandler()}
+                            className={classNames(
+                              "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
+                              header.column.getIsResizing() && "!opacity-75"
+                            )}
                           />
                         )}
-                      </div>
-                      {Boolean(enableColumnResizing) && header.column.getCanResize() && (
-                        <div
-                          onMouseDown={header.getResizeHandler()}
-                          onTouchStart={header.getResizeHandler()}
-                          className={classNames(
-                            "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                            header.column.getIsResizing() && "!opacity-75"
-                          )}
-                        />
-                      )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+          )}
           {/* When resizing any column we will render this special memoized version of our table body */}
           {table.getState().columnSizingInfo.isResizingColumn ? (
             <MemoizedTableBody
@@ -232,11 +236,7 @@ function DataTableBody<TData>({
                 transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
                 width: "100%",
               }}
-              className={classNames(
-                onRowMouseclick && "hover:cursor-pointer",
-                variant === "compact" && "!border-0",
-                "group"
-              )}>
+              className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
               {row.getVisibleCells().map((cell) => {
                 const column = table.getColumn(cell.column.id);
                 const meta = column?.columnDef.meta;
@@ -250,7 +250,7 @@ function DataTableBody<TData>({
                     }}
                     className={classNames(
                       "flex shrink-0 items-center overflow-hidden",
-                      variant === "compact" && "p-1.5",
+                      variant === "compact" && "p-0",
                       meta?.sticky &&
                         "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
                     )}>

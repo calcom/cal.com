@@ -17,10 +17,12 @@ export type DataTableWrapperProps<TData, TValue> = {
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetching: boolean;
+  hideHeader?: boolean;
+  variant?: "default" | "compact";
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 };
 
 export function DataTableWrapper<TData, TValue>({
@@ -31,6 +33,8 @@ export function DataTableWrapper<TData, TValue>({
   fetchNextPage,
   isFetching,
   totalDBRowCount,
+  variant,
+  hideHeader,
   ToolbarLeft,
   ToolbarRight,
   children,
@@ -50,6 +54,8 @@ export function DataTableWrapper<TData, TValue>({
       tableContainerRef={tableContainerRef}
       isPending={isPending}
       enableColumnResizing={true}
+      hideHeader={hideHeader}
+      variant={variant}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
       <DataTableToolbar.Root>
         <div className="flex w-full flex-col gap-2 sm:flex-row">
