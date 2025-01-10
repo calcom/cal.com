@@ -1,5 +1,5 @@
-import type { TokenResponse, Connection, Field } from "@jsforce/jsforce-node";
-import jsforce from "@jsforce/jsforce-node";
+import type { TokenResponse, Field } from "@jsforce/jsforce-node";
+import { Connection } from "@jsforce/jsforce-node";
 import { RRule } from "rrule";
 import { z } from "zod";
 
@@ -125,7 +125,7 @@ export default class SalesforceCRMService implements CRM {
       console.error(err); // log but proceed
     }
 
-    return new jsforce.Connection({
+    return new Connection({
       oauth2: {
         clientId: consumer_key,
         clientSecret: consumer_secret,
