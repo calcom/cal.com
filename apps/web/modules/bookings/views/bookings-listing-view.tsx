@@ -1,9 +1,8 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { ReactElement } from "react";
-import { Fragment, useState } from "react";
-import type { z } from "zod";
+import { Fragment, ReactElement, useState } from "react";
+import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -24,7 +23,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import type { validStatuses } from "~/bookings/lib/validStatuses";
+import { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
