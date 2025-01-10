@@ -121,14 +121,16 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
     },
   });
 
-  for (const incompleteBookingAction of incompleteBookingActions) {
-    const actionType = incompleteBookingAction.actionType;
+  if (!incompleteBookingActions.length) {
+    for (const incompleteBookingAction of incompleteBookingActions) {
+      const actionType = incompleteBookingAction.actionType;
 
-    // Get action function
-    const bookingActionFunction = incompleteBookingActionFunctions[actionType];
+      // Get action function
+      const bookingActionFunction = incompleteBookingActionFunctions[actionType];
 
-    if (emailValue) {
-      await bookingActionFunction(incompleteBookingAction, emailValue);
+      if (emailValue) {
+        await bookingActionFunction(incompleteBookingAction, emailValue);
+      }
     }
   }
 }
