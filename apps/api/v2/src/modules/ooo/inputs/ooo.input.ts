@@ -74,6 +74,7 @@ export class CreateOutOfOfficeEntryDto {
   @ApiPropertyOptional({
     description: "the reason for the out of office entry, if applicable",
     example: "vacation",
+    enum: OutOfOfficeReason,
   })
   reason?: OutOfOfficeReasonType;
 }
