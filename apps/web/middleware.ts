@@ -155,6 +155,7 @@ export const config = {
   matcher: [
     "/403",
     "/500",
+    "/icons",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",
@@ -166,21 +167,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
+    "/auth/:path*",
+    "/apps/:path*",
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:status/",
     "/video/:path*",
     "/teams",
@@ -189,6 +180,13 @@ export const config = {
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
+    "/router/:path*",
+    "/routing-forms/:path*",
+    "/org/:path*",
+    "/team/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 
