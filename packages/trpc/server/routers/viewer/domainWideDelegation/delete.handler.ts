@@ -2,6 +2,8 @@ import type z from "zod";
 
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
+import { TRPCError } from "@trpc/server";
+
 import type { DomainWideDelegationDeleteSchema } from "./schema";
 
 export default async function handler({

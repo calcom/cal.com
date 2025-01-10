@@ -41,8 +41,7 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
   const calendarCredentials = await getCalendarCredentials(credentials);
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,
-    user.userLevelSelectedCalendars,
-    ctx.user.destinationCalendar?.externalId
+    user.userLevelSelectedCalendars
   );
 
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();

@@ -31,7 +31,11 @@ export type ConnectedDestinationCalendars = Awaited<
  * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DWD connection to be shown because we don't want users to be able to work with individual calendars
  */
 const _ensureNoConflictingNonDwdConnectedCalendar = <
-  T extends { integration: { slug: string }; domainWideDelegationCredentialId?: string | null }
+  T extends {
+    integration: { slug: string };
+    primary?: { email?: string | null | undefined } | undefined;
+    domainWideDelegationCredentialId?: string | null | undefined;
+  }
 >({
   connectedCalendars,
   loggedInUser,
@@ -59,7 +63,7 @@ const _ensureNoConflictingNonDwdConnectedCalendar = <
     }
 
     // DWD Credential is always of the loggedInUser
-    if (connectedCalendar.primary.email !== loggedInUser.email) {
+    if (!connectedCalendar.primary?.email || connectedCalendar.primary.email !== loggedInUser.email) {
       return true;
     }
 
@@ -284,7 +288,9 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
     user,
   });
-  const allCredentials = [...userCredentials, ...domainWideDelegationCredentials];
+
+  // Show DWD credentials' calendars first in UI
+  const allCredentials = [...domainWideDelegationCredentials, ...userCredentials];
 
   const selectedCalendars = getSelectedCalendars({ user, eventTypeId: eventTypeId ?? null });
   // get user's credentials + their connected integrations
@@ -360,11 +366,12 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     });
   }
 
+  const noConflictingNonDwdConnectedCalendars = _ensureNoConflictingNonDwdConnectedCalendar({
+    connectedCalendars,
+    loggedInUser: { email: user.email },
+  });
   return {
-    connectedCalendars: _ensureNoConflictingNonDwdConnectedCalendar({
-      connectedCalendars,
-      loggedInUser: { email: user.email },
-    }),
+    connectedCalendars: noConflictingNonDwdConnectedCalendars,
     destinationCalendar: {
       ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,

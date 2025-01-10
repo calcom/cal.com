@@ -239,12 +239,14 @@ export const getConnectedCalendars = async (
   return { connectedCalendars, destinationCalendar };
 };
 
+type ConnectedCalendar = Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"][number];
+type ConnectedCalendarCalendar = NonNullable<ConnectedCalendar["calendars"]>[number];
 export const getFirstConnectedCalendar = ({
   connectedCalendars,
   matcher,
 }: {
-  connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"];
-  matcher: (calendar: Awaited<ReturnType<typeof getCalendarCredentials>>[number]["calendar"]) => boolean;
+  connectedCalendars: ConnectedCalendar[];
+  matcher: (calendar: ConnectedCalendarCalendar) => boolean;
 }) => {
   const calendars = connectedCalendars.flatMap((c) => c.calendars ?? []);
   const matchingCalendars = calendars.filter(matcher);

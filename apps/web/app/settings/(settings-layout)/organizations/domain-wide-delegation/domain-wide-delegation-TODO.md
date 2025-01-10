@@ -14,9 +14,16 @@
 
 ### Important
   - Bugs
-    - [x] Duplicate Calendar connections in apps/installed if a user already had connected calendar and DWD is enabled.
-  - Manual Testing
-    - If a user has connected a calendar, and then DWD is enabled.
+    - [ ] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
+    - [x] Duplicate Calendar connections in 'apps/installed' if a user already had connected calendar and DWD is enabled.
+    - Manual Testing
+      - [ ] Location Change of a booking  to Google Meet(from Cal Video)
+      - [ ] RR Team Event
+        - Reroute
+        - Reassign
+      - [ ] Calendar Cache
+    - [x] If a user has connected a calendar, and then DWD is enabled.
+      - Tested various scenarios for it
     - [x] Inviting a new user. 
       - Verified that Google Calendar is shown pre-installed. 
       - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
