@@ -299,18 +299,11 @@ const Route = ({
     });
   };
 
-  // todo: clean up
-  const onChangeAttributeWeights = (
+  const onChangeAttributeIdForWeights = (
     route: EditFormRoute & { attributeIdForWeights?: string },
-    immutableTree: ImmutableTree,
-    config: AttributesQueryBuilderConfigWithRaqbFields,
     attributeIdForWeights: string | undefined
   ) => {
-    console.log(`attributeIdForWeights ${attributeIdForWeights}`);
-    const jsonTree = QbUtils.getTree(immutableTree);
     setRoute(route.id, {
-      fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
-      fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
       attributeIdForWeights,
     });
   };
@@ -651,15 +644,7 @@ const Route = ({
                   onCheckedChange={(checked) => {
                     const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
                     setAttributeIdForWeights(attributeId);
-
-                    if (route.attributesQueryBuilderState?.tree) {
-                      onChangeAttributeWeights(
-                        route,
-                        route.attributesQueryBuilderState.tree,
-                        attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields,
-                        attributeId
-                      );
-                    }
+                    onChangeAttributeIdForWeights(route, attributeId);
                   }}
                 />
                 {!!attributeIdForWeights ? (
@@ -676,13 +661,9 @@ const Route = ({
                       )?.name,
                     }}
                     onChange={(option) => {
-                      if (route.attributesQueryBuilderState?.tree && option) {
-                        onChangeAttributeWeights(
-                          route,
-                          route.attributesQueryBuilderState.tree,
-                          attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields,
-                          option.value
-                        );
+                      if (option) {
+                        setAttributeIdForWeights(option.value);
+                        onChangeAttributeIdForWeights(route, option.value);
                       }
                     }}
                   />
