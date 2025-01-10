@@ -53,8 +53,8 @@ async function NotFound() {
   const pathname = headersList.get("x-pathname") ?? "";
 
   const { username, pageType, url } = getPageInfo(pathname, host);
-  const isSuccessPage = pathname?.startsWith("/booking");
-  const isSubpage = pathname?.includes("/", 2) || isSuccessPage;
+  const isBookingSuccessPage = pathname?.startsWith("/booking");
+  const isSubpage = pathname?.includes("/", 2) || isBookingSuccessPage;
   const isInsights = pathname?.startsWith("/insights");
 
   const links = [
@@ -111,7 +111,7 @@ async function NotFound() {
         <div className="text-center">
           <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{t("error_404")}</p>
           <h1 className="font-cal text-emphasis mt-2 text-4xl font-extrabold sm:text-5xl">
-            {isSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
+            {isBookingSuccessPage ? "Booking not found" : t("page_doesnt_exist")}
           </h1>
           {isSubpage && pageType !== PageType.TEAM ? (
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
