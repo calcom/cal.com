@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 
-import { useIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,12 +16,13 @@ import { CtaRow } from "~/settings/billing/billing-view";
 export default function PlatformBillingUpgrade() {
   const pathname = usePathname();
   const { t } = useLocale();
-  const { open } = useIntercom();
   const returnTo = pathname;
   const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = async () => {
-    await open();
+    if (window.Plain) {
+      window.Plain.open();
+    }
   };
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, userBillingData, isPaidUser, userOrgId } =
     useGetUserAttributes();

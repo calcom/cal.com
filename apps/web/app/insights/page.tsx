@@ -1,10 +1,8 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { notFound } from "next/navigation";
 
-import { getServerSideProps } from "@lib/insights/getServerSideProps";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 
-import type { PageProps } from "~/insights/insights-view";
 import InsightsPage from "~/insights/insights-view";
 
 export const generateMetadata = async () =>
@@ -13,6 +11,13 @@ export const generateMetadata = async () =>
     (t) => t("insights_subtitle")
   );
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+export default async function Page() {
+  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
+  const insightsEnabled = await getFeatureFlag(prisma, "insights");
 
-export default WithLayout({ getLayout: null, getData, Page: InsightsPage });
+  if (!insightsEnabled) {
+    return notFound();
+  }
+
+  return <InsightsPage />;
+}
