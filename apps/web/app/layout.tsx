@@ -1,4 +1,3 @@
-import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
@@ -11,6 +10,7 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -26,10 +26,7 @@ export const generateMetadata = () => prepareRootMetadata();
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
 
-  const isEmbedSnippetGeneratorPath = pathname.startsWith("/event-types");
-  const isEmbed =
-    (pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null) &&
-    !isEmbedSnippetGeneratorPath;
+  const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
   const req = { headers: headers(), cookies: cookies() };
@@ -122,7 +119,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
         className="dark:bg-darkgray-50 bg-subtle antialiased"
@@ -138,6 +134,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
@@ -148,7 +145,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
-        <TrpcProvider>{children}</TrpcProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

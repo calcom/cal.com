@@ -2549,6 +2549,138 @@
         "tags": ["Orgs / Users"]
       }
     },
+    "/v2/organizations/{orgId}/users/{userId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
+        "summary": "Get all ooo entries of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
+        "summary": "Create an ooo entry for user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
+        "summary": "Update ooo entry of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
+        "summary": "Delete ooo entry of a user",
+        "parameters": [
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      }
+    },
     "/v2/organizations/{orgId}/webhooks": {
       "get": {
         "operationId": "OrganizationsWebhooksController_getAllOrganizationWebhooks",
@@ -4879,7 +5011,7 @@
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
-            "description": "Slug of the event type for which slots are being fetched.",
+            "description": "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
             "schema": {
               "type": "string"
             }
@@ -4888,7 +5020,8 @@
             "name": "usernameList",
             "required": false,
             "in": "query",
-            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "description": "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+            "example": "usernameList[]=bob",
             "schema": {
               "type": "array",
               "items": {
@@ -7205,6 +7338,9 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object"
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7213,7 +7349,7 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "placeholder"]
+        "required": ["type", "label", "required", "placeholder"]
       },
       "TitleDefaultFieldInput_2024_06_14": {
         "type": "object",
@@ -7857,6 +7993,10 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object",
+            "default": true
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7873,12 +8013,9 @@
           "slug": {
             "type": "string",
             "default": "email"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
-        "required": ["type", "isDefault", "slug", "required"]
+        "required": ["type", "required", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -9306,7 +9443,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -11432,7 +11569,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -12149,6 +12286,73 @@
           },
           "secret": {
             "type": "string"
+          }
+        }
+      },
+      "CreateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
+          }
+        },
+        "required": ["start", "end"]
+      },
+      "UpdateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
           }
         }
       },
@@ -13016,6 +13220,11 @@
             "description": "The time zone of the attendee.",
             "example": "America/New_York"
           },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
+          },
           "language": {
             "type": "string",
             "enum": [
@@ -13067,7 +13276,7 @@
             "default": "en"
           }
         },
-        "required": ["name", "email", "timeZone"]
+        "required": ["name", "timeZone"]
       },
       "CreateBookingInput_2024_08_13": {
         "type": "object",
@@ -13626,6 +13835,10 @@
           "absent": {
             "type": "boolean",
             "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
           },
           "seatUid": {
             "type": "string",

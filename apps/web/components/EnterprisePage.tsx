@@ -1,6 +1,6 @@
 "use client";
 
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, ButtonGroup, Icon } from "@calcom/ui";
@@ -42,7 +42,7 @@ export default function EnterprisePage() {
   ];
   return (
     <div>
-      <ShellMain heading={t("enterprise")} subtitle={t("enterprise_description")}>
+      <Shell heading={t("enterprise")} subtitle={t("enterprise_description")} withoutSeo={true}>
         <UpgradeTip
           plan="enterprise"
           title={t("create_your_org")}
@@ -63,7 +63,7 @@ export default function EnterprisePage() {
           }>
           <>Create Org</>
         </UpgradeTip>
-      </ShellMain>
+      </Shell>
     </div>
   );
 }

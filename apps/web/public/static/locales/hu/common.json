@@ -2917,5 +2917,11 @@
   "dry_run_mode_active": "Tesztfoglalást végzel.",
   "icon_showcase": "Ikon bemutató",
   "icons_showcase": "Ikonok bemutatója",
+  "choose_an_option": "Válassz egy opciót",
+  "enter_option_value": "Add meg az opció értékét",
+  "remove_option": "Opció eltávolítása",
+  "managed_users": "Kezelt felhasználók",
+  "managed_users_description": "Az OAuth kliense által létrehozott összes kezelt felhasználó megtekintése",
+  "select_oAuth_client": "OAuth kliens kiválasztása",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

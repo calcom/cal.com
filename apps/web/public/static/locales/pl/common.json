@@ -2917,5 +2917,11 @@
   "dry_run_mode_active": "Wykonujesz testową rezerwację.",
   "icon_showcase": "Prezentacja ikon",
   "icons_showcase": "Prezentacja ikon",
+  "choose_an_option": "Wybierz opcję",
+  "enter_option_value": "Wprowadź wartość opcji",
+  "remove_option": "Usuń opcję",
+  "managed_users": "Zarządzani użytkownicy",
+  "managed_users_description": "Zobacz wszystkich zarządzanych użytkowników utworzonych przez twojego klienta OAuth",
+  "select_oAuth_client": "Wybierz klienta OAuth",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

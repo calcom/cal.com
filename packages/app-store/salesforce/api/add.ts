@@ -1,4 +1,4 @@
-import jsforce from "jsforce";
+import jsforce from "@jsforce/jsforce-node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
@@ -16,13 +16,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!consumer_key) return res.status(400).json({ message: "Salesforce client id missing." });
 
   const salesforceClient = new jsforce.Connection({
-    clientId: consumer_key,
-    redirectUri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/salesforce/callback`,
+    oauth2: {
+      clientId: consumer_key,
+      redirectUri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/salesforce/callback`,
+    },
   });
+
+  const state = encodeOAuthState(req);
 
   const url = salesforceClient.oauth2.getAuthorizationUrl({
     scope: "refresh_token full",
-    state: encodeOAuthState(req),
+    ...(state && { state }),
   });
   res.status(200).json({ url });
 }
