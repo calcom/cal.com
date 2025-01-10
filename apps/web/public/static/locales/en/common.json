@@ -2920,5 +2920,8 @@
   "choose_an_option": "Choose an option",
   "enter_option_value": "Enter option value",
   "remove_option": "Remove option",
+  "use_attribute_weights": "Use Attribute weights",
+  "if_enabled_ignore_event_type_weights": "If enabled, all weights set within the event type will be ignored",
+  "attribute_for_weights": "Attribute for weights",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

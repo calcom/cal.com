@@ -296,6 +296,22 @@ const Route = ({
     });
   };
 
+  // todo: clean up
+  const onChangeAttributeWeights = (
+    route: EditFormRoute & { attributeIdForWeights?: string },
+    immutableTree: ImmutableTree,
+    config: AttributesQueryBuilderConfigWithRaqbFields,
+    attributeIdForWeights: string | undefined
+  ) => {
+    console.log(`attributeIdForWeights ${attributeIdForWeights}`);
+    const jsonTree = QbUtils.getTree(immutableTree);
+    setRoute(route.id, {
+      fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
+      fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
+      attributeIdForWeights,
+    });
+  };
+
   const renderBuilder = useCallback(
     (props: BuilderProps) => (
       <div className="query-builder-container">
@@ -626,27 +642,42 @@ const Route = ({
             {attributesWithWeightsEnabled.length > 0 ? (
               <div className="mt-8">
                 <SettingsToggle
-                  title={t("Use Attribute weights")}
-                  description={t("If enabled, all weights set within the event type will be ignored")}
+                  title={t("use_attribute_weights")}
+                  description={t("if_enabled_ignore_event_type_weights")}
                   checked={isAttributeWeightsEnabled}
                   onCheckedChange={(checked) => {
                     setIsAttributeWeightsEnabled(checked);
+                    const attributesForWeights = checked ? attributesWithWeightsEnabled[0].id : undefined;
+                    if (route.attributesQueryBuilderState?.tree) {
+                      onChangeAttributeWeights(
+                        route,
+                        route.attributesQueryBuilderState.tree,
+                        attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields,
+                        attributesForWeights
+                      );
+                    }
                   }}
                 />
                 {isAttributeWeightsEnabled ? (
                   <SelectField
                     containerClassName="mb-6 mt-4 data-testid-select-router"
-                    label={t("Attribute for weights")}
+                    label={t("attribute_for_weights")}
                     options={attributesWithWeightsEnabled.map((attribute) => {
                       return { value: attribute.id, label: attribute.name };
                     })}
                     value={{
                       value: attributesWithWeightsEnabled[0].id,
                       label: attributesWithWeightsEnabled[0].name,
-                    }}
-                    // or the actual set value
+                    }} // or the actual set value
                     onChange={(option) => {
-                      console.log("select attribute");
+                      if (route.attributesQueryBuilderState?.tree && option) {
+                        onChangeAttributeWeights(
+                          route,
+                          route.attributesQueryBuilderState.tree,
+                          attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields,
+                          option.value
+                        );
+                      }
                     }}
                   />
                 ) : (
@@ -787,6 +818,7 @@ function useRoutes({
           queryValue: route.queryValue,
           attributesQueryValue: route.attributesQueryValue,
           fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
+          attributeIdForWeights: route.attributeIdForWeights,
         };
       });
     }
