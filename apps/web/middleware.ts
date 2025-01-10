@@ -167,7 +167,6 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
     /**
      * Paths required by routingForms.handle
      */
@@ -175,22 +174,17 @@ export const config = {
 
     "/event-types/:path*",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
     "/apps/:slug/",
-    "/future/apps/:slug/",
     "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
     "/apps/categories/",
-    "/future/apps/categories/",
     "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
     "/bookings/:status/",
     "/video/:path*",
     "/teams",
-    "/future/teams/",
+    "/signup",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
