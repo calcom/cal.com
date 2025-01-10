@@ -5,12 +5,11 @@ import { useMemo, useState } from "react";
 import Shell from "@calcom/features/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { PlatformOAuthClient } from "@calcom/prisma/client";
 import { Select, Skeleton, SkeletonContainer, SkeletonText, Label } from "@calcom/ui";
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
-type OAuthClientOption = PlatformOAuthClient & { label: string; value: string };
+type OAuthClientOption = { label: string; value: string };
 
 const ManagedUsersView = () => {
   const { t } = useLocale();
@@ -19,7 +18,6 @@ const ManagedUsersView = () => {
   const oAuthClientOptions: OAuthClientOption[] = useMemo(
     () =>
       OAuthClientsQueryData.map((client) => ({
-        ...client,
         label: client.name,
         value: client.id,
       })),
@@ -89,7 +87,7 @@ const ManagedUsersView = () => {
         isSearchable={false}
         onChange={(client) => client && setOAuthClient(client)}
       />
-      {oAuthClient && <PlatformManagedUsersTable oAuthClientId={oAuthClient.id} />}
+      {oAuthClient && <PlatformManagedUsersTable oAuthClientId={oAuthClient.value} />}
     </Shell>
   );
 };
