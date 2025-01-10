@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "អ្នកកំពុងធ្វើការកក់សាកល្បង។",
   "icon_showcase": "ការបង្ហាញរូបតំណាង",
   "icons_showcase": "ការបង្ហាញរូបតំណាងនានា",
+  "choose_an_option": "ជ្រើសរើសជម្រើសមួយ",
+  "enter_option_value": "បញ្ចូលតម្លៃជម្រើស",
+  "remove_option": "លុបជម្រើស",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

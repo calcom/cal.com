@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "テスト予約を実行中です。",
   "icon_showcase": "アイコンショーケース",
   "icons_showcase": "アイコンショーケース",
+  "choose_an_option": "オプションを選択",
+  "enter_option_value": "オプション値を入力",
+  "remove_option": "オプションを削除",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

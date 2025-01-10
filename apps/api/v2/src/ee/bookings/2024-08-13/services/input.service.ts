@@ -160,9 +160,14 @@ export class InputBookingsService_2024_08_13 {
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+          },
     };
   }
 
