@@ -1,7 +1,10 @@
 import { dub } from "@calcom/features/auth/lib/dub";
 
 export const bulkShortenLinks = async (links: string[]) => {
-  const results = await dub.links.createMany(links.map((link) => ({ domain: "sms.cal.com", url: link })));
+  const linksToShorten = links.filter((link) => link !== "");
+  const results = await dub.links.createMany(
+    linksToShorten.map((link) => ({ domain: "sms.cal.com", url: link }))
+  );
 
   return links.map((link) => {
     const createdLink = results.find((result) => result.url === link);

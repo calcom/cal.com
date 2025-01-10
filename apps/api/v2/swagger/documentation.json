@@ -13620,9 +13620,16 @@
             "example": 2
           },
           "reason": {
-            "type": "object",
+            "type": "string",
             "description": "the reason for the out of office entry, if applicable",
-            "example": "vacation"
+            "example": "vacation",
+            "enum": [
+              "unspecified",
+              "vacation",
+              "travel",
+              "sick",
+              "public_holiday"
+            ]
           }
         },
         "required": [
@@ -13656,9 +13663,16 @@
             "example": 2
           },
           "reason": {
-            "type": "object",
+            "type": "string",
             "description": "the reason for the out of office entry, if applicable",
-            "example": "vacation"
+            "example": "vacation",
+            "enum": [
+              "unspecified",
+              "vacation",
+              "travel",
+              "sick",
+              "public_holiday"
+            ]
           }
         }
       },
