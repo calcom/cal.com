@@ -1,58 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Select, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
-import { OAuthClientsDropdown } from "@components/settings/platform/dashboard/oauth-client-dropdown";
-
-export const ManagedUsersSkeletonLoader = () => {
-  return (
-    <div className="flex">
-      <div className="w-1/4 p-4" />
-      <div className="flex-1 p-6">
-        <SkeletonContainer>
-          <div className="mb-4 flex justify-between">
-            <SkeletonText className="mb-2 h-6 w-1/3" />
-            <SkeletonText className="h-6 w-1/5" />
-          </div>
-          <div className="mb-4">
-            <SkeletonText className="h-8 w-1/2 rounded-md" />
-          </div>
-          <div className="border-subtle flex items-center border-b py-3">
-            <SkeletonText className="h-6 w-1/4" />
-            <SkeletonText className="ml-4 h-6 w-1/5" />
-            <SkeletonText className="ml-4 h-6 w-1/5" />
-          </div>
-
-          <div className="mt-4">
-            <SkeletonText className="mx-auto h-4 w-1/3" />
-          </div>
-        </SkeletonContainer>
-      </div>
-    </div>
-  );
-};
+type OAuthClientOption = PlatformOAuthClient & { label: string; value: string };
 
 const ManagedUsersView = () => {
   const { t } = useLocale();
-  const {
-    data: OAuthClientsQueryData,
-    error,
-    isLoading: isOAuthClientLoading,
-    refetch: refetchClients,
-  } = useOAuthClients();
+  const { data: OAuthClientsQueryData, error, isLoading: isOAuthClientLoading } = useOAuthClients();
 
-  const [oAuthClient, setOAuthClient] = useState<PlatformOAuthClient>(OAuthClientsQueryData[0]);
+  const oAuthClientOptions: OAuthClientOption[] = useMemo(
+    () =>
+      OAuthClientsQueryData.map((client) => ({
+        ...client,
+        label: client.name,
+        value: client.id,
+      })),
+    [OAuthClientsQueryData]
+  );
 
-  const handleClientChange = (value: PlatformOAuthClient) => {
-    setOAuthClient(value);
+  const [oAuthClient, setOAuthClient] = useState<OAuthClientOption | null>(oAuthClientOptions[0] || null);
+
+  const ManagedUsersSkeletonLoader = () => {
+    return (
+      <div className="flex">
+        <div className="w-1/4 p-4" />
+        <div className="flex-1 p-6">
+          <SkeletonContainer>
+            <div className="mb-4 flex justify-between">
+              <SkeletonText className="mb-2 h-6 w-1/3" />
+              <SkeletonText className="h-6 w-1/5" />
+            </div>
+            <div className="mb-4">
+              <SkeletonText className="h-8 w-1/2 rounded-md" />
+            </div>
+            <div className="border-subtle flex items-center border-b py-3">
+              <SkeletonText className="h-6 w-1/4" />
+              <SkeletonText className="ml-4 h-6 w-1/5" />
+              <SkeletonText className="ml-4 h-6 w-1/5" />
+            </div>
+
+            <div className="mt-4">
+              <SkeletonText className="mx-auto h-4 w-1/3" />
+            </div>
+          </SkeletonContainer>
+        </div>
+      </div>
+    );
   };
 
   if (isOAuthClientLoading) {
@@ -70,25 +71,23 @@ const ManagedUsersView = () => {
   }
 
   return (
-    <>
-      <Shell
-        heading={t("managed_users")}
-        subtitle={t("managed_users_description")}
-        title={t("managed_users")}
-        description={t("managed_users_description")}
-        hideHeadingOnMobile
-        withoutMain={false}
-        isPlatformUser={true}
-        CTA={
-          <OAuthClientsDropdown
-            oauthClients={OAuthClientsQueryData}
-            selectedClientName={oAuthClient?.name}
-            handleChange={handleClientChange}
-          />
-        }>
-        <PlatformManagedUsersTable oAuthClientId={oAuthClient?.id} />
-      </Shell>
-    </>
+    <Shell
+      heading={t("managed_users")}
+      subtitle={t("managed_users_description")}
+      title={t("managed_users")}
+      description={t("managed_users_description")}
+      hideHeadingOnMobile
+      withoutMain={false}
+      isPlatformUser={true}>
+      <Select
+        className="z-20"
+        options={oAuthClientOptions}
+        value={oAuthClient}
+        isSearchable={false}
+        onChange={(client) => client && setOAuthClient(client)}
+      />
+      {oAuthClient && <PlatformManagedUsersTable oAuthClientId={oAuthClient.id} />}
+    </Shell>
   );
 };
 

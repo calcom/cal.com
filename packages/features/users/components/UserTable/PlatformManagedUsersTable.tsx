@@ -49,32 +49,6 @@ const initalColumnVisibility = {
   actions: true,
 };
 
-function reducer(state: UserTableState, action: UserTableAction): UserTableState {
-  switch (action.type) {
-    case "SET_CHANGE_MEMBER_ROLE_ID":
-      return { ...state, changeMemberRole: action.payload };
-    case "SET_DELETE_ID":
-      return { ...state, deleteMember: action.payload };
-    case "SET_IMPERSONATE_ID":
-      return { ...state, impersonateMember: action.payload };
-    case "INVITE_MEMBER":
-      return { ...state, inviteMember: action.payload };
-    case "EDIT_USER_SHEET":
-      return { ...state, editSheet: action.payload };
-    case "CLOSE_MODAL":
-      return {
-        ...state,
-        changeMemberRole: { showModal: false },
-        deleteMember: { showModal: false },
-        impersonateMember: { showModal: false },
-        inviteMember: { showModal: false },
-        editSheet: { showModal: false },
-      };
-    default:
-      return state;
-  }
-}
-
 type PlatformManagedUsersTableProps = {
   oAuthClientId: string;
 };
@@ -91,6 +65,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   const { t } = useLocale();
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
+
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [rowSelection, setRowSelection] = useState({});
@@ -120,7 +95,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     [data]
   ) as PlatformManagedUserTableUser[];
 
-  const memorisedColumns = useMemo(() => {
+  const columns = useMemo(() => {
     const cols: ColumnDef<PlatformManagedUserTableUser>[] = [
       // Disabling select for this PR: Will work on actions etc in a follow up
       {
@@ -277,7 +252,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
 
   const table = useReactTable({
     data: flatData,
-    columns: memorisedColumns,
+    columns,
     enableRowSelection: true,
     columnResizeMode: "onChange",
     debugTable: true,
@@ -298,6 +273,32 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     getRowId: (row) => `${row.id}`,
   });
 
+  function reducer(state: UserTableState, action: UserTableAction): UserTableState {
+    switch (action.type) {
+      case "SET_CHANGE_MEMBER_ROLE_ID":
+        return { ...state, changeMemberRole: action.payload };
+      case "SET_DELETE_ID":
+        return { ...state, deleteMember: action.payload };
+      case "SET_IMPERSONATE_ID":
+        return { ...state, impersonateMember: action.payload };
+      case "INVITE_MEMBER":
+        return { ...state, inviteMember: action.payload };
+      case "EDIT_USER_SHEET":
+        return { ...state, editSheet: action.payload };
+      case "CLOSE_MODAL":
+        return {
+          ...state,
+          changeMemberRole: { showModal: false },
+          deleteMember: { showModal: false },
+          impersonateMember: { showModal: false },
+          inviteMember: { showModal: false },
+          editSheet: { showModal: false },
+        };
+      default:
+        return state;
+    }
+  }
+
   const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
     tableContainerRef,
     hasNextPage,
@@ -305,13 +306,12 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     isFetching,
   });
 
-  const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+  const numberOfSelectedRows = useMemo(() => table.getSelectedRowModel().rows.length, [table]);
 
   return (
     <>
       <DataTable
         data-testid="managed-user-list-data-table"
-        // className="lg:max-w-screen-lg"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
