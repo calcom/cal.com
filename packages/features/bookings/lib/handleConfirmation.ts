@@ -156,6 +156,7 @@ export async function handleConfirmation(args: {
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
     eventType: {
+      id: number;
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       schedulingType: SchedulingType | null;
@@ -205,6 +206,7 @@ export async function handleConfirmation(args: {
         select: {
           eventType: {
             select: {
+              id: true,
               slug: true,
               bookingFields: true,
               schedulingType: true,
@@ -266,6 +268,7 @@ export async function handleConfirmation(args: {
       select: {
         eventType: {
           select: {
+            id: true,
             slug: true,
             bookingFields: true,
             schedulingType: true,
@@ -359,6 +362,26 @@ export async function handleConfirmation(args: {
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
       });
+
+      await scheduleNoShowTriggers({
+        booking: {
+          startTime: updatedBookings[index].startTime,
+          id: updatedBookings[index].id,
+        },
+        triggerForUser,
+        organizerUser: { id: booking.userId },
+        eventTypeId: updatedBookings[index].eventType?.id ?? null,
+        teamId,
+        orgId,
+        oAuthClientId: platformClientParams?.platformClientId,
+        workflows,
+        smsReminderNumber: updatedBookings[index].smsReminderNumber || null,
+        calendarEvent: evtOfBooking,
+        isNotConfirmed: false,
+        isFirstRecurringEvent: isFirstBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+        seatReferenceUid: evt.attendeeSeatId,
+      });
     }
   } catch (error) {
     // Silently fail
@@ -419,19 +442,6 @@ export async function handleConfirmation(args: {
     });
 
     await Promise.all(scheduleTriggerPromises);
-
-    await scheduleNoShowTriggers({
-      booking: {
-        startTime: booking.startTime,
-        id: booking.id,
-      },
-      triggerForUser,
-      organizerUser: { id: booking.userId },
-      eventTypeId: booking.eventTypeId,
-      teamId,
-      orgId,
-      oAuthClientId: platformClientParams?.platformClientId,
-    });
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: eventType?.title,

@@ -77,10 +77,10 @@ export const triggerGuestNoShowWorkflow = async (payload: string): Promise<void>
       }
       await processWorkflowStep(workflow, step, {
         calendarEvent: result?.calendarEvent,
-        emailAttendeeSendToOverride: result?.emailAttendeeSendToOverride,
+        emailAttendeeSendToOverride: result?.emailAttendeeSendToOverride ?? undefined,
         smsReminderNumber: result?.smsReminderNumber ?? null,
         hideBranding: result?.hideBranding,
-        seatReferenceUid: result?.seatReferenceUid,
+        seatReferenceUid: result?.seatReferenceUid ?? undefined,
       });
     }
   }
