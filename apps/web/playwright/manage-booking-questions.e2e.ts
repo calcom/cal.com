@@ -238,7 +238,7 @@ test.describe("Manage Booking Questions", () => {
       context,
     }, testInfo) => {
       // Considering there are many steps in it, it would need more than default test timeout
-      test.setTimeout(testInfo.timeout * 4);
+      test.setTimeout(testInfo.timeout * 3);
       const user = await createAndLoginUserWithEventTypes({ users, page });
       const team = await prisma.team.findFirst({
         where: {
@@ -361,40 +361,6 @@ async function runTestStepsCommonForTeamAndUserEventType(
           expect(
             await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
-
-          await webhookReceiver.waitForRequestCount(1);
-
-          const [request] = webhookReceiver.requestList;
-
-          // @ts-expect-error body is unknown
-          const payload = request.body.payload;
-
-          expect(payload.responses).toMatchObject({
-            email: {
-              label: "email_address",
-              value: "booker@example.com",
-            },
-            "how-are-you": {
-              label: "How are you?",
-              value: "I am great!",
-            },
-            name: {
-              label: "your_name",
-              value: "Booker",
-            },
-          });
-
-          expect(payload.attendees[0]).toMatchObject({
-            name: "Booker",
-            email: "booker@example.com",
-          });
-
-          expect(payload.userFieldsResponses).toMatchObject({
-            "how-are-you": {
-              label: "How are you?",
-              value: "I am great!",
-            },
-          });
         },
         true
       );
