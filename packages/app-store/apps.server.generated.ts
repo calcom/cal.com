@@ -39,6 +39,7 @@ export const apiHandlers = {
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
   "ics-feedcalendar": import("./ics-feedcalendar/api"),
+  insihts: import("./insihts/api"),
   intercom: import("./intercom/api"),
   jelly: import("./jelly/api"),
   jitsivideo: import("./jitsivideo/api"),
