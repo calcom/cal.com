@@ -1,16 +1,18 @@
 {
-  "name": "Cal",
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Cal.com Help",
   "logo": {
-    "light": "/logo/light.png",
-    "dark": "/logo/dark.png"
+    "dark": "https://cal.com/calcom-help-light.svg",
+    "light": "https://cal.com/calcom-help.svg"
   },
   "favicon": "/favicon.png",
   "colors": {
-    "primary": "#141414",
-    "light": "#FAFAFA",
-    "dark": "#141414",
-    "background": {
-      "light": "#f4f4f4"
+    "primary": "#111827",
+    "light": "#d6d6d6",
+    "dark": "#111827",
+    "anchors": {
+      "from": "#111827",
+      "to": "#d6d6d6"
     }
   },
   "feedback": {
@@ -21,15 +23,21 @@
     "default": "light",
     "isHidden": true
   },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "https://go.cal.com/support"
+    }
+  ],
   "topbarCtaButton": {
-    "name": "Login",
-    "url": "https://app.cal.com/auth/login"
+    "name": "Dashboard",
+    "url": "https://app.cal.com"
   },
   "anchors": [
     {
-      "name": "Community",
-      "icon": "discord",
-      "url": "https://discord.com/invite/calcom"
+      "name": "Developer",
+      "icon": "code",
+      "url": "https://cal.com/docs"
     },
     {
       "name": "GitHub",
@@ -58,6 +66,12 @@
             "quick-start/customization",
             "quick-start/calendar"
           ]
+        },
+        {
+          "group": "Calendars",
+          "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
+          "iconType": "custom",
+          "pages": ["calendars/how-to-add-google-calendar", "calendars/how-to-add-apple-calendar"]
         },
         {
           "group": "Event Types",
@@ -152,12 +166,6 @@
             "apps-and-integrations/how-to-build-an-app",
             "apps-and-integrations/syncing-third-party"
           ]
-        },
-        {
-          "group": "Developers",
-          "icon": "terminal",
-          "iconType": "solid",
-          "pages": ["apps-and-integrations/oauth", "apps-and-integrations/open-source", "webhooks"]
         }
       ]
     }
