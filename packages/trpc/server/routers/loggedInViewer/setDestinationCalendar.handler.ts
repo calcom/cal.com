@@ -1,4 +1,8 @@
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import {
+  getCalendarCredentials,
+  getConnectedCalendars,
+  getFirstConnectedCalendar,
+} from "@calcom/core/CalendarManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { prisma } from "@calcom/prisma";
@@ -22,6 +26,14 @@ type SetDestinationCalendarOptions = {
   input: TSetDestinationCalendarInputSchema;
 };
 
+/**
+ * It identifies the destination calendar by externalId, integration and eventTypeId and doesn't consider the `credentialId` or destinationCalendar.id
+ * Also, DestinationCalendar doesn't have unique constraint on externalId, integration and eventTypeId, so there could be multiple destinationCalendars with same externalId, integration and eventTypeId in DB.
+ * So, it could update any of the destinationCalendar when there are duplicates in DB. Ideally we should have unique constraint on externalId, integration and eventTypeId.
+ *
+ * With the addition of DWD credential, it adds another dimension to the problem.
+ * A user could have DWD and non-DWD credential for the same calendar and he might be selecting DWD credential connected calendar but it could still be set with nullish destinationCalendar.domainWideDelegationCredentialId.
+ */
 export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinationCalendarOptions) => {
   const { user } = ctx;
   const { integration, externalId, eventTypeId } = input;
@@ -29,22 +41,33 @@ export const setDestinationCalendarHandler = async ({ ctx, input }: SetDestinati
   const calendarCredentials = await getCalendarCredentials(credentials);
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,
-    user.userLevelSelectedCalendars
+    user.userLevelSelectedCalendars,
+    ctx.user.destinationCalendar?.externalId
   );
+
   const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
-  const calendar = allCals.find(
-    (cal) => cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
-  );
-  const { credentialId, domainWideDelegationCredentialId } = calendar || {};
+  const firstConnectedCalendar = getFirstConnectedCalendar({
+    connectedCalendars,
+    matcher: (cal) =>
+      cal.externalId === externalId && cal.integration === integration && cal.readOnly === false,
+  });
 
-  if (!credentialId) {
+  const { credentialId, domainWideDelegationCredentialId } = firstConnectedCalendar || {};
+
+  let where;
+
+  if (!credentialId && !domainWideDelegationCredentialId) {
     throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find calendar ${input.externalId}` });
   }
 
-  const primaryEmail = allCals.find((cal) => cal.primary && cal.credentialId === credentialId)?.email ?? null;
-
-  let where;
+  const primaryEmail =
+    allCals.find(
+      (cal) =>
+        cal.primary &&
+        (cal.credentialId === credentialId ||
+          cal.domainWideDelegationCredentialId === domainWideDelegationCredentialId)
+    )?.email ?? null;
 
   if (eventTypeId) {
     if (

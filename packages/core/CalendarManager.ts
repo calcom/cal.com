@@ -239,6 +239,25 @@ export const getConnectedCalendars = async (
   return { connectedCalendars, destinationCalendar };
 };
 
+export const getFirstConnectedCalendar = ({
+  connectedCalendars,
+  matcher,
+}: {
+  connectedCalendars: Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"];
+  matcher: (calendar: Awaited<ReturnType<typeof getCalendarCredentials>>[number]["calendar"]) => boolean;
+}) => {
+  const calendars = connectedCalendars.flatMap((c) => c.calendars ?? []);
+  const matchingCalendars = calendars.filter(matcher);
+  const dwdCredentialCalendar = matchingCalendars.find((cal) => !!cal.domainWideDelegationCredentialId);
+
+  // Prefer DWD credential calendar as there could be other one due to existing connections even after DWD is enabled.
+  if (dwdCredentialCalendar) {
+    return dwdCredentialCalendar;
+  } else {
+    return matchingCalendars[0];
+  }
+};
+
 /**
  * Important function to prevent leaking credentials to the client
  * @param appIntegration

@@ -27,6 +27,12 @@ export class DestinationCalendarRepository {
     });
   }
 
+  static async find({ where }: { where: Prisma.DestinationCalendarWhereInput }) {
+    return await prisma.destinationCalendar.findFirst({
+      where,
+    });
+  }
+
   static async upsert({
     where,
     update,

@@ -689,24 +689,34 @@ export default class EventManager {
                 (c) => c.delegatedToId === destination.domainWideDelegationCredentialId
               )
             : this.calendarCredentials.find((c) => c.id === destination.credentialId);
-          if (!credential && destination.credentialId) {
-            // Fetch credential from DB
-            const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
-              id: destination.credentialId,
-            });
+          if (!credential) {
+            if (destination.credentialId) {
+              // Fetch credential from DB
+              const credentialFromDB = await CredentialRepository.findCredentialForCalendarServiceById({
+                id: destination.credentialId,
+              });
 
-            if (credentialFromDB && credentialFromDB.appId) {
-              credential = {
-                id: credentialFromDB.id,
-                type: credentialFromDB.type,
-                key: credentialFromDB.key,
-                userId: credentialFromDB.userId,
-                teamId: credentialFromDB.teamId,
-                invalid: credentialFromDB.invalid,
-                appId: credentialFromDB.appId,
-                user: credentialFromDB.user,
-                delegatedToId: credentialFromDB.delegatedToId,
-              };
+              if (credentialFromDB && credentialFromDB.appId) {
+                credential = {
+                  id: credentialFromDB.id,
+                  type: credentialFromDB.type,
+                  key: credentialFromDB.key,
+                  userId: credentialFromDB.userId,
+                  teamId: credentialFromDB.teamId,
+                  invalid: credentialFromDB.invalid,
+                  appId: credentialFromDB.appId,
+                  user: credentialFromDB.user,
+                  delegatedToId: credentialFromDB.delegatedToId,
+                };
+              }
+            } else if (destination.domainWideDelegationCredentialId) {
+              console.warn("DWD is disabled, falling back to first non-dwd credential");
+              // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
+              // In this case, we fallback to the first non-dwd credential. That would be there for all existing users before DWD was enabled
+              const firstNonDwdCalendarCredential = this.calendarCredentials.find(
+                (cred) => !cred.type.endsWith("other_calendar") && !cred.delegatedToId
+              );
+              credential = firstNonDwdCalendarCredential;
             }
           }
           if (credential) {

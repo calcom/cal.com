@@ -8,6 +8,9 @@ import { getAllDomainWideDelegationCredentialsForUser } from "../domainWideDeleg
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = { id: SessionUser["id"]; email: SessionUser["email"] };
 
+/**
+ * It includes in-memory DWD credentials as well.
+ */
 export async function getUsersCredentials(user: User) {
   const credentials = await prisma.credential.findMany({
     where: {
