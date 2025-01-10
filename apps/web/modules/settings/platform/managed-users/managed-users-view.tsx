@@ -6,7 +6,7 @@ import Shell from "@calcom/features/shell/Shell";
 import { PlatformManagedUsersTable } from "@calcom/features/users/components/UserTable/PlatformManagedUsersTable";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
-import { Select, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Select, Skeleton, SkeletonContainer, SkeletonText, Label } from "@calcom/ui";
 
 import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 
@@ -79,6 +79,9 @@ const ManagedUsersView = () => {
       hideHeadingOnMobile
       withoutMain={false}
       isPlatformUser={true}>
+      <Skeleton as={Label} loadingClassName="w-16" title={t("select_oAuth_client")}>
+        {t("select_oAuth_client")}
+      </Skeleton>
       <Select
         className="z-20"
         options={oAuthClientOptions}
