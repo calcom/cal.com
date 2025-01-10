@@ -544,6 +544,6 @@ export async function bookTeamEvent({
 }
 
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
-  await page.goto(`${url}`);
+  await page.goto(`${url}`, { waitUntil: "networkidle" });
   await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
