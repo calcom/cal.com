@@ -361,6 +361,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
           expect(
             await page.locator('[data-testid="field-response"][data-fob-field="how-are-you"]').innerText()
           ).toBe("I am great!");
+
+          await webhookReceiver.waitForRequestCount(1);
         },
         true
       );
