@@ -26,9 +26,19 @@ export interface UserTableUser {
   }[];
 }
 
+export type PlatformManagedUserTableUser = Omit<
+  UserTableUser,
+  "lastActiveAt" | "attributes" | "completedOnboarding" | "disableImpersonation"
+>;
+
 export type UserTablePayload = {
   showModal: boolean;
   user?: UserTableUser;
+};
+
+export type PlatformUserTablePayload = {
+  showModal: boolean;
+  user?: PlatformManagedUserTableUser;
 };
 
 export type UserTableState = {
@@ -37,6 +47,10 @@ export type UserTableState = {
   impersonateMember: UserTablePayload;
   inviteMember: UserTablePayload;
   editSheet: UserTablePayload & { user?: UserTableUser };
+};
+
+export type PlatforManagedUserTableState = {
+  deleteMember: UserTablePayload;
 };
 
 export type UserTableAction =
@@ -49,6 +63,15 @@ export type UserTableAction =
         | "EDIT_USER_SHEET"
         | "INVITE_MEMBER";
       payload: UserTablePayload;
+    }
+  | {
+      type: "CLOSE_MODAL";
+    };
+
+export type PlatformManagedUserTableAction =
+  | {
+      type: "SET_DELETE_ID";
+      payload: PlatformUserTablePayload;
     }
   | {
       type: "CLOSE_MODAL";
