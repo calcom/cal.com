@@ -247,6 +247,7 @@ function BookingsStatusLayout({ children }: { children: React.ReactNode }) {
   return (
     <Shell
       withoutMain={false}
+      withoutSeo={true}
       hideHeadingOnMobile
       heading={t("bookings")}
       subtitle={t("bookings_description")}
