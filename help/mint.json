@@ -1,17 +1,48 @@
 {
-    "name": "Cal",
-    "logo": {
-      "light": "/logo/light.png",
-      "dark": "/logo/dark.png"
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Cal.com Help",
+  "logo": {
+    "dark": "https://cal.com/calcom-help-light.svg",
+    "light": "https://cal.com/calcom-help.svg"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#111827",
+    "light": "#d6d6d6",
+    "dark": "#111827",
+    "anchors": {
+      "from": "#111827",
+      "to": "#d6d6d6"
+    }
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": true
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "https://go.cal.com/support"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.cal.com"
+  },
+  "anchors": [
+    {
+      "name": "Developer",
+      "icon": "code",
+      "url": "https://cal.com/docs"
     },
-    "favicon": "/favicon.png",
-    "colors": {
-      "primary": "#141414",
-      "light": "#FAFAFA",
-      "dark": "#141414",
-      "background": {
-        "light": "#f4f4f4"
-      }
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/calcom/cal.com"
     },
     "feedback": {
         "thumbsRating": true,
