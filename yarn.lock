@@ -4139,7 +4139,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
-    dub: ^0.35.0
+    dub: ^0.46.12
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -20359,7 +20359,6 @@ __metadata:
     checkly: latest
     city-timezones: ^1.2.1
     dotenv-checker: ^1.1.5
-    dub: ^0.46.12
     eslint: ^8.34.0
     husky: ^8.0.0
     i18n-unused: ^0.13.0
@@ -23486,15 +23485,6 @@ __metadata:
   version: 1.1.1
   resolution: "drange@npm:1.1.1"
   checksum: 7e6ed639f9ab4d826e79717e2b0685a7ab02ecd39dac6483305dcc43ea2a27dc78b538e10adaba35c086efab216ef1f53f22bc402abfd0d29454b1c5f48fecd1
-  languageName: node
-  linkType: hard
-
-"dub@npm:^0.35.0":
-  version: 0.35.0
-  resolution: "dub@npm:0.35.0"
-  peerDependencies:
-    zod: ">= 3"
-  checksum: 162bd1ff62b62044e3840d3128f341baa8d07828aaf9ca2e94a562b7196df857c1fcdbf2495edfd8b7055970eb1c64298a2265dca81cb4d7bdc65ddc97980905
   languageName: node
   linkType: hard
 

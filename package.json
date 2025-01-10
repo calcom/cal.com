@@ -118,7 +118,6 @@
     "@next/third-parties": "^14.2.5",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
-    "dub": "^0.46.12",
     "eslint": "^8.34.0",
     "turbo": "^1.10.1"
   },
