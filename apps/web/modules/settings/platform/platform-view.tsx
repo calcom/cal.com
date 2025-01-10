@@ -82,6 +82,7 @@ export default function Platform() {
             title={t("platform")}
             description={t("platform_description")}
             hideHeadingOnMobile
+            withoutSeo={true}
             withoutMain={false}
             isPlatformUser={true}>
             <HelpCards />
@@ -112,6 +113,7 @@ export default function Platform() {
         isPlatformUser={true}
         hideHeadingOnMobile
         withoutMain={false}
+        withoutSeo={true}
         SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
