@@ -256,6 +256,10 @@ const cleanIntegrationKeys = (
 };
 
 export const getBusyCalendarTimes = async (
+  /**
+   * withCredentials can possibly have a duplicate credential in case DWD is enabled.
+   * There is no way to deduplicate that at the moment because a `credential` doesn't directly know for which email it is,
+   */
   withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,

@@ -1,6 +1,16 @@
 ## Version 1.0
-
-### Important
+### Release Plan
+  - Read the document(domain-wide-delegation.md) and acknowledge it.
+  - Deploy
+    1. Follow "Setting up Domain-Wide Delegation for Google Calendar API" in domain-wide-delegation.md to create Service Account and create a workspace.
+    2. Merge PR and then deploy.
+ - Enabling for i.cal.com
+    - 1. Enable DWD for i.cal.com first and then test there
+    - 2. Wait for 1-2 days and keep monitoring the errors in Sentry and Axiom.
+ - Enable for a big customer
+    - 1. Wait for a week and keep monitoring the errors in Sentry and Axiom.
+- Followup with sorting the credentials with DWD credentials first
+- Monitor the errors in Sentry and Axiom.
 
 ### Important
   - Bugs

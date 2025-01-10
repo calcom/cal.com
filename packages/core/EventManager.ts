@@ -46,19 +46,16 @@ interface HasId {
   id: number;
 }
 
-// The options should have the slug of the apps the option is enabled for
-interface AppOptions {
-  crm: {
-    skipContactCreation: string[];
-  };
-}
-
 const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
 const delegatedCredentialFirst = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
   return (b.delegatedToId ? 1 : 0) - (a.delegatedToId ? 1 : 0);
+};
+
+const delegatedCredentialLast = <T extends { delegatedToId?: string | null }>(a: T, b: T) => {
+  return (a.delegatedToId ? 1 : 0) - (b.delegatedToId ? 1 : 0);
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
@@ -127,9 +124,13 @@ export default class EventManager {
         // Backwards compatibility until CRM manager is implemented
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
-      //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
+      // see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
+      // This sorting is mostly applicable for fallback which happens when there is no explicity destinationCalendar set. That could be true for really old accounts but not for new
       .sort(latestCredentialFirst)
-      .sort(delegatedCredentialFirst);
+      // TODO: Change it to delegatedCredentialFirst in a followup PR.
+      // We are keeping delegated credentials at the end so that there is no impact on existing users connections as we still use their existing credentials
+      // Soon after DWD is released and stable, we switch it. Could be an env variable also to toggle this.
+      .sort(delegatedCredentialLast);
 
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))

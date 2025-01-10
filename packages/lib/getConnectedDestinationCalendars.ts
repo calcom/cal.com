@@ -26,11 +26,19 @@ export type ConnectedDestinationCalendars = Awaited<
   ReturnType<typeof getConnectedDestinationCalendarsAndEnsureDefaultsInDb>
 >;
 
+/**
+ * Ensures that when DWD is enabled and there is already a calendar connected for the corresponding domain, we only allow the DWD calendar to be returned
+ * This is to ensure that duplicate calendar connections aren't shown in UI(apps/installed/calendars). We choose DWD connection to be shown because we don't want users to be able to work with individual calendars
+ */
 const _ensureNoConflictingNonDwdConnectedCalendar = <
   T extends { integration: { slug: string }; domainWideDelegationCredentialId?: string | null }
->(
-  connectedCalendars: T[]
-) => {
+>({
+  connectedCalendars,
+  loggedInUser,
+}: {
+  connectedCalendars: T[];
+  loggedInUser: { email: string };
+}) => {
   return connectedCalendars.filter((connectedCalendar, index, array) => {
     const allCalendarsWithSameAppSlug = array.filter(
       (cal) => cal.integration.slug === connectedCalendar.integration.slug
@@ -47,6 +55,11 @@ const _ensureNoConflictingNonDwdConnectedCalendar = <
     }
 
     if (connectedCalendar.domainWideDelegationCredentialId) {
+      return true;
+    }
+
+    // DWD Credential is always of the loggedInUser
+    if (connectedCalendar.primary.email !== loggedInUser.email) {
       return true;
     }
 
@@ -348,7 +361,10 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
   }
 
   return {
-    connectedCalendars: _ensureNoConflictingNonDwdConnectedCalendar(connectedCalendars),
+    connectedCalendars: _ensureNoConflictingNonDwdConnectedCalendar({
+      connectedCalendars,
+      loggedInUser: { email: user.email },
+    }),
     destinationCalendar: {
       ...(user.destinationCalendar as DestinationCalendar),
       ...destinationCalendar,
