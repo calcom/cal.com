@@ -2917,5 +2917,8 @@
   "dry_run_mode_active": "Вы выполняете тестовое бронирование.",
   "icon_showcase": "Витрина иконок",
   "icons_showcase": "Витрина иконок",
+  "choose_an_option": "Выберите вариант",
+  "enter_option_value": "Введите значение варианта",
+  "remove_option": "Удалить вариант",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -171,7 +171,6 @@ export const config = {
     "/event-types/:path*",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:status/",
     "/video/:path*",
     "/teams",
