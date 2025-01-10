@@ -33,29 +33,6 @@
     "name": "Dashboard",
     "url": "https://app.cal.com"
   },
-  "anchors": [
-    {
-      "name": "Developer",
-      "icon": "code",
-      "url": "https://cal.com/docs"
-    },
-    {
-      "name": "GitHub",
-      "icon": "github",
-      "url": "https://github.com/calcom/cal.com"
-    },
-    "feedback": {
-        "thumbsRating": true,
-        "suggestEdit": true
-      },
-    "modeToggle": {
-        "default": "light",
-        "isHidden": true
-    },
-    "topbarCtaButton": {
-      "name": "Login",
-      "url": "https://app.cal.com/auth/login"
-    },
     "anchors": [
       {
         "name": "Developer",
