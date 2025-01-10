@@ -1,6 +1,5 @@
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -21,8 +20,8 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-const Page = async ({ params, searchParams }: PageProps) => {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+const Page = ({ params }: PageProps) => {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
@@ -30,4 +29,4 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return <BookingsList status={parsed.data.status} />;
 };
 
-export default WithLayout({ ServerPage: Page })<"P">;
+export default Page;

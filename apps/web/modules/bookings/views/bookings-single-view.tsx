@@ -6,7 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -680,7 +680,7 @@ export default function Success(props: PageProps) {
                           const label = field.label || t(field.defaultLabel);
 
                           return (
-                            <>
+                            <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 // eslint-disable-next-line react/no-danger
@@ -698,7 +698,7 @@ export default function Success(props: PageProps) {
                                     : t("no")
                                   : response.toString()}
                               </p>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>
@@ -827,7 +827,8 @@ export default function Success(props: PageProps) {
                                     )}`
                                   : ""
                               }`}
-                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
+                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2"
+                              target="_blank">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"

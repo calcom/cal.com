@@ -1,12 +1,13 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
+
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
