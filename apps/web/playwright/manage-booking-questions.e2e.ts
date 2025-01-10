@@ -258,7 +258,9 @@ test.describe("Manage Booking Questions", () => {
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
-        await page.getByTestId(`horizontal-tab-${team?.name}`).click();
+        const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
+        await locator.click();
+        await expect(locator).toHaveClass(/bg-emphasis/);
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
@@ -363,6 +365,38 @@ async function runTestStepsCommonForTeamAndUserEventType(
           ).toBe("I am great!");
 
           await webhookReceiver.waitForRequestCount(1);
+
+          const [request] = webhookReceiver.requestList;
+
+          // @ts-expect-error body is unknown
+          const payload = request.body.payload;
+
+          expect(payload.responses).toMatchObject({
+            email: {
+              label: "email_address",
+              value: "booker@example.com",
+            },
+            "how-are-you": {
+              label: "How are you?",
+              value: "I am great!",
+            },
+            name: {
+              label: "your_name",
+              value: "Booker",
+            },
+          });
+
+          expect(payload.attendees[0]).toMatchObject({
+            name: "Booker",
+            email: "booker@example.com",
+          });
+
+          expect(payload.userFieldsResponses).toMatchObject({
+            "how-are-you": {
+              label: "How are you?",
+              value: "I am great!",
+            },
+          });
         },
         true
       );
