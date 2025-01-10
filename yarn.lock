@@ -4220,6 +4220,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/granola@workspace:packages/app-store/granola":
+  version: 0.0.0-use.local
+  resolution: "@calcom/granola@workspace:packages/app-store/granola"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/gtm@workspace:packages/app-store/gtm":
   version: 0.0.0-use.local
   resolution: "@calcom/gtm@workspace:packages/app-store/gtm"
@@ -20350,6 +20359,7 @@ __metadata:
     checkly: latest
     city-timezones: ^1.2.1
     dotenv-checker: ^1.1.5
+    dub: ^0.46.12
     eslint: ^8.34.0
     husky: ^8.0.0
     i18n-unused: ^0.13.0
@@ -23485,6 +23495,15 @@ __metadata:
   peerDependencies:
     zod: ">= 3"
   checksum: 162bd1ff62b62044e3840d3128f341baa8d07828aaf9ca2e94a562b7196df857c1fcdbf2495edfd8b7055970eb1c64298a2265dca81cb4d7bdc65ddc97980905
+  languageName: node
+  linkType: hard
+
+"dub@npm:^0.46.12":
+  version: 0.46.12
+  resolution: "dub@npm:0.46.12"
+  peerDependencies:
+    zod: ">= 3"
+  checksum: 4210c60d8057a1d6c2035033410927e9aa35b3052aeb1c91ddc714b525c1ec2a08c81a928da9f7a1ddae1d7c7a774ffbbbb20edf1eb7c83388c9f89a784ec9ea
   languageName: node
   linkType: hard
 
