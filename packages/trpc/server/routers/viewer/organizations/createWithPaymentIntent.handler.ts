@@ -62,6 +62,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
+  const shouldCreateCustomPrice =
+    hasPermissionToModifyDefaultPayment(ctx.user) && hasModifiedDefaultPayment(input);
   if (!hasPermissionToModifyDefaultPayment(ctx.user) && hasModifiedDefaultPayment(input)) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -103,12 +105,31 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   });
 
+  // Get or create price ID
+  let priceId: string;
+  if (shouldCreateCustomPrice) {
+    const customPrice = await billingService.createPrice({
+      amount: (pricePerSeat || ORGANIZATION_SELF_SERVE_PRICE) * 100, // convert to cents
+      currency: "usd",
+      interval: (billingPeriod || "MONTHLY").toLowerCase() as "month" | "year",
+      nickname: `Custom Organization Price - ${pricePerSeat} per seat`,
+      metadata: {
+        organizationOnboardingId: organizationOnboarding.id,
+        pricePerSeat: pricePerSeat || ORGANIZATION_SELF_SERVE_PRICE,
+        billingPeriod: billingPeriod || "MONTHLY",
+      },
+    });
+    priceId = customPrice.priceId;
+  } else {
+    priceId = process.env.STRIPE_ORG_MONTHLY_PRICE_ID!;
+  }
+
   // Create subscription checkout
   const subscription = await billingService.createSubscriptionCheckout({
     customerId: stripeCustomerId,
     successUrl: `${WEBAPP_URL}/organizations/success?session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${WEBAPP_URL}/organizations/cancel?session_id={CHECKOUT_SESSION_ID}`,
-    priceId: process.env.STRIPE_ORG_MONTHLY_PRICE_ID!, // TODO: Handle different billing periods
+    priceId,
     quantity: seats || ORGANIZATION_SELF_SERVE_MIN_SEATS,
     metadata: {
       organizationOnboardingId: organizationOnboarding.id,

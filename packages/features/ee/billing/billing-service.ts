@@ -29,4 +29,13 @@ export interface BillingService {
     metadata?: Record<string, string | number>;
     mode?: "subscription" | "setup" | "payment";
   }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
+
+  // Price management
+  createPrice(args: {
+    amount: number;
+    currency: string;
+    interval: "month" | "year";
+    nickname?: string;
+    metadata?: Record<string, string | number>;
+  }): Promise<{ priceId: string }>;
 }
