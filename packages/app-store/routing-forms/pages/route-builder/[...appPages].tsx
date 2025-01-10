@@ -246,7 +246,10 @@ const Route = ({
       : "";
 
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
-  const [isAttributeWeightsEnabled, setIsAttributeWeightsEnabled] = useState<boolean>(false); //default needs to be current value
+
+  const [attributeIdForWeights, setAttributeIdForWeights] = useState(
+    "attributeIdForWeights" in route ? route.attributeIdForWeights : undefined
+  );
 
   useEffect(() => {
     const isCustom =
@@ -423,10 +426,10 @@ const Route = ({
       });
 
       attributesWithWeightsEnabled = attributes
-        ? attributeIds
-            .map((attributeId) => attributes.find((attribute) => attribute.id === attributeId))
-            .filter((attribute): attribute is Attribute => attribute !== undefined)
-            .filter((attribute) => attribute.isWeightsEnabled)
+        ? attributes.filter(
+            (attribute) =>
+              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+          )
         : [];
     }
   }
@@ -644,21 +647,22 @@ const Route = ({
                 <SettingsToggle
                   title={t("use_attribute_weights")}
                   description={t("if_enabled_ignore_event_type_weights")}
-                  checked={isAttributeWeightsEnabled}
+                  checked={!!attributeIdForWeights}
                   onCheckedChange={(checked) => {
-                    setIsAttributeWeightsEnabled(checked);
-                    const attributesForWeights = checked ? attributesWithWeightsEnabled[0].id : undefined;
+                    const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
+                    setAttributeIdForWeights(attributeId);
+
                     if (route.attributesQueryBuilderState?.tree) {
                       onChangeAttributeWeights(
                         route,
                         route.attributesQueryBuilderState.tree,
                         attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields,
-                        attributesForWeights
+                        attributeId
                       );
                     }
                   }}
                 />
-                {isAttributeWeightsEnabled ? (
+                {!!attributeIdForWeights ? (
                   <SelectField
                     containerClassName="mb-6 mt-4 data-testid-select-router"
                     label={t("attribute_for_weights")}
@@ -666,9 +670,11 @@ const Route = ({
                       return { value: attribute.id, label: attribute.name };
                     })}
                     value={{
-                      value: attributesWithWeightsEnabled[0].id,
-                      label: attributesWithWeightsEnabled[0].name,
-                    }} // or the actual set value
+                      value: attributeIdForWeights,
+                      label: attributesWithWeightsEnabled.find(
+                        (attribute) => attribute.id === attributeIdForWeights
+                      )?.name,
+                    }}
                     onChange={(option) => {
                       if (route.attributesQueryBuilderState?.tree && option) {
                         onChangeAttributeWeights(

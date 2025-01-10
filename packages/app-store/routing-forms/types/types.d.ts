@@ -98,6 +98,7 @@ export type LocalRouteWithRaqbStates = LocalRoute & {
   formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
   attributesQueryBuilderState: AttributesQueryBuilderState | null;
   fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
+  attributeIdForWeights?: string;
 };
 
 export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;
