@@ -105,8 +105,6 @@ async function NotFound() {
     );
   }
 
-  if (!username) return <></>;
-
   return (
     <div className="bg-default min-h-screen px-4" data-testid="404-page">
       <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
@@ -119,14 +117,24 @@ async function NotFound() {
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)} <strong className="text-blue-500">{username}</strong>{" "}
-              {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+              {t(`404_the_${pageType.toLowerCase()}`)}
+
+              {username ? (
+                <>
+                  <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                  <span className="text-blue-500">{t("register_now")}</span>.
+                </>
+              ) : null}
             </a>
           ) : (
             <span className="mt-2 inline-block text-lg">
               {t(`404_the_${pageType.toLowerCase()}`)}{" "}
-              <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
-              {t("is_still_available")}
+              {username ? (
+                <>
+                  <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                  {t("is_still_available")}
+                </>
+              ) : null}
             </span>
           )}
         </div>
