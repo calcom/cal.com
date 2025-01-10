@@ -1,6 +1,7 @@
+import type { Prisma } from "@prisma/client";
+
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import type { Prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TLegacyListMembersInputSchema } from "./legacyListMembers.schema";
