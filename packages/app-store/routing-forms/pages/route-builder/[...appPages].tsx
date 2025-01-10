@@ -231,7 +231,7 @@ const Route = ({
   appUrl: string;
   disabled?: boolean;
   eventTypesByGroup: EventTypesByGroup;
-  attributes: Attribute[] | null;
+  attributes?: Attribute[];
 }) => {
   const { t } = useLocale();
   const isTeamForm = form.teamId !== null;
@@ -353,7 +353,9 @@ const Route = ({
   const shouldShowFormFieldsQueryBuilder = (route.isFallback && hasRules(route)) || !route.isFallback;
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
-      ? [{ label: t("custom"), value: "custom", eventTypeId: 0 }].concat(eventOptions)
+      ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
+          eventOptions
+        )
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
@@ -824,7 +826,7 @@ const Routes = ({
   form: inferSSRProps<typeof getServerSideProps>["form"];
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
-  attributes: Attribute[] | null;
+  attributes?: Attribute[];
   eventTypesByGroup: EventTypesByGroup;
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
@@ -1156,7 +1158,7 @@ function Page({
         appUrl={appUrl}
         eventTypesByGroup={eventTypesByGroup}
         form={form}
-        attributes={attributes || null}
+        attributes={attributes}
       />
     </div>
   );
