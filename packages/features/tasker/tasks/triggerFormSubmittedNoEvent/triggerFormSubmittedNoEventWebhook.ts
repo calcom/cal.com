@@ -121,7 +121,11 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
     },
   });
 
-  if (!incompleteBookingActions.length) {
+  console.log(
+    "🚀 ~ triggerFormSubmittedNoEventWebhook ~ incompleteBookingActions:",
+    incompleteBookingActions
+  );
+  if (incompleteBookingActions) {
     for (const incompleteBookingAction of incompleteBookingActions) {
       const actionType = incompleteBookingAction.actionType;
 
