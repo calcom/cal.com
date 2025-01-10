@@ -44,6 +44,15 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);
   }),
+  createWithPaymentIntent: authedProcedure
+    .input(ZCreateWithPaymentIntentInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("createWithPaymentIntent"),
+        () => import("./createWithPaymentIntent.handler")
+      );
+      return handler(opts);
+    }),
   update: authedProcedure.input(ZUpdateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("update"), () => import("./update.handler"));
     return handler(opts);

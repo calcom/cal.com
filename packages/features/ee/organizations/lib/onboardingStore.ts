@@ -7,10 +7,10 @@ enum BillingPeriod {
 }
 
 interface OnboardingAdminStoreState {
-  billingPeriod: BillingPeriod;
-  pricePerSeat: number;
-  seats: number;
-  orgOwnerEmail: string;
+  billingPeriod?: BillingPeriod;
+  pricePerSeat?: number;
+  seats?: number;
+  orgOwnerEmail?: string;
 }
 
 interface OnboardingUserStoreState {
@@ -44,12 +44,6 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
 }
 
 const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
-  // Admin state (verified on backend to ensure user is admin)
-  billingPeriod: BillingPeriod.MONTHLY,
-  pricePerSeat: 0,
-  seats: 0,
-  orgOwnerEmail: "",
-
   // User state
   name: "",
   slug: "",

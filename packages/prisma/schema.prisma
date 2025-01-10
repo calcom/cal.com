@@ -870,6 +870,9 @@ model Impersonations {
   impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
+
+  @@index([impersonatedUserId])
+  @@index([impersonatedById])
 }
 
 model ApiKey {
@@ -1806,4 +1809,43 @@ model Watchlist {
 
   @@unique([type, value])
   @@index([type, value])
+}
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUALLY
+}
+
+model OrganizationOnboarding {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Admin state
+  billingPeriod BillingPeriod
+  pricePerSeat  Float
+  seats         Int
+  orgOwnerEmail String
+
+  // Organization info
+  name String
+  slug String  @unique
+  logo String?
+  bio  String?
+
+  // Stripe info
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+
+  // Invited members - stored as JSON
+  invitedMembers Json @default("[]")
+
+  // Teams to migrate - stored as JSON
+  teams Json @default("[]")
+
+  // Completion status
+  isComplete Boolean @default(false)
+
+  @@index([orgOwnerEmail])
+  @@index([stripeCustomerId])
 }

@@ -7,4 +7,26 @@ export interface BillingService {
     subscriptionItemId: string;
     membershipCount: number;
   }): Promise<void>;
+
+  // Customer management
+  createCustomer(args: {
+    email: string;
+    metadata?: Record<string, string>;
+  }): Promise<{ stripeCustomerId: string }>;
+  createPaymentIntent(args: {
+    customerId: string;
+    amount: number;
+    metadata?: Record<string, string | number>;
+  }): Promise<{ id: string; client_secret: string | null }>;
+
+  // Subscription management
+  createSubscriptionCheckout(args: {
+    customerId: string;
+    successUrl: string;
+    cancelUrl: string;
+    priceId: string;
+    quantity: number;
+    metadata?: Record<string, string | number>;
+    mode?: "subscription" | "setup" | "payment";
+  }): Promise<{ checkoutUrl: string | null; sessionId: string }>;
 }
