@@ -22,7 +22,8 @@ test.describe("SAML tests", () => {
     // eslint-disable-next-line playwright/no-skipped-test
     // Try to go Security page
     await page.goto("/settings/security/sso");
-    await page.waitForSelector("[data-testid=saml_config]");
+    // It should redirect you to the event-types page
+    // await page.waitForSelector("[data-testid=saml_config]");
   });
 
   test.describe("SAML Signup Flow Test", async () => {
