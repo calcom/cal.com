@@ -104,7 +104,6 @@ async function NotFound() {
       </div>
     );
   }
-  console.log("HELOOOOOOOO!");
 
   if (!username) return <></>;
 
