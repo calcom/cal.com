@@ -2920,5 +2920,8 @@
   "choose_an_option": "Izaberite opciju",
   "enter_option_value": "Unesite vrednost opcije",
   "remove_option": "Ukloni opciju",
+  "managed_users": "Upravljani korisnici",
+  "managed_users_description": "Pogledajte sve upravljane korisnike koje je kreirao vaš OAuth klijent",
+  "select_oAuth_client": "Izaberite OAuth klijenta",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
