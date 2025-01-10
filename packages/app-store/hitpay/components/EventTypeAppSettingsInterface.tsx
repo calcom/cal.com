@@ -4,12 +4,11 @@ import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 
-import { paymentOptions } from "../lib";
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
 } from "../lib/currencyConversions";
-import { currencyOptions } from "../lib/currencyOptions";
+import { paymentOptions, currencyOptions } from "./constants";
 
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   getAppData,
