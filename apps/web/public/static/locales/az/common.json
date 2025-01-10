@@ -2920,5 +2920,8 @@
   "choose_an_option": "Seçim edin",
   "enter_option_value": "Seçim dəyərini daxil edin",
   "remove_option": "Seçimi sil",
+  "managed_users": "İdarə edilən istifadəçilər",
+  "managed_users_description": "OAuth müştəriniz tərəfindən yaradılmış bütün idarə edilən istifadəçiləri görün",
+  "select_oAuth_client": "OAuth müştərisini seçin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
