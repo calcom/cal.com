@@ -81,7 +81,7 @@ const ManagedUsersView = () => {
         {t("select_oAuth_client")}
       </Skeleton>
       <Select
-        className="z-20"
+        className="z-20 mb-4 w-40"
         options={oAuthClientOptions}
         value={oAuthClient}
         isSearchable={false}
