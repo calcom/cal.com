@@ -51,10 +51,12 @@ async function processReschedule({
   props,
   rescheduleUid,
   session,
+  allowRescheduleForCancelledBooking,
 }: {
   props: Props;
   session: Session | null;
   rescheduleUid: string | string[] | undefined;
+  allowRescheduleForCancelledBooking?: boolean;
 }) {
   if (!rescheduleUid) return;
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
@@ -62,7 +64,8 @@ async function processReschedule({
   if (
     booking === null ||
     !booking.eventTypeId ||
-    (booking?.eventTypeId === props.eventData?.id && booking.status !== BookingStatus.CANCELLED)
+    (booking?.eventTypeId === props.eventData?.id &&
+      (booking.status !== BookingStatus.CANCELLED || allowRescheduleForCancelledBooking))
   ) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
@@ -93,13 +96,15 @@ async function processReschedule({
 async function processSeatedEvent({
   props,
   bookingUid,
+  allowRescheduleForCancelledBooking,
 }: {
   props: Props;
   bookingUid: string | string[] | undefined;
+  allowRescheduleForCancelledBooking?: boolean;
 }) {
   if (!bookingUid) return;
   const booking = await getBookingForSeatedEvent(`${bookingUid}`);
-  if (booking?.status === BookingStatus.CANCELLED) {
+  if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
     return {
       redirect: {
         permanent: false,
@@ -116,7 +121,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
-
+  const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
@@ -192,12 +197,21 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   };
 
   if (rescheduleUid) {
-    const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
+    const processRescheduleResult = await processReschedule({
+      props,
+      rescheduleUid,
+      session,
+      allowRescheduleForCancelledBooking,
+    });
     if (processRescheduleResult) {
       return processRescheduleResult;
     }
   } else if (bookingUid) {
-    const processSeatResult = await processSeatedEvent({ props, bookingUid });
+    const processSeatResult = await processSeatedEvent({
+      props,
+      bookingUid,
+      allowRescheduleForCancelledBooking,
+    });
     if (processSeatResult) {
       return processSeatResult;
     }
@@ -213,6 +227,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
+  const allowRescheduleForCancelledBooking = context.query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
 
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
@@ -289,14 +304,22 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     rescheduleUid: null,
     orgBannerUrl: eventData?.owner?.profile?.organization?.bannerUrl ?? null,
   };
-
   if (rescheduleUid) {
-    const processRescheduleResult = await processReschedule({ props, rescheduleUid, session });
+    const processRescheduleResult = await processReschedule({
+      props,
+      rescheduleUid,
+      session,
+      allowRescheduleForCancelledBooking,
+    });
     if (processRescheduleResult) {
       return processRescheduleResult;
     }
   } else if (bookingUid) {
-    const processSeatResult = await processSeatedEvent({ props, bookingUid });
+    const processSeatResult = await processSeatedEvent({
+      props,
+      bookingUid,
+      allowRescheduleForCancelledBooking,
+    });
     if (processSeatResult) {
       return processSeatResult;
     }

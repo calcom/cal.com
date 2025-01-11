@@ -29,6 +29,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  const allowRescheduleForCancelledBooking = query.allowRescheduleForCancelledBooking === "true";
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
@@ -162,7 +163,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-    if (booking?.status === BookingStatus.CANCELLED) {
+    if (booking?.status === BookingStatus.CANCELLED && !allowRescheduleForCancelledBooking) {
       return {
         redirect: {
           permanent: false,

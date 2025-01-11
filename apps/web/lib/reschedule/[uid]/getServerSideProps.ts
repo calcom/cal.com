@@ -95,6 +95,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
+
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
+
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   if (
@@ -103,7 +115,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   ) {
     return {
       redirect: {
-        destination: `/booking/${uid}`,
+        destination: booking.status === BookingStatus.CANCELLED ? `${eventUrl}` : `/booking/${uid}`,
         permanent: false,
       },
     };
@@ -117,18 +129,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       notFound: true;
     };
   }
-
-  const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
-
-  const enrichedBookingUser = booking.user
-    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
-    : null;
-
-  const eventUrl = await buildEventUrlFromBooking({
-    eventType,
-    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    profileEnrichedBookingUser: enrichedBookingUser,
-  });
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
   if (isBookingInPast) {
@@ -179,6 +179,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const destinationUrlSearchParams = new URLSearchParams();
 
   destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
+
+  if (allowRescheduleForCancelledBooking) {
+    destinationUrlSearchParams.set("allowRescheduleForCancelledBooking", "true");
+  }
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {
