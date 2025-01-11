@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "您正在进行测试预订。",
   "icon_showcase": "图标展示",
   "icons_showcase": "图标展示",
+  "feature_currently_disabled": "该功能当前已禁用",
   "choose_an_option": "选择一个选项",
   "enter_option_value": "输入选项值",
   "remove_option": "删除选项",

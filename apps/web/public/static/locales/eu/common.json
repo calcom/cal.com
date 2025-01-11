@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Proba-erreserba bat egiten ari zara.",
   "icon_showcase": "Ikonoen erakusleihoa",
   "icons_showcase": "Ikonoen erakusleihoa",
+  "feature_currently_disabled": "Eginbidea desgaituta dago",
   "choose_an_option": "Aukeratu aukera bat",
   "enter_option_value": "Sartu aukeraren balioa",
   "remove_option": "Kendu aukera",

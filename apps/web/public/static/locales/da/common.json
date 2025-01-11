@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Du foretager en testbooking.",
   "icon_showcase": "Ikonoversigt",
   "icons_showcase": "Ikonoversigt",
+  "feature_currently_disabled": "Funktionen er i øjeblikket deaktiveret",
   "choose_an_option": "Vælg en mulighed",
   "enter_option_value": "Indtast værdi for mulighed",
   "remove_option": "Fjern mulighed",

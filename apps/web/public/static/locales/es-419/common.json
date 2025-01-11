@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Estás haciendo una reserva de prueba.",
   "icon_showcase": "Muestra de íconos",
   "icons_showcase": "Muestra de íconos",
+  "feature_currently_disabled": "La función está desactivada actualmente",
   "choose_an_option": "Elige una opción",
   "enter_option_value": "Ingresa el valor de la opción",
   "remove_option": "Eliminar opción",

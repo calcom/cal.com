@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Du gör en testbokning.",
   "icon_showcase": "Ikonvisning",
   "icons_showcase": "Ikonvisning",
+  "feature_currently_disabled": "Funktionen är för närvarande inaktiverad",
   "choose_an_option": "Välj ett alternativ",
   "enter_option_value": "Ange alternativets värde",
   "remove_option": "Ta bort alternativ",

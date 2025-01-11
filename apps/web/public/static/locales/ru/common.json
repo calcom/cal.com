@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Вы выполняете тестовое бронирование.",
   "icon_showcase": "Витрина иконок",
   "icons_showcase": "Витрина иконок",
+  "feature_currently_disabled": "Функция в данный момент отключена",
   "choose_an_option": "Выберите вариант",
   "enter_option_value": "Введите значение варианта",
   "remove_option": "Удалить вариант",

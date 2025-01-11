@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "テスト予約を実行中です。",
   "icon_showcase": "アイコンショーケース",
   "icons_showcase": "アイコンショーケース",
+  "feature_currently_disabled": "この機能は現在無効になっています",
   "choose_an_option": "オプションを選択",
   "enter_option_value": "オプション値を入力",
   "remove_option": "オプションを削除",

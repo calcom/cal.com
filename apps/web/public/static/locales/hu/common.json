@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Tesztfoglalást végzel.",
   "icon_showcase": "Ikon bemutató",
   "icons_showcase": "Ikonok bemutatója",
+  "feature_currently_disabled": "A funkció jelenleg ki van kapcsolva",
   "choose_an_option": "Válassz egy opciót",
   "enter_option_value": "Add meg az opció értékét",
   "remove_option": "Opció eltávolítása",

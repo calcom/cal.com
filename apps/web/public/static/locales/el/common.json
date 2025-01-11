@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Κάνετε μια δοκιμαστική κράτηση.",
   "icon_showcase": "Παρουσίαση εικονιδίων",
   "icons_showcase": "Παρουσίαση εικονιδίων",
+  "feature_currently_disabled": "Η λειτουργία είναι απενεργοποιημένη",
   "choose_an_option": "Επιλέξτε μια επιλογή",
   "enter_option_value": "Εισαγάγετε την τιμή της επιλογής",
   "remove_option": "Αφαίρεση επιλογής",

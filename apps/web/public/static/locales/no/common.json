@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Du gjør en testbestilling.",
   "icon_showcase": "Ikonvisning",
   "icons_showcase": "Ikonvisning",
+  "feature_currently_disabled": "Funksjonen er deaktivert",
   "choose_an_option": "Velg et alternativ",
   "enter_option_value": "Skriv inn alternativverdi",
   "remove_option": "Fjern alternativ",

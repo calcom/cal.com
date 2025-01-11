@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Je doet een testboeking.",
   "icon_showcase": "Icoon overzicht",
   "icons_showcase": "Iconen overzicht",
+  "feature_currently_disabled": "Functie is momenteel uitgeschakeld",
   "choose_an_option": "Kies een optie",
   "enter_option_value": "Voer optiewaarde in",
   "remove_option": "Optie verwijderen",

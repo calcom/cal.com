@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Robíte testovaciu rezerváciu.",
   "icon_showcase": "Ukážka ikony",
   "icons_showcase": "Ukážka ikon",
+  "feature_currently_disabled": "Funkcia je momentálne deaktivovaná",
   "choose_an_option": "Vyberte možnosť",
   "enter_option_value": "Zadajte hodnotu možnosti",
   "remove_option": "Odstrániť možnosť",

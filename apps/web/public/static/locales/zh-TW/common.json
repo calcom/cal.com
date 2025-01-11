@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "您正在進行測試預約。",
   "icon_showcase": "圖示展示",
   "icons_showcase": "圖示展示",
+  "feature_currently_disabled": "此功能目前已停用",
   "choose_an_option": "選擇一個選項",
   "enter_option_value": "輸入選項值",
   "remove_option": "移除選項",

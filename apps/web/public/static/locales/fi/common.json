@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Teet testikäyntivarausta.",
   "icon_showcase": "Kuvakegalleria",
   "icons_showcase": "Kuvakegalleria",
+  "feature_currently_disabled": "Ominaisuus on tällä hetkellä pois käytöstä",
   "choose_an_option": "Valitse vaihtoehto",
   "enter_option_value": "Syötä vaihtoehdon arvo",
   "remove_option": "Poista vaihtoehto",

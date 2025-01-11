@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "Bạn đang thực hiện đặt lịch thử nghiệm.",
   "icon_showcase": "Trưng bày biểu tượng",
   "icons_showcase": "Trưng bày các biểu tượng",
+  "feature_currently_disabled": "Tính năng hiện đang bị vô hiệu hóa",
   "choose_an_option": "Chọn một tùy chọn",
   "enter_option_value": "Nhập giá trị tùy chọn",
   "remove_option": "Xóa tùy chọn",
