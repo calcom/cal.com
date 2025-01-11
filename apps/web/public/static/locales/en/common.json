@@ -2919,6 +2919,7 @@
   "dry_run_mode_active": "You are doing a test booking.",
   "icon_showcase": "Icon showcase",
   "icons_showcase": "Icons showcase",
+  "feature_currently_disabled": "Feature is currently disabled",
   "choose_an_option": "Choose an option",
   "enter_option_value": "Enter option value",
   "remove_option": "Remove option",
