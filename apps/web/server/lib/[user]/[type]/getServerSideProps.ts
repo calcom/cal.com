@@ -4,15 +4,15 @@ import type { Session } from "next-auth";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
@@ -59,7 +59,11 @@ async function processReschedule({
   if (!rescheduleUid) return;
   const booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
   // if no booking found, no eventTypeId (dynamic) or it matches this eventData - return void (success).
-  if (booking === null || !booking.eventTypeId || booking?.eventTypeId === props.eventData?.id) {
+  if (
+    booking === null ||
+    !booking.eventTypeId ||
+    (booking?.eventTypeId === props.eventData?.id && booking.status !== BookingStatus.CANCELLED)
+  ) {
     props.booking = booking;
     props.rescheduleUid = Array.isArray(rescheduleUid) ? rescheduleUid[0] : rescheduleUid;
     return;
@@ -94,8 +98,18 @@ async function processSeatedEvent({
   bookingUid: string | string[] | undefined;
 }) {
   if (!bookingUid) return;
-  props.booking = await getBookingForSeatedEvent(`${bookingUid}`);
-  props.bookingUid = Array.isArray(bookingUid) ? bookingUid[0] : bookingUid;
+  const booking = await getBookingForSeatedEvent(`${bookingUid}`);
+  if (booking?.status === BookingStatus.CANCELLED) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: `${props.slug}`,
+      },
+    };
+  } else {
+    props.booking = booking;
+    props.bookingUid = Array.isArray(bookingUid) ? bookingUid[0] : bookingUid;
+  }
 }
 
 async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
@@ -183,7 +197,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
       return processRescheduleResult;
     }
   } else if (bookingUid) {
-    await processSeatedEvent({ props, bookingUid });
+    const processSeatResult = await processSeatedEvent({ props, bookingUid });
+    if (processSeatResult) {
+      return processSeatResult;
+    }
   }
 
   return {
@@ -279,7 +296,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       return processRescheduleResult;
     }
   } else if (bookingUid) {
-    await processSeatedEvent({ props, bookingUid });
+    const processSeatResult = await processSeatedEvent({ props, bookingUid });
+    if (processSeatResult) {
+      return processSeatResult;
+    }
   }
 
   return {

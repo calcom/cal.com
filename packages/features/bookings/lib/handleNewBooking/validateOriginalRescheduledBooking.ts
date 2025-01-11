@@ -4,7 +4,7 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { type OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
 
-export const validateOriginalRescheduledBooking = async (
+export const validateOriginalRescheduledBooking = (
   originalRescheduledBooking: OriginalRescheduledBooking
 ) => {
   if (!originalRescheduledBooking) {

@@ -9,7 +9,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { RedirectType } from "@calcom/prisma/client";
+import { BookingStatus, RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
@@ -162,6 +162,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   let booking: GetBookingType | null = null;
   if (rescheduleUid) {
     booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
+    if (booking?.status === BookingStatus.CANCELLED) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/team/${teamSlug}/${meetingSlug}`,
+        },
+      };
+    }
   }
 
   const ssr = await ssrInit(context);
