@@ -1,48 +1,64 @@
-import { useRouter } from "next/navigation";
+import type { ChangeEvent, FormEvent } from "react";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import { Button, Input, showToast } from "@calcom/ui";
+import { Button, Input } from "@calcom/ui";
 
-type FormData = {
-  bio: string;
-};
+const SPEDY_BASE_URL = "https://api.spedy.com.br/v1";
+const SPEDY_API_KEY = "4f9221c3-ec98-4160-a890-b1cb010b41ff";
+const PASSWORD_ERROR = "Senha do certificado inválida.";
 
 const AddCertificate = () => {
-  const [user] = trpc.viewer.me.useSuspenseQuery();
-  const { t } = useLocale();
-  const pickerRef = useRef<any>(null);
-  const { handleSubmit } = useForm<FormData>({
-    defaultValues: { bio: user?.bio || "" },
-  });
+  const pickerRef = useRef<HTMLInputElement>(null);
 
-  const [a1Src, setA1Src] = useState<string>();
+  const [a1Src, setA1Src] = useState<File | null>(null);
   const [a1Password, setA1Password] = useState<string>("");
   const [retypeA1Password, setretypeA1Password] = useState<string>("");
-  const utils = trpc.useUtils();
-  const router = useRouter();
+  const [incorrectPassword, setIncorrectPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async (_data) => {
-      await utils.viewer.me.refetch();
-      const redirectUrl = localStorage.getItem("onBoardingRedirect");
-      localStorage.removeItem("onBoardingRedirect");
-      redirectUrl ? router.push(redirectUrl) : router.push("/");
-    },
-    onError: () => {
-      showToast(t("problem_saving_user_profile"), "error");
-    },
-  });
-  const onSubmit = handleSubmit((data: { bio: string }) => {
-    // const { bio } = data;
-    // telemetry.event(telemetryEventTypes.onboardingFinished);
-    // mutation.mutate({
-    //   bio,
-    //   completedOnboarding: true,
-    // });
-  });
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      const fileData = {
+        uri: URL.createObjectURL(selectedFile),
+        name: selectedFile.name,
+        type: selectedFile.type,
+      } as unknown as File;
+      setA1Src(fileData);
+    }
+  };
+
+  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (!a1Src) return;
+    setIncorrectPassword(false);
+    setIsLoading(true);
+
+    const formData = new FormData();
+    formData.append("certificateFile", a1Src);
+    formData.append("password", a1Password);
+
+    fetch(`${SPEDY_BASE_URL}/companies/04a39244-f0c9-49f5-8ca6-b2600147636f/certificates`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+        "X-Api-Key": SPEDY_API_KEY,
+      },
+      body: formData,
+    })
+      .then((response) => {
+        response.json().then((result) => {
+          console.log(result);
+        });
+      })
+      .catch(({ errors }) => {
+        if (errors[0].message === PASSWORD_ERROR) setIncorrectPassword(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    event.preventDefault();
+  };
 
   return (
     <form onSubmit={onSubmit}>
@@ -55,9 +71,7 @@ const AddCertificate = () => {
             ref={pickerRef}
             accept="application/x-pkcs12"
             className="hidden"
-            onChange={(event) => {
-              setA1Src(event.target.value);
-            }}
+            onChange={handleFileChange}
           />
           <div
             className={`mr-2 flex h-16 w-16 items-center justify-center	rounded-lg ${
@@ -82,7 +96,7 @@ const AddCertificate = () => {
           <Button
             color="secondary"
             onClick={() => {
-              pickerRef?.current.click();
+              if (pickerRef && pickerRef.current) pickerRef.current.click();
             }}>
             Adicionar Certificado e-CNPJ A1
           </Button>
@@ -121,15 +135,21 @@ const AddCertificate = () => {
               As senhas precisam ser iguais.
             </p>
           )}
+          {incorrectPassword && (
+            <p data-testid="required" className="py-2 text-xs text-red-500">
+              Senha do certificado inválida.
+            </p>
+          )}
         </div>
       </div>
       <fieldset className="mt-4">
         <p className="text-default mt-2 font-sans text-sm font-normal">
-          Não se preocupe. Sua senha não será armazenada em nosso sistema. Ela será usada apenas para integração com a plataforma de emissão de notas fiscais.
+          Não se preocupe. Sua senha não será armazenada em nosso sistema. Ela será usada apenas para
+          integração com a plataforma de emissão de notas fiscais.
         </p>
       </fieldset>
       <Button
-        loading={mutation.isPending}
+        loading={isLoading}
         disabled={a1Password !== retypeA1Password && (retypeA1Password === "" || a1Password === "" || !a1Src)}
         EndIcon="arrow-right"
         type="submit"
