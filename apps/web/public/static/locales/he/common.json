@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "מאפשר לקובעי פגישות לקבוע פגישות בכל פעם שמארח זמין. השתמשו באפשרות זו כדי למקסם את מספר הפגישות הפוטנציאליות ובמקרים בהם חלוקה שווה של פגישות בין המארחים פחות חשובה",
   "rr_distribution_method_balanced_title": "איזון עומסים",
   "rr_distribution_method_balanced_description": "אנחנו נעקוב אחר מספר ההזמנות שנקבעו עם כל מארח ונשווה זאת לאחרים, תוך השבתה זמנית של מארחים שקיבלו יותר מדי הזמנות כדי להבטיח חלוקה שווה",
+  "edit_team_member_weights": "עריכת משקולות",
+  "weights_updated_successfully": "המשקולות עודכנו בהצלחה",
   "require_confirmation_for_free_email": "דרוש אישור רק עבור ספקי אימייל חינמיים (לדוגמה @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "הוצא כתובות דוא\"ל המכילות...",
   "require_emails_that_contain": "נדרשות כתובות דוא\"ל המכילות...",
