@@ -6,7 +6,7 @@ import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@ca
 import type { UserTableUser } from "../types";
 
 interface Props {
-  users: UserTableUser[];
+  users: Array<{ id: UserTableUser["id"] }>;
   onRemove: () => void;
 }
 
