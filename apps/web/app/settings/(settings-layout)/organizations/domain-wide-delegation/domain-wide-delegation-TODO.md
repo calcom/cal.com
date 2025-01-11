@@ -19,6 +19,8 @@
     - Manual Testing
       - [ ] Location Change of a booking  to Google Meet(from Cal Video)
       - [ ] RR Team Event
+        - Booking
+          - Unavailable slot isn't available for booking. Unavailable user isn't used.
         - Reroute
         - Reassign
       - [ ] Calendar Cache

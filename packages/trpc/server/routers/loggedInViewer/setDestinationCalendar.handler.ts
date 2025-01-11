@@ -1,8 +1,4 @@
-import {
-  getCalendarCredentials,
-  getConnectedCalendars,
-  getFirstConnectedCalendar,
-} from "@calcom/core/CalendarManager";
+import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { DestinationCalendarRepository } from "@calcom/lib/server/repository/destinationCalendar";
 import { prisma } from "@calcom/prisma";
@@ -24,6 +20,27 @@ type SetDestinationCalendarOptions = {
     user: User;
   };
   input: TSetDestinationCalendarInputSchema;
+};
+
+type ConnectedCalendar = Awaited<ReturnType<typeof getConnectedCalendars>>["connectedCalendars"][number];
+type ConnectedCalendarCalendar = NonNullable<ConnectedCalendar["calendars"]>[number];
+export const getFirstConnectedCalendar = ({
+  connectedCalendars,
+  matcher,
+}: {
+  connectedCalendars: ConnectedCalendar[];
+  matcher: (calendar: ConnectedCalendarCalendar) => boolean;
+}) => {
+  const calendars = connectedCalendars.flatMap((c) => c.calendars ?? []);
+  const matchingCalendars = calendars.filter(matcher);
+  const dwdCredentialCalendar = matchingCalendars.find((cal) => !!cal.domainWideDelegationCredentialId);
+
+  // Prefer DWD credential calendar as there could be other one due to existing connections even after DWD is enabled.
+  if (dwdCredentialCalendar) {
+    return dwdCredentialCalendar;
+  } else {
+    return matchingCalendars[0];
+  }
 };
 
 /**
