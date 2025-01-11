@@ -2922,4 +2922,7 @@ checksums:
     choose_an_option: 1c57b133afef47a60666d5d37b9b321e
     enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
     remove_option: 42e52c46cc51e56ebb5540bfb6f19b95
+    managed_users: c6db1c3bb5c9b451471ca9b8d7dc8366
+    managed_users_description: 45fea5321847b0c8ee72ce33684c1283
+    select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

@@ -23,8 +23,8 @@ const querySchema = z.object({
 
 const getSchedule = cache((id: number) => ScheduleRepository.findScheduleById({ id }));
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+export const generateMetadata = async ({ params }: PageProps) => {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
   }
@@ -41,8 +41,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-const Page = async ({ params, searchParams }: PageProps) => {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+const Page = async ({ params }: PageProps) => {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
   }

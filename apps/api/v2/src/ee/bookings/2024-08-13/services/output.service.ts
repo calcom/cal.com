@@ -72,6 +72,7 @@ type DatabaseBooking = Booking & {
     email: string;
     timeZone: string;
     locale: string | null;
+    phoneNumber?: string | null;
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
@@ -121,6 +122,7 @@ export class OutputBookingsService_2024_08_13 {
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
+        phoneNumber: attendee.phoneNumber ?? undefined,
       })),
       guests: bookingResponses.guests,
       location,
