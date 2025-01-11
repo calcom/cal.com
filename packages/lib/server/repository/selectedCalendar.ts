@@ -82,8 +82,8 @@ export class SelectedCalendarRepository {
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
     const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
     const credentialPayload = buildCredentialPayloadForCalendar({
-      credentialId: data.credentialId ?? null,
-      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId ?? null,
+      credentialId: data.credentialId,
+      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
     });
     if (conflictingCalendar) {
       return await prisma.selectedCalendar.update({
@@ -218,9 +218,20 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
+        userId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
+        domainWideDelegationCredential: {
+          select: {
+            id: true,
             selectedCalendars: {
               orderBy: {
                 externalId: "asc",

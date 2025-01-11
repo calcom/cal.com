@@ -5,6 +5,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
 interface DomainWideDelegation {
@@ -113,7 +114,7 @@ export async function getAllDomainWideDelegationCredentialsForUser({
 }: {
   user: { email: string; id: number };
 }) {
-  log.debug("called with", { user });
+  log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
@@ -208,4 +209,24 @@ export async function getAllDomainWideDelegationCredentialsForUserByAppSlug({
 }) {
   const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
   return domainWideDelegationCredentials.filter((credential) => credential.appId === appSlug);
+}
+
+export async function getDwdCalendarCredentialById({ id, userId }: { id: string; userId: number }) {
+  const [domainWideDelegation, user] = await Promise.all([
+    DomainWideDelegationRepository.findById({ id }),
+    UserRepository.findById({ id: userId }),
+  ]);
+
+  if (!domainWideDelegation) {
+    throw new Error("Domain Wide Delegation not found");
+  }
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const dwdCredential = buildDomainWideDelegationCalendarCredential({
+    domainWideDelegation,
+    user,
+  });
+  return dwdCredential;
 }

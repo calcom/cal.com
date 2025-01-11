@@ -48,6 +48,10 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 - We use the Cal.com user's email to impersonate that user using DWD Credential(which is just a service account key at the moment)
    - That gives us read/write permission to get availability of the user and create new events in their calendar.
 
+### What is a DWD Credential?
+- A DWD service account key along with user's email becomes the DWD Credential which is an alternative to regular Credential in DB.
+- DWD doesn't completely replace the regular credentials. DWD Credential gives access to the cal.com user's email in Google Calendar. So, if the user needs to connect to some other email's calendar, we need to use the regular credentials.
+
 ### Important Points
 - No Credential table entry is created when enabling DWD. The workspace platform's related apps will be considered as "installed" for the users with email matching dwd domain. An in-memory credential like object is created for this purpose. It allows avoiding creation of thousands of records for all the members of the organization when dwd is enabled.
 - DWD Credential is applicable to Users only. 

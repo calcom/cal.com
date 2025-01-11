@@ -16,7 +16,9 @@
   - Bugs
     - [ ] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
     - [x] Duplicate Calendar connections in 'apps/installed' if a user already had connected calendar and DWD is enabled.
+    - [x] Calendar Cache has credentialId column which isn't applicable for DWD(Solution: Added userId there)
     - Manual Testing
+      - [ ] Test with Multiple DWD entries for different organizations. Verify that wrong DWD entry isn't used.
       - [ ] Location Change of a booking  to Google Meet(from Cal Video)
       - [ ] RR Team Event
         - Booking
@@ -24,6 +26,8 @@
         - Reroute
         - Reassign
       - [ ] Calendar Cache
+    - [x] Troubleshooter
+      - [ ] Shows busy times from Claendar
     - [x] If a user has connected a calendar, and then DWD is enabled.
       - Tested various scenarios for it
     - [x] Inviting a new user. 
