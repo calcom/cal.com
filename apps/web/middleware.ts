@@ -64,11 +64,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
+  if (url.pathname.startsWith("/apps/installed")) {
     const returnTo = req.cookies.get("return-to")?.value;
     if (returnTo !== undefined) {
-      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-
       let validPathname = returnTo;
 
       try {
@@ -77,8 +75,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
       const nextUrl = url.clone();
       nextUrl.pathname = validPathname;
-      // TODO: Consider using responseWithHeaders here
-      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+
+      const response = NextResponse.redirect(nextUrl);
+      response.cookies.set("return-to", "", {
+        expires: new Date(0),
+        path: "/",
+      });
+
+      return response;
     }
   }
 
@@ -108,9 +112,10 @@ const routingForms = {
   handleRewrite: (url: URL) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
       return NextResponse.rewrite(url);
     }
+    return null;
   },
 };
 
@@ -172,6 +177,13 @@ export const config = {
     "/event-types/:path*",
     "/workflows/:path*",
     "/getting-started/:path*",
+    "/auth/login",
+    "/future/auth/login",
+    "/workflows/:path*",
+    "/getting-started/:path*",
+    "/event-types/:path*",
+    "/apps/:path*",
+    "/routing/:path*",
     "/bookings/:status/",
     "/video/:path*",
     "/teams",
