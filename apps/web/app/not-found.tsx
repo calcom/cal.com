@@ -236,8 +236,6 @@ export const generateMetadata = async () => {
   };
 };
 
-export const dynamic = "force-static";
-
 export default WithLayout({
   ServerPage: NotFound,
 });
