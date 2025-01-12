@@ -90,7 +90,7 @@ function WorkflowsPage({ filteredList }: PageProps) {
       description: t("workflow_example_4"),
     },
     {
-      icon: <Icon name="calendar-sync" className="h-5 w-5 text-yellow-500" />,
+      icon: <Icon name="rotate-ccw" className="h-5 w-5 text-yellow-500" />,
       description: t("workflow_example_5"),
     },
     {

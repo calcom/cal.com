@@ -142,4 +142,9 @@ export const lucideIconList = new Set([
   "zap",
   "waypoints",
   "chevrons-down-up",
+  "message-circle-plus",
+  "bell-plus",
+  "mail-plus",
+  "message-circle-reply",
+  "calendar-sync",
 ]);

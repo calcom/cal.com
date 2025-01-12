@@ -69,7 +69,7 @@ export function UpgradeTip({
             key={feature.description}
             className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
             {feature.icon}
-            {feature.title && <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>}
+            <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title && feature.title}</h2>
             <p className="text-default">{feature.description}</p>
           </div>
         ))}
