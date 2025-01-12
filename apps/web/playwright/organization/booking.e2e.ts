@@ -31,6 +31,8 @@ function getOrgOrigin(orgSlug: string | null) {
   return orgOrigin;
 }
 
+test.describe.configure({ mode: "parallel" });
+
 test.describe("Bookings", () => {
   test.afterEach(async ({ orgs, users, page }) => {
     await users.deleteAll();
