@@ -61,7 +61,7 @@ export const ErrorPage: React.FC<Props> = (props) => {
           <h1 className="font-cal text-emphasis text-6xl">{statusCode}</h1>
           <h2 className="text-emphasis mt-6 max-w-2xl text-2xl font-medium">It's not you, it's us.</h2>
           <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
-            Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
+            Something went wrong on our end. Get in touch with our support team, and we'll get it fixed right
             away for you.
           </p>
 
