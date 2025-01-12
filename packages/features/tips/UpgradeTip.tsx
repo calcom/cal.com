@@ -20,7 +20,7 @@ export function UpgradeTip({
   description: string;
   /* overwrite EmptyScreen text */
   background: string;
-  features: Array<{ icon: JSX.Element; title: string; description: string }>;
+  features: Array<{ icon: JSX.Element; title?: string; description: string }>;
   buttons?: JSX.Element;
   /**Chldren renders when the user is in a team */
   children: ReactNode;
@@ -57,7 +57,7 @@ export function UpgradeTip({
           />
         </picture>
         <div className="relative my-4 px-8 sm:px-14">
-          <h1 className={classNames("font-cal text-3xl")}>{t(title)}</h1>
+          <h1 className={classNames("font-cal mt-6 text-3xl")}>{t(title)}</h1>
           <p className={classNames("mb-8 mt-4 max-w-sm")}>{t(description)}</p>
           {buttons}
         </div>
@@ -65,9 +65,11 @@ export function UpgradeTip({
 
       <div className="mt-4 grid-cols-3 md:grid md:gap-4">
         {features.map((feature) => (
-          <div key={feature.title} className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
+          <div
+            key={feature.description}
+            className="bg-muted mb-4 min-h-[180px] w-full rounded-md  p-8 md:mb-0">
             {feature.icon}
-            <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>
+            {feature.title && <h2 className="font-cal text-emphasis mt-4 text-lg">{feature.title}</h2>}
             <p className="text-default">{feature.description}</p>
           </div>
         ))}
