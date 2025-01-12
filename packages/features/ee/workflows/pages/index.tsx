@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { UpgradeTip } from "@calcom/features/tips";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,7 +15,15 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
+import {
+  AnimatedPopover,
+  Avatar,
+  Button,
+  Icon,
+  ButtonGroup,
+  CreateButtonWithTeamsList,
+  showToast,
+} from "@calcom/ui";
 
 import { FilterResults } from "../../../filters/components/FilterResults";
 import { TeamsFilter } from "../../../filters/components/TeamsFilter";
@@ -62,6 +72,33 @@ function WorkflowsPage({ filteredList }: PageProps) {
     },
   });
 
+  const features = [
+    {
+      icon: <Icon name="phone" className="h-5 w-5 text-orange-500" />,
+      description: t("workflow_example_1"),
+    },
+    {
+      icon: <Icon name="message-circle-reply" className="h-5 w-5 text-lime-500" />,
+      description: t("workflow_example_2"),
+    },
+    {
+      icon: <Icon name="mail-plus" className="h-5 w-5 text-blue-500" />,
+      description: t("workflow_example_3"),
+    },
+    {
+      icon: <Icon name="bell-plus" className="h-5 w-5 text-teal-500" />,
+      description: t("workflow_example_4"),
+    },
+    {
+      icon: <Icon name="calendar-sync" className="h-5 w-5 text-yellow-500" />,
+      description: t("workflow_example_5"),
+    },
+    {
+      icon: <Icon name="message-circle-plus" className="h-5 w-5 text-violet-500" />,
+      description: t("workflow_example_6"),
+    },
+  ];
+
   return (
     <Shell withoutMain withoutSeo={true}>
       <LicenseRequired>
@@ -85,30 +122,50 @@ function WorkflowsPage({ filteredList }: PageProps) {
               />
             ) : null
           }>
-          <>
-            {filteredWorkflows?.totalCount ? (
-              <div className="flex">
-                <TeamsFilter />
-                <div className="mb-4 ml-auto">
-                  <CreateButtonWithTeamsList
-                    subtitle={t("new_workflow_subtitle").toUpperCase()}
-                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                    isPending={createMutation.isPending}
-                    disableMobileButton={true}
-                    onlyShowWithTeams={true}
-                    includeOrg={true}
-                  />
-                </div>
+          <UpgradeTip
+            plan="team"
+            title={t("teams_plan_required")}
+            description={t("utilize_workflows_to_send")}
+            features={features}
+            background="/tips/routing-forms"
+            isParentLoading={<SkeletonLoaderTeamList />}
+            buttons={
+              <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
+                <ButtonGroup>
+                  <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
+                    {t("upgrade")}
+                  </Button>
+                  <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
+                    {t("learn_more")}
+                  </Button>
+                </ButtonGroup>
               </div>
-            ) : null}
-            <FilterResults
-              queryRes={{ isPending, data: filteredWorkflows }}
-              emptyScreen={<EmptyScreen isFilteredView={false} />}
-              noResultsScreen={<EmptyScreen isFilteredView={true} />}
-              SkeletonLoader={SkeletonLoader}>
-              <WorkflowList workflows={filteredWorkflows?.filtered} />
-            </FilterResults>
-          </>
+            }>
+            <>
+              {filteredWorkflows?.totalCount ? (
+                <div className="flex">
+                  <TeamsFilter />
+                  <div className="mb-4 ml-auto">
+                    <CreateButtonWithTeamsList
+                      subtitle={t("new_workflow_subtitle").toUpperCase()}
+                      createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                      isPending={createMutation.isPending}
+                      disableMobileButton={true}
+                      onlyShowWithTeams={true}
+                      includeOrg={true}
+                    />
+                  </div>
+                </div>
+              ) : null}
+              <FilterResults
+                queryRes={{ isPending, data: filteredWorkflows }}
+                emptyScreen={<EmptyScreen isFilteredView={false} />}
+                noResultsScreen={<EmptyScreen isFilteredView={true} />}
+                SkeletonLoader={SkeletonLoader}>
+                <WorkflowList workflows={filteredWorkflows?.filtered} />
+              </FilterResults>
+            </>
+          </UpgradeTip>
         </ShellMain>
       </LicenseRequired>
     </Shell>

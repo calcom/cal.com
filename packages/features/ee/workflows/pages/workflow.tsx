@@ -5,12 +5,10 @@ import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { UpgradeTip } from "tips/UpgradeTip";
 
-import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/SkeletonloaderTeamList";
 import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
-import { SENDER_ID, WEBAPP_URL } from "@calcom/lib/constants";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
@@ -21,7 +19,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Badge, Icon, Button, Form, showToast, ButtonGroup } from "@calcom/ui";
+import { Alert, Badge, Button, Form, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -227,194 +225,147 @@ function WorkflowPage({
     },
   });
 
-  const features = [
-    {
-      icon: <Icon name="phone" className="h-5 w-5 text-orange-500" />,
-      description: t("workflow_example_1"),
-    },
-    {
-      icon: <Icon name="message-circle-reply" className="h-5 w-5 text-lime-500" />,
-      description: t("workflow_example_2"),
-    },
-    {
-      icon: <Icon name="mail-plus" className="h-5 w-5 text-blue-500" />,
-      description: t("workflow_example_3"),
-    },
-    {
-      icon: <Icon name="bell-plus" className="h-5 w-5 text-teal-500" />,
-      description: t("workflow_example_4"),
-    },
-    {
-      icon: <Icon name="calendar-sync" className="h-5 w-5 text-yellow-500" />,
-      description: t("workflow_example_5"),
-    },
-    {
-      icon: <Icon name="message-circle-plus" className="h-5 w-5 text-violet-500" />,
-      description: t("workflow_example_6"),
-    },
-  ];
-
   return session.data ? (
     <Shell withoutSeo={true} withoutMain backPath="/workflows">
       <LicenseRequired>
-        <UpgradeTip
-          plan="team"
-          title={t("teams_plan_required")}
-          description={t("utilize_workflows_to_send")}
-          features={features}
-          background="/tips/routing-forms"
-          isParentLoading={<SkeletonLoaderTeamList />}
-          buttons={
-            <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
-              <ButtonGroup>
-                <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
-                  {t("upgrade")}
-                </Button>
-                <Button color="minimal" href="https://go.cal.com/teams-video" target="_blank">
-                  {t("learn_more")}
-                </Button>
-              </ButtonGroup>
-            </div>
-          }>
-          <Form
-            form={form}
-            handleSubmit={async (values) => {
-              let activeOnIds: number[] = [];
-              let isEmpty = false;
-              let isVerified = true;
+        <Form
+          form={form}
+          handleSubmit={async (values) => {
+            let activeOnIds: number[] = [];
+            let isEmpty = false;
+            let isVerified = true;
 
-              values.steps.forEach((step) => {
-                const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+            values.steps.forEach((step) => {
+              const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
 
-                const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
+              const isBodyEmpty = !isSMSOrWhatsappAction(step.action) && strippedHtml.length <= 1;
 
-                if (isBodyEmpty) {
-                  form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
-                    type: "custom",
-                    message: t("fill_this_field"),
-                  });
-                }
-
-                if (step.reminderBody) {
-                  step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
-                    locale: i18n.language,
-                    t,
-                  });
-                }
-                if (step.emailSubject) {
-                  step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
-                    locale: i18n.language,
-                    t,
-                  });
-                }
-                isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
-
-                //check if phone number is verified
-                if (
-                  (step.action === WorkflowActions.SMS_NUMBER ||
-                    step.action === WorkflowActions.WHATSAPP_NUMBER) &&
-                  !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
-                ) {
-                  isVerified = false;
-
-                  form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                    type: "custom",
-                    message: t("not_verified"),
-                  });
-                }
-
-                if (
-                  step.action === WorkflowActions.EMAIL_ADDRESS &&
-                  !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
-                ) {
-                  isVerified = false;
-
-                  form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
-                    type: "custom",
-                    message: t("not_verified"),
-                  });
-                }
-              });
-
-              if (!isEmpty && isVerified) {
-                if (values.activeOn) {
-                  activeOnIds = values.activeOn
-                    .filter((option) => option.value !== "all")
-                    .map((option) => {
-                      return parseInt(option.value, 10);
-                    });
-                }
-                updateMutation.mutate({
-                  id: workflowId,
-                  name: values.name,
-                  activeOn: activeOnIds,
-                  steps: values.steps,
-                  trigger: values.trigger,
-                  time: values.time || null,
-                  timeUnit: values.timeUnit || null,
-                  isActiveOnAll: values.selectAll || false,
+              if (isBodyEmpty) {
+                form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+                  type: "custom",
+                  message: t("fill_this_field"),
                 });
-                utils.viewer.workflows.getVerifiedNumbers.invalidate();
               }
-            }}>
-            <ShellMain
-              backPath="/workflows"
-              title={workflow && workflow.name ? workflow.name : "Untitled"}
-              CTA={
-                !readOnly && (
-                  <div>
-                    <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
-                      {t("save")}
-                    </Button>
-                  </div>
-                )
+
+              if (step.reminderBody) {
+                step.reminderBody = translateVariablesToEnglish(step.reminderBody, {
+                  locale: i18n.language,
+                  t,
+                });
               }
-              hideHeadingOnMobile
-              heading={
-                isAllDataLoaded && (
-                  <div className="flex">
-                    <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
-                      {workflow && workflow.name ? workflow.name : "untitled"}
-                    </div>
-                    {workflow && workflow.team && (
-                      <Badge className="ml-4 mt-1" variant="gray">
-                        {workflow.team.name}
-                      </Badge>
-                    )}
-                    {readOnly && (
-                      <Badge className="ml-4 mt-1" variant="gray">
-                        {t("readonly")}
-                      </Badge>
-                    )}
+              if (step.emailSubject) {
+                step.emailSubject = translateVariablesToEnglish(step.emailSubject, {
+                  locale: i18n.language,
+                  t,
+                });
+              }
+              isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+              //check if phone number is verified
+              if (
+                (step.action === WorkflowActions.SMS_NUMBER ||
+                  step.action === WorkflowActions.WHATSAPP_NUMBER) &&
+                !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+              ) {
+                isVerified = false;
+
+                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                  type: "custom",
+                  message: t("not_verified"),
+                });
+              }
+
+              if (
+                step.action === WorkflowActions.EMAIL_ADDRESS &&
+                !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
+              ) {
+                isVerified = false;
+
+                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                  type: "custom",
+                  message: t("not_verified"),
+                });
+              }
+            });
+
+            if (!isEmpty && isVerified) {
+              if (values.activeOn) {
+                activeOnIds = values.activeOn
+                  .filter((option) => option.value !== "all")
+                  .map((option) => {
+                    return parseInt(option.value, 10);
+                  });
+              }
+              updateMutation.mutate({
+                id: workflowId,
+                name: values.name,
+                activeOn: activeOnIds,
+                steps: values.steps,
+                trigger: values.trigger,
+                time: values.time || null,
+                timeUnit: values.timeUnit || null,
+                isActiveOnAll: values.selectAll || false,
+              });
+              utils.viewer.workflows.getVerifiedNumbers.invalidate();
+            }
+          }}>
+          <ShellMain
+            backPath="/workflows"
+            title={workflow && workflow.name ? workflow.name : "Untitled"}
+            CTA={
+              !readOnly && (
+                <div>
+                  <Button data-testid="save-workflow" type="submit" loading={updateMutation.isPending}>
+                    {t("save")}
+                  </Button>
+                </div>
+              )
+            }
+            hideHeadingOnMobile
+            heading={
+              isAllDataLoaded && (
+                <div className="flex">
+                  <div className={classNames(workflow && !workflow.name ? "text-muted" : "")}>
+                    {workflow && workflow.name ? workflow.name : "untitled"}
                   </div>
-                )
-              }>
-              {!isError ? (
-                <>
-                  {isAllDataLoaded && user ? (
-                    <>
-                      <WorkflowDetailsPage
-                        form={form}
-                        workflowId={+workflowId}
-                        user={user}
-                        selectedOptions={selectedOptions}
-                        setSelectedOptions={setSelectedOptions}
-                        teamId={workflow ? workflow.teamId || undefined : undefined}
-                        readOnly={readOnly}
-                        isOrg={isOrg}
-                        allOptions={isOrg ? teamOptions : allEventTypeOptions}
-                      />
-                    </>
-                  ) : (
-                    <SkeletonLoader />
+                  {workflow && workflow.team && (
+                    <Badge className="ml-4 mt-1" variant="gray">
+                      {workflow.team.name}
+                    </Badge>
                   )}
-                </>
-              ) : (
-                <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
-              )}
-            </ShellMain>
-          </Form>
-        </UpgradeTip>
+                  {readOnly && (
+                    <Badge className="ml-4 mt-1" variant="gray">
+                      {t("readonly")}
+                    </Badge>
+                  )}
+                </div>
+              )
+            }>
+            {!isError ? (
+              <>
+                {isAllDataLoaded && user ? (
+                  <>
+                    <WorkflowDetailsPage
+                      form={form}
+                      workflowId={+workflowId}
+                      user={user}
+                      selectedOptions={selectedOptions}
+                      setSelectedOptions={setSelectedOptions}
+                      teamId={workflow ? workflow.teamId || undefined : undefined}
+                      readOnly={readOnly}
+                      isOrg={isOrg}
+                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
+                    />
+                  </>
+                ) : (
+                  <SkeletonLoader />
+                )}
+              </>
+            ) : (
+              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
+            )}
+          </ShellMain>
+        </Form>
       </LicenseRequired>
     </Shell>
   ) : (
