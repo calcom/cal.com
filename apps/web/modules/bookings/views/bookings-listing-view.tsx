@@ -1,6 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -201,8 +200,6 @@ function BookingsContent({ status }: BookingsProps) {
       })
     )[0] || [];
 
-  const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
@@ -211,7 +208,7 @@ function BookingsContent({ status }: BookingsProps) {
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />
       <main className="w-full">
-        <div className="flex w-full flex-col" ref={animationParentRef}>
+        <div className="flex w-full flex-col">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
