@@ -23,14 +23,8 @@ const AddCertificate = () => {
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      const fileData = {
-        uri: URL.createObjectURL(selectedFile),
-        name: selectedFile.name,
-        type: selectedFile.type,
-      } as unknown as File;
-      setA1Src(fileData);
-    }
+
+    setA1Src(selectedFile as File);
   };
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
