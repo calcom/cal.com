@@ -42,11 +42,8 @@ export const ZTriggerFormSubmittedNoEventWebhookPayloadSchema = z.object({
 });
 
 export async function triggerFormSubmittedNoEventWebhook(payload: string): Promise<void> {
-  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ payload:", payload);
   const { webhook, responseId, form, redirect, responses } =
     ZTriggerFormSubmittedNoEventWebhookPayloadSchema.parse(JSON.parse(payload));
-  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ responseId:", responseId);
-
   const bookingFromResponse = await prisma.booking.findFirst({
     where: {
       routedFromRoutingFormReponse: {
@@ -84,8 +81,6 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
       return typeof value === "string" && value.includes("@");
     }
   )?.value;
-  console.log("🚀 ~ triggerFormSubmittedNoEventWebhook ~ emailValue:", emailValue);
-
   // Check for duplicate email in recent responses
   const hasDuplicate =
     emailValue &&
@@ -120,7 +115,7 @@ export async function triggerFormSubmittedNoEventWebhook(payload: string): Promi
   });
 
   // See if there are other incomplete booking actions
-  const incompleteBookingActions = await prisma.app_RoutingForms_IncompleteBooking_Actions.findMany({
+  const incompleteBookingActions = await prisma.app_RoutingForms_IncompleteBookingActions.findMany({
     where: {
       formId: form.id,
     },
