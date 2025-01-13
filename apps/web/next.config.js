@@ -295,7 +295,7 @@ const nextConfig = {
     const beforeFiles = [
       {
         source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
+        destination: "/routing/routing-link/:formQuery*",
       },
       {
         source: "/success/:path*",
