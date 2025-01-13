@@ -33,8 +33,6 @@ export async function handleAutoLock({
     return false;
   }
 
-  console.log("FOUND_UPSTASH_ENV", UPSTASH_ENV_FOUND);
-
   const redis = new RedisService();
 
   let identifier = identifierKeyword
@@ -42,7 +40,6 @@ export async function handleAutoLock({
     : _identifier;
 
   if (identifierType === "ip") {
-    console.log("Hashed IP", crypto.createHash("sha256").update(identifier).digest("hex"));
     identifier = crypto.createHash("sha256").update(identifier).digest("hex");
   }
 
@@ -80,8 +77,6 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS", ident
     return;
   }
 
-  console.log("FOUND_UPSTASH_ENV", UPSTASH_ENV_FOUND);
-
   const redis = new RedisService();
 
   switch (identifierType) {
@@ -98,7 +93,6 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS", ident
       });
       break;
     case "ip":
-      console.log("Locking IP - (hashed)", identifier);
       await redis.set(`ip:${identifier}`, "locked");
       await redis.expire(`ip:${identifier}`, Math.floor(DEFAULT_AUTOLOCK_DURATION / 1000));
       break;
