@@ -99,13 +99,17 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "api
     case "apiKey":
       const hashedApiKey = hashAPIKey(identifier);
       const apiKey = await prisma.apiKey.findUnique({
-        where: { key: hashedApiKey },
-        select: {
+        where: { hashedKey: hashedApiKey },
+        include: {
           user: {
-            id: true,
+            select: { id: true },
           },
         },
       });
+
+      if (!apiKey || !apiKey.user) {
+        throw new Error("No user found for this API key.");
+      }
       await prisma.user.update({
         where: { id: apiKey.user.id },
         data: { locked: true },

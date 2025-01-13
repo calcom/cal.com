@@ -2,6 +2,7 @@ import type { NextMiddleware } from "next-api-middleware";
 
 import { handleAutoLock } from "@calcom/lib/autoLock";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { HttpError } from "@calcom/lib/http-error";
 
 export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
@@ -17,7 +18,7 @@ export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
         res.setHeader("X-RateLimit-Reset", response.reset);
 
         const didLock = await handleAutoLock({
-          identifier: req.query.apiKey,
+          identifier: req.query.apiKey as string, // Casting as this is verified in another middleware
           identifierType: "apiKey",
           rateLimitResponse: response,
         });
