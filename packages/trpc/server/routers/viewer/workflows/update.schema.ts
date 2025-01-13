@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 import {
+  ATTENDEE_WORKFLOW_TEMPLATES,
   TIME_UNIT,
   WORKFLOW_ACTIONS,
-  WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calcom/features/ee/workflows/lib/constants";
 
@@ -20,7 +20,7 @@ export const ZUpdateInputSchema = z.object({
       sendTo: z.string().nullable(),
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
-      template: z.enum(WORKFLOW_TEMPLATES),
+      template: z.enum(ATTENDEE_WORKFLOW_TEMPLATES),
       numberRequired: z.boolean().nullable(),
       sender: z.string().nullable(),
       senderName: z.string().nullable(),
