@@ -86,11 +86,13 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           length: true,
           hidden: true,
           hosts: {
+            take: 3,
             select: {
               user: {
                 select: {
                   name: true,
                   username: true,
+                  email: true,
                 },
               },
             },
@@ -135,6 +137,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       where: { id: eventTypeId },
       select: {
         users: {
+          take: 1,
           select: {
             username: true,
             name: true,
@@ -143,15 +146,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     });
 
-    users =
-      data.length > 0
-        ? [
-            {
-              username: data[0].username ?? "",
-              name: data[0].name ?? "",
-            },
-          ]
-        : [];
+    if (data.length > 0) {
+      users = [
+        {
+          username: data[0].username ?? "",
+          name: data[0].name ?? "",
+        },
+      ];
+    }
   }
 
   const orgSlug = isValidOrgDomain ? currentOrgDomain : null;

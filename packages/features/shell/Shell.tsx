@@ -1,12 +1,11 @@
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
-import React, { cloneElement, useEffect } from "react";
+import React, { cloneElement } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import classNames from "@calcom/lib/classNames";
@@ -16,7 +15,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
-import usePostHog from "../ee/event-tracking/lib/posthog/userPostHog";
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
 import { BannerContainer } from "./banners/LayoutBanner";
@@ -27,18 +25,11 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-  const postHog = usePostHog();
-  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
+  const isFullPageWithoutSidebar = pathname?.startsWith("/routing/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
-  useBootIntercom();
-  useFormbricks();
 
-  useEffect(() => {
-    if (!props.isPublic) {
-      postHog.identify();
-    }
-  }, [props.isPublic, postHog]);
+  useFormbricks();
 
   return (
     <>
@@ -147,23 +138,26 @@ export function ShellMain(props: LayoutProps) {
 
   const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
+  const backPath = props.backPath;
+  // Replace multiple leading slashes with a single slash
+  // e.g., `//routing/forms` -> `/routing/forms`
+  const validBackPath = typeof backPath === "string" ? backPath.replace(/^\/+/, "/") : null;
+
   return (
     <>
-      {(props.heading || !!props.backPath) && (
+      {(props.heading || !!backPath) && (
         <div
           className={classNames(
             "flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
             props.hideHeadingOnMobile ? "mb-0" : "mb-6"
           )}>
-          {!!props.backPath && (
+          {!!backPath && (
             <Button
               variant="icon"
               size="sm"
               color="minimal"
-              onClick={() =>
-                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-              }
+              onClick={() => (validBackPath ? router.push(validBackPath) : router.back())}
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"

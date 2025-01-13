@@ -3,30 +3,47 @@
   "pipeline": {
     "@calcom/prisma#build": {
       "cache": false,
-      "dependsOn": ["post-install"]
+      "dependsOn": [
+        "post-install"
+      ]
     },
     "@calcom/prisma#db-migrate": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-up"],
-      "inputs": ["./schema.prisma", "./migrations/**/*.sql"]
+      "dependsOn": [
+        "@calcom/prisma#db-up"
+      ],
+      "inputs": [
+        "./schema.prisma",
+        "./migrations/**/*.sql"
+      ]
     },
     "@calcom/prisma#db-seed": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": [
+        "@calcom/prisma#db-migrate"
+      ]
     },
     "@calcom/prisma#db-up": {
       "cache": false
     },
     "@calcom/prisma#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#db-migrate"]
+      "dependsOn": [
+        "@calcom/prisma#db-migrate"
+      ]
     },
     "@calcom/trpc#build": {
-      "outputs": ["./types"]
+      "outputs": [
+        "./types"
+      ]
     },
     "@calcom/web#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**"
+      ],
       "env": [
         "NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL",
         "NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD",
@@ -52,14 +69,18 @@
     },
     "@calcom/web#dx": {
       "cache": false,
-      "dependsOn": ["@calcom/prisma#dx"]
+      "dependsOn": [
+        "@calcom/prisma#dx"
+      ]
     },
     "@calcom/web#start": {
       "cache": false,
       "dependsOn": []
     },
     "@calcom/api-v2#build": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "env": [
         "NODE_ENV",
         "API_PORT",
@@ -84,8 +105,12 @@
       ]
     },
     "@calcom/website#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**"],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**"
+      ],
       "env": [
         "CSP_POLICY",
         "DATABASE_URL",
@@ -114,32 +139,57 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID"
+        "MOTIFLAND_DOCS_PROJECT_ID",
+        "PLAIN_HMAC_SECRET_KEY",
+        "PLAIN_API_KEY",
+        "PLAIN_API_URL",
+        "PLAIN_CHAT_ID",
+        "PLAIN_CHAT_HMAC_SECRET_KEY",
+        "NEXT_PUBLIC_PLAIN_CHAT_EXCLUDED_PATHS"
       ]
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
     },
     "db-deploy": {
       "cache": false,
-      "inputs": ["./migrations/**/*.sql", "./prisma/migrations/**/*.sql"]
+      "inputs": [
+        "./migrations/**/*.sql",
+        "./prisma/migrations/**/*.sql"
+      ]
     },
     "db-seed": {},
     "deploy": {
       "cache": false,
-      "dependsOn": ["@calcom/web#build"]
+      "dependsOn": [
+        "@calcom/web#build"
+      ]
     },
     "clean": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": [
+        "//#env-check:common",
+        "//#env-check:app-store"
+      ],
       "cache": false
     },
     "dx": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": [
+        "//#env-check:common",
+        "//#env-check:app-store"
+      ],
       "cache": false
     },
     "lint": {
@@ -150,28 +200,50 @@
     },
     "lint:report": {
       "cache": false,
-      "outputs": ["lint-results"]
+      "outputs": [
+        "lint-results"
+      ]
     },
     "post-install": {
       "dependsOn": [],
-      "outputs": ["../../node_modules/@prisma/client/**", "../../node_modules/@prisma/admin-client/**"],
-      "inputs": ["./schema.prisma", "./prisma/schema.prisma"],
-      "env": ["PRISMA_GENERATE_DATAPROXY"]
+      "outputs": [
+        "../../node_modules/@prisma/client/**",
+        "../../node_modules/@prisma/admin-client/**"
+      ],
+      "inputs": [
+        "./schema.prisma",
+        "./prisma/schema.prisma"
+      ],
+      "env": [
+        "PRISMA_GENERATE_DATAPROXY"
+      ]
     },
     "@calcom/prisma#post-install": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "start": {
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "embed-tests": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "embed-tests-quick": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "type-check": {
       "cache": false
@@ -181,20 +253,36 @@
     },
     "@calcom/prisma#db-reset": {
       "cache": false,
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "@calcom/app-store-cli#build": {
       "cache": false,
-      "inputs": ["../../app-store/**/**"],
-      "outputs": ["../../app-store/apps.server.generated.ts", "../../app-store/apps.browser.generated.tsx"]
+      "inputs": [
+        "../../app-store/**/**"
+      ],
+      "outputs": [
+        "../../app-store/apps.server.generated.ts",
+        "../../app-store/apps.browser.generated.tsx"
+      ]
     },
     "@calcom/embed-react#type-check": {
-      "dependsOn": ["@calcom/embed-core#build", "@calcom/embed-snippet#build"],
-      "outputs": ["dist/**", "build/**"]
+      "dependsOn": [
+        "@calcom/embed-core#build",
+        "@calcom/embed-snippet#build"
+      ],
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "@calcom/embed-core#build": {
       "cache": false,
-      "outputs": ["../../../apps/web/public/embed/**"],
+      "outputs": [
+        "../../../apps/web/public/embed/**"
+      ],
       "env": [
         "EMBED_PUBLIC_VERCEL_URL",
         "EMBED_PUBLIC_WEBAPP_URL",
@@ -210,40 +298,44 @@
         "^build",
         "^embed-tests-update-snapshots:ci"
       ],
-      "outputs": ["dist/**", "build/**"]
+      "outputs": [
+        "dist/**",
+        "build/**"
+      ]
     },
     "//#env-check:common": {
       "cache": false,
-      "inputs": ["./.env.example", "./.env"],
-      "outputs": ["./.env"]
+      "inputs": [
+        "./.env.example",
+        "./.env"
+      ],
+      "outputs": [
+        "./.env"
+      ]
     },
     "//#env-check:app-store": {
       "cache": false,
-      "inputs": ["./.env.appStore.example", "./.env.appStore"],
-      "outputs": ["./.env.appStore"]
+      "inputs": [
+        "./.env.appStore.example",
+        "./.env.appStore"
+      ],
+      "outputs": [
+        "./.env.appStore"
+      ]
     },
     "//#test": {
       "cache": false
     }
   },
-  "globalDependencies": ["yarn.lock"],
+  "globalDependencies": [
+    "yarn.lock"
+  ],
   "globalEnv": [
     "AB_TEST_BUCKET_PROBABILITY",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "API_KEY_PREFIX",
-    "APP_ROUTER_APPS_CATEGORIES_CATEGORY_ENABLED",
-    "APP_ROUTER_APPS_CATEGORIES_ENABLED",
-    "APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED",
-    "APP_ROUTER_APPS_SLUG_ENABLED",
-    "APP_ROUTER_APPS_SLUG_SETUP_ENABLED",
-    "APP_ROUTER_BOOKING_ENABLED",
-    "APP_ROUTER_BOOKINGS_STATUS_ENABLED",
-    "APP_ROUTER_EVENT_TYPES_ENABLED",
-    "APP_ROUTER_GETTING_STARTED_STEP_ENABLED",
     "APP_ROUTER_TEAM_ENABLED",
-    "APP_ROUTER_TEAMS_ENABLED",
-    "APP_ROUTER_AVAILABILITY_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
@@ -315,6 +407,7 @@
     "HUBSPOT_CLIENT_ID",
     "HUBSPOT_CLIENT_SECRET",
     "INTEGRATION_TEST_MODE",
+    "IS_E2E",
     "INTERCOM_SECRET",
     "INTERCOM_SECRET",
     "INSIGHTS_DATABASE_URL",
@@ -449,6 +542,7 @@
     "VAPID_PRIVATE_KEY",
     "HUDDLE01_API_TOKEN",
     "REPLEXICA_API_KEY",
-    "DIRECTORY_IDS_TO_LOG"
+    "DIRECTORY_IDS_TO_LOG",
+    "NEXT_PUBLIC_SINGLE_ORG_SLUG"
   ]
 }

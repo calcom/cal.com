@@ -1,7 +1,7 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import {
   bookingResponsesSchema,
-  seatedBookingResponsesSchema,
+  seatedBookingDataSchema,
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
@@ -160,9 +160,14 @@ export class InputBookingsService_2024_08_13 {
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+          },
     };
   }
 
@@ -340,7 +345,7 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
+    const { responses: bookingResponses } = seatedBookingDataSchema.parse(seat.data);
     const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {

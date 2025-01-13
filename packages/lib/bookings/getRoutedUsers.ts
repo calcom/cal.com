@@ -70,13 +70,14 @@ async function findMatchingTeamMembersIdsForEventRRSegment(eventType: EventType)
     return null;
   }
 
-  if (!eventType.team) {
+  if (!eventType.team || !eventType.team.parentId) {
     return null;
   }
 
   const { teamMembersMatchingAttributeLogic } = await findTeamMembersMatchingAttributeLogic({
     attributesQueryValue: eventType.rrSegmentQueryValue ?? null,
     teamId: eventType.team.id,
+    orgId: eventType.team.parentId,
   });
   if (!teamMembersMatchingAttributeLogic) {
     return teamMembersMatchingAttributeLogic;
@@ -102,7 +103,7 @@ type EventType = {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   rrSegmentQueryValue: AttributesQueryValue | null | undefined;
-  team: { id: number } | null;
+  team: { id: number; parentId: number | null } | null;
 };
 
 export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<User>>({

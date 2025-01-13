@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
 import { IsString, ValidateNested, IsEnum, IsNumber, IsOptional, IsBoolean } from "class-validator";
 
@@ -20,7 +20,11 @@ export class ConferencingAppsOutputDto {
   @IsNumber()
   userId!: number;
 
-  @ApiProperty({ example: true, description: "Whether if the connection is working or not." })
+  @ApiPropertyOptional({
+    example: true,
+    description: "Whether if the connection is working or not.",
+    nullable: true,
+  })
   @Expose()
   @IsBoolean()
   @IsOptional()
@@ -28,24 +32,26 @@ export class ConferencingAppsOutputDto {
 }
 
 export class ConferencingAppsOutputResponseDto {
-  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @ApiProperty({ type: String, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @Expose()
-  @ValidateNested()
+  @ValidateNested({ each: true })
   @Type(() => ConferencingAppsOutputDto)
+  @ApiProperty({ type: [ConferencingAppsOutputDto] })
   data!: ConferencingAppsOutputDto[];
 }
 
 export class ConferencingAppOutputResponseDto {
-  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @ApiProperty({ type: String, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @Expose()
   @ValidateNested()
   @Type(() => ConferencingAppsOutputDto)
+  @ApiProperty({ type: ConferencingAppsOutputDto })
   data!: ConferencingAppsOutputDto;
 }
 
