@@ -24,7 +24,7 @@ import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/rout
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -274,7 +274,7 @@ async function getEnrichedUsersWithCredentialsConsideringContactOwner({
 
   const hostsWithDwdCredentials = await Promise.all(
     hostsWithContactOwner.map(async (host) => {
-      const dwdCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+      const dwdCredentials = await getAllDwdCalendarCredentialsForUser({
         user: host,
       });
       return {

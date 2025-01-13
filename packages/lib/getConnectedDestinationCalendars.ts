@@ -1,6 +1,6 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
-import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -285,7 +285,7 @@ export async function getConnectedDestinationCalendarsAndEnsureDefaultsInDb({
     select: credentialForCalendarServiceSelect,
   });
 
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCalendarCredentialsForUser({
+  const domainWideDelegationCredentials = await getAllDwdCalendarCredentialsForUser({
     user,
   });
 

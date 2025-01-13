@@ -6,9 +6,9 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 
-import { getAllDomainWideDelegationCredentialsForUser } from "./server";
+import { getAllDwdCredentialsForUser } from "./server";
 
-describe("getAllDomainWideDelegationCredentialsForUser", () => {
+describe("getAllDwdCredentialsForUser", () => {
   setupAndTeardown();
 
   const mockUser = {
@@ -30,7 +30,7 @@ describe("getAllDomainWideDelegationCredentialsForUser", () => {
   it("should return empty array when no DWD found", async () => {
     mockFindByUser.mockResolvedValue(null);
 
-    const result = await getAllDomainWideDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
     expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
@@ -43,7 +43,7 @@ describe("getAllDomainWideDelegationCredentialsForUser", () => {
       workspacePlatform: { slug: "google" },
     });
 
-    const result = await getAllDomainWideDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
     expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
@@ -56,7 +56,7 @@ describe("getAllDomainWideDelegationCredentialsForUser", () => {
       workspacePlatform: { slug: "google" },
     });
 
-    const result = await getAllDomainWideDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
     expect(result).toHaveLength(2);
@@ -95,7 +95,7 @@ describe("getAllDomainWideDelegationCredentialsForUser", () => {
       workspacePlatform: { slug: "microsoft" },
     });
 
-    const result = await getAllDomainWideDelegationCredentialsForUser({ user: mockUser });
+    const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
     expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });

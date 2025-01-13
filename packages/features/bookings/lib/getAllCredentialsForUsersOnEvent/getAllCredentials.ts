@@ -1,6 +1,6 @@
 import type z from "zod";
 
-import { getAllDomainWideDelegationCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -120,7 +120,7 @@ export const getAllCredentials = async (
     }
   });
 
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
+  const domainWideDelegationCredentials = await getAllDwdCredentialsForUser({
     user: {
       email: user.email,
       id: user.id,

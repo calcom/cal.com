@@ -3,7 +3,7 @@ import type { TFunction } from "next-i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import { getAllDomainWideDelegationConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -80,7 +80,7 @@ export async function getLocationGroupedOptions(
   });
 
   if (user) {
-    const domainWideDelegationCredentials = await getAllDomainWideDelegationConferencingCredentialsForUser({
+    const domainWideDelegationCredentials = await getAllDwdConferencingCredentialsForUser({
       user,
     });
 

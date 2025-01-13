@@ -57,6 +57,11 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
  -  Disabling DWD maintains the user's preferences in terms of SelectedCalendars and DestinationCalendar.
 
 ## Developer Notes
+### Terminology
+- DWD Credential: A DWD service account key along with user's email becomes the DWD Credential which is an alternative to regular Credential in DB.
+- DWD: Domain Wide Delegation
+- non-dwd credential: Regular credentials that are stored in Credentials table
+
 ### How DWD works
 - We use the Cal.com user's email to impersonate that user using DWD Credential(which is just a service account key at the moment)
    - That gives us read/write permission to get availability of the user and create new events in their calendar.

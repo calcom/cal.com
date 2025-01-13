@@ -24,16 +24,10 @@ interface User {
   id: number;
 }
 
-const buildCommonUserCredential = ({
-  domainWideDelegation,
-  user,
-}: {
-  domainWideDelegation: DomainWideDelegation;
-  user: User;
-}) => {
+const buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   return {
     id: -1,
-    delegatedToId: domainWideDelegation.id,
+    delegatedToId: dwd.id,
     userId: user.id,
     user: {
       email: user.email,
@@ -47,36 +41,28 @@ const buildCommonUserCredential = ({
   };
 };
 
-const buildDomainWideDelegationCalendarCredential = ({
-  domainWideDelegation,
-  user,
-}: {
-  domainWideDelegation: DomainWideDelegation;
-  user: User;
-}) => {
-  log.debug("buildDomainWideDelegationCredential", safeStringify({ domainWideDelegation, user }));
+const buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
+  log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
   // TODO: Build for other platforms as well
-  if (domainWideDelegation.workspacePlatform.slug !== "google") {
-    log.warn(
-      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
-    );
+  if (dwd.workspacePlatform.slug !== "google") {
+    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
     return null;
   }
   return {
     type: googleCalendarMetadata.type,
     appId: googleCalendarMetadata.slug,
-    ...buildCommonUserCredential({ domainWideDelegation, user }),
+    ...buildCommonUserCredential({ dwd, user }),
   };
 };
 
-const buildDomainWideDelegationCalendarCredentialWithServiceAccountKey = ({
+const buildDwdCalendarCredentialWithServiceAccountKey = ({
   domainWideDelegation,
   user,
 }: {
   domainWideDelegation: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) => {
-  const credential = buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user });
+  const credential = buildDwdCalendarCredential({ domainWideDelegation, user });
   if (!credential) {
     return null;
   }
@@ -88,7 +74,7 @@ const buildDomainWideDelegationCalendarCredentialWithServiceAccountKey = ({
   };
 };
 
-const buildDomainWideDelegationConferencingCredential = ({
+const buildDwdConferencingCredential = ({
   domainWideDelegation,
   user,
 }: {
@@ -109,50 +95,45 @@ const buildDomainWideDelegationConferencingCredential = ({
   };
 };
 
-export async function getAllDomainWideDelegationCredentialsForUser({
-  user,
-}: {
-  user: { email: string; id: number };
-}) {
+/**
+ * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DomainWideDelegation.
+ */
+export async function getAllDwdCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
-  const domainWideDelegation = await DomainWideDelegationRepository.findByUser({
+  const dwd = await DomainWideDelegationRepository.findByUser({
     user: {
       email: user.email,
     },
   });
 
-  if (!domainWideDelegation || !domainWideDelegation.enabled) {
+  if (!dwd || !dwd.enabled) {
     return [];
   }
 
   const domainWideDelegationCredentials = [
-    buildDomainWideDelegationCalendarCredential({ domainWideDelegation, user }),
-    buildDomainWideDelegationConferencingCredential({ domainWideDelegation, user }),
+    buildDwdCalendarCredential({ dwd, user }),
+    buildDwdConferencingCredential({ dwd, user }),
   ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
   log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
   return domainWideDelegationCredentials;
 }
 
-export async function getAllDomainWideDelegationCalendarCredentialsForUser({
-  user,
-}: {
-  user: { email: string; id: number };
-}) {
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
-  return domainWideDelegationCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+export async function getAllDwdCalendarCredentialsForUser({ user }: { user: { email: string; id: number } }) {
+  const dwdCredentials = await getAllDwdCredentialsForUser({ user });
+  return dwdCredentials.filter((credential) => credential.type.endsWith("_calendar"));
 }
 
-export async function getAllDomainWideDelegationConferencingCredentialsForUser({
+export async function getAllDwdConferencingCredentialsForUser({
   user,
 }: {
   user: { email: string; id: number };
 }) {
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
-  return domainWideDelegationCredentials.filter(
+  const dwdCredentials = await getAllDwdCredentialsForUser({ user });
+  return dwdCredentials.filter(
     (credential) =>
       credential.type.endsWith("_video") ||
       credential.type.endsWith("_conferencing") ||
@@ -174,7 +155,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     return false;
   }
 
-  const credential = buildDomainWideDelegationCalendarCredentialWithServiceAccountKey({
+  const credential = buildDwdCalendarCredentialWithServiceAccountKey({
     domainWideDelegation,
     user,
   });
@@ -187,44 +168,44 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   return await googleCalendar?.testDomainWideDelegationSetup?.();
 }
 
-export async function getAllDomainWideDelegationCredentialsForUserByAppType({
+export async function getAllDwdCredentialsForUserByAppType({
   user,
   appType,
 }: {
   user: User;
   appType: string;
 }) {
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({
+  const dwdCredentials = await getAllDwdCredentialsForUser({
     user,
   });
-  return domainWideDelegationCredentials.filter((credential) => credential.type === appType);
+  return dwdCredentials.filter((credential) => credential.type === appType);
 }
 
-export async function getAllDomainWideDelegationCredentialsForUserByAppSlug({
+export async function getAllDwdCredentialsForUserByAppSlug({
   user,
   appSlug,
 }: {
   user: User;
   appSlug: string;
 }) {
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUser({ user });
-  return domainWideDelegationCredentials.filter((credential) => credential.appId === appSlug);
+  const dwdCredentials = await getAllDwdCredentialsForUser({ user });
+  return dwdCredentials.filter((credential) => credential.appId === appSlug);
 }
 
 export async function getDwdCalendarCredentialById({ id, userId }: { id: string; userId: number }) {
-  const [domainWideDelegation, user] = await Promise.all([
+  const [dwd, user] = await Promise.all([
     DomainWideDelegationRepository.findById({ id }),
     UserRepository.findById({ id: userId }),
   ]);
 
-  if (!domainWideDelegation) {
+  if (!dwd) {
     throw new Error("Domain Wide Delegation not found");
   }
   if (!user) {
     throw new Error("User not found");
   }
 
-  const dwdCredential = buildDomainWideDelegationCalendarCredential({
+  const dwdCredential = buildDwdCalendarCredential({
     domainWideDelegation,
     user,
   });

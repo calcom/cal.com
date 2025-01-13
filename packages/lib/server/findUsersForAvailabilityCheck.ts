@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { getAllDomainWideDelegationCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -29,7 +29,7 @@ export async function findUsersForAvailabilityCheck({ where }: { where: Prisma.U
   return {
     ...restUser,
     credentials: credentials.concat(
-      await getAllDomainWideDelegationCalendarCredentialsForUser({ user: restUser })
+      await getAllDwdCalendarCredentialsForUser({ user: restUser })
     ),
   };
 }

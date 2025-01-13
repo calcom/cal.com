@@ -1,4 +1,4 @@
-import { getAllDomainWideDelegationCredentialsForUserByAppType } from "@calcom/lib/domainWideDelegation/server";
+import { getAllDwdCredentialsForUserByAppType } from "@calcom/lib/domainWideDelegation/server";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -32,7 +32,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
     },
   });
 
-  const domainWideDelegationCredentials = await getAllDomainWideDelegationCredentialsForUserByAppType({
+  const domainWideDelegationCredentials = await getAllDwdCredentialsForUserByAppType({
     user: { id: user.id, email: user.email },
     appType: input.appType,
   });
