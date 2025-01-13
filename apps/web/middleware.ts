@@ -23,10 +23,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   const response = NextResponse.next();
-  console.log(
-    "MIDDLEWAREMIDDLEWAREMIDDLEWAREMIDDLEWAREMIDDLEWAREMIDDLEWARE",
-    response.headers.get("x-pages-router-error")
-  );
+
   if (response.headers.get("x-pages-router-error") === "true") {
     return NextResponse.rewrite(new URL("/_not-found", req.url));
   }
