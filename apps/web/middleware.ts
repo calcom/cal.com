@@ -22,12 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-  const response = NextResponse.next();
-
-  if (response.headers.get("x-pages-router-error") === "true") {
-    return NextResponse.rewrite(new URL("/_not-found", req.url));
-  }
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
