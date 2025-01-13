@@ -7,9 +7,8 @@ export const ZSaveIncompleteBookingSettingsInputSchema = z.object({
   actionType: z.nativeEnum(IncompleteBookingActionType),
   data: z.record(z.any()).optional(),
   enabled: z.boolean(),
-  credentialId: z.number().optional(),
 });
 
 export type TSaveIncompleteBookingSettingsInputSchema = z.infer<
-  typeof ZSaveIncompleteBookingSettingsInputSchema
+  typeof ZGetIncompleteBookingSettingsInputSchema
 >;
