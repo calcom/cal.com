@@ -1,5 +1,5 @@
 import type { ChangeEvent, FormEvent } from "react";
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Button, Input } from "@calcom/ui";
 
@@ -15,6 +15,11 @@ const AddCertificate = () => {
   const [retypeA1Password, setretypeA1Password] = useState<string>("");
   const [incorrectPassword, setIncorrectPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const disabledButton = useMemo(() => {
+    const emptyFields = retypeA1Password === "" || a1Password === "" || !a1Src;
+    return emptyFields || a1Password !== retypeA1Password;
+  }, [a1Password, a1Src, retypeA1Password]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -40,7 +45,6 @@ const AddCertificate = () => {
     fetch(`${SPEDY_BASE_URL}/companies/04a39244-f0c9-49f5-8ca6-b2600147636f/certificates`, {
       method: "POST",
       headers: {
-        "Content-Type": "multipart/form-data",
         "X-Api-Key": SPEDY_API_KEY,
       },
       body: formData,
@@ -150,7 +154,7 @@ const AddCertificate = () => {
       </fieldset>
       <Button
         loading={isLoading}
-        disabled={a1Password !== retypeA1Password && (retypeA1Password === "" || a1Password === "" || !a1Src)}
+        disabled={disabledButton}
         EndIcon="arrow-right"
         type="submit"
         className="mt-8 w-full items-center justify-center">
