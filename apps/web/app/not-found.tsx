@@ -2,6 +2,7 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -51,6 +52,10 @@ async function NotFound() {
   const headersList = headers();
   const host = headersList.get("x-forwarded-host") ?? "";
   const pathname = headersList.get("x-pathname") ?? "";
+
+  if (!pathname) {
+    redirect("/500");
+  }
 
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
