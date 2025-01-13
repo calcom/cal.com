@@ -38,7 +38,10 @@
 
 ### Important
   - Bugs
-    - [ ] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
+    - [ ] For RR event, if I am able to see the slots for a blocked day in calendar(by temporarily unselecting the calendar), and then we enable the calendar back, the blocked day can be booked.
+      - [ ] Not using Goole Meet with Default conferencing app.
+    - [x] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
+        - The issue was in getAttendees in Google CalendarService not using externalCalendarId.
     - [ ] Restrict toggling
     - [x] Duplicate Calendar connections in 'apps/installed' if a user already had connected calendar and DWD is enabled.
     - [x] Calendar Cache has credentialId column which isn't applicable for DWD(Solution: Added userId there)

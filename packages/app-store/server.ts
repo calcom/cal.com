@@ -53,7 +53,7 @@ export async function getLocationGroupedOptions(
     }
   } else {
     idToSearchObject = { userId: userOrTeamId.userId };
-    user = await prisma.user.findFirst({
+    user = await prisma.user.findUnique({
       where: {
         id: userOrTeamId.userId,
       },
@@ -80,12 +80,12 @@ export async function getLocationGroupedOptions(
   });
 
   if (user) {
-    const domainWideDelegationCredentials = await getAllDwdConferencingCredentialsForUser({
+    const dwdCredentials = await getAllDwdConferencingCredentialsForUser({
       user,
     });
 
-    // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.  
-    credentials = [...credentials, ...domainWideDelegationCredentials];
+    // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.
+    credentials = [...dwdCredentials, ...credentials];
   }
 
   const integrations = await getEnabledAppsFromCredentials(credentials, { filterOnCredentials: true });
