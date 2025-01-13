@@ -234,10 +234,14 @@ class BookingCreatedService {
     const deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
     const scheduleTriggerPromises = [];
 
+    const bookingWithCalEventResponses = {
+      ...booking,
+      responses: reqBody.calEventResponses,
+    };
     for (const subscriber of subscribersMeetingEnded) {
       scheduleTriggerPromises.push(
         scheduleTrigger({
-          booking,
+          booking: bookingWithCalEventResponses,
           subscriberUrl: subscriber.subscriberUrl,
           subscriber,
           triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -248,7 +252,7 @@ class BookingCreatedService {
     for (const subscriber of subscribersMeetingStarted) {
       scheduleTriggerPromises.push(
         scheduleTrigger({
-          booking,
+          booking: bookingWithCalEventResponses,
           subscriberUrl: subscriber.subscriberUrl,
           subscriber,
           triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
