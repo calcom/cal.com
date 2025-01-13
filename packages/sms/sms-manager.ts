@@ -3,6 +3,7 @@ import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSende
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -76,10 +77,10 @@ export default abstract class SMSManager {
 
   async sendSMSToAttendee(attendee: Person) {
     const teamId = this.teamId;
-    if (!this.isTeamEvent || !teamId) return;
-
     const attendeePhoneNumber = attendee.phoneNumber;
-    if (!attendeePhoneNumber) return;
+    const isPhoneOnlyBooking = attendeePhoneNumber && isSmsCalEmail(attendee.email);
+
+    if (!this.isTeamEvent || !teamId || !attendeePhoneNumber || !isPhoneOnlyBooking) return;
 
     const smsMessage = this.getMessage(attendee);
     const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
