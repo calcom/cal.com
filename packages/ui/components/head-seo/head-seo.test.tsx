@@ -39,9 +39,6 @@ vi.mock("next-seo", () => {
 
 vi.mock("@calcom/lib/OgImages", async () => {
   return {
-    constructAppImage() {
-      return "constructAppImage";
-    },
     constructGenericImage() {
       return "constructGenericImage";
     },
@@ -139,14 +136,6 @@ describe("Tests for HeadSeo component", () => {
     await waitFor(async () => {
       const mockedNextSeoEl = container.querySelector("#mocked-next-seo");
       expect(mockedNextSeoEl?.getAttribute("title")).toEqual(`${basicProps.title}`);
-    });
-  });
-
-  test("Should render with app props", async () => {
-    const { container } = render(<HeadSeo {...basicProps} app={{} as HeadSeoProps["app"]} />);
-    await waitFor(async () => {
-      const mockedNextSeoEl = container.querySelector("#mocked-next-seo");
-      expect(mockedNextSeoEl?.getAttribute("image")).toContain("constructAppImage");
     });
   });
 

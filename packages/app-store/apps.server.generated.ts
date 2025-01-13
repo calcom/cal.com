@@ -34,6 +34,7 @@ export const apiHandlers = {
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
   googlevideo: import("./googlevideo/api"),
+  granola: import("./granola/api"),
   gtm: import("./gtm/api"),
   "horizon-workrooms": import("./horizon-workrooms/api"),
   hubspot: import("./hubspot/api"),
