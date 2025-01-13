@@ -69,7 +69,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
         salesforceAction.data
       );
       if (parsedSalesforceActionData.success) {
-        setSalesforceWriteToRecordObject(parsedSalesforceActionData.data?.writeToRecordObject ?? []);
+        setSalesforceWriteToRecordObject(parsedSalesforceActionData.data?.writeToRecordObject ?? {});
       }
     }
   }, [data]);
@@ -253,7 +253,7 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
       <div className="mt-2 flex justify-end">
         <Button
           size="sm"
-          disabled={mutation.isLoading}
+          disabled={mutation.isPending}
           onClick={() => {
             mutation.mutate({
               formId: form.id,
