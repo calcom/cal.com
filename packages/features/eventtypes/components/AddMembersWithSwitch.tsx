@@ -63,6 +63,7 @@ const CheckedHostField = ({
   helperText,
   isRRWeightsEnabled,
   customClassNames,
+  assignAllTeamMembers,
   ...rest
 }: {
   labelText?: string;
@@ -73,18 +74,26 @@ const CheckedHostField = ({
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
   isRRWeightsEnabled?: boolean;
+  assignAllTeamMembers?: boolean;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
       <div>
         {labelText ? <Label>{labelText}</Label> : <></>}
         <CheckedTeamSelect
-          isOptionDisabled={(option) => !!value.find((host) => host.userId.toString() === option.value)}
-          onChange={(options) => {
+          assignAllTeamMembers={assignAllTeamMembers}
+          isFixed={isFixed}
+          isOptionDisabled={(option) => {
+            if (assignAllTeamMembers && isFixed) {
+              return !!value.find((host) => host.isFixed && host.userId.toString() === option.value);
+            }
+            return !!value.find((host) => host.userId.toString() === option.value);
+          }}
+          onOptionChange={(options) => {
             onChange &&
               onChange(
                 options.map((option) => ({
-                  isFixed,
+                  isFixed: option.isFixed ?? isFixed,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
@@ -181,6 +190,7 @@ export type AddMembersWithSwitchProps = {
   isSegmentApplicable?: boolean;
   "data-testid"?: string;
   customClassNames?: AddMembersWithSwitchCustomClassNames;
+  onClearAllClick?: VoidFunction;
 };
 
 const enum AssignmentState {
@@ -189,6 +199,7 @@ const enum AssignmentState {
   ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE = "ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE",
   ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE = "ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE",
   TEAM_MEMBERS_IN_SEGMENT_ENABLED = "TEAM_MEMBERS_IN_SEGMENT_ENABLED",
+  FIXED_HOSTS_STATE = "FIXED_HOSTS_STATE",
 }
 
 function getAssignmentState({
@@ -196,12 +207,15 @@ function getAssignmentState({
   assignRRMembersUsingSegment,
   isAssigningAllTeamMembersApplicable,
   isSegmentApplicable,
+  isFixedHosts,
 }: {
   assignAllTeamMembers: boolean;
   assignRRMembersUsingSegment: boolean;
   isAssigningAllTeamMembersApplicable: boolean;
   isSegmentApplicable?: boolean;
+  isFixedHosts?: boolean;
 }) {
+  if (isFixedHosts) return AssignmentState.FIXED_HOSTS_STATE;
   if (assignAllTeamMembers) {
     return isSegmentApplicable
       ? AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_APPLICABLE
@@ -246,6 +260,7 @@ export function AddMembersWithSwitch({
   teamId,
   isSegmentApplicable,
   customClassNames,
+  onClearAllClick,
   ...rest
 }: AddMembersWithSwitchProps) {
   const { t } = useLocale();
@@ -262,6 +277,7 @@ export function AddMembersWithSwitch({
     assignRRMembersUsingSegment,
     isAssigningAllTeamMembersApplicable: automaticAddAllEnabled,
     isSegmentApplicable,
+    isFixedHosts: isFixed,
   });
 
   const onAssignAllTeamMembersInactive = () => {
@@ -300,10 +316,11 @@ export function AddMembersWithSwitch({
 
     case AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_NOT_APPLICABLE:
     case AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE:
+    case AssignmentState.FIXED_HOSTS_STATE:
       return (
         <>
           <div className="mb-2">
-            {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && (
+            {assignmentState === AssignmentState.TOGGLES_OFF_AND_ALL_TEAM_MEMBERS_APPLICABLE && !isFixed && (
               <AssignAllTeamMembers
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -324,6 +341,8 @@ export function AddMembersWithSwitch({
               placeholder={placeholder ?? t("add_attendees")}
               isRRWeightsEnabled={isRRWeightsEnabled}
               customClassNames={customClassNames?.teamMemberSelect}
+              assignAllTeamMembers={assignAllTeamMembers}
+              onClearAllClick={onClearAllClick}
             />
           </div>
         </>
