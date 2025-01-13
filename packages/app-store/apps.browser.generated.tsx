@@ -29,6 +29,7 @@ export const EventTypeAddonMap = {
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
   hitpay: dynamic(() => import("./hitpay/components/EventTypeAppCardInterface")),
   hubspot: dynamic(() => import("./hubspot/components/EventTypeAppCardInterface")),
+  insihts: dynamic(() => import("./insihts/components/EventTypeAppCardInterface")),
   matomo: dynamic(() => import("./matomo/components/EventTypeAppCardInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),

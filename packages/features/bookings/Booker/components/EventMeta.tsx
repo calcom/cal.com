@@ -19,6 +19,7 @@ import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -80,7 +81,9 @@ export const EventMeta = ({
   };
   locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -214,7 +217,10 @@ export const EventMeta = ({
                       container: () => "max-w-full",
                     }}
                     value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

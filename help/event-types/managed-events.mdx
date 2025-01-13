@@ -1,0 +1,40 @@
+---
+title: Managed Events
+---
+
+[![](https://downloads.intercomcdn.com/i/o/1198428692/0ac44603574fc0df4c2cffc7/i1144x588-DMzoXoeMhoFx_luyjfk.png?expires=1736325900&signature=b00aa16b00b0899b93cd602c00ce9f22f67bdfdab97423aab9b1259be9aaf2c9&req=dSEuHs18lYdWW%2FMW1HO4zVjg3v%2FeBApbuy3Bbe5ssiIJE3zT8hD37ArDwoLZ%0AgaFfE276VkYqKmilRPc%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428692/0ac44603574fc0df4c2cffc7/i1144x588-DMzoXoeMhoFx_luyjfk.png?expires=1736325900&signature=b00aa16b00b0899b93cd602c00ce9f22f67bdfdab97423aab9b1259be9aaf2c9&req=dSEuHs18lYdWW%2FMW1HO4zVjg3v%2FeBApbuy3Bbe5ssiIJE3zT8hD37ArDwoLZ%0AgaFfE276VkYqKmilRPc%3D%0A)
+
+Team admins now have the ability to manage event-types for their members, to facilitate creating common event-types for all members and managing them from one place.
+
+A managed event-type comes with certain fields locked by the team admin, and certain fields open to be modified by the team members receiving the managed event.
+
+Please take into account that Managed Events v2 do not support Webhooks and Apps. Subsequent releases of this feature will tackle them.
+## Creation
+
+Be sure to be a team admin, and in case you are self-hosting, have the \`managed-event-types\`\` operational feature flag turned on.
+
+When creating a team event-type, you will be getting the option to create a Managed Event like so:
+
+[![](https://downloads.intercomcdn.com/i/o/1198428689/658d13c25b0ca137264fe280/i1440x865-O6cdyRL2PjhC_ekdzts.png?expires=1736325900&signature=43aee7bea8286692622aa710694003e678abd47f673be0f4af48c5eb5005e993&req=dSEuHs18lYdXUPMW1HO4zYUu869t7BfcsG%2Bq1FW8BTxE6yJx3eyz5jcOByL9%0AFIVJyRpQLYdE35sPt7o%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428689/658d13c25b0ca137264fe280/i1440x865-O6cdyRL2PjhC_ekdzts.png?expires=1736325900&signature=43aee7bea8286692622aa710694003e678abd47f673be0f4af48c5eb5005e993&req=dSEuHs18lYdXUPMW1HO4zYUu869t7BfcsG%2Bq1FW8BTxE6yJx3eyz5jcOByL9%0AFIVJyRpQLYdE35sPt7o%3D%0A)
+
+## Management
+
+Once the managed event-type is created, you will be able to set all the fields you want to manage as a team admin. You can distinguish fields that will be locked by team members by the "lock" icon next to the field label, like so:
+
+[![](https://downloads.intercomcdn.com/i/o/1198428688/773f803a18253aa2a89d9a0f/i1440x865-uHGxkJQLhcQJ_gesom1.png?expires=1736325900&signature=40d08d1d6d2089a96675210bc68781269aafa27c6ed915b964f332bd5f539fbc&req=dSEuHs18lYdXUfMW1HO4zbDdLXfxx4nXDeySa4FnPx5U4BrcQ5hzmdV6Gsbq%0ATyWtO1yFP8VBxTOM%2BOE%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428688/773f803a18253aa2a89d9a0f/i1440x865-uHGxkJQLhcQJ_gesom1.png?expires=1736325900&signature=40d08d1d6d2089a96675210bc68781269aafa27c6ed915b964f332bd5f539fbc&req=dSEuHs18lYdXUfMW1HO4zbDdLXfxx4nXDeySa4FnPx5U4BrcQ5hzmdV6Gsbq%0ATyWtO1yFP8VBxTOM%2BOE%3D%0A)
+## Assignment
+
+A crucial part of a managed event-type is the assignment of team members, so managed event-types can be created on your behalf.
+
+Think of the managed-event you created as a team admin as an event template, that team members will get regular event types from it once they are assign to it.
+
+Whenever you make changes to locked fields, every team member will also get the same change on their regular event type created upon this managed event-type. Note that unlocked fields will not have any effect on already created event types for assigned members, only for new assign members.
+
+[![](https://downloads.intercomcdn.com/i/o/1198428690/1a3b31cd8694444de4065bf4/i1440x865-OGEnJZJWYYaT_vlbcoc.png?expires=1736325900&signature=49f6c0f40996297f800080d2f5ac26ada0a68f30dfd0bfc5788358f33fa1598a&req=dSEuHs18lYdWWfMW1HO4zbV3kNudgXACqBkzT6x%2FoGdfaFeooyaWiffaEin8%0AicKAdQdZON7jzxFWonI%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428690/1a3b31cd8694444de4065bf4/i1440x865-OGEnJZJWYYaT_vlbcoc.png?expires=1736325900&signature=49f6c0f40996297f800080d2f5ac26ada0a68f30dfd0bfc5788358f33fa1598a&req=dSEuHs18lYdWWfMW1HO4zbV3kNudgXACqBkzT6x%2FoGdfaFeooyaWiffaEin8%0AicKAdQdZON7jzxFWonI%3D%0A)
+
+Take into consideration that whenever you try to assign a managed event-type to a team member that already has an event-type with the same slug, you will be getting a pop-up message to confirm you want to proceed to delete the existing conflicting event-type from the team member and notify them about this so the managed-event type can be created in its place. Like so:
+
+[![](https://downloads.intercomcdn.com/i/o/1198428695/970beb20471348d62e8cb555/i1440x865-EzE4OB5J-IE0_aqui8e.png?expires=1736325900&signature=a1605ccb3a240bbb413af406cde0b18dccc1ae70a1088745e1c3b8b7aeff295b&req=dSEuHs18lYdWXPMW1HO4zXqKXoZopayl5oB7hOApF%2BA9xCsEcUam8fH%2Fe7Bc%0ArHvbQff3mzhnw2sm%2Bew%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428695/970beb20471348d62e8cb555/i1440x865-EzE4OB5J-IE0_aqui8e.png?expires=1736325900&signature=a1605ccb3a240bbb413af406cde0b18dccc1ae70a1088745e1c3b8b7aeff295b&req=dSEuHs18lYdWXPMW1HO4zXqKXoZopayl5oB7hOApF%2BA9xCsEcUam8fH%2Fe7Bc%0ArHvbQff3mzhnw2sm%2Bew%3D%0A)
+For which, team members notified will be getting the following email notification.
+
+[![](https://downloads.intercomcdn.com/i/o/1198428691/3182994c34c084e86fc0c423/i1440x865-wCPoQ4wsQacm_mp8gzw.png?expires=1736325900&signature=358a9539c9d147718f809d3d3c6f4b924533f6ad0462ab6269bf1ffb36ad625e&req=dSEuHs18lYdWWPMW1HO4zfQk1rm%2BGGYjQGVeZbOxAO0N14R4%2FmuHDj%2Fcnmyr%0AuAsn%2BGn6hPVcq9hfHqg%3D%0A)](https://downloads.intercomcdn.com/i/o/1198428691/3182994c34c084e86fc0c423/i1440x865-wCPoQ4wsQacm_mp8gzw.png?expires=1736325900&signature=358a9539c9d147718f809d3d3c6f4b924533f6ad0462ab6269bf1ffb36ad625e&req=dSEuHs18lYdWWPMW1HO4zfQk1rm%2BGGYjQGVeZbOxAO0N14R4%2FmuHDj%2Fcnmyr%0AuAsn%2BGn6hPVcq9hfHqg%3D%0A)

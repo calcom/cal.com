@@ -15,9 +15,25 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
+const isAllString = (array: (string | number)[]): array is string[] => {
+  return array.every((value) => typeof value === "string");
+};
+function getUserConditions(oAuthClientId?: string) {
+  if (!!oAuthClientId) {
+    return {
+      platformOAuthClients: {
+        some: { id: oAuthClientId },
+      },
+      isPlatformManaged: true,
+    };
+  }
+  return { isPlatformManaged: false };
+}
+
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
   const searchTerm = input.searchTerm;
+  const oAuthClientId = input.oAuthClientId;
   const expand = input.expand;
   const filters = input.filters || [];
 
@@ -62,13 +78,16 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const getTotalMembers = await prisma.membership.count({
     where: {
+      user: {
+        ...getUserConditions(oAuthClientId),
+      },
       teamId: organizationId,
     },
   });
 
   let whereClause: Prisma.MembershipWhereInput = {
     user: {
-      isPlatformManaged: false,
+      ...getUserConditions(oAuthClientId),
     },
     teamId: organizationId,
     ...(searchTerm && {
@@ -103,7 +122,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        if (filter.value.type === "multi_select") {
+        if (filter.value.type === "multi_select" && isAllString(filter.value.data)) {
           const attributeOptionValues: string[] = [];
           filter.value.data.forEach((filterValueItem) => {
             attributeOptionValues.push(filterValueItem);

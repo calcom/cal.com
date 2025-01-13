@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactElement } from "react";
+
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -7,11 +9,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
-
-import type { getServerSideProps } from "@lib/insights/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export default function InsightsLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
@@ -39,6 +36,7 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
     <div>
       <Shell
         withoutMain={false}
+        withoutSeo={true}
         heading={t("insights")}
         subtitle={t("insights_subtitle")}
         title={t("insights")}
@@ -67,3 +65,5 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
     </div>
   );
 }
+
+export const getInsightsLayout = (page: ReactElement) => <InsightsLayout>{page}</InsightsLayout>;
