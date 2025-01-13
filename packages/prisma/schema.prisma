@@ -997,7 +997,7 @@ model App_RoutingForms_Form {
   disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
-  incompleteBookingActions AppRouting_Forms_IncompleteBookingActions[]
+  incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
 
   @@index([userId])
   @@index([disabled])
@@ -1815,7 +1815,7 @@ enum IncompleteBookingActionType {
   SALESFORCE
 }
 
-model AppRouting_Forms_IncompleteBookingActions {
+model App_RoutingForms_IncompleteBookingActions {
   id           Int                         @id @default(autoincrement())
   form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
