@@ -126,11 +126,7 @@
           "group": "Bookings",
           "icon": "calendar-check",
           "iconType": "solid",
-          "pages": [
-            "bookings/no-show",
-            "bookings/paid-bookings",
-            "bookings/prefill-fields"
-          ]
+          "pages": ["bookings/no-show", "bookings/paid-bookings", "bookings/prefill-fields"]
         },
         {
           "group": "Embedding",
@@ -149,10 +145,7 @@
           "group": "Auth and Provisioning",
           "icon": "user-lock",
           "iconType": "solid",
-          "pages": [
-            "auth-and-provision/scim-okta",
-            "auth-and-provision/oidc-with-okta"
-          ]
+          "pages": ["auth-and-provision/scim-okta", "auth-and-provision/oidc-with-okta"]
         },
         {
           "group": "Apps and Integrations",
@@ -172,18 +165,14 @@
           "group": "Developers",
           "icon": "terminal",
           "iconType": "solid",
-          "pages": [
-            "apps-and-integrations/oauth",
-            "apps-and-integrations/open-source",
-            "webhooks"
-          ]
+          "pages": ["apps-and-integrations/oauth", "apps-and-integrations/open-source", "webhooks"]
         }
       ]
     }
   ],
   "footerSocials": {
-    "twitter": "https://twitter.com/calcom?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
-    "linkedin": "https://www.linkedin.com/company/cal-com/",
-    "discord": "https://discord.com/invite/calcom"
+    "x": "https://x.com/calcom",
+    "github": "https://github.com/calcom",
+    "linkedin": "https://www.linkedin.com/company/cal-com"
   }
 }

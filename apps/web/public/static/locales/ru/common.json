@@ -2920,5 +2920,8 @@
   "choose_an_option": "Выберите вариант",
   "enter_option_value": "Введите значение варианта",
   "remove_option": "Удалить вариант",
+  "managed_users": "Управляемые пользователи",
+  "managed_users_description": "Просмотр всех управляемых пользователей, созданных вашим OAuth-клиентом",
+  "select_oAuth_client": "Выберите OAuth-клиент",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

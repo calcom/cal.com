@@ -533,7 +533,7 @@ function UserListTableContent() {
     }
   };
 
-  if (!isSuccessAttributes) {
+  if (!isPlatformUser && !isSuccessAttributes) {
     // do not render the table until the attributes are fetched
     return null;
   }

@@ -2920,5 +2920,8 @@
   "choose_an_option": "Bir seçenek belirleyin",
   "enter_option_value": "Seçenek değerini girin",
   "remove_option": "Seçeneği kaldır",
+  "managed_users": "Yönetilen kullanıcılar",
+  "managed_users_description": "OAuth istemciniz tarafından oluşturulan tüm yönetilen kullanıcıları görün",
+  "select_oAuth_client": "OAuth istemcisi seçin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
