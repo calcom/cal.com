@@ -3,7 +3,9 @@ import { expectPageToBeNotFound } from "playwright/lib/testUtils";
 import { test } from "./lib/fixtures";
 
 test.describe("App Router - error handling", () => {
-  test("Not-existing pages must render App Router's not-found error page", async ({ page }) => {
+  test("404s must render App Router's not-found page regardless of whether pages router or app router is used", async ({
+    page,
+  }) => {
     await expectPageToBeNotFound({ page, url: "/123491234" });
     await expectPageToBeNotFound({ page, url: "/team/123491234" });
     await expectPageToBeNotFound({ page, url: "/org/123491234" });
