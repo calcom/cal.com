@@ -80,28 +80,28 @@ export class SelectedCalendarRepository {
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
-    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(data);
     const credentialPayload = buildCredentialPayloadForCalendar({
       credentialId: data.credentialId,
       domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
     });
+
+    const newData = {
+      ...data,
+      ...credentialPayload,
+    };
+
+    const conflictingCalendar = await SelectedCalendarRepository.findConflicting(newData);
     if (conflictingCalendar) {
       return await prisma.selectedCalendar.update({
         where: {
           id: conflictingCalendar.id,
         },
-        data: {
-          ...data,
-          ...credentialPayload,
-        },
+        data: newData,
       });
     }
 
     return await prisma.selectedCalendar.create({
-      data: {
-        ...data,
-        ...credentialPayload,
-      },
+      data: newData,
     });
   }
 

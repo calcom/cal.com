@@ -1,33 +1,44 @@
 ## Version 1.0
 ### Release Plan
-  - Read the document(domain-wide-delegation.md) and acknowledge it.
-  - Deploy
-    1. Follow "Setting up Domain-Wide Delegation for Google Calendar API" in domain-wide-delegation.md to create Service Account and create a workspace.
-    2. Merge PR and then deploy.
- - Enabling for i.cal.com
-    - 1. Enable DWD for i.cal.com first and then test there
-    - 2. Wait for 1-2 days and keep monitoring the errors in Sentry and Axiom.
- - Enable for a big customer
-    - 1. Wait for a week and keep monitoring the errors in Sentry and Axiom.
-- Followup with sorting the credentials with DWD credentials first
-- Monitor the errors in Sentry and Axiom.
+  1. Read the document(domain-wide-delegation.md) and acknowledge it.
+  2. Deploy the migrations PR first.
+  3. Deploy:
+     1. Follow "Setting up Domain-Wide Delegation for Google Calendar API" in domain-wide-delegation.md to create Service Account and create a workspace.
+     2. Merge PR and then deploy.
+  4. Enable for i.cal.com:
+     1. Enable DWD for i.cal.com first and then test there
+     2. Wait for 1-2 days and keep monitoring the errors in Sentry and Axiom.
+  5. Enable for a big customer:
+     1. Wait for a week and keep monitoring the errors in Sentry and Axiom.
+  6. Followup with sorting the credentials with DWD credentials first
+  7. Monitor the errors in Sentry and Axiom.
+
+## Manual Testing
+  - [ ] Isolation of DWD credentials for different organizations
+    - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
+  - [ ] Location Change of a booking  to Google Meet(from Cal Video)
+  - [ ] Onboarding
+    - [ ] When DWD is not enabled, the flow works.
+    - [ ] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
+  - [ ] Event Type Selected Calendar and Destination Calendar
+  - [ ] Owner must have verified email to enable DWD
+  - [x] RR Team Event
+    - [x] Booking
+      - Unavailable slot isn't available for booking. Unavailable user isn't used.
+    - [x] Reroute
+    - [x] Reassign
+  - [ ] Calendar Cache
+    - [ ] Event Type Selected Calendar caching test
+    - [ ] User Selected Calendar caching test
 
 ### Important
   - Bugs
     - [ ] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
+    - [ ] Restrict toggling
     - [x] Duplicate Calendar connections in 'apps/installed' if a user already had connected calendar and DWD is enabled.
     - [x] Calendar Cache has credentialId column which isn't applicable for DWD(Solution: Added userId there)
-    - Manual Testing
-      - [ ] Test with Multiple DWD entries for different organizations. Verify that wrong DWD entry isn't used.
-      - [ ] Location Change of a booking  to Google Meet(from Cal Video)
-      - [ ] RR Team Event
-        - Booking
-          - Unavailable slot isn't available for booking. Unavailable user isn't used.
-        - Reroute
-        - Reassign
-      - [ ] Calendar Cache
     - [x] Troubleshooter
-      - [ ] Shows busy times from Claendar
+      - [x] Shows busy times from Claendar
     - [x] If a user has connected a calendar, and then DWD is enabled.
       - Tested various scenarios for it
     - [x] Inviting a new user. 

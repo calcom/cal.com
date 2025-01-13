@@ -40,8 +40,21 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
         https://www.googleapis.com/auth/calendar
 
 
+## Onboarding Improvement
+- Google Calendar is pre-installed for any new member of the organization(assuming the user has an email of the DWD domain) and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
+
 ## Restrictions after enabling DWD
 - Enabling DWD for a particular workspace in Cal.com(only google supported at the moment) disables the user from disconnecting that credential.
+
+## Who can create DWD and enable it? 
+- Only the owner/admin of the organization can create DWD
+- Only the owner/admin of the organization can enable the created DWD. Following additional requirements are there:
+   -  The client ID must be added to the Google Admin Console
+   -  The user's email must be a member of the Google Workspace
+   -  The user's email must be verified.
+
+## Disabling DWD
+ -  Disabling DWD maintains the user's preferences in terms of SelectedCalendars and DestinationCalendar.
 
 ## Developer Notes
 ### How DWD works
@@ -68,19 +81,19 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 4. We don't show the non-dwd connected calendar(if there is a corresponding dwd connected calendar). Though we use the non-dwd credentials to identify the selected calendars, for the dwd connected calendar.
 
 
-## Impact on existing users booking flow
+### Impact on existing users booking flow
 - There should be no impact on availability on enabling DWD because we keep on using the existing credentials along with new DWD credential.
 - When booking the event, we sort the credentials with DWD credentials last, so there should be no impact on creating calendar events.
    - NOTE: We will followup with sorting the credentials with DWD credentials first in a followup PR(They are preferred because they don't expire)
 
-## Impact on APIs - [ To Verify ]
+### Impact on APIs - [ To Verify ]
 - We don't support DWD through APIs yet. So, all existing APIs would continue to work with non-dwd credentials only.
 
-## Performance Issues
+### Performance Issues
 - There could be 100s of users in an organization with already connected calendars. Enabling DWD adds a duplicate credential for each of them.
    - Because a credential isn't aware of which email it is for(without connecting with Google Calendar API itself), we can't deduplicate them.
 
-## Notes when testing locally
+### Notes when testing locally
 - You need to enable the feature through feature flag.
 - You could use Acme org and login as owner1-acme@example.com
 - Make sure to change the email of the user above to your workspace owner's email(other member's email might also work). This is necessary otherwise you won't be able to enable DWD for the organization.

@@ -1,6 +1,7 @@
 import type { z } from "zod";
 
 import { checkIfSuccessfullyConfiguredInWorkspace } from "@calcom/lib/domainWideDelegation/server";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 
@@ -48,10 +49,23 @@ export default async function toggleEnabledHandler({
   ctx,
   input,
 }: {
-  ctx: { user: { id: number; email: string; organizationId: number | null } };
+  ctx: {
+    user: {
+      id: number;
+      email: string;
+      locale: string;
+      emailVerified: Date | null;
+      organizationId: number | null;
+    };
+  };
   input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>;
 }) {
   const { user: loggedInUser } = ctx;
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  if (!loggedInUser.emailVerified) {
+    throw new Error(t("verify_your_email"));
+  }
 
   if (input.enabled) {
     await assertWorkspaceConfigured({

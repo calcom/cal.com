@@ -80,7 +80,6 @@ type UserCredentialType = {
   teamId: number | null;
   key: Prisma.JsonValue;
   invalid: boolean | null;
-  domainWideDelegationCredentialId?: string | null;
 };
 
 export async function patchHandler(req: NextApiRequest) {
