@@ -43,7 +43,6 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       language: data.language,
       teamId: data.teamId,
       usernameOrEmail: data.usernameOrEmail,
-      isOrg: data.isOrg,
     });
 
     return { success: true, message: `${data.usernameOrEmail} has been invited.` };

@@ -59,6 +59,22 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
+export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
+
+/** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
+export const zoomUserSettingsSchema = z.object({
+  recording: z.object({
+    auto_recording: z.string(),
+  }),
+  schedule_meeting: z.object({
+    default_password_for_scheduled_meetings: z.string(),
+  }),
+});
+
+// https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
+// append comma seperated settings here, to retrieve only these specific settings
+const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
+
 type ZoomRecurrence = {
   end_date_time?: string;
   type: 1 | 2 | 3;
@@ -71,12 +87,25 @@ type ZoomRecurrence = {
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const tokenResponse = getTokenObjectFromCredential(credential);
 
-  const translateEvent = (event: CalendarEvent) => {
+  const getUserSettings = async () => {
+    let userSettings: ZoomUserSettings | undefined;
+    try {
+      const responseBody = await fetchZoomApi(
+        `users/me/settings?custom_query_fields=${settingsApiFilterResp}`
+      );
+      userSettings = zoomUserSettingsSchema.parse(responseBody);
+    } catch (err) {
+      log.error("Failed to retrieve zoom user settings", safeStringify(err));
+    }
+    return userSettings;
+  };
+
+  const translateEvent = async (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,
       startTime,
       attendees,
-    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+    }: CalendarEvent): { recurrence: ZoomRecurrence } | undefined => {
       if (!recurringEvent) {
         return;
       }
@@ -118,10 +147,10 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         recurrence: {
           ...recurrence,
         },
-        type: 8,
       };
     };
 
+    const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
@@ -131,7 +160,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
-      //password: "string",       TODO: Should we use a password? Maybe generate a random one?
+      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: event.description,
       settings: {
         host_video: true,
@@ -144,7 +173,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         use_pmi: false,
         approval_type: 2,
         audio: "both",
-        auto_recording: "none",
+        auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
       },
@@ -263,7 +292,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
         const result = zoomEventResultSchema.parse(response);
@@ -300,15 +329,18 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
-        return Promise.resolve({
+        const updatedMeeting = await fetchZoomApi(`meetings/${bookingRef.uid}`);
+        const result = zoomEventResultSchema.parse(updatedMeeting);
+
+        return {
           type: "zoom_video",
-          id: bookingRef.meetingId as string,
-          password: bookingRef.meetingPassword as string,
-          url: bookingRef.meetingUrl as string,
-        });
+          id: result.id.toString(),
+          password: result.password || "",
+          url: result.join_url,
+        };
       } catch (err) {
         log.error("Failed to update meeting", safeStringify(err));
         return Promise.reject(new Error("Failed to update meeting"));

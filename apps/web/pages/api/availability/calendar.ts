@@ -3,98 +3,106 @@ import { z } from "zod";
 
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { HttpError } from "@calcom/lib/http-error";
 import notEmpty from "@calcom/lib/notEmpty";
-import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 const selectedCalendarSelectSchema = z.object({
   integration: z.string(),
   externalId: z.string(),
-  credentialId: z.number().optional(),
+  credentialId: z.coerce.number(),
+  eventTypeId: z.coerce.number().nullish(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+/** Shared authentication middleware for GET, DELETE and POST requests */
+async function authMiddleware(req: CustomNextApiRequest) {
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
+    throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   }
 
-  const userWithCredentials = await prisma.user.findUnique({
+  const userWithCredentials = await UserRepository.findUserWithCredentials({ id: session.user.id });
+
+  if (!userWithCredentials) {
+    throw new HttpError({ statusCode: 401, message: "Not authenticated" });
+  }
+  req.userWithCredentials = userWithCredentials;
+  return userWithCredentials;
+}
+
+type CustomNextApiRequest = NextApiRequest & {
+  userWithCredentials?: Awaited<ReturnType<typeof authMiddleware>>;
+};
+
+async function postHandler(req: CustomNextApiRequest) {
+  if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
+  const user = req.userWithCredentials;
+  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(req.body);
+  await SelectedCalendarRepository.upsert({
+    userId: user.id,
+    integration,
+    externalId,
+    credentialId,
+    eventTypeId: eventTypeId ?? null,
+  });
+
+  return { message: "Calendar Selection Saved" };
+}
+
+async function deleteHandler(req: CustomNextApiRequest) {
+  if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
+  const user = req.userWithCredentials;
+  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(
+    req.query
+  );
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  await calendarCacheRepository.unwatchCalendar({
+    calendarId: externalId,
+    eventTypeIds: [eventTypeId ?? null],
+  });
+  await SelectedCalendarRepository.delete({
     where: {
-      id: session.user.id,
-    },
-    select: {
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-      timeZone: true,
-      id: true,
-      selectedCalendars: true,
+      userId: user.id,
+      externalId,
+      integration,
+      eventTypeId: eventTypeId ?? null,
     },
   });
-  if (!userWithCredentials) {
-    res.status(401).json({ message: "Not authenticated" });
-    return;
-  }
-  const { credentials, ...user } = userWithCredentials;
 
-  if (req.method === "POST") {
-    const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.body);
-    await prisma.selectedCalendar.upsert({
-      where: {
-        userId_integration_externalId: {
-          userId: user.id,
-          integration,
-          externalId,
-        },
-      },
-      create: {
-        userId: user.id,
-        integration,
-        externalId,
-        credentialId,
-      },
-      // already exists
-      update: {},
-    });
-    res.status(200).json({ message: "Calendar Selection Saved" });
-  }
-
-  if (req.method === "DELETE") {
-    const { integration, externalId } = selectedCalendarSelectSchema.parse(req.query);
-    await prisma.selectedCalendar.delete({
-      where: {
-        userId_integration_externalId: {
-          userId: user.id,
-          externalId,
-          integration,
-        },
-      },
-    });
-
-    res.status(200).json({ message: "Calendar Selection Saved" });
-  }
-
-  if (req.method === "GET") {
-    const selectedCalendarIds = await prisma.selectedCalendar.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        externalId: true,
-      },
-    });
-
-    // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(credentials);
-    // get all the connected integrations' calendars (from third party)
-    const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
-    const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
-    const selectableCalendars = calendars.map((cal) => {
-      return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
-    });
-    res.status(200).json(selectableCalendars);
-  }
+  return { message: "Calendar Selection Saved" };
 }
+
+// TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
+async function getHandler(req: CustomNextApiRequest) {
+  if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
+  const user = req.userWithCredentials;
+  const selectedCalendarIds = await SelectedCalendarRepository.findMany({
+    where: { userId: user.id },
+    select: { externalId: true },
+  });
+  // get user's credentials + their connected integrations
+  const calendarCredentials = getCalendarCredentials(user.credentials);
+  // get all the connected integrations' calendars (from third party)
+  const { connectedCalendars } = await getConnectedCalendars(
+    calendarCredentials,
+    user.userLevelSelectedCalendars
+  );
+  const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
+  const selectableCalendars = calendars.map((cal) => {
+    return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
+  });
+  return selectableCalendars;
+}
+
+export default defaultResponder(async (req: NextApiRequest, res: NextApiResponse) => {
+  await authMiddleware(req);
+  return defaultHandler({
+    GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+    POST: Promise.resolve({ default: defaultResponder(postHandler) }),
+    DELETE: Promise.resolve({ default: defaultResponder(deleteHandler) }),
+  })(req, res);
+});

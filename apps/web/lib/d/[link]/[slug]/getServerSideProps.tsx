@@ -1,3 +1,4 @@
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -12,7 +13,6 @@ import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -112,6 +112,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventSlug: slug,
     isTeamEvent,
     org,
+    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {
@@ -126,6 +127,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         queryDuration,
         eventData.length
       ),
+      durationConfig: eventData.metadata?.multipleDuration ?? [],
       booking,
       user: name,
       slug,

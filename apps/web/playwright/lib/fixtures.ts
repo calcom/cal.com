@@ -1,5 +1,7 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
+// eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
 
 import prisma from "@calcom/prisma";
 
@@ -16,6 +18,7 @@ import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
+import { createWebhookPageFixture } from "../fixtures/webhooks";
 import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
@@ -34,6 +37,7 @@ export interface Fixtures {
   features: ReturnType<typeof createFeatureFixture>;
   eventTypePage: ReturnType<typeof createEventTypeFixture>;
   appsPage: ReturnType<typeof createAppsFixture>;
+  webhooks: ReturnType<typeof createWebhookPageFixture>;
 }
 
 declare global {
@@ -64,8 +68,8 @@ export const test = base.extend<Fixtures>({
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);
   },
-  bookings: async ({ page }, use) => {
-    const bookingsFixture = createBookingsFixture(page);
+  bookings: async ({ page }, use, workerInfo) => {
+    const bookingsFixture = createBookingsFixture(page, workerInfo);
     await use(bookingsFixture);
   },
   payments: async ({ page }, use) => {
@@ -110,4 +114,13 @@ export const test = base.extend<Fixtures>({
     const appsPage = createAppsFixture(page);
     await use(appsPage);
   },
+  webhooks: async ({ page }, use) => {
+    const webhooks = createWebhookPageFixture(page);
+    await use(webhooks);
+  },
 });
+
+export function todo(title: string) {
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(title, noop);
+}

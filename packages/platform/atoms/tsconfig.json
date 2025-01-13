@@ -42,5 +42,15 @@
     "../../trpc",
     "../../app-store"
   ],
-  "exclude": ["dist", "build", "node_modules", "**/*WebWrapper.tsx"]
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules",
+    "**/*WebWrapper.tsx",
+    "**/*.docs.mdx",
+    "**/*.stories.tsx",
+    "monorepo.ts",
+    "booker/export.ts",
+    "booker/index.ts"
+  ]
 }

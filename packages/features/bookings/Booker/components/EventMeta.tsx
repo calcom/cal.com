@@ -9,12 +9,17 @@ import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calc
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
+import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import type { useEventReturnType } from "../utils/event";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -23,22 +28,62 @@ const WebTimezoneSelect = dynamic(
   }
 );
 
+const getTranslatedField = (
+  translations: Array<Pick<EventTypeTranslation, "field" | "targetLocale" | "translatedText">>,
+  field: EventTypeAutoTranslatedField,
+  userLocale: string
+) => {
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
+
+  return translations?.find(
+    (trans) =>
+      trans.field === field &&
+      i18nLocales.includes(trans.targetLocale) &&
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
+  )?.translatedText;
+};
+
 export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
   classNames,
+  locale,
 }: {
-  event: useEventReturnType["data"];
-  isPending: useEventReturnType["isPending"];
+  event?: Pick<
+    BookerEvent,
+    | "lockTimeZoneToggleOnBookingPage"
+    | "schedule"
+    | "seatsPerTimeSlot"
+    | "users"
+    | "length"
+    | "schedulingType"
+    | "profile"
+    | "entity"
+    | "description"
+    | "title"
+    | "metadata"
+    | "locations"
+    | "currency"
+    | "requiresConfirmation"
+    | "recurringEvent"
+    | "price"
+    | "isDynamic"
+    | "fieldTranslations"
+    | "autoTranslateDescriptionEnabled"
+  > | null;
+  isPending: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -82,6 +127,17 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
+  const userLocale = locale ?? navigator.language;
+  const translatedDescription = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.DESCRIPTION,
+    userLocale
+  );
+  const translatedTitle = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.TITLE,
+    userLocale
+  );
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -92,18 +148,23 @@ export const EventMeta = ({
       )}
       {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          {!isPlatform && (
-            <EventMembers
-              schedulingType={event.schedulingType}
-              users={event.users}
-              profile={event.profile}
-              entity={event.entity}
-            />
-          )}
-          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
-          {event.description && (
+          <EventMembers
+            schedulingType={event.schedulingType}
+            users={event.users}
+            profile={event.profile}
+            entity={event.entity}
+          />
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
+            {translatedTitle ?? event?.title}
+          </EventTitle>
+          {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
+                }}
+              />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
@@ -142,21 +203,24 @@ export const EventMeta = ({
                 <>{timezone}</>
               ) : (
                 <span
-                  className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}>
                   <TimezoneSelect
-                    menuPosition="fixed"
+                    menuPosition="absolute"
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
                       control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
-                      menu: () => "!w-64 max-w-[90vw]",
+                      menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
                     value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

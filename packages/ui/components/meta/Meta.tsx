@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";

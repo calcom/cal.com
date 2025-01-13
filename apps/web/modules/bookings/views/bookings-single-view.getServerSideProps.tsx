@@ -6,7 +6,9 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -72,6 +74,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  let rescheduledToUid: string | null = null;
+  if (bookingInfo.rescheduled) {
+    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+      originalBookingUid: bookingInfo.uid,
+    });
+    rescheduledToUid = rescheduledTo?.uid ?? null;
+  }
+
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfoRaw.eventTypeId);
@@ -111,6 +121,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
+    bookingFields: eventTypeRaw.bookingFields.map((field) => {
+      return {
+        ...field,
+        label: field.type === "boolean" ? markdownToSafeHTML(field.label || "") : field.label || "",
+        defaultLabel:
+          field.type === "boolean" ? markdownToSafeHTML(field.defaultLabel || "") : field.defaultLabel || "",
+      };
+    }),
   };
 
   const profile = {
@@ -176,6 +194,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      rescheduledToUid,
     },
   };
 }

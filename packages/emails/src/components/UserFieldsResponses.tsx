@@ -25,6 +25,7 @@ export function UserFieldsResponses(props: { calEvent: CalendarEvent; t: TFuncti
                 : `${labelValueMap[key] ? labelValueMap[key] : ""}`
             }
             withSpacer
+            isLabelHTML
           />
         ) : null
       )}

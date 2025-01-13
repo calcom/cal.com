@@ -1,10 +1,9 @@
-import type { Booking } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getRescheduleLink } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -29,7 +28,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
   },
 });
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 interface ICalendarEventBuilder {
   calendarEvent: CalendarEventClass;
@@ -147,6 +146,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           metadata: true,
           destinationCalendar: true,
           hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
         },
       });
     } catch (error) {
@@ -207,6 +207,12 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     this.calendarEvent.hideCalendarNotes = hideCalendarNotes;
   }
 
+  public setHideCalendarEventDetails(
+    hideCalendarEventDetails: CalendarEventClass["hideCalendarEventDetails"]
+  ) {
+    this.calendarEvent.hideCalendarEventDetails = hideCalendarEventDetails;
+  }
+
   public setDescription(description: CalendarEventClass["description"]) {
     this.calendarEvent.description = description;
   }
@@ -238,32 +244,16 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
     }
   }
 
-  public buildRescheduleLink(booking: Partial<Booking>, eventType?: CalendarEventBuilder["eventType"]) {
+  public buildRescheduleLink({
+    allowRescheduleForCancelledBooking = false,
+  }: {
+    allowRescheduleForCancelledBooking?: boolean;
+  } = {}) {
     try {
-      if (!booking) {
-        throw new Error("Parameter booking is required to build reschedule link");
-      }
-      const isTeam = !!eventType && !!eventType.teamId;
-      const isDynamic = booking?.dynamicEventSlugRef && booking?.dynamicGroupSlugRef;
-
-      let slug = "";
-      if (isTeam && eventType?.team?.slug) {
-        slug = `team/${eventType.team?.slug}/${eventType.slug}`;
-      } else if (isDynamic) {
-        const dynamicSlug = isDynamic ? `${booking.dynamicGroupSlugRef}/${booking.dynamicEventSlugRef}` : "";
-        slug = dynamicSlug;
-      } else if (eventType?.slug) {
-        slug = `${this.users[0].username}/${eventType.slug}`;
-      }
-
-      const queryParams = new URLSearchParams();
-      queryParams.set("rescheduleUid", `${booking.uid}`);
-      slug = `${slug}`;
-
-      const rescheduleLink = `${
-        this.calendarEvent.bookerUrl ?? WEBAPP_URL
-      }/${slug}?${queryParams.toString()}`;
-      this.rescheduleLink = rescheduleLink;
+      this.rescheduleLink = getRescheduleLink({
+        calEvent: this.calendarEvent,
+        allowRescheduleForCancelledBooking,
+      });
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`buildRescheduleLink.error: ${error.message}`);

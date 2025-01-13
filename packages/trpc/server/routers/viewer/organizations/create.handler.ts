@@ -20,7 +20,49 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
+
+/**
+ * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
+ */
+function isNotACompanyEmail(email: string) {
+  // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
+  const emailProviders = [
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "aol.com",
+    "icloud.com",
+    "mail.com",
+    "protonmail.com",
+    "zoho.com",
+    "yandex.com",
+    "gmx.com",
+    "fastmail.com",
+    "inbox.com",
+    "me.com",
+    "hushmail.com",
+    "live.com",
+    "rediffmail.com",
+    "tutanota.com",
+    "mail.ru",
+    "usa.com",
+    "qq.com",
+    "163.com",
+    "web.de",
+    "rocketmail.com",
+    "excite.com",
+    "lycos.com",
+    "outlook.co",
+    "hotmail.co.uk",
+  ];
+
+  const emailParts = email.split("@");
+  if (emailParts.length < 2) return true;
+  return emailProviders.includes(emailParts[1]);
+}
 
 type CreateOptions = {
   ctx: {
@@ -39,7 +81,16 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+  const {
+    slug,
+    name,
+    orgOwnerEmail,
+    seats,
+    pricePerSeat,
+    isPlatform,
+    billingPeriod: billingPeriodRaw,
+  } = input;
+
   const loggedInUser = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
@@ -48,20 +99,29 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       id: true,
       role: true,
       email: true,
+      completedOnboarding: true,
+      emailVerified: true,
       teams: {
         select: {
           team: {
             select: {
               slug: true,
+              isOrganization: true,
+              isPlatform: true,
             },
           },
         },
       },
     },
   });
+
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
+  const verifiedUser = loggedInUser.completedOnboarding && !!loggedInUser.emailVerified;
+
+  // We only allow creating an annual billing period if you are a system admin
+  const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
 
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
@@ -72,6 +132,17 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
     });
+  }
+
+  if (isPlatform && !verifiedUser) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You need to complete onboarding before creating a platform team",
+    });
+  }
+
+  if (isNotACompanyEmail(orgOwnerEmail) && !isPlatform) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Use company email to create an organization" });
   }
 
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
@@ -100,6 +171,14 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
     throw new TRPCError({ code: "BAD_REQUEST", message: "organization_url_taken" });
+
+  const hasExistingPlatformOrOrgTeam = loggedInUser?.teams.find((team) => {
+    return team.team.isPlatform || team.team.isOrganization;
+  });
+
+  if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "User is already part of a team" });
+  }
 
   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -140,6 +219,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     seats: seats ?? null,
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
+    billingPeriod,
   };
 
   // Create a new user and invite them as the owner of the organization
@@ -192,7 +272,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
     const isLoggedInUserOrgOwner = orgOwner.id === loggedInUser.id;
     if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are part of an organization already" });
+    }
+
+    if (!orgOwner.emailVerified) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You need to verify your email first" });
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
@@ -240,9 +324,6 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       upId: user.profile.upId,
     };
   }
-
-  // Sync Services: Close.com
-  //closeComUpsertOrganizationUser(createTeam, ctx.user, MembershipRole.OWNER);
 };
 
 export default createHandler;

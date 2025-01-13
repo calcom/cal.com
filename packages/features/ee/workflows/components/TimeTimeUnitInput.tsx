@@ -1,7 +1,8 @@
 import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TimeUnit } from "@calcom/prisma/enums";
 import {
   Dropdown,
   DropdownItem,
@@ -12,21 +13,48 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import { getWorkflowTimeUnitOptions } from "../lib/getOptions";
-import type { FormValues } from "../pages/workflow";
+const TIME_UNITS = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 
 type Props = {
-  form: UseFormReturn<FormValues>;
   disabled: boolean;
+  defaultTime?: number;
+};
+
+const TimeUnitAddonSuffix = ({
+  DropdownItems,
+  timeUnitOptions,
+}: {
+  DropdownItems: JSX.Element;
+  timeUnitOptions: { [x: string]: string };
+}) => {
+  // because isDropdownOpen already triggers a render cycle we can use getValues()
+  // instead of watch() function
+  const form = useFormContext();
+  const timeUnit = form.getValues("timeUnit") ?? TimeUnit.MINUTE;
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  return (
+    <Dropdown onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center">
+          <div className="mr-1 w-3/5">{timeUnit ? timeUnitOptions[timeUnit] : "undefined"}</div>
+          <div className="w-1/4 pt-1">
+            {isDropdownOpen ? <Icon name="chevron-up" /> : <Icon name="chevron-down" />}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>{DropdownItems}</DropdownMenuContent>
+    </Dropdown>
+  );
 };
 
 export const TimeTimeUnitInput = (props: Props) => {
-  const { form } = props;
+  const form = useFormContext();
+
   const { t } = useLocale();
-  const timeUnitOptions = getWorkflowTimeUnitOptions(t);
-
-  const [timeUnit, setTimeUnit] = useState(form.getValues("timeUnit"));
-
+  const timeUnitOptions = TIME_UNITS.reduce((acc, option) => {
+    acc[option] = t(`${option.toLowerCase()}_timeUnit`);
+    return acc;
+  }, {} as { [x: string]: string });
   return (
     <div className="flex">
       <div className="grow">
@@ -35,37 +63,29 @@ export const TimeTimeUnitInput = (props: Props) => {
           min="1"
           label=""
           disabled={props.disabled}
-          defaultValue={form.getValues("time") || 24}
+          defaultValue={form.getValues("time") ?? props.defaultTime ?? 24}
           className="-mt-2 rounded-r-none text-sm focus:ring-0"
           {...form.register("time", { valueAsNumber: true })}
           addOnSuffix={
-            <Dropdown>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center">
-                  <div className="mr-1 w-3/4">
-                    {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
-                  </div>
-                  <div className="w-1/4 pt-1">
-                    <Icon name="chevron-down" />
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {timeUnitOptions.map((option, index) => (
-                  <DropdownMenuItem key={index} className="outline-none">
-                    <DropdownItem
-                      key={index}
-                      type="button"
-                      onClick={() => {
-                        setTimeUnit(option.value);
-                        form.setValue("timeUnit", option.value);
-                      }}>
-                      {option.label}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </Dropdown>
+            <TimeUnitAddonSuffix
+              timeUnitOptions={timeUnitOptions}
+              DropdownItems={
+                <>
+                  {TIME_UNITS.map((timeUnit, index) => (
+                    <DropdownMenuItem key={index} className="outline-none">
+                      <DropdownItem
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          form.setValue("timeUnit", timeUnit, { shouldDirty: true });
+                        }}>
+                        {timeUnitOptions[timeUnit]}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              }
+            />
           }
         />
       </div>

@@ -1,6 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -9,9 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
 
 import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
@@ -24,16 +23,17 @@ type User = RouterOutputs["viewer"]["me"];
 interface Props {
   form: UseFormReturn<FormValues>;
   workflowId: number;
-  selectedEventTypes: Option[];
-  setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  selectedOptions: Option[];
+  setSelectedOptions: Dispatch<SetStateAction<Option[]>>;
   teamId?: number;
   user: User;
-  isMixedEventType: boolean;
   readOnly: boolean;
+  isOrg: boolean;
+  allOptions: Option[];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, teamId, isMixedEventType } = props;
+  const { form, workflowId, selectedOptions, setSelectedOptions, teamId, isOrg, allOptions } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -42,59 +42,18 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
-
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
 
-  const eventTypeOptions = useMemo(
-    () =>
-      data?.eventTypeGroups.reduce((options, group) => {
-        /** don't show team event types for user workflow */
-        if (!teamId && group.teamId) return options;
-        /** only show correct team event types for team workflows */
-        if (teamId && teamId !== group.teamId) return options;
-        return [
-          ...options,
-          ...group.eventTypes
-            .filter(
-              (evType) =>
-                !evType.metadata?.managedEventConfig ||
-                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
-                !!teamId
-            )
-            .map((eventType) => ({
-              value: String(eventType.id),
-              label: `${eventType.title} ${
-                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
-              }`,
-            })),
-        ];
-      }, [] as Option[]) || [],
-    [data]
-  );
-
-  let allEventTypeOptions = eventTypeOptions;
-  const distinctEventTypes = new Set();
-
-  if (!teamId && isMixedEventType) {
-    allEventTypeOptions = [...eventTypeOptions, ...selectedEventTypes];
-    allEventTypeOptions = allEventTypeOptions.filter((option) => {
-      const duplicate = distinctEventTypes.has(option.value);
-      distinctEventTypes.add(option.value);
-      return !duplicate;
-    });
-  }
-
   useEffect(() => {
-    const matchingOption = allEventTypeOptions.find((option) => option.value === eventTypeId);
-    if (matchingOption && !selectedEventTypes.find((option) => option.value === eventTypeId)) {
-      const newOptions = [...selectedEventTypes, matchingOption];
-      setSelectedEventTypes(newOptions);
+    const matchingOption = allOptions.find((option) => option.value === eventTypeId);
+    if (matchingOption && !selectedOptions.find((option) => option.value === eventTypeId)) {
+      const newOptions = [...selectedOptions, matchingOption];
+      setSelectedOptions(newOptions);
       form.setValue("activeOn", newOptions);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventTypeId, allEventTypeOptions]);
+  }, [eventTypeId]);
 
   const addAction = (
     action: WorkflowActions,
@@ -148,26 +107,54 @@ export default function WorkflowDetailsPage(props: Props) {
               {...form.register("name")}
             />
           </div>
-          <Label>{t("which_event_type_apply")}</Label>
+          {isOrg ? (
+            <div className="flex">
+              <Label>{t("which_team_apply")}</Label>
+              <div className="-mt-0.5">
+                <InfoBadge content={t("team_select_info")} />
+              </div>
+            </div>
+          ) : (
+            <Label>{t("which_event_type_apply")}</Label>
+          )}
           <Controller
             name="activeOn"
             control={form.control}
             render={() => {
               return (
                 <MultiSelectCheckboxes
-                  options={allEventTypeOptions}
-                  isDisabled={props.readOnly}
-                  isLoading={isPending}
+                  options={allOptions}
+                  isDisabled={props.readOnly || form.getValues("selectAll")}
                   className="w-full md:w-64"
-                  setSelected={setSelectedEventTypes}
-                  selected={selectedEventTypes}
+                  setSelected={setSelectedOptions}
+                  selected={form.getValues("selectAll") ? allOptions : selectedOptions}
                   setValue={(s: Option[]) => {
                     form.setValue("activeOn", s);
                   }}
+                  countText={isOrg ? "count_team" : "nr_event_type"}
                 />
               );
             }}
           />
+          <div className="mt-3">
+            <Controller
+              name="selectAll"
+              render={({ field: { value, onChange } }) => (
+                <CheckboxField
+                  description={isOrg ? t("apply_to_all_teams") : t("apply_to_all_event_types")}
+                  disabled={props.readOnly}
+                  onChange={(e) => {
+                    onChange(e);
+                    if (e.target.value) {
+                      setSelectedOptions(allOptions);
+                      form.setValue("activeOn", allOptions);
+                    }
+                  }}
+                  checked={value}
+                />
+              )}
+            />
+          </div>
           <div className="md:border-subtle my-7 border-transparent md:border-t" />
           {!props.readOnly && (
             <Button

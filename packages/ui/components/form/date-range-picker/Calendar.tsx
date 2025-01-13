@@ -6,15 +6,23 @@ import { DayPicker } from "react-day-picker";
 import dayjs from "@calcom/dayjs";
 import { classNames as cn } from "@calcom/lib";
 
-import { Icon } from "../../../index";
 import { buttonClasses } from "../../button/Button";
+import { Icon } from "../../icon";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
-function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
+function Calendar({
+  className,
+  classNames,
+  fromDate,
+  toDate,
+  showOutsideDays = true,
+  ...props
+}: CalendarProps) {
   return (
     <DayPicker
-      fromDate={new Date()}
+      fromDate={fromDate}
+      toDate={toDate || undefined}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -34,7 +42,8 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
           buttonClasses({ color: "minimal" }),
           "w-8 h-8 md:h-11 md:w-11 p-0 text-sm font-medium aria-selected:opacity-100 inline-flex items-center justify-center"
         ),
-        day_range_end: "day-range-end",
+        day_range_end: "hover:!bg-inverted hover:!text-inverted",
+        day_range_start: "hover:!bg-inverted hover:!text-inverted",
         day_selected: "bg-inverted text-inverted",
         day_today: "",
         day_outside: "",
@@ -46,7 +55,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       components={{
         CaptionLabel: (capLabelProps) => (
           <div className="px-2">
-            <span className="text-emphasis leadning-none font-semibold">
+            <span className="text-emphasis font-semibold leading-none">
               {dayjs(capLabelProps.displayMonth).format("MMMM")}{" "}
             </span>
             <span className="text-subtle font-medium leading-none">

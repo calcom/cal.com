@@ -1,14 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import {
-  IsBoolean,
-  IsOptional,
-  IsString,
-  ValidateNested,
-  IsArray,
-  IsTimeZone,
-  IsNumber,
-} from "class-validator";
+import { IsBoolean, IsString, ValidateNested, IsArray, IsTimeZone, IsNumber } from "class-validator";
 
 import {
   ScheduleAvailabilityInput_2024_06_11,
@@ -25,7 +17,7 @@ export class ScheduleOutput_2024_06_11 {
   ownerId!: number;
 
   @IsString()
-  @ApiProperty({ example: "One-on-one coaching" })
+  @ApiProperty({ example: "Catch up hours" })
   name!: string;
 
   @IsTimeZone()
@@ -40,8 +32,13 @@ export class ScheduleOutput_2024_06_11 {
     example: [
       {
         days: ["Monday", "Tuesday"],
-        startTime: "09:00",
-        endTime: "10:00",
+        startTime: "17:00",
+        endTime: "19:00",
+      },
+      {
+        days: ["Wednesday", "Thursday"],
+        startTime: "16:00",
+        endTime: "20:00",
       },
     ],
   })
@@ -52,7 +49,6 @@ export class ScheduleOutput_2024_06_11 {
   isDefault!: boolean;
 
   @IsArray()
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleOverrideInput_2024_06_11)
   @ApiProperty({
@@ -60,8 +56,8 @@ export class ScheduleOutput_2024_06_11 {
     example: [
       {
         date: "2024-05-20",
-        startTime: "12:00",
-        endTime: "13:00",
+        startTime: "18:00",
+        endTime: "21:00",
       },
     ],
   })

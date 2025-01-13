@@ -17,6 +17,6 @@ import { Module } from "@nestjs/common";
     OutputSchedulesService_2024_06_11,
   ],
   controllers: [SchedulesController_2024_06_11],
-  exports: [SchedulesService_2024_06_11, SchedulesRepository_2024_06_11],
+  exports: [SchedulesService_2024_06_11, SchedulesRepository_2024_06_11, OutputSchedulesService_2024_06_11],
 })
 export class SchedulesModule_2024_06_11 {}

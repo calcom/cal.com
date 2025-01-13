@@ -99,4 +99,28 @@ export class OAuthClientRepository {
       where: { id: clientId },
     });
   }
+
+  async getByUserId(userId: number) {
+    return this.dbRead.prisma.platformOAuthClient.findFirst({
+      where: {
+        users: {
+          some: {
+            id: userId,
+          },
+        },
+      },
+    });
+  }
+
+  async getByTeamId(teamId: number) {
+    return this.dbRead.prisma.platformOAuthClient.findFirst({
+      where: {
+        teams: {
+          some: {
+            id: teamId,
+          },
+        },
+      },
+    });
+  }
 }

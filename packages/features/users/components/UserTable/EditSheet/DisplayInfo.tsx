@@ -1,68 +1,51 @@
-import { classNames } from "@calcom/lib";
-import { useCopy } from "@calcom/lib/hooks/useCopy";
-import type { BadgeProps } from "@calcom/ui";
-import { Badge, Button, Label } from "@calcom/ui";
+import type { IconName } from "@calcom/ui";
+import { Badge, Icon } from "@calcom/ui";
 
-type DisplayInfoType<T extends boolean> = {
+type DisplayInfoType = {
   label: string;
-  value: T extends true ? string[] : string;
-  asBadge?: boolean;
-  isArray?: T;
-  displayCopy?: boolean;
-  badgeColor?: BadgeProps["variant"];
-} & (T extends false
-  ? { displayCopy?: boolean; displayCount?: never }
-  : { displayCopy?: never; displayCount?: number }); // Only show displayCopy if its not an array is false
+  icon?: IconName;
+  value: string | string[];
+  coloredBadges?: boolean;
+  labelClassname?: string;
+  valueClassname?: string;
+};
 
-export function DisplayInfo<T extends boolean>({
+const badgeColors = ["warning", "success", "green", "gray", "blue", "red", "error"] as const;
+
+const valueDefaultClassname = "text-emphasis inline-flex items-center gap-1 font-medium leading-5";
+
+export function DisplayInfo({
   label,
+  icon,
   value,
-  asBadge,
-  isArray,
-  displayCopy,
-  displayCount,
-  badgeColor,
-}: DisplayInfoType<T>) {
-  const { copyToClipboard, isCopied } = useCopy();
-  const values = (isArray ? value : [value]) as string[];
+  coloredBadges,
+  labelClassname,
+  valueClassname = valueDefaultClassname,
+}: DisplayInfoType) {
+  const displayAsBadges = Array.isArray(value);
 
   return (
-    <div className="flex flex-col">
-      <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
-        {label} {displayCount && `(${displayCount})`}
-      </Label>
-      <div className={classNames(asBadge ? "mt-0.5 flex space-x-2" : "flex flex-col")}>
-        <>
-          {values.map((v) => {
-            const content = (
-              <span
-                className={classNames(
-                  "text-emphasis inline-flex items-center gap-1 font-normal leading-5",
-                  asBadge ? "text-xs" : "text-sm"
-                )}>
-                {v}
-                {displayCopy && (
-                  <Button
-                    size="sm"
-                    variant="icon"
-                    onClick={() => copyToClipboard(v)}
-                    color="minimal"
-                    className="text-subtle rounded-md"
-                    StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-                  />
-                )}
-              </span>
-            );
-
-            return asBadge ? (
-              <Badge variant={badgeColor} size="sm">
-                {content}
-              </Badge>
-            ) : (
-              content
-            );
-          })}
-        </>
+    <div className="flex items-center gap-6">
+      <div className="flex w-[110px] items-center gap-2">
+        {icon ? <Icon className="text-subtle h-4 w-4" name={icon} /> : null}
+        <label className={labelClassname ? labelClassname : "text-subtle text-sm font-medium"}>{label}</label>
+      </div>
+      <div className="flex flex-1">
+        {displayAsBadges ? (
+          <div className="flex flex-wrap gap-2">
+            {value.map((v, idx) => {
+              return coloredBadges ? (
+                <Badge variant={badgeColors[idx % badgeColors.length]} key={v}>
+                  {v}
+                </Badge>
+              ) : (
+                <Badge variant="gray">{v}</Badge>
+              );
+            })}
+          </div>
+        ) : (
+          <span className={valueClassname}>{value}</span>
+        )}
       </div>
     </div>
   );

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { Tooltip, Alert } from "@calcom/ui";
 import { Input } from "@calcom/ui";
 
-import { useTimePreferences } from "../../lib";
-import type { PublicEvent } from "../../types";
+import { useBookerTime } from "../../Booker/components/hooks/useBookerTime";
 
-export const EventOccurences = ({ event }: { event: PublicEvent }) => {
+export const EventOccurences = ({ event }: { event: Pick<BookerEvent, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
   const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] = useBookerStore(
@@ -23,7 +23,7 @@ export const EventOccurences = ({ event }: { event: PublicEvent }) => {
   );
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
-  const { timezone, timeFormat } = useTimePreferences();
+  const { timezone, timeFormat } = useBookerTime();
   const [warning, setWarning] = useState(false);
   // Set initial value in booker store.
   useEffect(() => {

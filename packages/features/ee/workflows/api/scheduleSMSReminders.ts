@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { defaultHandler } from "@calcom/lib/server";
@@ -120,6 +121,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const urls = {
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+        };
+
+        const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
+          await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
+
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
@@ -131,9 +141,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           location: reminder.booking?.location || "",
           additionalNotes: reminder.booking?.description,
           responses: responses,
-          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
+          meetingUrl,
+          cancelLink,
+          rescheduleLink,
+          attendeeTimezone: reminder.booking.attendees[0].timeZone,
+          eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
+            reminder.booking.attendees[0].timeZone
+          ),
+          eventEndTimeInAttendeeTimezone: dayjs(reminder.booking?.endTime).tz(
+            reminder.booking.attendees[0].timeZone
+          ),
         };
         const customMessage = customTemplate(
           reminder.workflowStep.reminderBody || "",
@@ -145,6 +162,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
         message = smsReminderTemplate(
           false,
+          reminder.booking.user?.locale || "en",
           reminder.workflowStep.action,
           getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
           reminder.booking?.startTime.toISOString() || "",

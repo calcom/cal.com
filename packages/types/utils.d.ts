@@ -15,3 +15,6 @@ export type ValuesType<T extends ReadonlyArray<unknown> | ArrayLike<unknown> | R
     : T extends object
     ? T[keyof T]
     : never;
+
+declare const brand: unique symbol;
+export type Brand<T, TBrand> = T & { [brand]: TBrand };

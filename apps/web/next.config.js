@@ -7,12 +7,11 @@ const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
-  orgHostPath,
+  nextJsOrgRewriteConfig,
   orgUserRoutePath,
   orgUserTypeRoutePath,
   orgUserTypeEmbedRoutePath,
 } = require("./pagesAndRewritePaths");
-
 if (!process.env.NEXTAUTH_SECRET) throw new Error("Please set NEXTAUTH_SECRET");
 if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_ENCRYPTION_KEY");
 const isOrganizationsEnabled =
@@ -52,6 +51,20 @@ if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
 if (!process.env.NEXT_PUBLIC_API_V2_URL) {
   console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
 }
 
 const validJson = (jsonString) => {
@@ -105,71 +118,79 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+const orgDomainMatcherConfig = {
+  root: nextJsOrgRewriteConfig.disableRootPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/",
+      },
 
-const matcherConfigRootPath = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: "/",
-};
+  rootEmbed: nextJsOrgRewriteConfig.disableRootEmbedPathRewrite
+    ? null
+    : {
+        has: [
+          {
+            type: "host",
+            value: nextJsOrgRewriteConfig.orgHostPath,
+          },
+        ],
+        source: "/embed",
+      },
 
-const matcherConfigRootPathEmbed = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: "/embed",
-};
+  user: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserRoutePath,
+  },
 
-const matcherConfigUserRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserRoutePath,
-};
+  userType: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeRoutePath,
+  },
 
-const matcherConfigUserTypeRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserTypeRoutePath,
-};
-
-const matcherConfigUserTypeEmbedRoute = {
-  has: [
-    {
-      type: "host",
-      value: orgHostPath,
-    },
-  ],
-  source: orgUserTypeEmbedRoutePath,
+  userTypeEmbed: {
+    has: [
+      {
+        type: "host",
+        value: nextJsOrgRewriteConfig.orgHostPath,
+      },
+    ],
+    source: orgUserTypeEmbedRoutePath,
+  },
 };
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
     instrumentationHook: true,
+    serverActions: true,
   },
   i18n: {
     ...i18n,
+    defaultLocale: "en",
+    locales: ["en"],
     localeDetection: false,
   },
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -190,8 +211,6 @@ const nextConfig = {
     "@calcom/lib",
     "@calcom/prisma",
     "@calcom/trpc",
-    "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -202,16 +221,16 @@ const nextConfig = {
     lodash: {
       transform: "lodash/{{member}}",
     },
-    // TODO: We need to have all components in `@calcom/ui/components` in order to use this
-    // "@calcom/ui": {
-    //   transform: "@calcom/ui/components/{{member}}",
-    // },
   },
   images: {
     unoptimized: true,
   },
   webpack: (config, { webpack, buildId, isServer }) => {
     if (isServer) {
+      if (process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1") {
+        config.devtool = false;
+      }
+
       // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
       config.plugins.push(
         new webpack.IgnorePlugin({
@@ -220,6 +239,13 @@ const nextConfig = {
         })
       );
     }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+      })
+    );
 
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -265,14 +291,11 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
     const beforeFiles = [
       {
         source: "/forms/:formQuery*",
-        destination: "/apps/routing-forms/routing-link/:formQuery*",
-      },
-      {
-        source: "/router",
-        destination: "/apps/routing-forms/router",
+        destination: "/routing/routing-link/:formQuery*",
       },
       {
         source: "/success/:path*",
@@ -304,29 +327,33 @@ const nextConfig = {
       // These rewrites are other than booking pages rewrites and so that they aren't redirected to org pages ensure that they happen in beforeFiles
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  destination: `/team/${orgSlug}?isOrgProfile=1`,
+                }
+              : null,
+            orgDomainMatcherConfig.rootEmbed
+              ? {
+                  ...orgDomainMatcherConfig.rootEmbed,
+                  destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
-              destination: "/team/:orgSlug?isOrgProfile=1",
+              ...orgDomainMatcherConfig.user,
+              destination: `/org/${orgSlug}/:user`,
             },
             {
-              ...matcherConfigRootPathEmbed,
-              destination: "/team/:orgSlug/embed?isOrgProfile=1",
+              ...orgDomainMatcherConfig.userType,
+              destination: `/org/${orgSlug}/:user/:type`,
             },
             {
-              ...matcherConfigUserRoute,
-              destination: "/org/:orgSlug/:user",
-            },
-            {
-              ...matcherConfigUserTypeRoute,
-              destination: "/org/:orgSlug/:user/:type",
-            },
-            {
-              ...matcherConfigUserTypeEmbedRoute,
-              destination: "/org/:orgSlug/:user/:type/embed",
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              destination: `/org/${orgSlug}/:user/:type/embed`,
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
 
     let afterFiles = [
       {
@@ -344,6 +371,10 @@ const nextConfig = {
       {
         source: "/team/:teamname/avatar.png",
         destination: "/api/user/avatar?teamname=:teamname",
+      },
+      {
+        source: "/icons/sprite.svg",
+        destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
       },
 
       // When updating this also update pagesAndRewritePaths.js
@@ -366,6 +397,19 @@ const nextConfig = {
     };
   },
   async headers() {
+    const { orgSlug } = nextJsOrgRewriteConfig;
+    // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
+    // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
+    const CORP_CROSS_ORIGIN_HEADER = {
+      key: "Cross-Origin-Resource-Policy",
+      value: "cross-origin",
+    };
+
+    const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = {
+      key: "Access-Control-Allow-Origin",
+      value: "*",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -398,47 +442,89 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/embed/embed.js",
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*/embed",
+        // COEP require-corp header is set conditionally when flag.coep is set to true
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "cal.com",
+          },
+        ],
+        headers: [
+          // make sure to pass full referer URL for booking pages
+          {
+            key: "Referrer-Policy",
+            value: "no-referrer-when-downgrade",
+          },
+        ],
+      },
+      // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
+      ...[
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER],
+        },
+      ],
       ...(isOrganizationsEnabled
         ? [
+            orgDomainMatcherConfig.root
+              ? {
+                  ...orgDomainMatcherConfig.root,
+                  headers: [
+                    {
+                      key: "X-Cal-Org-path",
+                      value: `/team/${orgSlug}`,
+                    },
+                  ],
+                }
+              : null,
             {
-              ...matcherConfigRootPath,
+              ...orgDomainMatcherConfig.user,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/team/:orgSlug",
+                  value: `/org/${orgSlug}/:user`,
                 },
               ],
             },
             {
-              ...matcherConfigUserRoute,
+              ...orgDomainMatcherConfig.userType,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user",
+                  value: `/org/${orgSlug}/:user/:type`,
                 },
               ],
             },
             {
-              ...matcherConfigUserTypeRoute,
+              ...orgDomainMatcherConfig.userTypeEmbed,
               headers: [
                 {
                   key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type",
-                },
-              ],
-            },
-            {
-              ...matcherConfigUserTypeEmbedRoute,
-              headers: [
-                {
-                  key: "X-Cal-Org-path",
-                  value: "/org/:orgSlug/:user/:type/embed",
+                  value: `/org/${orgSlug}/:user/:type/embed`,
                 },
               ],
             },
           ]
         : []),
-    ];
+    ].filter(Boolean);
   },
   async redirects() {
     const redirects = [
@@ -518,10 +604,10 @@ const nextConfig = {
           {
             type: "header",
             key: "host",
-            value: orgHostPath,
+            value: nextJsOrgRewriteConfig.orgHostPath,
           },
         ],
-        destination: "/event-types?openIntercom=true",
+        destination: "/event-types?openPlain=true",
         permanent: true,
       },
       {
@@ -594,10 +680,14 @@ const nextConfig = {
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   plugins.push((nextConfig) =>
     withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: true,
+      autoInstrumentServerFunctions: false,
       hideSourceMaps: true,
       // disable source map generation for the server code
       disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+      silent: false,
+      sourcemaps: {
+        disable: process.env.SENTRY_DISABLE_SERVER_SOURCE_MAPS === "1",
+      },
     })
   );
 }

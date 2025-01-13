@@ -141,6 +141,7 @@ const Days = ({
   eventSlug,
   slots,
   customClassName,
+  isBookingInPast,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -153,6 +154,7 @@ const Days = ({
     datePickerDateActive?: string;
   };
   scrollToTimeSlots?: () => void;
+  isBookingInPast: boolean;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -254,10 +256,10 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isPending ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50 transition"
+              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-90 transition"
               key={`e-${idx}`}
               disabled>
-              <SkeletonText className="h-4 w-5" />
+              <SkeletonText className="h-8 w-9" />
             </button>
           ) : (
             <DayComponent
@@ -279,7 +281,7 @@ const Days = ({
         </div>
       ))}
 
-      {!props.isPending && includedDates && includedDates?.length === 0 && (
+      {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>
@@ -294,6 +296,7 @@ const DatePicker = ({
   onMonthChange,
   slots,
   customClassNames,
+  includedDates,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -307,7 +310,9 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n } = useLocale();
+  const { i18n, t } = useLocale();
+  const bookingData = useBookerStore((state) => state.bookingData);
+  const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -353,6 +358,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-left"
+              aria-label={t("view_previous_month")}
             />
             <Button
               className={classNames(
@@ -364,6 +370,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-right"
+              aria-label={t("view_next_month")}
             />
           </div>
         </div>
@@ -393,6 +400,8 @@ const DatePicker = ({
           month={month}
           nextMonthButton={() => changeMonth(+1)}
           slots={slots}
+          includedDates={includedDates}
+          isBookingInPast={isBookingInPast}
         />
       </div>
     </div>

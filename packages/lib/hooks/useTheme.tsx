@@ -11,6 +11,7 @@ import { useEmbedTheme } from "@calcom/embed-core/embed-iframe";
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
 export default function useTheme(themeToSet: "system" | (string & {}) | undefined | null, getOnly = false) {
+  themeToSet = themeToSet ? themeToSet : "system";
   const { resolvedTheme, setTheme, forcedTheme, theme: activeTheme } = useNextTheme();
   const embedTheme = useEmbedTheme();
 

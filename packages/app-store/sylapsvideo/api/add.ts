@@ -14,6 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
+  const returnTo = req.query?.returnTo;
   const appType = config.type;
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
@@ -42,5 +43,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     return res.status(500);
   }
-  return res.status(200).json({ url: getInstalledAppPath({ variant: "conferencing", slug: config.slug }) });
+  return res
+    .status(200)
+    .json({ url: returnTo ?? getInstalledAppPath({ variant: "conferencing", slug: config.slug }) });
 }

@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-import { _BookingModel as Booking, _AttendeeModel, _UserModel, _PaymentModel } from "@calcom/prisma/zod";
+import {
+  _AttendeeModel,
+  _BookingModel as Booking,
+  _EventTypeModel,
+  _PaymentModel,
+  _TeamModel,
+  _UserModel,
+} from "@calcom/prisma/zod";
 import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
@@ -14,6 +21,9 @@ const schemaBookingBaseBodyParams = Booking.pick({
   startTime: true,
   endTime: true,
   status: true,
+  rescheduledBy: true,
+  cancelledBy: true,
+  createdAt: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
@@ -21,13 +31,20 @@ export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(sch
 export const schemaBookingGetParams = z.object({
   dateFrom: iso8601.optional(),
   dateTo: iso8601.optional(),
+  order: z.enum(["asc", "desc"]).default("asc"),
+  sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
+  status: z.enum(["upcoming"]).optional(),
 });
+
+export type Status = z.infer<typeof schemaBookingGetParams>["status"];
 
 const schemaBookingEditParams = z
   .object({
     title: z.string().optional(),
     startTime: iso8601.optional(),
     endTime: iso8601.optional(),
+    cancelledBy: z.string().email({ message: "Invalid Email" }).optional(),
+    rescheduledBy: z.string().email({ message: "Invalid Email" }).optional(),
     // Not supporting responses in edit as that might require re-triggering emails
     // responses
   })
@@ -37,10 +54,27 @@ export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
   .omit({ uid: true });
 
+const teamSchema = _TeamModel.pick({
+  name: true,
+  slug: true,
+});
+
 export const schemaBookingReadPublic = Booking.extend({
+  eventType: _EventTypeModel
+    .pick({
+      title: true,
+      slug: true,
+    })
+    .merge(
+      z.object({
+        team: teamSchema.nullish(),
+      })
+    )
+    .nullish(),
   attendees: z
     .array(
       _AttendeeModel.pick({
+        id: true,
         email: true,
         name: true,
         timeZone: true,
@@ -78,9 +112,13 @@ export const schemaBookingReadPublic = Booking.extend({
   timeZone: true,
   attendees: true,
   user: true,
+  eventType: true,
   payment: true,
   metadata: true,
   status: true,
   responses: true,
   fromReschedule: true,
+  cancelledBy: true,
+  rescheduledBy: true,
+  createdAt: true,
 });

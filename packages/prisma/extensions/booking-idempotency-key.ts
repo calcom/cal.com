@@ -32,6 +32,12 @@ export function bookingIdempotencyKeyExtension() {
           }
           return query(args);
         },
+        async updateMany({ args, query }) {
+          if (args.data.status === BookingStatus.CANCELLED || args.data.status === BookingStatus.REJECTED) {
+            args.data.idempotencyKey = null;
+          }
+          return query(args);
+        },
       },
     },
   });

@@ -32,8 +32,6 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *     responses:
  *       200:
  *         description: OK
- *         content:
- *           application/json:
  *       401:
  *         description: Authorization information is missing or invalid.
  *       404:

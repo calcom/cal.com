@@ -1,13 +1,14 @@
+"use client";
+
 import { createContext, useContext } from "react";
 
-import type enTranslations from "@calcom/web/public/static/locales/en/common.json";
-
+import type { translationKeys, CalProviderLanguagesType } from "../cal-provider/CalProvider";
 import type http from "../lib/http";
 
-type translationKeys = keyof typeof enTranslations;
 export interface IAtomsContextOptions {
   refreshUrl?: string;
   apiUrl: string;
+  readingDirection?: "ltr" | "rtl";
 }
 
 export interface IAtomsContext {
@@ -23,21 +24,26 @@ export interface IAtomsContext {
   isInit: boolean;
   t: (key: string, values: Record<string, string | number | undefined | null>) => string;
   i18n: {
-    language: string;
-    defaultLocale: string;
-    locales: string[];
+    language: CalProviderLanguagesType;
+    defaultLocale: CalProviderLanguagesType;
+    locales: CalProviderLanguagesType[];
     exists: (key: translationKeys | string) => boolean;
   };
+  organizationId: number;
+  userId?: number;
+  isEmbed?: boolean;
 }
 
 export const AtomsContext = createContext({
   clientId: "",
   accessToken: "",
+  organizationId: 0,
   options: { refreshUrl: "", apiUrl: "" },
   error: "",
   getClient: () => {
     return;
   },
+  isEmbed: false,
 } as IAtomsContext);
 
 export const useAtomsContext = () => useContext(AtomsContext);

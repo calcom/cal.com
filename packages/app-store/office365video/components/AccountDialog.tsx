@@ -2,10 +2,11 @@ import type { DialogProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
 
-import useAddAppMutation from "../../_utils/useAddAppMutation";
-
-export function AccountDialog(props: DialogProps) {
-  const mutation = useAddAppMutation("office365_video");
+export function AccountDialog(
+  props: DialogProps & {
+    handleSubmit: () => void;
+  }
+) {
   return (
     <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
@@ -24,7 +25,7 @@ export function AccountDialog(props: DialogProps) {
               Cancel
             </DialogClose>
 
-            <Button type="button" onClick={() => mutation.mutate("")}>
+            <Button type="button" onClick={props.handleSubmit}>
               Continue
             </Button>
           </>

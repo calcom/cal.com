@@ -7,6 +7,7 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,10 +15,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
+import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
-import type { useEventReturnType } from "../Booker/utils/event";
 import { getQueryParam } from "../Booker/utils/query-param";
-import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -36,7 +36,9 @@ type AvailableTimesProps = {
   showTimeFormatToggle?: boolean;
   className?: string;
   selectedSlots?: string[];
-  event: useEventReturnType;
+  event: {
+    data?: Pick<BookerEvent, "length"> | null;
+  };
   customClassNames?: string;
 };
 
@@ -54,14 +56,16 @@ const SlotItem = ({
   selectedSlots?: string[];
   onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
-  event: useEventReturnType;
+  event: {
+    data?: Pick<BookerEvent, "length"> | null;
+  };
   customClassNames?: string;
 }) => {
   const { t } = useLocale();
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
   const { data: eventData } = event;
@@ -87,22 +91,17 @@ const SlotItem = ({
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
-    if (!overlayCalendarToggled) {
+    if (!overlayCalendarToggled || (isOverlapping && overlapConfirm)) {
       onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-      return;
-    }
-    if (isOverlapping && overlapConfirm) {
-      setOverlapConfirm(false);
       return;
     }
 
-    if (isOverlapping && !overlapConfirm) {
+    if (isOverlapping) {
       setOverlapConfirm(true);
       return;
     }
-    if (!overlapConfirm) {
-      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-    }
+
+    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
   }, [
     overlayCalendarToggled,
     isOverlapping,
@@ -125,7 +124,7 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
+            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}

@@ -16,6 +16,7 @@ export class OrganizationsRepository {
     return this.dbRead.prisma.team.findUnique({
       where: {
         id: organizationId,
+        isOrganization: true,
       },
     });
   }
@@ -32,7 +33,7 @@ export class OrganizationsRepository {
   }
 
   async createNewBillingRelation(orgId: number, plan?: PlatformPlan) {
-    const { id } = await this.stripeService.stripe.customers.create({
+    const { id } = await this.stripeService.getStripe().customers.create({
       metadata: {
         createdBy: "oauth_client_no_csid", // mark in case this is needed in the future.
       },
@@ -66,6 +67,67 @@ export class OrganizationsRepository {
       },
       select: {
         id: true,
+      },
+    });
+  }
+
+  async findPlatformOrgFromUserId(userId: number) {
+    return this.dbRead.prisma.team.findFirstOrThrow({
+      where: {
+        orgProfiles: {
+          some: {
+            userId: userId,
+          },
+        },
+        isPlatform: true,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        isPlatform: true,
+        isOrganization: true,
+      },
+    });
+  }
+
+  async findOrgUser(organizationId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+      },
+    });
+  }
+
+  async findOrgTeamUser(organizationId: number, teamId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+        teams: {
+          some: {
+            teamId: teamId,
+          },
+        },
+      },
+    });
+  }
+
+  async fetchOrgAdminApiStatus(organizationId: number) {
+    return this.dbRead.prisma.organizationSettings.findUnique({
+      where: {
+        organizationId,
+      },
+      select: {
+        isAdminAPIEnabled: true,
       },
     });
   }

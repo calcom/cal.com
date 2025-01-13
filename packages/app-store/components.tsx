@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -19,9 +22,10 @@ import type { InstallAppButtonProps } from "./types";
 export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
+    options?: UseAddAppMutationOptions;
   } & InstallAppButtonProps
 ) => {
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, props.options);
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
@@ -33,7 +37,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           onClick: () => {
             mutation.mutate({ type: props.type });
           },
-          loading: mutation.isPending,
+          loading: mutation.data?.setupPending,
         })}
       </>
     );

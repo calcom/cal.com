@@ -1,7 +1,5 @@
 import fs from "fs";
 import matter from "gray-matter";
-import MarkdownIt from "markdown-it";
-import type { GetStaticPropsContext } from "next";
 import path from "path";
 import { z } from "zod";
 
@@ -9,8 +7,6 @@ import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-
-const md = new MarkdownIt("default", { html: true, breaks: true });
 
 export const sourceSchema = z.object({
   content: z.string(),
@@ -29,15 +25,15 @@ export const sourceSchema = z.object({
   }),
 });
 
-export const getStaticProps = async (ctx: GetStaticPropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
+export type AppDataProps = NonNullable<Awaited<ReturnType<typeof getStaticProps>>>;
 
+export const getStaticProps = async (slug: string) => {
   const appMeta = await getAppWithMetadata({
-    slug: ctx.params?.slug,
+    slug,
   });
 
   const appFromDb = await prisma.app.findUnique({
-    where: { slug: ctx.params.slug.toLowerCase() },
+    where: { slug: slug.toLowerCase() },
   });
 
   const isAppAvailableInFileSystem = appMeta;
@@ -45,16 +41,14 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   if (!IS_PRODUCTION && isAppDisabled) {
     return {
-      props: {
-        isAppDisabled: true as const,
-        data: {
-          ...appMeta,
-        },
+      isAppDisabled: true as const,
+      data: {
+        ...appMeta,
       },
     };
   }
 
-  if (!appFromDb || !appMeta || isAppDisabled) return { notFound: true } as const;
+  if (!appFromDb || !appMeta || isAppDisabled) return null;
 
   const isTemplate = appMeta.isTemplate;
   const appDirname = path.join(isTemplate ? "templates" : "", appFromDb.dirName);
@@ -85,10 +79,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     });
   }
   return {
-    props: {
-      isAppDisabled: false as const,
-      source: { content, data },
-      data: appMeta,
-    },
+    isAppDisabled: false as const,
+    source: { content, data },
+    data: appMeta,
   };
 };

@@ -16,7 +16,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
@@ -37,7 +37,7 @@ describe("Schedules Endpoints", () => {
     const defaultAvailabilityEndTime = "1970-01-01T17:00:00.000Z";
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
@@ -64,6 +64,37 @@ describe("Schedules Endpoints", () => {
     it("should be defined", () => {
       expect(userRepositoryFixture).toBeDefined();
       expect(user).toBeDefined();
+    });
+
+    it("should not create an invalid schedule", async () => {
+      const scheduleName = "schedule-name";
+      const scheduleTimeZone = "Europe/Rome";
+      const isDefault = true;
+
+      const body = {
+        name: scheduleName,
+        timeZone: scheduleTimeZone,
+        isDefault,
+        availabilities: [
+          {
+            days: ["Monday"],
+            endTime: "11:15",
+            startTime: "10:00",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/schedules")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+        .send(body)
+        .expect(400)
+        .then(async (response) => {
+          expect(response.body.status).toEqual("error");
+          expect(response.body.error.message).toEqual(
+            "Invalid datestring format. Expected format(ISO8061): 2025-04-12T13:17:56.324Z. Received: 11:15"
+          );
+        });
     });
 
     it("should create a default schedule", async () => {

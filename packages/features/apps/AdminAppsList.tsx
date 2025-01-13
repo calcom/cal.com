@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
@@ -8,6 +10,7 @@ import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
+import AppListCard from "@calcom/features/apps/components/AppListCard";
 import { classNames as cs } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -32,8 +35,6 @@ import {
   Switch,
   TextField,
 } from "@calcom/ui";
-
-import AppListCard from "../../../apps/web/components/AppListCard";
 
 type App = RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
 
@@ -157,7 +158,7 @@ const AdminAppsList = ({
     <form
       {...rest}
       className={
-        classNames?.form ?? "max-w-80 bg-default mb-4 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
+        classNames?.form ?? "bg-default mb-4 max-w-80 rounded-md px-0 pt-0 md:max-w-full md:px-8 md:pt-10"
       }
       onSubmit={(e) => {
         e.preventDefault();
@@ -315,16 +316,18 @@ const AdminAppsListContainer = () => {
           />
         ))}
       </List>
-      <EditKeysModal
-        keys={modalState.keys}
-        dirName={modalState.dirName}
-        handleModelClose={handleModelClose}
-        isOpen={modalState.isOpen === "editKeys"}
-        slug={modalState.slug}
-        type={modalState.type}
-        fromEnabled={modalState.fromEnabled}
-        appName={modalState.appName}
-      />
+      {modalState.isOpen === "editKeys" && (
+        <EditKeysModal
+          keys={modalState.keys}
+          dirName={modalState.dirName}
+          handleModelClose={handleModelClose}
+          isOpen={modalState.isOpen === "editKeys"}
+          slug={modalState.slug}
+          type={modalState.type}
+          fromEnabled={modalState.fromEnabled}
+          appName={modalState.appName}
+        />
+      )}
     </>
   );
 };

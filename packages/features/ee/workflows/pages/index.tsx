@@ -11,6 +11,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar, CreateButtonWithTeamsList, showToast } from "@calcom/ui";
 
@@ -22,16 +23,27 @@ import EmptyScreen from "../components/EmptyScreen";
 import SkeletonLoader from "../components/SkeletonLoaderList";
 import WorkflowList from "../components/WorkflowListPage";
 
-function WorkflowsPage() {
+type PageProps = {
+  filteredList?: Awaited<ReturnType<typeof WorkflowRepository.getFilteredList>>;
+};
+
+function WorkflowsPage({ filteredList }: PageProps) {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
 
-  const queryRes = trpc.viewer.workflows.filteredList.useQuery({
-    filters,
-  });
+  const { data, isPending: _isPending } = trpc.viewer.workflows.filteredList.useQuery(
+    {
+      filters,
+    },
+    {
+      enabled: !filteredList,
+    }
+  );
+  const filteredWorkflows = filteredList ?? data;
+  const isPending = filteredList ? false : _isPending;
 
   const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -51,13 +63,13 @@ function WorkflowsPage() {
   });
 
   return (
-    <Shell withoutMain>
+    <Shell withoutMain withoutSeo={true}>
       <LicenseRequired>
         <ShellMain
           heading={t("workflows")}
           subtitle={t("workflows_to_automate_notifications")}
-          title="Workflows"
-          description="Create workflows to automate notifications and reminders."
+          title={t("workflows")}
+          description={t("workflows_to_automate_notifications")}
           hideHeadingOnMobile
           CTA={
             session.data?.hasValidLicense ? (
@@ -69,30 +81,32 @@ function WorkflowsPage() {
                 isPending={createMutation.isPending}
                 disableMobileButton={true}
                 onlyShowWithNoTeams={true}
+                includeOrg={true}
               />
             ) : null
           }>
           <>
-            {queryRes.data?.totalCount ? (
+            {filteredWorkflows?.totalCount ? (
               <div className="flex">
                 <TeamsFilter />
-                <div className="ml-auto">
+                <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
                     createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                     isPending={createMutation.isPending}
                     disableMobileButton={true}
                     onlyShowWithTeams={true}
+                    includeOrg={true}
                   />
                 </div>
               </div>
             ) : null}
             <FilterResults
-              queryRes={queryRes}
+              queryRes={{ isPending, data: filteredWorkflows }}
               emptyScreen={<EmptyScreen isFilteredView={false} />}
               noResultsScreen={<EmptyScreen isFilteredView={true} />}
               SkeletonLoader={SkeletonLoader}>
-              <WorkflowList workflows={queryRes.data?.filtered} />
+              <WorkflowList workflows={filteredWorkflows?.filtered} />
             </FilterResults>
           </>
         </ShellMain>
@@ -134,7 +148,7 @@ const Filter = (props: {
   return (
     <div className={classNames("-mb-2", noFilter ? "w-16" : "w-[100px]")}>
       <AnimatedPopover text={noFilter ? "All" : "Filtered"}>
-        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer">
+        <div className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer">
           <Avatar
             imageSrc={userAvatar || ""}
             size="sm"
@@ -151,7 +165,7 @@ const Filter = (props: {
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -169,7 +183,7 @@ const Filter = (props: {
         </div>
         {teams.map((profile) => (
           <div
-            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] hover:cursor-pointer"
+            className="item-center focus-within:bg-subtle hover:bg-muted flex px-4 py-[6px] transition hover:cursor-pointer"
             key={`${profile.teamId || 0}`}>
             <Avatar
               imageSrc={profile.image || ""}
@@ -215,7 +229,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             />
           </div>
         ))}

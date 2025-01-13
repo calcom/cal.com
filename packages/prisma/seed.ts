@@ -181,6 +181,19 @@ async function createPlatformAndSetupUser({
         subscriptionId: "sub_123",
       },
     });
+
+    await prisma.platformOAuthClient.create({
+      data: {
+        name: "Acme",
+        redirectUris: ["http://localhost:4321"],
+        permissions: 1023,
+        areEmailsEnabled: true,
+        organizationId: team.id,
+        id: "clxyyy21o0003sbk7yw5z6tzg",
+        secret:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiQWNtZSAiLCJwZXJtaXNzaW9ucyI6MTAyMywicmVkaXJlY3RVcmlzIjpbImh0dHA6Ly9sb2NhbGhvc3Q6NDMyMSJdLCJib29raW5nUmVkaXJlY3RVcmkiOiIiLCJib29raW5nQ2FuY2VsUmVkaXJlY3RVcmkiOiIiLCJib29raW5nUmVzY2hlZHVsZVJlZGlyZWN0VXJpIjoiIiwiYXJlRW1haWxzRW5hYmxlZCI6dHJ1ZSwiaWF0IjoxNzE5NTk1ODA4fQ.L5_jSS14fcKLCD_9_DAOgtGd6lUSZlU5CEpCPaPt41I",
+      },
+    });
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
   }
 }
@@ -285,46 +298,56 @@ async function createOrganizationAndAddMembersAndTeams({
   })[] = [];
 
   try {
-    for (const member of orgMembers) {
-      const newUser = await createUserAndEventType({
-        user: {
-          ...member.memberData,
-          password: member.memberData.password.create?.hash,
-        },
-        eventTypes: [
-          {
-            title: "30min",
-            slug: "30min",
-            length: 30,
-            _bookings: [
+    const batchSize = 50;
+    // Process members in batches of  in parallel
+    for (let i = 0; i < orgMembers.length; i += batchSize) {
+      const batch = orgMembers.slice(i, i + batchSize);
+
+      const batchResults = await Promise.all(
+        batch.map(async (member) => {
+          const newUser = await createUserAndEventType({
+            user: {
+              ...member.memberData,
+              password: member.memberData.password.create?.hash,
+            },
+            eventTypes: [
               {
-                uid: uuid(),
                 title: "30min",
-                startTime: dayjs().add(1, "day").toDate(),
-                endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+                slug: "30min",
+                length: 30,
+                _bookings: [
+                  {
+                    uid: uuid(),
+                    title: "30min",
+                    startTime: dayjs().add(1, "day").toDate(),
+                    endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
+                  },
+                ],
               },
             ],
-          },
-        ],
-      });
+          });
 
-      const orgMemberInDb = {
-        ...newUser,
-        inTeams: member.inTeams,
-        orgMembership: member.orgMembership,
-        orgProfile: member.orgProfile,
-      };
+          const orgMemberInDb = {
+            ...newUser,
+            inTeams: member.inTeams,
+            orgMembership: member.orgMembership,
+            orgProfile: member.orgProfile,
+          };
 
-      await prisma.tempOrgRedirect.create({
-        data: {
-          fromOrgId: 0,
-          type: RedirectType.User,
-          from: member.memberData.username,
-          toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
-        },
-      });
+          await prisma.tempOrgRedirect.create({
+            data: {
+              fromOrgId: 0,
+              type: RedirectType.User,
+              from: member.memberData.username,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+            },
+          });
 
-      orgMembersInDb.push(orgMemberInDb);
+          return orgMemberInDb;
+        })
+      );
+
+      orgMembersInDb.push(...batchResults);
     }
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -911,6 +934,7 @@ async function main() {
       name: "Platform Team",
       slug: "platform-admin-team",
       isPlatform: true,
+      isOrganization: true,
       eventTypes: {
         createMany: {
           data: [
@@ -1053,6 +1077,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
         },
       },
       members: [
@@ -1081,51 +1106,34 @@ async function main() {
             },
           ],
         },
-        {
+        ...Array.from({ length: 10 }, (_, i) => ({
           memberData: {
-            email: "member1-acme@example.com",
+            email: `member${i}-acme@example.com`,
             password: {
               create: {
-                hash: "member1-acme",
+                hash: `member${i}-acme`,
               },
             },
-            username: "member1-acme",
-            name: "Member 1",
+            username: `member${i}-acme`,
+            name: `Member ${i}`,
           },
           orgMembership: {
-            role: "MEMBER",
+            role: MembershipRole.MEMBER,
             accepted: true,
           },
           orgProfile: {
-            username: "member1",
+            username: `member${i}`,
           },
-          inTeams: [
-            {
-              slug: "team1",
-              role: "ADMIN",
-            },
-          ],
-        },
-        {
-          memberData: {
-            email: "member2-acme@example.com",
-            password: {
-              create: {
-                hash: "member2-acme",
-              },
-            },
-            username: "member2-acme",
-            name: "Member 2",
-          },
-          orgMembership: {
-            role: "MEMBER",
-            accepted: true,
-          },
-          orgProfile: {
-            username: "member2",
-          },
-          inTeams: [],
-        },
+          inTeams:
+            i % 2 === 0
+              ? [
+                  {
+                    slug: "team1",
+                    role: MembershipRole.MEMBER,
+                  },
+                ]
+              : [],
+        })),
       ],
     },
     teams: [

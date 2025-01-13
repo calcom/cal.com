@@ -4,13 +4,14 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
-import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -46,207 +47,7 @@ export const getEventTypeById = async ({
     defaultScheduleId: true,
   });
 
-  const rawEventType = await prisma.eventType.findFirst({
-    where: {
-      AND: [
-        {
-          OR: [
-            {
-              users: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: userId,
-                  },
-                },
-              },
-            },
-            {
-              userId: userId,
-            },
-          ],
-        },
-        {
-          id: eventTypeId,
-        },
-      ],
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-      description: true,
-      length: true,
-      isInstantEvent: true,
-      aiPhoneCallConfig: true,
-      offsetStart: true,
-      hidden: true,
-      locations: true,
-      eventName: true,
-      customInputs: true,
-      timeZone: true,
-      periodType: true,
-      metadata: true,
-      periodDays: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      periodCountCalendarDays: true,
-      lockTimeZoneToggleOnBookingPage: true,
-      requiresConfirmation: true,
-      requiresBookerEmailVerification: true,
-      recurringEvent: true,
-      hideCalendarNotes: true,
-      disableGuests: true,
-      minimumBookingNotice: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      slotInterval: true,
-      hashedLink: true,
-      bookingLimits: true,
-      onlyShowFirstAvailableSlot: true,
-      durationLimits: true,
-      assignAllTeamMembers: true,
-      successRedirectUrl: true,
-      forwardParamsSuccessRedirect: true,
-      currency: true,
-      bookingFields: true,
-      useEventTypeDestinationCalendarEmail: true,
-      owner: {
-        select: {
-          id: true,
-        },
-      },
-      parent: {
-        select: {
-          teamId: true,
-        },
-      },
-      teamId: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          parentId: true,
-          parent: {
-            select: {
-              slug: true,
-              organizationSettings: {
-                select: {
-                  lockEventTypeCreationForUsers: true,
-                },
-              },
-            },
-          },
-          members: {
-            select: {
-              role: true,
-              accepted: true,
-              user: {
-                select: {
-                  ...userSelect,
-                  eventTypes: {
-                    select: {
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      users: {
-        select: userSelect,
-      },
-      schedulingType: true,
-      schedule: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      hosts: {
-        select: {
-          isFixed: true,
-          userId: true,
-          priority: true,
-        },
-      },
-      userId: true,
-      price: true,
-      children: {
-        select: {
-          owner: {
-            select: {
-              avatarUrl: true,
-              name: true,
-              username: true,
-              email: true,
-              id: true,
-            },
-          },
-          hidden: true,
-          slug: true,
-        },
-      },
-      destinationCalendar: true,
-      seatsPerTimeSlot: true,
-      seatsShowAttendees: true,
-      seatsShowAvailabilityCount: true,
-      webhooks: {
-        select: {
-          id: true,
-          subscriberUrl: true,
-          payloadTemplate: true,
-          active: true,
-          eventTriggers: true,
-          secret: true,
-          eventTypeId: true,
-        },
-      },
-      workflows: {
-        include: {
-          workflow: {
-            include: {
-              team: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                  members: true,
-                },
-              },
-              activeOn: {
-                select: {
-                  eventType: {
-                    select: {
-                      id: true,
-                      title: true,
-                      parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              steps: true,
-            },
-          },
-        },
-      },
-      secondaryEmailId: true,
-    },
-  });
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {
@@ -257,7 +58,7 @@ export const getEventTypeById = async ({
   }
 
   const { locations, metadata, ...restEventType } = rawEventType;
-  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {}) || {};
+  const newMetadata = eventTypeMetaDataSchemaWithTypedApps.parse(metadata || {}) || {};
   const apps = newMetadata?.apps || {};
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   const eventTeamMembershipsWithUserProfile = [];
@@ -302,11 +103,16 @@ export const getEventTypeById = async ({
 
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    schedule:
+      rawEventType.schedule?.id ||
+      (!rawEventType.team ? rawEventType.users[0]?.defaultScheduleId : null) ||
+      null,
+    instantMeetingSchedule: rawEventType.instantMeetingSchedule?.id || null,
     scheduleName: rawEventType.schedule?.name || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     durationLimits: parseDurationLimit(restEventType.durationLimits),
+    eventTypeColor: parseEventTypeColor(restEventType.eventTypeColor),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
@@ -391,11 +197,12 @@ export const getEventTypeById = async ({
     });
   }
 
+  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
   const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
   });
 
   const isOrgEventType = !!eventTypeObject.team?.parentId;

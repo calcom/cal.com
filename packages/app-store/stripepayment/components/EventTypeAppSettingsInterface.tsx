@@ -1,14 +1,17 @@
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useState, useEffect } from "react";
 
 import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Select, TextField } from "@calcom/ui";
+import { RefundPolicy } from "@calcom/lib/payment/types";
+import { Alert, RadioField, Select, TextField } from "@calcom/ui";
 
-import { paymentOptions } from "../lib/constants";
 import {
   convertToSmallestCurrencyUnit,
   convertFromSmallestToPresentableCurrencyUnit,
-} from "../lib/currencyConversions";
+} from "../../_utils/payments/currencyConversions";
+import { paymentOptions } from "../lib/constants";
 import { currencyOptions } from "../lib/currencyOptions";
 
 type Option = { value: string; label: string };
@@ -30,6 +33,8 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
   const paymentOption = getAppData("paymentOption");
   const paymentOptionSelectValue = paymentOptions.find((option) => paymentOption === option.value);
   const requirePayment = getAppData("enabled");
+  const getSelectedOption = () =>
+    options.find((opt) => opt.value === (getAppData("refundCountCalendarDays") === true ? 1 : 0));
 
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -54,8 +59,16 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
         setAppData("paymentOption", paymentOptions[0].value);
       }
     }
+
+    if (!getAppData("refundPolicy")) {
+      setAppData("refundPolicy", RefundPolicy.NEVER);
+    }
   }, [requirePayment, getAppData, setAppData]);
 
+  const options = [
+    { value: 0, label: t("business_days") },
+    { value: 1, label: t("calendar_days") },
+  ];
   return (
     <>
       {recurringEventDefined && (
@@ -93,6 +106,9 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
               data-testid="stripe-currency-select"
               variant="default"
               options={currencyOptions}
+              innerClassNames={{
+                input: "stripe-currency-input",
+              }}
               value={selectedCurrency}
               className="text-black"
               defaultValue={selectedCurrency}
@@ -106,7 +122,7 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
           </div>
           <div className="mt-4 w-60">
             <label className="text-default mb-1 block text-sm font-medium" htmlFor="currency">
-              Payment option
+              {t("payment_option")}
             </label>
             <Select<Option>
               data-testid="stripe-payment-option-select"
@@ -119,7 +135,14 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
                 return { ...option, label: t(option.label) || option.label };
               })}
               onChange={(input) => {
-                if (input) setAppData("paymentOption", input.value);
+                if (input) {
+                  setAppData("paymentOption", input.value);
+                  if (input.value === "HOLD") {
+                    setAppData("refundPolicy", RefundPolicy.NEVER);
+                    setAppData("refundDaysCount", undefined);
+                    setAppData("refundCountCalendarDays", undefined);
+                  }
+                }
               }}
               className="mb-1 h-[38px] w-full"
               isDisabled={seatsEnabled || disabled}
@@ -128,6 +151,61 @@ const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({
 
           {seatsEnabled && paymentOption === "HOLD" && (
             <Alert className="mt-2" severity="warning" title={t("seats_and_no_show_fee_error")} />
+          )}
+
+          {paymentOption !== "HOLD" && (
+            <div className="mt-4 w-full">
+              <label className="text-default mb-1 block text-sm font-medium">{t("refund_policy")}</label>
+              <RadioGroup.Root
+                disabled={disabled || paymentOption === "HOLD"}
+                defaultValue="never"
+                className="flex flex-col space-y-2"
+                value={getAppData("refundPolicy")}
+                onValueChange={(val) => {
+                  setAppData("refundPolicy", val);
+                  if (val !== RefundPolicy.DAYS) {
+                    setAppData("refundDaysCount", undefined);
+                    setAppData("refundCountCalendarDays", undefined);
+                  }
+                }}>
+                <RadioField className="w-fit" value={RefundPolicy.ALWAYS} label={t("always")} id="always" />
+                <RadioField className="w-fit" value={RefundPolicy.NEVER} label={t("never")} id="never" />
+                <div className={classNames("text-default mb-2 flex flex-wrap items-center text-sm")}>
+                  <RadioGroup.Item
+                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2"
+                    value="days"
+                    id="days">
+                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+                  </RadioGroup.Item>
+                  <div className="flex items-center">
+                    <span className="me-2 ms-2">&nbsp;{t("if_cancelled")}</span>
+                    <TextField
+                      labelSrOnly
+                      type="number"
+                      className={classNames(
+                        "border-default my-0 block w-16 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                      )}
+                      placeholder="2"
+                      disabled={disabled}
+                      min={0}
+                      defaultValue={getAppData("refundDaysCount")}
+                      required={getAppData("refundPolicy") === RefundPolicy.DAYS}
+                      value={getAppData("refundDaysCount") ?? ""}
+                      onChange={(e) => setAppData("refundDaysCount", parseInt(e.currentTarget.value))}
+                    />
+                    <Select
+                      options={options}
+                      isSearchable={false}
+                      isDisabled={disabled}
+                      onChange={(option) => setAppData("refundCountCalendarDays", option?.value === 1)}
+                      value={getSelectedOption()}
+                      defaultValue={getSelectedOption()}
+                    />
+                    <span className="me-2 ms-2">&nbsp;{t("before")}</span>
+                  </div>
+                </div>
+              </RadioGroup.Root>
+            </div>
           )}
         </>
       )}

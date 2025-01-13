@@ -1,6 +1,6 @@
 import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WebAppURL } from "@calcom/lib/WebAppURL";
 
 export type EmbedProps = {
   isEmbed?: boolean;
@@ -17,7 +17,7 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
       let urlPrefix = "";
 
       // Get the URL parsed from URL so that we can reliably read pathname and searchParams from it.
-      const destinationUrlObj = new URL(ssrResponse.redirect.destination, WEBAPP_URL);
+      const destinationUrlObj = new WebAppURL(ssrResponse.redirect.destination);
 
       // If it's a complete URL, use the origin as the prefix to ensure we redirect to the same domain.
       if (destinationUrl.search(/^(http:|https:).*/) !== -1) {
@@ -44,6 +44,7 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     if (!("props" in ssrResponse)) {
       return ssrResponse;
     }
+
     return {
       ...ssrResponse,
       props: {

@@ -1,12 +1,10 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import LegacyPage from "~/users/views/users-type-public-view";
-import { getServerSideProps, type PageProps } from "~/users/views/users-type-public-view.getServerSideProps";
+import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+import LegacyPage, { type PageProps } from "~/users/views/users-type-public-view";
 
-const getEmbedData = withEmbedSsrAppDir(getData);
+const getEmbedData = withEmbedSsrAppDir<PageProps>(getServerSideProps);
 
 export default WithLayout({ getLayout: null, getData: getEmbedData, Page: LegacyPage })<"P">;

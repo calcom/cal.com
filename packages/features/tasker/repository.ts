@@ -18,7 +18,8 @@ const whereMaxAttemptsReached: Prisma.TaskWhereInput = {
   },
 };
 
-const whereUpcomingTasks: Prisma.TaskWhereInput = {
+/** This is a function to ensure new Date is always fresh */
+const makeWhereUpcomingTasks = (): Prisma.TaskWhereInput => ({
   // Get only tasks that have not succeeded yet
   succeededAt: null,
   // Get only tasks that are scheduled to run now or in the past
@@ -33,7 +34,7 @@ const whereUpcomingTasks: Prisma.TaskWhereInput = {
       _container: "Task",
     },
   },
-};
+});
 
 export class Task {
   static async create(
@@ -42,6 +43,7 @@ export class Task {
     options: { scheduledAt?: Date; maxAttempts?: number } = {}
   ) {
     const { scheduledAt, maxAttempts } = options;
+    console.info("Creating task", { type, payload, scheduledAt, maxAttempts });
     const newTask = await db.task.create({
       data: {
         payload,
@@ -54,12 +56,13 @@ export class Task {
   }
 
   static async getNextBatch() {
+    console.info("Getting next batch of tasks", makeWhereUpcomingTasks());
     return db.task.findMany({
-      where: whereUpcomingTasks,
+      where: makeWhereUpcomingTasks(),
       orderBy: {
         scheduledAt: "asc",
       },
-      take: 100,
+      take: 1000,
     });
   }
 
@@ -85,7 +88,7 @@ export class Task {
 
   static async countUpcoming() {
     return db.task.count({
-      where: whereUpcomingTasks,
+      where: makeWhereUpcomingTasks(),
     });
   }
 
@@ -134,15 +137,16 @@ export class Task {
   }
 
   static async cleanup() {
-    return db.task.deleteMany({
-      where: {
-        OR: [
-          // Get tasks that have succeeded
-          whereSucceeded,
-          // Get tasks where maxAttemps has been reached
-          whereMaxAttemptsReached,
-        ],
-      },
-    });
+    // TODO: Uncomment this later
+    // return db.task.deleteMany({
+    //   where: {
+    //     OR: [
+    //       // Get tasks that have succeeded
+    //       whereSucceeded,
+    //       // Get tasks where maxAttemps has been reached
+    //       whereMaxAttemptsReached,
+    //     ],
+    //   },
+    // });
   }
 }

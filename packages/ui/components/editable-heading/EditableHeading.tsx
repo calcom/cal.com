@@ -1,8 +1,10 @@
+"use client";
+
 import classNames from "classnames";
 import { useState } from "react";
 import type { ControllerRenderProps } from "react-hook-form";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 
 export const EditableHeading = function EditableHeading({
   value,
@@ -18,15 +20,10 @@ export const EditableHeading = function EditableHeading({
   const [isEditing, setIsEditing] = useState(false);
   const enableEditing = () => setIsEditing(!disabled);
   return (
-    <div
-      className="group pointer-events-none relative truncate sm:pointer-events-auto"
-      onClick={enableEditing}>
+    <div className="group pointer-events-auto relative truncate" onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
-          {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
-          )}
           <input
             {...passThroughProps}
             disabled={disabled}
@@ -49,6 +46,9 @@ export const EditableHeading = function EditableHeading({
             }}
             onChange={(e) => onChange && onChange(e.target.value)}
           />
+          {!isEditing && isReady && !disabled && (
+            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+          )}
         </label>
       </div>
     </div>

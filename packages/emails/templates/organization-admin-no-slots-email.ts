@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
@@ -13,6 +13,8 @@ export type OrganizationAdminNoSlotsEmailInput = {
   user: string;
   slug: string;
   startTime: string;
+  endTime: string;
+  teamSlug: string;
   editLink: string;
 };
 
@@ -27,7 +29,7 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.adminNoSlots.to.email,
       subject: this.adminNoSlots.language("org_admin_no_slots|subject", { name: this.adminNoSlots.user }),
       html: await renderEmail("OrganizationAdminNoSlotsEmail", this.adminNoSlots),
@@ -42,8 +44,8 @@ Hi Admins,
 It has been brought to our attention that ${this.adminNoSlots.user} has not had availability users have visited ${this.adminNoSlots.user}/${this.adminNoSlots.slug}.
 
 There’s a few reasons why this could be happening
-The user does not have any calendars connected
-Their schedules attached to this event are not enabled
+* The user does not have any calendars connected
+* Their schedules attached to this event are not enabled
 
 We recommend checking their availability to resolve this
     `;

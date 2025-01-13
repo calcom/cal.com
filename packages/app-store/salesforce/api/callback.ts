@@ -1,4 +1,4 @@
-import jsforce from "jsforce";
+import jsforce from "@jsforce/jsforce-node";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
@@ -33,18 +33,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!consumer_secret) return res.status(400).json({ message: "Salesforce consumer secret missing." });
 
   const conn = new jsforce.Connection({
-    clientId: consumer_key,
-    clientSecret: consumer_secret,
-    redirectUri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/salesforce/callback`,
+    oauth2: {
+      clientId: consumer_key,
+      clientSecret: consumer_secret,
+      redirectUri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/salesforce/callback`,
+    },
   });
 
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
-
-  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
-    return res.redirect(state.appOnboardingRedirectUrl);
-  }
 
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "salesforce" })

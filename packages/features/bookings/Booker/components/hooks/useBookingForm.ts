@@ -5,14 +5,14 @@ import { z } from "zod";
 
 import type { EventLocationType } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
-  event: useEventReturnType["data"];
+  event?: Pick<BookerEvent, "bookingFields"> | null;
   sessionEmail?: string | null;
   sessionName?: string | null;
   sessionUsername?: string | null;
@@ -22,6 +22,7 @@ export interface IUseBookingForm {
     guests: string[];
     name: string | null;
   };
+  lastBookingResponse?: Record<string, string>;
 }
 
 export type UseBookingFormReturnType = ReturnType<typeof useBookingForm>;
@@ -34,6 +35,7 @@ export const useBookingForm = ({
   hasSession,
   extraOptions,
   prefillFormParams,
+  lastBookingResponse,
 }: IUseBookingForm) => {
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -71,6 +73,7 @@ export const useBookingForm = ({
     hasSession,
     extraOptions,
     prefillFormParams,
+    lastBookingResponse,
   });
 
   const bookingForm = useForm<BookingFormValues>({

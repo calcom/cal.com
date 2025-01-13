@@ -76,6 +76,16 @@ export function handleEvent(event: { detail: Record<string, unknown> & { type: s
     });
   });
 
+  // Support sending all events to opener which is currently used by ReroutingDialog to identify if the booking is successfully rescheduled.
+  if (window.opener) {
+    window.opener.postMessage(
+      {
+        type: `CAL:${name}`,
+        ...data,
+      },
+      "*"
+    );
+  }
   return true;
 }
 
@@ -127,6 +137,9 @@ export default function BookingPageTagManager({
               src={parseValue(script.src)}
               id={`${appId}-${index}`}
               key={`${appId}-${index}`}
+              // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+              // And we don't want it to error here anyways
+              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{
                 __html: parseValue(script.content) || "",
               }}

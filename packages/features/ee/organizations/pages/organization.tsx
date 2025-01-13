@@ -11,16 +11,16 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   if (!organizationsEnabled) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Check if logged in user has an organization assigned
   const session = await getServerSession({ req, res });
 
-  if (!session?.user.profile.organizationId) {
+  if (!session?.user.profile?.organizationId) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Check if logged in user has OWNER/ADMIN role in organization
@@ -36,7 +36,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   if (!membership?.role || membership?.role === MembershipRole.MEMBER) {
     return {
       notFound: true,
-    };
+    } as const;
   }
 
   // Otherwise, all good

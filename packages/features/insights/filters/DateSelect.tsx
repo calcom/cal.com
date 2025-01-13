@@ -1,68 +1,108 @@
-import { DateRangePicker } from "@tremor/react";
+import { useState } from "react";
 
+import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { DateRangePicker } from "@calcom/ui";
+import { Select } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 import "./DateSelect.css";
 
-type RangeType = "tdy" | "w" | "t" | "m" | "y" | undefined | null;
-
-export const DateSelect = () => {
+export const DateSelect = ({ className }: { className?: string }) => {
   const { t } = useLocale();
+  const presetOptions = [
+    { label: t("today"), value: "tdy" },
+    { label: t("last_number_of_days", { count: 7 }), value: "w" },
+    { label: t("last_number_of_days", { count: 30 }), value: "t" },
+    { label: t("month_to_date"), value: "m" },
+    { label: t("year_to_date"), value: "y" },
+    { label: t("custom_range"), value: null },
+  ];
+
   const { filter, setConfigFilters } = useFilterContext();
   const currentDate = dayjs();
-  const [startDate, endDate, range] = filter?.dateRange || [null, null, null];
-  const startValue = startDate?.toDate() || null;
-  const endValue = endDate?.toDate() || null;
+  const [initialStartDate, initialEndDate, range] = filter?.dateRange || [null, null, null];
+  const [startDate, setStartDate] = useState<Dayjs>(initialStartDate);
+  const [endDate, setEndDate] = useState<Dayjs | undefined>(initialEndDate);
+  const startValue = startDate.toDate();
+  const endValue = endDate?.toDate();
+  const [selectedPreset, setSelectedPreset] = useState(presetOptions.find((c) => c.value === range));
+
+  const updateDateRange = (val: string | null) => {
+    setSelectedPreset(presetOptions.find((c) => c.value === val));
+    let startDate = dayjs();
+    let endDate = dayjs();
+
+    switch (val) {
+      case "tdy": // Today
+        startDate = dayjs().startOf("day");
+        endDate = dayjs().endOf("day");
+        break;
+      case "w": // Last 7 days
+        startDate = dayjs().subtract(1, "week").startOf("day");
+        endDate = dayjs().endOf("day");
+        break;
+      case "t": // Last 30 days
+        startDate = dayjs().subtract(30, "day").startOf("day");
+        endDate = dayjs().endOf("day");
+        break;
+      case "m": // Month to Date
+        startDate = dayjs().startOf("month");
+        endDate = dayjs().endOf("day");
+        break;
+      case "y": // Year to Date
+        startDate = dayjs().startOf("year");
+        endDate = dayjs().endOf("day");
+        break;
+      default:
+        break;
+    }
+    // Update the datepicker date selection
+    setStartDate(startDate);
+    setEndDate(endDate);
+    // Update the configuration filter
+    setConfigFilters({
+      dateRange: [dayjs(startDate), dayjs(endDate), val],
+    });
+  };
+
   return (
-    <div className="custom-date max-w-96 w-full sm:w-auto">
+    <div className={classNames("ml inline-flex space-x-2 rtl:space-x-reverse", className)}>
       <DateRangePicker
-        value={[startValue, endValue, range]}
-        defaultValue={[startValue, endValue, range]}
-        onValueChange={(datesArray) => {
-          const [selected, ...rest] = datesArray;
-          const [start, end, range] = datesArray;
-          // If range has value and it's of type RangeType
-
-          if (
-            range &&
-            (range === "tdy" || range === "w" || range === "t" || range === "m" || range === "y")
-          ) {
-            setConfigFilters({
-              dateRange: [dayjs(start).startOf("d"), dayjs(end).endOf("d"), range],
-            });
-
-            return;
-          } else if (start && !end) {
-            // If only start time has value that means selected date should push to dateRange with last value null
-            const currentDates = filter.dateRange;
-            if (currentDates && currentDates.length > 0) {
-              // remove last position of array
-              currentDates.pop();
-              // push new value to array
-              currentDates.push(dayjs(selected));
-              // if lenght > 2 then remove first value
-              if (currentDates.length > 2) {
-                currentDates.shift();
-              }
-              setConfigFilters({
-                dateRange: [currentDates[0], currentDates[1], null],
-              });
-            }
-
-            return;
-          }
-
-          // If range has value and it's of type RangeType
+        dates={{
+          startDate: startValue,
+          endDate: endValue,
         }}
-        options={undefined}
-        enableDropdown={true}
-        placeholder={t("select_date_range")}
-        enableYearPagination={true}
         minDate={currentDate.subtract(2, "year").toDate()}
         maxDate={currentDate.toDate()}
-        color="gray"
+        disabled={false}
+        onDatesChange={({ startDate, endDate }) => {
+          if (startDate && endDate) {
+            setConfigFilters({
+              dateRange: [dayjs(startDate), dayjs(endDate), null],
+            });
+          }
+          setStartDate(dayjs(startDate));
+          setEndDate(endDate ? dayjs(endDate) : endDate);
+          setSelectedPreset(presetOptions.find((c) => c.value === null));
+        }}
+      />
+      <Select
+        variant="default"
+        data-testid="insights-preset"
+        options={presetOptions}
+        value={selectedPreset}
+        className="w-40 capitalize text-black"
+        defaultValue={selectedPreset}
+        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        menuPortalTarget={document.body}
+        onChange={(e) => {
+          if (e) {
+            updateDateRange(e.value);
+          }
+        }}
       />
     </div>
   );

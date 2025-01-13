@@ -1,6 +1,8 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
+import { MembershipRole } from "@calcom/prisma/client";
+
 @Injectable()
 export class MembershipsRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
@@ -18,6 +20,33 @@ export class MembershipsRepository {
     return membership;
   }
 
+  async findMembershipByTeamId(teamId: number, userId: number) {
+    const membership = await this.dbRead.prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId: userId,
+          teamId: teamId,
+        },
+      },
+    });
+
+    return membership;
+  }
+
+  async findUserMemberships(userId: number) {
+    const memberships = await this.dbRead.prisma.membership.findMany({
+      where: {
+        userId,
+      },
+    });
+
+    return memberships;
+  }
+
+  async findMembershipByOrgId(orgId: number, userId: number) {
+    return this.findMembershipByTeamId(orgId, userId);
+  }
+
   async isUserOrganizationAdmin(userId: number, organizationId: number) {
     const adminMembership = await this.dbRead.prisma.membership.findFirst({
       where: {
@@ -29,5 +58,18 @@ export class MembershipsRepository {
     });
 
     return !!adminMembership;
+  }
+
+  async createMembership(teamId: number, userId: number, role: MembershipRole, accepted: boolean) {
+    const membership = await this.dbRead.prisma.membership.create({
+      data: {
+        role,
+        teamId,
+        userId,
+        accepted,
+      },
+    });
+
+    return membership;
   }
 }

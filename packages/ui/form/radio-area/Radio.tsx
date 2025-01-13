@@ -11,7 +11,7 @@ export const Radio = (props: RadioGroupPrimitive.RadioGroupItemProps & { childre
   <RadioGroupPrimitive.Item
     {...props}
     className={classNames(
-      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border text-[--cal-brand] focus:border-0 focus:ring-1",
+      "hover:bg-subtle border-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default focus:ring-brand-default hover:border-emphasis me-1.5 mt-0.5 h-4 w-4 flex-shrink-0 rounded-full border text-[--cal-brand] transition focus:border-0 focus:ring-1",
       props.disabled && "opacity-60"
     )}>
     {props.children}

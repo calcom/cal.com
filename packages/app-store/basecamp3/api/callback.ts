@@ -89,9 +89,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const state = decodeOAuthState(req);
 
-  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
-    return res.redirect(state.appOnboardingRedirectUrl);
-  }
-
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }

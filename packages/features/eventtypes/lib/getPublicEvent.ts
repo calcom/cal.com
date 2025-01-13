@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
+import dayjs from "@calcom/dayjs";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
@@ -19,7 +20,7 @@ import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
-  EventTypeMetaDataSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
   bookerLayoutOptions,
   bookerLayouts as bookerLayoutsSchema,
   customInputSchema,
@@ -43,7 +44,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       id: true,
       name: true,
       slug: true,
-      calVideoLogo: true,
       bannerUrl: true,
     },
   },
@@ -57,6 +57,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
@@ -66,6 +67,14 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   metadata: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  fieldTranslations: {
+    select: {
+      translatedText: true,
+      targetLocale: true,
+      field: true,
+    },
+  },
   requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
@@ -73,6 +82,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   seatsShowAvailabilityCount: true,
   bookingFields: true,
+  teamId: true,
   team: {
     select: {
       parentId: true,
@@ -91,6 +101,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           logoUrl: true,
         },
       },
+      isPrivate: true,
     },
   },
   successRedirectUrl: true,
@@ -120,9 +131,83 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
       timeZone: true,
     },
   },
+  instantMeetingSchedule: {
+    select: {
+      id: true,
+      timeZone: true,
+    },
+  },
+
   hidden: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 });
+
+export async function isCurrentlyAvailable({
+  prisma,
+  instantMeetingScheduleId,
+  availabilityTimezone,
+  length,
+}: {
+  prisma: PrismaClient;
+  instantMeetingScheduleId: number;
+  availabilityTimezone: string;
+  length: number;
+}): Promise<boolean> {
+  const now = dayjs().tz(availabilityTimezone);
+  const currentDay = now.day();
+  const meetingEndTime = now.add(length, "minute");
+
+  const res = await prisma.schedule.findUniqueOrThrow({
+    where: {
+      id: instantMeetingScheduleId,
+    },
+    select: {
+      availability: true,
+    },
+  });
+
+  const dateOverride = res.availability.find((a) => a.date && dayjs(a.date).isSame(now, "day"));
+
+  if (dateOverride) {
+    return !isAvailableInTimeSlot(dateOverride, now, meetingEndTime);
+  }
+
+  for (const availability of res.availability) {
+    if (!availability.date && availability.days.includes(currentDay)) {
+      const isAvailable = isAvailableInTimeSlot(availability, now, meetingEndTime);
+      if (isAvailable) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+function isAvailableInTimeSlot(
+  availability: { startTime: Date; endTime: Date; days: number[] },
+  now: dayjs.Dayjs,
+  meetingEndTime: dayjs.Dayjs
+): boolean {
+  const startTime = dayjs(availability.startTime).utc().format("HH:mm");
+  const endTime = dayjs(availability.endTime).utc().format("HH:mm");
+
+  const periodStart = now
+    .startOf("day")
+    .hour(parseInt(startTime.split(":")[0]))
+    .minute(parseInt(startTime.split(":")[1]));
+  const periodEnd = now
+    .startOf("day")
+    .hour(parseInt(endTime.split(":")[0]))
+    .minute(parseInt(endTime.split(":")[1]));
+
+  const isWithinPeriod =
+    now.isBetween(periodStart, periodEnd, null, "[)") &&
+    meetingEndTime.isBetween(periodStart, periodEnd, null, "(]");
+
+  return isWithinPeriod;
+}
 
 // TODO: Convert it to accept a single parameter with structured data
 export const getPublicEvent = async (
@@ -131,7 +216,8 @@ export const getPublicEvent = async (
   isTeamEvent: boolean | undefined,
   org: string | null,
   prisma: PrismaClient,
-  fromRedirectOfNonOrgLink: boolean
+  fromRedirectOfNonOrgLink: boolean,
+  currentUserId?: number
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -215,6 +301,10 @@ export const getPublicEvent = async (
         logoUrl: null,
       },
       isInstantEvent: false,
+      instantMeetingParameters: [],
+      showInstantEventConnectNowModal: false,
+      autoTranslateDescriptionEnabled: false,
+      fieldTranslations: [],
     };
   }
 
@@ -239,6 +329,7 @@ export const getPublicEvent = async (
                 }
               : {
                   username,
+                  profiles: { none: {} },
                 }),
           },
         },
@@ -246,7 +337,7 @@ export const getPublicEvent = async (
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
-  const event = await prisma.eventType.findFirst({
+  let event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       ...usersOrTeamQuery,
@@ -254,19 +345,41 @@ export const getPublicEvent = async (
     select: publicEventSelect,
   });
 
-  if (!event) return null;
-
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
-  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
-  const hosts = [];
-  for (const host of event.hosts) {
-    hosts.push({
-      ...host,
-      user: await UserRepository.enrichUserWithItsProfile({
-        user: host.user,
-      }),
+  // If no event was found, check for platform org user event
+  if (!event && !orgQuery) {
+    event = await prisma.eventType.findFirst({
+      where: {
+        slug: eventSlug,
+        users: {
+          some: {
+            username,
+            isPlatformManaged: false,
+            movedToProfile: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+      select: publicEventSelect,
     });
   }
+
+  if (!event) return null;
+
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
+  const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
+  const usersAsHosts = event.hosts.map((host) => host.user);
+
+  // Enrich users in a single batch call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(usersAsHosts);
+
+  // Map enriched users back to the hosts
+  const hosts = event.hosts.map((host, index) => ({
+    ...host,
+    user: enrichedUsers[index],
+  }));
 
   const eventWithUserProfiles = {
     ...event,
@@ -278,7 +391,7 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users =
+  let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
     (await getOwnerFromUsersArray(prisma, event.id));
 
@@ -310,6 +423,40 @@ export const getPublicEvent = async (
         name: true,
       },
     });
+  }
+
+  let showInstantEventConnectNowModal = eventWithUserProfiles.isInstantEvent;
+
+  if (eventWithUserProfiles.isInstantEvent && eventWithUserProfiles.instantMeetingSchedule?.id) {
+    const { id, timeZone } = eventWithUserProfiles.instantMeetingSchedule;
+
+    showInstantEventConnectNowModal = await isCurrentlyAvailable({
+      prisma,
+      instantMeetingScheduleId: id,
+      availabilityTimezone: timeZone ?? "Europe/London",
+      length: eventWithUserProfiles.length,
+    });
+  }
+  const isTeamAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.teamId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  const isOrgAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.team?.parentId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+    users = [];
   }
   return {
     ...eventWithUserProfiles,
@@ -349,6 +496,8 @@ export const getPublicEvent = async (
 
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    showInstantEventConnectNowModal,
+    instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
@@ -368,7 +517,7 @@ function getProfileFromEvent(event: Event) {
 
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
   return {
@@ -445,18 +594,18 @@ async function getOwnerFromUsersArray(prisma: PrismaClient, eventTypeId: number)
     },
   });
   if (!users.length) return null;
-  const usersWithUserProfile = [];
-  for (const user of users) {
-    const { profile } = await UserRepository.enrichUserWithItsProfile({
-      user: user,
-    });
-    usersWithUserProfile.push({
-      ...user,
-      organizationId: profile?.organization?.id ?? null,
-      organization: profile?.organization,
-      profile,
-    });
-  }
+
+  // Batch enrich users in a single call
+  const enrichedUsers = await UserRepository.enrichUsersWithTheirProfiles(users);
+
+  // Map the enriched users back to include the organization info
+  const usersWithUserProfile = enrichedUsers.map((user) => ({
+    ...user,
+    organizationId: user.profile?.organization?.id ?? null,
+    organization: user.profile?.organization,
+    profile: user.profile,
+  }));
+
   return [
     {
       ...usersWithUserProfile[0],

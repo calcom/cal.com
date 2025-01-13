@@ -1,23 +1,31 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
 import { ZAcceptOrLeaveInputSchema } from "./acceptOrLeave.schema";
+import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
 import { ZChangeMemberRoleInputSchema } from "./changeMemberRole.schema";
+import { ZCheckIfMembershipExistsInputSchema } from "./checkIfMembershipExists.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
-import { ZGetInputSchema } from "./get.schema";
+import { ZGetSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
+import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
+import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
+import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
+import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -27,7 +35,7 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
-  get: authedProcedure.input(ZGetInputSchema).query(async (opts) => {
+  get: authedProcedure.input(ZGetSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
     return handler(opts);
   }),
@@ -113,6 +121,20 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
+  legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("legacyListMembers"),
+      () => import("./legacyListMembers.handler")
+    );
+    return handler(opts);
+  }),
+  getUserConnectedApps: authedProcedure.input(ZGetUserConnectedAppsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getUserConnectedApps"),
+      () => import("./getUserConnectedApps.handler")
+    );
+    return handler(opts);
+  }),
   hasTeamPlan,
   listInvites: authedProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("listInvites"), () => import("./listInvites.handler"));
@@ -151,6 +173,52 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("resendInvitation"),
       () => import("./resendInvitation.handler")
+    );
+    return handler(opts);
+  }),
+  roundRobinReassign: authedProcedure.input(ZRoundRobinReassignInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("roundRobinReassign"),
+      () => import("./roundRobin/roundRobinReassign.handler")
+    );
+    return handler(opts);
+  }),
+  roundRobinManualReassign: authedProcedure
+    .input(ZRoundRobinManualReassignInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("roundRobinManualReassign"),
+        () => import("./roundRobin/roundRobinManualReassign.handler")
+      );
+      return handler(opts);
+    }),
+  getRoundRobinHostsToReassign: authedProcedure.input(ZGetRoundRobinHostsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getRoundRobinHostsToReassign"),
+      () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
+    );
+    return handler(opts);
+  }),
+  checkIfMembershipExists: authedProcedure
+    .input(ZCheckIfMembershipExistsInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("checkIfMembershipExists"),
+        () => import("./checkIfMembershipExists.handler")
+      );
+      return handler(opts);
+    }),
+  addMembersToEventTypes: authedProcedure.input(ZAddMembersToEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("addMembersToEventTypes"),
+      () => import("./addMembersToEventTypes.handler")
+    );
+    return handler(opts);
+  }),
+  removeHostsFromEventTypes: authedProcedure.input(ZRemoveHostsFromEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("removeHostsFromEventTypes"),
+      () => import("./removeHostsFromEventTypes.handler")
     );
     return handler(opts);
   }),

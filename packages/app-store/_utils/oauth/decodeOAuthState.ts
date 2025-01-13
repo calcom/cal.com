@@ -7,9 +7,6 @@ export function decodeOAuthState(req: NextApiRequest) {
     return undefined;
   }
   const state: IntegrationOAuthCallbackState = JSON.parse(req.query.state);
-  if (state.appOnboardingRedirectUrl) {
-    state.appOnboardingRedirectUrl = decodeURIComponent(state.appOnboardingRedirectUrl);
-  }
 
   return state;
 }

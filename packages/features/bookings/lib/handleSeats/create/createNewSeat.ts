@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import EventManager from "@calcom/core/EventManager";
-import { sendScheduledSeatsEmails } from "@calcom/emails";
+import { sendScheduledSeatsEmailsAndSMS } from "@calcom/emails";
 import { refreshCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/refreshCredentials";
 import {
   allowDisablingAttendeeConfirmationEmails,
@@ -14,14 +14,16 @@ import { HttpError } from "@calcom/lib/http-error";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
-import type { IEventTypePaymentCredentialType } from "../../handleNewBooking";
-import { findBookingQuery } from "../../handleNewBooking";
+import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
+import type { IEventTypePaymentCredentialType } from "../../handleNewBooking/types";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
-  seatedBooking: SeatedBooking
+  seatedBooking: SeatedBooking,
+  metadata?: Record<string, string>
 ) => {
   const {
     tAttendees,
@@ -36,6 +38,8 @@ const createNewSeat = async (
     fullName,
     bookerEmail,
     responses,
+    workflows,
+    bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   let resultBooking: HandleSeatsResultBooking;
@@ -46,7 +50,10 @@ const createNewSeat = async (
 
   evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-  if (eventType.seatsPerTimeSlot && eventType.seatsPerTimeSlot <= seatedBooking.attendees.length) {
+  if (
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
+  ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
   }
 
@@ -76,6 +83,7 @@ const createNewSeat = async (
       attendees: {
         create: {
           email: inviteeToAdd.email,
+          phoneNumber: inviteeToAdd.phoneNumber,
           name: inviteeToAdd.name,
           timeZone: inviteeToAdd.timeZone,
           locale: inviteeToAdd.language.locale,
@@ -86,6 +94,7 @@ const createNewSeat = async (
                 description: additionalNotes,
                 responses,
               },
+              metadata,
               booking: {
                 connect: {
                   id: seatedBooking.id,
@@ -117,33 +126,30 @@ const createNewSeat = async (
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
-    const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+    isHostConfirmationEmailsDisabled = eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+    isAttendeeConfirmationEmailDisabled =
+      eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
-    if (eventType.workflows) {
-      isHostConfirmationEmailsDisabled =
-        eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-      isAttendeeConfirmationEmailDisabled =
-        eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-      if (isHostConfirmationEmailsDisabled) {
-        isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-      }
-
-      if (isAttendeeConfirmationEmailDisabled) {
-        isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-      }
+    if (isHostConfirmationEmailsDisabled) {
+      isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
     }
-    await sendScheduledSeatsEmails(
+
+    if (isAttendeeConfirmationEmailDisabled) {
+      isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+    }
+    await sendScheduledSeatsEmailsAndSMS(
       copyEvent,
       inviteeToAdd,
       newSeat,
       !!eventType.seatsShowAttendees,
       isHostConfirmationEmailsDisabled,
-      isAttendeeConfirmationEmailDisabled
+      isAttendeeConfirmationEmailDisabled,
+      eventType.metadata
     );
   }
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const eventManager = new EventManager({ ...organizerUser, credentials }, apps);
   await eventManager.updateCalendarAttendees(evt, seatedBooking);
 
   const foundBooking = await findBookingQuery(seatedBooking.id);
@@ -181,14 +187,15 @@ const createNewSeat = async (
       throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
     }
 
-    const payment = await handlePayment(
+    const payment = await handlePayment({
       evt,
-      eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-      seatedBooking,
-      fullName,
-      bookerEmail
-    );
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      booking: seatedBooking,
+      bookerName: fullName,
+      bookerEmail,
+      bookerPhoneNumber,
+    });
 
     resultBooking = { ...foundBooking };
     resultBooking["message"] = "Payment required";

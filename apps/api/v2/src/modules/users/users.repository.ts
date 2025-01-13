@@ -2,11 +2,12 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
-import { Injectable } from "@nestjs/common";
-import type { Profile, User } from "@prisma/client";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import type { Profile, User, Team, Prisma } from "@prisma/client";
 
 export type UserWithProfile = User & {
-  movedToProfile?: Profile | null;
+  movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
+  profiles?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> })[];
 };
 
 @Injectable()
@@ -72,7 +73,35 @@ export class UsersRepository {
         id: userId,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+      },
+    });
+  }
+
+  async findByIdsWithEventTypes(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      include: {
+        eventTypes: true,
+      },
+    });
+  }
+
+  async findByIds(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
       },
     });
   }
@@ -103,16 +132,31 @@ export class UsersRepository {
         email,
       },
       include: {
-        movedToProfile: true,
+        movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
@@ -140,6 +184,13 @@ export class UsersRepository {
     });
   }
 
+  async updateByEmail(email: string, updateData: Prisma.UserUpdateInput) {
+    return this.dbWrite.prisma.user.update({
+      where: { email },
+      data: updateData,
+    });
+  }
+
   async updateUsername(userId: number, newUsername: string) {
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
@@ -159,10 +210,6 @@ export class UsersRepository {
     if (userInput.weekStart) {
       userInput.weekStart = userInput.weekStart;
     }
-
-    if (userInput.timeZone) {
-      userInput.timeZone = capitalizeTimezone(userInput.timeZone);
-    }
   }
 
   setDefaultSchedule(userId: number, scheduleId: number) {
@@ -181,18 +228,64 @@ export class UsersRepository {
 
     return user?.defaultScheduleId;
   }
-}
 
-function capitalizeTimezone(timezone: string) {
-  const segments = timezone.split("/");
+  async getOrganizationUsers(organizationId: number) {
+    const profiles = await this.dbRead.prisma.profile.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profiles.map((profile) => profile.user);
+  }
 
-  const capitalizedSegments = segments.map((segment) => {
-    return capitalize(segment);
-  });
+  async setDefaultConferencingApp(userId: number, appSlug?: string, appLink?: string) {
+    const user = await this.findById(userId);
 
-  return capitalizedSegments.join("/");
-}
+    if (!user) {
+      throw new NotFoundException("user not found");
+    }
 
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    return await this.dbWrite.prisma.user.update({
+      data: {
+        metadata:
+          typeof user.metadata === "object"
+            ? {
+                ...user.metadata,
+                defaultConferencingApp: {
+                  appSlug: appSlug,
+                  appLink: appLink,
+                },
+              }
+            : {},
+      },
+
+      where: { id: userId },
+    });
+  }
+
+  async findUserOOORedirectEligible(userId: number, toTeamUserId: number) {
+    return await this.dbRead.prisma.user.findUnique({
+      where: {
+        id: toTeamUserId,
+        teams: {
+          some: {
+            team: {
+              members: {
+                some: {
+                  userId: userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }

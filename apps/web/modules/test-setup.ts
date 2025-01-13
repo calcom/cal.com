@@ -128,6 +128,9 @@ vi.mock("@calcom/prisma/zod-utils", () => ({
   EventTypeMetaDataSchema: {
     parse: vi.fn(),
   },
+  eventTypeMetaDataSchemaWithTypedApps: {
+    parse: vi.fn(),
+  },
   bookingMetadataSchema: {
     parse: vi.fn(),
   },
@@ -140,7 +143,7 @@ vi.mock("@calcom/trpc/react", () => ({
         submitRating: {
           useMutation: vi.fn(),
         },
-        noShow: {
+        markHostAsNoShow: {
           useMutation: vi.fn(),
         },
       },

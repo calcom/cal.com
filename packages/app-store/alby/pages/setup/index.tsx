@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 
+import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -179,14 +180,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>Alby</div>
-          <div className="mt-3">
-            <Link href="/apps/alby" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="alby" />
       )}
       <Toaster position="bottom-right" />
     </div>
