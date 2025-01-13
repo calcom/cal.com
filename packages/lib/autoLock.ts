@@ -1,6 +1,7 @@
 import type { RatelimitResponse } from "@unkey/ratelimit";
 import crypto from "crypto";
 
+import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
@@ -9,7 +10,7 @@ const DEFAULT_AUTOLOCK_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
 interface HandleAutoLockInput {
   identifier: string;
-  identifierType: "ip" | "email" | "userId" | "SMS";
+  identifierType: "ip" | "email" | "userId" | "SMS" | "apiKey";
   rateLimitResponse: RatelimitResponse;
   identifierKeyword?: string; // For instances where we have like "addSecondaryEmail.${email}"
   autolockThreshold?: number;
@@ -33,17 +34,16 @@ export async function handleAutoLock({
     return false;
   }
 
-  const redis = new RedisService();
-
   let identifier = identifierKeyword
     ? _identifier.toString().replace(`${identifierKeyword}.`, "")
     : _identifier;
 
-  if (identifierType === "ip") {
+  if (["ip"].includes(identifierType)) {
     identifier = crypto.createHash("sha256").update(identifier).digest("hex");
   }
 
   if (!success && remaining <= 0) {
+    const redis = new RedisService();
     const lockKey = `autolock:${identifierType}${
       identifierKeyword ? `:${identifierKeyword}` : ""
     }:${identifier}.count`;
@@ -69,7 +69,7 @@ export async function handleAutoLock({
   return false;
 }
 
-async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS", identifier: string) {
+async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "apiKey", identifier: string) {
   const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
 
   if (!UPSTASH_ENV_FOUND) {
@@ -95,6 +95,21 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS", ident
     case "ip":
       await redis.set(`ip:${identifier}`, "locked");
       await redis.expire(`ip:${identifier}`, Math.floor(DEFAULT_AUTOLOCK_DURATION / 1000));
+      break;
+    case "apiKey":
+      const hashedApiKey = hashAPIKey(identifier);
+      const apiKey = await prisma.apiKey.findUnique({
+        where: { key: hashedApiKey },
+        select: {
+          user: {
+            id: true,
+          },
+        },
+      });
+      await prisma.user.update({
+        where: { id: apiKey.user.id },
+        data: { locked: true },
+      });
       break;
     // Leaving SMS here but it is handled differently via checkRateLimitForSMS that auto locks
     case "SMS":
