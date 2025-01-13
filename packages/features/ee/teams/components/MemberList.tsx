@@ -351,8 +351,9 @@ function MemberListContent(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          const { data } = filterValue;
           const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
+          return data.includes(userEmail);
         },
       },
       {
@@ -387,13 +388,14 @@ function MemberListContent(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          const { data } = filterValue;
+          if (data.includes("PENDING")) {
+            if (data.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || data.includes(rows.getValue(id));
           }
 
           // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
+          return data.includes(rows.getValue(id));
         },
       },
       {
