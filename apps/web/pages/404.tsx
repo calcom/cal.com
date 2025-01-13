@@ -1,5 +1,6 @@
 "use client";
 
+import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -14,6 +15,8 @@ import { HeadSeo } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+
+import { getTranslations } from "@server/lib/getTranslations";
 
 enum pageType {
   ORG = "org",
@@ -244,3 +247,13 @@ export default function Custom404() {
 }
 
 Custom404.PageWrapper = PageWrapper;
+
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const i18n = await getTranslations(context);
+
+  return {
+    props: {
+      i18n,
+    },
+  };
+};
