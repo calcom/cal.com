@@ -84,6 +84,8 @@ CustomError.getInitialProps = async (ctx: AugmentedNextPageContext) => {
 
     log.debug(`server side logged this: ${err?.toString() ?? JSON.stringify(err)}`);
     log.info("return props, ", errorInitialProps);
+    console.log("SETTING HEADERSETTING HEADERSETTING HEADERSETTING HEADER");
+    res.setHeader("x-pages-router-error", "true");
 
     return errorInitialProps;
   } else {
