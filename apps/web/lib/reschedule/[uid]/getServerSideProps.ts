@@ -115,7 +115,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   ) {
     return {
       redirect: {
-        destination: booking.status === BookingStatus.CANCELLED ? `${eventUrl}` : `/booking/${uid}`,
+        destination: booking.status === BookingStatus.CANCELLED ? eventUrl : `/booking/${uid}`,
         permanent: false,
       },
     };
