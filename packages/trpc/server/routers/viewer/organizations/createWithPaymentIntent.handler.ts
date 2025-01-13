@@ -1,6 +1,11 @@
 import { StripeBillingService } from "@calcom/features/ee/billing/stripe-billling-service";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  ORGANIZATION_SELF_SERVE_MIN_SEATS,
+  ORGANIZATION_SELF_SERVE_PRICE,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,14 +20,14 @@ type CreateOptions = {
 };
 
 function hasPermissionToCreateForEmail(user: CreateOptions["ctx"]["user"], targetEmail: string) {
-  if (user.role === "ADMIN" || user.impersonatedBy?.role === "ADMIN") {
+  if (user.role === "ADMIN") {
     return true;
   }
   return user.email === targetEmail;
 }
 
 function hasPendingOrganizations(user: CreateOptions["ctx"]["user"]) {
-  if (user.role === "ADMIN" || user.impersonatedBy?.role === "ADMIN") {
+  if (user.role === "ADMIN") {
     return false;
   }
 
@@ -37,7 +42,7 @@ function hasPendingOrganizations(user: CreateOptions["ctx"]["user"]) {
 }
 
 function hasPermissionToModifyDefaultPayment(user: CreateOptions["ctx"]["user"]) {
-  return user.role === "ADMIN" || user.impersonatedBy?.role === "ADMIN";
+  return user.role === "ADMIN";
 }
 
 function hasModifiedDefaultPayment(input: CreateOptions["input"]) {
@@ -77,11 +82,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   let stripeCustomerId: string;
   const existingCustomer = await prisma.user.findUnique({
     where: { email: orgOwnerEmail },
-    select: { stripeCustomerId: true },
+    select: { metadata: true },
   });
 
-  if (existingCustomer?.stripeCustomerId) {
-    stripeCustomerId = existingCustomer.stripeCustomerId;
+  const userParsed = existingCustomer?.metadata ? userMetadata.parse(existingCustomer.metadata) : undefined;
+
+  if (userParsed?.stripeCustomerId) {
+    stripeCustomerId = userParsed.stripeCustomerId;
   } else {
     const customer = await billingService.createCustomer({
       email: orgOwnerEmail,
@@ -99,8 +106,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       slug,
       orgOwnerEmail,
       billingPeriod: billingPeriod || "MONTHLY",
-      seats: seats || ORGANIZATION_SELF_SERVE_MIN_SEATS,
-      pricePerSeat: pricePerSeat || ORGANIZATION_SELF_SERVE_PRICE,
+      seats: seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS) || 5,
+      pricePerSeat: pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE) || 3700,
       stripeCustomerId,
     },
   });
@@ -109,7 +116,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   let priceId: string;
   if (shouldCreateCustomPrice) {
     const customPrice = await billingService.createPrice({
-      amount: (pricePerSeat || ORGANIZATION_SELF_SERVE_PRICE) * 100, // convert to cents
+      amount: (pricePerSeat || Number(ORGANIZATION_SELF_SERVE_PRICE)) * 100, // convert to cents
       currency: "usd",
       interval: (billingPeriod || "MONTHLY").toLowerCase() as "month" | "year",
       nickname: `Custom Organization Price - ${pricePerSeat} per seat`,
@@ -117,6 +124,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         organizationOnboardingId: organizationOnboarding.id,
         pricePerSeat: pricePerSeat || ORGANIZATION_SELF_SERVE_PRICE,
         billingPeriod: billingPeriod || "MONTHLY",
+        createdAt: new Date().toISOString(),
       },
     });
     priceId = customPrice.priceId;
@@ -130,7 +138,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     successUrl: `${WEBAPP_URL}/organizations/success?session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${WEBAPP_URL}/organizations/cancel?session_id={CHECKOUT_SESSION_ID}`,
     priceId,
-    quantity: seats || ORGANIZATION_SELF_SERVE_MIN_SEATS,
+    quantity: seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
     metadata: {
       organizationOnboardingId: organizationOnboarding.id,
       seats: seats || ORGANIZATION_SELF_SERVE_MIN_SEATS,
