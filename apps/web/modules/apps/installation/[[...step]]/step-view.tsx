@@ -1,6 +1,5 @@
 "use client";
 
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -226,12 +225,6 @@ const OnboardingPage = ({
       key={pathname}
       className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen px-4"
       data-testid="onboarding">
-      <Head>
-        <title>
-          {t("install")} {appMetadata?.name ?? ""}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <div className="mx-auto py-6 sm:px-4 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]" ref={formPortalRef}>
