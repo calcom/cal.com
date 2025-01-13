@@ -197,12 +197,11 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars     DestinationCalendar[]
-  selectedCalendars        SelectedCalendar[]
-  invalid                  Boolean?                                  @default(false)
-  CalendarCache            CalendarCache[]
-  references               BookingReference[]
-  incompleteBookingActions AppRoutingFormsIncompleteBookingActions[]
+  destinationCalendars DestinationCalendar[]
+  selectedCalendars    SelectedCalendar[]
+  invalid              Boolean?              @default(false)
+  CalendarCache        CalendarCache[]
+  references           BookingReference[]
 
   @@index([userId])
   @@index([appId])
@@ -980,25 +979,25 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id                       String                                    @id @default(cuid())
+  id                       String                                      @id @default(cuid())
   description              String?
-  position                 Int                                       @default(0)
+  position                 Int                                         @default(0)
   routes                   Json?
-  createdAt                DateTime                                  @default(now())
-  updatedAt                DateTime                                  @updatedAt
+  createdAt                DateTime                                    @default(now())
+  updatedAt                DateTime                                    @updatedAt
   name                     String
   fields                   Json?
-  user                     User                                      @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId                   Int
-  team                     Team?                                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId                   Int?
   responses                App_RoutingForms_FormResponse[]
-  disabled                 Boolean                                   @default(false)
+  disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings                 Json?
-  incompleteBookingActions AppRoutingFormsIncompleteBookingActions[]
+  incompleteBookingActions AppRouting_Forms_IncompleteBookingActions[]
 
   @@index([userId])
   @@index([disabled])
@@ -1816,13 +1815,12 @@ enum IncompleteBookingActionType {
   SALESFORCE
 }
 
-model AppRoutingFormsIncompleteBookingActions {
+model AppRouting_Forms_IncompleteBookingActions {
   id           Int                         @id @default(autoincrement())
   form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
   formId       String
   actionType   IncompleteBookingActionType
   data         Json
   enabled      Boolean                     @default(true)
-  credential   Credential?                 @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   credentialId Int?
 }
