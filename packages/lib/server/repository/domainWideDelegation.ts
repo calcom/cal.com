@@ -87,6 +87,19 @@ export class DomainWideDelegationRepository {
     });
   }
 
+  static async findUniqueByOrganizationIdAndDomain({
+    organizationId,
+    domain,
+  }: {
+    organizationId: number;
+    domain: string;
+  }) {
+    return await prisma.domainWideDelegation.findUnique({
+      where: { organizationId_domain: { organizationId, domain } },
+      select: domainWideDelegationSafeSelect,
+    });
+  }
+
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
     const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
       where: { id },

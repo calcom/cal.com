@@ -15,8 +15,11 @@
      2. Observe the errors in Sentry and Axiom.
   6. Enable for a big customer:
      1. Wait for a week and keep monitoring the errors in Sentry and Axiom.
+  7. Use delegatedCredentialsFirst instead of delegatedCredentialsLast in EventManager.ts
+    - Observe errors in Sentry and Axiom.
 
 ## Manual Testing
+  - V2/V1 APIs - There could be problem if DWD credentials aren't supported there. Because as organization enables DWD and new users won't need to connect their calendars in the old way. e.g. getBusyCalendarTimes seem to be used there in V2.
   - [ ] Isolation of DWD credentials for different organizations
     - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
   - [ ] Location Change of a booking  to Google Meet(from Cal Video)
@@ -53,6 +56,9 @@
       - Verified that Google Calendar is shown pre-installed. 
       - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
   - TODO:
+    - [ ] Consideration of multiple domains email in a single team event. We might need to consider all the member's domains in the team event when fetching availabilituy. 
+    - [ ] Performance
+      - [x] Available Slots and booking flow shouldn't slow down. Right now the querying logic is not optimized. We query per team member, we should do one query.
     - [ ] Tag all DWD related logs and errors with "DWD:"
     - [x] Troubleshooter
     - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.

@@ -50,6 +50,7 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getAllDwdCredentialsForUsers } from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -490,7 +491,7 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
+  const allHostUsersWithoutHavingDwdCredentials = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -500,6 +501,21 @@ async function handler(
     contactOwnerEmail,
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
+
+  const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+    memberId: allHostUsersWithoutHavingDwdCredentials[0].id,
+    teamId: eventType.teamId,
+  });
+
+  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
+    organizationId: firstUserOrgId ?? null,
+    users: allHostUsersWithoutHavingDwdCredentials,
+  });
+
+  const allHostUsers = allHostUsersWithoutHavingDwdCredentials.map((user) => ({
+    ...user,
+    credentials: [...user.credentials, ...(dwdCredentialsMap.get(user.id) ?? [])],
+  }));
 
   // We filter out users but ensure allHostUsers remain same.
   let users = allHostUsers;

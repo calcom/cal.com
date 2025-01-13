@@ -90,6 +90,7 @@ const buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegati
 /**
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DomainWideDelegation.
  */
+// TODO: Consider using getAllDwdCredentialsForUsers in it which requires organizationId to be present on user.
 export async function getAllDwdCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
@@ -117,6 +118,63 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
 export async function getAllDwdCalendarCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   const dwdCredentials = await getAllDwdCredentialsForUser({ user });
   return dwdCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+}
+
+export async function getAllDwdCredentialsForUsers({
+  organizationId,
+  users,
+}: {
+  organizationId: number | null;
+  users: User[];
+}) {
+  const emptyMap = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
+  if (!organizationId) {
+    return emptyMap;
+  }
+  const domain = users[0].email.split("@")[1];
+  log.debug("called with", safeStringify({ users }));
+  const dwd = await DomainWideDelegationRepository.findUniqueByOrganizationIdAndDomain({
+    organizationId,
+    domain,
+  });
+  if (!dwd || !dwd.enabled) {
+    return emptyMap;
+  }
+
+  const credentialsByUserId = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
+
+  for (const user of users) {
+    const domainWideDelegationCredentials = [
+      buildDwdCalendarCredential({ dwd, user }),
+      buildDwdConferencingCredential({ dwd, user }),
+    ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
+
+    log.debug("Returned for user", safeStringify({ user, domainWideDelegationCredentials }));
+    credentialsByUserId.set(user.id, domainWideDelegationCredentials);
+  }
+
+  return credentialsByUserId;
+}
+
+export async function getAllDwdCalendarCredentialsForUsers({
+  organizationId,
+  users,
+}: {
+  organizationId: number | null;
+  users: User[];
+}) {
+  const emptyMap = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
+  if (!organizationId) {
+    return emptyMap;
+  }
+  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({ organizationId, users });
+  const calendarCredentialsMap = new Map(
+    Array.from(dwdCredentialsMap.entries()).map(([userId, credentials]) => [
+      userId,
+      credentials.filter((credential) => credential.type.endsWith("_calendar")),
+    ])
+  );
+  return calendarCredentialsMap;
 }
 
 export async function getAllDwdConferencingCredentialsForUser({

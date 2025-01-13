@@ -388,7 +388,7 @@ describe("SelectedCalendarRepository", () => {
         });
       });
 
-      it.only("shouldnt update existing domainWideDelegationCredentialId if upsert data doesn't have it", async () => {
+      it("shouldnt update existing domainWideDelegationCredentialId if upsert data doesn't have it", async () => {
         const initialData = {
           userId: 1,
           integration: "google_calendar",
@@ -413,7 +413,7 @@ describe("SelectedCalendarRepository", () => {
         expect(result.domainWideDelegationCredentialId).toBe(null);
       });
 
-      it.only("shouldnt update domainWideDelegationCredentialId if it is undefined", async () => {
+      it("shouldnt update domainWideDelegationCredentialId if it is undefined", async () => {
         const initialData = {
           userId: 1,
           integration: "google_calendar",
