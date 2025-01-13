@@ -7,6 +7,7 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
+import type { InferGetServerSidePropsType } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
@@ -24,12 +25,11 @@ import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@ca
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
-import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import Team from "@components/team/screens/Team";
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({
+export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
+export function TeamPage({
   team,
   considerUnpublished,
   markdownStrippedBio,
