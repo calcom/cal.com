@@ -62,6 +62,9 @@ export async function handleAutoLock({
         return false;
       }
     } catch (err) {
+      if (err instanceof Error && err.message === "No user found for this API key.") {
+        throw err;
+      }
       return false;
     }
   }
