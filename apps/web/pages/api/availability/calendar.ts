@@ -59,15 +59,10 @@ async function postHandler(req: CustomNextApiRequest) {
 async function deleteHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const { integration, externalId, credentialId, eventTypeId, domainWideDelegationCredentialId } =
-    selectedCalendarSelectSchema.parse(req.query);
-
-  const calendarCacheRepository = await CalendarCache.initFromDwdOrRegularCredential({
-    credentialId,
-    dwdId: domainWideDelegationCredentialId,
-    userId: user.id,
-  });
-
+  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(
+    req.query
+  );
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
   await calendarCacheRepository.unwatchCalendar({
     calendarId: externalId,
     eventTypeIds: [eventTypeId ?? null],

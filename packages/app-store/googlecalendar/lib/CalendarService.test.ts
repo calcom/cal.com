@@ -184,15 +184,14 @@ test("Calendar Cache is being read on cache HIT", async () => {
 
   // Create cache
   const calendarCache = await CalendarCache.init(null);
-  await calendarCache.upsertCachedAvailability({
-    credentialId: credentialInDb1.id,
-    userId: credentialInDb1.userId,
-    args: {
+  await calendarCache.upsertCachedAvailability(
+    credentialInDb1.id,
+    {
       timeMin: dateFrom1,
       timeMax: dateTo1,
       items: [{ id: testSelectedCalendar.externalId }],
     },
-    value: JSON.parse(
+    JSON.parse(
       JSON.stringify({
         calendars: [
           {
@@ -205,8 +204,8 @@ test("Calendar Cache is being read on cache HIT", async () => {
           },
         ],
       })
-    ),
-  });
+    )
+  );
 
   oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   const calendarService = new CalendarService(credentialInDb1);

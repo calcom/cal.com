@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
 import { uniqueBy } from "@calcom/lib/array";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -80,59 +79,29 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     log.info("Got cached availability", safeStringify({ key, cached }));
     return cached;
   }
-  async upsertCachedAvailability({
-    credentialId,
-    userId,
-    args,
-    value,
-  }: {
-    credentialId: number;
-    userId: number | null;
-    args: FreeBusyArgs;
-    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
-  }) {
+  async upsertCachedAvailability(
+    credentialId: number,
+    args: FreeBusyArgs,
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue
+  ) {
     const key = parseKeyForCache(args);
-    let where;
-    if (isDomainWideDelegationCredential({ credentialId })) {
-      if (!userId) {
-        console.error("Could not upsert cached availability for DWD case, userId is required");
-        return;
-      }
-      where = {
-        userId,
-        key,
-      };
-    } else {
-      where = {
+    await prisma.calendarCache.upsert({
+      where: {
+        credentialId_key: {
+          credentialId,
+          key,
+        },
+      },
+      update: {
+        value,
+        expiresAt: new Date(Date.now() + CACHING_TIME),
+      },
+      create: {
+        value,
         credentialId,
         key,
-      };
-    }
-
-    const existingCache = await prisma.calendarCache.findFirst({
-      where,
+        expiresAt: new Date(Date.now() + CACHING_TIME),
+      },
     });
-
-    if (existingCache) {
-      await prisma.calendarCache.update({
-        where: {
-          id: existingCache.id,
-        },
-        data: {
-          value,
-          expiresAt: new Date(Date.now() + CACHING_TIME),
-        },
-      });
-    } else {
-      await prisma.calendarCache.create({
-        data: {
-          key,
-          credentialId: isDomainWideDelegationCredential({ credentialId }) ? null : credentialId,
-          userId,
-          value,
-          expiresAt: new Date(Date.now() + CACHING_TIME),
-        },
-      });
-    }
   }
 }

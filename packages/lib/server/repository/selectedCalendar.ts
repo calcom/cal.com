@@ -81,8 +81,8 @@ export class SelectedCalendarRepository {
     // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
     const credentialPayload = buildCredentialPayloadForCalendar({
-      credentialId: data.credentialId,
-      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
+      credentialId: data.credentialId ?? null,
+      domainWideDelegationCredentialId: data.domainWideDelegationCredentialId ?? null,
     });
 
     const newData = {
@@ -218,20 +218,9 @@ export class SelectedCalendarRepository {
         googleChannelId,
       },
       select: {
-        userId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
-            selectedCalendars: {
-              orderBy: {
-                externalId: "asc",
-              },
-            },
-          },
-        },
-        domainWideDelegationCredential: {
-          select: {
-            id: true,
             selectedCalendars: {
               orderBy: {
                 externalId: "asc",

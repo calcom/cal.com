@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 import { DisconnectIntegrationComponent, showToast } from "@calcom/ui";
-
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 export default function DisconnectIntegration(props: {
   credentialId: number;
   label?: string;

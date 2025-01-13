@@ -55,13 +55,13 @@ export class DestinationCalendarRepository {
     };
   }) {
     const credentialPayloadForUpdate = buildCredentialPayloadForCalendar({
-      credentialId: update.credentialId,
-      domainWideDelegationCredentialId: update.domainWideDelegationCredentialId,
+      credentialId: update.credentialId ?? null,
+      domainWideDelegationCredentialId: update.domainWideDelegationCredentialId ?? null,
     });
 
     const credentialPayloadForCreate = buildCredentialPayloadForCalendar({
-      credentialId: create.credentialId,
-      domainWideDelegationCredentialId: create.domainWideDelegationCredentialId,
+      credentialId: create.credentialId ?? null,
+      domainWideDelegationCredentialId: create.domainWideDelegationCredentialId ?? null,
     });
 
     return await prisma.destinationCalendar.upsert({

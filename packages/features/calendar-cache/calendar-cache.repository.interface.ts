@@ -7,11 +7,10 @@ export type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: stri
 export interface ICalendarCacheRepository {
   watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
-  upsertCachedAvailability(args: {
-    credentialId: number;
-    userId: number | null;
-    args: FreeBusyArgs;
-    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
-  }): Promise<void>;
+  upsertCachedAvailability(
+    credentialId: number,
+    args: FreeBusyArgs,
+    value: Prisma.JsonNullValueInput | Prisma.InputJsonValue
+  ): Promise<void>;
   getCachedAvailability(credentialId: number, args: FreeBusyArgs): Promise<CalendarCache | null>;
 }
