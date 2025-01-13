@@ -20,7 +20,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
   } = options;
 
   const [incompleteBookingActions, form] = await Promise.all([
-    prisma.app_RoutingForms_IncompleteBooking_Actions.findMany({
+    prisma.app_RoutingForms_IncompleteBookingActions.findMany({
       where: {
         formId: input.formId,
       },

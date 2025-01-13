@@ -10,5 +10,5 @@ export const ZSaveIncompleteBookingSettingsInputSchema = z.object({
 });
 
 export type TSaveIncompleteBookingSettingsInputSchema = z.infer<
-  typeof ZGetIncompleteBookingSettingsInputSchema
+  typeof ZSaveIncompleteBookingSettingsInputSchema
 >;

@@ -40,7 +40,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
   }
 
   // Check to see if the action already exists
-  const existingAction = await prisma.app_RoutingForms_IncompleteBooking_Actions.findFirst({
+  const existingAction = await prisma.app_RoutingForms_IncompleteBookingActions.findFirst({
     where: {
       formId: formId,
       actionType: actionType,
@@ -48,7 +48,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
   });
 
   if (existingAction) {
-    await prisma.app_RoutingForms_IncompleteBooking_Actions.update({
+    await prisma.app_RoutingForms_IncompleteBookingActions.update({
       where: {
         id: existingAction.id,
       },
@@ -58,7 +58,7 @@ const saveIncompleteBookingSettingsHandler = async (options: SaveIncompleteBooki
       },
     });
   } else {
-    await prisma.app_RoutingForms_IncompleteBooking_Actions.create({
+    await prisma.app_RoutingForms_IncompleteBookingActions.create({
       data: {
         formId: formId,
         actionType: actionType,
