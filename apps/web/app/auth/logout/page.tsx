@@ -15,7 +15,6 @@ export const generateMetadata = async () => {
 };
 
 export default WithLayout({
-  getLayout: null,
   Page: Logout,
   getData: withAppDirSsr<PageProps>(getServerSideProps),
-})<"P">;
+});
