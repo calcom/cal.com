@@ -387,6 +387,56 @@ describe("SelectedCalendarRepository", () => {
           expect(result.domainWideDelegationCredentialId).toBe(data.domainWideDelegationCredentialId);
         });
       });
+
+      it.only("shouldnt update existing domainWideDelegationCredentialId if upsert data doesn't have it", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          domainWideDelegationCredentialId: "dwd-123",
+          credentialId: 1,
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          credentialId: 1,
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.domainWideDelegationCredentialId).toBe(null);
+      });
+
+      it.only("shouldnt update domainWideDelegationCredentialId if it is undefined", async () => {
+        const initialData = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+          eventTypeId: null,
+          domainWideDelegationCredentialId: "dwd-123",
+        };
+
+        const existingCalendar = await SelectedCalendarRepository.create(initialData);
+
+        const data = {
+          userId: 1,
+          integration: "google_calendar",
+          externalId: "test@gmail.com",
+        };
+
+        const result = await SelectedCalendarRepository.upsert(data);
+        expect(result.id).toBe(existingCalendar.id);
+        expect(result.credentialId).toBe(existingCalendar.credentialId);
+        expect(result.domainWideDelegationCredentialId).toBe(
+          existingCalendar.domainWideDelegationCredentialId
+        );
+      });
     });
   });
 });

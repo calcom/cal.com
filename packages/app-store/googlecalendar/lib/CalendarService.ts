@@ -207,7 +207,7 @@ export default class GoogleCalendarService implements Calendar {
     try {
       await authClient.authorize();
     } catch (error) {
-      this.log.error("Error authorizing domain wide delegation", JSON.stringify(error));
+      this.log.error("DWD: Error authorizing domain wide delegation", JSON.stringify(error));
 
       if ((error as any).response?.data?.error === "unauthorized_client") {
         throw new CalendarAppDomainWideDelegationClientIdNotAuthorizedError(
@@ -244,7 +244,7 @@ export default class GoogleCalendarService implements Calendar {
 
     if (this.credential.delegatedTo) {
       if (!this.credential.user?.email) {
-        this.log.error("No email to impersonate found for domain wide delegation");
+        this.log.error("DWD: No email to impersonate found for domain wide delegation");
       } else {
         dwdAuthedCalendar = await this.getAuthedCalendarFromDwd({
           domainWideDelegation: this.credential.delegatedTo,
@@ -264,7 +264,13 @@ export default class GoogleCalendarService implements Calendar {
     return calendar;
   };
 
-  private getAttendees = (event: CalendarEvent) => {
+  private getAttendees = ({
+    event,
+    hostExternalCalendarId,
+  }: {
+    event: CalendarEvent;
+    hostExternalCalendarId?: string;
+  }) => {
     // When rescheduling events we know the external id of the calendar so we can just look for it in the destinationCalendar array.
     const selectedHostDestinationCalendar = event.destinationCalendar?.find(
       (cal) => cal.credentialId === this.credential.id
@@ -281,7 +287,7 @@ export default class GoogleCalendarService implements Calendar {
         organizer: true,
         // Tried changing the display name to the user but GCal will not let you do that. It will only display the name of the external calendar. Leaving this in just incase it works in the future.
         displayName: event.organizer.name,
-        email: selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
+        email: hostExternalCalendarId ?? selectedHostDestinationCalendar?.externalId ?? event.organizer.email,
       },
       ...eventAttendees,
     ];
@@ -353,7 +359,7 @@ export default class GoogleCalendarService implements Calendar {
   async createEvent(
     calEventRaw: CalendarEvent,
     credentialId: number,
-    overrideExternalIdForDelegatedCredential?: string
+    externalCalendarId?: string
   ): Promise<NewCalendarEventType> {
     this.log.debug("Creating event");
     const formattedCalEvent = formatCalEvent(calEventRaw);
@@ -369,7 +375,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: formattedCalEvent.endTime,
         timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(formattedCalEvent),
+      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },
@@ -403,7 +409,7 @@ export default class GoogleCalendarService implements Calendar {
     // Find in formattedCalEvent.destinationCalendar the one with the same credentialId
 
     const selectedCalendar =
-      overrideExternalIdForDelegatedCredential ??
+      externalCalendarId ??
       (formattedCalEvent.destinationCalendar?.find((cal) => cal.credentialId === credentialId)?.externalId ||
         "primary");
 
@@ -537,7 +543,7 @@ export default class GoogleCalendarService implements Calendar {
         dateTime: formattedCalEvent.endTime,
         timeZone: formattedCalEvent.organizer.timeZone,
       },
-      attendees: this.getAttendees(formattedCalEvent),
+      attendees: this.getAttendees({ event: formattedCalEvent, hostExternalCalendarId: externalCalendarId }),
       reminders: {
         useDefault: true,
       },

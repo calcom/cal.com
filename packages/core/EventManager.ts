@@ -710,7 +710,7 @@ export default class EventManager {
                 };
               }
             } else if (destination.domainWideDelegationCredentialId) {
-              console.warn("DWD is disabled, falling back to first non-dwd credential");
+              console.warn("DWD: DWD seems to be disabled, falling back to first non-dwd credential");
               // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
               // In this case, we fallback to the first non-dwd credential. That would be there for all existing users before DWD was enabled
               const firstNonDwdCalendarCredential = this.calendarCredentials.find(

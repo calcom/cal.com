@@ -7,12 +7,14 @@
      1. Follow "Setting up Domain-Wide Delegation for Google Calendar API" in domain-wide-delegation.md to create Service Account and create a workspace.
      2. Merge PR and then deploy.
   4. Enable for i.cal.com:
-     1. Enable DWD for i.cal.com first and then test there
-     2. Wait for 1-2 days and keep monitoring the errors in Sentry and Axiom.
-  5. Enable for a big customer:
+     1. Disable Calendar Cache for i.cal.com
+     2. Enable DWD for i.cal.com first and then test there
+     3. Wait for 1-2 days and keep monitoring the errors in Sentry and Axiom.
+  5. Merge & Deploy the Calendar Cache support(with DWD) PR
+     1. Enable Calendar Cache back for i.cal.com
+     2. Observe the errors in Sentry and Axiom.
+  6. Enable for a big customer:
      1. Wait for a week and keep monitoring the errors in Sentry and Axiom.
-  6. Followup with sorting the credentials with DWD credentials first
-  7. Monitor the errors in Sentry and Axiom.
 
 ## Manual Testing
   - [ ] Isolation of DWD credentials for different organizations
@@ -31,6 +33,8 @@
   - [ ] Calendar Cache
     - [ ] Event Type Selected Calendar caching test
     - [ ] User Selected Calendar caching test
+  - [x] Troubleshooter
+      - [x] Shows busy times from Calendar
 
 ### Important
   - Bugs
@@ -46,6 +50,7 @@
       - Verified that Google Calendar is shown pre-installed. 
       - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
   - TODO:
+    - [ ] Tag all DWD related logs and errors with "DWD:"
     - [x] Troubleshooter
     - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
     - [x] setDestinationCalendar.handler.ts tests to verify that when DWD is enabled it still correctly sets the destination calendar. 

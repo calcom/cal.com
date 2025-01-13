@@ -314,12 +314,14 @@ export const createEvent = async (
     calEvent.additionalNotes = "Notes have been hidden by the organizer"; // TODO: i18n this string?
   }
 
-  const overrideExternalIdForDelegatedCredential = credential.delegatedToId ? externalId : undefined;
+  const externalCalendarIdWhenDwdCredentialIsChosen = credential.delegatedToId ? externalId : undefined;
 
   // TODO: Surface success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
     ? await calendar
-        .createEvent(calEvent, credential.id, overrideExternalIdForDelegatedCredential)
+        // Ideally we should pass externalId always, but let's start with DWD case first as in that case, CalendarService need to handle a special case for DWD to determine the selectedCalendar.
+        // Such logic shouldn't exist in CalendarService as it would be same for all calendar apps.
+        .createEvent(calEvent, credential.id, externalCalendarIdWhenDwdCredentialIsChosen)
         .catch(async (error: { code: number; calError: string }) => {
           success = false;
           /**

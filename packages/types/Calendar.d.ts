@@ -258,7 +258,7 @@ export interface Calendar {
   createEvent(
     event: CalendarEvent,
     credentialId: number,
-    overrideExternalIdForDelegatedCredential?: string
+    externalCalendarId?: string
   ): Promise<NewCalendarEventType>;
 
   updateEvent(
