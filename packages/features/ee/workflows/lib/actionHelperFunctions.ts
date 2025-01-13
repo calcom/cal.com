@@ -30,6 +30,14 @@ export function isSMSOrWhatsappAction(action: WorkflowActions) {
   return isSMSAction(action) || isWhatsappAction(action);
 }
 
+export function isEmailAction(action: WorkflowActions) {
+  return (
+    action === WorkflowActions.EMAIL_ADDRESS ||
+    action === WorkflowActions.EMAIL_ATTENDEE ||
+    action === WorkflowActions.EMAIL_HOST
+  );
+}
+
 export function isAttendeeAction(action: WorkflowActions) {
   return (
     action === WorkflowActions.SMS_ATTENDEE ||

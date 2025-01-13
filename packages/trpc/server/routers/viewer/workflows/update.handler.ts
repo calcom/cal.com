@@ -1,5 +1,3 @@
-import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -23,6 +21,7 @@ import {
   verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
+  getTemplateText,
 } from "./util";
 
 type UpdateOptions = {
@@ -335,8 +334,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     } else if (isStepEdited(oldStep, newStep)) {
-      let emailBody = newStep.reminderBody;
-      let emailSubject = newStep.emailSubject;
+      const emailBody = newStep.reminderBody;
+      const emailSubject = newStep.emailSubject;
 
       // check if step that require team plan already existed before
       if (!hasPaidPlan) {
@@ -349,7 +348,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
         }
 
-        //if email body or subject was changed, change to default
+        //if email body or subject was changed, change to predefined template
         if (newStep.emailSubject !== oldStep.emailSubject || newStep.reminderBody !== oldStep.reminderBody) {
           // already existing custom templates can't be updated
           if (newStep.template === WorkflowTemplates.CUSTOM) {
@@ -357,27 +356,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
 
           // on free plans always use predefined templates
-          if (newStep.template === WorkflowTemplates.REMINDER) {
-            const emailTemplate = emailReminderTemplate(
-              true,
-              ctx.user.locale,
-              newStep.action,
-              getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
-            );
-            emailBody = emailTemplate.emailBody;
-            emailSubject = emailTemplate.emailSubject;
-          } else if (newStep.template === WorkflowTemplates.RATING) {
-            const emailTemplate = emailRatingTemplate({
-              isEditingMode: true,
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
-            });
-            emailBody = emailTemplate.emailBody;
-            emailSubject = emailTemplate.emailSubject;
-          }
+          const { body, subject } = getTemplateText(newStep.template, newStep.action, {
+            locale: ctx.user.locale,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+          });
+          newStep = { ...newStep, reminderBody: body, emailSubject: subject };
         }
-        newStep = { ...newStep, reminderBody: emailBody, emailSubject };
       }
 
       // update step
@@ -437,29 +421,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
 
           //only allow predefined templates on free plan
-          let emailBody = newStep.reminderBody;
-          let emailSubject = newStep.emailSubject;
+          const { body, subject } = getTemplateText(newStep.template, newStep.action, {
+            locale: ctx.user.locale,
+            timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+          });
 
-          if (newStep.template === WorkflowTemplates.REMINDER) {
-            const emailTemplate = emailReminderTemplate(
-              true,
-              ctx.user.locale,
-              newStep.action,
-              getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
-            );
-            emailBody = emailTemplate.emailBody;
-            emailSubject = emailTemplate.emailSubject;
-          } else if (newStep.template === WorkflowTemplates.RATING) {
-            const emailTemplate = emailRatingTemplate({
-              isEditingMode: true,
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
-            });
-            emailBody = emailTemplate.emailBody;
-            emailSubject = emailTemplate.emailSubject;
-          }
-          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
+          newStep = { ...newStep, reminderBody: body, emailSubject: subject };
         }
 
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
