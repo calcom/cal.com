@@ -1,9 +1,12 @@
+import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -332,9 +335,49 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     } else if (isStepEdited(oldStep, newStep)) {
+      let emailBody = newStep.reminderBody;
+      let emailSubject = newStep.emailSubject;
+
       // check if step that require team plan already existed before
-      if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+      if (!hasPaidPlan) {
+        const isChangingToSMSOrWhatsapp =
+          !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action);
+        const isChangingToCustomTemplate =
+          newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
+
+        if (isChangingToSMSOrWhatsapp || isChangingToCustomTemplate) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+        }
+
+        //if email body or subject was changed, change to default
+        if (newStep.emailSubject !== oldStep.emailSubject || newStep.reminderBody !== oldStep.reminderBody) {
+          // already existing custom templates can't be updated
+          if (newStep.template === WorkflowTemplates.CUSTOM) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+          }
+
+          // on free plans always use predefined templates
+          if (newStep.template === WorkflowTemplates.REMINDER) {
+            const emailTemplate = emailReminderTemplate(
+              true,
+              ctx.user.locale,
+              newStep.action,
+              getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
+            );
+            emailBody = emailTemplate.emailBody;
+            emailSubject = emailTemplate.emailSubject;
+          } else if (newStep.template === WorkflowTemplates.RATING) {
+            const emailTemplate = emailRatingTemplate({
+              isEditingMode: true,
+              locale: ctx.user.locale,
+              action: newStep.action,
+              timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+            });
+            emailBody = emailTemplate.emailBody;
+            emailSubject = emailTemplate.emailSubject;
+          }
+        }
+        newStep = { ...newStep, reminderBody: emailBody, emailSubject };
       }
 
       // update step
@@ -388,8 +431,35 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     steps
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
-        if (isSMSOrWhatsappAction(newStep.action) && !hasPaidPlan) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+        if (!hasPaidPlan) {
+          if (isSMSOrWhatsappAction(newStep.action) || newStep.template === WorkflowTemplates.CUSTOM) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+          }
+
+          //only allow predefined templates on free plan
+          let emailBody = newStep.reminderBody;
+          let emailSubject = newStep.emailSubject;
+
+          if (newStep.template === WorkflowTemplates.REMINDER) {
+            const emailTemplate = emailReminderTemplate(
+              true,
+              ctx.user.locale,
+              newStep.action,
+              getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat)
+            );
+            emailBody = emailTemplate.emailBody;
+            emailSubject = emailTemplate.emailSubject;
+          } else if (newStep.template === WorkflowTemplates.RATING) {
+            const emailTemplate = emailRatingTemplate({
+              isEditingMode: true,
+              locale: ctx.user.locale,
+              action: newStep.action,
+              timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+            });
+            emailBody = emailTemplate.emailBody;
+            emailSubject = emailTemplate.emailSubject;
+          }
+          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
 
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
