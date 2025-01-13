@@ -197,12 +197,11 @@ model Credential {
   paymentStatus     String?
   billingCycleStart Int?
 
-  destinationCalendars     DestinationCalendar[]
-  selectedCalendars        SelectedCalendar[]
-  invalid                  Boolean?                                     @default(false)
-  CalendarCache            CalendarCache[]
-  references               BookingReference[]
-  incompleteBookingActions App_RoutingForms_IncompleteBooking_Actions[]
+  destinationCalendars DestinationCalendar[]
+  selectedCalendars    SelectedCalendar[]
+  invalid              Boolean?              @default(false)
+  CalendarCache        CalendarCache[]
+  references           BookingReference[]
 
   @@index([userId])
   @@index([appId])
@@ -1817,12 +1816,10 @@ enum IncompleteBookingActionType {
 }
 
 model App_RoutingForms_IncompleteBooking_Actions {
-  id           Int                         @id @default(autoincrement())
-  form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
-  formId       String
-  actionType   IncompleteBookingActionType
-  data         Json
-  enabled      Boolean                     @default(true)
-  credential   Credential?                 @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId Int?
+  id         Int                         @id @default(autoincrement())
+  form       App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId     String
+  actionType IncompleteBookingActionType
+  data       Json
+  enabled    Boolean                     @default(true)
 }
