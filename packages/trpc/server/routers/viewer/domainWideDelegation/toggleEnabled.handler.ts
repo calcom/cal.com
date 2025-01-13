@@ -21,22 +21,20 @@ const assertWorkspaceConfigured = async ({
   domainWideDelegationId: string;
   user: { id: number; email: string; organizationId: number | null };
 }) => {
-  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
-    {
-      id: domainWideDelegationId,
-    }
-  );
+  const dwd = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({
+    id: domainWideDelegationId,
+  });
 
-  if (!domainWideDelegation) {
+  if (!dwd) {
     throw new Error("Domain wide delegation not found");
   }
 
-  if (!hasServiceAccountKey(domainWideDelegation)) {
+  if (!hasServiceAccountKey(dwd)) {
     throw new Error("Domain wide delegation doesn't have service account key");
   }
 
   const isSuccessfullyConfigured = await checkIfSuccessfullyConfiguredInWorkspace({
-    domainWideDelegation,
+    dwd,
     user,
   });
 

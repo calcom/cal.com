@@ -56,42 +56,34 @@ const buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
 };
 
 const buildDwdCalendarCredentialWithServiceAccountKey = ({
-  domainWideDelegation,
+  dwd,
   user,
 }: {
-  domainWideDelegation: DomainWideDelegationWithSensitiveServiceAccountKey;
+  dwd: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) => {
-  const credential = buildDwdCalendarCredential({ domainWideDelegation, user });
+  const credential = buildDwdCalendarCredential({ dwd, user });
   if (!credential) {
     return null;
   }
   return {
     ...credential,
     delegatedTo: {
-      serviceAccountKey: domainWideDelegation.serviceAccountKey,
+      serviceAccountKey: dwd.serviceAccountKey,
     },
   };
 };
 
-const buildDwdConferencingCredential = ({
-  domainWideDelegation,
-  user,
-}: {
-  domainWideDelegation: DomainWideDelegation;
-  user: User;
-}) => {
+const buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   // TODO: Build for other platforms as well
-  if (domainWideDelegation.workspacePlatform.slug !== "google") {
-    log.warn(
-      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
-    );
+  if (dwd.workspacePlatform.slug !== "google") {
+    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
     return null;
   }
   return {
     type: googleMeetMetadata.type,
     appId: googleMeetMetadata.slug,
-    ...buildCommonUserCredential({ domainWideDelegation, user }),
+    ...buildCommonUserCredential({ dwd, user }),
   };
 };
 
@@ -142,21 +134,19 @@ export async function getAllDwdConferencingCredentialsForUser({
 }
 
 export async function checkIfSuccessfullyConfiguredInWorkspace({
-  domainWideDelegation,
+  dwd,
   user,
 }: {
-  domainWideDelegation: DomainWideDelegationWithSensitiveServiceAccountKey;
+  dwd: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) {
-  if (domainWideDelegation.workspacePlatform.slug !== "google") {
-    log.warn(
-      `Only Google Platform is supported here, skipping ${domainWideDelegation.workspacePlatform.slug}`
-    );
+  if (dwd.workspacePlatform.slug !== "google") {
+    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
     return false;
   }
 
   const credential = buildDwdCalendarCredentialWithServiceAccountKey({
-    domainWideDelegation,
+    dwd,
     user,
   });
 
@@ -206,7 +196,7 @@ export async function getDwdCalendarCredentialById({ id, userId }: { id: string;
   }
 
   const dwdCredential = buildDwdCalendarCredential({
-    domainWideDelegation,
+    dwd,
     user,
   });
   return dwdCredential;

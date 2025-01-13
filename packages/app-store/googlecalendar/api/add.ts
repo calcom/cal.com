@@ -4,51 +4,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { GOOGLE_CALENDAR_SCOPES, SCOPE_USERINFO_PROFILE, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 import { getGoogleAppKeys } from "../lib/getGoogleAppKeys";
-
-// We might need the below commented code in the future
-// Right now, if DWD is enabled, the install button is disabled and thus this endpoint is never hit but we should handle at backend as well.
-
-// async function getDomainWideDelegationForApp({
-//   user,
-//   appMetadata,
-// }: {
-//   user: {
-//     email: string;
-//   };
-//   appMetadata: Pick<App, "domainWideDelegation">;
-// }) {
-//   const log = logger.getSubLogger({ prefix: ["getDomainWideDelegationForApp"] });
-
-//   const domainWideDelegation = await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmail({
-//     email: user.email,
-//   });
-
-//   if (!domainWideDelegation || !domainWideDelegation.enabled || !appMetadata.domainWideDelegation) {
-//     log.debug("Domain-wide delegation isn't enabled for this app", {
-//       domainWideDelegationEnabled: domainWideDelegation?.enabled,
-//       metadataDomainWideDelegation: appMetadata.domainWideDelegation,
-//     });
-//     return null;
-//   }
-
-//   if (
-//     domainWideDelegation.workspacePlatform.slug !== appMetadata.domainWideDelegation.workspacePlatformSlug
-//   ) {
-//     log.info("Domain-wide delegation isn't compatible with this app", {
-//       domainWideDelegation: domainWideDelegation.workspacePlatform.slug,
-//       appSlug: metadata.slug,
-//     });
-//     return null;
-//   }
-
-//   log.debug("Domain-wide delegation is enabled");
-
-//   return domainWideDelegation;
-// }
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const loggedInUser = req.session?.user;
@@ -56,8 +14,6 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   if (!loggedInUser) {
     throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
   }
-
-  const translate = await getTranslation(loggedInUser.locale ?? "en", "common");
 
   // Ideally this should never happen, as email is there in session user but typings aren't accurate it seems
   // TODO: So, confirm and later fix the typings
