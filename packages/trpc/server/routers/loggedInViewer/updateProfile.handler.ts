@@ -274,7 +274,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
     await prisma.schedule.updateMany({
       where: {
-        id: defaultScheduleId,
+        userId: user.id,
       },
       data: {
         timeZone: data.timeZone,
