@@ -8,8 +8,8 @@ const querySchema = z.object({
   code: z.string(),
 });
 
-export default async function SamlIdpPage({ params, searchParams }: PageProps) {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+export default async function SamlIdpPage({ params }: PageProps) {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
   }
