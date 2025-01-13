@@ -42,6 +42,8 @@ export function NotificationSoundHandler() {
         if (!initialized) return;
       }
 
+      if (!audioContextRef.current) return;
+
       // Resume context if suspended
       if (audioContextRef.current.state === "suspended") {
         await audioContextRef.current.resume();
