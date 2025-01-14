@@ -1074,7 +1074,6 @@ const NoShowAttendeesDialog = ({
   attendees: AttendeeProps[];
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
-  bookingUid: string;
   handleNoShowChange: (email: string, noShow: boolean) => void;
 }) => {
   const { t } = useLocale();
