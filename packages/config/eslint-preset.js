@@ -91,6 +91,7 @@ module.exports = {
           files: ["packages/trpc/**/*.{tsx,ts}"],
           rules: {
             "@typescript-eslint/ban-types": "warn",
+            "@typescript-eslint/no-explicit-any": "warn",
           },
         },
       ],
