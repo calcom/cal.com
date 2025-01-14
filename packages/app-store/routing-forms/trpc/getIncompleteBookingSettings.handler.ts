@@ -79,7 +79,8 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
   }
 
   if (userId) {
-    const credential = await prisma.credential.findMany({
+    // Assume that a user will have one credential per app
+    const credential = await prisma.credential.findFirst({
       where: {
         appId: {
           in: enabledIncompleteBookingApps,
