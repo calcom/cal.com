@@ -1872,10 +1872,14 @@ async function handler(
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
+      const bookingWithCalEventResponses = {
+        ...booking,
+        responses: reqBody.calEventResponses,
+      };
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -1887,7 +1891,7 @@ async function handler(
       for (const subscriber of subscribersMeetingStarted) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,

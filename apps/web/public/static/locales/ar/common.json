@@ -2920,5 +2920,8 @@
   "choose_an_option": "اختر خيارًا",
   "enter_option_value": "أدخل قيمة الخيار",
   "remove_option": "إزالة الخيار",
+  "managed_users": "المستخدمون المُدارون",
+  "managed_users_description": "عرض جميع المستخدمين المُدارين الذين تم إنشاؤهم بواسطة عميل OAuth الخاص بك",
+  "select_oAuth_client": "اختر عميل OAuth",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
