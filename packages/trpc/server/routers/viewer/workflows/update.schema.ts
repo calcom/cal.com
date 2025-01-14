@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import {
-  ATTENDEE_WORKFLOW_TEMPLATES,
+  WORKFLOW_TEMPLATES,
   TIME_UNIT,
   WORKFLOW_ACTIONS,
   WORKFLOW_TRIGGER_EVENTS,
@@ -20,7 +20,7 @@ export const ZUpdateInputSchema = z.object({
       sendTo: z.string().nullable(),
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
-      template: z.enum(ATTENDEE_WORKFLOW_TEMPLATES),
+      template: z.enum(WORKFLOW_TEMPLATES),
       numberRequired: z.boolean().nullable(),
       sender: z.string().nullable(),
       senderName: z.string().nullable(),
