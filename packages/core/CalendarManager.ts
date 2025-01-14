@@ -54,43 +54,6 @@ function _buildDelegatedTo({
   };
 }
 
-async function _getCredentialsWithAppAndTheirDwdMap(credentials: Array<CredentialPayload>) {
-  const calendarApps = getApps(credentials, true).filter((app) => app.type.endsWith("_calendar"));
-  const credentialsWithApp = calendarApps.flatMap((app) => {
-    return app.credentials.map((credential) => ({
-      credential,
-      app,
-    }));
-  });
-
-  const delegatedToIds = _getDwdIds(credentialsWithApp);
-  const domainWideDelegations =
-    await DomainWideDelegationRepository.findByIdsIncludeSensitiveServiceAccountKey(delegatedToIds);
-
-  const dwdMap = new Map(domainWideDelegations.map((d) => [d.id, d]));
-
-  return {
-    credentialsWithApp,
-    dwdMap,
-  };
-
-  function _getDwdIds(_credentialsWithApp: typeof credentialsWithApp) {
-    return Array.from(
-      new Set(
-        credentialsWithApp
-          .filter(
-            (
-              credentialWithApp
-            ): credentialWithApp is typeof credentialWithApp & {
-              credential: typeof credentialWithApp.credential & { delegatedToId: string };
-            } => !!credentialWithApp.credential.delegatedToId
-          )
-          .map(({ credential }) => credential.delegatedToId)
-      )
-    );
-  }
-}
-
 /**
  * CalendarService needs delegatedTo to have serviceAccountKey for DWD Credential. It fetches that.
  */
@@ -123,27 +86,17 @@ export async function getCredentialForCalendarService<
   } as CredentialForCalendarServiceGeneric<T>;
 }
 
-// TODO: Should unit test it.
-export const getCalendarCredentials = async (credentials: Array<CredentialPayload>) => {
-  const { credentialsWithApp, dwdMap } = await _getCredentialsWithAppAndTheirDwdMap(credentials);
+export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
+  const calendarCredentials = getApps(credentials, true)
+    .filter((app) => app.type.endsWith("_calendar"))
+    .flatMap((app) => {
+      const credentials = app.credentials.flatMap((credential) => {
+        const calendar = getCalendar(credential);
+        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
+      });
 
-  const calendarCredentials = credentialsWithApp.flatMap(({ credential, app }) => {
-    const domainWideDelegation = credential.delegatedToId
-      ? dwdMap.get(credential.delegatedToId) || null
-      : null;
-
-    const credentialForCalendarService = {
-      ...credential,
-      delegatedTo: _buildDelegatedTo({
-        domainWideDelegation,
-      }),
-    };
-
-    const calendar = getCalendar(credentialForCalendarService);
-    return app.variant === "calendar"
-      ? [{ integration: app, credential: credentialForCalendarService, calendar }]
-      : [];
-  });
+      return credentials.length ? credentials : [];
+    });
 
   return calendarCredentials;
 };
@@ -293,7 +246,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: CredentialPayload,
+  credential: CredentialForCalendarService,
   calEvent: CalendarEvent,
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
@@ -381,14 +334,13 @@ export const createEvent = async (
 };
 
 export const updateEvent = async (
-  credential: CredentialPayload,
+  credential: CredentialForCalendarService,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid = getUid(calEvent);
-  const credentialForCalendarService = await getCredentialForCalendarService(credential);
-  const calendar = await getCalendar(credentialForCalendarService);
+  const calendar = await getCalendar(credential);
   let success = false;
   let calError: string | undefined = undefined;
   let calWarnings: string[] | undefined = [];
@@ -466,13 +418,12 @@ export const deleteEvent = async ({
   event,
   externalCalendarId,
 }: {
-  credential: CredentialPayload;
+  credential: CredentialForCalendarService;
   bookingRefUid: string;
   event: CalendarEvent;
   externalCalendarId?: string | null;
 }): Promise<unknown> => {
-  const credentialForCalendarService = await getCredentialForCalendarService(credential);
-  const calendar = await getCalendar(credentialForCalendarService);
+  const calendar = await getCalendar(credential);
   log.debug(
     "Deleting calendar event",
     safeStringify({

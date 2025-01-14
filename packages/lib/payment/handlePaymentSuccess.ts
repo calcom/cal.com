@@ -3,7 +3,6 @@ import type { Prisma } from "@prisma/client";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmailsAndSMS } from "@calcom/emails";
 import { doesBookingRequireConfirmation } from "@calcom/features/bookings/lib/doesBookingRequireConfirmation";
-import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { handleBookingRequested } from "@calcom/features/bookings/lib/handleBookingRequested";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -28,9 +27,8 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const allCredentials = await getAllCredentials(userWithCredentials, eventType);
     const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
-    const eventManager = new EventManager({ ...userWithCredentials, credentials: allCredentials }, apps);
+    const eventManager = new EventManager(userWithCredentials, apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }

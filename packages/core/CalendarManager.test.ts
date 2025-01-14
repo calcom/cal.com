@@ -31,7 +31,7 @@ describe("CalendarManager tests", () => {
         },
       ];
 
-      const calendarCredentials = await getCalendarCredentials(credentials);
+      const calendarCredentials = getCalendarCredentials(credentials);
       expect(calendarCredentials).toHaveLength(1);
       expect(calendarCredentials[0].credential).toEqual(googleCalendarCredentials);
     });

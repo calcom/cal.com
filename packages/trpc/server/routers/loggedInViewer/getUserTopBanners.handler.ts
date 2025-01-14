@@ -1,4 +1,5 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -23,7 +24,7 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
     select: credentialForCalendarServiceSelect,
   });
 
-  const calendarCredentials = await getCalendarCredentials(userCredentials);
+  const calendarCredentials = getCalendarCredentials(buildNonDwdCredentials(userCredentials));
 
   const { connectedCalendars } = await getConnectedCalendars(
     calendarCredentials,

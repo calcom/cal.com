@@ -185,7 +185,7 @@ async function verifyCredentialsAndGetId({
   currentCredentialId: number | null;
 }) {
   if (parsedBody.integration && parsedBody.externalId) {
-    const calendarCredentials = await getCalendarCredentials(userCredentials);
+    const calendarCredentials = getCalendarCredentials(userCredentials);
 
     const { connectedCalendars } = await getConnectedCalendars(
       calendarCredentials,

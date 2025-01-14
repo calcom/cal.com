@@ -1,7 +1,13 @@
 import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
+import {
+  withDelegatedToIdNull,
+  withDelegatedToIdNullArray,
+} from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+
+export { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 
 type CredentialCreateInput = {
   type: string;
@@ -10,31 +16,7 @@ type CredentialCreateInput = {
   appId: string;
 };
 
-// Allows us to explicitly set delegatedToId to null instead of not setting it.
-// Once every credential from Credential table has delegatedToId:null available like this, we can make delegatedToId a required field instead of optional
-// It makes us avoid a scenario where on a DWD credential we accidentally forget to set delegatedToId and think of it as non-dwd credential due to that
-export const withDelegatedToIdNull = <T extends Record<string, unknown> | null>(credential: T) => {
-  type WithDelegatedCredential = T extends null
-    ? null
-    : T & {
-        delegatedTo: null;
-        delegatedToId: null;
-      };
-
-  if (!credential) return null as WithDelegatedCredential;
-  return {
-    ...credential,
-    delegatedTo: null,
-    delegatedToId: null,
-  } as WithDelegatedCredential;
-};
-
-export const withDelegatedToIdNullArray = <T extends Record<string, unknown>>(credentials: T[]) => {
-  return credentials.map(withDelegatedToIdNull).filter((credential) => !!credential) as (T & {
-    delegatedTo: null;
-    delegatedToId: null;
-  })[];
-};
+export { withDelegatedToIdNull, withDelegatedToIdNullArray };
 
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {

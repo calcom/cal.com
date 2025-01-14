@@ -22,7 +22,10 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import { enrichHostsWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import {
+  enrichHostsWithDwdCredentials,
+  enrichUserWithDwdCredentialsWithoutOrgId,
+} from "@calcom/lib/domainWideDelegation/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -317,6 +320,10 @@ export const roundRobinReassignment = async ({
     },
   });
 
+  const organizerWithCredentials = await enrichUserWithDwdCredentialsWithoutOrgId({
+    user: { ...organizer, credentials },
+  });
+
   const { evtWithAdditionalInfo } = await handleRescheduleEventManager({
     evt,
     rescheduleUid: booking.uid,
@@ -324,7 +331,7 @@ export const roundRobinReassignment = async ({
     changedOrganizer: hasOrganizerChanged,
     previousHostDestinationCalendar: previousHostDestinationCalendar ? [previousHostDestinationCalendar] : [],
     initParams: {
-      user: { ...organizer, credentials },
+      user: organizerWithCredentials,
       eventType,
     },
     bookingId,

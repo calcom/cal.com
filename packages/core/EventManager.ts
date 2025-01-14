@@ -20,11 +20,10 @@ import {
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -102,7 +101,7 @@ function getCredentialPayload(result: EventResult<Exclude<Event, AdditionalInfor
 }
 
 export type EventManagerUser = {
-  credentials: CredentialPayload[];
+  credentials: CredentialForCalendarService[];
   destinationCalendar: DestinationCalendar | null;
 };
 
@@ -114,9 +113,9 @@ export type EventManagerInitParams = {
 };
 
 export default class EventManager {
-  calendarCredentials: CredentialPayload[];
-  videoCredentials: CredentialPayload[];
-  crmCredentials: CredentialPayload[];
+  calendarCredentials: CredentialForCalendarService[];
+  videoCredentials: CredentialForCalendarService[];
+  crmCredentials: CredentialForCalendarService[];
   appOptions?: z.infer<typeof EventTypeAppMetadataSchema>;
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -376,7 +375,7 @@ export default class EventManager {
 
   private async getCredentialAndWarnIfNotFound(
     credentialId: number | null | undefined,
-    credentials: CredentialPayload[],
+    credentials: CredentialForCalendarService[],
     type: string,
     domainWideDelegationCredentialId?: string | null
   ) {
@@ -389,12 +388,7 @@ export default class EventManager {
     } else {
       const credential =
         typeof credentialId === "number" && credentialId > 0
-          ? await prisma.credential.findUnique({
-              where: {
-                id: credentialId,
-              },
-              select: credentialForCalendarServiceSelect,
-            })
+          ? await CredentialRepository.findCredentialForCalendarServiceById({ id: credentialId })
           : // Fallback for zero or nullish credentialId which could be the case of Global App e.g. dailyVideo
             this.videoCredentials.find((cred) => cred.type === type) ||
             this.calendarCredentials.find((cred) => cred.type === type) ||
@@ -713,6 +707,7 @@ export default class EventManager {
                   appId: credentialFromDB.appId,
                   user: credentialFromDB.user,
                   delegatedToId: credentialFromDB.delegatedToId,
+                  delegatedTo: credentialFromDB.delegatedTo,
                 };
               }
             } else if (destination.domainWideDelegationCredentialId) {
@@ -788,7 +783,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): CredentialPayload | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialForCalendarService | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -801,7 +796,7 @@ export default class EventManager {
         (credential) => credential.id === event.conferenceCredentialId
       );
     } else {
-      videoCredential = this.videoCredentials.find((credential: CredentialPayload) =>
+      videoCredential = this.videoCredentials.find((credential: CredentialForCalendarService) =>
         credential.type.includes(integrationName)
       );
       log.warn(
@@ -910,6 +905,7 @@ export default class EventManager {
                 appId: credentialFromDB.appId,
                 user: credentialFromDB.user,
                 delegatedToId: credentialFromDB.delegatedToId,
+                delegatedTo: credentialFromDB.delegatedTo,
               };
             }
           }
@@ -1074,7 +1070,7 @@ export default class EventManager {
     }
   }
 
-  private getAppOptionsFromEventMetadata(credential: CredentialPayload) {
+  private getAppOptionsFromEventMetadata(credential: CredentialForCalendarService) {
     if (!this.appOptions || !credential.appId) return {};
 
     if (credential.appId in this.appOptions)

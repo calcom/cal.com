@@ -99,7 +99,6 @@ const buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegati
 /**
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DomainWideDelegation.
  */
-// TODO: Consider using getAllDwdCredentialsForUsers in it which requires organizationId to be present on user.
 export async function getAllDwdCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   log.debug("called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
@@ -129,7 +128,7 @@ export async function getAllDwdCalendarCredentialsForUser({ user }: { user: { em
   return dwdCredentials.filter((credential) => credential.type.endsWith("_calendar"));
 }
 
-export async function getAllDwdCredentialsForUsers({
+export async function getDwdCredentialsMapPerUser({
   organizationId,
   users,
 }: {
@@ -168,6 +167,18 @@ export async function getAllDwdCredentialsForUsers({
   return credentialsByUserId;
 }
 
+export const getAllDwdCredentialsForUsers = async ({
+  organizationId,
+  users,
+}: {
+  organizationId: number | null;
+  users: User[];
+}) => {
+  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({ organizationId, users });
+  const dwdCredentials = Array.from(dwdCredentialsMap.values()).flat();
+  return dwdCredentials;
+};
+
 export async function getAllDwdCalendarCredentialsForUsers({
   organizationId,
   users,
@@ -179,7 +190,7 @@ export async function getAllDwdCalendarCredentialsForUsers({
   if (!organizationId) {
     return emptyMap;
   }
-  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({ organizationId, users });
+  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({ organizationId, users });
   const calendarCredentialsMap = new Map(
     Array.from(dwdCredentialsMap.entries()).map(([userId, credentials]) => [
       userId,
@@ -276,7 +287,7 @@ type Host<TUser extends { id: number; email: string; credentials: CredentialPayl
   user: TUser;
 };
 
-const _buildAllCredentials = ({
+export const buildAllCredentials = ({
   dwdCredentials,
   nonDwdCredentials,
 }: {
@@ -284,16 +295,20 @@ const _buildAllCredentials = ({
   nonDwdCredentials: CredentialPayload[];
 }) => {
   const allCredentials: CredentialForCalendarService[] = [
-    ...withDelegatedToIdNullArray(nonDwdCredentials),
     ...(dwdCredentials ?? []),
+    ...withDelegatedToIdNullArray(nonDwdCredentials),
   ];
   return allCredentials;
+};
+
+export const buildNonDwdCredentials = (nonDwdCredentials: CredentialPayload[]) => {
+  return withDelegatedToIdNullArray(nonDwdCredentials);
 };
 
 export async function enrichUsersWithDwdCredentials<
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }
 >({ orgId, users }: { orgId: number | null; users: TUser[] }) {
-  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
+  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({
     organizationId: orgId,
     users,
   });
@@ -303,7 +318,7 @@ export async function enrichUsersWithDwdCredentials<
 
     return {
       ...rest,
-      credentials: _buildAllCredentials({
+      credentials: buildAllCredentials({
         dwdCredentials: dwdCredentialsMap.get(user.id) ?? [],
         nonDwdCredentials: credentials,
       }),
@@ -321,7 +336,7 @@ export const enrichHostsWithDwdCredentials = async <
   orgId: number | null;
   hosts: THost[];
 }) => {
-  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
+  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({
     organizationId: orgId,
     users: hosts.map((host) => host.user),
   });
@@ -332,7 +347,7 @@ export const enrichHostsWithDwdCredentials = async <
       ...host,
       user: {
         ...restUser,
-        credentials: _buildAllCredentials({
+        credentials: buildAllCredentials({
           dwdCredentials: dwdCredentialsMap.get(restUser.id) ?? [],
           nonDwdCredentials: credentials,
         }),
@@ -352,7 +367,7 @@ export const enrichUserWithDwdCredentialsWithoutOrgId = async <
   const { credentials, ...restUser } = user;
   return {
     ...restUser,
-    credentials: _buildAllCredentials({
+    credentials: buildAllCredentials({
       dwdCredentials: dwdCredentials,
       nonDwdCredentials: credentials,
     }),

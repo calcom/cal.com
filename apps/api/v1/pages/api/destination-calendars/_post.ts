@@ -82,7 +82,7 @@ async function postHandler(req: NextApiRequest) {
       message: "Bad request, credential id invalid",
     });
 
-  const calendarCredentials = await getCalendarCredentials(userCredentials);
+  const calendarCredentials = getCalendarCredentials(userCredentials);
 
   const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, [], parsedBody.externalId);
 
