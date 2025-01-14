@@ -63,6 +63,37 @@ class MyDocument extends Document<Props> {
         dir={newDir}
         style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}>
         <Head nonce={nonce}>
+          <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
+          <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
+          <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
+          <link rel="manifest" href="/site.webmanifest" />
+          <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
+          <meta name="msapplication-TileColor" content="#ff0000" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
+          {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
+            // eslint-disable-next-line @next/next/no-sync-scripts
+            <script
+              data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
+              src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
+            />
+          )}
+        </Head>
+
+        <body
+          className="dark:bg-darkgray-50 bg-subtle antialiased"
+          style={
+            isEmbed
+              ? {
+                  background: "transparent",
+                  // Keep the embed hidden till parent initializes and
+                  // - gives it the appropriate styles if UI instruction is there.
+                  // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                  // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
+                  visibility: "hidden",
+                }
+              : {}
+          }>
           <script
             nonce={nonce}
             id="newLocale"
@@ -103,37 +134,6 @@ class MyDocument extends Document<Props> {
             `,
             }}
           />
-          <link rel="apple-touch-icon" sizes="180x180" href="/api/logo?type=apple-touch-icon" />
-          <link rel="icon" type="image/png" sizes="32x32" href="/api/logo?type=favicon-32" />
-          <link rel="icon" type="image/png" sizes="16x16" href="/api/logo?type=favicon-16" />
-          <link rel="manifest" href="/site.webmanifest" />
-          <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
-          <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
-          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
-          {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
-            // eslint-disable-next-line @next/next/no-sync-scripts
-            <script
-              data-project-id="KjpMrKTnXquJVKfeqmjdTffVPf1a6Unw2LZ58iE4"
-              src="https://snippet.meticulous.ai/v1/stagingMeticulousSnippet.js"
-            />
-          )}
-        </Head>
-
-        <body
-          className="dark:bg-darkgray-50 bg-subtle antialiased"
-          style={
-            isEmbed
-              ? {
-                  background: "transparent",
-                  // Keep the embed hidden till parent initializes and
-                  // - gives it the appropriate styles if UI instruction is there.
-                  // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
-                  // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
-                  visibility: "hidden",
-                }
-              : {}
-          }>
           <Main />
           <NextScript nonce={nonce} />
         </body>
