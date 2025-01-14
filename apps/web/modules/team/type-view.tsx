@@ -4,7 +4,6 @@ import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
-import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 
 import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -25,7 +24,6 @@ function Type({
   slug,
   user,
   booking,
-  isEmbed,
   isBrandingHidden,
   eventData,
   isInstantMeeting,
@@ -37,33 +35,29 @@ function Type({
   const searchParams = useSearchParams();
 
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <Booker
-        username={user}
-        eventSlug={slug}
-        bookingData={booking}
-        isInstantMeeting={isInstantMeeting}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        entity={{ ...eventData.entity, eventTypeId: eventData?.eventTypeId }}
-        durationConfig={eventData.metadata?.multipleDuration}
-        /* TODO: Currently unused, evaluate it is needed-
-         *       Possible alternative approach is to have onDurationChange.
-         */
-        duration={getMultipleDurationValue(
-          eventData.metadata?.multipleDuration,
-          searchParams?.get("duration"),
-          eventData.length
-        )}
-        orgBannerUrl={orgBannerUrl}
-        teamMemberEmail={teamMemberEmail}
-        crmOwnerRecordType={crmOwnerRecordType}
-        crmAppSlug={crmAppSlug}
-      />
-    </main>
+    <Booker
+      username={user}
+      eventSlug={slug}
+      bookingData={booking}
+      isInstantMeeting={isInstantMeeting}
+      hideBranding={isBrandingHidden}
+      isTeamEvent
+      entity={{ ...eventData.entity, eventTypeId: eventData?.eventTypeId }}
+      durationConfig={eventData.metadata?.multipleDuration}
+      /* TODO: Currently unused, evaluate it is needed-
+       *       Possible alternative approach is to have onDurationChange.
+       */
+      duration={getMultipleDurationValue(
+        eventData.metadata?.multipleDuration,
+        searchParams?.get("duration"),
+        eventData.length
+      )}
+      orgBannerUrl={orgBannerUrl}
+      teamMemberEmail={teamMemberEmail}
+      crmOwnerRecordType={crmOwnerRecordType}
+      crmAppSlug={crmAppSlug}
+    />
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

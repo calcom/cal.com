@@ -807,7 +807,7 @@ const RerouteDialogContentAndFooterWithFormResponse = ({
       <div>
         <Link
           className="text-emphasis text-semibold font-cal mb-4 flex underline"
-          href={`/apps/routing-forms/form-edit/${form.id}`}
+          href={`/routing/form-edit/${form.id}`}
           target="_blank">
           {form.name}
         </Link>

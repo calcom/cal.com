@@ -40,7 +40,6 @@ export const StartTimeFilters = () => {
         minDate={null}
         dates={{ startDate: startValue, endDate: endValue }}
         onDatesChange={(values) => {
-          console.log(values);
           const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
           const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
           setAfterStartDate(newAfterStartDate);

@@ -113,6 +113,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       label: field.label,
       placeholder: field.placeholder,
       disableOnPrefill: !!field.disableOnPrefill,
+      required: field.required,
     };
   }
 

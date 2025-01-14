@@ -1,8 +1,9 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { ReactElement } from "react";
 import { Fragment, useState } from "react";
-import { z } from "zod";
+import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
@@ -23,7 +24,7 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-import { validStatuses } from "~/bookings/lib/validStatuses";
+import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -139,36 +140,59 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <Shell
-      withoutMain={false}
-      hideHeadingOnMobile
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      title={t("bookings")}
-      description={t("bookings_description")}>
-      <div className="flex flex-col">
-        <div className="flex flex-row flex-wrap justify-between">
-          <HorizontalTabs tabs={tabs} />
-          <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
-        </div>
-        <FiltersContainer isFiltersVisible={isFiltersVisible} />
-        <main className="w-full">
-          <div className="flex w-full flex-col" ref={animationParentRef}>
-            {query.status === "error" && (
-              <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-            )}
-            {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
-            {query.status === "success" && !isEmpty && (
-              <>
-                {!!bookingsToday.length && status === "upcoming" && (
-                  <div className="mb-6 pt-2 xl:pt-0">
-                    <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-                    <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
-                    <div className="border-subtle overflow-hidden rounded-md border">
-                      <table className="w-full max-w-full table-fixed">
-                        <tbody className="bg-default divide-subtle divide-y" data-testid="today-bookings">
-                          <Fragment>
-                            {bookingsToday.map((booking: BookingOutput) => (
+    <div className="flex flex-col">
+      <div className="flex flex-row flex-wrap justify-between">
+        <HorizontalTabs tabs={tabs} />
+        <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
+      </div>
+      <FiltersContainer isFiltersVisible={isFiltersVisible} />
+      <main className="w-full">
+        <div className="flex w-full flex-col" ref={animationParentRef}>
+          {query.status === "error" && (
+            <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+          )}
+          {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
+          {query.status === "success" && !isEmpty && (
+            <>
+              {!!bookingsToday.length && status === "upcoming" && (
+                <div className="mb-6 pt-2 xl:pt-0">
+                  <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+                  <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
+                  <div className="border-subtle overflow-hidden rounded-md border">
+                    <table className="w-full max-w-full table-fixed">
+                      <tbody className="bg-default divide-subtle divide-y" data-testid="today-bookings">
+                        <Fragment>
+                          {bookingsToday.map((booking: BookingOutput) => (
+                            <BookingListItem
+                              key={booking.id}
+                              loggedInUser={{
+                                userId: user?.id,
+                                userTimeZone: user?.timeZone,
+                                userTimeFormat: user?.timeFormat,
+                                userEmail: user?.email,
+                              }}
+                              listingStatus={status}
+                              recurringInfo={recurringInfoToday}
+                              {...booking}
+                            />
+                          ))}
+                        </Fragment>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              <div className="pt-2 xl:pt-0">
+                <div className="border-subtle overflow-hidden rounded-md border">
+                  <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
+                    <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
+                      {query.data.pages.map((page, index) => (
+                        <Fragment key={index}>
+                          {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
+                            const recurringInfo = page.recurringInfo.find(
+                              (info) => info.recurringEventId === booking.recurringEventId
+                            );
+                            return (
                               <BookingListItem
                                 key={booking.id}
                                 loggedInUser={{
@@ -178,73 +202,60 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
                                   userEmail: user?.email,
                                 }}
                                 listingStatus={status}
-                                recurringInfo={recurringInfoToday}
+                                recurringInfo={recurringInfo}
                                 {...booking}
                               />
-                            ))}
-                          </Fragment>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-                <div className="pt-2 xl:pt-0">
-                  <div className="border-subtle overflow-hidden rounded-md border">
-                    <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
-                      <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
-                        {query.data.pages.map((page, index) => (
-                          <Fragment key={index}>
-                            {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
-                              const recurringInfo = page.recurringInfo.find(
-                                (info) => info.recurringEventId === booking.recurringEventId
-                              );
-                              return (
-                                <BookingListItem
-                                  key={booking.id}
-                                  loggedInUser={{
-                                    userId: user?.id,
-                                    userTimeZone: user?.timeZone,
-                                    userTimeFormat: user?.timeFormat,
-                                    userEmail: user?.email,
-                                  }}
-                                  listingStatus={status}
-                                  recurringInfo={recurringInfo}
-                                  {...booking}
-                                />
-                              );
-                            })}
-                          </Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-                    <Button
-                      color="minimal"
-                      loading={query.isFetchingNextPage}
-                      disabled={!query.hasNextPage}
-                      onClick={() => query.fetchNextPage()}>
-                      {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                    </Button>
-                  </div>
+                            );
+                          })}
+                        </Fragment>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </>
-            )}
-            {query.status === "success" && isEmpty && (
-              <div className="flex items-center justify-center pt-2 xl:pt-0">
-                <EmptyScreen
-                  Icon="calendar"
-                  headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                  description={t("no_status_bookings_yet_description", {
-                    status: t(status).toLowerCase(),
-                    description: t(descriptionByStatus[status]),
-                  })}
-                />
+                <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+                  <Button
+                    color="minimal"
+                    loading={query.isFetchingNextPage}
+                    disabled={!query.hasNextPage}
+                    onClick={() => query.fetchNextPage()}>
+                    {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                  </Button>
+                </div>
               </div>
-            )}
-          </div>
-        </main>
-      </div>
+            </>
+          )}
+          {query.status === "success" && isEmpty && (
+            <div className="flex items-center justify-center pt-2 xl:pt-0">
+              <EmptyScreen
+                Icon="calendar"
+                headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+                description={t("no_status_bookings_yet_description", {
+                  status: t(status).toLowerCase(),
+                  description: t(descriptionByStatus[status]),
+                })}
+              />
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function BookingsStatusLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useLocale();
+  return (
+    <Shell
+      withoutMain={false}
+      withoutSeo={true}
+      hideHeadingOnMobile
+      heading={t("bookings")}
+      subtitle={t("bookings_description")}
+      title={t("bookings")}
+      description={t("bookings_description")}>
+      {children}
     </Shell>
   );
 }
+
+export const getLayout = (page: ReactElement) => <BookingsStatusLayout>{page}</BookingsStatusLayout>;
