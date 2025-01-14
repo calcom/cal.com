@@ -2,7 +2,8 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 
 import PageWrapper from "@components/PageWrapper";
 
-import TypePage, { type PageProps } from "~/team/type-view";
+import type { PageProps } from "~/team/type-view";
+import TypePage from "~/team/type-view";
 
 const Page = (props: PageProps) => {
   return (
