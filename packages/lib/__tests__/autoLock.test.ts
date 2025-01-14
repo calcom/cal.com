@@ -134,6 +134,11 @@ describe("autoLock", () => {
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { email: "test@example.com" },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
       expect(mockRedis.del).toHaveBeenCalledWith("autolock:email:test@example.com.count");
     });
@@ -191,6 +196,11 @@ describe("autoLock", () => {
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 456 },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
     });
 
@@ -296,6 +306,11 @@ describe("autoLock", () => {
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { email: "test@example.com" },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
     });
 
@@ -318,10 +333,16 @@ describe("autoLock", () => {
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: 123 },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
     });
     it("should notify Sentry when locking a user by email", async () => {
       mockRedis.get.mockResolvedValueOnce("4");
+      // @ts-expect-error mockResolvedValueOnce should migrate to prismaMock at some point
       vi.mocked(prisma.user.update).mockResolvedValueOnce({
         id: 1,
         email: "test@example.com",
@@ -395,6 +416,7 @@ describe("autoLock", () => {
     it("should skip Sentry notification when SENTRY_DSN is not set", async () => {
       delete process.env.NEXT_PUBLIC_SENTRY_DSN;
       mockRedis.get.mockResolvedValueOnce("4");
+      // @ts-expect-error mockResolvedValueOnce should migrate to prismaMock at some point
       vi.mocked(prisma.user.update).mockResolvedValueOnce({
         id: 1,
         email: "test@example.com",
