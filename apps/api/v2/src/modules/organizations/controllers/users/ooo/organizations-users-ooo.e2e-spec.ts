@@ -368,6 +368,32 @@ describe("Organizations User OOO Endpoints", () => {
 
     it("should get 2 ooo entries", async () => {
       return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/ooo?sortEnd=desc&email=${teammate1Email}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data as UserOooOutputDto[];
+          expect(data.length).toEqual(2);
+          const oooUno = data.find((ooo) => ooo.id === oooCreatedViaApiId);
+          expect(oooUno).toBeDefined();
+          if (oooUno) {
+            expect(oooUno.reason).toEqual("vacation");
+            expect(oooUno.toUserId).toEqual(teammate2.id);
+            expect(oooUno.userId).toEqual(teammate1.id);
+            expect(oooUno.start).toEqual("2025-06-01T00:00:00.000Z");
+            expect(oooUno.end).toEqual("2025-06-10T23:59:59.999Z");
+          }
+          // test sort
+          expect(data[1].id).toEqual(oooCreatedViaApiId);
+
+          console.log("DATA", data);
+        });
+    });
+
+    it("should get 2 ooo entries", async () => {
+      return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/users/${teammate1.id}/ooo`)
         .expect(200)
         .then((response) => {

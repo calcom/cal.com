@@ -15,6 +15,8 @@ import { OrganizationsTeamsMembershipsController } from "@/modules/organizations
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/controllers/teams/schedules/organizations-teams-schedules.controller";
 import { OrganizationsUsersOOOController } from "@/modules/organizations/controllers/users/ooo/organizations-users-ooo-controller";
+import { OrgUsersOOORepository } from "@/modules/organizations/controllers/users/ooo/repositories/organizations-users-ooo.repository";
+import { OrgUsersOOOService } from "@/modules/organizations/controllers/users/ooo/services/organization-users-ooo.service";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -91,6 +93,8 @@ import { Module } from "@nestjs/common";
     OutputTeamEventTypesResponsePipe,
     UserOOOService,
     UserOOORepository,
+    OrgUsersOOOService,
+    OrgUsersOOORepository,
   ],
   exports: [
     OrganizationsService,
