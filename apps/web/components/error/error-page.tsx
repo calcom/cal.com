@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 
 import { HttpError } from "@calcom/lib/http-error";
+import { Button } from "@calcom/ui";
 
 type Props = {
   statusCode?: number | null;
@@ -53,21 +56,37 @@ export const ErrorPage: React.FC<Props> = (props) => {
 
   return (
     <>
-      <div className="bg-default min-h-screen px-4">
-        <main className="mx-auto max-w-xl pb-6 pt-16 sm:pt-24">
-          <div className="text-center">
-            <p className="text-emphasis text-sm font-semibold uppercase tracking-wide">{statusCode}</p>
-            <h1 className="text-emphasis mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">
+      <div className="bg-subtle flex h-screen">
+        <div className="rtl: bg-default m-auto rounded-md p-10 text-right ltr:text-left">
+          <h1 className="font-cal text-emphasis text-6xl">{statusCode}</h1>
+          <h2 className="text-emphasis mt-6 max-w-2xl text-2xl font-medium">
+            It&apos;s not you, it&apos;s us.
+          </h2>
+          <p className="text-default mb-6 mt-4 max-w-2xl text-sm">
+            Something went wrong on our end. Get in touch with our support team, and we&apos;ll get it fixed
+            right away for you.
+          </p>
+
+          <div className="mb-8 flex flex-col">
+            <p className="text-default mb-4 max-w-2xl text-sm">
+              Please provide the following text when contacting support to better help you:
+            </p>
+            <pre className="bg-emphasis text-emphasis w-full max-w-2xl whitespace-normal break-words rounded-md p-4">
               {message}
-            </h1>
+            </pre>
           </div>
-        </main>
-        {displayDebug && (
-          <div className="flex-wrap">
-            <ErrorDebugPanel error={error} />
-          </div>
-        )}
+
+          <Button href="mailto:support@cal.com">Contact Support</Button>
+          <Button color="secondary" href="javascript:history.back()" className="ml-2">
+            Go back
+          </Button>
+        </div>
       </div>
+      {displayDebug && (
+        <div className="flex-wrap">
+          <ErrorDebugPanel error={error} />
+        </div>
+      )}
     </>
   );
 };

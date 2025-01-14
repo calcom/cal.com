@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -177,17 +176,15 @@ export const config = {
     "/event-types/:path*",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/auth/login",
-    "/future/auth/login",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/event-types/:path*",
     "/apps/:path*",
     "/routing/:path*",
-    "/bookings/:status/",
+    "/bookings/:path*",
     "/video/:path*",
-    "/teams",
-    "/signup",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",

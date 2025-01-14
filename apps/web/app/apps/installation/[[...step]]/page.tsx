@@ -22,4 +22,3 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);
 
 export default WithLayout({ getLayout: null, getData, Page });
-
