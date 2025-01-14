@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -172,15 +171,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/:path*",
+    "/auth/login",
     "/apps/:path*",
-    "/event-types/:path*",
-    "/workflows/:path*",
     "/getting-started/:path*",
     "/workflows/:path*",
-    "/getting-started/:path*",
     "/event-types/:path*",
-    "/apps/:path*",
     "/routing/:path*",
     "/bookings/:path*",
     "/video/:path*",
@@ -190,13 +185,7 @@ export const config = {
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
-    "/payment/:path*",
-    "/router/:path*",
     "/routing-forms/:path*",
-    "/org/:path*",
-    "/team/:path*",
-    "/:user/:type/",
-    "/:user/",
   ],
 };
 
