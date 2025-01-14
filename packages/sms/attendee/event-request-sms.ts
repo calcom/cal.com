@@ -10,12 +10,22 @@ export default class EventRequestSMS extends SMSManager {
 
   getMessage(attendee: Person) {
     const t = attendee.language.translate;
-    return `${t("booking_submitted", {
+
+    const bookingSubmittedText = t("booking_submitted", {
       name: attendee.name,
-    })}. ${t("user_needs_to_confirm_or_reject_booking", {
+    });
+
+    const bookingUrl = `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`;
+    const urlText = t("you_can_view_booking_details_with_this_url", {
+      url: bookingUrl,
+    });
+
+    const userNeedsToConfirmOrRejectBookingText = t("user_needs_to_confirm_or_reject_booking", {
       user: this.calEvent.organizer.name,
-    })}\n\n ${t("you_can_view_booking_details_with_this_url", {
-      url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`,
-    })}`;
+    });
+
+    const messageText = `${bookingSubmittedText}. ${userNeedsToConfirmOrRejectBookingText}\n\n${urlText}`;
+
+    return messageText;
   }
 }
