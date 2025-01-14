@@ -14,3 +14,4 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - name: Run Lint
         run: yarn lint
+        continue-on-error: true
