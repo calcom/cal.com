@@ -2926,5 +2926,6 @@
   "managed_users": "Beheerde gebruikers",
   "managed_users_description": "Bekijk alle beheerde gebruikers die zijn aangemaakt door je OAuth-client",
   "select_oAuth_client": "Selecteer OAuth-client",
+  "on_every_instance": "Op elke instantie",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
