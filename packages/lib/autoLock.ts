@@ -6,7 +6,7 @@ import { RedisService } from "@calcom/features/redis/RedisService";
 import prisma from "@calcom/prisma";
 
 const DEFAULT_AUTOLOCK_THRESHOLD = 5;
-const DEFAULT_AUTOLOCK_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
+const DEFAULT_CHECK_THRESHOLD_WINDOW_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
 interface HandleAutoLockInput {
   identifier: string;
@@ -23,7 +23,7 @@ export async function handleAutoLock({
   rateLimitResponse,
   identifierKeyword,
   autolockThreshold = DEFAULT_AUTOLOCK_THRESHOLD,
-  autolockDuration = DEFAULT_AUTOLOCK_DURATION,
+  autolockDuration = DEFAULT_CHECK_THRESHOLD_WINDOW_DURATION,
 }: HandleAutoLockInput): Promise<boolean> {
   const { success, remaining } = rateLimitResponse;
 
@@ -48,15 +48,16 @@ export async function handleAutoLock({
       const count = await redis.get(lockKey);
       const currentCount = count ? parseInt(count.toString(), 10) : 0;
 
+      // If they have exceeded the threshold, lock them
       if (currentCount + 1 >= autolockThreshold) {
         await lockUser(identifierType, identifier);
         await redis.del(lockKey);
         return true;
-      } else {
-        await redis.set(lockKey, (currentCount + 1).toString());
-        await redis.expire(lockKey, Math.floor(autolockDuration / 1000));
-        return false;
       }
+
+      await redis.set(lockKey, (currentCount + 1).toString());
+      await redis.expire(lockKey, Math.floor(autolockDuration / 1000));
+      return false;
     } catch (err) {
       if (err instanceof Error && err.message === "No user found for this API key.") {
         throw err;
