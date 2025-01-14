@@ -420,15 +420,37 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-  const attendeeList = booking.attendees.map((attendee) => {
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      id: attendee.id,
-      noShow: attendee.noShow || false,
-      phoneNumber: attendee.phoneNumber,
-    };
+
+  const [attendeeList, setAttendeeList] = useState(
+    booking.attendees.map((attendee) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        id: attendee.id,
+        noShow: attendee.noShow || false,
+        phoneNumber: attendee.phoneNumber,
+      };
+    })
+  );
+
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
+    onSuccess: async (data) => {
+      showToast(data.message, "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
   });
+
+  const handleNoShowChange = (email: string, noShow: boolean) => {
+    noShowMutation.mutate({
+      bookingUid: booking.uid,
+      attendees: [{ email, noShow }],
+    });
+    setAttendeeList((prev) =>
+      prev.map((attendee) => (attendee.email === email ? { ...attendee, noShow } : attendee))
+    );
+  };
 
   return (
     <>
@@ -476,8 +498,8 @@ function BookingListItem(booking: BookingItemProps) {
       )}
       {isNoShowDialogOpen && (
         <NoShowAttendeesDialog
-          bookingUid={booking.uid}
           attendees={attendeeList}
+          handleNoShowChange={handleNoShowChange}
           setIsOpen={setIsNoShowDialogOpen}
           isOpen={isNoShowDialogOpen}
         />
@@ -639,6 +661,7 @@ function BookingListItem(booking: BookingItemProps) {
                     currentEmail={userEmail}
                     bookingUid={booking.uid}
                     isBookingInPast={isBookingInPast}
+                    handleNoShowChange={handleNoShowChange}
                   />
                 )}
                 {isCancelled && booking.rescheduled && (
@@ -863,35 +886,15 @@ type AttendeeProps = {
 type NoShowProps = {
   bookingUid: string;
   isBookingInPast: boolean;
+  handleNoShowChange: (email: string, noShow: boolean) => void;
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee, phoneNumber } = attendeeProps;
+  const { email, name, isBookingInPast, noShow, phoneNumber, handleNoShowChange } = attendeeProps;
   const { t } = useLocale();
 
-  const [noShow, setNoShow] = useState(noShowAttendee);
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
-
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(data.message, "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
-
-  function toggleNoShow({
-    attendee,
-    bookingUid,
-  }: {
-    attendee: { email: string; noShow: boolean };
-    bookingUid: string;
-  }) {
-    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
-    setNoShow(!noShow);
-  }
 
   return (
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
@@ -946,7 +949,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  handleNoShowChange(email, false);
                 }}
                 StartIcon="eye">
                 {t("unmark_as_no_show")}
@@ -957,7 +960,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
                 onClick={(e) => {
                   e.preventDefault();
                   setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  handleNoShowChange(email, true);
                 }}
                 StartIcon="eye-off">
                 {t("mark_as_no_show")}
@@ -1072,50 +1075,25 @@ const NoShowAttendeesDialog = ({
   attendees,
   isOpen,
   setIsOpen,
-  bookingUid,
+  handleNoShowChange,
 }: {
   attendees: AttendeeProps[];
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
   bookingUid: string;
+  handleNoShowChange: (email: string, noShow: boolean) => void;
 }) => {
   const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(
-    attendees.map((attendee) => ({
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    }))
-  );
-
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      const newValue = data.attendees[0];
-      setNoShowAttendees((old) =>
-        old.map((attendee) =>
-          attendee.email === newValue.email ? { ...attendee, noShow: newValue.noShow } : attendee
-        )
-      );
-      showToast(t(data.message), "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
       <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {noShowAttendees.map((attendee) => (
+        {attendees.map((attendee) => (
           <form
             key={attendee.id}
             onSubmit={(e) => {
               e.preventDefault();
-              noShowMutation.mutate({
-                bookingUid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
+              handleNoShowChange(attendee.email, !attendee.noShow);
             }}>
             <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
               <span className="text-emphasis flex flex-col text-sm">
@@ -1206,12 +1184,14 @@ const DisplayAttendees = ({
   currentEmail,
   bookingUid,
   isBookingInPast,
+  handleNoShowChange,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
   isBookingInPast: boolean;
+  handleNoShowChange: (email: string, noShow: boolean) => void;
 }) => {
   const { t } = useLocale();
   attendees.sort((a, b) => a.id - b.id);
@@ -1220,7 +1200,12 @@ const DisplayAttendees = ({
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+      <Attendee
+        {...attendees[0]}
+        bookingUid={bookingUid}
+        isBookingInPast={isBookingInPast}
+        handleNoShowChange={handleNoShowChange}
+      />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -1228,7 +1213,12 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+                  <Attendee
+                    {...attendee}
+                    bookingUid={bookingUid}
+                    isBookingInPast={isBookingInPast}
+                    handleNoShowChange={handleNoShowChange}
+                  />
                 </p>
               ))}>
               {isBookingInPast ? (
@@ -1238,7 +1228,12 @@ const DisplayAttendees = ({
               )}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
+            <Attendee
+              {...attendees[1]}
+              bookingUid={bookingUid}
+              isBookingInPast={isBookingInPast}
+              handleNoShowChange={handleNoShowChange}
+            />
           )}
         </>
       )}
