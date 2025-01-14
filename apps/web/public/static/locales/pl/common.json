@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Umożliwia rezerwację spotkań, gdy którykolwiek z gospodarzy jest dostępny. Używaj tej opcji, aby zmaksymalizować liczbę potencjalnych spotkań, gdy równomierne rozłożenie spotkań między gospodarzami jest mniej istotne.",
   "rr_distribution_method_balanced_title": "Równoważenie obciążenia",
   "rr_distribution_method_balanced_description": "System będzie monitorować liczbę rezerwacji przypisanych do każdego gospodarza i porównywać ją z innymi, dezaktywując tymczasowo gospodarzy z większą liczbą spotkań, aby zapewnić równomierną dystrybucję.",
+  "edit_team_member_weights": "Edytuj wagi",
+  "weights_updated_successfully": "Wagi zostały zaktualizowane pomyślnie",
   "require_confirmation_for_free_email": "Wymagaj potwierdzenia tylko dla dostawców darmowej poczty (np. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Wyklucz e-maile, które zawierają ...",
   "require_emails_that_contain": "Wymagaj adresów e-mail zawierających...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Wykonujesz testową rezerwację.",
   "icon_showcase": "Prezentacja ikon",
   "icons_showcase": "Prezentacja ikon",
+  "feature_currently_disabled": "Funkcja jest obecnie wyłączona",
   "choose_an_option": "Wybierz opcję",
   "enter_option_value": "Wprowadź wartość opcji",
   "remove_option": "Usuń opcję",
+  "managed_users": "Zarządzani użytkownicy",
+  "managed_users_description": "Zobacz wszystkich zarządzanych użytkowników utworzonych przez twojego klienta OAuth",
+  "select_oAuth_client": "Wybierz klienta OAuth",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

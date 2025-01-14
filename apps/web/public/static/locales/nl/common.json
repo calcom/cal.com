@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Stelt boekers in staat om afspraken te maken wanneer een host beschikbaar is. Gebruik dit om het aantal potentiële afspraken te maximaliseren en wanneer de gelijke verdeling van afspraken over hosts minder belangrijk is.",
   "rr_distribution_method_balanced_title": "Evenredige verdeling",
   "rr_distribution_method_balanced_description": "We monitoren hoeveel boekingen er bij elke host zijn gemaakt en vergelijken dit met anderen. Hosts die te ver voorlopen worden tijdelijk uitgeschakeld zodat boekingen gelijkmatig worden verdeeld.",
+  "edit_team_member_weights": "Gewichten bewerken",
+  "weights_updated_successfully": "Gewichten succesvol bijgewerkt",
   "require_confirmation_for_free_email": "Vereist alleen bevestiging voor gratis e-mailproviders (bijv. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "E-mailadressen uitsluiten die ... bevatten",
   "require_emails_that_contain": "E-mailadressen moeten bevatten ...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Je doet een testboeking.",
   "icon_showcase": "Icoon overzicht",
   "icons_showcase": "Iconen overzicht",
+  "feature_currently_disabled": "Functie is momenteel uitgeschakeld",
   "choose_an_option": "Kies een optie",
   "enter_option_value": "Voer optiewaarde in",
   "remove_option": "Optie verwijderen",
+  "managed_users": "Beheerde gebruikers",
+  "managed_users_description": "Bekijk alle beheerde gebruikers die zijn aangemaakt door je OAuth-client",
+  "select_oAuth_client": "Selecteer OAuth-client",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

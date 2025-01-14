@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Позволяет участникам бронировать встречи, когда организатор доступен. Используйте этот метод для максимизации количества потенциальных встреч, когда равномерное распределение встреч между организаторами менее важно.",
   "rr_distribution_method_balanced_title": "Балансировка нагрузки",
   "rr_distribution_method_balanced_description": "Мы будем отслеживать количество бронирований у каждого организатора и сравнивать их между собой, отключая тех организаторов, у которых слишком много встреч, чтобы обеспечить равномерное распределение.",
+  "edit_team_member_weights": "Изменить веса",
+  "weights_updated_successfully": "Веса успешно обновлены",
   "require_confirmation_for_free_email": "Требовать подтверждение только для бесплатных почтовых сервисов (например, @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Исключить email-адреса, содержащие...",
   "require_emails_that_contain": "Требуются email-адреса, содержащие...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Вы выполняете тестовое бронирование.",
   "icon_showcase": "Витрина иконок",
   "icons_showcase": "Витрина иконок",
+  "feature_currently_disabled": "Функция в данный момент отключена",
   "choose_an_option": "Выберите вариант",
   "enter_option_value": "Введите значение варианта",
   "remove_option": "Удалить вариант",
+  "managed_users": "Управляемые пользователи",
+  "managed_users_description": "Просмотр всех управляемых пользователей, созданных вашим OAuth-клиентом",
+  "select_oAuth_client": "Выберите OAuth-клиент",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
