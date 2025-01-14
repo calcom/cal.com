@@ -211,7 +211,7 @@ test.describe("pro user", () => {
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
 
-    const { title: eventTitle, slug: eventSlug } = await pro.getFirstEventAsOwner();
+    const { slug: eventSlug } = await pro.getFirstEventAsOwner();
 
     await page.goto(`/reschedule/${bookingCancelledId}`);
 
