@@ -107,7 +107,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  // If booking is already REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
+  // If the booking is CANCELLED and allowRescheduleForCancelledBooking is false, we redirect the user to the original event link.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
   if (
     !allowRescheduleForCancelledBooking &&

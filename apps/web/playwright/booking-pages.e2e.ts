@@ -210,9 +210,13 @@ test.describe("pro user", () => {
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
     await expect(cancelledHeadline).toBeVisible();
     const bookingCancelledId = new URL(page.url()).pathname.split("/booking/")[1];
+
+    const { title: eventTitle, slug: eventSlug } = await pro.getFirstEventAsOwner();
+
     await page.goto(`/reschedule/${bookingCancelledId}`);
-    // Should be redirected to the booking details page which shows the cancelled headline
-    await expect(page.locator('[data-testid="cancelled-headline"]')).toBeVisible();
+
+    // Should be redirected to the original event link
+    await expect(page).toHaveURL(new RegExp(`/${pro.username}/${eventSlug}`));
   });
 
   test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
