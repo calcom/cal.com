@@ -44,4 +44,4 @@ then go back to /apps/api/v2 and run
 # When to publish new version of platform libraries
 - New exports in the index.js of platform libraries
 - Code change in the functions already exported
-- Prisma schema change breaking implementation of functions in the currently used released of platform
+- Prisma schema change breaking implementation of functions in the currently used releases of platform libraries
