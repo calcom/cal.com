@@ -376,14 +376,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 isEditingMode: true,
                 locale: ctx.user.locale,
                 action: newStep.action,
-                timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+                timeFormat,
               });
 
               emailBody = ratingTemplate.emailBody;
               emailSubject = ratingTemplate.emailSubject;
             }
+            newStep = { ...newStep, reminderBody: emailBody, emailSubject };
           }
-          newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
       }
 
@@ -457,7 +457,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               isEditingMode: true,
               locale: ctx.user.locale,
               action: newStep.action,
-              timeFormat: getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat),
+              timeFormat,
             });
 
             emailBody = ratingTemplate.emailBody;
