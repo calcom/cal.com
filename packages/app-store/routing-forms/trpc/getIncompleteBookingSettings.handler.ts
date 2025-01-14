@@ -88,7 +88,7 @@ const getInCompleteBookingSettingsHandler = async (options: GetIncompleteBooking
       },
     });
 
-    return { incompleteBookingActions, credentials };
+    return { incompleteBookingActions, credentials: credential ? [{ ...credential, team: null }] : [] };
   }
 };
 
