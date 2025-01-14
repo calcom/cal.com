@@ -1,6 +1,6 @@
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -975,29 +975,15 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
 type GroupedAttendeeProps = {
   attendees: AttendeeProps[];
-  bookingUid: string;
+  handleNoShowChange: (email: string, noShow: boolean) => void;
 };
 
 const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
-  const { bookingUid } = groupedAttendeeProps;
-  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
-    return {
-      id: attendee.id,
-      email: attendee.email,
-      name: attendee.name,
-      noShow: attendee.noShow || false,
-    };
-  });
+  const { attendees, handleNoShowChange } = groupedAttendeeProps;
+
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
-      showToast(t(data.message), "success");
-    },
-    onError: (err) => {
-      showToast(err.message, "error");
-    },
-  });
-  const { control, handleSubmit } = useForm<{
+
+  const { control, handleSubmit, reset } = useForm<{
     attendees: AttendeeProps[];
   }>({
     defaultValues: {
@@ -1011,9 +997,17 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     name: "attendees",
   });
 
+  useEffect(() => {
+    reset({
+      attendees,
+    });
+  }, [attendees, reset]);
+
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
     const filteredData = data.attendees.slice(1);
-    noShowMutation.mutate({ bookingUid, attendees: filteredData });
+    for (const attendee of filteredData) {
+      handleNoShowChange(attendee.email, attendee.noShow);
+    }
     setOpenDropdown(false);
   };
 
@@ -1222,7 +1216,7 @@ const DisplayAttendees = ({
                 </p>
               ))}>
               {isBookingInPast ? (
-                <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
+                <GroupedAttendees attendees={attendees} handleNoShowChange={handleNoShowChange} />
               ) : (
                 <GroupedGuests guests={attendees} />
               )}
