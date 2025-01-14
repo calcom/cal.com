@@ -4220,6 +4220,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/granola@workspace:packages/app-store/granola":
+  version: 0.0.0-use.local
+  resolution: "@calcom/granola@workspace:packages/app-store/granola"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/gtm@workspace:packages/app-store/gtm":
   version: 0.0.0-use.local
   resolution: "@calcom/gtm@workspace:packages/app-store/gtm"
@@ -4245,7 +4254,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
-    "@hubspot/api-client": ^6.0.1
+    "@hubspot/api-client": ^12.0.1
   languageName: unknown
   linkType: soft
 
@@ -6694,19 +6703,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@hubspot/api-client@npm:^6.0.1":
-  version: 6.0.1
-  resolution: "@hubspot/api-client@npm:6.0.1"
+"@hubspot/api-client@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "@hubspot/api-client@npm:12.0.1"
   dependencies:
-    bluebird: ^3.7.2
+    "@types/node-fetch": ^2.5.7
     bottleneck: ^2.19.5
-    btoa: ^1.2.1
     es6-promise: ^4.2.4
     form-data: ^2.5.0
-    lodash: ^4.17.21
+    lodash.get: ^4.4.2
+    lodash.merge: ^4.6.2
     node-fetch: ^2.6.0
     url-parse: ^1.4.3
-  checksum: 82cd1da20b8962ed1ee7b33d594c4bce1efd6f47e654747386c33aad33f66ad463a47b4a7e413a9164a1ef3a0e3afae8f20a1265cc7d4da5aed8de743b211f2c
+  checksum: a8f78aa7267522c3788f1476baacd77b130cb395c070d184b86549410edaa15716087103c1556a9437ca960b61fe6bf1a51f9fb84063fe00528d8f279e5935bb
   languageName: node
   linkType: hard
 
@@ -16579,6 +16588,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node-fetch@npm:^2.5.7":
+  version: 2.6.12
+  resolution: "@types/node-fetch@npm:2.6.12"
+  dependencies:
+    "@types/node": "*"
+    form-data: ^4.0.0
+  checksum: 9647e68f9a125a090220c38d77b3c8e669c488658ae7506f1b4f9568214beba087624b1705bba1dc76649a65281ce3fd5b400e15266cbef8088027fb88777557
+  languageName: node
+  linkType: hard
+
 "@types/node-fetch@npm:^2.6.4":
   version: 2.6.4
   resolution: "@types/node-fetch@npm:2.6.4"
@@ -20084,15 +20103,6 @@ __metadata:
   version: 6.2.0
   resolution: "bson@npm:6.2.0"
   checksum: 950fccd2abd0ff5a1bd3637f4697631298f1538314994ab8c9e13f1c9851d0fd042b54fe8340e00151c2acee43917ea40e64b800ceeea811b00f2de3e900c77e
-  languageName: node
-  linkType: hard
-
-"btoa@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "btoa@npm:1.2.1"
-  bin:
-    btoa: bin/btoa.js
-  checksum: afbf004fb1b1d530e053ffa66ef5bd3878b101c59d808ac947fcff96810b4452abba2b54be687adadea2ba9efc7af48b04228742789bf824ef93f103767e690c
   languageName: node
   linkType: hard
 
