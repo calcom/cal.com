@@ -17,7 +17,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const pageProps = await getData(legacyCtx);
 
-  const { booking, user: username, slug: eventSlug, isTeamEvent, isBrandingHidden } = pageProps;
+  const { booking, user: username, slug: eventSlug, isTeamEvent } = pageProps;
   const rescheduleUid = booking?.uid;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req);
   const org = isValidOrgDomain ? currentOrgDomain : null;
@@ -34,8 +34,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
   const title = event?.title ?? "";
   return await _generateMetadata(
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
-    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
-    isBrandingHidden
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`
   );
 };
 

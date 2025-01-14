@@ -72,6 +72,9 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   movedToProfileId: true,
   metadata: true,
   isPlatformManaged: true,
+  lastActiveAt: true,
+  identityProvider: true,
+  teams: true,
 });
 
 export type UserWithLegacySelectedCalendars<TCalendar, TUser> = TUser & {
@@ -798,19 +801,6 @@ export class UserRepository {
     }
 
     return withSelectedCalendars(user);
-  }
-
-  static async getAvatarUrl(id: number) {
-    const user = await prisma.user.findUnique({
-      where: { id },
-      select: { avatarUrl: true },
-    });
-
-    if (!user?.avatarUrl) {
-      return null;
-    }
-
-    return user.avatarUrl;
   }
 
   static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {

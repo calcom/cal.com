@@ -285,6 +285,7 @@ export function AddMembersWithSwitch({
             onInactive={onAssignAllTeamMembersInactive}
             customClassNames={customClassNames?.assingAllTeamMembers}
           />
+
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
               <MembersSegmentWithToggle

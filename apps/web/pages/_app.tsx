@@ -2,6 +2,7 @@ import type { IncomingMessage } from "http";
 import { SessionProvider } from "next-auth/react";
 import type { AppContextType } from "next/dist/shared/lib/utils";
 import React, { useEffect } from "react";
+import CacheProvider from "react-inlinesvg/provider";
 
 import { trpc } from "@calcom/trpc/react";
 
@@ -20,7 +21,10 @@ function MyApp(props: AppProps) {
 
   return (
     <SessionProvider session={pageProps.session ?? undefined}>
-      {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}
+      {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+      <CacheProvider>
+        {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}
+      </CacheProvider>
     </SessionProvider>
   );
 }

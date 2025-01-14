@@ -12,14 +12,12 @@ import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
 import PlainChat from "@lib/plain/plainChat";
@@ -278,10 +276,7 @@ const AppProviders = (props: PageWrapperProps) => {
             isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
-              <OrgBrandProvider>
-                {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                <CacheProvider>{props.children}</CacheProvider>
-              </OrgBrandProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
             </FeatureFlagsProvider>
           </CalcomThemeProvider>
         </TooltipProvider>

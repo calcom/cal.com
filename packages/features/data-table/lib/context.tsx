@@ -52,7 +52,8 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
 
   const clearAll = useCallback(() => {
     setActiveFilters([]);
-  }, [setActiveFilters]);
+    setDisplayedExternalFilters([]);
+  }, [setActiveFilters, setDisplayedExternalFilters]);
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {

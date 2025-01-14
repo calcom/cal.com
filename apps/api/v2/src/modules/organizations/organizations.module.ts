@@ -3,6 +3,8 @@ import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
+import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrganizationsOptionsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes-options.controller";
 import { OrganizationsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes.controller";
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
@@ -12,6 +14,7 @@ import { OrganizationsSchedulesController } from "@/modules/organizations/contro
 import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/controllers/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsTeamsSchedulesController } from "@/modules/organizations/controllers/teams/schedules/organizations-teams-schedules.controller";
+import { OrganizationsUsersOOOController } from "@/modules/organizations/controllers/users/ooo/organizations-users-ooo-controller";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -86,6 +89,8 @@ import { Module } from "@nestjs/common";
     WebhooksRepository,
     WebhooksService,
     OutputTeamEventTypesResponsePipe,
+    UserOOOService,
+    UserOOORepository,
   ],
   exports: [
     OrganizationsService,
@@ -118,6 +123,7 @@ import { Module } from "@nestjs/common";
     OrganizationsOptionsAttributesController,
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
+    OrganizationsUsersOOOController,
   ],
 })
 export class OrganizationsModule {}
