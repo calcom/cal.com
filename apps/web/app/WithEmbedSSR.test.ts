@@ -13,6 +13,9 @@ export function createMockNextJsRequest(...args: Parameters<typeof createMocks>)
   return createMocks<CustomNextApiRequest, CustomNextApiResponse>(...args);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
+
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
   notFound: vi.fn(),
@@ -86,7 +89,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "namespace1",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith("/reschedule/embed?layout=week_view&embed=namespace1");
       });
@@ -105,7 +108,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "namespace1",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith(
           "/reschedule/embed?redirectParam=1&layout=week_view&embed=namespace1"
@@ -126,7 +129,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith("/reschedule/embed?redirectParam=1&layout=week_view&embed=");
       });
@@ -147,7 +150,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "namespace1",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith(
           "https://calcom.cal.local/owner/embed?layout=week_view&embed=namespace1"
@@ -168,7 +171,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "namespace1",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith(
           "http://calcom.cal.local/owner/embed?layout=week_view&embed=namespace1"
@@ -189,7 +192,7 @@ describe("withEmbedSsrAppDir", () => {
               embed: "namespace1",
             },
           })
-        ).catch(() => {});
+        ).catch(noop);
 
         expect(redirect).toHaveBeenCalledWith(
           "/calcom.cal.local/owner/embed?layout=week_view&embed=namespace1"
@@ -239,7 +242,7 @@ describe("withEmbedSsrAppDir", () => {
             embed: "",
           },
         })
-      ).catch(() => {});
+      ).catch(noop);
 
       expect(notFound).toHaveBeenCalled();
     });

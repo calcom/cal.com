@@ -3,7 +3,7 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { ZColumnFilter } from "@calcom/features/data-table";
+import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
 import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
@@ -174,10 +174,23 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 
   let isOwnerAdminOfParentTeam = false;
+
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
     //Look for membership type in organizationId
+    if (!membership && ctx.user.organizationId && parse.data.teamId) {
+      const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
+        where: {
+          id: parse.data.teamId,
+          parentId: ctx.user.organizationId,
+        },
+      });
+      if (!isChildTeamOfOrg) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+    }
+
     const membershipOrg = await ctx.insightsDb.membership.findFirst({
       where: {
         userId: ctx.user.id,
@@ -989,7 +1002,7 @@ export const insightsRouter = router({
 
     return result;
   }),
-  userList: userBelongsToTeamProcedure
+  userList: authedProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullable(),
@@ -1004,7 +1017,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
+      if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: {
             team: {
@@ -1601,6 +1614,7 @@ export const insightsRouter = router({
         cursor: z.number().optional(),
         limit: z.number().optional(),
         columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -1617,6 +1631,33 @@ export const insightsRouter = router({
         memberUserId: input.memberUserId ?? null,
         limit: input.limit,
         columnFilters: input.columnFilters,
+        sorting: input.sorting,
+      });
+    }),
+  routingFormResponsesForDownload: userBelongsToTeamProcedure
+    .input(
+      rawDataInputSchema.extend({
+        routingFormId: z.string().optional(),
+        cursor: z.number().optional(),
+        limit: z.number().optional(),
+        columnFilters: z.array(ZColumnFilter),
+        sorting: z.array(ZSorting),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
+        teamId: input.teamId ?? null,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll ?? false,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId ?? null,
+        cursor: input.cursor,
+        userId: input.userId ?? null,
+        memberUserId: input.memberUserId ?? null,
+        limit: input.limit ?? BATCH_SIZE,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
       });
     }),
   getRoutingFormFieldOptions: userBelongsToTeamProcedure

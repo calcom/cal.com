@@ -1,6 +1,4 @@
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
-import type { PageProps as _PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";

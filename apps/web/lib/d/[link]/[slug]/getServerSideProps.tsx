@@ -1,3 +1,4 @@
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
@@ -12,7 +13,6 @@ import { RedirectType } from "@calcom/prisma/enums";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -121,6 +121,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,

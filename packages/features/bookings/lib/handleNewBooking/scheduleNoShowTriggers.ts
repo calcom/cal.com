@@ -14,10 +14,22 @@ type ScheduleNoShowTriggersArgs = {
   teamId?: number | null;
   orgId?: number | null;
   oAuthClientId?: string | null;
+  isDryRun?: boolean;
 };
 
 export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) => {
-  const { booking, triggerForUser, organizerUser, eventTypeId, teamId, orgId, oAuthClientId } = args;
+  const {
+    booking,
+    triggerForUser,
+    organizerUser,
+    eventTypeId,
+    teamId,
+    orgId,
+    oAuthClientId,
+    isDryRun = false,
+  } = args;
+
+  if (isDryRun) return;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];

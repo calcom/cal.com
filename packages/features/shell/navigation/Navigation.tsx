@@ -87,10 +87,10 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "ellipsis",
   },
   {
-    name: "routing_forms",
-    href: "/apps/routing-forms/forms",
-    icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    name: "routing",
+    href: "/routing/forms",
+    icon: "split",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/forms") ?? false,
     moreOnMobile: true,
   },
   {
@@ -167,6 +167,12 @@ const platformNavigationItems: NavigationItemType[] = [
     icon: "users",
     moreOnMobile: true,
   },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
+    icon: "users",
+    moreOnMobile: true,
+  },
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {
@@ -219,7 +225,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (

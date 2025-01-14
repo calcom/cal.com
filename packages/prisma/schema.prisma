@@ -1019,6 +1019,30 @@ model App_RoutingForms_FormResponse {
   @@index([formId])
 }
 
+view RoutingFormResponse {
+  id                               Int            @unique
+  response                         Json
+  responseLowercase                Json
+  formId                           String
+  formName                         String
+  formTeamId                       Int?
+  formUserId                       Int?
+  bookingUid                       String?
+  bookingStatus                    BookingStatus?
+  bookingStatusOrder               Int?
+  bookingCreatedAt                 DateTime?
+  bookingAttendees                 Json? // Array of {timeZone: string, email: string}
+  bookingUserId                    Int?
+  bookingUserName                  String?
+  bookingUserEmail                 String?
+  bookingUserAvatarUrl             String?
+  bookingAssignmentReason          String?
+  bookingAssignmentReasonLowercase String?
+  bookingStartTime                 DateTime?
+  bookingEndTime                   DateTime?
+  createdAt                        DateTime
+}
+
 model Feedback {
   id      Int      @id @default(autoincrement())
   date    DateTime @default(now())
@@ -1618,7 +1642,10 @@ model AttributeOption {
 model Attribute {
   id String @id @default(uuid())
 
-  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // This is organization
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // This is organizationId
   teamId Int
 
   type AttributeType
@@ -1635,12 +1662,17 @@ model Attribute {
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
+
+  @@index([teamId])
 }
 
 model AttributeToUser {
   id String @id @default(uuid())
 
-  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  // This is the membership of the organization
+  member Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // This is the membership id of the organization
   memberId Int
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
@@ -1679,6 +1711,8 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+
+  @@index([bookingId])
 }
 
 enum EventTypeAutoTranslatedField {
