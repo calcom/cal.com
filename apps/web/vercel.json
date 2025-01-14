@@ -1,4 +1,10 @@
 {
+  "build": {
+    "env": {
+      "YARN_CACHE_FOLDER": "/vercel/cache/yarn"
+    },
+    "cache": ["node_modules", "/vercel/cache/yarn", "/vercel/cache/.yarn-cache"]
+  },
   "crons": [
     {
       "path": "/api/cron/calendar-cache-cleanup",
