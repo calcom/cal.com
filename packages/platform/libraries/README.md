@@ -40,3 +40,8 @@ then go back to /apps/api/v2 and run
 - Once it's published, change back the version in packages/platform/libraries/package.json back to 0.0.0
 - Run yarn
 - You should now be using the npm package instead of the locally built version
+
+# When to publish new version of platform libraries
+- New exports in the index.js of platform libraries
+- Code change in the functions already exported
+- Prisma schema change breaking implementation of functions in the currently used releases of platform libraries

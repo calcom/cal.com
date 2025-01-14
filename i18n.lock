@@ -2876,6 +2876,8 @@ checksums:
     rr_distribution_method_availability_description: 0fc05c527e1307e0c20165f0cefe2ed4
     rr_distribution_method_balanced_title: f13fe5c1c5e35ad5b2e0139df5c3e62f
     rr_distribution_method_balanced_description: 23fd5a95ac9d9f6283883180ba30db32
+    edit_team_member_weights: 66ba6fc048187689fc71b00be1d1ca0f
+    weights_updated_successfully: e5ad5ff71665572c8512f1cb4112359c
     require_confirmation_for_free_email: 669a3c050cc065e85df79e0e7f12bbfd
     exclude_emails_that_contain: d43255c873c75c8fe1adcb8f8b7af914
     require_emails_that_contain: 54623674a8bf704fd44299c59eb31363
@@ -2919,6 +2921,7 @@ checksums:
     dry_run_mode_active: 921ba1004a593504ba9719886864d90e
     icon_showcase: 0879657c77461a19cafbdaa1e168b95e
     icons_showcase: 8771aa0011d8ffefbe9370312152ef6a
+    feature_currently_disabled: 3d4991fb6097adb96e8e2afca1e44b7e
     choose_an_option: 1c57b133afef47a60666d5d37b9b321e
     enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
     remove_option: 42e52c46cc51e56ebb5540bfb6f19b95

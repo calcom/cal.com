@@ -4059,7 +4059,7 @@ __metadata:
     "@types/react-dom": ^18
     autoprefixer: ^10.0.1
     dotenv: ^16.3.1
-    eslint: ^8
+    eslint: ^8.34.0
     eslint-config-next: 14.0.4
     next: 14.0.4
     postcss: ^8
@@ -4216,6 +4216,15 @@ __metadata:
   resolution: "@calcom/googlevideo@workspace:packages/app-store/googlevideo"
   dependencies:
     "@calcom/prisma": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/granola@workspace:packages/app-store/granola":
+  version: 0.0.0-use.local
+  resolution: "@calcom/granola@workspace:packages/app-store/granola"
+  dependencies:
+    "@calcom/lib": "*"
     "@calcom/types": "*"
   languageName: unknown
   linkType: soft
