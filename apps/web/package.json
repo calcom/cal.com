@@ -16,9 +16,9 @@
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint . --ignore-path .gitignore",
-    "lint:fix": "next lint . --ext .ts,.js,.tsx,.jsx --fix",
-    "lint:report": "next lint . --format json --output-file ../../lint-results/web.json",
+    "lint": "eslint . --ignore-path .gitignore",
+    "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
+    "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
     "translate-locales": "ts-node scripts/check-missing-translations.ts"
   },
