@@ -75,7 +75,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
   .partial()
   .extend(_EventTypeModel.pick({ id: true }).shape);
 
-const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
+export const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   aiPhoneCallConfig: aiPhoneCallConfig.refine(
     (data) => {
       if (!data) return true;
@@ -92,6 +92,4 @@ const ZUpdateInputSchema = BaseEventTypeUpdateInput.extend({
   ),
 }).strict();
 // only run infer over the simple type, excluding refines/transforms.
-type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;
-
-export { ZUpdateInputSchema, type TUpdateInputSchema };
+export type TUpdateInputSchema = z.infer<typeof BaseEventTypeUpdateInput>;
