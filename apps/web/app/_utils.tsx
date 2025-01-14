@@ -3,8 +3,8 @@ import i18next from "i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { headers } from "next/headers";
 
-import type { AppImageProps } from "@calcom/lib/OgImages";
-import { constructGenericImage, constructAppImage } from "@calcom/lib/OgImages";
+import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
+import { constructGenericImage, constructAppImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
@@ -116,6 +116,25 @@ export const generateAppMetadata = async (
   const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
 
   const image = SEO_IMG_OGIMG + constructAppImage({ ...app, description: metadata.description });
+
+  return {
+    ...metadata,
+    openGraph: {
+      ...metadata.openGraph,
+      images: [image],
+    },
+  };
+};
+
+export const generateMeetingMetadata = async (
+  meeting: MeetingImageProps,
+  getTitle: (t: TFunction<string, undefined>) => string,
+  getDescription: (t: TFunction<string, undefined>) => string,
+  hideBranding?: boolean,
+  origin?: string
+) => {
+  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
 
   return {
     ...metadata,

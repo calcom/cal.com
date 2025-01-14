@@ -1,4 +1,3 @@
-import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import PageWrapper from "@components/PageWrapper";
@@ -11,7 +10,7 @@ const Page = (props: PageProps) => {
   const { profile, users, hidden, title } = eventData;
 
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!props.isEmbed })}>
+    <>
       <BookerSeo
         username={user}
         eventSlug={slug}
@@ -33,7 +32,7 @@ const Page = (props: PageProps) => {
         isSEOIndexable={isSEOIndexable}
       />
       <TypePage {...props} />
-    </main>
+    </>
   );
 };
 Page.isBookingPage = true;
