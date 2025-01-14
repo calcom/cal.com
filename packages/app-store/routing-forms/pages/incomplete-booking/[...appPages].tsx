@@ -82,8 +82,10 @@ function Page({ form }: { form: RoutingFormWithResponseCount }) {
       }
 
       setSelectedCredential(
-        credentialOptions.find((option) => option.value === salesforceAction.data.credentialId) ??
-          selectedCredential
+        credentialOptions
+          ? credentialOptions.find((option) => option.value === salesforceAction?.credentialId) ??
+              selectedCredential
+          : selectedCredential
       );
     }
   }, [data]);
