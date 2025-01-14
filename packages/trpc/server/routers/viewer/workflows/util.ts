@@ -1,19 +1,10 @@
 import type { Workflow } from "@prisma/client";
 import type { z } from "zod";
 
-import {
-  isEmailAction,
-  isSMSAction,
-  isSMSOrWhatsappAction,
-  isWhatsappAction,
-} from "@calcom/ee/workflows/lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
-import smsReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/smsReminderTemplate";
-import { whatsappReminderTemplate } from "@calcom/ee/workflows/lib/reminders/templates/whatsapp";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
@@ -28,12 +19,11 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import type { TimeFormat } from "@calcom/lib/timeFormat";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
-import { SchedulingType, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -858,39 +848,3 @@ export const getEventTypeWorkflows = async (
 
   return workflows.map((workflow) => ({ workflow }));
 };
-
-export function getTemplateText(
-  template: WorkflowTemplates,
-  action: WorkflowActions,
-  params: { locale: string; timeFormat?: TimeFormat }
-) {
-  if (template === WorkflowTemplates.REMINDER) {
-    if (isSMSAction(action)) {
-      return { body: smsReminderTemplate(true, params.locale, action, params.timeFormat), subject: null };
-    }
-
-    if (isWhatsappAction(action)) {
-      return {
-        body: whatsappReminderTemplate(true, params.locale, action, params.timeFormat),
-        subject: null,
-      };
-    }
-
-    if (isEmailAction(action)) {
-      const template = emailReminderTemplate(true, params.locale, action, params.timeFormat);
-      return { body: template.emailBody, subject: template.emailSubject };
-    }
-  }
-
-  if (template === WorkflowTemplates.RATING && isEmailAction(action)) {
-    const template = emailRatingTemplate({
-      isEditingMode: true,
-      locale: params.locale,
-      action,
-      timeFormat: params.timeFormat,
-    });
-    return { body: template.emailBody, subject: template.emailSubject };
-  }
-
-  return { body: null, subject: null };
-}
