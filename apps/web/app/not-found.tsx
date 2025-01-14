@@ -53,9 +53,10 @@ async function NotFound() {
   const host = headersList.get("x-forwarded-host") ?? "";
   const pathname = headersList.get("x-pathname") ?? "";
 
-  if (!pathname) {
-    redirect("/500");
-  }
+  // This makes more sense after full migration to App Router
+  // if (!pathname) {
+  //   redirect("/500");
+  // }
 
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
