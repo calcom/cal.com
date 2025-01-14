@@ -188,7 +188,7 @@ export async function getBookings({
   if (filters?.afterStartDate) {
     bookingWhereInputFilters.afterStartDate = {
       startTime: {
-        gte: gte: dayjs.utc(filters.afterStartDate).toDate()
+        gte: dayjs.utc(filters.afterStartDate).toDate()
       },
     };
   }
