@@ -48,6 +48,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
 
   // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
   const { form: formId, ...fieldsResponses } = queryParsed.data;
+  // already in platform libraries
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   let timeTaken: Record<string, number | null> = {};
@@ -62,6 +63,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   }
 
+  // already in platform libraries
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
@@ -70,6 +72,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
+  // already in platform libraries
   if (
     !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
   ) {
@@ -79,6 +82,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   }
 
   const getSerializableFormStart = performance.now();
+  // already in platform libraries
   const serializableForm = await getSerializableForm({
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
@@ -88,6 +92,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
+  // already in platform libraries
   serializableForm.fields.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
 
@@ -97,11 +102,14 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   });
 
+  // already in platform libraries
   const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
+
+  // done until here
 
   const decidedAction = matchingRoute.action;
 
@@ -174,6 +182,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       },
     };
   } else if (decidedAction.type === "externalRedirectUrl") {
+    // this should be a redirect action
     return {
       redirect: {
         destination: `${decidedAction.value}?${stringify(context.query)}`,

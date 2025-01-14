@@ -2,6 +2,14 @@ import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
 import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics-feedcalendar/lib";
+import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
+import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
+import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
+import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
+import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
+import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
@@ -22,16 +30,19 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getClientSecretFromPayment } from "@calcom/features/ee/payments/pages/getClientSecretFromPayment";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { handleCreatePhoneCall } from "@calcom/features/handleCreatePhoneCall";
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
@@ -53,6 +64,7 @@ export type UpdateScheduleOutputType = Awaited<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
+
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
@@ -232,3 +244,15 @@ export { handleDeleteCredential };
 export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
+
+export { UserRepository };
+export { isAuthorizedToViewFormOnOrgDomain };
+export { enrichFormWithMigrationData };
+export { orgDomainConfig };
+export { getSerializableForm };
+export type { FormResponse };
+export { getFieldIdentifier };
+export { getFieldResponseForJsonLogic };
+export { findMatchingRoute };
+export { handleResponse };
+export { getServerTimingHeader };

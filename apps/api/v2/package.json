@@ -31,6 +31,7 @@
     "@calcom/platform-enums": "*",
     "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.81",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
+    "@calcom/platform-libraries-1.2.3": "npm:@calcom/platform-libraries@1.2.3",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
