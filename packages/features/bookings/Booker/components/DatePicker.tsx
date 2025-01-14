@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -46,7 +47,7 @@ export const DatePicker = ({
     setDayCount(null); // Whenever the month is changed, we nullify getting X days
   };
 
-  const moveToNextMonthOnNoAvailability = () => {
+  useEffect(() => {
     const currentMonth = dayjs().startOf("month").format("YYYY-MM");
     const browsingMonth = browsingDate.format("YYYY-MM");
 
@@ -62,9 +63,8 @@ export const DatePicker = ({
     }
 
     onMonthChange(browsingDate.add(1, "month"));
-  };
-
-  moveToNextMonthOnNoAvailability();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <DatePickerComponent
