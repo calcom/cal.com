@@ -5,18 +5,23 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => (
-  <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
-    {name} - {role} {phoneNumber}
-    {!isSmsCalEmail(email) && (
-      <span style={{ color: "#4B5563" }}>
-        <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
-          {email}
-        </a>
-      </span>
-    )}
-  </div>
-);
+export const PersonInfo = ({ name = "", email = "", role = "", phoneNumber = "" }) => {
+  const displayEmail = !isSmsCalEmail(email);
+  const formattedPhoneNumber = !!phoneNumber ? `${phoneNumber} ` : "";
+
+  return (
+    <div style={{ color: "#101010", fontWeight: 400, lineHeight: "24px" }}>
+      {name} - {role} {formattedPhoneNumber}
+      {displayEmail && (
+        <span style={{ color: "#4B5563" }}>
+          <a href={`mailto:${email}`} style={{ color: "#4B5563" }}>
+            {email}
+          </a>
+        </span>
+      )}
+    </div>
+  );
+};
 
 export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   const { t } = props;
