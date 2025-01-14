@@ -40,7 +40,7 @@ function Type({
   const { profile, users, hidden, title } = eventData;
 
   return (
-    <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
+    <div className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
       <BookerSeo
         username={user}
         eventSlug={slug}
@@ -83,7 +83,7 @@ function Type({
         crmOwnerRecordType={crmOwnerRecordType}
         crmAppSlug={crmAppSlug}
       />
-    </main>
+    </div>
   );
 }
 
