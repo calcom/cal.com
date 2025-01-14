@@ -87,6 +87,12 @@ module.exports = {
             "@calcom/eslint/deprecated-imports-next-router": "off",
           },
         },
+        {
+          files: ["packages/trpc/**/*.{tsx,ts}"],
+          rules: {
+            "@typescript-eslint/ban-types": "warn",
+          },
+        },
       ],
     },
     {
