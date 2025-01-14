@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "호스트가 가능한 시간대에 예약자가 미팅을 예약할 수 있습니다. 호스트 간 미팅 분배의 균형보다 잠재적 미팅 예약 수를 최대화하고 싶을 때 사용하세요.",
   "rr_distribution_method_balanced_title": "부하 분산",
   "rr_distribution_method_balanced_description": "각 호스트의 예약 수를 모니터링하고 다른 호스트들과 비교하여, 예약이 균등하게 분배되도록 예약이 너무 많은 호스트를 일시적으로 비활성화합니다.",
+  "edit_team_member_weights": "가중치 수정",
+  "weights_updated_successfully": "가중치가 성공적으로 업데이트되었습니다",
   "require_confirmation_for_free_email": "무료 이메일 제공업체(@gmail.com, @outlook.com 등)에 대해서만 확인 필요",
   "exclude_emails_that_contain": "다음이 포함된 이메일 제외 ...",
   "require_emails_that_contain": "허용된 이메일 도메인 ...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "테스트 예약을 진행하고 있습니다.",
   "icon_showcase": "아이콘 쇼케이스",
   "icons_showcase": "아이콘 쇼케이스",
+  "feature_currently_disabled": "현재 기능이 비활성화되어 있습니다",
   "choose_an_option": "옵션 선택",
   "enter_option_value": "옵션 값 입력",
   "remove_option": "옵션 삭제",
+  "managed_users": "관리 대상 사용자",
+  "managed_users_description": "OAuth 클라이언트가 생성한 모든 관리 대상 사용자 보기",
+  "select_oAuth_client": "OAuth 클라이언트 선택",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

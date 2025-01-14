@@ -24,7 +24,7 @@ export const PeopleFilter = () => {
   const debouncedSearch = useDebounce(searchText, 500);
 
   const queryMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearch },
+    { limit: 10, searchText: debouncedSearch, includeEmail: true },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,

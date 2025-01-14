@@ -1,6 +1,5 @@
 "use client";
 
-import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
@@ -29,7 +28,6 @@ type NotFound = {
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
-  "routing-forms": RoutingFormsRoutingConfig,
   typeform: TypeformRoutingConfig,
 };
 
