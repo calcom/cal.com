@@ -1,5 +1,3 @@
-import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
-import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import {
   isEmailAction,
   isSMSOrWhatsappAction,
@@ -7,7 +5,6 @@ import {
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -26,6 +23,7 @@ import {
   verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
+  getEmailTemplateText,
 } from "./util";
 
 type UpdateOptions = {
@@ -338,17 +336,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
     } else if (isStepEdited(oldStep, newStep)) {
-      const emailBody = newStep.reminderBody;
-      const emailSubject = newStep.emailSubject;
-
       // check if step that require team plan already existed before
       if (!hasPaidPlan) {
         const isChangingToSMSOrWhatsapp =
           !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action);
         const isChangingToCustomTemplate =
-          newStep.template === WorkflowTemplates.CUSTOM &&
-          oldStep.template !== WorkflowTemplates.CUSTOM &&
-          isEmailAction(newStep.action);
+          newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
         if (isChangingToSMSOrWhatsapp || isChangingToCustomTemplate) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
@@ -363,25 +356,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
           if (isEmailAction(newStep.action)) {
             // on free plans always use predefined templates
-            const timeFormat = getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat);
+            const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
+              locale: ctx.user.locale,
+              action: newStep.action,
+              timeFormat: ctx.user.timeFormat,
+            });
 
-            let { emailBody, emailSubject } = emailReminderTemplate(
-              true,
-              ctx.user.locale,
-              newStep.action,
-              timeFormat
-            );
-            if (newStep.template === WorkflowTemplates.RATING) {
-              const ratingTemplate = emailRatingTemplate({
-                isEditingMode: true,
-                locale: ctx.user.locale,
-                action: newStep.action,
-                timeFormat,
-              });
-
-              emailBody = ratingTemplate.emailBody;
-              emailSubject = ratingTemplate.emailSubject;
-            }
             newStep = { ...newStep, reminderBody: emailBody, emailSubject };
           }
         }
@@ -444,25 +424,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           }
 
           // on free plans always use predefined templates
-          const timeFormat = getTimeFormatStringFromUserTimeFormat(ctx.user.timeFormat);
+          const { emailBody, emailSubject } = getEmailTemplateText(newStep.template, {
+            locale: ctx.user.locale,
+            action: newStep.action,
+            timeFormat: ctx.user.timeFormat,
+          });
 
-          let { emailBody, emailSubject } = emailReminderTemplate(
-            true,
-            ctx.user.locale,
-            newStep.action,
-            timeFormat
-          );
-          if (newStep.template === WorkflowTemplates.RATING) {
-            const ratingTemplate = emailRatingTemplate({
-              isEditingMode: true,
-              locale: ctx.user.locale,
-              action: newStep.action,
-              timeFormat,
-            });
-
-            emailBody = ratingTemplate.emailBody;
-            emailSubject = ratingTemplate.emailSubject;
-          }
           newStep = { ...newStep, reminderBody: emailBody, emailSubject };
         }
 
