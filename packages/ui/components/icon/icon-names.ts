@@ -114,6 +114,7 @@ export type IconName =
   | "shield-check"
   | "shield"
   | "shuffle"
+  | "sliders-horizontal"
   | "sliders-vertical"
   | "smartphone"
   | "sparkles"

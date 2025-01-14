@@ -25,7 +25,8 @@ import {
 } from "@calcom/ui";
 
 import { useDataTable } from "../../hooks";
-import type { FilterableColumn, ExternalFilter } from "../../lib/types";
+import type { FilterableColumn } from "../../lib/types";
+import { ClearFiltersButton } from "./ClearFiltersButton";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -122,16 +123,14 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 // Filters
 interface AddFilterButtonProps<TData> {
   table: Table<TData>;
-  externalFilters?: ExternalFilter[];
 }
 
 function AddFilterButtonComponent<TData>(
-  { table, externalFilters }: AddFilterButtonProps<TData>,
+  { table }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const { activeFilters, setActiveFilters, displayedExternalFilters, setDisplayedExternalFilters } =
-    useDataTable();
+  const { activeFilters, setActiveFilters } = useDataTable();
 
   const filterableColumns = useFilterableColumns(table);
 
@@ -148,14 +147,14 @@ function AddFilterButtonComponent<TData>(
     <div className="flex items-center space-x-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button ref={ref} color="secondary" className="border-dashed">
-            <Icon name="filter" className="mr-2 h-4 w-4" />
+          <Button ref={ref} color="secondary">
+            <Icon name="sliders-horizontal" className="mr-2 h-4 w-4" />
             {t("add_filter")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="start">
           <Command>
-            <CommandInput placeholder={t("search_columns")} />
+            <CommandInput placeholder={t("search")} />
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
@@ -169,16 +168,6 @@ function AddFilterButtonComponent<TData>(
                   </CommandItem>
                 );
               })}
-              {(externalFilters || [])
-                .filter((filter) => !displayedExternalFilters.includes(filter.key))
-                .map((filter, index) => (
-                  <CommandItem
-                    key={index}
-                    onSelect={() => setDisplayedExternalFilters((prev) => [...prev, filter.key])}
-                    className="px-4 py-2">
-                    {t(filter.titleKey)}
-                  </CommandItem>
-                ))}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -229,7 +218,6 @@ const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
 // Add the new ActiveFilters component
 interface ActiveFiltersProps<TData> {
   table: Table<TData>;
-  externalFilters?: ExternalFilter[];
 }
 
 const filterIcons = {
@@ -239,8 +227,8 @@ const filterIcons = {
   single_select: "disc",
 } as const;
 
-function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {
-  const { activeFilters, displayedExternalFilters } = useDataTable();
+function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
+  const { activeFilters } = useDataTable();
   const filterableColumns = useFilterableColumns(table);
 
   return (
@@ -264,14 +252,14 @@ function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TDa
           </Popover>
         );
       })}
-      {(displayedExternalFilters || []).map((key) => {
-        const filter = externalFilters?.find((filter) => filter.key === key);
-        if (!filter) return null;
-        return <Fragment key={key}>{filter.component()}</Fragment>;
-      })}
     </>
   );
 }
 
 // Update the export to include ActiveFilters
-export const DataTableFilters = { ColumnVisibilityButton, AddFilterButton, ActiveFilters };
+export const DataTableFilters = {
+  ColumnVisibilityButton,
+  AddFilterButton,
+  ActiveFilters,
+  ClearFiltersButton,
+};

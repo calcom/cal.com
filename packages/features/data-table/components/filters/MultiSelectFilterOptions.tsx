@@ -29,7 +29,7 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
 
   return (
     <Command>
-      <CommandInput placeholder={t("search_options")} />
+      <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
         {Array.from(column.options.keys()).map((option) => {

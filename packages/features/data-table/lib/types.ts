@@ -17,7 +17,7 @@ export type TextFilterOperator = z.infer<typeof ZTextFilterOperator>;
 
 export const ZSingleSelectFilterValue = z.object({
   type: z.literal("single_select"),
-  data: z.string(),
+  data: z.union([z.string(), z.number()]),
 });
 
 export type SingleSelectFilterValue = z.infer<typeof ZSingleSelectFilterValue>;

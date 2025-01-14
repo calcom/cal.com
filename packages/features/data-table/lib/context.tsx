@@ -2,7 +2,7 @@
 
 import type { SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
-import { createContext, useCallback, useState, type Dispatch, type SetStateAction } from "react";
+import { createContext, useCallback } from "react";
 import { z } from "zod";
 
 import { type FilterValue, ZFilterValue, ZSorting } from "./types";
@@ -23,10 +23,6 @@ export type DataTableContextType = {
 
   sorting: SortingState;
   setSorting: OnChangeFn<SortingState>;
-
-  displayedExternalFilters: string[];
-  setDisplayedExternalFilters: Dispatch<SetStateAction<string[]>>;
-  removeDisplayedExternalFilter: (key: string) => void;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -41,19 +37,9 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
     parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
   );
 
-  const [displayedExternalFilters, setDisplayedExternalFilters] = useState<string[]>([]);
-
-  const removeDisplayedExternalFilter = useCallback(
-    (key: string) => {
-      setDisplayedExternalFilters((prev) => prev.filter((f) => f !== key));
-    },
-    [setDisplayedExternalFilters]
-  );
-
   const clearAll = useCallback(() => {
     setActiveFilters([]);
-    setDisplayedExternalFilters([]);
-  }, [setActiveFilters, setDisplayedExternalFilters]);
+  }, [setActiveFilters]);
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
@@ -81,9 +67,6 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
         removeFilter,
         sorting,
         setSorting,
-        displayedExternalFilters,
-        setDisplayedExternalFilters,
-        removeDisplayedExternalFilter,
       }}>
       {children}
     </DataTableContext.Provider>

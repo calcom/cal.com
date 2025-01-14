@@ -8,25 +8,30 @@ import { useFilterContext } from "../context/provider";
 import { valueFormatter } from "../lib";
 import { CardInsights } from "./Card";
 
-export const RoutingKPICards = () => {
+export const RoutingKPICards = ({
+  given,
+}: {
+  given?: { isAll: boolean; teamId: number | undefined; userId: number | undefined };
+}) => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
+
+  const userId = given?.userId ?? filter.selectedUserId;
+  const isAll = given?.isAll ?? filter.isAll;
+  const teamId = given?.teamId ?? filter.selectedTeamId;
 
   const {
     dateRange,
     selectedEventTypeId,
-    selectedUserId,
     selectedMemberUserId,
-    isAll,
     initialConfig,
     selectedRoutingFormId,
     selectedBookingStatus,
     selectedRoutingFormFilter,
   } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
+  const initialConfigIsReady =
+    Boolean(given) || !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
-
-  const { selectedTeamId: teamId } = filter;
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {
@@ -36,7 +41,7 @@ export const RoutingKPICards = () => {
       eventTypeId: selectedEventTypeId ?? undefined,
       isAll,
       routingFormId: selectedRoutingFormId ?? undefined,
-      userId: selectedUserId ?? undefined,
+      userId,
       memberUserId: selectedMemberUserId ?? undefined,
       bookingStatus: selectedBookingStatus ?? undefined,
       fieldFilter: selectedRoutingFormFilter ?? undefined,
@@ -72,7 +77,7 @@ export const RoutingKPICards = () => {
     return <LoadingKPICards categories={categories} />;
   }
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
+  if (!isSuccess || !startDate || !endDate || (!teamId && !userId)) return null;
 
   return (
     <>
