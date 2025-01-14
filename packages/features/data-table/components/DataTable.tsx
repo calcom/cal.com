@@ -7,14 +7,15 @@ import { useVirtualizer, type Virtualizer } from "@tanstack/react-virtual";
 // eslint-disable-next-line no-restricted-imports
 import kebabCase from "lodash/kebabCase";
 import { usePathname } from "next/navigation";
-import { useMemo, useEffect, memo } from "react";
+import { useEffect, memo } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
 
+import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
 
-export interface DataTableProps<TData, TValue> {
+export type DataTableProps<TData, TValue> = {
   table: ReactTableType<TData>;
   tableContainerRef: React.RefObject<HTMLDivElement>;
   isPending?: boolean;
@@ -26,7 +27,7 @@ export interface DataTableProps<TData, TValue> {
   children?: React.ReactNode;
   identifier?: string;
   enableColumnResizing?: boolean;
-}
+};
 
 export function DataTable<TData, TValue>({
   table,
@@ -40,8 +41,8 @@ export function DataTable<TData, TValue>({
   enableColumnResizing,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
-  const pathname = usePathname();
-  const identifier = _identifier ?? pathname;
+  const pathname = usePathname() as string | null;
+  const identifier = _identifier ?? pathname ?? undefined;
 
   const { rows } = table.getRowModel();
 
@@ -71,24 +72,12 @@ export function DataTable<TData, TValue>({
     }
   }, [rowVirtualizer.getVirtualItems().length, rows.length, tableContainerRef.current]);
 
-  const columnSizeVars = useMemo(() => {
-    const headers = table.getFlatHeaders();
-    const colSizes: { [key: string]: string } = {};
-    for (let i = 0; i < headers.length; i++) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const header = headers[i]!;
-      const isAutoWidth = header.column.columnDef.meta?.autoWidth;
-      colSizes[`--header-${kebabCase(header.id)}-size`] = isAutoWidth ? "auto" : `${header.getSize()}px`;
-      colSizes[`--col-${kebabCase(header.column.id)}-size`] = isAutoWidth
-        ? "auto"
-        : `${header.column.getSize()}px`;
-    }
-    return colSizes;
-  }, [table.getFlatHeaders(), table.getState().columnSizingInfo, table.getState().columnSizing]);
+  const columnSizingVars = useColumnSizingVars({ table });
 
   usePersistentColumnResizing({
-    enabled: Boolean(enableColumnResizing),
+    enabled: Boolean(enableColumnResizing && identifier),
     table,
+    tableContainerRef,
     identifier,
   });
 
@@ -112,7 +101,7 @@ export function DataTable<TData, TValue>({
         <TableNew
           className="grid border-0"
           style={{
-            ...columnSizeVars,
+            ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
           }}>
           <TableHeader className="sticky top-0 z-10">
@@ -129,9 +118,11 @@ export function DataTable<TData, TValue>({
                         width: `var(--header-${kebabCase(header?.id)}-size)`,
                       }}
                       className={classNames(
-                        "bg-subtle hover:bg-muted relative flex shrink-0 items-center",
-                        header.column.getCanSort() ? "cursor-pointer select-none" : "",
-                        meta?.sticky && "sticky top-0 z-20"
+                        "relative flex shrink-0 items-center",
+                        header.column.getCanSort()
+                          ? "bg-subtle hover:bg-muted cursor-pointer select-none"
+                          : "",
+                        meta?.sticky && "top-0 z-20 sm:sticky"
                       )}>
                       <div
                         className="flex h-full w-full items-center overflow-hidden"
@@ -261,7 +252,7 @@ function DataTableBody<TData>({
                       "flex shrink-0 items-center overflow-hidden",
                       variant === "compact" && "p-1.5",
                       meta?.sticky &&
-                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sticky"
+                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
                     )}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

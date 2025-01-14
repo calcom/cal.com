@@ -4,8 +4,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
-
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
@@ -24,4 +22,4 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 };
 
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
-export default WithLayout({ getLayout, getData, Page: LegacyPage })<"P">;
+export default WithLayout({ getData, Page: LegacyPage })<"P">;

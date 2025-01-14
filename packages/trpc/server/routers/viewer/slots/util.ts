@@ -11,6 +11,7 @@ import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWr
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
@@ -30,13 +31,13 @@ import {
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { UserRepository } from "@calcom/lib/server/repository/user";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, rrSegmentQueryValueSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -46,55 +47,6 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-
-export const checkIfIsAvailable = ({
-  time,
-  busy,
-  eventLength,
-  currentSeats,
-}: {
-  time: Dayjs;
-  busy: EventBusyDate[];
-  eventLength: number;
-  currentSeats?: CurrentSeats;
-}): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
-  const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.utc();
-
-  return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
-
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
-
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
-    return true;
-  });
-};
 
 async function getEventTypeId({
   slug,
@@ -158,120 +110,7 @@ export async function getEventType(
     return null;
   }
 
-  const eventType = await prisma.eventType.findUnique({
-    where: {
-      id: eventTypeId,
-    },
-    select: {
-      id: true,
-      slug: true,
-      minimumBookingNotice: true,
-      length: true,
-      offsetStart: true,
-      seatsPerTimeSlot: true,
-      timeZone: true,
-      slotInterval: true,
-      beforeEventBuffer: true,
-      afterEventBuffer: true,
-      bookingLimits: true,
-      durationLimits: true,
-      assignAllTeamMembers: true,
-      schedulingType: true,
-      periodType: true,
-      periodStartDate: true,
-      periodEndDate: true,
-      onlyShowFirstAvailableSlot: true,
-      periodCountCalendarDays: true,
-      rescheduleWithSameRoundRobinHost: true,
-      periodDays: true,
-      metadata: true,
-      assignRRMembersUsingSegment: true,
-      rrSegmentQueryValue: true,
-      maxLeadThreshold: true,
-      team: {
-        select: {
-          id: true,
-          bookingLimits: true,
-          includeManagedEventsInLimits: true,
-        },
-      },
-      parent: {
-        select: {
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-              includeManagedEventsInLimits: true,
-            },
-          },
-        },
-      },
-      schedule: {
-        select: {
-          id: true,
-          availability: {
-            select: {
-              date: true,
-              startTime: true,
-              endTime: true,
-              days: true,
-            },
-          },
-          timeZone: true,
-        },
-      },
-      availability: {
-        select: {
-          date: true,
-          startTime: true,
-          endTime: true,
-          days: true,
-        },
-      },
-      hosts: {
-        select: {
-          isFixed: true,
-          createdAt: true,
-          user: {
-            select: {
-              credentials: { select: credentialForCalendarServiceSelect },
-              ...availabilityUserSelect,
-            },
-          },
-          schedule: {
-            select: {
-              availability: {
-                select: {
-                  date: true,
-                  startTime: true,
-                  endTime: true,
-                  days: true,
-                },
-              },
-              timeZone: true,
-              id: true,
-            },
-          },
-        },
-      },
-      users: {
-        select: {
-          credentials: { select: credentialForCalendarServiceSelect },
-          ...availabilityUserSelect,
-        },
-      },
-    },
-  });
-
-  if (!eventType) {
-    return null;
-  }
-
-  return {
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue),
-  };
+  return await EventTypeRepository.findForSlots({ id: eventTypeId });
 }
 
 export async function getDynamicEventType(
@@ -295,7 +134,9 @@ export async function getDynamicEventType(
       ? [input.usernameList]
       : [],
   });
-  const users = await prisma.user.findMany({
+
+  // TODO: Should be moved to UserRepository
+  const usersWithOldSelectedCalendars = await prisma.user.findMany({
     where,
     select: {
       allowDynamicBooking: true,
@@ -305,6 +146,8 @@ export async function getDynamicEventType(
       },
     },
   });
+  const users = usersWithOldSelectedCalendars.map((user) => withSelectedCalendars(user));
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed) {
     throw new TRPCError({
@@ -633,7 +476,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         }, []);
 
         if (
-          checkIfIsAvailable({
+          !checkForConflicts({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
@@ -1095,22 +938,18 @@ const calculateHostsAndAvailabilities = async ({
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const currentBookingsAllUsers = await monitorCallbackAsync(
-    getExistingBookings,
-    startTimeDate,
-    endTimeDate,
-    eventType,
-    sharedQuery,
-    usersWithCredentials,
-    allUserIds
-  );
-
-  const outOfOfficeDaysAllUsers = await monitorCallbackAsync(
-    getOOODates,
-    startTimeDate,
-    endTimeDate,
-    allUserIds
-  );
+  const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    monitorCallbackAsync(
+      getExistingBookings,
+      startTimeDate,
+      endTimeDate,
+      eventType,
+      sharedQuery,
+      usersWithCredentials,
+      allUserIds
+    ),
+    monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
+  ]);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);

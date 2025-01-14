@@ -295,6 +295,7 @@ function MemberListContent(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         header: ({ table }) => (
           <Checkbox
@@ -402,7 +403,8 @@ function MemberListContent(props: Props) {
       },
       {
         id: "actions",
-        size: 80,
+        size: 90,
+        enableResizing: false,
         meta: {
           sticky: { position: "right" },
         },
@@ -659,6 +661,7 @@ function MemberListContent(props: Props) {
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">

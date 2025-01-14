@@ -36,7 +36,7 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   page: Page,
   form: { description?: string; field?: { typeIndex: number; label: string } }
 ) {
-  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await page.goto(`routing/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
   if (form.description) {
     await page.fill('[data-testid="description"]', form.description);

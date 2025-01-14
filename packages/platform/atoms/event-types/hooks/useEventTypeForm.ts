@@ -20,7 +20,6 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
@@ -130,6 +129,7 @@ export const useEventTypeForm = ({
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
     };
   }, [eventType, periodDates]);
 
@@ -324,8 +324,7 @@ export const useEventTypeForm = ({
 
     // Prevent two payment apps to be enabled
     // Ok to cast type here because this metadata will be updated as the event type metadata
-    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
-      throw new Error(t("event_setup_multiple_payment_apps_error"));
+    if (checkForMultiplePaymentApps(metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
 
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));

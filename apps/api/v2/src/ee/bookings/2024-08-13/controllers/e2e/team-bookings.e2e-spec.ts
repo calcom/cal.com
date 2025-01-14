@@ -59,6 +59,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     let team1EventTypeId: number;
     let team2EventTypeId: number;
+    let phoneOnlyEventTypeId: number;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -205,6 +206,83 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       team1EventTypeId = team1EventType.id;
 
+      const phoneOnlyEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "ROUND_ROBIN",
+        team: {
+          connect: { id: team1.id },
+        },
+        title: "Phone Only Event Type",
+        slug: "phone-only-event-type",
+        length: 15,
+        assignAllTeamMembers: false,
+        hosts: {
+          connectOrCreate: [
+            {
+              where: {
+                userId_eventTypeId: {
+                  userId: teamUser.id,
+                  eventTypeId: team1EventTypeId,
+                },
+              },
+              create: {
+                userId: teamUser.id,
+                isFixed: true,
+              },
+            },
+          ],
+        },
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            label: "your name",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            variant: "fullName",
+            editable: "system",
+            required: true,
+            defaultLabel: "your_name",
+            variantsConfig: {
+              variants: {
+                fullName: {
+                  fields: [{ name: "fullName", type: "text", label: "your name", required: true }],
+                },
+              },
+            },
+          },
+          {
+            name: "email",
+            type: "email",
+            label: "your email",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system",
+            required: false,
+            defaultLabel: "email_address",
+          },
+          {
+            name: "attendeePhoneNumber",
+            type: "phone",
+            label: "phone_number",
+            sources: [{ id: "user", type: "user", label: "User", fieldRequired: true }],
+            editable: "user",
+            required: true,
+            placeholder: "",
+          },
+          {
+            name: "rescheduleReason",
+            type: "textarea",
+            views: [{ id: "reschedule", label: "Reschedule View" }],
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "reason_for_reschedule",
+            defaultPlaceholder: "reschedule_placeholder",
+          },
+        ],
+        locations: [],
+      });
+
+      phoneOnlyEventTypeId = phoneOnlyEventType.id;
+
       const team2EventType = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "COLLECTIVE",
         team: {
@@ -322,6 +400,60 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should create a phone based booking", async () => {
+        const body: CreateBookingInput_2024_08_13 = {
+          start: new Date(Date.UTC(2030, 0, 8, 15, 0, 0)).toISOString(),
+          eventTypeId: phoneOnlyEventTypeId,
+          attendee: {
+            name: "alice",
+            phoneNumber: "+919876543210",
+            timeZone: "Europe/Madrid",
+            language: "es",
+          },
+          meetingUrl: "https://meet.google.com/abc-def-ghi",
+        };
+
+        return request(app.getHttpServer())
+          .post("/v2/bookings")
+          .send(body)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(201)
+          .then(async (response) => {
+            const responseBody: CreateBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toBeDefined();
+              expect(data.uid).toBeDefined();
+              expect(data.hosts.length).toEqual(1);
+              expect(data.hosts[0].id).toEqual(teamUser.id);
+              expect(data.status).toEqual("accepted");
+              expect(data.start).toEqual(body.start);
+              expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 15, 15, 0)).toISOString());
+              expect(data.duration).toEqual(15);
+              expect(data.eventTypeId).toEqual(phoneOnlyEventTypeId);
+              expect(data.attendees.length).toEqual(1);
+              expect(data.attendees[0]).toEqual({
+                name: body.attendee.name,
+                email: "919876543210@sms.cal.com",
+                phoneNumber: body.attendee.phoneNumber,
+                timeZone: body.attendee.timeZone,
+                language: body.attendee.language,
+                absent: false,
+              });
+              expect(data.meetingUrl).toEqual(body.meetingUrl);
+              expect(data.absentHost).toEqual(false);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
       it("should create a team 2 booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 10, 0, 0)).toISOString(),
@@ -398,7 +530,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(1);
+            expect(data.length).toEqual(2);
             expect(data[0].eventTypeId).toEqual(team1EventTypeId);
           });
       });
@@ -436,7 +568,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               | RecurringBookingOutput_2024_08_13
               | GetSeatedBookingOutput_2024_08_13
             )[] = responseBody.data;
-            expect(data.length).toEqual(2);
+            expect(data.length).toEqual(3);
             expect(data.find((booking) => booking.eventTypeId === team1EventTypeId)).toBeDefined();
             expect(data.find((booking) => booking.eventTypeId === team2EventTypeId)).toBeDefined();
           });

@@ -1,14 +1,18 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, SelectedCalendar } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
+};
 
 type UsernameSlugLinkProps = {
   users: {
@@ -37,7 +41,8 @@ const user: User & { credentials: CredentialPayload[] } = {
   id: 0,
   startTime: 0,
   endTime: 0,
-  selectedCalendars: [],
+  allSelectedCalendars: [],
+  userLevelSelectedCalendars: [],
   schedules: [],
   defaultScheduleId: null,
   locale: "en",
@@ -116,6 +121,7 @@ const commons = {
   autoTranslateDescriptionEnabled: false,
   fieldTranslations: [],
   maxLeadThreshold: null,
+  useEventLevelSelectedCalendars: false,
 };
 
 export const dynamicEvent = {
@@ -127,7 +133,7 @@ export const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
-  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
+  metadata: eventTypeMetaDataSchemaWithTypedApps.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
 export const defaultEvents = [dynamicEvent];

@@ -10,7 +10,7 @@ import { Button } from "../../button";
 import { Calendar } from "./Calendar";
 
 type DatePickerWithRangeProps = {
-  dates: { startDate: Date; endDate?: Date };
+  dates: { startDate?: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
   minDate?: Date | null;
@@ -29,8 +29,8 @@ export function DatePickerWithRange({
     if (dates?.endDate) {
       onDatesChange({ startDate: date, endDate: undefined });
     } else {
-      const startDate = date < dates.startDate ? date : dates.startDate;
-      const endDate = date < dates.startDate ? dates.startDate : date;
+      const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+      const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
       onDatesChange({ startDate, endDate });
     }
   }

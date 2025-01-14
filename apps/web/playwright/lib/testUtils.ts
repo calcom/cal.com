@@ -1,4 +1,4 @@
-import type { Frame, Locator, Page, Request as PlaywrightRequest } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -45,9 +45,11 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) => {
+    let resolved = false;
+    return new Promise<void>((resolve, reject) => {
       if (requestList.length === count) {
+        resolved = true;
         resolve();
         return;
       }
@@ -57,11 +59,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
           return;
         }
         eventEmitter.off("push", pushHandler);
+        resolved = true;
         resolve();
       };
 
       eventEmitter.on("push", pushHandler);
+      setTimeout(() => {
+        if (resolved) return;
+        // Timeout after 5 seconds
+        reject(new Error("Timeout waiting for webhook"));
+      }, 5000);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
@@ -537,21 +546,4 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
-}
-
-export async function clickUntilDialogVisible(
-  dialogOpenButton: Locator,
-  visibleLocatorOnDialog: Locator,
-  retries = 3,
-  delay = 500
-) {
-  for (let i = 0; i < retries; i++) {
-    await dialogOpenButton.click();
-    try {
-      await visibleLocatorOnDialog.waitFor({ state: "visible", timeout: delay });
-      return;
-    } catch {
-      if (i === retries - 1) throw new Error("Dialog did not appear after multiple attempts.");
-    }
-  }
 }

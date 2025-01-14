@@ -121,7 +121,9 @@ const WebhookForm = (props: {
     },
   });
 
-  const [useCustomTemplate, setUseCustomTemplate] = useState(false);
+  const [useCustomTemplate, setUseCustomTemplate] = useState(
+    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
+  );
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;

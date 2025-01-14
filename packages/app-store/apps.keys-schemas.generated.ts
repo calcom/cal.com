@@ -15,6 +15,7 @@ import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
 import { appKeysSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
+import { appKeysSchema as insihts_zod_ts } from "./insihts/zod";
 import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
 import { appKeysSchema as jelly_zod_ts } from "./jelly/zod";
 import { appKeysSchema as jitsivideo_zod_ts } from "./jitsivideo/zod";
@@ -63,6 +64,7 @@ export const appKeysSchemas = {
   googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
+  insihts: insihts_zod_ts,
   intercom: intercom_zod_ts,
   jelly: jelly_zod_ts,
   jitsivideo: jitsivideo_zod_ts,

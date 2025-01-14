@@ -13219,23 +13219,23 @@ select {
   scrollbar-width: none
 }
 
-.\[--booker-main-width\: 420px\] {
+.\[--booker-main-width\:420px\] {
   --booker-main-width:420px
 }
 
-.\[--booker-main-width\: 480px\] {
+.\[--booker-main-width\:480px\] {
   --booker-main-width:480px;
 }
 
-.\[--booker-meta-width\: 240px\] {
+.\[--booker-meta-width\:240px\] {
   --booker-meta-width:240px
 }
 
-.\[--booker-meta-width\: 340px\] {
+.\[--booker-meta-width\:340px\] {
   --booker-meta-width:340px
 }
 
-.\[--booker-timeslots-width\: 240px\] {
+.\[--booker-timeslots-width\:240px\] {
   --booker-timeslots-width:240px
 }
 
@@ -13259,7 +13259,7 @@ select {
   --cal-brand:#111827
 }
 
-.\[--calendar-dates-sticky-offset\: 66px\] {
+.\[--calendar-dates-sticky-offset\:66px\] {
   --calendar-dates-sticky-offset:66px
 }
 
@@ -13279,11 +13279,11 @@ select {
   --disabled-gradient-foreground:#e6e7eb
 }
 
-.\[--troublehooster-meta-width\: 0px\] {
+.\[--troublehooster-meta-width\:0px\] {
   --troublehooster-meta-width:0px
 }
 
-.\[--troublehooster-meta-width\: 250px\] {
+.\[--troublehooster-meta-width\:250px\] {
   --troublehooster-meta-width:250px
 }
 
