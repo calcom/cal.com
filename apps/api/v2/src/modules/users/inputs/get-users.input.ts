@@ -1,12 +1,25 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsOptional, Validate } from "class-validator";
-
-import { SkipTakePagination } from "@calcom/platform-types";
+import { IsNumber, IsOptional, Max, Min, Validate } from "class-validator";
 
 import { IsEmailStringOrArray } from "../validators/isEmailStringOrArray";
 
-export class GetUsersInput extends SkipTakePagination {
+export class GetUsersInput {
+  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(1)
+  @Max(1000)
+  @IsOptional()
+  take?: number;
+
+  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  skip?: number;
+
   @IsOptional()
   @Validate(IsEmailStringOrArray)
   @Transform(({ value }: { value: string | string[] }) => {

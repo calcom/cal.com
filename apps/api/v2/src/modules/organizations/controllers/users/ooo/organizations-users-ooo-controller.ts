@@ -8,13 +8,19 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { IsUserOOO } from "@/modules/ooo/guards/is-user-ooo";
-import { CreateOutOfOfficeEntryDto, UpdateOutOfOfficeEntryDto } from "@/modules/ooo/inputs/ooo.input";
+import {
+  CreateOutOfOfficeEntryDto,
+  UpdateOutOfOfficeEntryDto,
+  GetOutOfOfficeEntryFiltersDTO,
+  GetOrgUsersOutOfOfficeEntryFiltersDTO,
+} from "@/modules/ooo/inputs/ooo.input";
 import {
   UserOooOutputDto,
   UserOooOutputResponseDto,
   UserOoosOutputResponseDto,
 } from "@/modules/ooo/outputs/ooo.output";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
+import { OrgUsersOOOService } from "@/modules/organizations/controllers/users/ooo/services/organization-users-ooo.service";
 import {
   Controller,
   UseGuards,
@@ -33,10 +39,9 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
-  path: "/v2/organizations/:orgId/users/:userId/ooo",
+  path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
@@ -44,18 +49,22 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @UseGuards(IsOrgGuard)
 @DocsTags("Orgs / Users / OOO")
 export class OrganizationsUsersOOOController {
-  constructor(private readonly userOOOService: UserOOOService) {}
+  constructor(
+    private readonly userOOOService: UserOOOService,
+    private readonly orgUsersOOOService: OrgUsersOOOService
+  ) {}
 
-  @Get()
+  @Get("/users/:userId/ooo")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @ApiOperation({ summary: "Get all ooo entries of a user" })
   async getOrganizationUserOOO(
     @Param("userId", ParseIntPipe) userId: number,
-    @Query() query: SkipTakePagination
+    @Query() query: GetOutOfOfficeEntryFiltersDTO
   ): Promise<UserOoosOutputResponseDto> {
-    const ooos = await this.userOOOService.getUserOOOPaginated(userId, query.skip ?? 0, query.take ?? 250);
+    const { skip, take, ...rest } = query ?? { skip: 0, take: 250 };
+    const ooos = await this.userOOOService.getUserOOOPaginated(userId, skip ?? 0, take ?? 250, rest);
 
     return {
       status: SUCCESS_STATUS,
@@ -63,7 +72,7 @@ export class OrganizationsUsersOOOController {
     };
   }
 
-  @Post()
+  @Post("/users/:userId/ooo")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
@@ -79,7 +88,7 @@ export class OrganizationsUsersOOOController {
     };
   }
 
-  @Patch("/:oooId")
+  @Patch("/users/:userId/ooo/:oooId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
@@ -97,7 +106,7 @@ export class OrganizationsUsersOOOController {
     };
   }
 
-  @Delete("/:oooId")
+  @Delete("/users/:userId/ooo/:oooId")
   @Roles("ORG_ADMIN")
   @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg, IsUserOOO)
@@ -109,6 +118,25 @@ export class OrganizationsUsersOOOController {
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" }),
+    };
+  }
+
+  @Get("/ooo")
+  @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
+  @ApiOperation({ summary: "Get all OOO entries of org users" })
+  async getOrganizationUsersOOO(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Query() query: GetOrgUsersOutOfOfficeEntryFiltersDTO
+  ): Promise<UserOoosOutputResponseDto> {
+    const { skip, take, email, ...rest } = query ?? { skip: 0, take: 250 };
+    const ooos = await this.orgUsersOOOService.getOrgUsersOOOPaginated(orgId, skip ?? 0, take ?? 250, rest, {
+      email,
+    });
+
+    return {
+      status: SUCCESS_STATUS,
+      data: ooos.map((ooo) => plainToInstance(UserOooOutputDto, ooo, { strategy: "excludeAll" })),
     };
   }
 }
