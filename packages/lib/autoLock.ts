@@ -69,27 +69,40 @@ export async function handleAutoLock({
   return false;
 }
 
-async function lockUser(identifierType: "email" | "userId" | "SMS" | "apiKey", identifier: string) {
-  const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
-
-  if (!UPSTASH_ENV_FOUND) {
-    console.log("Skipping auto lock because UPSTASH env variables are not set");
+async function lockUser(identifierType: string, identifier: string) {
+  if (!identifier) {
     return;
   }
 
-  let user: { id: number; email: string; username?: string } | null;
+  type UserType = {
+    id: number;
+    email: string;
+    username: string | null;
+  } | null;
+
+  let user: UserType = null;
 
   switch (identifierType) {
     case "userId":
       user = await prisma.user.update({
         where: { id: Number(identifier) },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
       break;
     case "email":
       user = await prisma.user.update({
         where: { email: identifier },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
       break;
     case "apiKey":
@@ -98,19 +111,27 @@ async function lockUser(identifierType: "email" | "userId" | "SMS" | "apiKey", i
         where: { hashedKey: hashedApiKey },
         include: {
           user: {
-            select: { id: true, email: true, username: true },
+            select: {
+              id: true,
+              email: true,
+              username: true,
+            },
           },
         },
       });
 
-      user = apiKey?.user;
-
-      if (!apiKey || !apiKey.user) {
+      if (!apiKey?.user) {
         throw new Error("No user found for this API key.");
       }
-      await prisma.user.update({
+
+      user = await prisma.user.update({
         where: { id: apiKey.user.id },
         data: { locked: true },
+        select: {
+          id: true,
+          email: true,
+          username: true,
+        },
       });
       break;
     // Leaving SMS here but it is handled differently via checkRateLimitForSMS that auto locks
@@ -120,9 +141,7 @@ async function lockUser(identifierType: "email" | "userId" | "SMS" | "apiKey", i
       throw new Error("Invalid identifier type for locking");
   }
 
-  if (user) {
-    if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
-
+  if (user && process.env.NEXT_PUBLIC_SENTRY_DSN) {
     Sentry.setUser({
       id: user.id.toString(),
       email: user.email,
