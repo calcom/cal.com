@@ -6,6 +6,9 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+
+import { withDelegatedToIdNullArray } from "../server/repository/credential";
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
 interface DomainWideDelegation {
@@ -13,6 +16,7 @@ interface DomainWideDelegation {
   workspacePlatform: {
     slug: string;
   };
+  serviceAccountKey: ServiceAccountKey | null;
 }
 
 interface DomainWideDelegationWithSensitiveServiceAccountKey extends DomainWideDelegation {
@@ -38,6 +42,11 @@ const buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; u
     invalid: false,
     teamId: null,
     team: null,
+    delegatedTo: dwd.serviceAccountKey
+      ? {
+          serviceAccountKey: dwd.serviceAccountKey,
+        }
+      : null,
   };
 };
 
@@ -96,7 +105,7 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
-  const dwd = await DomainWideDelegationRepository.findByUser({
+  const dwd = await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
     user: {
       email: user.email,
     },
@@ -133,10 +142,13 @@ export async function getAllDwdCredentialsForUsers({
   }
   const domain = users[0].email.split("@")[1];
   log.debug("called with", safeStringify({ users }));
-  const dwd = await DomainWideDelegationRepository.findUniqueByOrganizationIdAndDomain({
-    organizationId,
-    domain,
-  });
+  const dwd =
+    await DomainWideDelegationRepository.findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey(
+      {
+        organizationId,
+        domain,
+      }
+    );
   if (!dwd || !dwd.enabled) {
     return emptyMap;
   }
@@ -242,7 +254,7 @@ export async function getAllDwdCredentialsForUserByAppSlug({
 
 export async function getDwdCalendarCredentialById({ id, userId }: { id: string; userId: number }) {
   const [dwd, user] = await Promise.all([
-    DomainWideDelegationRepository.findById({ id }),
+    DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({ id }),
     UserRepository.findById({ id: userId }),
   ]);
 
@@ -259,3 +271,90 @@ export async function getDwdCalendarCredentialById({ id, userId }: { id: string;
   });
   return dwdCredential;
 }
+
+type Host<TUser extends { id: number; email: string; credentials: CredentialPayload[] }> = {
+  user: TUser;
+};
+
+const _buildAllCredentials = ({
+  dwdCredentials,
+  nonDwdCredentials,
+}: {
+  dwdCredentials: CredentialForCalendarService[] | null;
+  nonDwdCredentials: CredentialPayload[];
+}) => {
+  const allCredentials: CredentialForCalendarService[] = [
+    ...withDelegatedToIdNullArray(nonDwdCredentials),
+    ...(dwdCredentials ?? []),
+  ];
+  return allCredentials;
+};
+
+export async function enrichUsersWithDwdCredentials<
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+>({ orgId, users }: { orgId: number | null; users: TUser[] }) {
+  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
+    organizationId: orgId,
+    users,
+  });
+
+  return users.map((user) => {
+    const { credentials, ...rest } = user;
+
+    return {
+      ...rest,
+      credentials: _buildAllCredentials({
+        dwdCredentials: dwdCredentialsMap.get(user.id) ?? [],
+        nonDwdCredentials: credentials,
+      }),
+    };
+  });
+}
+
+export const enrichHostsWithDwdCredentials = async <
+  THost extends Host<TUser>,
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+>({
+  orgId,
+  hosts,
+}: {
+  orgId: number | null;
+  hosts: THost[];
+}) => {
+  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
+    organizationId: orgId,
+    users: hosts.map((host) => host.user),
+  });
+
+  return hosts.map((host) => {
+    const { credentials, ...restUser } = host.user;
+    return {
+      ...host,
+      user: {
+        ...restUser,
+        credentials: _buildAllCredentials({
+          dwdCredentials: dwdCredentialsMap.get(restUser.id) ?? [],
+          nonDwdCredentials: credentials,
+        }),
+      },
+    };
+  });
+};
+
+export const enrichUserWithDwdCredentialsWithoutOrgId = async <
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+>({
+  user,
+}: {
+  user: TUser;
+}) => {
+  const dwdCredentials = await getAllDwdCredentialsForUser({ user });
+  const { credentials, ...restUser } = user;
+  return {
+    ...restUser,
+    credentials: _buildAllCredentials({
+      dwdCredentials: dwdCredentials,
+      nonDwdCredentials: credentials,
+    }),
+  };
+};

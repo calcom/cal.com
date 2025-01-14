@@ -91,6 +91,16 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   return event;
 };
 
+/**
+ * Ensures invalid non-dwd credentialId isn't returned
+ */
+function getCredentialPayload(result: EventResult<Exclude<Event, AdditionalInformation>>) {
+  return {
+    credentialId: result?.credentialId && result.credentialId > 0 ? result.credentialId : undefined,
+    domainWideDelegationCredentialId: result?.delegatedToId || undefined,
+  };
+}
+
 export type EventManagerUser = {
   credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
@@ -245,11 +255,7 @@ export default class EventManager {
         meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
         meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
         externalCalendarId: isCalendarType ? result.externalId : undefined,
-        credentialId:
-          result?.credentialId === -1 || result?.credentialId === 0
-            ? undefined
-            : result?.credentialId ?? undefined,
-        domainWideDelegationCredentialId: result?.delegatedToId || undefined,
+        ...getCredentialPayload(result),
       };
     });
 
@@ -710,7 +716,7 @@ export default class EventManager {
                 };
               }
             } else if (destination.domainWideDelegationCredentialId) {
-              console.warn("DWD: DWD seems to be disabled, falling back to first non-dwd credential");
+              log.warn("DWD: DWD seems to be disabled, falling back to first non-dwd credential");
               // In case DWD is disabled, we land here where the destination calendar is connected to a DWD credential, but the credential isn't available(because DWD is disabled)
               // In this case, we fallback to the first non-dwd credential. That would be there for all existing users before DWD was enabled
               const firstNonDwdCalendarCredential = this.calendarCredentials.find(

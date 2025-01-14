@@ -50,7 +50,10 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
-import { getAllDwdCredentialsForUsers } from "@calcom/lib/domainWideDelegation/server";
+import {
+  enrichHostsWithDwdCredentials,
+  enrichUsersWithDwdCredentials,
+} from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -181,7 +184,7 @@ function buildLuckyUsersWithJustContactOwner({
   availableUsers: IsFixedAwareUser[];
   fixedUserPool: IsFixedAwareUser[];
 }) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
+  const luckyUsers: IsFixedAwareUser[] = [];
   if (!contactOwnerEmail) {
     return luckyUsers;
   }
@@ -507,15 +510,10 @@ async function handler(
     teamId: eventType.teamId,
   });
 
-  const dwdCredentialsMap = await getAllDwdCredentialsForUsers({
-    organizationId: firstUserOrgId ?? null,
+  const allHostUsers = await enrichUsersWithDwdCredentials({
+    orgId: firstUserOrgId ?? null,
     users: allHostUsersWithoutHavingDwdCredentials,
   });
-
-  const allHostUsers = allHostUsersWithoutHavingDwdCredentials.map((user) => ({
-    ...user,
-    credentials: [...user.credentials, ...(dwdCredentialsMap.get(user.id) ?? [])],
-  }));
 
   // We filter out users but ensure allHostUsers remain same.
   let users = allHostUsers;
@@ -556,7 +554,7 @@ async function handler(
 
   //checks what users are available
   if (isFirstSeat) {
-    const eventTypeWithUsers: getEventTypeResponse & {
+    const eventTypeWithUsers: Omit<getEventTypeResponse, "users"> & {
       users: IsFixedAwareUser[];
     } = {
       ...eventType,
@@ -692,14 +690,18 @@ async function handler(
           });
         }
 
+        // Why can't we use eventType.users which already has hosts handled??
+        const eventTypeHosts = await enrichHostsWithDwdCredentials({
+          orgId: firstUserOrgId ?? null,
+          hosts: eventTypeWithUsers.hosts,
+        });
+
         const newLuckyUser = shouldUseSameRRHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter(
-                (host) => !host.isFixed && userIdsSet.has(host.user.id)
-              ), // users part of virtual queue
+              allRRHosts: eventTypeHosts.filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // users part of virtual queue
               eventType,
               routingFormResponse: routingFormResponse ?? null,
             });

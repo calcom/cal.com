@@ -17,18 +17,21 @@ export const withDelegatedToIdNull = <T extends Record<string, unknown> | null>(
   type WithDelegatedCredential = T extends null
     ? null
     : T & {
+        delegatedTo: null;
         delegatedToId: null;
       };
 
   if (!credential) return null as WithDelegatedCredential;
   return {
     ...credential,
+    delegatedTo: null,
     delegatedToId: null,
   } as WithDelegatedCredential;
 };
 
 export const withDelegatedToIdNullArray = <T extends Record<string, unknown>>(credentials: T[]) => {
   return credentials.map(withDelegatedToIdNull).filter((credential) => !!credential) as (T & {
+    delegatedTo: null;
     delegatedToId: null;
   })[];
 };

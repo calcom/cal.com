@@ -3,6 +3,7 @@ import type { Attendee } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { deleteMeeting } from "@calcom/core/videoClient";
+import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -18,21 +19,31 @@ const lastAttendeeDeleteBooking = async (
   originalBookingEvt?: CalendarEvent
 ) => {
   let deletedReferences = false;
+  const bookingUser = originalRescheduledBooking?.user;
+  const dwdCredentials = bookingUser
+    ? await getAllDwdCredentialsForUser({
+        user: { email: bookingUser.email, id: bookingUser.id },
+      })
+    : [];
   if ((!filteredAttendees || filteredAttendees.length === 0) && originalRescheduledBooking) {
     const integrationsToDelete = [];
 
     for (const reference of originalRescheduledBooking.references) {
-      if (reference.credentialId) {
-        const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
-          id: reference.credentialId,
-        });
+      if (reference.credentialId || reference.domainWideDelegationCredentialId) {
+        const credential = reference.domainWideDelegationCredentialId
+          ? dwdCredentials.find((cred) => cred.delegatedToId === reference.domainWideDelegationCredentialId)
+          : reference.credentialId
+          ? await CredentialRepository.findCredentialForCalendarServiceById({
+              id: reference.credentialId,
+            })
+          : null;
 
-        if (credentialForCalendarService) {
+        if (credential) {
           if (reference.type.includes("_video")) {
-            integrationsToDelete.push(deleteMeeting(credentialForCalendarService, reference.uid));
+            integrationsToDelete.push(deleteMeeting(credential, reference.uid));
           }
           if (reference.type.includes("_calendar") && originalBookingEvt) {
-            const calendar = await getCalendar(credentialForCalendarService);
+            const calendar = await getCalendar(credential);
             if (calendar) {
               integrationsToDelete.push(
                 calendar?.deleteEvent(reference.uid, originalBookingEvt, reference.externalCalendarId)

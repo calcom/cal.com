@@ -24,7 +24,7 @@ import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/rout
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { getAllDwdCalendarCredentialsForUsers } from "@calcom/lib/domainWideDelegation/server";
+import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   calculatePeriodLimits,
@@ -41,6 +41,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -49,6 +50,9 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialPayload[];
+};
 
 async function getEventTypeId({
   slug,
@@ -224,7 +228,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
   contactOwnerEmail: string | null | undefined;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithoutDwdCredentials;
   }[];
 }) {
   const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
@@ -246,7 +250,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
   }
 
   const contactOwnerAndFixedHosts = hosts.reduce(
-    (usersArray: (GetAvailabilityUser & { isFixed?: boolean })[], host) => {
+    (usersArray: (GetAvailabilityUserWithoutDwdCredentials & { isFixed?: boolean })[], host) => {
       if (host.isFixed || host.user.email === contactOwnerEmail)
         usersArray.push({ ...host.user, isFixed: host.isFixed });
 
@@ -266,7 +270,7 @@ async function getEnrichedUsersWithCredentialsConsideringContactOwner({
   contactOwnerEmail: string | null | undefined;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithoutDwdCredentials;
   }[];
   orgId: number | null;
 }) {
@@ -275,16 +279,10 @@ async function getEnrichedUsersWithCredentialsConsideringContactOwner({
     hosts,
   });
 
-  const dwdCredentialsMap = await getAllDwdCalendarCredentialsForUsers({
-    organizationId: orgId,
+  return await enrichUsersWithDwdCredentials({
     users: hostsWithContactOwner,
+    orgId,
   });
-
-  const hostsWithDwdCredentials = hostsWithContactOwner.map((host) => ({
-    ...host,
-    credentials: [...host.credentials, ...(dwdCredentialsMap.get(host.id) ?? [])],
-  }));
-  return hostsWithDwdCredentials;
 }
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
@@ -357,7 +355,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const eventHosts = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
+    findQualifiedHosts<GetAvailabilityUserWithoutDwdCredentials>,
     eventType,
     !!input.rescheduleUid
   );
@@ -920,7 +918,7 @@ const calculateHostsAndAvailabilities = async ({
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithoutDwdCredentials;
   }[];
   contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;

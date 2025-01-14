@@ -4,15 +4,12 @@ import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/pi
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
-
-import { getCredentialForCalendarService } from "./CalendarManager";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
-
 // only for Google Calendar for now
 export const getCalendarsEventsWithTimezones = async (
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -21,15 +18,8 @@ export const getCalendarsEventsWithTimezones = async (
     .filter((credential) => credential.type === "google_calendar")
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
-  // There might not be many credentials as one credential means one Integration(like Google Calendar, Outlook Calendar, etc.)
-  // So, it is okay to do getCredentialForCalendarService for all of them, separately here
-  const credentialsForCalendarService = await Promise.all(
-    calendarCredentials.map((credential) => getCredentialForCalendarService(credential))
-  );
 
-  const calendars = await Promise.all(
-    credentialsForCalendarService.map((credential) => getCalendar(credential))
-  );
+  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
 
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */
@@ -55,7 +45,7 @@ export const getCalendarsEventsWithTimezones = async (
 };
 
 const getCalendarsEvents = async (
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],
@@ -66,15 +56,7 @@ const getCalendarsEvents = async (
     // filter out invalid credentials - these won't work.
     .filter((credential) => !credential.invalid);
 
-  // There might not be many credentials as one credential means one Integration(like Google Calendar, Outlook Calendar, etc.)
-  // So, it is okay to do getCredentialForCalendarService for all of them, separately here
-  const credentialsForCalendarService = await Promise.all(
-    calendarCredentials.map((credential) => getCredentialForCalendarService(credential))
-  );
-
-  const calendars = await Promise.all(
-    credentialsForCalendarService.map((credential) => getCalendar(credential))
-  );
+  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
   performance.mark("getBusyCalendarTimesStart");
   const results = calendars.map(async (c, i) => {
     /** Filter out nulls */

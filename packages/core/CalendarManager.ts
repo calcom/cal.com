@@ -18,13 +18,13 @@ import type {
   NewCalendarEventType,
   SelectedCalendar,
 } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 import getCalendarsEvents from "./getCalendarsEvents";
 import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
-type CredentialForCalendarService<T> = T extends null
+type CredentialForCalendarServiceGeneric<T> = T extends null
   ? null
   : T & {
       delegatedTo: {
@@ -96,16 +96,16 @@ async function _getCredentialsWithAppAndTheirDwdMap(credentials: Array<Credentia
  */
 export async function getCredentialForCalendarService<
   T extends ({ delegatedToId?: string | null } & Record<string, unknown>) | null
->(credential: T): Promise<CredentialForCalendarService<T>> {
+>(credential: T): Promise<CredentialForCalendarServiceGeneric<T>> {
   // Explicitly handle null case with type assertion
-  if (credential === null) return null as CredentialForCalendarService<T>;
+  if (credential === null) return null as CredentialForCalendarServiceGeneric<T>;
 
   // When no delegatedToId, return with delegatedTo as null
   if (!credential.delegatedToId) {
     return {
       ...credential,
       delegatedTo: null,
-    } as CredentialForCalendarService<T>;
+    } as CredentialForCalendarServiceGeneric<T>;
   }
   const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
     {
@@ -120,7 +120,7 @@ export async function getCredentialForCalendarService<
   return {
     ...credential,
     delegatedTo,
-  } as CredentialForCalendarService<T>;
+  } as CredentialForCalendarServiceGeneric<T>;
 }
 
 // TODO: Should unit test it.
@@ -260,7 +260,7 @@ export const getBusyCalendarTimes = async (
    * withCredentials can possibly have a duplicate credential in case DWD is enabled.
    * There is no way to deduplicate that at the moment because a `credential` doesn't directly know for which email it is,
    */
-  withCredentials: CredentialPayload[],
+  withCredentials: CredentialForCalendarService[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[],

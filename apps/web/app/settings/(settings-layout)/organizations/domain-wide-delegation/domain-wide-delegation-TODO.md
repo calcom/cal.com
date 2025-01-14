@@ -23,9 +23,10 @@
   - [ ] Isolation of DWD credentials for different organizations
     - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
   - [ ] Location Change of a booking  to Google Meet(from Cal Video)
+  - [ ] Team Members availability view testing
   - [ ] Onboarding
-    - [ ] When DWD is not enabled, the flow works.
-    - [ ] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
+    - [x] When DWD is not enabled, the flow works.
+    - [x] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
   - [ ] Event Type Selected Calendar and Destination Calendar
   - [ ] Owner must have verified email to enable DWD
   - [x] RR Team Event
@@ -56,6 +57,7 @@
       - Verified that Google Calendar is shown pre-installed. 
       - How about Google Meet(which depends on Google Calendar) - Correctly shows up as installed.
   - TODO:
+    - [ ] Add experimental/Beta flag in DWD
     - [ ] Consideration of multiple domains email in a single team event. We might need to consider all the member's domains in the team event when fetching availabilituy. 
     - [ ] Performance
       - [x] Available Slots and booking flow shouldn't slow down. Right now the querying logic is not optimized. We query per team member, we should do one query.

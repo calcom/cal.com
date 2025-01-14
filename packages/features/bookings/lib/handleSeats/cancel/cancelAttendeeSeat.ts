@@ -3,6 +3,7 @@ import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -64,6 +65,12 @@ async function cancelAttendeeSeat(
   req.statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
+  const bookingToDeleteUser = bookingToDelete.user ?? null;
+  const dwdCredentials = bookingToDeleteUser
+    ? await getAllDwdCredentialsForUser({
+        user: { email: bookingToDeleteUser.email, id: bookingToDeleteUser.id },
+      })
+    : [];
 
   if (attendee) {
     /* If there are references then we should update them as well */
@@ -71,21 +78,25 @@ async function cancelAttendeeSeat(
     const integrationsToUpdate = [];
 
     for (const reference of bookingToDelete.references) {
-      if (reference.credentialId) {
-        const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
-          id: reference.credentialId,
-        });
+      if (reference.credentialId || reference.domainWideDelegationCredentialId) {
+        const credential = reference.domainWideDelegationCredentialId
+          ? dwdCredentials.find((cred) => cred.delegatedToId === reference.domainWideDelegationCredentialId)
+          : reference.credentialId
+          ? await CredentialRepository.findCredentialForCalendarServiceById({
+              id: reference.credentialId,
+            })
+          : null;
 
-        if (credentialForCalendarService) {
+        if (credential) {
           const updatedEvt = {
             ...evt,
             attendees: evt.attendees.filter((evtAttendee) => attendee.email !== evtAttendee.email),
           };
           if (reference.type.includes("_video")) {
-            integrationsToUpdate.push(updateMeeting(credentialForCalendarService, updatedEvt, reference));
+            integrationsToUpdate.push(updateMeeting(credential, updatedEvt, reference));
           }
           if (reference.type.includes("_calendar")) {
-            const calendar = await getCalendar(credentialForCalendarService);
+            const calendar = await getCalendar(credential);
             if (calendar) {
               integrationsToUpdate.push(
                 calendar?.updateEvent(reference.uid, updatedEvt, reference.externalCalendarId)

@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { getAllDwdCalendarCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -23,13 +23,7 @@ export async function findUsersForAvailabilityCheck({ where }: { where: Prisma.U
     return null;
   }
 
-  const userWithSelectedCalendars = withSelectedCalendars(user);
-  const { credentials, ...restUser } = userWithSelectedCalendars;
-
-  return {
-    ...restUser,
-    credentials: credentials.concat(
-      await getAllDwdCalendarCredentialsForUser({ user: restUser })
-    ),
-  };
+  return await enrichUserWithDwdCredentialsWithoutOrgId({
+    user: withSelectedCalendars(user),
+  });
 }

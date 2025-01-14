@@ -22,6 +22,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import { enrichHostsWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -115,8 +116,12 @@ export const roundRobinReassignment = async ({
 
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
+  const eventTypeHosts = await enrichHostsWithDwdCredentials({
+    orgId,
+    hosts: eventType.hosts,
+  });
   // Filter out the current attendees of the booking from the event type
-  const availableEventTypeUsers = eventType.hosts.reduce((availableUsers, host) => {
+  const availableEventTypeUsers = eventTypeHosts.reduce((availableUsers, host) => {
     if (!attendeeEmailsSet.has(host.user.email) && host.user.email !== originalOrganizer.email) {
       availableUsers.push({ ...host.user, isFixed: host.isFixed, priority: host?.priority ?? 2 });
     }
@@ -136,7 +141,7 @@ export const roundRobinReassignment = async ({
   const reassignedRRHost = await getLuckyUser({
     availableUsers,
     eventType,
-    allRRHosts: eventType.hosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
+    allRRHosts: eventTypeHosts.filter((host) => !host.isFixed), // todo: only use hosts from virtual queue
     routingFormResponse: null,
   });
 

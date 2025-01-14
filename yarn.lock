@@ -4220,6 +4220,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/granola@workspace:packages/app-store/granola":
+  version: 0.0.0-use.local
+  resolution: "@calcom/granola@workspace:packages/app-store/granola"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/gtm@workspace:packages/app-store/gtm":
   version: 0.0.0-use.local
   resolution: "@calcom/gtm@workspace:packages/app-store/gtm"

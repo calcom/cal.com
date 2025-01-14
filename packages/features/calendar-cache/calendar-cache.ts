@@ -9,10 +9,10 @@ import { CalendarCacheRepositoryMock } from "./calendar-cache.repository.mock";
 
 export class CalendarCache {
   static async initFromCredentialId(credentialId: number): Promise<ICalendarCacheRepository> {
-    const credentialForCalendarService = await CredentialRepository.findCredentialForCalendarServiceById({
+    const credential = await CredentialRepository.findCredentialForCalendarServiceById({
       id: credentialId,
     });
-    const calendar = await getCalendar(credentialForCalendarService);
+    const calendar = await getCalendar(credential);
     return await CalendarCache.init(calendar);
   }
   static async init(calendar: Calendar | null): Promise<ICalendarCacheRepository> {

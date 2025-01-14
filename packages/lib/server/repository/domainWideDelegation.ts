@@ -45,10 +45,10 @@ export class DomainWideDelegationRepository {
     if (!domainWideDelegation) {
       return null;
     }
-    const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(domainWideDelegation.serviceAccountKey);
-
+    const { serviceAccountKey, ...rest } = domainWideDelegation;
+    const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(serviceAccountKey);
     return {
-      ...domainWideDelegation,
+      ...rest,
       serviceAccountKey: parsedServiceAccountKey.success ? parsedServiceAccountKey.data : null,
     };
   }
@@ -87,17 +87,18 @@ export class DomainWideDelegationRepository {
     });
   }
 
-  static async findUniqueByOrganizationIdAndDomain({
+  static async findUniqueByOrganizationIdAndDomainIncludeSensitiveServiceAccountKey({
     organizationId,
     domain,
   }: {
     organizationId: number;
     domain: string;
   }) {
-    return await prisma.domainWideDelegation.findUnique({
+    const dwd = await prisma.domainWideDelegation.findUnique({
       where: { organizationId_domain: { organizationId, domain } },
-      select: domainWideDelegationSafeSelect,
+      select: domainWideDelegationSelectIncludesServiceAccountKey,
     });
+    return DomainWideDelegationRepository.withParsedServiceAccountKey(dwd);
   }
 
   static async findByIdIncludeSensitiveServiceAccountKey({ id }: { id: string }) {
@@ -132,8 +133,43 @@ export class DomainWideDelegationRepository {
     return domainWideDelegation;
   }
 
+  static async findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey({
+    email,
+  }: {
+    email: string;
+  }) {
+    const log = repositoryLogger.getSubLogger({
+      prefix: ["findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey"],
+    });
+    log.debug("called with", { email });
+    const organization = await OrganizationRepository.findByMemberEmail({ email });
+    if (!organization) {
+      log.debug("Email not found in any organization:", email);
+      return null;
+    }
+
+    const emailDomain = email.split("@")[1];
+    const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
+      where: {
+        organizationId_domain: {
+          organizationId: organization.id,
+          domain: emailDomain,
+        },
+      },
+      select: domainWideDelegationSelectIncludesServiceAccountKey,
+    });
+
+    return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
+  }
+
   static async findByUser({ user }: { user: { email: string } }) {
     return await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmail({ email: user.email });
+  }
+
+  static async findByUserIncludeSensitiveServiceAccountKey({ user }: { user: { email: string } }) {
+    return await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey(
+      { email: user.email }
+    );
   }
 
   static async findAllByDomain({ domain }: { domain: string }) {
