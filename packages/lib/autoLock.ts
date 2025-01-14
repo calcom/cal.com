@@ -1,5 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
 import type { RatelimitResponse } from "@unkey/ratelimit";
-import crypto from "crypto";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { RedisService } from "@calcom/features/redis/RedisService";
@@ -10,7 +10,7 @@ const DEFAULT_AUTOLOCK_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
 interface HandleAutoLockInput {
   identifier: string;
-  identifierType: "ip" | "email" | "userId" | "SMS" | "apiKey";
+  identifierType: "email" | "userId" | "SMS" | "apiKey";
   rateLimitResponse: RatelimitResponse;
   identifierKeyword?: string; // For instances where we have like "addSecondaryEmail.${email}"
   autolockThreshold?: number;
@@ -34,13 +34,9 @@ export async function handleAutoLock({
     return false;
   }
 
-  let identifier = identifierKeyword
+  const identifier = identifierKeyword
     ? _identifier.toString().replace(`${identifierKeyword}.`, "")
     : _identifier;
-
-  if (["ip"].includes(identifierType)) {
-    identifier = crypto.createHash("sha256").update(identifier).digest("hex");
-  }
 
   if (!success && remaining <= 0) {
     const redis = new RedisService();
@@ -72,7 +68,7 @@ export async function handleAutoLock({
   return false;
 }
 
-async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "apiKey", identifier: string) {
+async function lockUser(identifierType: "email" | "userId" | "SMS" | "apiKey", identifier: string) {
   const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
 
   if (!UPSTASH_ENV_FOUND) {
@@ -80,24 +76,20 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "api
     return;
   }
 
-  const redis = new RedisService();
+  let user: { id: number; email: string; username?: string } | null;
 
   switch (identifierType) {
     case "userId":
-      await prisma.user.update({
+      user = await prisma.user.update({
         where: { id: Number(identifier) },
         data: { locked: true },
       });
       break;
     case "email":
-      await prisma.user.update({
+      user = await prisma.user.update({
         where: { email: identifier },
         data: { locked: true },
       });
-      break;
-    case "ip":
-      await redis.set(`ip:${identifier}`, "locked");
-      await redis.expire(`ip:${identifier}`, Math.floor(DEFAULT_AUTOLOCK_DURATION / 1000));
       break;
     case "apiKey":
       const hashedApiKey = hashAPIKey(identifier);
@@ -105,10 +97,12 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "api
         where: { hashedKey: hashedApiKey },
         include: {
           user: {
-            select: { id: true },
+            select: { id: true, email: true, username: true },
           },
         },
       });
+
+      user = apiKey?.user;
 
       if (!apiKey || !apiKey.user) {
         throw new Error("No user found for this API key.");
@@ -124,25 +118,17 @@ async function lockUser(identifierType: "ip" | "email" | "userId" | "SMS" | "api
     default:
       throw new Error("Invalid identifier type for locking");
   }
-}
 
-async function checkIpIsLocked(ip: string): Promise<boolean> {
-  const UPSTASH_ENV_FOUND = process.env.UPSTASH_REDIS_REST_TOKEN && process.env.UPSTASH_REDIS_REST_URL;
+  if (user) {
+    if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return;
 
-  if (!UPSTASH_ENV_FOUND) {
-    return false;
-  }
-
-  const redis = new RedisService();
-  const hashedIp = crypto.createHash("sha256").update(ip).digest("hex");
-
-  const isLocked = await redis.get(`ip:${hashedIp}`);
-  return isLocked === "locked";
-}
-
-export async function checkIpIsLockedAndThrowError(ip: string) {
-  const isLocked = await checkIpIsLocked(ip);
-  if (isLocked) {
-    throw new Error("You have been locked due to suspicious activity.");
+    Sentry.setUser({
+      id: user.id.toString(),
+      email: user.email,
+      username: user.username,
+    });
+    Sentry.setTag("admin_notify", true);
+    Sentry.setTag("auto_lock", true);
+    Sentry.captureMessage(`User ${user.email} has been locked due to suspicious activity.`, "warning");
   }
 }

@@ -1,5 +1,5 @@
+import * as Sentry from "@sentry/nextjs";
 import type { RatelimitResponse } from "@unkey/ratelimit";
-import crypto from "crypto";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
@@ -23,6 +23,12 @@ vi.mock("@calcom/prisma", () => ({
     },
   },
 }));
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+  captureMessage: vi.fn(),
+  setUser: vi.fn(),
+  setTag: vi.fn(),
+}));
 
 describe("autoLock", () => {
   const mockRedis = {
@@ -40,11 +46,13 @@ describe("autoLock", () => {
     // Mock environment variables
     process.env.UPSTASH_REDIS_REST_TOKEN = "test-token";
     process.env.UPSTASH_REDIS_REST_URL = "test-url";
+    process.env.NEXT_PUBLIC_SENTRY_DSN = "sentry-dsn";
   });
 
   afterEach(() => {
     delete process.env.UPSTASH_REDIS_REST_TOKEN;
     delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.NEXT_PUBLIC_SENTRY_DSN;
   });
 
   describe("handleAutoLock", () => {
@@ -153,28 +161,6 @@ describe("autoLock", () => {
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it("should lock IP address correctly", async () => {
-      const rateLimitResponse: RatelimitResponse = {
-        success: false,
-        remaining: 0,
-        limit: 5,
-        reset: 0,
-      };
-
-      mockRedis.get.mockResolvedValue("4");
-      const testIp = "192.168.1.1";
-      const hashedIp = crypto.createHash("sha256").update(testIp).digest("hex");
-
-      await handleAutoLock({
-        identifier: testIp,
-        identifierType: "ip",
-        rateLimitResponse,
-      });
-
-      expect(mockRedis.set).toHaveBeenCalledWith(`ip:${hashedIp}`, "locked");
-      expect(mockRedis.expire).toHaveBeenCalledWith(`ip:${hashedIp}`, 3600);
-    });
-
     it("should lock API key and associated user", async () => {
       const rateLimitResponse: RatelimitResponse = {
         success: false,
@@ -230,28 +216,6 @@ describe("autoLock", () => {
           rateLimitResponse,
         });
       }).rejects.toThrow("No user found for this API key.");
-    });
-
-    it("should increment counter for IP address", async () => {
-      const rateLimitResponse: RatelimitResponse = {
-        success: false,
-        remaining: 0,
-        limit: 5,
-        reset: 0,
-      };
-
-      mockRedis.get.mockResolvedValue("2");
-      const testIp = "192.168.1.1";
-      const hashedIp = crypto.createHash("sha256").update(testIp).digest("hex");
-
-      await handleAutoLock({
-        identifier: testIp,
-        identifierType: "ip",
-        rateLimitResponse,
-      });
-
-      expect(mockRedis.set).toHaveBeenCalledWith(`autolock:ip:${hashedIp}.count`, "3");
-      expect(mockRedis.expire).toHaveBeenCalledWith(`autolock:ip:${hashedIp}.count`, 3600);
     });
 
     it("should not increment counter when rate limit is successful", async () => {
@@ -356,24 +320,103 @@ describe("autoLock", () => {
         data: { locked: true },
       });
     });
+    it("should notify Sentry when locking a user by email", async () => {
+      mockRedis.get.mockResolvedValueOnce("4");
+      vi.mocked(prisma.user.update).mockResolvedValueOnce({
+        id: 1,
+        email: "test@example.com",
+        username: "testuser",
+      });
 
-    it("should not perform database updates for IP locks", async () => {
       const rateLimitResponse: RatelimitResponse = {
         success: false,
         remaining: 0,
-        limit: 5,
-        reset: 0,
+        limit: 10,
+        reset: Date.now(),
       };
 
-      mockRedis.get.mockResolvedValue("4");
-
       await handleAutoLock({
-        identifier: "192.168.1.1",
-        identifierType: "ip",
+        identifier: "test@example.com",
+        identifierType: "email",
         rateLimitResponse,
       });
 
-      expect(prisma.user.update).not.toHaveBeenCalled();
+      expect(Sentry.setUser).toHaveBeenCalledWith({
+        id: "1",
+        email: "test@example.com",
+        username: "testuser",
+      });
+      expect(Sentry.setTag).toHaveBeenCalledWith("admin_notify", true);
+      expect(Sentry.setTag).toHaveBeenCalledWith("auto_lock", true);
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        "User test@example.com has been locked due to suspicious activity.",
+        "warning"
+      );
+    });
+
+    it("should notify Sentry when locking a user by API key", async () => {
+      mockRedis.get.mockResolvedValueOnce("4");
+      vi.mocked(prisma.apiKey.findUnique).mockResolvedValueOnce({
+        id: 1,
+        hashedKey: "hashed-key",
+        user: {
+          id: 2,
+          email: "api@example.com",
+          username: "apiuser",
+        },
+      });
+
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 10,
+        reset: Date.now(),
+      };
+
+      await handleAutoLock({
+        identifier: "test-api-key",
+        identifierType: "apiKey",
+        rateLimitResponse,
+      });
+
+      expect(Sentry.setUser).toHaveBeenCalledWith({
+        id: "2",
+        email: "api@example.com",
+        username: "apiuser",
+      });
+      expect(Sentry.setTag).toHaveBeenCalledWith("admin_notify", true);
+      expect(Sentry.setTag).toHaveBeenCalledWith("auto_lock", true);
+      expect(Sentry.captureMessage).toHaveBeenCalledWith(
+        "User api@example.com has been locked due to suspicious activity.",
+        "warning"
+      );
+    });
+
+    it("should skip Sentry notification when SENTRY_DSN is not set", async () => {
+      delete process.env.NEXT_PUBLIC_SENTRY_DSN;
+      mockRedis.get.mockResolvedValueOnce("4");
+      vi.mocked(prisma.user.update).mockResolvedValueOnce({
+        id: 1,
+        email: "test@example.com",
+        username: "testuser",
+      });
+
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 10,
+        reset: Date.now(),
+      };
+
+      await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+      });
+
+      expect(Sentry.setUser).not.toHaveBeenCalled();
+      expect(Sentry.setTag).not.toHaveBeenCalled();
+      expect(Sentry.captureMessage).not.toHaveBeenCalled();
     });
   });
 });
