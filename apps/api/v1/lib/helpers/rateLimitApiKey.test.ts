@@ -66,6 +66,7 @@ describe("rateLimitApiKey middleware", () => {
       limit: 100,
       remaining: 99,
       reset: Date.now(),
+      success: true,
     };
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
