@@ -1,3 +1,4 @@
+import type { RatelimitResponse } from "@unkey/ratelimit";
 import type { Request, Response } from "express";
 import type { NextApiResponse, NextApiRequest } from "next";
 import { createMocks } from "node-mocks-http";
@@ -61,7 +62,7 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
     });
 
-    const rateLimiterResponse = {
+    const rateLimiterResponse: RatelimitResponse = {
       limit: 100,
       remaining: 99,
       reset: Date.now(),
@@ -69,9 +70,11 @@ describe("rateLimitApiKey middleware", () => {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    (checkRateLimitAndThrowError as any).mockImplementationOnce(({ onRateLimiterResponse }) => {
-      onRateLimiterResponse(rateLimiterResponse);
-    });
+    (checkRateLimitAndThrowError as any).mockImplementationOnce(
+      ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
+        onRateLimiterResponse(rateLimiterResponse);
+      }
+    );
 
     // @ts-expect-error weird typing between middleware and createMocks
     await rateLimitApiKey(req, res, vi.fn() as any);
@@ -102,7 +105,7 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
     });
 
-    const rateLimiterResponse = {
+    const rateLimiterResponse: RatelimitResponse = {
       success: false,
       remaining: 0,
       limit: 100,
@@ -110,9 +113,11 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
-    (checkRateLimitAndThrowError as any).mockImplementationOnce(({ onRateLimiterResponse }) => {
-      onRateLimiterResponse(rateLimiterResponse);
-    });
+    (checkRateLimitAndThrowError as any).mockImplementationOnce(
+      ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
+        onRateLimiterResponse(rateLimiterResponse);
+      }
+    );
 
     // Mock handleAutoLock to indicate the key was locked
     vi.mocked(handleAutoLock).mockResolvedValueOnce(true);
@@ -136,7 +141,7 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
     });
 
-    const rateLimiterResponse = {
+    const rateLimiterResponse: RatelimitResponse = {
       success: false,
       remaining: 0,
       limit: 100,
@@ -144,9 +149,11 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
-    (checkRateLimitAndThrowError as any).mockImplementationOnce(({ onRateLimiterResponse }) => {
-      onRateLimiterResponse(rateLimiterResponse);
-    });
+    (checkRateLimitAndThrowError as any).mockImplementationOnce(
+      ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
+        onRateLimiterResponse(rateLimiterResponse);
+      }
+    );
 
     // Mock handleAutoLock to throw a "No user found" error
     vi.mocked(handleAutoLock).mockRejectedValueOnce(new Error("No user found for this API key."));
@@ -170,7 +177,7 @@ describe("rateLimitApiKey middleware", () => {
       query: { apiKey: "test-key" },
     });
 
-    const rateLimiterResponse = {
+    const rateLimiterResponse: RatelimitResponse = {
       success: false,
       remaining: 0,
       limit: 100,
@@ -178,9 +185,11 @@ describe("rateLimitApiKey middleware", () => {
     };
 
     // Mock rate limiter to trigger the onRateLimiterResponse callback
-    (checkRateLimitAndThrowError as any).mockImplementationOnce(({ onRateLimiterResponse }) => {
-      onRateLimiterResponse(rateLimiterResponse);
-    });
+    (checkRateLimitAndThrowError as any).mockImplementationOnce(
+      ({ onRateLimiterResponse }: { onRateLimiterResponse: (response: RatelimitResponse) => void }) => {
+        onRateLimiterResponse(rateLimiterResponse);
+      }
+    );
 
     // Mock handleAutoLock to indicate the key was not locked
     vi.mocked(handleAutoLock).mockResolvedValueOnce(false);
