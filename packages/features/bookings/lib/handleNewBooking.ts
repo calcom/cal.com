@@ -1539,7 +1539,13 @@ async function handler(
             },
             cancelledMembers,
             eventType.metadata,
-            !!reassignedTo ? { name: reassignedTo.name, email: reassignedTo.email } : undefined
+            !!reassignedTo
+              ? {
+                  name: reassignedTo.name,
+                  email: reassignedTo.email,
+                  ...(reqBody.rescheduledBy === bookerEmail && { reason: "Booker Rescheduled" }),
+                }
+              : undefined
           );
         }
       } else {
