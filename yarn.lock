@@ -3505,7 +3505,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.79"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.81"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3548,6 +3548,7 @@ __metadata:
     ioredis: ^5.3.2
     jest: ^29.7.0
     jest-date-mock: ^1.0.10
+    jsforce: ^1.11.0
     luxon: ^3.4.4
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
@@ -4270,6 +4271,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/insihts@workspace:packages/app-store/insihts":
+  version: 0.0.0-use.local
+  resolution: "@calcom/insihts@workspace:packages/app-store/insihts"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/intercom@workspace:packages/app-store/intercom":
   version: 0.0.0-use.local
   resolution: "@calcom/intercom@workspace:packages/app-store/intercom"
@@ -4502,14 +4512,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.79":
-  version: 0.0.79
-  resolution: "@calcom/platform-libraries@npm:0.0.79"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.81":
+  version: 0.0.81
+  resolution: "@calcom/platform-libraries@npm:0.0.81"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 078aa998c58039cb73040fbb7f6ca271231e1000f81dd7c60855efe6f6e981c4c1eaf89cf9a216140626cb0907957f2a9872232ecb3f909ef4fca5aa3eaa2fd7
+  checksum: edb6f580419cc576f0fa489a410c09fdd445ac0b8f57b0c37be1e3a3c40b4ad661d22673abe5a6e63499b2586ed5a4fa457d86588cad785f72271d3e0791d1c2
   languageName: node
   linkType: hard
 
@@ -4654,8 +4664,7 @@ __metadata:
     "@calcom/lib": "*"
     "@calcom/prisma": "*"
     "@calcom/types": "*"
-    "@types/jsforce": ^1.11.0
-    jsforce: ^1.11.0
+    "@jsforce/jsforce-node": ^3.6.3
   languageName: unknown
   linkType: soft
 
@@ -7652,6 +7661,24 @@ __metadata:
   version: 7.1.3
   resolution: "@jsdevtools/ono@npm:7.1.3"
   checksum: 2297fcd472ba810bffe8519d2249171132844c7174f3a16634f9260761c8c78bc0428a4190b5b6d72d45673c13918ab9844d706c3ed4ef8f62ab11a2627a08ad
+  languageName: node
+  linkType: hard
+
+"@jsforce/jsforce-node@npm:^3.6.3":
+  version: 3.6.3
+  resolution: "@jsforce/jsforce-node@npm:3.6.3"
+  dependencies:
+    "@sindresorhus/is": ^4
+    base64url: ^3.0.1
+    csv-parse: ^5.5.2
+    csv-stringify: ^6.4.4
+    faye: ^1.4.0
+    form-data: ^4.0.0
+    https-proxy-agent: ^5.0.0
+    multistream: ^3.1.0
+    node-fetch: ^2.6.1
+    xml2js: ^0.6.2
+  checksum: 4a0e66fd4d2c2b7d8d8511abf0a4432df353e10cd483223b58b7b1918601c6382f87b2191859eb1381f25cebdba4e7b262af39fba2c1ab5e7c0331c49df5376f
   languageName: node
   linkType: hard
 
@@ -13553,6 +13580,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sindresorhus/is@npm:^4":
+  version: 4.6.0
+  resolution: "@sindresorhus/is@npm:4.6.0"
+  checksum: 83839f13da2c29d55c97abc3bc2c55b250d33a0447554997a85c539e058e57b8da092da396e252b11ec24a0279a0bed1f537fa26302209327060643e327f81d2
+  languageName: node
+  linkType: hard
+
 "@sindresorhus/is@npm:^5.2.0":
   version: 5.6.0
   resolution: "@sindresorhus/is@npm:5.6.0"
@@ -16286,15 +16320,6 @@ __metadata:
     "@types/tough-cookie": "*"
     parse5: ^7.0.0
   checksum: 915f619111dadd8d1bb7f12b6736c9d2e486911e1aed086de5fb003e7e40ae1e368da322dc04f2122ef47faf40ca75b9315ae2df3e8011f882dcf84660fb0d68
-  languageName: node
-  linkType: hard
-
-"@types/jsforce@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "@types/jsforce@npm:1.11.0"
-  dependencies:
-    "@types/node": ">=4.0"
-  checksum: 5d303d33915ba14ff23caeeeff7c729218e1e22dc8d53b0ffa33346c7a84f7bbfb95ed3d62e1344a8a37d57ebf93f4dfd549531a0e59a765b4e679ec05e20888
   languageName: node
   linkType: hard
 
@@ -19231,9 +19256,9 @@ __metadata:
   linkType: hard
 
 "aws4@npm:^1.8.0":
-  version: 1.11.0
-  resolution: "aws4@npm:1.11.0"
-  checksum: 5a00d045fd0385926d20ebebcfba5ec79d4482fe706f63c27b324d489a04c68edb0db99ed991e19eda09cb8c97dc2452059a34d97545cebf591d7a2b5a10999f
+  version: 1.13.2
+  resolution: "aws4@npm:1.13.2"
+  checksum: 9ac924e4a91c088b4928ea86b68d8c4558b0e6289ccabaae0e3e96a611bd75277c2eab6e3965821028768700516f612b929a5ce822f33a8771f74ba2a8cedb9c
   languageName: node
   linkType: hard
 
@@ -19565,6 +19590,13 @@ __metadata:
   version: 2.3.3
   resolution: "base64-url@npm:2.3.3"
   checksum: 3b231b4b5e82ae8834a1616a53b6eb5666e5604072bc0d631826be28ce0c8181cc1fbbb96591a3060777bff3c6000c70068c4f89ee29145e24011b0531cc5353
+  languageName: node
+  linkType: hard
+
+"base64url@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "base64url@npm:3.0.1"
+  checksum: a77b2a3a526b3343e25be424de3ae0aa937d78f6af7c813ef9020ef98001c0f4e2323afcd7d8b2d2978996bf8c42445c3e9f60c218c622593e5fdfd54a3d6e18
   languageName: node
   linkType: hard
 
@@ -22341,6 +22373,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"csv-parse@npm:^5.5.2":
+  version: 5.6.0
+  resolution: "csv-parse@npm:5.6.0"
+  checksum: 173e176bdaf212bab37d0f6d39a06d039d24a1c0ee40b9f1023ebf8b36095934807deeb493c0fb58592b39b0682ccd0be5c9e8d2b137c08807e7031595ea7a51
+  languageName: node
+  linkType: hard
+
 "csv-stringify@npm:^1.0.4":
   version: 1.1.2
   resolution: "csv-stringify@npm:1.1.2"
@@ -22354,6 +22393,13 @@ __metadata:
   version: 5.6.5
   resolution: "csv-stringify@npm:5.6.5"
   checksum: f93e1444857416081de3d86765b62e4c4f7c110974ad6bbcb0031d7db39b6624847ac9ee5705726e7011346f32f3696f27299b74b23a6c2b083adff0dd2755fe
+  languageName: node
+  linkType: hard
+
+"csv-stringify@npm:^6.4.4":
+  version: 6.5.2
+  resolution: "csv-stringify@npm:6.5.2"
+  checksum: b3b64d18866289d25bf2880c8d511cb685460f7a65f8ac8523ed45cb97a1fe792d52a1da0eb9ae238d1e7f83ae57dbc4ce1e3047333e24e4ec486b9e8bd3f9bf
   languageName: node
   linkType: hard
 
@@ -30747,8 +30793,8 @@ __metadata:
   linkType: hard
 
 "jsforce@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "jsforce@npm:1.11.0"
+  version: 1.11.1
+  resolution: "jsforce@npm:1.11.1"
   dependencies:
     base64-url: ^2.2.0
     co-prompt: ^1.0.0
@@ -30764,10 +30810,10 @@ __metadata:
     promise: ^7.1.1
     readable-stream: ^2.1.0
     request: ^2.72.0
-    xml2js: ^0.4.16
+    xml2js: ^0.5.0
   bin:
     jsforce: bin/jsforce
-  checksum: d49a69d2a9aee38edb8be09216b2723e348ecffbcd25946b3ec24de2eb64cf18648d4711f1304a39171b5f56f51280ac197843c4526284c5cd3792e62fb27de7
+  checksum: 6a1e0004dd266649eaf0e0bb536f3e68fc608fa2f1ec2954ee90f8169a0c6cd240eec0de0abd7d420a94e1d41fdaa36a6d09084a54d855f00576eaeaf650551c
   languageName: node
   linkType: hard
 
@@ -33330,6 +33376,16 @@ __metadata:
     inherits: ^2.0.1
     readable-stream: ^2.0.5
   checksum: 4c5c8e7c8591048d74e6f6a6c9f914782d65109d152f78216faedf49c29f3223221049e8993f419a6bb94b4a9a7bfd676a2a98a0e110c77787909df2c715e0d0
+  languageName: node
+  linkType: hard
+
+"multistream@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "multistream@npm:3.1.0"
+  dependencies:
+    inherits: ^2.0.1
+    readable-stream: ^3.4.0
+  checksum: a2a2b922a53f0f00b5d9288b2a724aac162049da9d8c666bec241ec7c2d762628905df901fb264eb1a30f7f4100cf06ce118189cd895ef71f074fc6d461a6e6f
   languageName: node
   linkType: hard
 
@@ -37005,7 +37061,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"psl@npm:^1.1.28, psl@npm:^1.1.33, psl@npm:^1.1.7":
+"psl@npm:^1.1.28":
+  version: 1.15.0
+  resolution: "psl@npm:1.15.0"
+  dependencies:
+    punycode: ^2.3.1
+  checksum: 6f777d82eecfe1c2406dadbc15e77467b186fec13202ec887a45d0209a2c6fca530af94a462a477c3c4a767ad892ec9ede7c482d98f61f653dd838b50e89dc15
+  languageName: node
+  linkType: hard
+
+"psl@npm:^1.1.33, psl@npm:^1.1.7":
   version: 1.8.0
   resolution: "psl@npm:1.8.0"
   checksum: 6150048ed2da3f919478bee8a82f3828303bc0fc730fb015a48f83c9977682c7b28c60ab01425a72d82a2891a1681627aa530a991d50c086b48a3be27744bde7
@@ -38288,7 +38353,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"readable-stream@npm:^2.0.0, readable-stream@npm:^2.0.5, readable-stream@npm:^2.1.0, readable-stream@npm:^2.2.2, readable-stream@npm:~2.3.6":
+"readable-stream@npm:^2.0.0, readable-stream@npm:^2.0.5, readable-stream@npm:^2.2.2, readable-stream@npm:~2.3.6":
   version: 2.3.7
   resolution: "readable-stream@npm:2.3.7"
   dependencies:
@@ -38300,6 +38365,21 @@ __metadata:
     string_decoder: ~1.1.1
     util-deprecate: ~1.0.1
   checksum: e4920cf7549a60f8aaf694d483a0e61b2a878b969d224f89b3bc788b8d920075132c4b55a7494ee944c7b6a9a0eada28a7f6220d80b0312ece70bbf08eeca755
+  languageName: node
+  linkType: hard
+
+"readable-stream@npm:^2.1.0":
+  version: 2.3.8
+  resolution: "readable-stream@npm:2.3.8"
+  dependencies:
+    core-util-is: ~1.0.0
+    inherits: ~2.0.3
+    isarray: ~1.0.0
+    process-nextick-args: ~2.0.0
+    safe-buffer: ~5.1.1
+    string_decoder: ~1.1.1
+    util-deprecate: ~1.0.1
+  checksum: 65645467038704f0c8aaf026a72fbb588a9e2ef7a75cd57a01702ee9db1c4a1e4b03aaad36861a6a0926546a74d174149c8c207527963e0c2d3eee2f37678a42
   languageName: node
   linkType: hard
 
@@ -40700,8 +40780,8 @@ __metadata:
   linkType: hard
 
 "sshpk@npm:^1.7.0":
-  version: 1.17.0
-  resolution: "sshpk@npm:1.17.0"
+  version: 1.18.0
+  resolution: "sshpk@npm:1.18.0"
   dependencies:
     asn1: ~0.2.3
     assert-plus: ^1.0.0
@@ -40716,7 +40796,7 @@ __metadata:
     sshpk-conv: bin/sshpk-conv
     sshpk-sign: bin/sshpk-sign
     sshpk-verify: bin/sshpk-verify
-  checksum: ba109f65c8e6c35133b8e6ed5576abeff8aa8d614824b7275ec3ca308f081fef483607c28d97780c1e235818b0f93ed8c8b56d0a5968d5a23fd6af57718c7597
+  checksum: 01d43374eee3a7e37b3b82fdbecd5518cbb2e47ccbed27d2ae30f9753f22bd6ffad31225cb8ef013bc3fb7785e686cea619203ee1439a228f965558c367c3cfa
   languageName: node
   linkType: hard
 
@@ -45413,7 +45493,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xml2js@npm:0.6.2":
+"xml2js@npm:0.6.2, xml2js@npm:^0.6.2":
   version: 0.6.2
   resolution: "xml2js@npm:0.6.2"
   dependencies:
@@ -45423,13 +45503,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xml2js@npm:^0.4.16, xml2js@npm:^0.4.5":
+"xml2js@npm:^0.4.5":
   version: 0.4.23
   resolution: "xml2js@npm:0.4.23"
   dependencies:
     sax: ">=0.6.0"
     xmlbuilder: ~11.0.0
   checksum: ca0cf2dfbf6deeaae878a891c8fbc0db6fd04398087084edf143cdc83d0509ad0fe199b890f62f39c4415cf60268a27a6aed0d343f0658f8779bd7add690fa98
+  languageName: node
+  linkType: hard
+
+"xml2js@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "xml2js@npm:0.5.0"
+  dependencies:
+    sax: ">=0.6.0"
+    xmlbuilder: ~11.0.0
+  checksum: 1aa71d62e5bc2d89138e3929b9ea46459157727759cbc62ef99484b778641c0cd21fb637696c052d901a22f82d092a3e740a16b4ce218e81ac59b933535124ea
   languageName: node
   linkType: hard
 
