@@ -54,10 +54,8 @@ export const getWho = (
       return `
 ${attendee?.name || t("guest")}
 ${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
-
 `;
     })
-
     .join("");
 
   const organizer = `
