@@ -1642,7 +1642,6 @@ export const insightsRouter = router({
     } catch (e) {
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
     }
-    return { data: "", filename: "" };
   }),
 
   getRoutingFormsForFilters: userBelongsToTeamProcedure
