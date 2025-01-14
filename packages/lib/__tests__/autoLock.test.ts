@@ -253,6 +253,63 @@ describe("autoLock", () => {
       expect(mockRedis.set).toHaveBeenCalledWith(`autolock:ip:${hashedIp}.count`, "3");
       expect(mockRedis.expire).toHaveBeenCalledWith(`autolock:ip:${hashedIp}.count`, 3600);
     });
+
+    it("should not increment counter when rate limit is successful", async () => {
+      const rateLimitResponse: RatelimitResponse = {
+        success: true,
+        remaining: 5,
+        limit: 5,
+        reset: 0,
+      };
+
+      await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+      });
+
+      expect(mockRedis.get).not.toHaveBeenCalled();
+      expect(mockRedis.set).not.toHaveBeenCalled();
+    });
+
+    it("should initialize counter when it doesn't exist", async () => {
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 5,
+        reset: 0,
+      };
+
+      mockRedis.get.mockResolvedValue(null);
+
+      await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+      });
+
+      expect(mockRedis.set).toHaveBeenCalledWith("autolock:email:test@example.com.count", "1");
+      expect(mockRedis.expire).toHaveBeenCalledWith("autolock:email:test@example.com.count", 3600);
+    });
+
+    it("should handle Redis errors gracefully", async () => {
+      const rateLimitResponse: RatelimitResponse = {
+        success: false,
+        remaining: 0,
+        limit: 5,
+        reset: 0,
+      };
+
+      mockRedis.get.mockRejectedValue(new Error("Redis connection error"));
+
+      const result = await handleAutoLock({
+        identifier: "test@example.com",
+        identifierType: "email",
+        rateLimitResponse,
+      });
+
+      expect(result).toBe(false);
+    });
   });
 
   describe("lockUser", () => {
