@@ -7,14 +7,7 @@ import type { PageProps } from "~/team/type-view";
 import TypePage from "~/team/type-view";
 
 const Page = (props: PageProps) => {
-  const {
-    eventData,
-    slug,
-    user,
-    booking,
-    isBrandingHidden,
-    isSEOIndexable,
-  } = props;
+  const { eventData, slug, user, booking, isBrandingHidden, isSEOIndexable } = props;
   const { profile, users, hidden, title } = eventData;
 
   return (
