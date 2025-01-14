@@ -2,7 +2,6 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import {
   getOrgDomainConfigFromHostname,
