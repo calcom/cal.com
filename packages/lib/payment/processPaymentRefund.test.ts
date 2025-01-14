@@ -1,14 +1,15 @@
+import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { getPaymentAppData } from "../getPaymentAppData";
 import { handlePaymentRefund } from "./handlePaymentRefund";
 import { processPaymentRefund } from "./processPaymentRefund";
 import { RefundPolicy } from "./types";
 
-vi.mock('@calcom/lib/getPaymentAppData', () => ({
+vi.mock("@calcom/lib/getPaymentAppData", () => ({
   getPaymentAppData: vi.fn(),
 }));
 
@@ -23,7 +24,7 @@ describe("processPaymentRefund", () => {
     {
       id: 1,
       uid: "unique-id-1",
-      appId: "123", 
+      appId: "123",
       bookingId: 456,
       amount: 1000,
       fee: 50,
