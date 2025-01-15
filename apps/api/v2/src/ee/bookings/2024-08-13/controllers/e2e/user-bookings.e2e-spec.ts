@@ -315,7 +315,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
       });
 
-      it.only("should create a booking", async () => {
+      it("should create a booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
           eventTypeId,
