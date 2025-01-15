@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as hubspot from "@hubspot/api-client";
-import { AssociationTypes } from "@hubspot/api-client";
+import { Client, AssociationTypes } from "@hubspot/api-client";
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import { FilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import type {
@@ -23,14 +22,9 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
 
-const hubspotClient = new hubspot.Client();
-
-interface CustomPublicObjectInput extends SimplePublicObjectInput {
-  id?: string;
-}
+const hubspotClient = new Client();
 
 export default class HubspotCalendarService implements CRM {
-  private url = "";
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
   private log: typeof logger;
