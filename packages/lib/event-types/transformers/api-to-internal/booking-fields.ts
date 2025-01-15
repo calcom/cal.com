@@ -84,6 +84,7 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
     return {
       ...systemBeforeFieldPhone,
       required: field.required,
+      hidden: field.hidden,
     };
   }
 
