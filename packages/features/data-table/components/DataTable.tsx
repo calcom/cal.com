@@ -23,7 +23,8 @@ export type DataTableProps<TData, TValue> = {
   onScroll?: (e: Pick<React.UIEvent<HTMLDivElement, UIEvent>, "target">) => void;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
-  "data-testid"?: string;
+  testId?: string;
+  bodyTestId?: string;
   hideHeader?: boolean;
   children?: React.ReactNode;
   identifier?: string;
@@ -41,6 +42,8 @@ export function DataTable<TData, TValue>({
   hideHeader,
   identifier: _identifier,
   enableColumnResizing,
+  testId,
+  bodyTestId,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const pathname = usePathname() as string | null;
@@ -91,7 +94,7 @@ export function DataTable<TData, TValue>({
         gridTemplateAreas: "'header' 'body' 'footer'",
         ...rest.style,
       }}
-      data-testid={rest["data-testid"] ?? "data-table"}>
+      data-testid={testId ?? "data-table"}>
       <div
         ref={tableContainerRef}
         onScroll={onScroll}
@@ -168,6 +171,7 @@ export function DataTable<TData, TValue>({
               table={table}
               rowVirtualizer={rowVirtualizer}
               rows={rows}
+              testId={bodyTestId}
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
@@ -177,6 +181,7 @@ export function DataTable<TData, TValue>({
               table={table}
               rowVirtualizer={rowVirtualizer}
               rows={rows}
+              testId={bodyTestId}
               variant={variant}
               isPending={isPending}
               onRowMouseclick={onRowMouseclick}
@@ -195,6 +200,7 @@ const MemoizedTableBody = memo(
     prev.table.options.data === next.table.options.data &&
     prev.rowVirtualizer === next.rowVirtualizer &&
     prev.rows === next.rows &&
+    prev.testId === next.testId &&
     prev.variant === next.variant &&
     prev.isPending === next.isPending &&
     prev.onRowMouseclick === next.onRowMouseclick
@@ -204,6 +210,7 @@ type DataTableBodyProps<TData> = {
   table: ReactTableType<TData>;
   rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
   rows: Row<TData>[];
+  testId?: string;
   variant?: "default" | "compact";
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
@@ -213,13 +220,17 @@ function DataTableBody<TData>({
   table,
   rowVirtualizer,
   rows,
+  testId,
   variant,
   isPending,
   onRowMouseclick,
 }: DataTableBodyProps<TData>) {
   const virtualRows = rowVirtualizer.getVirtualItems();
   return (
-    <TableBody className="relative grid" style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+    <TableBody
+      className="relative grid"
+      data-testid={testId}
+      style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
       {virtualRows && !isPending ? (
         virtualRows.map((virtualRow) => {
           const row = rows[virtualRow.index] as Row<TData>;

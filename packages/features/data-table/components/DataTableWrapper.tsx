@@ -12,6 +12,7 @@ import {
 
 export type DataTableWrapperProps<TData, TValue> = {
   testId?: string;
+  bodyTestId?: string;
   table: ReactTableType<TData>;
   isPending: boolean;
   hasNextPage: boolean;
@@ -27,6 +28,7 @@ export type DataTableWrapperProps<TData, TValue> = {
 
 export function DataTableWrapper<TData, TValue>({
   testId,
+  bodyTestId,
   table,
   isPending,
   hasNextPage,
@@ -49,7 +51,8 @@ export function DataTableWrapper<TData, TValue>({
 
   return (
     <DataTable
-      data-testid={testId}
+      testId={testId}
+      bodyTestId={bodyTestId}
       table={table}
       tableContainerRef={tableContainerRef}
       isPending={isPending}

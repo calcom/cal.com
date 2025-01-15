@@ -247,6 +247,7 @@ function BookingsContent({ status }: BookingsProps) {
               <DataTableWrapper
                 table={table}
                 testId={`${status}-bookings`}
+                bodyTestId="bookings"
                 hideHeader={true}
                 isPending={query.isFetching && !flatData}
                 hasNextPage={query.hasNextPage}
