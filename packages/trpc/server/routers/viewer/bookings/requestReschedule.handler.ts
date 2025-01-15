@@ -12,13 +12,14 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
-import { getUsersCredentialsForCalendarService } from "@calcom/lib/server/getUsersCredentials";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -223,9 +224,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentialsForCalendarService = await getUsersCredentialsForCalendarService(user);
+  const credentials = await getUsersCredentials(user);
   const credentialsMap = new Map();
-  credentialsForCalendarService.forEach((credential) => {
+  credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);
   });
   const bookingRefsFiltered: BookingReference[] = bookingToReschedule.references.filter((ref) =>
@@ -239,12 +240,24 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
       if (bookingRef.type.endsWith("_calendar")) {
         const calendar = await getCalendar(
-          credentialsForCalendarService.find((cred) => cred.id === bookingRef?.credentialId) || null
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          })
         );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
         return deleteMeeting(
-          credentialsForCalendarService.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          getDwdOrRegularCredential({
+            credentials,
+            id: {
+              credentialId: bookingRef?.credentialId,
+              dwdId: bookingRef?.domainWideDelegationCredentialId,
+            },
+          }),
           bookingRef.uid
         );
       }

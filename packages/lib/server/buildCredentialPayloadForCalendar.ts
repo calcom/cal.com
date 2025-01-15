@@ -1,6 +1,6 @@
 import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 
-export function buildCredentialPayloadForCalendar({
+export function buildCredentialPayloadForPrisma({
   credentialId,
   domainWideDelegationCredentialId,
 }: {

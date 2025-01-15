@@ -32,7 +32,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
     },
   });
 
-  const domainWideDelegationCredentials = await getAllDwdCredentialsForUserByAppType({
+  const dwdCredentials = await getAllDwdCredentialsForUserByAppType({
     user: { id: user.id, email: user.email },
     appType: input.appType,
   });
@@ -40,7 +40,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
   // For app pages need to return which teams the user can install the app on
   // return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
   return {
-    credentials: [...credentials, ...domainWideDelegationCredentials],
+    credentials: [...dwdCredentials, ...credentials],
     userAdminTeams: userAdminTeamsIds,
   };
 };

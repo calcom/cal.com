@@ -1,7 +1,8 @@
 import async from "async";
 
-import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
-import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { buildAllCredentials } from "@calcom/lib/domainWideDelegation/server";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { refreshCredential } from "./refreshCredential";
 
@@ -11,8 +12,14 @@ import { refreshCredential } from "./refreshCredential";
  * @param credentials
  */
 export async function refreshCredentials(
-  credentials: Array<CredentialPayload>
+  credentials: Array<CredentialForCalendarService>
 ): Promise<Array<CredentialForCalendarService>> {
-  const dbCredentials = await async.mapLimit(credentials, 5, refreshCredential);
-  return buildNonDwdCredentials(dbCredentials);
+  const nonDwdCredentials = credentials.filter(
+    (cred) => !isDomainWideDelegationCredential({ credentialId: cred.id })
+  );
+  const dwdCredentials = credentials.filter((cred) =>
+    isDomainWideDelegationCredential({ credentialId: cred.id })
+  );
+  const refreshedDbCredentials = await async.mapLimit(nonDwdCredentials, 5, refreshCredential);
+  return buildAllCredentials({ dwdCredentials, existingCredentials: refreshedDbCredentials });
 }

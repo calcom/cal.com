@@ -91,6 +91,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         }
                         className="border-subtle mt-4 rounded-lg border"
                         actions={
+                          // DWD credential can't be disconnected
                           !connectedCalendar.domainWideDelegationCredentialId &&
                           !disableConnectionModification && (
                             <div className="flex w-32 justify-end">
@@ -149,6 +150,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                       }
                       iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                       actions={
+                        // DWD credential can't be disconnected
                         !connectedCalendar.domainWideDelegationCredentialId && (
                           <div className="flex w-32 justify-end">
                             <DisconnectIntegration

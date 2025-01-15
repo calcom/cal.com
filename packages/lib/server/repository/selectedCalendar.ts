@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
-import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
+import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
@@ -80,7 +80,7 @@ export class SelectedCalendarRepository {
   static async upsert(data: Prisma.SelectedCalendarUncheckedCreateInput) {
     // userId_integration_externalId_eventTypeId is a unique constraint but with eventTypeId being nullable
     // So, this unique constraint can't be used in upsert. Prisma doesn't allow that, So, we do create and update separately
-    const credentialPayload = buildCredentialPayloadForCalendar({
+    const credentialPayload = buildCredentialPayloadForPrisma({
       credentialId: data.credentialId,
       domainWideDelegationCredentialId: data.domainWideDelegationCredentialId,
     });

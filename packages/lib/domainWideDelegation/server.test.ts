@@ -16,28 +16,33 @@ describe("getAllDwdCredentialsForUser", () => {
     id: 123,
   };
 
-  let mockFindByUser: ReturnType<typeof vi.fn>;
-  let mockRepository: { findByUser: ReturnType<typeof vi.fn> };
+  let mockFindByUserIncludeSensitiveServiceAccountKey: ReturnType<typeof vi.fn>;
+  let mockRepository: { findByUserIncludeSensitiveServiceAccountKey: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
-    mockFindByUser = vi.fn();
+    mockFindByUserIncludeSensitiveServiceAccountKey = vi.fn();
     mockRepository = {
-      findByUser: mockFindByUser,
+      findByUserIncludeSensitiveServiceAccountKey: mockFindByUserIncludeSensitiveServiceAccountKey,
     };
-    vi.spyOn(DomainWideDelegationRepository, "findByUser").mockImplementation(mockFindByUser);
+    vi.spyOn(
+      DomainWideDelegationRepository,
+      "findByUserIncludeSensitiveServiceAccountKey"
+    ).mockImplementation(mockFindByUserIncludeSensitiveServiceAccountKey);
   });
 
   it("should return empty array when no DWD found", async () => {
-    mockFindByUser.mockResolvedValue(null);
+    mockFindByUserIncludeSensitiveServiceAccountKey.mockResolvedValue(null);
 
     const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
-    expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
+    expect(mockFindByUserIncludeSensitiveServiceAccountKey).toHaveBeenCalledWith({
+      user: { email: mockUser.email },
+    });
   });
 
   it("should return empty array when DWD is disabled", async () => {
-    mockFindByUser.mockResolvedValue({
+    mockFindByUserIncludeSensitiveServiceAccountKey.mockResolvedValue({
       enabled: false,
       id: "dwd-1",
       workspacePlatform: { slug: "google" },
@@ -46,19 +51,26 @@ describe("getAllDwdCredentialsForUser", () => {
     const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
-    expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
+    expect(mockFindByUserIncludeSensitiveServiceAccountKey).toHaveBeenCalledWith({
+      user: { email: mockUser.email },
+    });
   });
 
   it("should return credentials for enabled Google DWD", async () => {
-    mockFindByUser.mockResolvedValue({
+    mockFindByUserIncludeSensitiveServiceAccountKey.mockResolvedValue({
       enabled: true,
       id: "dwd-1",
       workspacePlatform: { slug: "google" },
+      serviceAccountKey: {
+        access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+      },
     });
 
     const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
-    expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
+    expect(mockFindByUserIncludeSensitiveServiceAccountKey).toHaveBeenCalledWith({
+      user: { email: mockUser.email },
+    });
     expect(result).toHaveLength(2);
     expect(result).toEqual([
       {
@@ -72,12 +84,22 @@ describe("getAllDwdCredentialsForUser", () => {
         invalid: false,
         teamId: null,
         team: null,
+        delegatedTo: {
+          serviceAccountKey: {
+            access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+          },
+        },
       },
       {
         type: googleMeetMetadata.type,
         appId: googleMeetMetadata.slug,
         id: -1,
         delegatedToId: "dwd-1",
+        delegatedTo: {
+          serviceAccountKey: {
+            access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+          },
+        },
         userId: mockUser.id,
         user: { email: mockUser.email },
         key: { access_token: "NOOP_UNUSED_DELEGATION_TOKEN" },
@@ -89,7 +111,7 @@ describe("getAllDwdCredentialsForUser", () => {
   });
 
   it("should return empty array for non-Google platforms", async () => {
-    mockFindByUser.mockResolvedValue({
+    mockFindByUserIncludeSensitiveServiceAccountKey.mockResolvedValue({
       enabled: true,
       id: "dwd-1",
       workspacePlatform: { slug: "microsoft" },
@@ -98,6 +120,8 @@ describe("getAllDwdCredentialsForUser", () => {
     const result = await getAllDwdCredentialsForUser({ user: mockUser });
 
     expect(result).toEqual([]);
-    expect(mockFindByUser).toHaveBeenCalledWith({ user: { email: mockUser.email } });
+    expect(mockFindByUserIncludeSensitiveServiceAccountKey).toHaveBeenCalledWith({
+      user: { email: mockUser.email },
+    });
   });
 });

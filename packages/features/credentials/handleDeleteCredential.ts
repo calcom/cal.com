@@ -3,12 +3,12 @@ import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmailsAndSMS } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { buildNonDwdCredential } from "@calcom/lib/domainWideDelegation/server";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
@@ -45,7 +45,7 @@ const handleDeleteCredential = async ({
   credentialId: number;
   teamId?: number;
 }) => {
-  const dbCredential = await prisma.credential.findFirst({
+  const credential = await prisma.credential.findFirst({
     where: {
       id: credentialId,
       ...(teamId ? { teamId } : { userId }),
@@ -62,11 +62,9 @@ const handleDeleteCredential = async ({
     },
   });
 
-  if (!dbCredential) {
+  if (!credential) {
     throw new Error("Credential not found");
   }
-
-  const credential = await getCredentialForCalendarService(dbCredential);
 
   const eventTypes = await prisma.eventType.findMany({
     where: {
@@ -432,7 +430,7 @@ const handleDeleteCredential = async ({
   // If it's a calendar remove it from the SelectedCalendars
   if (credential.app?.categories.includes(AppCategories.calendar)) {
     try {
-      const calendar = await getCalendar(credential);
+      const calendar = await getCalendar(buildNonDwdCredential(credential));
 
       const calendars = await calendar?.listCalendars();
 

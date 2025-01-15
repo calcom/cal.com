@@ -6,11 +6,10 @@ import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { CalendarAppDomainWideDelegationError } from "@calcom/lib/CalendarAppError";
+import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCalendarEvent, getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
-import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type {
   CalendarEvent,
   EventBusyDate,
@@ -38,54 +37,6 @@ type CredentialForCalendarServiceGeneric<T> = T extends null
 
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
-function _buildDelegatedTo({
-  domainWideDelegation,
-}: {
-  domainWideDelegation: {
-    serviceAccountKey: ServiceAccountKey | null;
-  } | null;
-}) {
-  if (!domainWideDelegation || !domainWideDelegation.serviceAccountKey) {
-    return null;
-  }
-
-  return {
-    serviceAccountKey: domainWideDelegation.serviceAccountKey,
-  };
-}
-
-/**
- * CalendarService needs delegatedTo to have serviceAccountKey for DWD Credential. It fetches that.
- */
-export async function getCredentialForCalendarService<
-  T extends ({ delegatedToId?: string | null } & Record<string, unknown>) | null
->(credential: T): Promise<CredentialForCalendarServiceGeneric<T>> {
-  // Explicitly handle null case with type assertion
-  if (credential === null) return null as CredentialForCalendarServiceGeneric<T>;
-
-  // When no delegatedToId, return with delegatedTo as null
-  if (!credential.delegatedToId) {
-    return {
-      ...credential,
-      delegatedTo: null,
-    } as CredentialForCalendarServiceGeneric<T>;
-  }
-  const domainWideDelegation = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey(
-    {
-      id: credential.delegatedToId,
-    }
-  );
-
-  const delegatedTo = _buildDelegatedTo({
-    domainWideDelegation,
-  });
-
-  return {
-    ...credential,
-    delegatedTo,
-  } as CredentialForCalendarServiceGeneric<T>;
-}
-
 export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {
   const calendarCredentials = getApps(credentials, true)
     .filter((app) => app.type.endsWith("_calendar"))
@@ -99,6 +50,10 @@ export const getCalendarCredentials = (credentials: Array<CredentialForCalendarS
     });
 
   return calendarCredentials;
+};
+
+export const getCalendarCredentialsWithoutDwd = (credentials: CredentialPayload[]) => {
+  return getCalendarCredentials(buildNonDwdCredentials(credentials));
 };
 
 export const getConnectedCalendars = async (
@@ -251,8 +206,7 @@ export const createEvent = async (
   externalId?: string
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
-  const credentialForCalendarService = await getCredentialForCalendarService(credential);
-  const calendar = await getCalendar(credentialForCalendarService);
+  const calendar = await getCalendar(credential);
   let success = true;
   let calError: string | undefined = undefined;
 

@@ -20,6 +20,7 @@
 
 ## Manual Testing
   - V2/V1 APIs - There could be problem if DWD credentials aren't supported there. Because as organization enables DWD and new users won't need to connect their calendars in the old way. e.g. getBusyCalendarTimes seem to be used there in V2.
+  - [ ] Request resvhedule - cancellation of meeting in calendar verification
   - [ ] Isolation of DWD credentials for different organizations
     - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
   - [ ] Location Change of a booking  to Google Meet(from Cal Video)

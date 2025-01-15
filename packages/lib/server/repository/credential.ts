@@ -1,13 +1,8 @@
-import { getCredentialForCalendarService } from "@calcom/core/CalendarManager";
-import {
-  withDelegatedToIdNull,
-  withDelegatedToIdNullArray,
-} from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { prisma } from "@calcom/prisma";
 import { safeCredentialSelect } from "@calcom/prisma/selects/credential";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-export { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import { buildNonDwdCredential } from "../../domainWideDelegation/server";
 
 type CredentialCreateInput = {
   type: string;
@@ -16,12 +11,10 @@ type CredentialCreateInput = {
   appId: string;
 };
 
-export { withDelegatedToIdNull, withDelegatedToIdNullArray };
-
 export class CredentialRepository {
   static async create(data: CredentialCreateInput) {
     const credential = await prisma.credential.create({ data: { ...data } });
-    return withDelegatedToIdNull(credential);
+    return buildNonDwdCredential(credential);
   }
   static async findByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
     const credential = await prisma.credential.findFirst({
@@ -30,7 +23,7 @@ export class CredentialRepository {
         userId,
       },
     });
-    return withDelegatedToIdNull(credential);
+    return buildNonDwdCredential(credential);
   }
 
   /**
@@ -38,7 +31,7 @@ export class CredentialRepository {
    */
   static async findFirstByIdWithUser({ id }: { id: number }) {
     const credential = await prisma.credential.findFirst({ where: { id }, select: safeCredentialSelect });
-    return withDelegatedToIdNull(credential);
+    return buildNonDwdCredential(credential);
   }
 
   /**
@@ -49,7 +42,7 @@ export class CredentialRepository {
       where: { id },
       select: { ...safeCredentialSelect, key: true },
     });
-    return withDelegatedToIdNull(credential);
+    return buildNonDwdCredential(credential);
   }
 
   static async findFirstByAppIdAndUserId({ appId, userId }: { appId: string; userId: number }) {
@@ -63,7 +56,7 @@ export class CredentialRepository {
 
   static async findFirstByUserIdAndType({ userId, type }: { userId: number; type: string }) {
     const credential = await prisma.credential.findFirst({ where: { userId, type } });
-    return withDelegatedToIdNull(credential);
+    return buildNonDwdCredential(credential);
   }
 
   static async deleteById({ id }: { id: number }) {
@@ -76,9 +69,10 @@ export class CredentialRepository {
       select: credentialForCalendarServiceSelect,
     });
 
-    const credentialForCalendarService = await getCredentialForCalendarService(
-      withDelegatedToIdNull(dbCredential)
-    );
-    return credentialForCalendarService;
+    if (!dbCredential) {
+      return dbCredential;
+    }
+
+    return buildNonDwdCredential(dbCredential);
   }
 }

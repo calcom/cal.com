@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
 
-import { buildCredentialPayloadForCalendar } from "../buildCredentialPayloadForCalendar";
+import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
 export class DestinationCalendarRepository {
   static async create(data: Prisma.DestinationCalendarCreateInput) {
@@ -54,12 +54,12 @@ export class DestinationCalendarRepository {
       domainWideDelegationCredentialId?: string | null;
     };
   }) {
-    const credentialPayloadForUpdate = buildCredentialPayloadForCalendar({
+    const credentialPayloadForUpdate = buildCredentialPayloadForPrisma({
       credentialId: update.credentialId,
       domainWideDelegationCredentialId: update.domainWideDelegationCredentialId,
     });
 
-    const credentialPayloadForCreate = buildCredentialPayloadForCalendar({
+    const credentialPayloadForCreate = buildCredentialPayloadForPrisma({
       credentialId: create.credentialId,
       domainWideDelegationCredentialId: create.domainWideDelegationCredentialId,
     });

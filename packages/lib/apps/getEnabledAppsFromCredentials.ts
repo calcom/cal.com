@@ -4,6 +4,8 @@ import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
+import { isDomainWideDelegationCredential } from "../domainWideDelegation/clientAndServer";
+
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
 /**
@@ -29,9 +31,10 @@ const getEnabledAppsFromCredentials = async (
       },
     },
   } satisfies Prisma.AppWhereInput;
-  const domainWideDelegationCredentials = credentials.filter((credential) => {
-    return credential.id < 0;
-  });
+
+  const dwdCredentialsWithAppId = credentials
+    .filter((credential) => isDomainWideDelegationCredential({ credentialId: credential.id }))
+    .filter((credential): credential is typeof credential & { appId: string } => credential.appId !== null);
 
   if (filterOnCredentials) {
     const userIds: number[] = [],
@@ -56,20 +59,17 @@ const getEnabledAppsFromCredentials = async (
     select: { slug: true, enabled: true },
   });
 
-  const domainWideDelegationApps = await prisma.app.findMany({
+  const dwdSupportedEnabledApps = await prisma.app.findMany({
     where: {
+      enabled: true,
       slug: {
-        in: domainWideDelegationCredentials
-          .filter(
-            (credential): credential is typeof credential & { appId: string } => credential.appId !== null
-          )
-          .map((credential) => credential.appId),
+        in: dwdCredentialsWithAppId.map((credential) => credential.appId),
       },
     },
     select: { slug: true, enabled: true },
   });
 
-  enabledApps = [...enabledApps, ...domainWideDelegationApps];
+  enabledApps = [...enabledApps, ...dwdSupportedEnabledApps];
 
   const apps = getApps(credentials, filterOnCredentials);
   const filteredApps = apps.reduce((reducedArray, app) => {

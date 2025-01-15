@@ -650,10 +650,7 @@ export default class EventManager {
       const [credential] = this.calendarCredentials.filter((cred) => !cred.type.endsWith("other_calendar"));
       if (credential) {
         const createdEvent = await createEvent(credential, event);
-        log.silly(
-          "Created Calendar event using credential",
-          safeStringify({ credentialId: credential.id, createdEvent })
-        );
+        log.silly("Created Calendar event using credential", safeStringify({ credential, createdEvent }));
         if (createdEvent) {
           createdEvents.push(createdEvent);
         }
@@ -925,11 +922,10 @@ export default class EventManager {
         const oldCalendarEvent = booking.references.find((reference) => reference.type.includes("_calendar"));
 
         if (oldCalendarEvent?.credentialId) {
-          const credentialForCalendarService =
-            await CredentialRepository.findCredentialForCalendarServiceById({
-              id: oldCalendarEvent.credentialId,
-            });
-          const calendar = await getCalendar(credentialForCalendarService);
+          const calendarCredential = await CredentialRepository.findCredentialForCalendarServiceById({
+            id: oldCalendarEvent.credentialId,
+          });
+          const calendar = await getCalendar(calendarCredential);
           await calendar?.deleteEvent(oldCalendarEvent.uid, event, oldCalendarEvent.externalCalendarId);
         }
       }

@@ -5,10 +5,11 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { withDelegatedToIdNullArray } from "../server/repository/credential";
+import { buildNonDwdCredentials, isDomainWideDelegationCredential } from "./clientAndServer";
+
+export { buildNonDwdCredentials, buildNonDwdCredential } from "./clientAndServer";
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
 interface DomainWideDelegation {
@@ -27,8 +28,15 @@ interface User {
   email: string;
   id: number;
 }
+const _isConferencingCredential = (credential: CredentialPayload) => {
+  return (
+    credential.type.endsWith("_video") ||
+    credential.type.endsWith("_conferencing") ||
+    credential.type.endsWith("_messaging")
+  );
+};
 
-const buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
+const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   return {
     id: -1,
     delegatedToId: dwd.id,
@@ -50,7 +58,7 @@ const buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; u
   };
 };
 
-const buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
+const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
   // TODO: Build for other platforms as well
   if (dwd.workspacePlatform.slug !== "google") {
@@ -60,18 +68,18 @@ const buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
   return {
     type: googleCalendarMetadata.type,
     appId: googleCalendarMetadata.slug,
-    ...buildCommonUserCredential({ dwd, user }),
+    ..._buildCommonUserCredential({ dwd, user }),
   };
 };
 
-const buildDwdCalendarCredentialWithServiceAccountKey = ({
+const _buildDwdCalendarCredentialWithServiceAccountKey = ({
   dwd,
   user,
 }: {
   dwd: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) => {
-  const credential = buildDwdCalendarCredential({ dwd, user });
+  const credential = _buildDwdCalendarCredential({ dwd, user });
   if (!credential) {
     return null;
   }
@@ -83,16 +91,17 @@ const buildDwdCalendarCredentialWithServiceAccountKey = ({
   };
 };
 
-const buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
+const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   // TODO: Build for other platforms as well
   if (dwd.workspacePlatform.slug !== "google") {
     log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
     return null;
   }
+
   return {
     type: googleMeetMetadata.type,
     appId: googleMeetMetadata.slug,
-    ...buildCommonUserCredential({ dwd, user }),
+    ..._buildCommonUserCredential({ dwd, user }),
   };
 };
 
@@ -115,8 +124,8 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
   }
 
   const domainWideDelegationCredentials = [
-    buildDwdCalendarCredential({ dwd, user }),
-    buildDwdConferencingCredential({ dwd, user }),
+    _buildDwdCalendarCredential({ dwd, user }),
+    _buildDwdConferencingCredential({ dwd, user }),
   ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
   log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
@@ -128,14 +137,14 @@ export async function getAllDwdCalendarCredentialsForUser({ user }: { user: { em
   return dwdCredentials.filter((credential) => credential.type.endsWith("_calendar"));
 }
 
-export async function getDwdCredentialsMapPerUser({
+async function _getDwdCredentialsMapPerUser({
   organizationId,
   users,
 }: {
   organizationId: number | null;
   users: User[];
 }) {
-  const emptyMap = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
+  const emptyMap = new Map<number, NonNullable<ReturnType<typeof _buildDwdCalendarCredential>>[]>();
   if (!organizationId) {
     return emptyMap;
   }
@@ -148,16 +157,20 @@ export async function getDwdCredentialsMapPerUser({
         domain,
       }
     );
+
   if (!dwd || !dwd.enabled) {
     return emptyMap;
   }
 
-  const credentialsByUserId = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
+  const credentialsByUserId = new Map<
+    number,
+    NonNullable<ReturnType<typeof _buildDwdCalendarCredential>>[]
+  >();
 
   for (const user of users) {
     const domainWideDelegationCredentials = [
-      buildDwdCalendarCredential({ dwd, user }),
-      buildDwdConferencingCredential({ dwd, user }),
+      _buildDwdCalendarCredential({ dwd, user }),
+      _buildDwdConferencingCredential({ dwd, user }),
     ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
 
     log.debug("Returned for user", safeStringify({ user, domainWideDelegationCredentials }));
@@ -165,53 +178,6 @@ export async function getDwdCredentialsMapPerUser({
   }
 
   return credentialsByUserId;
-}
-
-export const getAllDwdCredentialsForUsers = async ({
-  organizationId,
-  users,
-}: {
-  organizationId: number | null;
-  users: User[];
-}) => {
-  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({ organizationId, users });
-  const dwdCredentials = Array.from(dwdCredentialsMap.values()).flat();
-  return dwdCredentials;
-};
-
-export async function getAllDwdCalendarCredentialsForUsers({
-  organizationId,
-  users,
-}: {
-  organizationId: number | null;
-  users: User[];
-}) {
-  const emptyMap = new Map<number, NonNullable<ReturnType<typeof buildDwdCalendarCredential>>[]>();
-  if (!organizationId) {
-    return emptyMap;
-  }
-  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({ organizationId, users });
-  const calendarCredentialsMap = new Map(
-    Array.from(dwdCredentialsMap.entries()).map(([userId, credentials]) => [
-      userId,
-      credentials.filter((credential) => credential.type.endsWith("_calendar")),
-    ])
-  );
-  return calendarCredentialsMap;
-}
-
-export async function getAllDwdConferencingCredentialsForUser({
-  user,
-}: {
-  user: { email: string; id: number };
-}) {
-  const dwdCredentials = await getAllDwdCredentialsForUser({ user });
-  return dwdCredentials.filter(
-    (credential) =>
-      credential.type.endsWith("_video") ||
-      credential.type.endsWith("_conferencing") ||
-      credential.type.endsWith("_messaging")
-  );
 }
 
 export async function checkIfSuccessfullyConfiguredInWorkspace({
@@ -226,7 +192,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     return false;
   }
 
-  const credential = buildDwdCalendarCredentialWithServiceAccountKey({
+  const credential = _buildDwdCalendarCredentialWithServiceAccountKey({
     dwd,
     user,
   });
@@ -263,52 +229,49 @@ export async function getAllDwdCredentialsForUserByAppSlug({
   return dwdCredentials.filter((credential) => credential.appId === appSlug);
 }
 
-export async function getDwdCalendarCredentialById({ id, userId }: { id: string; userId: number }) {
-  const [dwd, user] = await Promise.all([
-    DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({ id }),
-    UserRepository.findById({ id: userId }),
-  ]);
-
-  if (!dwd) {
-    throw new Error("Domain Wide Delegation not found");
-  }
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  const dwdCredential = buildDwdCalendarCredential({
-    dwd,
-    user,
-  });
-  return dwdCredential;
-}
-
 type Host<TUser extends { id: number; email: string; credentials: CredentialPayload[] }> = {
   user: TUser;
 };
 
+/**
+ * Prepares credentials for use by CalendarService and EventManager
+ * - Ensures no duplicate dwd credentials caused by enrichment at possibly multiple places
+ */
 export const buildAllCredentials = ({
   dwdCredentials,
-  nonDwdCredentials,
+  existingCredentials,
 }: {
   dwdCredentials: CredentialForCalendarService[] | null;
-  nonDwdCredentials: CredentialPayload[];
+  existingCredentials: CredentialPayload[];
 }) => {
+  const nonDwdCredentials = existingCredentials.filter(
+    (cred) => !isDomainWideDelegationCredential({ credentialId: cred.id })
+  );
   const allCredentials: CredentialForCalendarService[] = [
     ...(dwdCredentials ?? []),
-    ...withDelegatedToIdNullArray(nonDwdCredentials),
+    ...buildNonDwdCredentials(nonDwdCredentials),
   ];
-  return allCredentials;
-};
 
-export const buildNonDwdCredentials = (nonDwdCredentials: CredentialPayload[]) => {
-  return withDelegatedToIdNullArray(nonDwdCredentials);
+  const uniqueAllCredentials = allCredentials.reduce((acc, credential) => {
+    if (!credential.delegatedToId) {
+      // Regular credential go as is
+      acc.push(credential);
+      return acc;
+    }
+    const existingDwdCredential = acc.find((c) => c.delegatedToId === credential.delegatedToId);
+    if (!existingDwdCredential) {
+      acc.push(credential);
+    }
+    return acc;
+  }, [] as typeof allCredentials);
+
+  return uniqueAllCredentials;
 };
 
 export async function enrichUsersWithDwdCredentials<
   TUser extends { id: number; email: string; credentials: CredentialPayload[] }
 >({ orgId, users }: { orgId: number | null; users: TUser[] }) {
-  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({
+  const dwdCredentialsMap = await _getDwdCredentialsMapPerUser({
     organizationId: orgId,
     users,
   });
@@ -320,7 +283,7 @@ export async function enrichUsersWithDwdCredentials<
       ...rest,
       credentials: buildAllCredentials({
         dwdCredentials: dwdCredentialsMap.get(user.id) ?? [],
-        nonDwdCredentials: credentials,
+        existingCredentials: credentials,
       }),
     };
   });
@@ -336,7 +299,7 @@ export const enrichHostsWithDwdCredentials = async <
   orgId: number | null;
   hosts: THost[];
 }) => {
-  const dwdCredentialsMap = await getDwdCredentialsMapPerUser({
+  const dwdCredentialsMap = await _getDwdCredentialsMapPerUser({
     organizationId: orgId,
     users: hosts.map((host) => host.user),
   });
@@ -349,7 +312,7 @@ export const enrichHostsWithDwdCredentials = async <
         ...restUser,
         credentials: buildAllCredentials({
           dwdCredentials: dwdCredentialsMap.get(restUser.id) ?? [],
-          nonDwdCredentials: credentials,
+          existingCredentials: credentials,
         }),
       },
     };
@@ -369,7 +332,17 @@ export const enrichUserWithDwdCredentialsWithoutOrgId = async <
     ...restUser,
     credentials: buildAllCredentials({
       dwdCredentials: dwdCredentials,
-      nonDwdCredentials: credentials,
+      existingCredentials: credentials,
     }),
   };
 };
+
+export async function enrichUserWithDwdConferencingCredentialsWithoutOrgId<
+  TUser extends { id: number; email: string; credentials: CredentialPayload[] }
+>({ user }: { user: TUser }) {
+  const { credentials, ...restUser } = await enrichUserWithDwdCredentialsWithoutOrgId({ user });
+  return {
+    ...restUser,
+    credentials: credentials.filter(_isConferencingCredential),
+  };
+}

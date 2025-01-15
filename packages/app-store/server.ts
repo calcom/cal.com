@@ -3,8 +3,10 @@ import type { TFunction } from "next-i18next";
 
 import { defaultVideoAppCategories } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
-import { buildAllCredentials, buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
-import { getAllDwdConferencingCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
+import {
+  buildNonDwdCredentials,
+  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
+} from "@calcom/lib/domainWideDelegation/server";
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -82,13 +84,16 @@ export async function getLocationGroupedOptions(
 
   let credentials;
   if (user) {
-    const dwdCredentials = await getAllDwdConferencingCredentialsForUser({
-      user,
-    });
-
     // We only add dwd credentials if the request for location options is for a user because DWD Credential is applicable to Users only.
-    credentials = buildAllCredentials({ dwdCredentials, nonDwdCredentials });
+    const { credentials: allCredentials } = await enrichUserWithDwdConferencingCredentialsWithoutOrgId({
+      user: {
+        ...user,
+        credentials: nonDwdCredentials,
+      },
+    });
+    credentials = allCredentials;
   } else {
+    // TODO: We can avoid calling buildNonDwdCredentials here by moving the above prisma query to the repository and doing it there
     credentials = buildNonDwdCredentials(nonDwdCredentials);
   }
 

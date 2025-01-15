@@ -5,13 +5,13 @@ import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
-import { groupBy } from "@calcom/lib/groupBy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { FilterSearchField } from "@calcom/ui";
 import { AnimatedPopover, Divider, Icon } from "@calcom/ui";
 
+import { groupBy } from "../groupBy";
 import { useFilterQuery } from "../lib/useFilterQuery";
 
 export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];

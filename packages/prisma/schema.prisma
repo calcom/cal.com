@@ -1,8 +1,6 @@
 // This is your Prisma Schema file
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Comment to purge cache
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
@@ -981,24 +979,25 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id          String                          @id @default(cuid())
-  description String?
-  position    Int                             @default(0)
-  routes      Json?
-  createdAt   DateTime                        @default(now())
-  updatedAt   DateTime                        @updatedAt
-  name        String
-  fields      Json?
-  user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  id                       String                                      @id @default(cuid())
+  description              String?
+  position                 Int                                         @default(0)
+  routes                   Json?
+  createdAt                DateTime                                    @default(now())
+  updatedAt                DateTime                                    @updatedAt
+  name                     String
+  fields                   Json?
+  user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
-  userId      Int
-  team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId      Int?
-  responses   App_RoutingForms_FormResponse[]
-  disabled    Boolean                         @default(false)
+  userId                   Int
+  team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                   Int?
+  responses                App_RoutingForms_FormResponse[]
+  disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
-  settings    Json?
+  settings                 Json?
+  incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
 
   @@index([userId])
   @@index([disabled])
@@ -1810,4 +1809,18 @@ model Watchlist {
 
   @@unique([type, value])
   @@index([type, value])
+}
+
+enum IncompleteBookingActionType {
+  SALESFORCE
+}
+
+model App_RoutingForms_IncompleteBookingActions {
+  id           Int                         @id @default(autoincrement())
+  form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  actionType   IncompleteBookingActionType
+  data         Json
+  enabled      Boolean                     @default(true)
+  credentialId Int?
 }

@@ -24,6 +24,7 @@ const checkInvalidGoogleCalendarCredentials = async ({ ctx }: Props) => {
     select: credentialForCalendarServiceSelect,
   });
 
+  // TODO: Call top buildNonDwdCredentials here can be avoided by moving credential prisma query to repository.
   const calendarCredentials = getCalendarCredentials(buildNonDwdCredentials(userCredentials));
 
   const { connectedCalendars } = await getConnectedCalendars(

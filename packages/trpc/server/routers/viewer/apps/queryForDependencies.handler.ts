@@ -27,11 +27,11 @@ export const queryForDependenciesHandler = async ({ ctx, input }: QueryForDepend
         },
       });
 
-      const domainWideDelegationCredentials = await getAllDwdCredentialsForUserByAppSlug({
+      const dwdCredentials = await getAllDwdCredentialsForUserByAppSlug({
         user: ctx.user,
         appSlug: appId,
       });
-      const appInstalled = !!dbCredential || !!domainWideDelegationCredentials.length;
+      const appInstalled = !!dbCredential || !!dwdCredentials.length;
 
       const app = getAppFromSlug(dependency);
 
