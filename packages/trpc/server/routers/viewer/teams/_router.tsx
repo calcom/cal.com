@@ -15,7 +15,7 @@ import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema"
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
-import { ZListMembersInputSchema as ZLegegacyListMembers } from "./legacyListMembers.schema";
+import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
@@ -121,7 +121,7 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
-  legacyListMembers: authedProcedure.input(ZLegegacyListMembers).query(async (opts) => {
+  legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(
       namespaced("legacyListMembers"),
       () => import("./legacyListMembers.handler")

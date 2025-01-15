@@ -17,6 +17,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
 import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
+import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
 import isRouter from "@calcom/routing-forms/lib/isRouter";
 import { RouteActionType } from "@calcom/routing-forms/zod";
 import { TRPCError } from "@calcom/trpc/server";
@@ -112,6 +113,14 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     });
   }
 
+  const formOrgId = form.team?.parentId;
+  if (!formOrgId) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "This form is not associated with an organization",
+    });
+  }
+
   const beforeEnrichedForm = performance.now();
   const serializableForm = await getEnrichedSerializableForm(form);
   const afterEnrichedForm = performance.now();
@@ -189,6 +198,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
       attributesQueryValue: route.attributesQueryValue ?? null,
       fallbackAttributesQueryValue: route.fallbackAttributesQueryValue ?? null,
       teamId: form.teamId,
+      orgId: formOrgId,
       isPreview: !!isPreview,
     },
     {
@@ -309,18 +319,5 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
     eventTypeRedirectUrl,
   };
 };
-
-function getServerTimingHeader(timeTaken: Record<string, number | null | undefined>) {
-  const headerParts = Object.entries(timeTaken)
-    .map(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        return `${key};dur=${value}`;
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  return headerParts.join(", ");
-}
 
 export default findTeamMembersMatchingAttributeLogicOfRouteHandler;

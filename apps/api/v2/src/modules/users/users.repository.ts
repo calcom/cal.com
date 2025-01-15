@@ -265,4 +265,27 @@ export class UsersRepository {
       where: { id: userId },
     });
   }
+
+  async findUserOOORedirectEligible(userId: number, toTeamUserId: number) {
+    return await this.dbRead.prisma.user.findUnique({
+      where: {
+        id: toTeamUserId,
+        teams: {
+          some: {
+            team: {
+              members: {
+                some: {
+                  userId: userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
 }

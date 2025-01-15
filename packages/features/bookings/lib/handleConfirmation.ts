@@ -28,6 +28,7 @@ import { EventTypeMetaDataSchema, eventTypeAppMetadataOptionalSchema } from "@ca
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
+import { getCalEventResponses } from "./getCalEventResponses";
 import { scheduleNoShowTriggers } from "./handleNewBooking/scheduleNoShowTriggers";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -89,7 +90,6 @@ export async function handleConfirmation(args: {
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
-
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -153,8 +153,11 @@ export async function handleConfirmation(args: {
     endTime: Date;
     uid: string;
     smsReminderNumber: string | null;
+    cancellationReason?: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
+    title: string;
+    responses: Prisma.JsonValue;
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
@@ -230,8 +233,11 @@ export async function handleConfirmation(args: {
             },
           },
           description: true,
+          cancellationReason: true,
           attendees: true,
+          responses: true,
           location: true,
+          title: true,
           uid: true,
           startTime: true,
           metadata: true,
@@ -291,7 +297,10 @@ export async function handleConfirmation(args: {
         },
         uid: true,
         startTime: true,
+        responses: true,
+        title: true,
         metadata: true,
+        cancellationReason: true,
         endTime: true,
         smsReminderNumber: true,
         description: true,
@@ -325,6 +334,7 @@ export async function handleConfirmation(args: {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
       const evtOfBooking = {
         ...evt,
+        rescheduleReason: updatedBookings[index].cancellationReason || null,
         metadata: { videoCallUrl: meetingUrl },
         eventType: {
           slug: eventTypeSlug,
@@ -339,14 +349,14 @@ export async function handleConfirmation(args: {
       const isFirstBooking = index === 0;
 
       if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
-        await scheduleMandatoryReminder(
-          evtOfBooking,
+        await scheduleMandatoryReminder({
+          evt: evtOfBooking,
           workflows,
-          false,
-          !!updatedBookings[index].eventType?.owner?.hideBranding,
-          evt.attendeeSeatId,
-          !emailsEnabled && Boolean(platformClientParams?.platformClientId)
-        );
+          requiresConfirmation: false,
+          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+          seatReferenceUid: evt.attendeeSeatId,
+          isPlatformNoEmail: !emailsEnabled && Boolean(platformClientParams?.platformClientId),
+        });
       }
 
       await scheduleWorkflowReminders({
@@ -390,8 +400,18 @@ export async function handleConfirmation(args: {
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
+    const updatedBookingsWithCalEventResponses = updatedBookings.map((booking) => {
+      return {
+        ...booking,
+        ...getCalEventResponses({
+          bookingFields: booking.eventType?.bookingFields ?? null,
+          booking,
+        }),
+      };
+    });
+
     subscribersMeetingStarted.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
@@ -403,7 +423,7 @@ export async function handleConfirmation(args: {
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
-      updatedBookings.forEach((booking) => {
+      updatedBookingsWithCalEventResponses.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,

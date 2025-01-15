@@ -10,14 +10,14 @@ export default function HowToUse() {
       <div className="bg-default m-auto rounded p-10">
         <div className="flex flex-row">
           <div className="mr-5">
-            <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
+            <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Typeform Logo" />
           </div>
           <div className="ml-5">
             <div className="text-md text-default">How to route a Typeform with Cal.com Routing</div>
             <ol className="mb-5 ml-5 mt-5 list-decimal ltr:mr-5 rtl:ml-5">
               <li>
                 Make sure that you have{" "}
-                <Link href="/apps/routing-forms" className="text-subtle text-base">
+                <Link href="/routing" className="text-subtle text-base">
                   Routing Forms
                 </Link>{" "}
                 app installed

@@ -20,7 +20,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -62,11 +61,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
+  if (url.pathname.startsWith("/apps/installed")) {
     const returnTo = req.cookies.get("return-to")?.value;
     if (returnTo !== undefined) {
-      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
-
       let validPathname = returnTo;
 
       try {
@@ -75,8 +72,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
       const nextUrl = url.clone();
       nextUrl.pathname = validPathname;
-      // TODO: Consider using responseWithHeaders here
-      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+
+      const response = NextResponse.redirect(nextUrl);
+      response.cookies.set("return-to", "", {
+        expires: new Date(0),
+        path: "/",
+      });
+
+      return response;
     }
   }
 
@@ -106,9 +109,10 @@ const routingForms = {
   handleRewrite: (url: URL) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
       return NextResponse.rewrite(url);
     }
+    return null;
   },
 };
 
@@ -151,6 +155,9 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/403",
+    "/500",
+    "/icons",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",
@@ -163,27 +170,25 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
-    "/event-types",
-    "/apps/installed/:category/",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
-    "/workflows/:path*",
+    "/apps/:path*",
     "/getting-started/:path*",
-    "/apps",
-    "/bookings/:status/",
+    "/workflows/:path*",
+    "/event-types/:path*",
+    "/routing/:path*",
+    "/bookings/:path*",
     "/video/:path*",
-    "/teams",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/[orgSlug]/[user]/[type]",
+    "/org/[orgSlug]/team/[slug]/[type]",
+    "/org/[orgSlug]/team/[slug]",
+    "/org/[orgSlug]",
   ],
 };
 

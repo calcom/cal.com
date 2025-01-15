@@ -2389,6 +2389,8 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "minimum": 1,
+              "maximum": 1000,
               "type": "number"
             }
           },
@@ -2399,6 +2401,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
               "type": "number"
             }
           },
@@ -2547,6 +2550,234 @@
           }
         },
         "tags": ["Orgs / Users"]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
+        "summary": "Get all ooo entries of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
+        "summary": "Create an ooo entry for user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
+        "summary": "Update ooo entry of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
+        "summary": "Delete ooo entry of a user",
+        "parameters": [
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      }
+    },
+    "/v2/organizations/{orgId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
+        "summary": "Get all OOO entries of org users",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "description": "Filter ooo entries by the user email address. user must be within your organization.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
       }
     },
     "/v2/organizations/{orgId}/webhooks": {
@@ -4879,7 +5110,7 @@
             "name": "eventTypeSlug",
             "required": false,
             "in": "query",
-            "description": "Slug of the event type for which slots are being fetched.",
+            "description": "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
             "schema": {
               "type": "string"
             }
@@ -4888,7 +5119,8 @@
             "name": "usernameList",
             "required": false,
             "in": "query",
-            "description": "Only for dynamic events - list of usernames for which slots are being fetched.",
+            "description": "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+            "example": "usernameList[]=bob",
             "schema": {
               "type": "array",
               "items": {
@@ -7173,13 +7405,13 @@
         },
         "required": ["type"]
       },
-      "NameFieldInput_2024_06_14": {
+      "NameDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
             "example": "name",
-            "description": "only allowed value for type is `name`"
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name."
           },
           "label": {
             "type": "string"
@@ -7194,7 +7426,7 @@
         },
         "required": ["type", "label", "placeholder"]
       },
-      "EmailFieldInput_2024_06_14": {
+      "EmailDefaultFieldInput_2024_06_14": {
         "type": "object",
         "properties": {
           "type": {
@@ -7205,6 +7437,9 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object"
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7213,7 +7448,119 @@
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&email=bob@gmail.com`,      the email field will be prefilled with this value and disabled."
           }
         },
-        "required": ["type", "label", "placeholder"]
+        "required": ["type", "label", "required", "placeholder"]
+      },
+      "TitleDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "title",
+            "description": "only allowed value for type is `title`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=journey`,      the title field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["slug"]
+      },
+      "NotesDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "notes",
+            "description": "only allowed value for type is `notes`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=journey`,      the notes field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["slug"]
+      },
+      "GuestsDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "guests",
+            "description": "only allowed value for type is `guests`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=bob@cal.com`,      the guests field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["slug"]
+      },
+      "RescheduleReasonDefaultFieldInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "rescheduleReason",
+            "description": "only allowed value for type is `rescheduleReason`"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean",
+            "description": "If true show under event type settings but don't show this booking field in the Booker. If false show in both."
+          },
+          "label": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "disableOnPrefill": {
+            "type": "boolean",
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=travel`,      the rescheduleReason field will be prefilled with this value and disabled."
+          }
+        },
+        "required": ["slug"]
       },
       "BookerLayouts_2024_06_14": {
         "type": "object",
@@ -7324,10 +7671,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -7733,6 +8092,10 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object",
+            "default": true
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7749,12 +8112,9 @@
           "slug": {
             "type": "string",
             "default": "email"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
-        "required": ["type", "isDefault", "slug", "required"]
+        "required": ["type", "required", "isDefault", "slug"]
       },
       "NameDefaultFieldOutput_2024_06_14": {
         "type": "object",
@@ -7777,7 +8137,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
           },
           "label": {
@@ -7837,19 +8197,12 @@
       "RescheduleReasonDefaultFieldOutput_2024_06_14": {
         "type": "object",
         "properties": {
-          "isDefault": {
-            "type": "object",
-            "default": true,
-            "description": "This property is always true because it's a default field",
-            "example": true
-          },
           "slug": {
             "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "rescheduleReason",
+            "description": "only allowed value for type is `rescheduleReason`",
             "default": "rescheduleReason"
-          },
-          "type": {
-            "type": "string",
-            "default": "textarea"
           },
           "required": {
             "type": "boolean"
@@ -7867,26 +8220,29 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&rescheduleReason=busy`,      the reschedule reason field will be prefilled with this value and disabled."
-          }
-        },
-        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
-      },
-      "TitleDefaultFieldOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "title"
-          },
           "type": {
             "type": "string",
-            "default": "text"
+            "default": "textarea"
+          }
+        },
+        "required": ["slug", "isDefault", "type"]
+      },
+      "TitleDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "title",
+            "description": "only allowed value for type is `title`",
+            "default": "title"
           },
           "required": {
             "type": "boolean"
@@ -7904,26 +8260,29 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&title=masterclass`,      the title field will be prefilled with this value and disabled."
-          }
-        },
-        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
-      },
-      "NotesDefaultFieldOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "notes"
-          },
           "type": {
             "type": "string",
-            "default": "textarea"
+            "default": "text"
+          }
+        },
+        "required": ["slug", "isDefault", "type"]
+      },
+      "NotesDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "notes",
+            "description": "only allowed value for type is `notes`",
+            "default": "notes"
           },
           "required": {
             "type": "boolean"
@@ -7941,26 +8300,29 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&notes=hello`,      the notes field will be prefilled with this value and disabled."
-          }
-        },
-        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
-      },
-      "GuestsDefaultFieldOutput_2024_06_14": {
-        "type": "object",
-        "properties": {
+          },
           "isDefault": {
             "type": "object",
             "default": true,
             "description": "This property is always true because it's a default field",
             "example": true
           },
-          "slug": {
-            "type": "string",
-            "default": "guests"
-          },
           "type": {
             "type": "string",
-            "default": "multiemail"
+            "default": "textarea"
+          }
+        },
+        "required": ["slug", "isDefault", "type"]
+      },
+      "GuestsDefaultFieldOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "enum": ["name", "email", "title", "notes", "guests"],
+            "example": "guests",
+            "description": "only allowed value for type is `guests`",
+            "default": "guests"
           },
           "required": {
             "type": "boolean"
@@ -7978,9 +8340,19 @@
           "disableOnPrefill": {
             "type": "boolean",
             "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if URL contains query parameter `&guests=lauris@cal.com`,      the guests field will be prefilled with this value and disabled."
+          },
+          "isDefault": {
+            "type": "object",
+            "default": true,
+            "description": "This property is always true because it's a default field",
+            "example": true
+          },
+          "type": {
+            "type": "string",
+            "default": "multiemail"
           }
         },
-        "required": ["isDefault", "slug", "type", "required", "hidden", "disableOnPrefill"]
+        "required": ["slug", "isDefault", "type"]
       },
       "AddressFieldOutput_2024_06_14": {
         "type": "object",
@@ -8991,10 +9363,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -9158,7 +9542,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -10334,10 +10718,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -11093,10 +11489,22 @@
             "items": {
               "oneOf": [
                 {
-                  "$ref": "#/components/schemas/NameFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/NameDefaultFieldInput_2024_06_14"
                 },
                 {
-                  "$ref": "#/components/schemas/EmailFieldInput_2024_06_14"
+                  "$ref": "#/components/schemas/EmailDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/TitleDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/NotesDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/GuestsDefaultFieldInput_2024_06_14"
+                },
+                {
+                  "$ref": "#/components/schemas/RescheduleReasonDefaultFieldInput_2024_06_14"
                 },
                 {
                   "$ref": "#/components/schemas/PhoneFieldInput_2024_06_14"
@@ -11260,7 +11668,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -11977,6 +12385,73 @@
           },
           "secret": {
             "type": "string"
+          }
+        }
+      },
+      "CreateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
+          }
+        },
+        "required": ["start", "end"]
+      },
+      "UpdateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": ["unspecified", "vacation", "travel", "sick", "public_holiday"]
           }
         }
       },
@@ -12844,6 +13319,11 @@
             "description": "The time zone of the attendee.",
             "example": "America/New_York"
           },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
+          },
           "language": {
             "type": "string",
             "enum": [
@@ -12895,7 +13375,7 @@
             "default": "en"
           }
         },
-        "required": ["name", "email", "timeZone"]
+        "required": ["name", "timeZone"]
       },
       "CreateBookingInput_2024_08_13": {
         "type": "object",
@@ -13454,6 +13934,10 @@
           "absent": {
             "type": "boolean",
             "example": false
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
           },
           "seatUid": {
             "type": "string",

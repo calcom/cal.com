@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
-import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { classNames } from "@calcom/lib";
 
+import { useBookerTime } from "../../../bookings/Booker/components/hooks/useBookerTime";
 import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
 import type { CalendarComponentProps } from "../types/state";
@@ -23,7 +23,7 @@ export function Calendar(props: CalendarComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const schedulerGrid = useRef<HTMLOListElement | null>(null);
   const initialState = useCalendarStore((state) => state.initState);
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
 
   const startDate = useCalendarStore((state) => state.startDate);
   const endDate = useCalendarStore((state) => state.endDate);

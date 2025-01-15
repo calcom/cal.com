@@ -1,4 +1,18 @@
-import type { InputBookingField_2024_06_14, OutputBookingField_2024_06_14 } from "@calcom/platform-types";
+import type {
+  InputBookingField_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  PhoneDefaultFieldOutput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
+} from "@calcom/platform-types";
 
 import {
   systemBeforeFieldEmail,
@@ -11,13 +25,17 @@ import {
   systemAfterFieldRescheduleReason,
   type CustomField,
   type SystemField,
+  systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
-export function transformBookingFieldsApiRequestToInternal(
-  inputBookingFields: InputBookingField_2024_06_14[]
-): (SystemField | CustomField)[] {
-  const customBookingFields = inputBookingFields.map((field) => {
-    const baseProperties = getBasePropertiesRequest(field);
+type InputBookingField =
+  | InputBookingField_2024_06_14
+  | LocationDefaultFieldOutput_2024_06_14
+  | PhoneDefaultFieldOutput_2024_06_14;
+
+export function transformBookingFieldsApiToInternal(bookingFields: InputBookingField[]) {
+  const customBookingFields = bookingFields.map((field) => {
+    const baseProperties = getBaseProperties(field);
 
     const options =
       "options" in field && field.options ? transformSelectOptionsApiToInternal(field.options) : undefined;
@@ -35,42 +53,12 @@ export function transformBookingFieldsApiRequestToInternal(
   return customBookingFields;
 }
 
-function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemField | CustomField {
-  if (field.type === "name") {
-    const systemName = { ...systemBeforeFieldName };
-    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
-      systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
-    }
-
-    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
-      systemName.variantsConfig.variants.fullName.fields[0].placeholder = field.placeholder;
-    }
-    // note(Lauris): we attach top level label and placeholder for easier access when converting database event type
-    // to v2 response event type even though form builder uses label and placeholder from variantsConfig.
-    systemName.label = field.label;
-    systemName.placeholder = field.placeholder;
-
-    return {
-      ...systemName,
-      disableOnPrefill: !!field.disableOnPrefill,
-    };
-  }
-
-  if (field.type === "email") {
-    return {
-      ...systemBeforeFieldEmail,
-      label: field.label,
-      placeholder: field.placeholder,
-      disableOnPrefill: !!field.disableOnPrefill,
-    };
-  }
-
-  if (field.type === "boolean") {
+function getBaseProperties(field: InputBookingField): CustomField | SystemField {
+  if (fieldIsSelect(field)) {
     return {
       name: field.slug,
       type: field.type,
       label: field.label,
-      labelAsSafeHtml: `<p>${field.label}</p>\n`,
       sources: [
         {
           id: "user",
@@ -82,88 +70,11 @@ function getBasePropertiesRequest(field: InputBookingField_2024_06_14): SystemFi
       editable: "user",
       required: field.required,
       disableOnPrefill: !!field.disableOnPrefill,
-      hidden: !!field.hidden,
+      hidden: "hidden" in field ? field.hidden : false,
     };
   }
 
-  return {
-    name: field.slug,
-    type: field.type,
-    label: field.label,
-    sources: [
-      {
-        id: "user",
-        type: "user",
-        label: "User",
-        fieldRequired: true,
-      },
-    ],
-    editable: "user",
-    required: field.required,
-    placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: !!field.disableOnPrefill,
-    hidden: !!field.hidden,
-  };
-}
-
-export function transformSelectOptionsApiToInternal(options: string[]) {
-  return options.map((option) => ({
-    label: option,
-    value: option,
-  }));
-}
-
-export function transformBookingFieldsApiResponseToInternal(bookingFields: OutputBookingField_2024_06_14[]) {
-  const customBookingFields = bookingFields.map((field) => {
-    const baseProperties = getBasePropertiesResponse(field);
-
-    const options =
-      "options" in field && field.options ? transformSelectOptionsApiToInternal(field.options) : undefined;
-
-    if (!options) {
-      return baseProperties;
-    }
-
-    return {
-      ...baseProperties,
-      options,
-    };
-  });
-
-  return customBookingFields;
-}
-
-function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
-  if (field.type === "name") {
-    const systemName = { ...systemBeforeFieldName };
-    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
-      systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
-    }
-
-    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
-      systemName.variantsConfig.variants.fullName.fields[0].placeholder = field.placeholder;
-    }
-    // note(Lauris): we attach top level label and placeholder for easier access when converting database event type
-    // to v2 response event type even though form builder uses label and placeholder from variantsConfig.
-    systemName.label = field.label;
-    systemName.placeholder = field.placeholder;
-
-    return {
-      ...systemName,
-      disableOnPrefill: !!field.disableOnPrefill,
-    };
-  }
-
-  if (field.type === "email") {
-    return {
-      ...systemBeforeFieldEmail,
-      label: field.label,
-      placeholder: field.placeholder,
-      disableOnPrefill: !!field.disableOnPrefill,
-    };
-  }
-
-  if (field.slug === "location") {
+  if (fieldIsDefaultSystemLocation(field)) {
     return {
       ...systemBeforeFieldLocation,
       required: field.required,
@@ -171,51 +82,108 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
     };
   }
 
-  if (field.slug === "attendeePhoneNumber") {
+  if (fieldIsDefaultAttendeePhone(field)) {
     return {
       ...systemBeforeFieldPhone,
       required: field.required,
     };
   }
 
-  if (field.slug === "rescheduleReason") {
+  if (fieldIsCustomSystemName(field)) {
+    const systemName = { ...systemBeforeFieldName };
+    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
+      systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
+    }
+
+    if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
+      systemName.variantsConfig.variants.fullName.fields[0].placeholder = field.placeholder;
+    }
+    // note(Lauris): we attach top level label and placeholder for easier access when converting database event type
+    // to v2 response event type even though form builder uses label and placeholder from variantsConfig.
+    systemName.label = field.label;
+    systemName.placeholder = field.placeholder;
+
+    return {
+      ...systemName,
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemNameSplit(field)) {
+    const systemNameSplit = { ...systemBeforeFieldNameSplit };
+
+    const firstNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "firstName"
+    );
+    const lastNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "lastName"
+    );
+
+    if (firstNameField) {
+      firstNameField.label = field.firstNameLabel || "";
+      firstNameField.placeholder = field.firstNamePlaceholder || "";
+    }
+
+    if (lastNameField) {
+      lastNameField.label = field.lastNameLabel || "";
+      lastNameField.placeholder = field.lastNamePlaceholder || "";
+      lastNameField.required = !!field.lastNameRequired;
+    }
+
+    return {
+      ...systemNameSplit,
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemEmail(field)) {
+    return {
+      ...systemBeforeFieldEmail,
+      label: field.label,
+      placeholder: field.placeholder,
+      disableOnPrefill: !!field.disableOnPrefill,
+      required: field.required,
+    };
+  }
+
+  if (fieldIsCustomSystemRescheduleReason(field)) {
     return {
       ...systemAfterFieldRescheduleReason,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "title") {
+  if (fieldIsCustomSystemTitle(field)) {
     return {
       ...systemAfterFieldTitle,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "notes") {
+  if (fieldIsCustomSystemNotes(field)) {
     return {
       ...systemAfterFieldNotes,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.slug === "guests") {
+  if (fieldIsCustomSystemGuests(field)) {
     return {
       ...systemAfterFieldGuests,
-      required: field.required,
-      hidden: field.hidden,
+      required: !!field.required,
+      hidden: !!field.hidden,
       label: field.label,
       placeholder: "placeholder" in field ? field.placeholder : "",
       disableOnPrefill: !!field.disableOnPrefill,
@@ -237,7 +205,7 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
         },
       ],
       editable: "user",
-      required: field.required,
+      required: !!field.required,
       disableOnPrefill: !!field.disableOnPrefill,
       hidden: !!field.hidden,
     };
@@ -256,9 +224,69 @@ function getBasePropertiesResponse(field: OutputBookingField_2024_06_14) {
       },
     ],
     editable: "user",
-    required: "required" in field ? field.required : false,
-    placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: "disableOnPrefill" in field ? !!field.disableOnPrefill : false,
-    hidden: "hidden" in field ? field.hidden : undefined,
+    required: !!field.required,
+    placeholder: field.placeholder,
+    disableOnPrefill: !!field.disableOnPrefill,
+    hidden: !!field.hidden,
   };
+}
+
+function fieldIsCustomSystemName(field: InputBookingField): field is NameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "name";
+}
+
+function fieldIsCustomSystemNameSplit(
+  field: InputBookingField
+): field is SplitNameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "splitName";
+}
+
+function fieldIsCustomSystemEmail(field: InputBookingField): field is EmailDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "email";
+}
+
+function fieldIsCustomSystemTitle(field: InputBookingField): field is TitleDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "title";
+}
+
+function fieldIsCustomSystemNotes(field: InputBookingField): field is NotesDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "notes";
+}
+
+function fieldIsCustomSystemGuests(field: InputBookingField): field is GuestsDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "guests";
+}
+
+function fieldIsCustomSystemRescheduleReason(
+  field: InputBookingField
+): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "rescheduleReason";
+}
+
+function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "attendeePhoneNumber";
+}
+
+function fieldIsDefaultSystemLocation(
+  field: InputBookingField
+): field is LocationDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "location";
+}
+
+function fieldIsSelect(
+  field: InputBookingField
+): field is
+  | CheckboxGroupFieldInput_2024_06_14
+  | RadioGroupFieldInput_2024_06_14
+  | MultiSelectFieldInput_2024_06_14 {
+  return (
+    "type" in field && (field.type === "checkbox" || field.type === "radio" || field.type === "multiselect")
+  );
+}
+
+export function transformSelectOptionsApiToInternal(options: string[]) {
+  return options.map((option) => ({
+    label: option,
+    value: option,
+  }));
 }

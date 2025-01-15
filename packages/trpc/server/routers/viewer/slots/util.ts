@@ -11,6 +11,7 @@ import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWr
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
@@ -46,55 +47,6 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-
-export const checkIfIsAvailable = ({
-  time,
-  busy,
-  eventLength,
-  currentSeats,
-}: {
-  time: Dayjs;
-  busy: EventBusyDate[];
-  eventLength: number;
-  currentSeats?: CurrentSeats;
-}): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
-  const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.utc();
-
-  return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
-
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
-
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
-    return true;
-  });
-};
 
 async function getEventTypeId({
   slug,
@@ -524,7 +476,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         }, []);
 
         if (
-          checkIfIsAvailable({
+          !checkForConflicts({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
@@ -986,22 +938,18 @@ const calculateHostsAndAvailabilities = async ({
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const currentBookingsAllUsers = await monitorCallbackAsync(
-    getExistingBookings,
-    startTimeDate,
-    endTimeDate,
-    eventType,
-    sharedQuery,
-    usersWithCredentials,
-    allUserIds
-  );
-
-  const outOfOfficeDaysAllUsers = await monitorCallbackAsync(
-    getOOODates,
-    startTimeDate,
-    endTimeDate,
-    allUserIds
-  );
+  const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    monitorCallbackAsync(
+      getExistingBookings,
+      startTimeDate,
+      endTimeDate,
+      eventType,
+      sharedQuery,
+      usersWithCredentials,
+      allUserIds
+    ),
+    monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
+  ]);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);

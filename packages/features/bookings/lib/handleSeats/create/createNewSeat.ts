@@ -187,15 +187,15 @@ const createNewSeat = async (
       throw new HttpError({ statusCode: 400, message: ErrorCode.MissingPaymentAppId });
     }
 
-    const payment = await handlePayment(
+    const payment = await handlePayment({
       evt,
-      eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
-      seatedBooking,
-      fullName,
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      booking: seatedBooking,
+      bookerName: fullName,
       bookerEmail,
-      bookerPhoneNumber
-    );
+      bookerPhoneNumber,
+    });
 
     resultBooking = { ...foundBooking };
     resultBooking["message"] = "Payment required";
