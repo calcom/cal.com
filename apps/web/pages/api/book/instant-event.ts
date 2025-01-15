@@ -1,12 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { CSRF } from "@calcom/features/csrf";
 import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstantMeeting";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
+  CSRF.init().verify(req, res);
   const userIp = getIP(req);
 
   await checkRateLimitAndThrowError({

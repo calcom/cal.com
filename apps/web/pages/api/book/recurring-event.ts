@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { CSRF } from "@calcom/features/csrf";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
@@ -10,6 +11,7 @@ import { defaultResponder } from "@calcom/lib/server";
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
+  CSRF.init().verify(req, res);
   const userIp = getIP(req);
 
   await checkRateLimitAndThrowError({

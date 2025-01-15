@@ -6,6 +6,7 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { CSRF } from "@calcom/features/csrf";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
@@ -295,6 +296,7 @@ const paramsSchema = z.object({
 // Booker page fetches a tiny bit of data server side, to determine early
 // whether the page should show an away state or dynamic booking not allowed.
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  CSRF.init().setup(context.req, context.res);
   const { user } = paramsSchema.parse(context.params);
   const isDynamicGroup = user.length > 1;
 
