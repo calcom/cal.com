@@ -8001,7 +8001,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "only allowed value for type is `name`"
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name."
           },
           "label": {
             "type": "string"
@@ -8795,7 +8795,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
           },
           "label": {
