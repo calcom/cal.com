@@ -87,6 +87,9 @@ function getBaseProperties(field: InputBookingField): CustomField | SystemField 
       ...systemBeforeFieldPhone,
       required: field.required,
       hidden: field.hidden,
+      label: field.label,
+      placeholder: field.placeholder,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 

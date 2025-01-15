@@ -378,6 +378,26 @@ export class PhoneDefaultFieldOutput_2024_06_14 {
       "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
   })
   hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @ApiProperty({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill!: boolean;
 }
 
 export class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
