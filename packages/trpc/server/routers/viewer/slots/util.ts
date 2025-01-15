@@ -426,7 +426,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             endTime,
             bypassBusyCalendarTimes,
             shouldServeCache,
-            orgId,
+            orgId: firstUserOrgId,
           }));
       }
     }

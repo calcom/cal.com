@@ -17,7 +17,7 @@ import { User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
-import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import {
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
@@ -38,6 +38,16 @@ export class CalendarsService {
     private readonly dbWrite: PrismaWriteService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
+
+  private buildNonDwdCredentials<TCredential>(credentials: TCredential[]) {
+    return credentials
+      .map((credential) => ({
+        ...credential,
+        delegatedTo: null,
+        delegatedToId: null,
+      }))
+      .filter((credential) => !!credential);
+  }
 
   async getCalendars(userId: number) {
     const userWithCalendars = await this.usersRepository.findByIdWithCalendars(userId);
@@ -73,7 +83,7 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        buildNonDwdCredentials(credentials),
+        this.buildNonDwdCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars

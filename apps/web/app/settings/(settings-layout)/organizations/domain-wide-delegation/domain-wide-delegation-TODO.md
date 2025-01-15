@@ -20,37 +20,39 @@
 
 ## Manual Testing
   - V2/V1 APIs - There could be problem if DWD credentials aren't supported there. Because as organization enables DWD and new users won't need to connect their calendars in the old way. e.g. getBusyCalendarTimes seem to be used there in V2.
-  - [ ] Request resvhedule - cancellation of meeting in calendar verification
-  - [ ] Isolation of DWD credentials for different organizations
-    - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
-  - [ ] Location Change of a booking  to Google Meet(from Cal Video)
-  - [ ] Team Members availability view testing
-  - [ ] Google Meet
+  - [x] Request reshedule - cancellation of meeting in calendar verification
+  - [x] Isolation of DWD credentials for different organizations
+    - [x] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
+  - [x] Location Change of a booking to Google Meet(from Cal Video)
+  - [x] Google Meet/Google Calendar
      - [x] Shows up installed on apps/google-meet and apps/instaled/conferencing
      - [x] Can't remove the app
-  - [ ] Onboarding
+  - [x] Seated Event
+    - [x] Seat cancellation removes calendar invite
+  - [x] Onboarding
     - [x] When DWD is not enabled, the flow works.
     - [x] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
+  - [x] User Level Selected Calendar and Destination Calendars are honored - verified through booking the user.
   - [ ] Event Type Selected Calendar and Destination Calendar
-  - [ ] Owner must have verified email to enable DWD
+  - [x] Owner must have verified email to enable DWD
   - [x] RR Team Event
     - [x] Booking
       - Unavailable slot isn't available for booking. Unavailable user isn't used.
     - [x] Reroute
     - [x] Reassign
-  - [ ] Calendar Cache
-    - [ ] Event Type Selected Calendar caching test
-    - [ ] User Selected Calendar caching test
   - [x] Troubleshooter
       - [x] Shows busy times from Calendar
+  - [ ] Calendar Cache[TO BE TESTED LATER]
+    - [ ] Event Type Selected Calendar caching test
+    - [ ] User Selected Calendar caching test
 
 ### Important
   - Bugs
-    - [ ] For RR event, if I am able to see the slots for a blocked day in calendar(by temporarily unselecting the calendar), and then we enable the calendar back, the blocked day can be booked.
-      - [ ] Not using Goole Meet with Default conferencing app.
+    - [x] For RR event, if I am able to see the slots for a blocked day in calendar(by temporarily unselecting the calendar), and then we enable the calendar back, the blocked day can be booked.
+    - [x] Not using Goole Meet with Default conferencing app.
     - [x] Duplicate Calendar Events in Google Calendar when choosing non-primary calendar as destination. No idea why this is happening.
         - The issue was in getAttendees in Google CalendarService not using externalCalendarId.
-    - [ ] Restrict toggling
+    - [x] Restrict toggling based on email verified
     - [x] Duplicate Calendar connections in 'apps/installed' if a user already had connected calendar and DWD is enabled.
     - [x] Calendar Cache has credentialId column which isn't applicable for DWD(Solution: Added userId there)
     - [x] Troubleshooter
@@ -63,8 +65,8 @@
   - TODO:
     - [ ] Add experimental/Beta flag in DWD
     - [ ] Consideration of multiple domains email in a single team event. We might need to consider all the member's domains in the team event when fetching availabilituy. 
-    - [ ] Performance
-      - [x] Available Slots and booking flow shouldn't slow down. Right now the querying logic is not optimized. We query per team member, we should do one query.
+    - [x] Performance
+      - [x] Available Slots and booking flow shouldn't slow down. Right now the querying logic is not optimized. We query per team member, we should do one query - This is fixed and took quite a refactor but it is cleaner code now.
     - [ ] Tag all DWD related logs and errors with "DWD:"
     - [x] Troubleshooter
     - [x] Google CalendarService unit tests to verify that if DWD credential is provided it uses impersonation to access API otherwise it uses regular user credential API.
@@ -86,8 +88,8 @@
   - [x] We should allow setting default conferencing app during onboarding
 
 ### Follow-up release
-  - [ ] Confirmation for DwD deletion and disabling
-  - [ ] If DWD is enabled and the org member doesn't exist in Google Workspace, and the user has connected personal account, should we correctly use the personal account?
+  - [ ] Confirmation for DwD deletion - Deletion isn't there at the moment.
+  - [ ] Confirmation for DwD toggling off
 
 ### Security
   - [x] We don't let any one user see the added service account key from UI.
