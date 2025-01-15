@@ -15,9 +15,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
+import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
-import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -65,7 +65,7 @@ const SlotItem = ({
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
   const { data: eventData } = event;
@@ -91,22 +91,17 @@ const SlotItem = ({
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
-    if (!overlayCalendarToggled) {
+    if (!overlayCalendarToggled || (isOverlapping && overlapConfirm)) {
       onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-      return;
-    }
-    if (isOverlapping && overlapConfirm) {
-      setOverlapConfirm(false);
       return;
     }
 
-    if (isOverlapping && !overlapConfirm) {
+    if (isOverlapping) {
       setOverlapConfirm(true);
       return;
     }
-    if (!overlapConfirm) {
-      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-    }
+
+    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
   }, [
     overlayCalendarToggled,
     isOverlapping,

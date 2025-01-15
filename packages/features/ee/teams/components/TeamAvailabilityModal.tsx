@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -12,15 +12,15 @@ import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: RouterOutputs["viewer"]["teams"]["getMinimal"];
-  member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["get"];
+  member?: RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
   const utils = trpc.useUtils();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [selectedTimeZone, setSelectedTimeZone] = useState<ITimezone>(
-    localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London"
+    localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE
   );
 
   const { t } = useLocale();

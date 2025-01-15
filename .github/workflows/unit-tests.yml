@@ -1,6 +1,8 @@
 name: Unit
 on:
   workflow_call:
+env:
+  REPLEXICA_API_KEY: ${{ secrets.CI_REPLEXICA_API_KEY }}
 permissions:
   contents: read
 jobs:

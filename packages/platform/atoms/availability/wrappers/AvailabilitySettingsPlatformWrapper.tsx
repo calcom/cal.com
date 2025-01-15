@@ -33,6 +33,9 @@ type AvailabilitySettingsPlatformWrapperProps = {
   disableEditableHeading?: boolean;
   enableOverrides?: boolean;
   onBeforeUpdate?: (updateBody: UpdateScheduleInput_2024_06_11) => boolean | Promise<boolean>;
+  allowDelete?: boolean;
+  allowSetToDefault?: boolean;
+  disableToasts?: boolean;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -45,6 +48,9 @@ export const AvailabilitySettingsPlatformWrapper = ({
   disableEditableHeading = false,
   enableOverrides = false,
   onBeforeUpdate,
+  allowDelete,
+  allowSetToDefault,
+  disableToasts,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -56,30 +62,38 @@ export const AvailabilitySettingsPlatformWrapper = ({
   const { mutate: deleteSchedule, isPending: isDeletionInProgress } = useDeleteSchedule({
     onSuccess: (res) => {
       onDeleteSuccess?.(res);
-      toast({
-        description: "Schedule deleted successfully",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Schedule deleted successfully",
+        });
+      }
     },
     onError: (err) => {
       onDeleteError?.(err);
-      toast({
-        description: "Could not delete schedule",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Could not delete schedule",
+        });
+      }
     },
   });
 
   const { mutate: updateSchedule, isPending: isSavingInProgress } = useUpdateSchedule({
     onSuccess: (res) => {
       onUpdateSuccess?.(res);
-      toast({
-        description: "Schedule updated successfully",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Schedule updated successfully",
+        });
+      }
     },
     onError: (err) => {
       onUpdateError?.(err);
-      toast({
-        description: "Could not update schedule",
-      });
+      if (!disableToasts) {
+        toast({
+          description: "Could not update schedule",
+        });
+      }
     },
   });
 
@@ -142,6 +156,8 @@ export const AvailabilitySettingsPlatformWrapper = ({
         backPath=""
         isPlatform={true}
         customClassNames={customClassNames}
+        allowDelete={allowDelete}
+        allowSetToDefault={allowSetToDefault}
       />
     </AtomsWrapper>
   );

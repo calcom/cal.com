@@ -6,9 +6,11 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
@@ -70,7 +72,36 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   movedToProfileId: true,
   metadata: true,
   isPlatformManaged: true,
+  lastActiveAt: true,
+  identityProvider: true,
+  teams: true,
 });
+
+export type UserWithLegacySelectedCalendars<TCalendar, TUser> = TUser & {
+  selectedCalendars: TCalendar[];
+};
+
+type UserWithSelectedCalendars<TCalendar, TUser> = Omit<TUser, "selectedCalendars"> & {
+  allSelectedCalendars: TCalendar[];
+  userLevelSelectedCalendars: TCalendar[];
+};
+
+export function withSelectedCalendars<
+  TCalendar extends {
+    eventTypeId: number | null;
+  },
+  TUser extends {
+    selectedCalendars: TCalendar[];
+  }
+>(user: UserWithLegacySelectedCalendars<TCalendar, TUser>): UserWithSelectedCalendars<TCalendar, TUser> {
+  // We are renaming selectedCalendars to allSelectedCalendars to make it clear that it contains all the calendars including eventType calendars
+  const { selectedCalendars, ...restUser } = user;
+  return {
+    ...restUser,
+    allSelectedCalendars: selectedCalendars,
+    userLevelSelectedCalendars: selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+  };
+}
 
 export class UserRepository {
   static async findTeamsByUserId({ userId }: { userId: UserType["id"] }) {
@@ -196,6 +227,16 @@ export class UserRepository {
                 }),
           };
     return { where, profiles };
+  }
+
+  static async findByEmail({ email }: { email: string }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email.toLowerCase(),
+      },
+      select: userSelect,
+    });
+    return user;
   }
 
   static async findByEmailAndIncludeProfilesAndPassword({ email }: { email: string }) {
@@ -380,6 +421,65 @@ export class UserRepository {
     };
   }
 
+  static async enrichUsersWithTheirProfiles<T extends { id: number; username: string | null }>(
+    users: T[]
+  ): Promise<
+    Array<
+      T & {
+        nonProfileUsername: string | null;
+        profile: UserProfile;
+      }
+    >
+  > {
+    if (users.length === 0) return [];
+
+    const userIds = users.map((user) => user.id);
+    const profiles = await ProfileRepository.findManyForUsers(userIds);
+
+    // Create a Map for faster lookups, preserving arrays of profiles per user
+    const profileMap = new Map<number, UserProfile[]>();
+    profiles.forEach((profile) => {
+      if (!profileMap.has(profile.userId)) {
+        profileMap.set(profile.userId, []);
+      }
+      profileMap.get(profile.userId)!.push(profile);
+    });
+
+    // Precompute personal profiles for all users
+    const personalProfileMap = new Map<number, UserProfile>();
+    users.forEach((user) => {
+      personalProfileMap.set(user.id, ProfileRepository.buildPersonalProfileFromUser({ user }));
+    });
+
+    return users.map((user) => {
+      const userProfiles = profileMap.get(user.id) || [];
+      if (userProfiles.length > 0) {
+        const profile = userProfiles[0];
+        if (profile?.organization?.isPlatform) {
+          return {
+            ...user,
+            nonProfileUsername: user.username,
+            profile: personalProfileMap.get(user.id)!,
+          };
+        }
+
+        return {
+          ...user,
+          username: profile.username,
+          nonProfileUsername: user.username,
+          profile,
+        };
+      }
+
+      // If no organization profile exists, use the precomputed personal profile
+      return {
+        ...user,
+        nonProfileUsername: user.username,
+        profile: personalProfileMap.get(user.id)!,
+      };
+    });
+  }
+
   static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
     user,
   }: {
@@ -406,7 +506,7 @@ export class UserRepository {
             organization?: {
               id: number;
               name: string;
-              calVideoLogo: string | null;
+              calVideoLogo?: string | null;
               bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
@@ -604,7 +704,20 @@ export class UserRepository {
     });
     return !!teams.length;
   }
-
+  static async isAdminOrOwnerOfTeam({ userId, teamId }: { userId: number; teamId: number }) {
+    const isAdminOrOwnerOfTeam = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId,
+        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        accepted: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!isAdminOrOwnerOfTeam;
+  }
   static async getTimeZoneAndDefaultScheduleId({ userId }: { userId: number }) {
     return await prisma.user.findUnique({
       where: {
@@ -651,5 +764,183 @@ export class UserRepository {
       return null;
     }
     return user;
+  }
+
+  static async updateAvatar({ id, avatarUrl }: { id: number; avatarUrl: string }) {
+    // Using updateMany here since if the user already has a profile it would throw an error
+    // because no records were found to update the profile picture
+    await prisma.user.updateMany({
+      where: {
+        id,
+        avatarUrl: {
+          equals: null,
+        },
+      },
+      data: {
+        avatarUrl,
+      },
+    });
+  }
+  static async findUserWithCredentials({ id }: { id: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+        timeZone: true,
+        id: true,
+        selectedCalendars: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return withSelectedCalendars(user);
+  }
+
+  static async findForAvailabilityCheck({ where }: { where: Prisma.UserWhereInput }) {
+    const user = await prisma.user.findFirst({
+      where,
+      select: {
+        ...availabilityUserSelect,
+        selectedCalendars: true,
+        credentials: {
+          select: credentialForCalendarServiceSelect,
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const userWithSelectedCalendars = withSelectedCalendars(user);
+    return userWithSelectedCalendars;
+  }
+
+  static async findUnlockedUserForSession({ userId }: { userId: number }) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+        // Locked users can't login
+        locked: false,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        email: true,
+        emailVerified: true,
+        bio: true,
+        avatarUrl: true,
+        timeZone: true,
+        weekStart: true,
+        startTime: true,
+        endTime: true,
+        defaultScheduleId: true,
+        bufferTime: true,
+        theme: true,
+        appTheme: true,
+        createdDate: true,
+        hideBranding: true,
+        twoFactorEnabled: true,
+        disableImpersonation: true,
+        identityProvider: true,
+        identityProviderId: true,
+        brandColor: true,
+        darkBrandColor: true,
+        movedToProfileId: true,
+        selectedCalendars: {
+          select: {
+            eventTypeId: true,
+            externalId: true,
+            integration: true,
+          },
+        },
+        completedOnboarding: true,
+        destinationCalendar: true,
+        locale: true,
+        timeFormat: true,
+        trialEndsAt: true,
+        metadata: true,
+        role: true,
+        allowDynamicBooking: true,
+        allowSEOIndexing: true,
+        receiveMonthlyDigestEmail: true,
+        profiles: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return withSelectedCalendars(user);
+  }
+
+  static async getUserStats({ userId }: { userId: number }) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        _count: {
+          select: {
+            bookings: true,
+            // We only need user level selected calendars
+            selectedCalendars: {
+              where: {
+                eventTypeId: null,
+              },
+            },
+            teams: true,
+            eventTypes: true,
+          },
+        },
+        teams: {
+          select: {
+            team: {
+              select: {
+                eventTypes: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const { _count, ...restUser } = user;
+    const { selectedCalendars, ...restCount } = _count;
+    return {
+      ...restUser,
+      _count: {
+        ...restCount,
+        userLevelSelectedCalendars: selectedCalendars,
+      },
+    };
+  }
+
+  static async findManyByIdsIncludeDestinationAndSelectedCalendars({ ids }: { ids: number[] }) {
+    const users = await prisma.user.findMany({
+      where: { id: { in: ids } },
+      include: {
+        selectedCalendars: true,
+        destinationCalendar: true,
+      },
+    });
+    return users.map(withSelectedCalendars);
   }
 }

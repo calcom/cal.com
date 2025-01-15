@@ -13,10 +13,7 @@ import type { AppMeta } from "@calcom/types/App";
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";
 
-let isInWatchMode = false;
-if (process.argv[2] === "--watch") {
-  isInWatchMode = true;
-}
+const isInWatchMode = process.argv[2] === "--watch";
 
 const formatOutput = (source: string) =>
   prettier.format(source, {
@@ -24,14 +21,10 @@ const formatOutput = (source: string) =>
     ...prettierConfig,
   });
 
-const getVariableName = function (appName: string) {
-  return appName.replace(/[-.]/g, "_");
-};
+const getVariableName = (appName: string) => appName.replace(/[-.]/g, "_");
 
-const getAppId = function (app: { name: string }) {
-  // Handle stripe separately as it's an old app with different dirName than slug/appId
-  return app.name === "stripepayment" ? "stripe" : app.name;
-};
+// INFO: Handle stripe separately as it's an old app with different dirName than slug/appId
+const getAppId = (app: { name: string }) => (app.name === "stripepayment" ? "stripe" : app.name);
 
 type App = Partial<AppMeta> & {
   name: string;

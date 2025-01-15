@@ -1,6 +1,8 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
@@ -12,7 +14,10 @@ import {
 
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
+const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
+
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
+  log.debug("called", safeStringify(event));
   // Find the group name associated with the event
   const eventData = event.data as Group;
 

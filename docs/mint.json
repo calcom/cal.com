@@ -24,7 +24,7 @@
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:support@cal.com"
+      "url": "https://go.cal.com/support"
     }
   ],
   "topbarCtaButton": {
@@ -129,7 +129,10 @@
       "pages": [
         "self-hosting/deployments/aws",
         "self-hosting/deployments/azure",
+        "self-hosting/deployments/elestio",
         "self-hosting/deployments/gcp",
+        "self-hosting/deployments/railway",
+        "self-hosting/deployments/render",
         "self-hosting/deployments/vercel"
       ]
     },
@@ -183,8 +186,30 @@
       "pages": [
         "platform/introduction",
         "platform/quickstart",
-        "platform/booking-redirects",
-        "platform/atoms-reference",
+        {
+          "group": "Atoms",
+          "icon": "atom",
+          "pages": [
+            "platform/atoms/google-calendar-connect",
+            "platform/atoms/outlook-calendar-connect",
+            "platform/atoms/apple-calendar-connect",
+            "platform/atoms/availability-settings",
+            "platform/atoms/booker",
+            "platform/atoms/event-type",
+            "platform/atoms/calendar-settings",
+            "platform/atoms/payment-form",
+            "platform/atoms/conferencing-apps"
+          ]
+        },
+        {
+          "group": "Guides",
+          "icon": "book",
+          "pages": [
+            "platform/guides/replacing-toasts",
+            "platform/guides/booking-fields",
+            "platform/guides/booking-redirects"
+          ]
+        },
         "platform/faq"
       ]
     },

@@ -162,13 +162,41 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "email") {
-          // Email RegExp to validate if the input is a valid email
-          if (!bookingField.hidden && !emailSchema.safeParse(value).success) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: m("email_validation_error"),
-            });
+          if (!bookingField.hidden && bookingField.required) {
+            // Email RegExp to validate if the input is a valid email
+            if (!emailSchema.safeParse(value).success) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("email_validation_error"),
+              });
+            }
+
+            // validate the excluded emails
+            const bookerEmail = value;
+            const excludedEmails =
+              bookingField.excludeEmails?.split(",").map((domain) => domain.trim()) || [];
+
+            const match = excludedEmails.find((email) => bookerEmail.includes(email));
+            if (match) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("exclude_emails_match_found_error_message"),
+              });
+            }
+            const requiredEmails =
+              bookingField.requireEmails
+                ?.split(",")
+                .map((domain) => domain.trim())
+                .filter(Boolean) || [];
+            const requiredEmailsMatch = requiredEmails.find((email) => bookerEmail.includes(email));
+            if (requiredEmails.length > 0 && !requiredEmailsMatch) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: m("require_emails_no_match_found_error_message"),
+              });
+            }
           }
+
           continue;
         }
 
@@ -236,7 +264,7 @@ function preprocess<T extends z.ZodType>({
         }
 
         if (bookingField.type === "phone") {
-          if (!(await phoneSchema.safeParseAsync(value)).success) {
+          if (!bookingField.hidden && !(await phoneSchema.safeParseAsync(value)).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("invalid_number") });
           }
           continue;

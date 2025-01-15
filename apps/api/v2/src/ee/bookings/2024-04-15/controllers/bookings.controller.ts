@@ -37,7 +37,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 
-import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { X_CAL_CLIENT_ID, X_CAL_PLATFORM_EMBED } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
   handleNewRecurringBooking,
@@ -89,7 +89,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 @UseGuards(PermissionsGuard)
 @DocsExcludeController(true)
 export class BookingsController_2024_04_15 {
-  private readonly logger = new Logger("BookingsController");
+  private readonly logger = new Logger("BookingsController_2024_04_15");
 
   constructor(
     private readonly oAuthFlowService: OAuthFlowService,
@@ -111,8 +111,9 @@ export class BookingsController_2024_04_15 {
     @Query() queryParams: GetBookingsInput_2024_04_15
   ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
+    const bookingListingByStatus = filters?.status ?? Status_2024_04_15["upcoming"];
     const bookings = await getAllUserBookings({
-      bookingListingByStatus: [filters.status],
+      bookingListingByStatus: [bookingListingByStatus],
       skip: cursor ?? 0,
       take: limit ?? 10,
       filters,
@@ -160,14 +161,15 @@ export class BookingsController_2024_04_15 {
   async createBooking(
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput_2024_04_15,
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string,
+    @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const oAuthClientId = clientId?.toString();
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
       const booking = await handleNewBooking(
-        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
+        await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl, isEmbed)
       );
       if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
@@ -191,13 +193,16 @@ export class BookingsController_2024_04_15 {
     @Req() req: BookingRequest,
     @Param("bookingId") bookingId: string,
     @Body() _: CancelBookingInput_2024_04_15,
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string,
+    @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       try {
         req.body.id = parseInt(bookingId);
-        const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+        const res = await handleCancelBooking(
+          await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
+        );
         if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
@@ -245,7 +250,8 @@ export class BookingsController_2024_04_15 {
   async createRecurringBooking(
     @Req() req: BookingRequest,
     @Body() _: CreateRecurringBookingInput_2024_04_15[],
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string,
+    @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
     try {
@@ -257,7 +263,7 @@ export class BookingsController_2024_04_15 {
       }
 
       const createdBookings: BookingResponse[] = await handleNewRecurringBooking(
-        await this.createNextApiRecurringBookingRequest(req, oAuthClientId)
+        await this.createNextApiRecurringBookingRequest(req, oAuthClientId, undefined, isEmbed)
       );
 
       createdBookings.forEach(async (booking) => {
@@ -283,13 +289,14 @@ export class BookingsController_2024_04_15 {
   async createInstantBooking(
     @Req() req: BookingRequest,
     @Body() _: CreateBookingInput_2024_04_15,
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
+    @Headers(X_CAL_CLIENT_ID) clientId?: string,
+    @Headers(X_CAL_PLATFORM_EMBED) isEmbed?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
       const instantMeeting = await handleInstantMeeting(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
+        await this.createNextApiBookingRequest(req, oAuthClientId, undefined, isEmbed)
       );
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
@@ -331,8 +338,14 @@ export class BookingsController_2024_04_15 {
     }
   }
 
-  private async getOAuthClientsParams(clientId: string): Promise<OAuthRequestParams> {
-    const res = DEFAULT_PLATFORM_PARAMS;
+  private async getOAuthClientsParams(clientId: string, isEmbed = false): Promise<OAuthRequestParams> {
+    const res = { ...DEFAULT_PLATFORM_PARAMS };
+
+    if (isEmbed) {
+      // embed should ignore oauth client settings and enable emails by default
+      return { ...res, arePlatformEmailsEnabled: true };
+    }
+
     try {
       const client = await this.oAuthClientRepository.getOAuthClient(clientId);
       // fetch oAuthClient from db and use data stored in db to set these values
@@ -353,33 +366,53 @@ export class BookingsController_2024_04_15 {
   private async createNextApiBookingRequest(
     req: BookingRequest,
     oAuthClientId?: string,
-    platformBookingLocation?: string
+    platformBookingLocation?: string,
+    isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const requestId = req.get("X-Request-Id");
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(oAuthClientId)
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, { userId, ...oAuthParams, platformBookingLocation });
-    req.body = { ...req.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    this.logger.log(`createNextApiBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
+    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private async createNextApiRecurringBookingRequest(
     req: BookingRequest,
     oAuthClientId?: string,
-    platformBookingLocation?: string
+    platformBookingLocation?: string,
+    isEmbed?: string
   ): Promise<NextApiRequest & { userId?: number } & OAuthRequestParams> {
+    const clone = { ...req };
     const userId = (await this.getOwnerId(req)) ?? -1;
     const oAuthParams = oAuthClientId
-      ? await this.getOAuthClientsParams(oAuthClientId)
+      ? await this.getOAuthClientsParams(oAuthClientId, this.transformToBoolean(isEmbed))
       : DEFAULT_PLATFORM_PARAMS;
-    Object.assign(req, {
+    const requestId = req.get("X-Request-Id");
+    this.logger.log(`createNextApiRecurringBookingRequest_2024_04_15`, {
+      requestId,
+      ownerId: userId,
+      platformBookingLocation,
+      oAuthClientId,
+      ...oAuthParams,
+    });
+    Object.assign(clone, {
       userId,
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
     });
-    return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
+    return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
   private handleBookingErrors(
@@ -404,5 +437,9 @@ export class BookingsController_2024_04_15 {
     }
 
     throw new InternalServerErrorException(errMsg);
+  }
+
+  private transformToBoolean(v?: string): boolean {
+    return v && typeof v === "string" ? v.toLowerCase() === "true" : false;
   }
 }

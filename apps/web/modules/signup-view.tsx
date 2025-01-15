@@ -303,6 +303,9 @@ export default function Signup({
             <>
               <Script
                 id="gtm-init-script"
+                // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+                // And we don't want it to error here anyways
+                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
                   __html: `(function (w, d, s, l, i) {
                         w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
@@ -312,6 +315,7 @@ export default function Signup({
                 }}
               />
               <noscript
+                // eslint-disable-next-line react/no-danger
                 dangerouslySetInnerHTML={{
                   __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${process.env.NEXT_PUBLIC_GTM_ID}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
                 }}

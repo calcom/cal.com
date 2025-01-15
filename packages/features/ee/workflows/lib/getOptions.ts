@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import type { WorkflowActions } from "@calcom/prisma/enums";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 
 import { isSMSOrWhatsappAction, isWhatsappAction, isEmailToAttendeeAction } from "./actionHelperFunctions";
 import {
@@ -24,7 +25,14 @@ export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, is
 }
 
 export function getWorkflowTriggerOptions(t: TFunction) {
-  return WORKFLOW_TRIGGER_EVENTS.map((triggerEvent) => {
+  // TODO: remove this after workflows are supported
+  const filterdWorkflowTriggerEvents = WORKFLOW_TRIGGER_EVENTS.filter(
+    (event) =>
+      event !== WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW &&
+      event !== WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+  );
+
+  return filterdWorkflowTriggerEvents.map((triggerEvent) => {
     const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
 
     return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };

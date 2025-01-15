@@ -79,8 +79,6 @@ export class OrganizationsUsersService {
       updateUserBody
     );
 
-    await this.organizationsTeamsService.addUserToTeamEvents(user.id, org.id);
-
     // Need to send email to new user to create password
     await this.emailService.sendSignupToOrganizationEmail({
       usernameOrEmail,

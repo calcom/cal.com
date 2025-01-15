@@ -8,7 +8,7 @@ import {
   sortByTimezone,
 } from "@calcom/lib/date-fns";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 
 type Attendee = {
   id: number;

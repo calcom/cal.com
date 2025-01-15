@@ -689,6 +689,11 @@ class CalApi {
 
     if (__prerender) {
       this.preloadedModalUid = uid;
+    } else {
+      // Intentionally not setting it to have the behaviour of reusing the same modal. Because it causes outdated content that might not be valid based on
+      // 1. The time difference b/w reopening(availability getting changed in b/w)
+      // 2. User using different query params but they not being used because of the same modal being reused. Happens in case of headless router being opened in embed
+      // this.modalUid = uid;
     }
 
     if (typeof config.iframeAttrs === "string" || config.iframeAttrs instanceof Array) {

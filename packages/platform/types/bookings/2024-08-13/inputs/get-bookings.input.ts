@@ -185,7 +185,7 @@ export class GetBookingsInput_2024_08_13 {
     required: false,
     description:
       "Sort results by their creation time (when booking was made) in ascending or descending order.",
-    example: "?sortEnd=asc OR ?sortEnd=desc",
+    example: "?sortCreated=asc OR ?sortCreated=desc",
     enum: SortOrder,
   })
   sortCreated?: SortOrderType;

@@ -1,4 +1,5 @@
 import type { WorkflowStep } from "@prisma/client";
+import { type TFunction } from "i18next";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -10,7 +11,6 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import turndown from "@calcom/lib/turndownService";
 import { TimeUnit, WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -69,8 +69,19 @@ type WorkflowStepProps = {
   readOnly: boolean;
 };
 
+const getTimeSectionText = (trigger: WorkflowTriggerEvents, t: TFunction) => {
+  const triggerMap: Partial<Record<WorkflowTriggerEvents, string>> = {
+    [WorkflowTriggerEvents.AFTER_EVENT]: "how_long_after",
+    [WorkflowTriggerEvents.BEFORE_EVENT]: "how_long_before",
+    [WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW]: "how_long_after_hosts_no_show",
+    [WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW]: "how_long_after_guests_no_show",
+  };
+  if (!triggerMap[trigger]) return null;
+  return t(triggerMap[trigger]!);
+};
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
 
   const { step, form, reload, setReload, teamId } = props;
@@ -114,14 +125,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
-      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
-
-  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
+  const [timeSectionText, setTimeSectionText] = useState(getTimeSectionText(form.getValues("trigger"), t));
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
@@ -133,28 +137,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       if (isSMSAction(action)) {
         form.setValue(
           `steps.${step.stepNumber - 1}.reminderBody`,
-          smsReminderTemplate(true, action, timeFormat)
+          smsReminderTemplate(true, i18n.language, action, timeFormat)
         );
       } else if (isWhatsappAction(action)) {
         form.setValue(
           `steps.${step.stepNumber - 1}.reminderBody`,
-          whatsappReminderTemplate(true, action, timeFormat)
+          whatsappReminderTemplate(true, i18n.language, action, timeFormat)
         );
       } else {
-        const reminderBodyTemplate = emailReminderTemplate(true, action, timeFormat).emailBody;
+        const reminderBodyTemplate = emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
       }
     }
     if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
       const subjectTemplate = emailReminderTemplate(
         true,
+        i18n.language,
         form.getValues(`steps.${step.stepNumber - 1}.action`),
         timeFormat
       ).emailSubject;
       form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
     }
   } else if (step && isWhatsappAction(step.action)) {
-    const templateBody = getWhatsappTemplateForAction(step.action, step.template, timeFormat);
+    const templateBody = getWhatsappTemplateForAction(step.action, i18n.language, step.template, timeFormat);
     form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody);
   }
 
@@ -312,21 +317,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (
-                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
-                          val.value === WorkflowTriggerEvents.AFTER_EVENT
-                        ) {
-                          setShowTimeSection(true);
-                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
-                            setShowTimeSectionAfter(true);
+                        const newTimeSectionText = getTimeSectionText(val.value, t);
+                        if (newTimeSectionText) {
+                          setTimeSectionText(newTimeSectionText);
+                          if (
+                            val.value === WorkflowTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                            val.value === WorkflowTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                          ) {
+                            form.setValue("time", 5);
+                            form.setValue("timeUnit", TimeUnit.MINUTE);
                           } else {
-                            setShowTimeSectionAfter(false);
+                            form.setValue("time", 24);
+                            form.setValue("timeUnit", TimeUnit.HOUR);
                           }
-                          form.setValue("time", 24);
-                          form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
-                          setShowTimeSection(false);
-                          setShowTimeSectionAfter(false);
+                          setTimeSectionText(null);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -338,10 +343,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 );
               }}
             />
-            {showTimeSection && (
+            {!!timeSectionText && (
               <div className="mt-5">
-                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
-                <TimeTimeUnitInput form={form} disabled={props.readOnly} />
+                <Label>{timeSectionText}</Label>
+                <TimeTimeUnitInput disabled={props.readOnly} />
                 {!props.readOnly && (
                   <div className="mt-1 flex text-gray-500">
                     <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
@@ -511,16 +516,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 if (isSMSAction(val.value)) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.reminderBody`,
-                                    smsReminderTemplate(true, val.value, timeFormat)
+                                    smsReminderTemplate(true, i18n.language, val.value, timeFormat)
                                   );
                                 } else if (isWhatsappAction(val.value)) {
                                   form.setValue(
                                     `steps.${step.stepNumber - 1}.reminderBody`,
-                                    whatsappReminderTemplate(true, val.value, timeFormat)
+                                    whatsappReminderTemplate(true, i18n.language, val.value, timeFormat)
                                   );
                                 } else {
                                   const emailReminderBody = emailReminderTemplate(
                                     true,
+                                    i18n.language,
                                     val.value,
                                     timeFormat
                                   );
@@ -818,37 +824,47 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  whatsappReminderTemplate(true, action, timeFormat)
+                                  whatsappReminderTemplate(true, i18n.language, action, timeFormat)
                                 );
                               } else if (isSMSAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  smsReminderTemplate(true, action, timeFormat)
+                                  smsReminderTemplate(true, i18n.language, action, timeFormat)
                                 );
                               } else {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderTemplate(true, action, timeFormat).emailBody
+                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody
                                 );
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailReminderTemplate(true, action, timeFormat).emailSubject
+                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailSubject
                                 );
                               }
                             } else if (val.value === WorkflowTemplates.RATING) {
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailBody
+                                emailRatingTemplate({
+                                  isEditingMode: true,
+                                  locale: i18n.language,
+                                  action,
+                                  timeFormat,
+                                }).emailBody
                               );
                               form.setValue(
                                 `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailRatingTemplate({ isEditingMode: true, action, timeFormat }).emailSubject
+                                emailRatingTemplate({
+                                  isEditingMode: true,
+                                  locale: i18n.language,
+                                  action,
+                                  timeFormat,
+                                }).emailSubject
                               );
                             } else {
                               if (isWhatsappAction(action)) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.reminderBody`,
-                                  getWhatsappTemplateForAction(action, val.value, timeFormat)
+                                  getWhatsappTemplateForAction(action, i18n.language, val.value, timeFormat)
                                 );
                               } else {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
@@ -914,11 +930,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
                   }}
                   setText={(text: string) => {
-                    if (isSMSOrWhatsappAction(step.action)) {
-                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, turndown(text));
-                    } else {
-                      props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                    }
+                    props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                     props.form.clearErrors();
                   }}
                   variables={DYNAMIC_TEXT_VARIABLES}
@@ -931,6 +943,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }
+                  plainText={isSMSAction(step.action)}
                 />
 
                 {form.formState.errors.steps &&

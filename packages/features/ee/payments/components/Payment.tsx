@@ -1,7 +1,6 @@
-import type { Payment } from "@prisma/client";
-import type { EventType } from "@prisma/client";
+import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale } from "@stripe/stripe-js";
+import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
@@ -10,11 +9,12 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { PaymentOption } from "@calcom/prisma/enums";
 import { Button, CheckboxField } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";
 
-type Props = {
+export type Props = {
   payment: Omit<Payment, "id" | "fee" | "success" | "refunded" | "externalId" | "data"> & {
     data: Record<string, unknown>;
   };
@@ -31,7 +31,7 @@ type Props = {
   booking: PaymentPageProps["booking"];
 };
 
-type States =
+export type States =
   | {
       status: "idle";
     }
@@ -46,28 +46,107 @@ type States =
       status: "ok";
     };
 
+export const PaymentFormComponent = (
+  props: Props & {
+    onSubmit: (ev: SyntheticEvent) => void;
+    onCancel: () => void;
+    onPaymentElementChange: () => void;
+    elements: StripeElements | null;
+    paymentOption: PaymentOption | null;
+    state: States;
+  }
+) => {
+  const { t, i18n } = useLocale();
+  const { paymentOption, elements, state, onPaymentElementChange } = props;
+  const [isCanceling, setIsCanceling] = useState<boolean>(false);
+  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
+  const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
+
+  const paymentElementOptions = {
+    layout: "accordion",
+  } as StripePaymentElementOptions;
+
+  useEffect(() => {
+    elements?.update({ locale: i18n.language as StripeElementLocale });
+  }, [elements, i18n.language]);
+
+  return (
+    <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={props.onSubmit}>
+      <div>
+        <PaymentElement options={paymentElementOptions} onChange={(_) => onPaymentElementChange()} />
+      </div>
+      {paymentOption === "HOLD" && (
+        <div className="bg-info mb-5 mt-2 rounded-md p-3">
+          <CheckboxField
+            description={t("acknowledge_booking_no_show_fee", {
+              amount: props.payment.amount / 100,
+              formatParams: { amount: { currency: props.payment.currency } },
+            })}
+            onChange={(e) => setHoldAcknowledged(e.target.checked)}
+            descriptionClassName="text-info font-semibold"
+          />
+        </div>
+      )}
+      <div className="mt-2 flex justify-end space-x-2">
+        <Button
+          color="minimal"
+          disabled={disableButtons}
+          id="cancel"
+          type="button"
+          loading={isCanceling}
+          onClick={() => {
+            setIsCanceling(true);
+            props.onCancel();
+          }}>
+          <span id="button-text">{t("cancel")}</span>
+        </Button>
+        <Button
+          type="submit"
+          disabled={disableButtons}
+          loading={state.status === "processing"}
+          id="submit"
+          color="secondary">
+          <span id="button-text">
+            {state.status === "processing" ? (
+              <div className="spinner" id="spinner" />
+            ) : paymentOption === "HOLD" ? (
+              t("submit_card")
+            ) : (
+              t("pay_now")
+            )}
+          </span>
+        </Button>
+      </div>
+      {state.status === "error" && (
+        <div className="mt-4 text-center text-red-900 dark:text-gray-300" role="alert">
+          {state.error.message}
+        </div>
+      )}
+    </form>
+  );
+};
+
 const PaymentForm = (props: Props) => {
   const {
     user: { username },
   } = props;
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const [state, setState] = useState<States>({ status: "idle" });
-  const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const stripe = useStripe();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
-  const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-  useEffect(() => {
-    elements?.update({ locale: i18n.language as StripeElementLocale });
-  }, [elements, i18n.language]);
 
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
     if (!stripe || !elements || searchParams === null) {
+      return;
+    }
+
+    if (!stripe || !elements) {
       return;
     }
 
@@ -130,64 +209,23 @@ const PaymentForm = (props: Props) => {
     }
   };
 
-  const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
-
   return (
-    <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
-      <div>
-        <PaymentElement onChange={() => setState({ status: "idle" })} />
-      </div>
-      {paymentOption === "HOLD" && (
-        <div className="bg-info mb-5 mt-2 rounded-md p-3">
-          <CheckboxField
-            description={t("acknowledge_booking_no_show_fee", {
-              amount: props.payment.amount / 100,
-              formatParams: { amount: { currency: props.payment.currency } },
-            })}
-            onChange={(e) => setHoldAcknowledged(e.target.checked)}
-            descriptionClassName="text-info font-semibold"
-          />
-        </div>
-      )}
-      <div className="mt-2 flex justify-end space-x-2">
-        <Button
-          color="minimal"
-          disabled={disableButtons}
-          id="cancel"
-          type="button"
-          loading={isCanceling}
-          onClick={() => {
-            setIsCanceling(true);
-            if (username) {
-              return router.push(`/${username}`);
-            }
-            return router.back();
-          }}>
-          <span id="button-text">{t("cancel")}</span>
-        </Button>
-        <Button
-          type="submit"
-          disabled={disableButtons}
-          loading={state.status === "processing"}
-          id="submit"
-          color="secondary">
-          <span id="button-text">
-            {state.status === "processing" ? (
-              <div className="spinner" id="spinner" />
-            ) : paymentOption === "HOLD" ? (
-              t("submit_card")
-            ) : (
-              t("pay_now")
-            )}
-          </span>
-        </Button>
-      </div>
-      {state.status === "error" && (
-        <div className="mt-4 text-center text-red-900 dark:text-gray-300" role="alert">
-          {state.error.message}
-        </div>
-      )}
-    </form>
+    <PaymentFormComponent
+      {...props}
+      elements={elements}
+      paymentOption={paymentOption}
+      state={state}
+      onSubmit={handleSubmit}
+      onCancel={() => {
+        if (username) {
+          return router.push(`/${username}`);
+        }
+        return router.back();
+      }}
+      onPaymentElementChange={() => {
+        setState({ status: "idle" });
+      }}
+    />
   );
 };
 

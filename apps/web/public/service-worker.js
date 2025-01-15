@@ -2,15 +2,14 @@ self.addEventListener("push", async (event) => {
   let notificationData = event.data.json();
 
   const allClients = await clients.matchAll({
-    type: 'window',
-    includeUncontrolled: true
+    type: "window",
+    includeUncontrolled: true,
   });
 
-  if(!allClients.length) {
+  if (!allClients.length) {
     console.log("No open tabs, skipping the push notification.");
     return;
   }
-
 
   const title = notificationData.title || "You have a new notification from Cal.com";
   const image = "https://cal.com/api/logo?type=icon";
@@ -26,7 +25,6 @@ self.addEventListener("push", async (event) => {
     vibrate: [300, 100, 400],
     tag: `notification-${Date.now()}-${Math.random()}`,
   };
-
 
   const existingNotifications = await self.registration.getNotifications();
 
@@ -45,7 +43,6 @@ self.addEventListener("push", async (event) => {
     self.registration.showNotification(notification.title, options);
   });
 
-
   // Show the new notification
   self.registration.showNotification(title, newNotificationOptions);
 });
@@ -59,7 +56,7 @@ self.addEventListener("notificationclick", (event) => {
   }
 
   switch (event.action) {
-    case 'connect-action':
+    case "connect-action":
       event.notification.close();
       const url = event.notification.data.url;
       event.waitUntil(self.clients.openWindow(url));

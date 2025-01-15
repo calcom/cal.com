@@ -159,14 +159,14 @@ export const OAuthClientCard = ({
       </div>
       <div className="flex items-start gap-4">
         <Button
-          className="bg-subtle hover:bg-emphasis text-white"
+          color="primary"
           loading={isLoading}
           disabled={isLoading}
           onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit/webhooks`)}>
           Webhooks
         </Button>
         <Button
-          className="bg-subtle hover:bg-emphasis text-white"
+          color="secondary"
           loading={isLoading}
           disabled={isLoading}
           onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>

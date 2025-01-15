@@ -198,7 +198,7 @@ export default class HubspotCalendarService implements CRM {
     return await this.hubspotDeleteMeeting(uid);
   }
 
-  async getContacts(emails: string | string[]): Promise<Contact[]> {
+  async getContacts({ emails }: { emails: string | string[] }): Promise<Contact[]> {
     const auth = await this.auth;
     await auth.getToken();
 
@@ -268,5 +268,9 @@ export default class HubspotCalendarService implements CRM {
         email: contact.properties.email,
       };
     });
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }

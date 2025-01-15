@@ -1,36 +1,51 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
+import type { Tasker } from "@calcom/features/tasker/tasker";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
-import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
-import { evaluateRaqbLogic, RaqbLogicResult } from "../lib/evaluateRaqbLogic";
-import {
-  getTeamMembersWithAttributeOptionValuePerAttribute,
-  getAttributesForTeam,
-} from "../lib/getAttributes";
-import isRouter from "../lib/isRouter";
 import type { SerializableField, OrderedResponses } from "../types/types";
 import type { FormResponse, SerializableForm } from "../types/types";
-import { acrossQueryValueCompatiblity } from "./raqbUtils";
 
-const {
-  getAttributesData: getAttributes,
-  getAttributesQueryBuilderConfig,
-  getAttributesQueryValue,
-} = acrossQueryValueCompatiblity;
+let tasker: Tasker;
+
+if (typeof window === "undefined") {
+  import("@calcom/features/tasker")
+    .then((module) => {
+      tasker = module.default;
+    })
+    .catch((error) => {
+      console.error("Failed to load tasker:", error);
+    });
+}
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
+
+type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
+export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+  string,
+  {
+    /**
+     * Deprecates `value` prop as it now has both the id(that doesn't change) and the label(that can change but is human friendly)
+     */
+    response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
+    /**
+     * @deprecated Use `response` instead
+     */
+    value: FormResponse[keyof FormResponse]["value"];
+  }
+>;
 
 function isOptionsField(field: Pick<SerializableField, "type" | "options">) {
   return (field.type === "select" || field.type === "multiselect") && field.options;
 }
 
-function getFieldResponse({
+export function getFieldResponse({
   field,
   fieldResponseValue,
 }: {
@@ -77,108 +92,17 @@ function getFieldResponse({
   };
 }
 
-type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
-  string,
-  {
-    /**
-     * Deprecates `value` prop as it now has both the id(that doesn't change) and the label(that can change but is human friendly)
-     */
-    response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
-    /**
-     * @deprecated Use `response` instead
-     */
-    value: FormResponse[keyof FormResponse]["value"];
-  }
->;
-
-export async function findTeamMembersMatchingAttributeLogicOfRoute({
-  form,
-  response,
-  routeId,
-  teamId,
-}: {
-  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
-  response: FormResponse;
-  routeId: string;
-  teamId: number;
-}) {
-  const route = form.routes?.find((route) => route.id === routeId);
-  if (!route) {
-    return null;
-  }
-  const teamMembersMatchingAttributeLogic: {
-    userId: number;
-    result: RaqbLogicResult;
-  }[] = [];
-  if (!isRouter(route)) {
-    const attributesForTeam = await getAttributesForTeam({ teamId: teamId });
-    const attributesQueryValue = getAttributesQueryValue({
-      attributesQueryValue: route.attributesQueryValue,
-      attributes: attributesForTeam,
-      response,
-      fields: form.fields,
-      getFieldResponse,
-    });
-
-    if (!attributesQueryValue) {
-      return null;
-    }
-
-    const attributesQueryBuilderConfig = getAttributesQueryBuilderConfig({
-      form,
-      attributes: attributesForTeam,
-      attributesQueryValue,
-    });
-
-    moduleLogger.debug(
-      "Finding team members matching attribute logic",
-      safeStringify({
-        form,
-        response,
-        routeId,
-        teamId,
-        attributesQueryBuilderConfigFields: attributesQueryBuilderConfig.fields,
-      })
-    );
-
-    const teamMembersWithAttributeOptionValuePerAttribute =
-      await getTeamMembersWithAttributeOptionValuePerAttribute({ teamId: teamId });
-
-    teamMembersWithAttributeOptionValuePerAttribute.forEach((member, index) => {
-      const attributesData = getAttributes({
-        attributesData: member.attributes,
-        attributesQueryValue,
-      });
-      moduleLogger.debug(
-        `Checking team member ${member.userId} with attributes logic`,
-        safeStringify({ attributes: attributesData, attributesQueryValue })
-      );
-      const result = evaluateRaqbLogic({
-        queryValue: attributesQueryValue,
-        queryBuilderConfig: attributesQueryBuilderConfig,
-        data: attributesData,
-        beStrictWithEmptyLogic: true,
-      });
-
-      if (result === RaqbLogicResult.MATCH || result === RaqbLogicResult.LOGIC_NOT_FOUND_SO_MATCHED) {
-        moduleLogger.debug(`Team member ${member.userId} matches attributes logic`);
-        teamMembersMatchingAttributeLogic.push({ userId: member.userId, result });
-      } else {
-        moduleLogger.debug(`Team member ${member.userId} does not match attributes logic`);
-      }
-    });
-  }
-
-  return teamMembersMatchingAttributeLogic;
-}
-
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: FormResponse
+  response: FormResponse,
+  responseId: number,
+  chosenAction?: {
+    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    value: string;
+  }
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -188,6 +112,7 @@ export async function onFormSubmission(
       throw new Error(`Field with id ${fieldId} not found`);
     }
     // Use the label lowercased as the key to identify a field.
+    // TODO: We seem to be using label from the response, Can we not use the field.label
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
@@ -201,16 +126,24 @@ export async function onFormSubmission(
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const subscriberOptions = {
+  const subscriberOptionsFormSubmitted = {
     userId,
     teamId,
     orgId,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
   };
 
-  const webhooks = await getWebhooks(subscriberOptions);
+  const subscriberOptionsFormSubmittedNoEvent = {
+    userId,
+    teamId,
+    orgId,
+    triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT,
+  };
 
-  const promises = webhooks.map((webhook) => {
+  const webhooksFormSubmitted = await getWebhooks(subscriberOptionsFormSubmitted);
+  const webhooksFormSubmittedNoEvent = await getWebhooks(subscriberOptionsFormSubmittedNoEvent);
+
+  const promisesFormSubmitted = webhooksFormSubmitted.map((webhook) => {
     sendGenericWebhookPayload({
       secretKey: webhook.secret,
       triggerEvent: "FORM_SUBMITTED",
@@ -234,27 +167,47 @@ export async function onFormSubmission(
     });
   });
 
+  const promisesFormSubmittedNoEvent = webhooksFormSubmittedNoEvent.map((webhook) => {
+    const scheduledAt = dayjs().add(15, "minute").toDate();
+
+    return tasker.create(
+      "triggerFormSubmittedNoEventWebhook",
+      {
+        responseId,
+        form,
+        responses: fieldResponsesByIdentifier,
+        redirect: chosenAction,
+        webhook,
+      },
+      { scheduledAt }
+    );
+  });
+
+  const promises = [...promisesFormSubmitted, ...promisesFormSubmittedNoEvent];
+
   await Promise.all(promises);
   const orderedResponses = form.fields.reduce((acc, field) => {
     acc.push(response[field.id]);
     return acc;
   }, [] as OrderedResponses);
 
-  if (form.settings?.emailOwnerOnSubmission) {
+  if (form.teamId) {
+    if (form.userWithEmails?.length) {
+      moduleLogger.debug(
+        `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
+      );
+      await sendResponseEmail(form, orderedResponses, form.userWithEmails);
+    }
+  } else if (form.settings?.emailOwnerOnSubmission) {
     moduleLogger.debug(
       `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
     );
     await sendResponseEmail(form, orderedResponses, [form.user.email]);
-  } else if (form.userWithEmails?.length) {
-    moduleLogger.debug(
-      `Preparing to send Form Response email for Form:${form.id} to users: ${form.userWithEmails.join(",")}`
-    );
-    await sendResponseEmail(form, orderedResponses, form.userWithEmails);
   }
 }
 
 export const sendResponseEmail = async (
-  form: Pick<App_RoutingForms_Form, "id" | "name">,
+  form: Pick<App_RoutingForms_Form, "id" | "name" | "fields">,
   orderedResponses: OrderedResponses,
   toAddresses: string[]
 ) => {

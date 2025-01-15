@@ -7,10 +7,15 @@ import { Controller, useFormContext } from "react-hook-form";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
+import cn from "@calcom/lib/classNames";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+import type { Brand } from "@calcom/types/utils";
 import {
   Alert,
   Badge,
@@ -39,6 +44,7 @@ import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -95,7 +101,7 @@ const Actions = ({
           tooltip={t("copy_link_to_form")}
         />
 
-        <Tooltip content="Download Responses">
+        <Tooltip content={t("download_responses")}>
           <FormAction
             data-testid="download-responses"
             routingForm={form}
@@ -228,110 +234,324 @@ type SingleFormComponentProps = {
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
-  enrichedWithUserProfileForm?: inferSSRProps<
+  enrichedWithUserProfileForm: inferSSRProps<
     typeof getServerSidePropsForSingleFormView
   >["enrichedWithUserProfileForm"];
 };
 
-function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
-  const utils = trpc.useUtils();
+type MembersMatchResultType = {
+  isUsingAttributeWeights: boolean;
+  eventTypeRedirectUrl: string | null;
+  contactOwnerEmail: string | null;
+  teamMembersMatchingAttributeLogic: { id: number; name: string | null; email: string }[] | null;
+  perUserData: {
+    bookingsCount: Record<number, number>;
+    bookingShortfalls: Record<number, number> | null;
+    calibrations: Record<number, number> | null;
+    weights: Record<number, number> | null;
+  } | null;
+  checkedFallback: boolean;
+  mainWarnings: string[] | null;
+  fallbackWarnings: string[] | null;
+} | null;
+
+const TeamMembersMatchResult = ({
+  membersMatchResult,
+  chosenRouteName,
+  showAllData,
+}: {
+  membersMatchResult: MembersMatchResultType;
+  chosenRouteName: string;
+  showAllData: boolean;
+}) => {
   const { t } = useLocale();
-  const isTeamForm = !!form.teamId;
-  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
+  if (!membersMatchResult) return null;
+
+  const hasMainWarnings = (membersMatchResult.mainWarnings?.length ?? 0) > 0;
+  const hasFallbackWarnings = (membersMatchResult.fallbackWarnings?.length ?? 0) > 0;
+
+  const renderFallbackLogicStatus = () => {
+    if (!membersMatchResult.checkedFallback) {
+      return t("fallback_not_needed");
+    } else if (
+      isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic) ||
+      membersMatchResult.teamMembersMatchingAttributeLogic.length > 0
+    ) {
+      return t("yes");
+    } else {
+      return t("no");
+    }
+  };
+
+  const renderMainLogicStatus = () => {
+    return !membersMatchResult.checkedFallback ? t("yes") : t("no");
+  };
+
+  const renderQueue = () => {
+    if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}asdf</div>;
+      if (membersMatchResult.checkedFallback) {
+        return (
+          <span className="font-semibold">
+            {t(
+              "all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules_to_fallback"
+            )}
+          </span>
+        );
+      }
+      return (
+        <span className="font-semibold">
+          {t("all_assigned_members_of_the_team_event_type_consider_adding_some_attribute_rules")}
+        </span>
+      );
+    }
+
+    const matchingMembers = membersMatchResult.teamMembersMatchingAttributeLogic;
+
+    if (matchingMembers.length && membersMatchResult.perUserData) {
+      const perUserData = membersMatchResult.perUserData;
+      return (
+        <span className="font-semibold">
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b text-left">
+                  <th className="py-2 pr-4">#</th>
+                  <th className="py-2 pr-4">{t("email")}</th>
+                  <th className="py-2 pr-4">{t("bookings")}</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">{t("weight")}</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? (
+                    <th className="py-2">{t("calibration")}</th>
+                  ) : null}
+                  {membersMatchResult.perUserData.bookingShortfalls ? (
+                    <th className="border-l py-2 pl-2">{t("shortfall")}</th>
+                  ) : null}
+                </tr>
+              </thead>
+              <tbody>
+                {matchingMembers.map((member, index) => (
+                  <tr key={member.id} className="border-b">
+                    <td className="py-2 pr-4">{index + 1}</td>
+                    <td className="py-2 pr-4">{member.email}</td>
+                    <td className="py-2">{perUserData.bookingsCount[member.id] ?? 0}</td>
+                    {perUserData.weights ? (
+                      <td className="py-2">{perUserData.weights[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.calibrations ? (
+                      <td className="py-2">{perUserData.calibrations[member.id] ?? 0}</td>
+                    ) : null}
+                    {perUserData.bookingShortfalls ? (
+                      <td className="border-l py-2 pl-2">{perUserData.bookingShortfalls[member.id] ?? 0}</td>
+                    ) : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </span>
+      );
+    }
+
+    return (
+      <span className="font-semibold">
+        {t("all_assigned_members_of_the_team_event_type_consider_tweaking_fallback_to_have_a_match")}
+      </span>
+    );
+  };
+
+  return (
+    <div className="text-default mt-2 space-y-2">
+      {showAllData ? (
+        <>
+          <div data-testid="chosen-route">
+            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+          </div>
+          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+            {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+            {hasMainWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.mainWarnings?.join(", ")}
+              />
+            )}
+          </div>
+          <div
+            data-testid="attribute-logic-fallback-matched"
+            className={cn(hasFallbackWarnings && "text-error")}>
+            {t("attribute_logic_fallback_matched")}:{" "}
+            <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+            {hasFallbackWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.fallbackWarnings?.join(", ")}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
+      <div className="mt-4">
+        {membersMatchResult.contactOwnerEmail ? (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}:{" "}
+            <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
+          </div>
+        ) : showAllData ? (
+          <div data-testid="contact-owner-email">
+            {t("contact_owner")}: <span className="font-semibold">Not found</span>
+          </div>
+        ) : (
+          <></>
+        )}
+        <div className="mt-2" data-testid="matching-members">
+          {showAllData ? (
+            <>
+              {membersMatchResult.isUsingAttributeWeights
+                ? t("matching_members_queue_using_attribute_weights")
+                : t("matching_members_queue_using_event_assignee_weights")}
+            </>
+          ) : (
+            <></>
+          )}
+          {renderQueue()}
+        </div>
+      </div>
+    </div>
+  );
+
+  function isNoLogicFound(
+    teamMembersMatchingAttributeLogic: NonNullable<MembersMatchResultType>["teamMembersMatchingAttributeLogic"]
+  ): teamMembersMatchingAttributeLogic is null {
+    return teamMembersMatchingAttributeLogic === null;
+  }
+};
+
+/**
+ * It has the the ongoing changes in the form along with enrichedWithUserProfileForm specific data.
+ * So, it can be used to test the form in the test preview dialog without saving the changes even.
+ */
+type UptoDateForm = Brand<
+  NonNullable<SingleFormComponentProps["enrichedWithUserProfileForm"]>,
+  "UptoDateForm"
+>;
+
+export const TestForm = ({
+  form,
+  showAllData = true,
+  renderFooter,
+}: {
+  form: UptoDateForm | RoutingForm;
+  showAllData?: boolean;
+  renderFooter?: (onClose: () => void) => React.ReactNode;
+}) => {
+  const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
-  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
-  const [eventTypeUrl, setEventTypeUrl] = useState("");
-  const [teamMembersMatchingAttributeLogic, setTeamMembersMatchingAttributeLogic] = useState<
-    | {
-        id: number;
-        name: string | null;
-        email: string;
-      }[]
-    | null
-  >([]);
+  const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
+  const searchParams = useCompatSearchParams();
+  const isTeamForm = !!form.teamId;
+  const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
+
+  const resetMembersMatchResult = () => {
+    setMembersMatchResult(null);
+  };
   const findTeamMembersMatchingAttributeLogicMutation =
-    trpc.viewer.appRoutingForms.findTeamMembersMatchingAttributeLogic.useMutation({
+    trpc.viewer.routingForms.findTeamMembersMatchingAttributeLogicOfRoute.useMutation({
       onSuccess(data) {
-        setTeamMembersMatchingAttributeLogic(data);
+        setMembersMatchResult({
+          isUsingAttributeWeights: data.isUsingAttributeWeights,
+          eventTypeRedirectUrl: data.eventTypeRedirectUrl,
+          contactOwnerEmail: data.contactOwnerEmail,
+          teamMembersMatchingAttributeLogic: data.result ? data.result.users : data.result,
+          perUserData: data.result ? data.result.perUserData : null,
+          checkedFallback: data.checkedFallback,
+          mainWarnings: data.mainWarnings,
+          fallbackWarnings: data.fallbackWarnings,
+        });
+      },
+      onError(e) {
+        if (e instanceof TRPCClientError) {
+          showToast(e.message, "error");
+        } else {
+          showToast(t("something_went_wrong"), "error");
+        }
       },
     });
 
   function testRouting() {
     const route = findMatchingRoute({ form, response });
+    let eventTypeRedirectUrl: string | null = null;
 
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      setEventTypeUrl(
-        enrichedWithUserProfileForm
-          ? getAbsoluteEventTypeRedirectUrl({
-              eventTypeRedirectUrl: route.action.value,
-              form: enrichedWithUserProfileForm,
-              allURLSearchParams: new URLSearchParams(),
-            })
-          : ""
-      );
+      // only needed in routing form testing (type UptoDateForm)
+      if ("team" in form) {
+        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: route.action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        });
+        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      }
     }
 
     setChosenRoute(route || null);
 
     if (!route) return;
 
-    findTeamMembersMatchingAttributeLogicMutation.mutate({
-      formId: form.id,
-      response,
-      routeId: route.id,
-    });
+    if (isTeamForm) {
+      findTeamMembersMatchingAttributeLogicMutation.mutate({
+        formId: form.id,
+        response,
+        route,
+        isPreview: true,
+        _enablePerf: searchParams.get("enablePerf") === "true",
+      });
+    }
   }
 
-  const hookForm = useFormContext<RoutingFormWithResponseCount>();
+  const renderTestResult = (showAllData: boolean) => {
+    if (!form.routes || !chosenRoute) return null;
 
-  useEffect(() => {
-    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
-    // and then it is considered the source of truth.
+    const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
 
-    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
-
-    // 1 - When we change the edited form.
-
-    // 2 - When the form is saved elsewhere (such as in another browser tab)
-
-    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
-    // because each time a tab changes, a new component is created and another useEffect is executed.
-    // An update from the form always occurs after the first useEffect execution.
-    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
-      hookForm.reset(form);
-    }
-
-    if (skipFirstUpdate) {
-      setSkipFirstUpdate(false);
-    } else {
-      hookForm.reset(form);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form]);
-
-  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
-  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
-
-  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
-    onSuccess() {
-      showToast(t("form_updated_successfully"), "success");
-    },
-    onError(e) {
-      if (e.message) {
-        showToast(e.message, "error");
-        return;
+    const chosenRouteName = () => {
+      if (chosenRoute.isFallback) {
+        return t("fallback_route");
       }
-      showToast(`Something went wrong`, "error");
-    },
-    onSettled() {
-      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
-    },
-  });
-  const connectedForms = form.connectedForms;
+      return `Route ${chosenRouteIndex + 1}`;
+    };
 
-  const testFormDialog = (() => {
-    const testResult = chosenRoute ? (
+    const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
+      if (!isTeamForm) return null;
+      if (isPending) return <div>Loading...</div>;
+
+      return (
+        <div>
+          <TeamMembersMatchResult
+            chosenRouteName={chosenRouteName()}
+            membersMatchResult={membersMatchResult}
+            showAllData={showAllData}
+          />
+        </div>
+      );
+    };
+
+    if (!showAllData) {
+      if (
+        chosenRoute.action.type !== "customPageMessage" &&
+        chosenRoute.action.type !== "externalRedirectUrl"
+      ) {
+        {
+          return renderTeamMembersMatchResult(false, findTeamMembersMatchingAttributeLogicMutation.isPending);
+        }
+      }
+      return <div className="mt-4">{t("no_active_queues")}</div>;
+    }
+
+    return (
       <div className="bg-subtle text-default mt-5 rounded-md p-3">
         <div className="font-bold ">{t("route_to")}:</div>
         <div className="mt-2">
@@ -366,50 +586,81 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           ) : (
             <div className="flex flex-col space-y-2">
               <span className="text-default underline">
-                <a target="_blank" href={eventTypeUrl} rel="noreferrer" data-testid="test-routing-result">
+                <a
+                  target="_blank"
+                  className={cn(
+                    findTeamMembersMatchingAttributeLogicMutation.isPending && "pointer-events-none"
+                  )}
+                  href={membersMatchResult?.eventTypeRedirectUrl ?? eventTypeUrlWithoutParams}
+                  rel="noreferrer"
+                  data-testid="test-routing-result">
                   {chosenRoute.action.value}
                 </a>
               </span>
-              {isTeamForm ? (
-                <div>
-                  <span>{t("matching_members")}:</span>{" "}
-                  {!findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                    <div>
-                      {teamMembersMatchingAttributeLogic?.map((member) => member.email).join(", ") ||
-                        t("no_matching_members")}
-                    </div>
-                  ) : (
-                    <div>Loading...</div>
-                  )}
-                </div>
-              ) : null}
+              {renderTeamMembersMatchResult(
+                showAllData,
+                findTeamMembersMatchingAttributeLogicMutation.isPending
+              )}
             </div>
           )}
         </div>
       </div>
-    ) : null;
+    );
+  };
 
-    return (
-      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent enableOverflow>
-          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
-          <div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                testRouting();
-              }}>
-              <div className="px-1">
-                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-              </div>
-              <div>{testResult}</div>
+  const onClose = () => {
+    setChosenRoute(null);
+    setResponse({});
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        resetMembersMatchResult();
+        testRouting();
+      }}>
+      <div className="px-1">
+        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+      </div>
+      {!renderFooter ? (
+        <div className="mt-4">
+          <Button type="submit">{t("show_matching_hosts")}</Button>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div>{renderTestResult(showAllData)}</div>
+      {renderFooter?.(onClose)}
+    </form>
+  );
+};
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: UptoDateForm;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
+      <DialogContent size="md" enableOverflow>
+        <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
+        <div>
+          <TestForm
+            form={form}
+            renderFooter={(onClose) => (
               <DialogFooter>
                 <DialogClose
                   color="secondary"
                   onClick={() => {
                     setIsTestPreviewOpen(false);
-                    setChosenRoute(null);
-                    setResponse({});
+                    onClose();
                   }}>
                   {t("close")}
                 </DialogClose>
@@ -417,12 +668,78 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   {t("test_routing")}
                 </Button>
               </DialogFooter>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  })();
+            )}
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
+  const utils = trpc.useUtils();
+  const { t } = useLocale();
+  const { data: user } = useMeQuery();
+
+  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
+  const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
+  const hookForm = useFormContext<RoutingFormWithResponseCount>();
+
+  useEffect(() => {
+    //  The first time a tab is opened, the hookForm copies the form data (saved version, from the backend),
+    // and then it is considered the source of truth.
+
+    // There are two events we need to overwrite the hookForm data with the form data coming from the server.
+
+    // 1 - When we change the edited form.
+
+    // 2 - When the form is saved elsewhere (such as in another browser tab)
+
+    // In the second case. We skipped the first execution of useEffect to differentiate a tab change from a form change,
+    // because each time a tab changes, a new component is created and another useEffect is executed.
+    // An update from the form always occurs after the first useEffect execution.
+    if (Object.keys(hookForm.getValues()).length === 0 || hookForm.getValues().id !== form.id) {
+      hookForm.reset(form);
+    }
+
+    if (skipFirstUpdate) {
+      setSkipFirstUpdate(false);
+    } else {
+      hookForm.reset(form);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form]);
+
+  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
+  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
+  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
+    onSuccess() {
+      showToast(t("form_updated_successfully"), "success");
+    },
+    onError(e) {
+      if (e.message) {
+        showToast(e.message, "error");
+        return;
+      }
+      showToast(`Something went wrong`, "error");
+    },
+    onSettled() {
+      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
+    },
+  });
+  const connectedForms = form.connectedForms;
+
+  const uptoDateForm = {
+    ...hookForm.getValues(),
+    routes: hookForm.watch("routes"),
+    user: enrichedWithUserProfileForm.user,
+    team: enrichedWithUserProfileForm.team,
+    nonOrgUsername: enrichedWithUserProfileForm.nonOrgUsername,
+    nonOrgTeamslug: enrichedWithUserProfileForm.nonOrgTeamslug,
+    userOrigin: enrichedWithUserProfileForm.userOrigin,
+    teamOrigin: enrichedWithUserProfileForm.teamOrigin,
+  } as UptoDateForm;
 
   return (
     <>
@@ -453,7 +770,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                <div className="lg:min-w-72 lg:max-w-72 md:max-w-56 mb-6 w-full md:mr-6">
                   <TextField
                     type="text"
                     containerClassName="mb-6"
@@ -476,19 +793,21 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                           {t("routing_forms_send_email_to")}
                         </span>
                         <AddMembersWithSwitch
+                          teamId={form.teamId}
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
                             label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
                           }))}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
                             priority: 2,
                             weight: 100,
-                            weightAdjustment: 0,
+                            scheduleId: 1,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
@@ -585,13 +904,27 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                     </div>
                   ) : null}
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex gap-2">
                     <Button
                       color="secondary"
                       data-testid="test-preview"
                       onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
+                    {IS_CALCOM && (
+                      <Tooltip content={t("contact_our_support_team")} side="right">
+                        <Button
+                          target="_blank"
+                          color="minimal"
+                          href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                            user?.email ?? ""
+                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
+                            form.id
+                          )}`}>
+                          {t("need_help")}
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                   {form.routes?.every(isFallbackRoute) && (
                     <Alert
@@ -613,7 +946,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   )}
                 </div>
                 <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <RoutingNavBar
+                    appUrl={appUrl}
+                    form={form}
+                    hookForm={hookForm}
+                    setShowInfoLostDialog={setShowInfoLostDialog}
+                  />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               </div>
@@ -621,7 +959,18 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
-      {testFormDialog}
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
+      <TestFormDialog
+        form={uptoDateForm}
+        isTestPreviewOpen={isTestPreviewOpen}
+        setIsTestPreviewOpen={setIsTestPreviewOpen}
+      />
     </>
   );
 }

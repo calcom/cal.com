@@ -1,11 +1,13 @@
 "use client";
 
 import type { App_RoutingForms_Form } from "@prisma/client";
+import type { JsonTree } from "react-awesome-query-builder";
 import type { z } from "zod";
+
+import { evaluateRaqbLogic, RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 
 import type { FormResponse, Route, SerializableForm } from "../types/types";
 import type { zodNonRouterRoute } from "../zod";
-import { evaluateRaqbLogic, RaqbLogicResult } from "./evaluateRaqbLogic";
 import { getQueryBuilderConfigForFormFields } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
@@ -14,7 +16,7 @@ export function findMatchingRoute({
   form,
   response,
 }: {
-  form: SerializableForm<App_RoutingForms_Form>;
+  form: Pick<SerializableForm<App_RoutingForms_Form>, "routes" | "fields">;
   response: Record<string, Pick<FormResponse[string], "value">>;
 }) {
   const queryBuilderConfig = getQueryBuilderConfigForFormFields(form);
@@ -50,7 +52,7 @@ export function findMatchingRoute({
     );
 
     const result = evaluateRaqbLogic({
-      queryValue: route.queryValue,
+      queryValue: route.queryValue as JsonTree,
       queryBuilderConfig,
       data: responseValues,
     });

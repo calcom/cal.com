@@ -102,10 +102,10 @@ export class CreateBookingInputPipe implements PipeTransform {
   private isRecurringBookingInput(
     value: CreateBookingInput
   ): value is CreateRecurringBookingInput_2024_08_13 {
-    return value.hasOwnProperty("recurringEventTypeId");
+    return value.hasOwnProperty("recurrenceCount");
   }
 
-  private isInstantBookingInput(value: CreateBookingInput): value is CreateRecurringBookingInput_2024_08_13 {
+  private isInstantBookingInput(value: CreateBookingInput): value is CreateInstantBookingInput_2024_08_13 {
     return value.hasOwnProperty("instant") && "instant" in value && value.instant === true;
   }
 }

@@ -126,7 +126,7 @@ const EventTypeGroup = ({
 }: ConfigureStepCardProps & {
   groupIndex: number;
   setUpdatedEventTypesStatus: Dispatch<SetStateAction<TUpdatedEventTypesStatus>>;
-  submitRefs: Array<React.RefObject<HTMLButtonElement>>;
+  submitRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>;
 }) => {
   const { control } = useFormContext<TEventTypesForm>();
   const { fields, update } = useFieldArray({
@@ -174,7 +174,9 @@ const EventTypeGroup = ({
                   return res;
                 });
               }}
-              ref={submitRefs[index]}
+              ref={(el) => {
+                submitRefs.current[index] = el;
+              }}
               {...props}
             />
           )
@@ -193,17 +195,8 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
     keyName: "fieldId",
   });
   const eventTypeGroups = watch("eventTypeGroups");
-  const submitRefs = useRef<Array<Array<React.RefObject<HTMLButtonElement>>>>([]);
+  const submitRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
-  submitRefs.current = eventTypeGroups.reduce(
-    (arr: Array<Array<React.RefObject<HTMLButtonElement>>>, field) => {
-      const res = field.eventTypes
-        .filter((eventType) => eventType.selected)
-        .map((_ref) => React.createRef<HTMLButtonElement>());
-      return [...arr, res];
-    },
-    []
-  );
   const mainForSubmitRef = useRef<HTMLButtonElement>(null);
   const [updatedEventTypesStatus, setUpdatedEventTypesStatus] = useState<TUpdatedEventTypesStatus>(
     eventTypeGroups.reduce((arr: Array<{ id: number; updated: boolean }[]>, field) => {
@@ -239,13 +232,13 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
                   size="md"
                   className="inline-flex justify-center"
                 />
-                <p className="text-subtle block">{group.slug}</p>
+                <p className="text-subtle block pl-2">{group.slug}</p>
               </div>
             )}
             <EventTypeGroup
               groupIndex={groupIndex}
               setUpdatedEventTypesStatus={setUpdatedEventTypesStatus}
-              submitRefs={submitRefs.current[groupIndex]}
+              submitRefs={submitRefs}
               {...props}
             />
           </div>
@@ -258,7 +251,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
           type="button"
           data-testid="configure-step-save"
           onClick={() => {
-            submitRefs.current.map((group) => group?.map((ref) => ref.current?.click()));
+            submitRefs.current.forEach((ref) => ref?.click());
             setSubmit(true);
           }}
           loading={loading}>

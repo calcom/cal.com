@@ -8,15 +8,14 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
-import { ZGetInputSchema } from "./get.schema";
+import { ZGetSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
-import { ZGetMinimalSchema } from "./getMinimal.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
-import { ZLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
+import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
@@ -24,6 +23,8 @@ import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
+import { ZGetRoundRobinHostsInputSchema } from "./roundRobin/getRoundRobinHostsToReasign.schema";
+import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinManualReassign.schema";
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -34,13 +35,8 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerTeamsRouter = router({
   // Retrieves team by id
-  get: authedProcedure.input(ZGetInputSchema).query(async (opts) => {
+  get: authedProcedure.input(ZGetSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
-    return handler(opts);
-  }),
-  // Returns team
-  getMinimal: authedProcedure.input(ZGetMinimalSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("getMinimal"), () => import("./getMinimal.handler"));
     return handler(opts);
   }),
   // Returns teams I a member of
@@ -125,10 +121,10 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
     return handler(opts);
   }),
-  lazyLoadMembers: authedProcedure.input(ZLazyLoadMembersInputSchema).query(async (opts) => {
+  legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(
-      namespaced("lazyLoadMembers"),
-      () => import("./lazyLoadMembers.handler")
+      namespaced("legacyListMembers"),
+      () => import("./legacyListMembers.handler")
     );
     return handler(opts);
   }),
@@ -184,6 +180,22 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("roundRobinReassign"),
       () => import("./roundRobin/roundRobinReassign.handler")
+    );
+    return handler(opts);
+  }),
+  roundRobinManualReassign: authedProcedure
+    .input(ZRoundRobinManualReassignInputSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("roundRobinManualReassign"),
+        () => import("./roundRobin/roundRobinManualReassign.handler")
+      );
+      return handler(opts);
+    }),
+  getRoundRobinHostsToReassign: authedProcedure.input(ZGetRoundRobinHostsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getRoundRobinHostsToReassign"),
+      () => import("./roundRobin/getRoundRobinHostsToReasign.handler")
     );
     return handler(opts);
   }),

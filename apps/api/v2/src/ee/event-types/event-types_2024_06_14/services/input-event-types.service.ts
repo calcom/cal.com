@@ -12,14 +12,19 @@ import {
   transformRecurrenceApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
   systemAfterFieldRescheduleReason,
   EventTypeMetaDataSchema,
-  systemBeforeFieldLocation,
   transformBookerLayoutsApiToInternal,
   transformConfirmationPolicyApiToInternal,
   transformEventColorsApiToInternal,
   validateCustomEventName,
   transformSeatsApiToInternal,
+  SystemField,
+  CustomField,
 } from "@calcom/platform-libraries";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -102,6 +107,7 @@ export class InputEventTypesService_2024_06_14 {
 
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -133,6 +139,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
       requiresConfirmationWillBlockSlot:
@@ -150,6 +157,7 @@ export class InputEventTypesService_2024_06_14 {
   async transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14, eventTypeId: number) {
     const {
       lengthInMinutes,
+      lengthInMinutesOptions,
       locations,
       bookingFields,
       bookingLimitsCount,
@@ -189,6 +197,7 @@ export class InputEventTypesService_2024_06_14 {
         bookerLayouts: this.transformInputBookerLayouts(bookerLayouts),
         requiresConfirmationThreshold:
           confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+        multipleDuration: lengthInMinutesOptions,
       },
       recurringEvent: recurrence ? this.transformInputRecurrignEvent(recurrence) : undefined,
       requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
@@ -211,16 +220,46 @@ export class InputEventTypesService_2024_06_14 {
     inputBookingFields: CreateEventTypeInput_2024_06_14["bookingFields"],
     hasMultipleLocations: boolean
   ) {
-    const defaultFieldsBefore = [systemBeforeFieldName, systemBeforeFieldEmail];
-    // note(Lauris): if event type has multiple locations then a radio button booking field has to be displayed to allow booker to pick location
-    if (hasMultipleLocations) {
-      defaultFieldsBefore.push(systemBeforeFieldLocation);
-    }
+    const internalFields: (SystemField | CustomField)[] = inputBookingFields
+      ? transformBookingFieldsApiToInternal(inputBookingFields)
+      : [];
+    const systemCustomFields = internalFields.filter((field) => !this.isUserCustomField(field));
+    const userCustomFields = internalFields.filter((field) => this.isUserCustomField(field));
 
-    const customFields = transformBookingFieldsApiToInternal(inputBookingFields);
-    const defaultFieldsAfter = [systemAfterFieldRescheduleReason];
+    const systemCustomNameField = systemCustomFields?.find((field) => field.type === "name");
+    const systemCustomEmailField = systemCustomFields?.find((field) => field.type === "email");
+    const systemCustomTitleField = systemCustomFields?.find((field) => field.name === "title");
+    const systemCustomNotesField = systemCustomFields?.find((field) => field.name === "notes");
+    const systemCustomGuestsField = systemCustomFields?.find((field) => field.name === "guests");
+    const systemCustomRescheduleReasonField = systemCustomFields?.find(
+      (field) => field.name === "rescheduleReason"
+    );
 
-    return [...defaultFieldsBefore, ...customFields, ...defaultFieldsAfter];
+    const defaultFieldsBefore: (SystemField | CustomField)[] = [
+      systemCustomNameField || systemBeforeFieldName,
+      systemCustomEmailField || systemBeforeFieldEmail,
+      systemBeforeFieldLocation,
+    ];
+
+    const defaultFieldsAfter = [
+      systemCustomTitleField || systemAfterFieldTitle,
+      systemCustomNotesField || systemAfterFieldNotes,
+      systemCustomGuestsField || systemAfterFieldGuests,
+      systemCustomRescheduleReasonField || systemAfterFieldRescheduleReason,
+    ];
+
+    return [...defaultFieldsBefore, ...userCustomFields, ...defaultFieldsAfter];
+  }
+
+  isUserCustomField(field: SystemField | CustomField): field is CustomField {
+    return (
+      field.type !== "name" &&
+      field.type !== "email" &&
+      field.name !== "title" &&
+      field.name !== "notes" &&
+      field.name !== "guests" &&
+      field.name !== "rescheduleReason"
+    );
   }
 
   transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {

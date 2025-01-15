@@ -1,6 +1,7 @@
 ---
 title: Quickstart
 description: Find out how to use Cal "atoms" to integrate scheduling into your product.
+"icon": "rocket"
 ---
 
 ## 1. Unlocking access to atoms
@@ -13,7 +14,7 @@ Once your account is created, the next step is to create an OAuth client. This a
 1. After logging in using provided credentials, open OAuth clients settings page [https://app.cal.com/settings/platform/oauth-clients/create](https://app.cal.com/settings/platform/oauth-clients/create)
 2. Add an OAuth client.
     1. Name: anything is fine. You can use your company name or your website.
-    2. Redirect URIs: Used to validate internal requests origin and allow redirections on your platform when needed. You can enable any URI of your company’s domain (e.g. cal.com in our case).
+    2. Redirect URIs: Used to validate origin of requests - your website's URLs from which atoms are allowed to make requests to our API. Supports wildcard syntax where "*" would support any origin, and "*app.com" would support "example.app.com", and "https//example.com*" where it would support any origin from that domain.
     3. Booking, reschedule and cancel URLs: URLs of pages where users land after a successful booking or if they want to reschedule or cancel a booking. We will pass information in the URL when redirecting to your pages and you will use our hooks and components to implement the pages. See [this guide](/platform/booking-redirects).
     4. Permissions - most likely you need all enabled:
         1. Event type: event type is a user event that others can book. For example, Alice is a language teacher and she has an event type “30 minutes Italian lesson” that others can then book.

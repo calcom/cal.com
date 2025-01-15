@@ -21,6 +21,7 @@ type WebhookGroup = {
 const filterWebhooks = (webhook: Webhook) => {
   const appIds = [
     "zapier",
+    "make",
     // Add more if needed
   ];
 
@@ -174,6 +175,8 @@ export class WebhookRepository {
         teamId: true,
         userId: true,
         platform: true,
+        time: true,
+        timeUnit: true,
       },
     });
   }

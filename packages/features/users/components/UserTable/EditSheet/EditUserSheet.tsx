@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Avatar, Loader, Sheet, SheetContent, SheetBody, SheetHeader, SheetFooter } from "@calcom/ui";
 
-import type { Action, State } from "../UserListTable";
+import type { UserTableAction, UserTableState } from "../types";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
 import { OrganizationBanner } from "./OrganizationBanner";
@@ -18,15 +18,20 @@ function removeProtocol(url: string) {
   return url.replace(/^(https?:\/\/)/, "");
 }
 
-export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+export function EditUserSheet({
+  state,
+  dispatch,
+}: {
+  state: UserTableState;
+  dispatch: Dispatch<UserTableAction>;
+}) {
   const { t } = useLocale();
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
     {
-      // @ts-expect-error we obly enable the query if the user is selected
-      userId: selectedUser.id,
+      userId: selectedUser?.id,
     },
     {
       enabled: !!selectedUser?.id,
@@ -36,8 +41,8 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
   const { data: usersAttributes, isPending: usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery(
       {
-        // @ts-expect-error we obly enable the query if the user is selected
-        userId: selectedUser.id,
+        // @ts-expect-error We know it exists as it is only called when selectedUser is defined
+        userId: selectedUser?.id,
       },
       {
         enabled: !!selectedUser?.id,
@@ -57,7 +62,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent className="bg-muted">
+      <SheetContent className="bg-default">
         {!isPending && loadedUser ? (
           <>
             {!editMode ? (
@@ -66,12 +71,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                   <div className="border-sublte bg-default w-full rounded-xl border p-4">
                     <OrganizationBanner />
                     <div className="bg-default ml-3 w-fit translate-y-[-50%] rounded-full p-1 ring-1 ring-[#0000000F]">
-                      <Avatar
-                        asChild
-                        size="lg"
-                        alt={`${loadedUser?.name} avatar`}
-                        imageSrc={loadedUser.avatarUrl}
-                      />
+                      <Avatar asChild size="lg" alt={`${loadedUser?.name} avatar`} imageSrc={avatarURL} />
                     </div>
                     <h2 className="text-emphasis font-sans text-2xl font-semibold">
                       {loadedUser?.name || "Nameless User"}

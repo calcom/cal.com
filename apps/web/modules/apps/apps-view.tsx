@@ -3,7 +3,6 @@
 import type { ChangeEventHandler } from "react";
 import { useState } from "react";
 
-import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -96,17 +95,3 @@ export default function Apps({ categories, appStore, userAdminTeams }: PageProps
     </AppsLayout>
   );
 }
-
-export const LayoutWrapper = (page: React.ReactElement) => {
-  const { t } = useLocale();
-
-  return (
-    <Shell
-      title={t("app_store")}
-      description={t("app_store_description")}
-      withoutMain={true}
-      hideHeadingOnMobile>
-      {page}
-    </Shell>
-  );
-};

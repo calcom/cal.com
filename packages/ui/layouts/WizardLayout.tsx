@@ -56,7 +56,7 @@ export function WizardLayout({
                   </>
                 )}
               </header>
-              <Steps maxSteps={maxSteps} currentStep={currentStep} navigateToStep={noop} />
+              <Steps maxSteps={maxSteps} currentStep={currentStep} nextStep={noop} />
             </div>
             <StepCard>{children}</StepCard>
           </div>

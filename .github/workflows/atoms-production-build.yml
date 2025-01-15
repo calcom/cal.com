@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    name: Build atoms
+    name: Build Atoms
     permissions:
       contents: read
     runs-on: buildjet-4vcpu-ubuntu-2204
@@ -28,13 +28,14 @@ jobs:
           path: |
             **/dist/**
           key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
-      - run: |
+      - name: Log Cache Hit
+        if: steps.cache-atoms-build.outputs.cache-hit == 'true'
+        run: echo "Cache hit for Atoms build. Skipping build."
+      - name: Run build
+        if: steps.cache-atoms-build.outputs.cache-hit != 'true'
+        run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          if [ ${{ steps.cache-atoms-build.outputs.cache-hit }} == 'true' ]; then
-            echo "Cache hit for atoms build. Skipping build."
-          else
-            rm -rf packages/platform/atoms/node_modules
-            yarn install
-            yarn workspace @calcom/atoms run build
-          fi
+          rm -rf packages/platform/atoms/node_modules
+          yarn install
+          yarn workspace @calcom/atoms run build
         shell: bash

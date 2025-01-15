@@ -16,7 +16,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const BookingLimitsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -140,13 +140,11 @@ const BookingLimitsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
-  const { t } = useLocale();
-
   const {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
     {
       enabled: !!Number(params.id),
@@ -162,13 +160,7 @@ const BookingLimitsViewWrapper = () => {
     [error]
   );
 
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader
-        title={t("booking_limits")}
-        description={t("booking_limits_team_description")}
-      />
-    );
+  if (isPending) return <AppearanceSkeletonLoader />;
 
   if (!team) return null;
 

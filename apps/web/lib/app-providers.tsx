@@ -1,25 +1,26 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
+import dynamic from "next/dynamic";
 import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
+import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import PlainChat from "@lib/plain/plainChat";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -55,6 +56,13 @@ export type AppProps = Omit<
   /** Will be defined only is there was an error */
   err?: Error;
 };
+
+const PostHogPageView = dynamic(
+  () => import("@calcom/features/ee/event-tracking/lib/posthog/web/PostHogPageView"),
+  {
+    ssr: false,
+  }
+);
 
 type AppPropsWithChildren = AppProps & {
   children: ReactNode;
@@ -273,7 +281,6 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 }
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
 
@@ -288,28 +295,23 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <SessionProvider session={pageProps.session ?? undefined}>
-        <CustomI18nextProvider {...propsWithoutNonce}>
-          <TooltipProvider>
-            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-            <CalcomThemeProvider
-              themeBasis={props.pageProps.themeBasis}
-              nonce={props.pageProps.nonce}
-              isThemeSupported={props.Component.isThemeSupported}
-              isBookingPage={props.Component.isBookingPage || isBookingPage}
-              router={props.router}>
-              <FeatureFlagsProvider>
-                <OrgBrandProvider>
-                  {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                  <CacheProvider>
-                    <MetaProvider>{props.children}</MetaProvider>
-                  </CacheProvider>
-                </OrgBrandProvider>
-              </FeatureFlagsProvider>
-            </CalcomThemeProvider>
-          </TooltipProvider>
-        </CustomI18nextProvider>
-      </SessionProvider>
+      <PlainChat />
+      <CustomI18nextProvider {...propsWithoutNonce}>
+        <TooltipProvider>
+          <CalcomThemeProvider
+            themeBasis={props.pageProps.themeBasis}
+            nonce={props.pageProps.nonce}
+            isThemeSupported={props.Component.isThemeSupported}
+            isBookingPage={props.Component.isBookingPage || isBookingPage}
+            router={props.router}>
+            <FeatureFlagsProvider>
+              <OrgBrandProvider>
+                <MetaProvider>{props.children}</MetaProvider>
+              </OrgBrandProvider>
+            </FeatureFlagsProvider>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </CustomI18nextProvider>
     </EventCollectionProvider>
   );
 
@@ -318,9 +320,14 @@ const AppProviders = (props: AppPropsWithChildren) => {
   }
 
   return (
-    <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>{RemainingProviders}</DynamicIntercomProvider>
-    </DynamicHelpscoutProvider>
+    <>
+      <DynamicHelpscoutProvider>
+        <DynamicPostHogProvider>
+          <PostHogPageView />
+          {RemainingProviders}
+        </DynamicPostHogProvider>
+      </DynamicHelpscoutProvider>
+    </>
   );
 };
 

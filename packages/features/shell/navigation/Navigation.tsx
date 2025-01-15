@@ -1,7 +1,12 @@
 import { useSession } from "next-auth/react";
+import { useMemo } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import {
+  useOrgBranding,
+  type OrganizationBranding,
+} from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
 
@@ -11,7 +16,7 @@ import { NavigationItem, MobileNavigationItem, MobileNavigationMoreItem } from "
 
 export const MORE_SEPARATOR_NAME = "more";
 
-const navigation: NavigationItemType[] = [
+const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemType[] => [
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -29,6 +34,16 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: "clock",
   },
+  ...(orgBranding
+    ? [
+        {
+          name: "members",
+          href: `/settings/organizations/${orgBranding.slug}/members`,
+          icon: "building",
+          moreOnMobile: true,
+        } satisfies NavigationItemType,
+      ]
+    : []),
   {
     name: "teams",
     href: "/teams",
@@ -72,24 +87,45 @@ const navigation: NavigationItemType[] = [
     icon: "ellipsis",
   },
   {
-    name: "routing_forms",
-    href: "/apps/routing-forms/forms",
-    icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    name: "routing",
+    href: "/routing/forms",
+    icon: "split",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/forms") ?? false,
+    moreOnMobile: true,
   },
   {
     name: "workflows",
     href: "/workflows",
     icon: "zap",
+    moreOnMobile: true,
   },
   {
     name: "insights",
     href: "/insights",
     icon: "chart-bar",
+    isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    moreOnMobile: true,
+    child: [
+      {
+        name: "bookings",
+        href: "/insights",
+        isCurrent: ({ pathname: path }) => path == "/insights" ?? false,
+      },
+      {
+        name: "routing",
+        href: "/insights/routing",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+      },
+      {
+        name: "router_position",
+        href: "/insights/virtual-queues",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+      },
+    ],
   },
 ];
 
-const platformNavigation: NavigationItemType[] = [
+const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Dashboard",
     href: "/settings/platform/",
@@ -119,35 +155,45 @@ const platformNavigation: NavigationItemType[] = [
     icon: "ellipsis",
     target: "_blank",
   },
+  {
+    name: "Billing",
+    href: "/settings/platform/billing",
+    icon: "credit-card",
+    moreOnMobile: true,
+  },
+  {
+    name: "Members",
+    href: "/settings/platform/members",
+    icon: "users",
+    moreOnMobile: true,
+  },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
+    icon: "users",
+    moreOnMobile: true,
+  },
 ];
 
-export const getDesktopNavigationItems = (isPlatformNavigation = false) => {
-  const navigationType = !isPlatformNavigation ? navigation : platformNavigation;
-  const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+const useNavigationItems = (isPlatformNavigation = false) => {
+  const orgBranding = useOrgBranding();
+  return useMemo(() => {
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-  const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-    !isPlatformNavigation ? navigation : platformNavigation
-  ).reduce<Record<string, NavigationItemType[]>>(
-    (items, item, index) => {
-      // We filter out the "more" separator in` desktop navigation
-      if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-      // Items for mobile bottom navigation
-      if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-        items.mobileNavigationBottomItems.push(item);
-      } // Items for the "more" menu in mobile navigation
-      else {
-        items.mobileNavigationMoreItems.push(item);
-      }
-      return items;
-    },
-    { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
-  );
+    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const mobileNavigationBottomItems = items.filter(
+      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+    );
+    const mobileNavigationMoreItems = items.filter(
+      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
+    );
 
-  return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+    return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
+  }, [isPlatformNavigation, orgBranding]);
 };
 
 export const Navigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
-  const { desktopNavigationItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const { desktopNavigationItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <nav className="mt-2 flex-1 md:px-2 lg:mt-4 lg:px-0">
@@ -173,13 +219,13 @@ export function MobileNavigationContainer({
 
 const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigation?: boolean }) => {
   const isEmbed = useIsEmbed();
-  const { mobileNavigationBottomItems } = getDesktopNavigationItems(isPlatformNavigation);
+  const { mobileNavigationBottomItems } = useNavigationItems(isPlatformNavigation);
 
   return (
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -193,7 +239,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
 };
 
 export const MobileNavigationMoreItems = () => {
-  const { mobileNavigationMoreItems } = getDesktopNavigationItems();
+  const { mobileNavigationMoreItems } = useNavigationItems();
 
   return (
     <ul className="border-subtle mt-2 rounded-md border">

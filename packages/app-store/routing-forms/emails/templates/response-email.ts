@@ -5,7 +5,7 @@ import BaseEmail from "@calcom/emails/templates/_base-email";
 
 import type { OrderedResponses } from "../../types/types";
 
-type Form = Pick<App_RoutingForms_Form, "id" | "name">;
+type Form = Pick<App_RoutingForms_Form, "id" | "name" | "fields">;
 export default class ResponseEmail extends BaseEmail {
   orderedResponses: OrderedResponses;
   toAddresses: string[];

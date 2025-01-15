@@ -30,7 +30,7 @@ export type BiginToken = {
 
 export type BiginContact = {
   id: string;
-  email: string;
+  Email: string;
 };
 
 export default class BiginCrmService implements CRM {
@@ -140,13 +140,13 @@ export default class BiginCrmService implements CRM {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
       data: JSON.stringify({ data: contacts }),
-    });
+    }).then((data) => data.data);
 
     return response
-      ? response.data.map((contact: BiginContact) => {
+      ? response.data.map((contact: any) => {
           return {
-            id: contact.id,
-            email: contact.email,
+            id: contact.details.id,
+            email: contact.Email,
           };
         })
       : [];
@@ -155,7 +155,7 @@ export default class BiginCrmService implements CRM {
   /***
    * Finds existing Zoho Bigin Contact record based on email address. Returns a list of contacts objects that matched.
    */
-  async getContacts(emails: string | string[]) {
+  async getContacts({ emails }: { emails: string | string[] }) {
     const token = await this.auth.getToken();
     const emailsArray = Array.isArray(emails) ? emails : [emails];
 
@@ -167,13 +167,13 @@ export default class BiginCrmService implements CRM {
       headers: {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
-    }).catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+    }).then((data) => data.data);
 
     return response
       ? response.data.map((contact: BiginContact) => {
           return {
             id: contact.id,
-            email: contact.email,
+            email: contact.Email,
           };
         })
       : [];
@@ -182,14 +182,15 @@ export default class BiginCrmService implements CRM {
   /***
    * Sends request to Zoho Bigin API to add new Events.
    */
-  private async createBiginEvent(event: CalendarEvent) {
+  private async createBiginEvent(event: CalendarEvent, contacts: Contact[]) {
     const token = await this.auth.getToken();
     const biginEvent = {
       Event_Title: event.title,
       Start_DateTime: toISO8601String(new Date(event.startTime)),
       End_DateTime: toISO8601String(new Date(event.endTime)),
       Description: event.additionalNotes,
-      Location: getLocation(event),
+      Venue: getLocation(event),
+      Who_Id: contacts[0].id,
     };
 
     return axios({
@@ -209,7 +210,7 @@ export default class BiginCrmService implements CRM {
    * Handles orchestrating the creation of new events in Zoho Bigin.
    */
   async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
-    const meetingEvent = await this.createBiginEvent(event);
+    const meetingEvent = await this.createBiginEvent(event, contacts);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
       return Promise.resolve({
@@ -287,6 +288,10 @@ export default class BiginCrmService implements CRM {
 
   async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
     return Promise.resolve([]);
+  }
+
+  getAppOptions() {
+    console.log("No options implemented");
   }
 }
 

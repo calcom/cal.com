@@ -1,22 +1,51 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { Type } from "class-transformer";
+import type { ValidationArguments, ValidationOptions } from "class-validator";
 import {
   IsInt,
   IsDateString,
   IsTimeZone,
   IsEnum,
-  IsEmail,
   ValidateNested,
   IsArray,
   IsString,
+  isEmail,
   IsOptional,
   IsUrl,
   IsObject,
   IsBoolean,
+  Min,
+  registerDecorator,
+  Validate,
 } from "class-validator";
+import { isValidPhoneNumber } from "libphonenumber-js";
 
 import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
+import { ValidateMetadata } from "./validators/validate-metadata";
+
+function RequireEmailOrPhone(validationOptions?: ValidationOptions) {
+  return function (target: object, propertyName: string) {
+    registerDecorator({
+      name: "requireEmailOrPhone",
+      target: target.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const obj = args.object as Attendee;
+
+          const hasPhoneNumber = !!obj.phoneNumber && obj.phoneNumber.trim().length > 0;
+          const hasEmail = !!obj.email && obj.email.trim().length > 0;
+          return hasPhoneNumber || hasEmail;
+        },
+        defaultMessage(): string {
+          return "At least one contact method (email or phone number) must be provided";
+        },
+      },
+    });
+  };
+}
 
 class Attendee {
   @ApiProperty({
@@ -27,13 +56,17 @@ class Attendee {
   @IsString()
   name!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
     description: "The email of the attendee.",
     example: "john.doe@example.com",
   })
-  @IsEmail()
-  email!: string;
+  @IsOptional()
+  @Validate((value: string) => !value || isEmail(value), {
+    message: "Invalid email format",
+  })
+  @RequireEmailOrPhone()
+  email?: string;
 
   @ApiProperty({
     type: String,
@@ -42,6 +75,17 @@ class Attendee {
   })
   @IsTimeZone()
   timeZone!: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: "The phone number of the attendee in international format.",
+    example: "+919876543210",
+  })
+  @IsOptional()
+  @Validate((value: string) => !value || isValidPhoneNumber(value), {
+    message: "Invalid phone number format. Please use international format.",
+  })
+  phoneNumber?: string;
 
   @ApiPropertyOptional({
     enum: BookingLanguage,
@@ -62,6 +106,16 @@ export class CreateBookingInput_2024_08_13 {
   })
   @IsDateString()
   start!: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @ApiPropertyOptional({
+    example: 30,
+    description: `If it is an event type that has multiple possible lengths that attendee can pick from, you can pass the desired booking length here.
+    If not provided then event type default length will be used for the booking.`,
+  })
+  lengthInMinutes?: number;
 
   @ApiProperty({
     type: Number,
@@ -107,20 +161,23 @@ export class CreateBookingInput_2024_08_13 {
     example: "https://example.com/meeting",
     required: false,
   })
-  @IsUrl()
   @IsOptional()
   location?: string;
 
-  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-  // @ApiProperty({
-  //   type: Object,
-  //   description: "Optional metadata for the booking.",
-  //   example: { key: "value" },
-  //   required: false,
-  // })
-  // @IsObject()
-  // @IsOptional()
-  // metadata!: Record<string, unknown>;
+  @ApiProperty({
+    type: Object,
+    description:
+      "You can store any additional data you want here. Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+    example: { key: "value" },
+    required: false,
+  })
+  @IsObject()
+  @IsOptional()
+  @ValidateMetadata({
+    message:
+      "Metadata must have at most 50 keys, each key up to 40 characters, and string values up to 500 characters.",
+  })
+  metadata?: Record<string, string>;
 
   @ApiPropertyOptional({
     type: Object,
@@ -144,70 +201,16 @@ export class CreateInstantBookingInput_2024_08_13 extends CreateBookingInput_202
   instant!: boolean;
 }
 
-export class CreateRecurringBookingInput_2024_08_13 {
-  @ApiProperty({
-    type: String,
-    description: "The start time of the booking in ISO 8601 format in UTC timezone.",
-    example: "2024-08-13T09:00:00Z",
-  })
-  @IsDateString()
-  start!: string;
-
-  @ApiProperty({
+export class CreateRecurringBookingInput_2024_08_13 extends CreateBookingInput_2024_08_13 {
+  @ApiPropertyOptional({
     type: Number,
-    description: "The ID of the event type that is booked.",
-    example: 123,
+    description: `The number of recurrences. If not provided then event type recurrence count will be used. Can't be more than
+    event type recurrence count`,
+    example: 5,
+    required: false,
   })
+  @IsOptional()
   @IsInt()
-  eventTypeId!: number;
-
-  @ApiProperty({
-    type: Attendee,
-    description: "The attendee's details.",
-  })
-  @ValidateNested()
-  @Type(() => Attendee)
-  attendee!: Attendee;
-
-  @ApiProperty({
-    type: [String],
-    description: "An optional list of guest emails attending the event.",
-    example: ["guest1@example.com", "guest2@example.com"],
-    required: false,
-  })
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  guests?: string[];
-
-  @ApiProperty({
-    type: String,
-    description: "Location for this booking. Displayed in email and calendar event.",
-    example: "https://example.com/meeting",
-    required: false,
-  })
-  @IsUrl()
-  @IsOptional()
-  location?: string;
-
-  // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-  // @ApiProperty({
-  //   type: Object,
-  //   description: "Optional metadata for the booking.",
-  //   example: { key: "value" },
-  //   required: false,
-  // })
-  // @IsObject()
-  // @IsOptional()
-  // metadata!: Record<string, unknown>;
-
-  @ApiProperty({
-    type: Object,
-    description: "Booking field responses.",
-    example: { customField: "customValue" },
-    required: false,
-  })
-  @IsObject()
-  @IsOptional()
-  bookingFieldsResponses?: Record<string, unknown>;
+  @Min(1)
+  recurrenceCount?: number;
 }

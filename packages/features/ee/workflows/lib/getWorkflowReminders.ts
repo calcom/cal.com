@@ -84,7 +84,7 @@ export async function getAllRemindersToDelete(): Promise<RemindersToDeleteType[]
     method: WorkflowMethods.EMAIL,
     cancelled: true,
     scheduledDate: {
-      lte: dayjs().toISOString(),
+      lt: dayjs().toISOString(),
     },
   };
 
@@ -199,7 +199,7 @@ export async function getAllUnscheduledReminders(): Promise<PartialWorkflowRemin
     method: WorkflowMethods.EMAIL,
     scheduled: false,
     scheduledDate: {
-      lte: dayjs().add(72, "hour").toISOString(),
+      lte: dayjs().add(2, "hour").toISOString(),
     },
     OR: [{ cancelled: false }, { cancelled: null }],
   };

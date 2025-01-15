@@ -47,6 +47,7 @@ type Props = {
   isDeleting?: boolean;
   isPlatform?: boolean;
   tabsNavigation: VerticalTabItemProps[];
+  allowDelete?: boolean;
 };
 
 function EventTypeSingleLayout({
@@ -63,6 +64,7 @@ function EventTypeSingleLayout({
   isDeleting,
   isPlatform,
   tabsNavigation,
+  allowDelete = true,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -99,6 +101,7 @@ function EventTypeSingleLayout({
       backPath="/event-types"
       title={`${eventType.title} | ${t("event_type")}`}
       heading={eventType.title}
+      withoutSeo={!isPlatform} // Metadata is handled by App Router Metadata API for Event Type Web Page
       CTA={
         <div className="flex items-center justify-end">
           {!formMethods.getValues("metadata")?.managedEventConfig && (
@@ -187,7 +190,7 @@ function EventTypeSingleLayout({
                 )}
               </>
             )}
-            {!isChildrenManagedEventType && (
+            {!isChildrenManagedEventType && allowDelete && (
               <Button
                 color="destructive"
                 variant="icon"
@@ -201,7 +204,7 @@ function EventTypeSingleLayout({
             )}
           </ButtonGroup>
 
-          <VerticalDivider className="hidden lg:block" />
+          {(!isPlatform || (isPlatform && allowDelete)) && <VerticalDivider className="hidden lg:block" />}
 
           <Dropdown>
             <DropdownMenuTrigger asChild>
@@ -229,16 +232,18 @@ function EventTypeSingleLayout({
                   {t("copy_link")}
                 </DropdownItem>
               </DropdownMenuItem>
-              <DropdownMenuItem className="focus:ring-muted">
-                <DropdownItem
-                  type="button"
-                  color="destructive"
-                  StartIcon="trash"
-                  disabled={!hasPermsToDelete}
-                  onClick={() => setDeleteDialogOpen(true)}>
-                  {t("delete")}
-                </DropdownItem>
-              </DropdownMenuItem>
+              {allowDelete && (
+                <DropdownMenuItem className="focus:ring-muted">
+                  <DropdownItem
+                    type="button"
+                    color="destructive"
+                    StartIcon="trash"
+                    disabled={!hasPermsToDelete}
+                    onClick={() => setDeleteDialogOpen(true)}>
+                    {t("delete")}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2 transition">
                 <Skeleton

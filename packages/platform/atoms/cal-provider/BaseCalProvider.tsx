@@ -39,6 +39,7 @@ export function BaseCalProvider({
   language = EN,
   organizationId,
   onTimezoneChange,
+  isEmbed,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
   const [stateOrgId, setOrganizationId] = useState<number>(0);
@@ -63,6 +64,7 @@ export function BaseCalProvider({
   useTimezone(getTimezoneChangeHandler());
 
   const { isInit } = useOAuthClient({
+    isEmbed,
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -113,7 +115,7 @@ export function BaseCalProvider({
       let translation =
         labels?.[resolvedKey as keyof typeof labels] ?? String(getTranslation(resolvedKey, language) ?? "");
       if (!translation) {
-        return "";
+        return key;
       }
       if (values) {
         const valueKeys = Object.keys(values) as (keyof typeof values)[];
@@ -151,6 +153,8 @@ export function BaseCalProvider({
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
         organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
+        userId: me?.data.id,
+        isEmbed,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
@@ -170,6 +174,7 @@ export function BaseCalProvider({
         isRefreshing: false,
         ...translations,
         organizationId: 0,
+        isEmbed: false,
       }}>
       <>
         <TooltipProvider>{children}</TooltipProvider>

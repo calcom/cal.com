@@ -180,6 +180,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: (booking) => {
+      if (booking.isDryRun) {
+        router.push("/booking/dry-run-successful");
+        return;
+      }
       const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
@@ -305,6 +309,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     mutationFn: createRecurringBooking,
     onSuccess: async (bookings) => {
       const booking = bookings[0] || {};
+
+      if (booking.isDryRun) {
+        router.push("/booking/dry-run-successful");
+        return;
+      }
+
       const { uid } = booking;
 
       if (!uid) {

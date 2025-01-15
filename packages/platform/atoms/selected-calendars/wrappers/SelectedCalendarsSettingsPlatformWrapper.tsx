@@ -54,7 +54,12 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             const destinationCalendarId = data.destinationCalendar.externalId;
 
             if (!data.connectedCalendars.length) {
-              return null;
+              return (
+                <SelectedCalendarsSettings classNames={classNames}>
+                  <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                </SelectedCalendarsSettings>
+              );
             }
 
             return (

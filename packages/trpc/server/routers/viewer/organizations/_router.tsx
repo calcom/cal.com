@@ -169,4 +169,11 @@ export const viewerOrganizationsRouter = router({
     );
     return handler(opts);
   }),
+  getFacetedValues: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getFacetedValues"),
+      () => import("./getFacetedValues.handler")
+    );
+    return handler(opts);
+  }),
 });

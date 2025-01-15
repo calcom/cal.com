@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import type { Profile, User, Team } from "@prisma/client";
+import type { Profile, User, Team, Prisma } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -142,11 +142,21 @@ export class UsersRepository {
     });
   }
 
-  async findByUsername(username: string) {
+  async findByUsername(username: string, orgSlug?: string, orgId?: number) {
     return this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-      },
+      where:
+        orgId || orgSlug
+          ? {
+              profiles: {
+                some: {
+                  organization: orgSlug ? { slug: orgSlug } : { id: orgId },
+                  username: username,
+                },
+              },
+            }
+          : {
+              username,
+            },
     });
   }
 
@@ -170,6 +180,13 @@ export class UsersRepository {
 
     return this.dbWrite.prisma.user.update({
       where: { id: userId },
+      data: updateData,
+    });
+  }
+
+  async updateByEmail(email: string, updateData: Prisma.UserUpdateInput) {
+    return this.dbWrite.prisma.user.update({
+      where: { email },
       data: updateData,
     });
   }
@@ -246,6 +263,29 @@ export class UsersRepository {
       },
 
       where: { id: userId },
+    });
+  }
+
+  async findUserOOORedirectEligible(userId: number, toTeamUserId: number) {
+    return await this.dbRead.prisma.user.findUnique({
+      where: {
+        id: toTeamUserId,
+        teams: {
+          some: {
+            team: {
+              members: {
+                some: {
+                  userId: userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
     });
   }
 }

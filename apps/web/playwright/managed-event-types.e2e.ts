@@ -1,45 +1,18 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { SchedulingType } from "@calcom/prisma/enums";
-
-import { test, type Fixtures } from "./lib/fixtures";
+import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
   localize,
   submitAndWaitForResponse,
   selectFirstAvailableTimeSlotNextMonth,
+  setupManagedEvent,
 } from "./lib/testUtils";
 
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
-
-/** So we can test different areas in parallel and avoiding the creation flow each time */
-async function setupManagedEvent({
-  users,
-  unlockedFields,
-}: {
-  users: Fixtures["users"];
-  unlockedFields?: Record<string, boolean>;
-}) {
-  const teamMateName = "teammate-1";
-  const teamEventTitle = "Managed";
-  const adminUser = await users.create(null, {
-    hasTeam: true,
-    teammates: [{ name: teamMateName }],
-    teamEventTitle,
-    teamEventSlug: "managed",
-    schedulingType: "MANAGED",
-    addManagedEventToTeamMates: true,
-    managedEventUnlockedFields: unlockedFields,
-  });
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const memberUser = users.get().find((u) => u.name === teamMateName)!;
-  const { team } = await adminUser.getFirstTeamMembership();
-  const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
-  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
-}
 
 /** Short hand to get elements by translation key */
 const getByKey = async (page: Page, key: string) => page.getByText((await localize("en"))(key));
@@ -207,7 +180,7 @@ test.describe("Managed Event Types", () => {
   });
 
   const MANAGED_EVENT_TABS: { slug: string; locator: (page: Page) => Locator | Promise<Locator> }[] = [
-    { slug: "setup", locator: (page) => getByKey(page, "title") },
+    { slug: "setup", locator: (page) => getByKey(page, "translate_description_button") },
     {
       slug: "team",
       locator: (page) => getByKey(page, "automatically_add_all_team_members"),

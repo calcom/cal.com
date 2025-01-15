@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { TimeTimeUnitInput } from "@calcom/features/ee/workflows/components/TimeTimeUnitInput";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TimeUnit } from "@calcom/prisma/enums";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
@@ -20,6 +22,8 @@ export type WebhookFormData = {
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
   payloadTemplate: string | undefined | null;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 export type WebhookFormSubmitData = WebhookFormData & {
@@ -48,9 +52,27 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
       value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
       label: "recording_transcription_generated",
     },
+    { value: WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW, label: "after_hosts_cal_video_no_show" },
+    {
+      value: WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW,
+      label: "after_guests_cal_video_no_show",
+    },
   ],
-  "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+  "routing-forms": [
+    { value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" },
+    { value: WebhookTriggerEvents.FORM_SUBMITTED_NO_EVENT, label: "form_submitted_no_event" },
+  ],
 } as const;
+
+export type WebhookFormValues = {
+  subscriberUrl: string;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret: string | null;
+  payloadTemplate: string | undefined | null;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
+};
 
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
@@ -94,13 +116,25 @@ const WebhookForm = (props: {
       eventTriggers: getEventTriggers(),
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
+      timeUnit: props?.webhook?.timeUnit || undefined,
+      time: props?.webhook?.time || undefined,
     },
   });
 
-  const [useCustomTemplate, setUseCustomTemplate] = useState(false);
+  const [useCustomTemplate, setUseCustomTemplate] = useState(
+    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
+  );
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
+
+  const [showTimeSection, setShowTimeSection] = useState(
+    !!triggerOptions.find(
+      (trigger) =>
+        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    )
+  );
 
   useEffect(() => {
     if (changeSecret) {
@@ -170,12 +204,37 @@ const WebhookForm = (props: {
                   value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));
+                    const noShowWebhookTriggerExists = !!event.find(
+                      (trigger) =>
+                        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+                        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+                    );
+
+                    if (noShowWebhookTriggerExists) {
+                      formMethods.setValue("time", props.webhook?.time ?? 5, { shouldDirty: true });
+                      formMethods.setValue("timeUnit", props.webhook?.timeUnit ?? TimeUnit.MINUTE, {
+                        shouldDirty: true,
+                      });
+                    } else {
+                      formMethods.setValue("time", undefined, { shouldDirty: true });
+                      formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
+                    }
+
+                    setShowTimeSection(noShowWebhookTriggerExists);
                   }}
                 />
               </div>
             );
           }}
         />
+
+        {showTimeSection && (
+          <div className="mt-5">
+            <Label>{t("how_long_after_user_no_show_minutes")}</Label>
+            <TimeTimeUnitInput disabled={false} defaultTime={5} />
+          </div>
+        )}
+
         <Controller
           name="secret"
           control={formMethods.control}
@@ -289,6 +348,7 @@ const WebhookForm = (props: {
         </Button>
         <Button
           type="submit"
+          data-testid="create_webhook"
           disabled={!formMethods.formState.isDirty && !changeSecret}
           loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}

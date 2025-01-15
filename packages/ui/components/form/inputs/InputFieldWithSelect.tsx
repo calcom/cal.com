@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react";
 
-import { InputField, UnstyledSelect } from "../../..";
+import { UnstyledSelect } from "../../../form/Select";
+import { InputField } from "./TextField";
 import type { InputFieldProps } from "./types";
 
 export const InputFieldWithSelect = forwardRef<

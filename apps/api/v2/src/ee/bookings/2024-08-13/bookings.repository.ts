@@ -29,10 +29,40 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByIdsWithAttendeesWithBookingSeatAndUserAndEvent(ids: number[]) {
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
+      },
+    });
+  }
+
   async getByUid(bookingUid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
         uid: bookingUid,
+      },
+    });
+  }
+
+  async getByUidWithUser(bookingUid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid: bookingUid,
+      },
+      include: {
+        user: true,
       },
     });
   }
@@ -50,6 +80,23 @@ export class BookingsRepository_2024_08_13 {
     });
   }
 
+  async getByIdWithAttendeesWithBookingSeatAndUserAndEvent(id: number) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
+      },
+    });
+  }
+
   async getByUidWithAttendeesAndUserAndEvent(uid: string) {
     return this.dbRead.prisma.booking.findUnique({
       where: {
@@ -59,6 +106,31 @@ export class BookingsRepository_2024_08_13 {
         attendees: true,
         user: true,
         eventType: true,
+      },
+    });
+  }
+
+  async getByUidWithAttendeesWithBookingSeatAndUserAndEvent(uid: string) {
+    return this.dbRead.prisma.booking.findUnique({
+      where: {
+        uid,
+      },
+      include: {
+        attendees: {
+          include: {
+            bookingSeat: true,
+          },
+        },
+        user: true,
+        eventType: true,
+      },
+    });
+  }
+
+  async getRecurringByUid(uid: string) {
+    return this.dbRead.prisma.booking.findMany({
+      where: {
+        recurringEventId: uid,
       },
     });
   }

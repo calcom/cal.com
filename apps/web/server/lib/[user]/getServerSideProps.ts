@@ -1,4 +1,5 @@
 import type { DehydratedState } from "@tanstack/react-query";
+import type { EmbedProps } from "app/WithEmbedSSR";
 import type { GetServerSideProps } from "next";
 import { encode } from "querystring";
 import type { z } from "zod";
@@ -18,7 +19,6 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
-import type { EmbedProps } from "@lib/withEmbedSsr";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -69,6 +69,7 @@ type UserPageProps = {
     | "currency"
     | "recurringEvent"
   >)[];
+  isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
@@ -194,6 +195,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       themeBasis: user.username,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
+      isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing ?? false,
     },
   };
 };

@@ -7,10 +7,7 @@ import type {
   Operator as RAQBOperator,
 } from "react-awesome-query-builder";
 
-export type Conjunction = Omit<
-  RAQBConjunction,
-  "formatConj" | "sqlFormatConj" | "spelFormatConj" | "mongoConj"
->;
+export type Conjunction = RAQBConjunction;
 export type Conjunctions = Record<string, Conjunction>;
 export type Operator = RAQBOperator & {
   _jsonLogicIsExclamationOp?: boolean;
@@ -30,11 +27,19 @@ const conjunctions: Conjunctions = {
     label: "And",
     jsonLogicConj: "and",
     reversedConj: "OR",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
   OR: {
     label: "Or",
     jsonLogicConj: "or",
     reversedConj: "AND",
+    formatConj: () => "",
+    sqlFormatConj: () => "",
+    spelFormatConj: () => "",
+    mongoConj: "",
   },
 };
 
@@ -175,25 +180,38 @@ const operators: Operators = {
   },
   select_not_any_in: {
     isNotOp: true,
-    label: "Not in",
+    label: "Not any in",
     labelForFormat: "NOT IN",
     reversedOp: "select_any_in",
   },
+  // We define this operator but use it conditionally for multiselect for Attributes only
+  multiselect_some_in: {
+    label: "Any in",
+    jsonLogic: (field: any, operator: any, vals: any) => {
+      return {
+        // Tested in jsonLogic.test.ts
+        some: [field, { in: [{ var: "" }, vals] }],
+      };
+    },
+  },
+  multiselect_not_some_in: {
+    label: "Not any in",
+    reversedOp: "multiselect_some_in",
+  },
   multiselect_equals: {
-    // TODO: Consider renaming it to "includes" or similar  due to faulty implementation of jsonLogic and the operator is in use by users.
-    label: "Equals",
-    labelForFormat: "==",
+    label: "All in",
     reversedOp: "multiselect_not_equals",
     // jsonLogic2: "all-in",
-    jsonLogic: (field: any, op: any, vals: any) => ({
-      // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
-      all: [field, { in: [{ var: "" }, vals] }],
-    }),
+    jsonLogic: (field: any, op: any, vals: any, ...rest) => {
+      return {
+        // This is wrongly implemented as "includes". This isn't "equals". Because if field is ["a" ] and vals is ["a", "b"], it still matches. Expectation would probably be that it should be a strict match(["a", "b"] or ["b", "a"])
+        all: [field, { in: [{ var: "" }, vals] }],
+      };
+    },
   },
   multiselect_not_equals: {
     isNotOp: true,
-    label: "Not equals",
-    labelForFormat: "!=",
+    label: "Not all in",
     reversedOp: "multiselect_equals",
   },
   some: {
@@ -340,14 +358,7 @@ const types: Types = {
     defaultOperator: "select_equals",
     widgets: {
       select: {
-        operators: [
-          "select_equals",
-          "select_not_equals",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
-        ],
+        operators: ["select_equals", "select_not_equals"],
         widgetProps: {
           customProps: {
             showSearch: true,
@@ -355,14 +366,7 @@ const types: Types = {
         },
       },
       multiselect: {
-        operators: [
-          //   "select_any_in",
-          //   "select_not_any_in",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
-        ],
+        operators: ["select_any_in", "select_not_any_in"],
       },
     },
   },
@@ -370,14 +374,7 @@ const types: Types = {
     defaultOperator: "multiselect_equals",
     widgets: {
       multiselect: {
-        operators: [
-          "multiselect_equals",
-          "multiselect_not_equals",
-          // "is_empty",
-          // "is_not_empty",
-          "is_null",
-          "is_not_null",
-        ],
+        operators: ["multiselect_equals", "multiselect_not_equals", "is_null", "is_not_null"],
       },
     },
   },
@@ -446,10 +443,12 @@ const settings: Settings = {
   setOpOnChangeField: ["keep" as const, "default" as const], // 'default' (default if present), 'keep' (keep prev from last field), 'first', 'none'
 };
 
-export default {
+const basicConfig = {
   conjunctions,
   operators,
   widgets,
   types,
   settings,
 };
+
+export default basicConfig;
