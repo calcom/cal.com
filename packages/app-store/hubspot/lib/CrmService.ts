@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as hubspot from "@hubspot/api-client";
 import { AssociationTypes } from "@hubspot/api-client";
-// import { AssociationSpecAssociationCategoryEnum } from "@hubspot/api-client"
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import { FilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import type {
   SimplePublicObjectInput,
   SimplePublicObjectInputForCreate,
@@ -213,14 +213,13 @@ export default class HubspotCalendarService implements CRM {
           {
             value: attendeeEmail,
             propertyName: "email",
-            operator: "EQ",
+            operator: FilterOperatorEnum.Eq,
           },
         ],
       })),
       sorts: ["hs_object_id"],
       properties: ["hs_object_id", "email"],
       limit: 10,
-      after: 0,
     };
 
     const contacts = await hubspotClient.crm.contacts.searchApi
@@ -230,7 +229,7 @@ export default class HubspotCalendarService implements CRM {
     return contacts.map((contact) => {
       return {
         id: contact.id,
-        email: contact.properties.email,
+        email: contact.properties.email || "",
       };
     });
   }
@@ -268,7 +267,7 @@ export default class HubspotCalendarService implements CRM {
     return createdContacts.map((contact) => {
       return {
         id: contact.id,
-        email: contact.properties.email,
+        email: contact.properties.email || "",
       };
     });
   }
