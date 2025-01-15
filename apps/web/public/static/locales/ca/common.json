@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Permet als usuaris reservar reunions sempre que hi hagi un amfitrió disponible. Utilitzeu-ho per maximitzar el nombre potencial de reunions reservades i quan la distribució equitativa de reunions entre els amfitrions és menys important",
   "rr_distribution_method_balanced_title": "Equilibri de càrrega",
   "rr_distribution_method_balanced_description": "Monitoritzarem quantes reserves s'han fet amb cada amfitrió i ho compararem amb els altres, desactivant alguns amfitrions que estiguin massa avançats perquè les reserves es distribueixin uniformement",
+  "edit_team_member_weights": "Editar pesos",
+  "weights_updated_successfully": "Els pesos s'han actualitzat correctament",
   "require_confirmation_for_free_email": "Requereix confirmació només per a proveïdors de correu gratuït (Ex. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Excloure correus electrònics que continguin...",
   "require_emails_that_contain": "Requereix correus electrònics que continguin...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Estàs fent una reserva de prova.",
   "icon_showcase": "Mostra d'icones",
   "icons_showcase": "Mostra d'icones",
+  "feature_currently_disabled": "La funcionalitat està actualment desactivada",
   "choose_an_option": "Tria una opció",
   "enter_option_value": "Introdueix el valor de l'opció",
   "remove_option": "Elimina l'opció",
+  "managed_users": "Usuaris gestionats",
+  "managed_users_description": "Veure tots els usuaris gestionats creats pel teu client OAuth",
+  "select_oAuth_client": "Selecciona el client OAuth",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

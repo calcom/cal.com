@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Görüş təşkilatçısı mövcud olduqda, görüşlərin bron edilməsinə imkan verir. Bu, potensial görüşlərin sayını maksimuma çatdırmaq və görüşlərin təşkilatçılar arasında bərabər paylanmasının daha az əhəmiyyətli olduğu hallarda istifadə olunur.",
   "rr_distribution_method_balanced_title": "Yük balanslaşdırma",
   "rr_distribution_method_balanced_description": "Hər bir təşkilatçı ilə neçə bron edildiyini izləyəcəyik və bunu digərləri ilə müqayisə edəcəyik, çox irəlidə olan bəzi təşkilatçıları deaktiv edərək bronların bərabər paylanmasını təmin edəcəyik.",
+  "edit_team_member_weights": "Çəkiləri redaktə et",
+  "weights_updated_successfully": "Çəkilər uğurla yeniləndi",
   "require_confirmation_for_free_email": "Yalnız pulsuz e-poçt provayderləri üçün təsdiq tələb edin (Məs. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Tərkibində olan e-poçtları istisna et...",
   "require_emails_that_contain": "E-poçt ünvanları ... tərkibli olmalıdır",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Siz test rezervasiyası edirsiniz.",
   "icon_showcase": "İkon nümayişi",
   "icons_showcase": "İkonların nümayişi",
+  "feature_currently_disabled": "Funksiya hazırda deaktivdir",
   "choose_an_option": "Seçim edin",
   "enter_option_value": "Seçim dəyərini daxil edin",
   "remove_option": "Seçimi sil",
+  "managed_users": "İdarə edilən istifadəçilər",
+  "managed_users_description": "OAuth müştəriniz tərəfindən yaradılmış bütün idarə edilən istifadəçiləri görün",
+  "select_oAuth_client": "OAuth müştərisini seçin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Cho phép người đặt lịch đặt cuộc họp bất cứ khi nào người chủ trì có mặt. Sử dụng tính năng này để tối đa hóa số lượng cuộc họp tiềm năng được đặt và khi việc phân phối cuộc họp đồng đều giữa các chủ trì ít quan trọng hơn.",
   "rr_distribution_method_balanced_title": "Cân bằng tải",
   "rr_distribution_method_balanced_description": "Chúng tôi sẽ theo dõi số lượng đặt lịch đã được thực hiện với từng chủ trì và so sánh với những người khác, vô hiệu hóa một số chủ trì đã nhận quá nhiều lịch để đảm bảo việc đặt lịch được phân phối đồng đều.",
+  "edit_team_member_weights": "Chỉnh sửa trọng số",
+  "weights_updated_successfully": "Đã cập nhật trọng số thành công",
   "require_confirmation_for_free_email": "Chỉ yêu cầu xác nhận đối với các nhà cung cấp email miễn phí (Ví dụ: @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Loại trừ các email chứa ...",
   "require_emails_that_contain": "Yêu cầu email phải chứa ...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Bạn đang thực hiện đặt lịch thử nghiệm.",
   "icon_showcase": "Trưng bày biểu tượng",
   "icons_showcase": "Trưng bày các biểu tượng",
+  "feature_currently_disabled": "Tính năng hiện đang bị vô hiệu hóa",
   "choose_an_option": "Chọn một tùy chọn",
   "enter_option_value": "Nhập giá trị tùy chọn",
   "remove_option": "Xóa tùy chọn",
+  "managed_users": "Người dùng được quản lý",
+  "managed_users_description": "Xem tất cả người dùng được quản lý được tạo bởi OAuth client của bạn",
+  "select_oAuth_client": "Chọn OAuth Client",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

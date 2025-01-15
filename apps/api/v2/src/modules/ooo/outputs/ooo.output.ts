@@ -69,6 +69,7 @@ export class UserOooOutputDto {
   @ApiPropertyOptional({
     description: "the reason for the out of office entry, if applicable",
     example: "vacation",
+    enum: OutOfOfficeReason,
   })
   @Expose()
   reason?: OutOfOfficeReason;

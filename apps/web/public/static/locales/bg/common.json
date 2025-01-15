@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Позволява на клиентите да запазват срещи, когато има наличен домакин. Използвайте това, за да увеличите максимално броя на потенциалните срещи и когато равномерното разпределение на срещите между домакините е по-малко важно.",
   "rr_distribution_method_balanced_title": "Балансиране на натоварването",
   "rr_distribution_method_balanced_description": "Ще следим колко резервации са направени с всеки домакин и ще ги сравняваме с останалите, като деактивираме някои домакини, които са прекалено напред, за да бъдат резервациите равномерно разпределени.",
+  "edit_team_member_weights": "Редактиране на тежести",
+  "weights_updated_successfully": "Тежестите са актуализирани успешно",
   "require_confirmation_for_free_email": "Изисквайте потвърждение само за безплатни имейл доставчици (напр. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Изключи имейли, които съдържат ...",
   "require_emails_that_contain": "Изисквай имейли, които съдържат...",
@@ -2917,8 +2919,12 @@
   "dry_run_mode_active": "Правите тестова резервация.",
   "icon_showcase": "Галерия с икони",
   "icons_showcase": "Галерия с икони",
+  "feature_currently_disabled": "Функцията е деактивирана в момента",
   "choose_an_option": "Изберете опция",
   "enter_option_value": "Въведете стойност на опцията",
   "remove_option": "Премахване на опцията",
+  "managed_users": "Управлявани потребители",
+  "managed_users_description": "Вижте всички управлявани потребители, създадени от вашия OAuth клиент",
+  "select_oAuth_client": "Изберете OAuth клиент",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
