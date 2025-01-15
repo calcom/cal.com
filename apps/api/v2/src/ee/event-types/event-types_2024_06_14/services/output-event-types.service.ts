@@ -235,6 +235,8 @@ export class OutputEventTypesService_2024_06_14 {
       if (result.success) {
         knownBookingFields.push(result.data);
       } else {
+        console.log("transformBookingFields - failed to parse a field", bookingField);
+        console.log("transformBookingFields - parsing error", result.error);
         unknownBookingFields.push({
           type: "unknown",
           slug: "unknown",
