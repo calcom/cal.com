@@ -1,8 +1,14 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  createColumnHelper,
+} from "@tanstack/react-table";
 import type { ReactElement } from "react";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -11,13 +17,13 @@ import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle"
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
 import Shell from "@calcom/features/shell/Shell";
-import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { Alert, Button, EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -69,17 +75,37 @@ const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
   unconfirmed: "unconfirmed_bookings",
 };
 
-export default function Bookings({ status }: { status: (typeof validStatuses)[number] }) {
+type BookingsProps = {
+  status: (typeof validStatuses)[number];
+};
+
+export default function Bookings(props: BookingsProps) {
+  return (
+    <DataTableProvider>
+      <BookingsContent {...props} />
+    </DataTableProvider>
+  );
+}
+
+type RowData = {
+  booking: BookingOutput;
+  recurringInfo?: RecurringInfo;
+};
+
+function BookingsContent({ status }: BookingsProps) {
   const { data: filterQuery } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
 
-  const bookingListFilters = {
-    ...filterQuery,
-    status: filterQuery.status ?? status,
-  };
+  const bookingListFilters = useMemo(() => {
+    return {
+      ...filterQuery,
+      status: filterQuery.status ?? status,
+    };
+  }, [status, filterQuery]);
+
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: BOOKING_LIST_LIMIT,
@@ -91,38 +117,79 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
     }
   );
 
-  // Animate page (tab) transitions to look smoothing
+  const columns = useMemo(() => {
+    const columnHelper = createColumnHelper<RowData>();
 
-  const buttonInView = useInViewObserver(() => {
-    if (!query.isFetching && query.hasNextPage && query.status === "success") {
-      query.fetchNextPage();
-    }
-  });
+    return [
+      columnHelper.display({
+        id: "custom-view",
+        cell: (props) => {
+          const { booking, recurringInfo } = props.row.original;
+          return (
+            <BookingListItem
+              key={booking.id}
+              loggedInUser={{
+                userId: user?.id,
+                userTimeZone: user?.timeZone,
+                userTimeFormat: user?.timeFormat,
+                userEmail: user?.email,
+              }}
+              listingStatus={status}
+              recurringInfo={recurringInfo}
+              bookingListFilters={bookingListFilters}
+              {...booking}
+            />
+          );
+        },
+      }),
+    ];
+  }, [user, status, bookingListFilters]);
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  const shownBookings: Record<string, BookingOutput[]> = {};
-  const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
-      if (!booking.recurringEventId) {
-        return true;
+  const flatData = useMemo(() => {
+    const shownBookings: Record<string, BookingOutput[]> = {};
+    const filterBookings = (booking: BookingOutput) => {
+      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+        if (!booking.recurringEventId) {
+          return true;
+        }
+        if (
+          shownBookings[booking.recurringEventId] !== undefined &&
+          shownBookings[booking.recurringEventId].length > 0
+        ) {
+          shownBookings[booking.recurringEventId].push(booking);
+          return false;
+        }
+        shownBookings[booking.recurringEventId] = [booking];
+      } else if (status === "upcoming") {
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
       }
-      if (
-        shownBookings[booking.recurringEventId] !== undefined &&
-        shownBookings[booking.recurringEventId].length > 0
-      ) {
-        shownBookings[booking.recurringEventId].push(booking);
-        return false;
-      }
-      shownBookings[booking.recurringEventId] = [booking];
-    } else if (status === "upcoming") {
-      return (
-        dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
-        dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-      );
-    }
-    return true;
-  };
+      return true;
+    };
+
+    return (
+      query.data?.pages.flatMap((page) =>
+        page.bookings.filter(filterBookings).map((booking) => ({
+          booking,
+          recurringInfo: page.recurringInfo.find(
+            (info) => info.recurringEventId === booking.recurringEventId
+          ),
+        }))
+      ) || []
+    );
+  }, [query.data, status, user]);
+
+  const table = useReactTable<RowData>({
+    data: flatData,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   let recurringInfoToday: RecurringInfo | undefined;
 
@@ -140,8 +207,6 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
       })
     )[0] || [];
 
-  const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
-
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
@@ -150,7 +215,7 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />
       <main className="w-full">
-        <div className="flex w-full flex-col" ref={animationParentRef}>
+        <div className="flex w-full flex-col">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
@@ -162,71 +227,42 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
                   <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
                   <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
                   <div className="border-subtle overflow-hidden rounded-md border">
-                    <table className="w-full max-w-full table-fixed">
-                      <tbody className="bg-default divide-subtle divide-y" data-testid="today-bookings">
-                        <Fragment>
-                          {bookingsToday.map((booking: BookingOutput) => (
-                            <BookingListItem
-                              key={booking.id}
-                              loggedInUser={{
-                                userId: user?.id,
-                                userTimeZone: user?.timeZone,
-                                userTimeFormat: user?.timeFormat,
-                                userEmail: user?.email,
-                              }}
-                              listingStatus={status}
-                              recurringInfo={recurringInfoToday}
-                              bookingListFilters={bookingListFilters}
-                              {...booking}
-                            />
-                          ))}
-                        </Fragment>
-                      </tbody>
-                    </table>
+                    <div
+                      className="bg-default divide-subtle w-full max-w-full divide-y"
+                      data-testid="today-bookings">
+                      <Fragment>
+                        {bookingsToday.map((booking: BookingOutput) => (
+                          <BookingListItem
+                            key={booking.id}
+                            loggedInUser={{
+                              userId: user?.id,
+                              userTimeZone: user?.timeZone,
+                              userTimeFormat: user?.timeFormat,
+                              userEmail: user?.email,
+                            }}
+                            listingStatus={status}
+                            recurringInfo={recurringInfoToday}
+                            bookingListFilters={bookingListFilters}
+                            {...booking}
+                          />
+                        ))}
+                      </Fragment>
+                    </div>
                   </div>
                 </div>
               )}
-              <div className="pt-2 xl:pt-0">
-                <div className="border-subtle overflow-hidden rounded-md border">
-                  <table data-testid={`${status}-bookings`} className="w-full max-w-full table-fixed">
-                    <tbody className="bg-default divide-subtle divide-y" data-testid="bookings">
-                      {query.data.pages.map((page, index) => (
-                        <Fragment key={index}>
-                          {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
-                            const recurringInfo = page.recurringInfo.find(
-                              (info) => info.recurringEventId === booking.recurringEventId
-                            );
-                            return (
-                              <BookingListItem
-                                key={booking.id}
-                                loggedInUser={{
-                                  userId: user?.id,
-                                  userTimeZone: user?.timeZone,
-                                  userTimeFormat: user?.timeFormat,
-                                  userEmail: user?.email,
-                                }}
-                                listingStatus={status}
-                                recurringInfo={recurringInfo}
-                                bookingListFilters={bookingListFilters}
-                                {...booking}
-                              />
-                            );
-                          })}
-                        </Fragment>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="text-default p-4 text-center" ref={buttonInView.ref}>
-                  <Button
-                    color="minimal"
-                    loading={query.isFetchingNextPage}
-                    disabled={!query.hasNextPage}
-                    onClick={() => query.fetchNextPage()}>
-                    {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                  </Button>
-                </div>
-              </div>
+
+              <DataTableWrapper
+                table={table}
+                testId={`${status}-bookings`}
+                bodyTestId="bookings"
+                hideHeader={true}
+                isPending={query.isFetching && !flatData}
+                hasNextPage={query.hasNextPage}
+                fetchNextPage={query.fetchNextPage}
+                isFetching={query.isFetching}
+                variant="compact"
+              />
             </>
           )}
           {query.status === "success" && isEmpty && (
