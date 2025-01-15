@@ -9,8 +9,6 @@ import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry
 
 import { csp } from "@lib/csp";
 
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
-
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
     return get<T>(key);
@@ -195,7 +193,7 @@ export const config = {
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,
