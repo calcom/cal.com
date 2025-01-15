@@ -4,7 +4,7 @@ import type { CredentialDataWithTeamName } from "@calcom/app-store/utils";
 import getApps from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
-import { isDomainWideDelegationCredential } from "../domainWideDelegation/clientAndServer";
+import { isDwdCredential } from "../domainWideDelegation/clientAndServer";
 
 type EnabledApp = ReturnType<typeof getApps>[number] & { enabled: boolean };
 
@@ -33,7 +33,7 @@ const getEnabledAppsFromCredentials = async (
   } satisfies Prisma.AppWhereInput;
 
   const dwdCredentialsWithAppId = credentials
-    .filter((credential) => isDomainWideDelegationCredential({ credentialId: credential.id }))
+    .filter((credential) => isDwdCredential({ credentialId: credential.id }))
     .filter((credential): credential is typeof credential & { appId: string } => credential.appId !== null);
 
   if (filterOnCredentials) {

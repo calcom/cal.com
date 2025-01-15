@@ -1,4 +1,4 @@
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 
 export function buildCredentialPayloadForPrisma({
   credentialId,
@@ -14,7 +14,7 @@ export function buildCredentialPayloadForPrisma({
     };
   }
 
-  if (isDomainWideDelegationCredential({ credentialId })) {
+  if (isDwdCredential({ credentialId })) {
     return {
       credentialId: null,
       domainWideDelegationCredentialId,

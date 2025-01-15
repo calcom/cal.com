@@ -26,7 +26,8 @@
   - [ ] Location Change of a booking  to Google Meet(from Cal Video)
   - [ ] Team Members availability view testing
   - [ ] Google Meet
-     - [ ] Shows up installed on apps/google-meet and apps/instaled/conferencing
+     - [x] Shows up installed on apps/google-meet and apps/instaled/conferencing
+     - [x] Can't remove the app
   - [ ] Onboarding
     - [x] When DWD is not enabled, the flow works.
     - [x] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.

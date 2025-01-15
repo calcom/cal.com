@@ -85,7 +85,6 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 3. Build in-memory credentials for the domainWideDelegations and use them along with the actual credentials(that user might have connected) of the user
 4. We don't show the non-dwd connected calendar(if there is a corresponding dwd connected calendar). Though we use the non-dwd credentials to identify the selected calendars, for the dwd connected calendar.
 
-
 ### Impact on existing users booking flow
 - There should be no impact on availability on enabling DWD because we keep on using the existing credentials along with new DWD credential.
 - When booking the event, we sort the credentials with DWD credentials last, so there should be no impact on creating calendar events.
@@ -95,8 +94,8 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 - We don't support DWD through APIs yet. So, all existing APIs would continue to work with non-dwd credentials only.
 
 ### Performance Issues
-- There could be 100s of users in an organization with already connected calendars. Enabling DWD adds a duplicate credential for each of them.
-   - Because a credential isn't aware of which email it is for(without connecting with Google Calendar API itself), we can't deduplicate them.
+- There could be 100s of users in an organization with already connected calendars. Enabling DWD adds a duplicate credential(in-memory) for each of them.
+   - Because a credential isn't aware of which email it is for(without connecting with Google Calendar API itself), we can't identify which credential is for which SelectedCalendar and thus we can't deduplicate them. This has an impact on fetching the availability and thus for a team event with x participants, we could have 2x requests to Google Calendar API. Because for big value of x, user might be using routing and thus the actual value might be much lower. So, we could be fine. Also, we would have Calendar Cache enabled there already to reduce the requests.
 
 ### Notes when testing locally
 - You need to enable the feature through feature flag.

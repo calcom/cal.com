@@ -360,11 +360,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     !!input.rescheduleUid
   );
 
-  const firstUser = eventHosts[0].user;
+  const firstUser: GetAvailabilityUserWithoutDwdCredentials | undefined = eventHosts[0]?.user;
 
-  const orgId =
+  const firstUserOrgId =
     (await getOrgIdFromMemberOrTeamId({
-      memberId: firstUser.id,
+      // TODO: Instead of using the firstUser, there should be a better way to determine the orgId
+      memberId: firstUser?.id ?? null,
       teamId: eventType?.team?.id,
     })) ?? null;
 
@@ -399,7 +400,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
-      orgId,
+      orgId: firstUserOrgId,
     });
 
   // If contact skipping, determine if there's availability within two weeks

@@ -1,5 +1,5 @@
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { enrichUserWithDwdCredentialsWithoutOrgId } from "@calcom/lib/domainWideDelegation/server";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
@@ -140,7 +140,7 @@ async function handleNoDestinationCalendar({
       integration,
       externalId,
       primaryEmail,
-      ...(!isDomainWideDelegationCredential({ credentialId })
+      ...(!isDwdCredential({ credentialId })
         ? {
             credentialId,
           }

@@ -505,8 +505,11 @@ async function handler(
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
 
+  const firstUser: (typeof allHostUsersWithoutHavingDwdCredentials)[number] | undefined =
+    allHostUsersWithoutHavingDwdCredentials[0];
+
   const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-    memberId: allHostUsersWithoutHavingDwdCredentials[0].id,
+    memberId: firstUser?.id ?? null,
     teamId: eventType.teamId,
   });
 

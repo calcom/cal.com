@@ -1,4 +1,4 @@
-export function isDomainWideDelegationCredential({
+export function isDwdCredential({
   credentialId,
 }: {
   credentialId: number | null | undefined;

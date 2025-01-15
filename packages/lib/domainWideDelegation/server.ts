@@ -8,7 +8,7 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWide
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
-import { buildNonDwdCredentials, isDomainWideDelegationCredential } from "./clientAndServer";
+import { buildNonDwdCredentials, isDwdCredential } from "./clientAndServer";
 
 export { buildNonDwdCredentials, buildNonDwdCredential } from "./clientAndServer";
 
@@ -245,9 +245,7 @@ export const buildAllCredentials = ({
   dwdCredentials: CredentialForCalendarService[] | null;
   existingCredentials: CredentialPayload[];
 }) => {
-  const nonDwdCredentials = existingCredentials.filter(
-    (cred) => !isDomainWideDelegationCredential({ credentialId: cred.id })
-  );
+  const nonDwdCredentials = existingCredentials.filter((cred) => !isDwdCredential({ credentialId: cred.id }));
   const allCredentials: CredentialForCalendarService[] = [
     ...(dwdCredentials ?? []),
     ...buildNonDwdCredentials(nonDwdCredentials),
@@ -279,17 +277,19 @@ export async function enrichUsersWithDwdCredentials<
     users,
   });
 
-  return users.map((user) => {
+  const enrichedUsers = users.map((user) => {
     const { credentials, ...rest } = user;
-
+    const enrichedCredentials = buildAllCredentials({
+      dwdCredentials: dwdCredentialsMap.get(user.id) ?? [],
+      existingCredentials: credentials,
+    });
     return {
       ...rest,
-      credentials: buildAllCredentials({
-        dwdCredentials: dwdCredentialsMap.get(user.id) ?? [],
-        existingCredentials: credentials,
-      }),
+      credentials: enrichedCredentials,
     };
   });
+  log.debug("enrichUsersWithDwdCredentials", safeStringify({ enrichedUsers, orgId }));
+  return enrichedUsers;
 }
 
 export const enrichHostsWithDwdCredentials = async <
@@ -307,7 +307,7 @@ export const enrichHostsWithDwdCredentials = async <
     users: hosts.map((host) => host.user),
   });
 
-  return hosts.map((host) => {
+  const enrichedHosts = hosts.map((host) => {
     const { credentials, ...restUser } = host.user;
     return {
       ...host,
@@ -320,6 +320,8 @@ export const enrichHostsWithDwdCredentials = async <
       },
     };
   });
+  log.debug("enrichHostsWithDwdCredentials", safeStringify({ enrichedHosts, orgId }));
+  return enrichedHosts;
 };
 
 export const enrichUserWithDwdCredentialsWithoutOrgId = async <
