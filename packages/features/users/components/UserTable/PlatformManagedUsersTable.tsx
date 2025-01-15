@@ -311,7 +311,7 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
   return (
     <>
       <DataTable
-        data-testid="managed-user-list-data-table"
+        testId="managed-user-list-data-table"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
