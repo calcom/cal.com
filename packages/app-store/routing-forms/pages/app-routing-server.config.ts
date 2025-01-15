@@ -10,4 +10,5 @@ export const routingServerSidePropsConfig: Record<string, AppGetServerSideProps>
   "route-builder": getServerSidePropsSingleForm,
   "routing-link": getServerSidePropsRoutingLink,
   reporting: getServerSidePropsSingleForm,
+  "incomplete-booking": getServerSidePropsSingleForm,
 };
