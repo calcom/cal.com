@@ -120,7 +120,7 @@ export default class HubspotCalendarService implements CRM {
       try {
         const hubspotRefreshToken: HubspotToken = await refreshOAuthTokens(
           async () =>
-            await hubspotClient.oauth.tokensApi.createToken(
+            await hubspotClient.oauth.tokensApi.create(
               "refresh_token",
               undefined,
               `${WEBAPP_URL}/api/integrations/hubspot/callback`,

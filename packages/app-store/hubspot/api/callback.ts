@@ -38,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
   if (!client_secret) return res.status(400).json({ message: "HubSpot client secret missing." });
 
-  const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
+  const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.create(
     "authorization_code",
     code,
     `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`,
