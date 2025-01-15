@@ -23,18 +23,6 @@ import type { EventResult } from "@calcom/types/EventManager";
 import getCalendarsEvents from "./getCalendarsEvents";
 import { getCalendarsEventsWithTimezones } from "./getCalendarsEvents";
 
-type CredentialForCalendarServiceGeneric<T> = T extends null
-  ? null
-  : T & {
-      delegatedTo: {
-        serviceAccountKey: {
-          client_email: string;
-          private_key: string;
-          client_id: string;
-        };
-      } | null;
-    };
-
 const log = logger.getSubLogger({ prefix: ["CalendarManager"] });
 
 export const getCalendarCredentials = (credentials: Array<CredentialForCalendarService>) => {

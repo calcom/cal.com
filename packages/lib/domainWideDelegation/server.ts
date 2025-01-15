@@ -259,7 +259,9 @@ export const buildAllCredentials = ({
       acc.push(credential);
       return acc;
     }
-    const existingDwdCredential = acc.find((c) => c.delegatedToId === credential.delegatedToId);
+    const existingDwdCredential = acc.find(
+      (c) => c.delegatedToId === credential.delegatedToId && c.appId === credential.appId
+    );
     if (!existingDwdCredential) {
       acc.push(credential);
     }

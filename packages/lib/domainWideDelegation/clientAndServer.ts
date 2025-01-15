@@ -31,24 +31,3 @@ export const buildNonDwdCredentials = <T extends Record<string, unknown>>(creden
     delegatedToId: null;
   })[];
 };
-
-/**
- * Utility function to find a credential from a list of credentials, supporting both regular and DWD credentials
- */
-export function getDwdOrRegularCredential<TCredential extends { delegatedToId?: string | null; id: number }>({
-  credentials,
-  id,
-}: {
-  credentials: TCredential[];
-  id: { credentialId: number | null | undefined; dwdId: string | null | undefined };
-}) {
-  return (
-    credentials.find((cred) => {
-      // Ensure that we don't match null to null
-      if (cred.delegatedToId) {
-        return cred.delegatedToId === id.dwdId;
-      }
-      return cred.id === id.credentialId;
-    }) || null
-  );
-}

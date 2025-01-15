@@ -25,6 +25,8 @@
     - [ ] Using same domain name for different organization isn't allowed. It is restricted during creation of DWD.
   - [ ] Location Change of a booking  to Google Meet(from Cal Video)
   - [ ] Team Members availability view testing
+  - [ ] Google Meet
+     - [ ] Shows up installed on apps/google-meet and apps/instaled/conferencing
   - [ ] Onboarding
     - [x] When DWD is not enabled, the flow works.
     - [x] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.

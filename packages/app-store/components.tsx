@@ -20,7 +20,6 @@ import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButtonWithoutPlanCheck = (
-
   props: {
     type: App["type"];
     options?: UseAddAppMutationOptions;

@@ -17,7 +17,7 @@ import { User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
-
+import { buildNonDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
 import { APPS_TYPE_ID_MAPPING } from "@calcom/platform-constants";
 import {
   getConnectedDestinationCalendarsAndEnsureDefaultsInDb,
@@ -73,7 +73,7 @@ export class CalendarsService {
     );
     try {
       const calendarBusyTimes = await getBusyCalendarTimes(
-        credentials,
+        buildNonDwdCredentials(credentials),
         dateFrom,
         dateTo,
         composedSelectedCalendars
