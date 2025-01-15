@@ -1,34 +1,15 @@
 # How to work with platform libraries in Dev
 
-whenever you want to change anything in platform libraries, or if you modify the code of one of the functions imported in libraries you will need to build the code again.
-
-first thing to know is that we version this package using NPM
-
+We version this package using NPM:
 https://www.npmjs.com/package/@calcom/platform-libraries?activeTab=code
 
-In order to work using the locally built platform libraries you need to:
-
-- in packages/platform/libraries/package.json set the version to for example 1.2.3
-
-- in apps/api/v2/package.json add to dependencies:
-  "@calcom/platform-libraries-1.2.3": "npm:@calcom/platform-libraries@1.2.3"
-
-- in api v2 code simply import using the new alias:
-  import {
-  getAllUserBookings as getAllUserBookings1.2.3,
-  } from "@calcom/platform-libraries-1.2.3";
-
-since the versions are matching in both package.json yarn will try to use the locally built code
-
-now go to packages/platform/libraries and do
-
-- yarn build:dev
-
-then go back to /apps/api/v2 and run
-
-- yarn
-
-- yarn dev
+Here is the workflow:
+1. If you change platform libraries for the first time, then run `yarn local` to build them locally for the first time. This will also make v2 api point to the local libraries.
+2. If you change them for the second time, then run `yarn build:dev` to re-build them.
+3. Once you are happy with platform libraries:
+- run `yarn prebulish` - it will check "@calcom/platform-libraries" version in npm and update it's package.json to the next version.
+- run `yarn publish` - it will publish the package to npm
+- run `yarn postpublish` - it will update the version of "@calcom/platform-libraries" in the api v2 package.json, reset "@calcom/platform-libraries" to 0.0.0 and run yarn install.
 
 # Before Merging to main
 
