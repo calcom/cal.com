@@ -90,11 +90,8 @@ export function NotificationSoundHandler() {
     }
   };
 
-  // Initialize on mount
   useEffect(() => {
-    initializeAudioSystem();
-
-    // Don't close the context on cleanup, just stop any playing sounds
+    // Don't automatically initialize - wait for user interaction
     return () => {
       stopSound();
     };
@@ -108,16 +105,10 @@ export function NotificationSoundHandler() {
 
     const messageHandler = async (event: MessageEvent) => {
       if (event.data.type === "PLAY_NOTIFICATION_SOUND") {
-        // Use user interaction to initialize audio if needed
-        const userInteraction = async () => {
+        // Only initialize if not already initialized
+        if (!audioBufferRef.current) {
           await initializeAudioSystem();
-          document.removeEventListener("click", userInteraction);
-          document.removeEventListener("touchstart", userInteraction);
-        };
-
-        document.addEventListener("click", userInteraction);
-        document.addEventListener("touchstart", userInteraction);
-
+        }
         await playSound();
       }
 
@@ -130,10 +121,13 @@ export function NotificationSoundHandler() {
     return () => navigator.serviceWorker.removeEventListener("message", messageHandler);
   }, []);
 
-  // Add a click handler to the document for initial audio setup
+  // Single click handler for initial audio setup
   useEffect(() => {
     const handleFirstInteraction = async () => {
-      await initializeAudioSystem();
+      // Only initialize if not already initialized
+      if (!audioBufferRef.current) {
+        await initializeAudioSystem();
+      }
       document.removeEventListener("click", handleFirstInteraction);
       document.removeEventListener("touchstart", handleFirstInteraction);
     };

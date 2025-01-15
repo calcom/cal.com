@@ -16,7 +16,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ButtonState, useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 import classNames from "@calcom/ui/classNames";
-import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { SideBarContainer } from "./SideBar";
 import { TopNavContainer } from "./TopNav";
@@ -44,7 +43,6 @@ const Layout = (props: LayoutProps) => {
       )}
       <div>
         <Toaster position="bottom-right" />
-        <NotificationSoundHandler />
       </div>
 
       <TimezoneChangeDialog />

@@ -125,6 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
         <Providers dehydratedState={ssr.dehydrate()}>{children}</Providers>
+        {!isEmbed && <NotificationSoundHandler />}
         <NotificationSoundHandler />
       </body>
     </html>
