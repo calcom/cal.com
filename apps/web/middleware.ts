@@ -186,6 +186,7 @@ export const config = {
     "/availability/:path*",
     "/booking/:path*",
     "/routing-forms/:path*",
+    "/team/:path*",
   ],
 };
 
