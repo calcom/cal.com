@@ -145,7 +145,7 @@ async function lockUser(identifierType: string, identifier: string) {
     Sentry.setUser({
       id: user.id.toString(),
       email: user.email,
-      username: user.username,
+      username: user.username ?? undefined,
     });
     Sentry.setTag("admin_notify", true);
     Sentry.setTag("auto_lock", true);
