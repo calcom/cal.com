@@ -1119,33 +1119,44 @@ const NoShowAttendeesDialog = ({
   noShowMutationHelper: (input: RouterInputs["viewer"]["markNoShow"]) => void;
 }) => {
   const { t } = useLocale();
+  const [noShowAttendees, setNoShowAttendees] = useState(attendees);
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
       <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {attendees.map((attendee) => (
-          <form
-            key={attendee.id}
-            onSubmit={(e) => {
-              e.preventDefault();
-              noShowMutationHelper({
-                bookingUid,
-                attendees: [{ email: attendee.email, noShow: !attendee.noShow }],
-              });
-            }}>
-            <div className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
-              <span className="text-emphasis flex flex-col text-sm">
-                {attendee.name}
-                {attendee.email && <span className="text-muted">({attendee.email})</span>}
-              </span>
-              <Button color="minimal" type="submit" StartIcon={attendee.noShow ? "eye-off" : "eye"}>
-                {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
-              </Button>
-            </div>
-          </form>
+        {noShowAttendees.map((attendee) => (
+          <div key={attendee.id} className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
+            <span className="text-emphasis flex flex-col text-sm">
+              {attendee.name}
+              {attendee.email && <span className="text-muted">({attendee.email})</span>}
+            </span>
+            <Button
+              color="minimal"
+              StartIcon={attendee.noShow ? "eye-off" : "eye"}
+              onClick={() => {
+                const updatedNoShowAttendees = noShowAttendees.map((a) => {
+                  return {
+                    ...a,
+                    noShow: a.id === attendee.id ? !attendee.noShow : a.noShow,
+                  };
+                });
+
+                setNoShowAttendees(updatedNoShowAttendees);
+              }}>
+              {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
+            </Button>
+          </div>
         ))}
         <DialogFooter>
-          <DialogClose>{t("done")}</DialogClose>
+          <DialogClose
+            onClick={() =>
+              noShowMutationHelper({
+                bookingUid,
+                attendees: noShowAttendees,
+              })
+            }>
+            {t("done")}
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
