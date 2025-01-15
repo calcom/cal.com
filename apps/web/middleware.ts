@@ -187,6 +187,10 @@ export const config = {
     "/booking/:path*",
     "/routing-forms/:path*",
     "/team/:path*",
+    "/org/[orgSlug]/[user]/[type]",
+    "/org/[orgSlug]/team/[slug]/[type]",
+    "/org/[orgSlug]/team/[slug]",
+    "/org/[orgSlug]",
   ],
 };
 
