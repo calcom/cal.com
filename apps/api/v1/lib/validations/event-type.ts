@@ -2,11 +2,10 @@ import { z } from "zod";
 
 import slugify from "@calcom/lib/slugify";
 import { _EventTypeModel as EventType, _HostModel } from "@calcom/prisma/zod";
-import { customInputSchema, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import { customInputSchema, eventTypeBookingFields, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { Frequency } from "~/lib/types";
 
-import { jsonSchema } from "./shared/jsonSchema";
 import { schemaQueryUserId } from "./shared/queryUserId";
 import { timeZone } from "./shared/timeZone";
 
@@ -165,7 +164,7 @@ export const schemaEventTypeReadPublic = EventType.pick({
         })
       )
       .nullable(),
-    metadata: jsonSchema.nullable(),
+    metadata: EventTypeMetaDataSchema,
     customInputs: customInputSchema.array().optional(),
     link: z.string().optional(),
     hashedLink: z
