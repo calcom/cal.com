@@ -144,15 +144,7 @@ const triggerBrowserNotifications = async (args: {
       body: "User is waiting for you to join. Click to Connect",
       url: connectAndJoinUrl,
       type: "INSTANT_MEETING",
-      requireInteraction: true,
-      actions: [
-        {
-          action: "connect-action",
-          title: "Connect and join",
-          type: "button",
-          image: "https://cal.com/api/logo?type=icon",
-        },
-      ],
+      requireInteraction: false,
     });
   });
 

@@ -6,7 +6,7 @@ const vapidKeys = {
 };
 
 // The mail to email address should be the one at which push service providers can reach you. It can also be a URL.
-webpush.setVapidDetails("https://cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
+webpush.setVapidDetails("mailto:support@cal.com", vapidKeys.publicKey, vapidKeys.privateKey);
 
 type Subscription = {
   endpoint: string;

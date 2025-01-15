@@ -1,4 +1,6 @@
 self.addEventListener("push", async (event) => {
+  if (!event.data) return
+
   let notificationData = event.data.json();
 
   const allClients = await clients.matchAll({
@@ -14,54 +16,64 @@ self.addEventListener("push", async (event) => {
   const title = notificationData.title || "New Cal.com Notification";
   const image = notificationData.icon || "https://cal.com/api/logo?type=icon";
 
-  // Special handling for instant meetings
-  if (notificationData.data?.type === "INSTANT_MEETING") {
-    allClients.forEach(client => {
-      client.postMessage({
-        type: 'PLAY_NOTIFICATION_SOUND'
-      });
-    });
-  }
+   event.waitUntil(
+    (async () => {
+      try {
+        // Close notifications with the same tag if it exists
+        const existingNotifications = await self.registration.getNotifications({
+          tag: notificationData.tag
+        });
 
-  const existingNotifications = await self.registration.getNotifications();
+        existingNotifications.forEach((notification) => {
+          const options = {
+            body: notification.body,
+            icon: notification.icon,
+            badge: notification.badge,
+            data: notification.data,
+            silent: notification.silent,
+            vibrate: notification.vibrate,
+            requireInteraction: notification.requireInteraction,
+            tag: notification.tag,
+          };
 
-  existingNotifications.forEach((notification) => {
-    const options = {
-      body: notification.body,
-      icon: notification.icon,
-      badge: notification.badge,
-      data: notification.data,
-      silent: notification.silent,
-      vibrate: notification.vibrate,
-      requireInteraction: notification.requireInteraction,
-      tag: notification.tag,
-    };
+          self.registration.showNotification(notification.title, options);
+        });
 
-    self.registration.showNotification(notification.title, options);
-  });
+        // Special handling for instant meetings
+        if (notificationData.data?.type === "INSTANT_MEETING") {
+          allClients.forEach(client => {
+            client.postMessage({
+              type: 'PLAY_NOTIFICATION_SOUND'
+            });
+          });
+        }
 
-    const notificationOptions = {
-      body: notificationData.body,
-      icon: image,
-      badge: image,
-      data: notificationData.data,
-      tag: notificationData.tag || `cal-notification-${Date.now()}`,
-      renotify: true,
-      requireInteraction: notificationData.requireInteraction ?? true,
-      actions: notificationData.actions || [],
-      vibrate: [200, 100, 200],
-   };
+        const notificationOptions = {
+          body: notificationData.body,
+          icon: image,
+          badge: image,
+          data: notificationData.data,
+          tag: notificationData.tag || `cal-notification-${Date.now()}`,
+          renotify: true,
+          requireInteraction: notificationData.requireInteraction ?? true,
+          actions: notificationData.actions || [],
+          vibrate: [200, 100, 200],
+          urgency: 'high'
+        };
 
-  try {
-    await self.registration.showNotification(title, notificationOptions);
-    console.log("Notification shown successfully");
-  } catch (error) {
-    console.error("Error showing notification:", error);
-  }
+        console.log("notificationOptions", notificationOptions);
+
+        await self.registration.showNotification(title, notificationOptions);
+        console.log("Notification shown successfully");
+      } catch (error) {
+        console.error("Error showing notification:", error);
+      }
+    })()
+  );
 });
 
-self.addEventListener("notificationclick", (event) => {
 
+self.addEventListener("notificationclick", (event) => {
   if (event.notification.data?.type === "INSTANT_MEETING") {
     const stopSound = async () => {
       const allClients = await clients.matchAll({
@@ -75,16 +87,21 @@ self.addEventListener("notificationclick", (event) => {
         });
       });
     };
+  }
 
-    event.waitUntil(Promise.all([
-      stopSound(),
-      clients.openWindow(event.notification.data.url)
-    ]));
-  } else {
-    // Handle regular notifications
-    event.waitUntil(
-      clients.openWindow(event.notification.data?.url || "https://app.cal.com")
-    );
+  if (!event.action) {
+    // Normal Notification Click
+    event.notification.close();
+    const url = event.notification.data.url;
+    event.waitUntil(self.clients.openWindow(url));
+  }
+
+  switch (event.action) {
+    case "connect-action":
+      event.notification.close();
+      const url = event.notification.data.url;
+      event.waitUntil(self.clients.openWindow(url));
+      break;
   }
 });
 
