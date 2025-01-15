@@ -315,7 +315,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         });
       });
 
-      it("should create a booking", async () => {
+      it.only("should create a booking", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
           eventTypeId,
@@ -332,6 +332,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           metadata: {
             userId: "100",
           },
+          guests: ["bob@gmail.com"],
         };
 
         const beforeCreate = new Date();
@@ -376,7 +377,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: body.attendee.name,
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
+                guests: body.guests,
               });
+              expect(data.guests).toEqual(body.guests);
 
               // Check createdAt date is between the time of the request and after the request
               const createdAtDate = new Date(data.createdAt);
