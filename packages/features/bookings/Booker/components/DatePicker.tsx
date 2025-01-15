@@ -64,7 +64,7 @@ export const DatePicker = ({
 
     onMonthChange(browsingDate.add(1, "month"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [month]);
 
   return (
     <DatePickerComponent
