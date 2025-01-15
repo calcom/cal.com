@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button, Icon, TextArea } from "@calcom/ui";
+import { Button, Icon, Label, TextArea } from "@calcom/ui";
 
 type Props = {
   booking: {
@@ -33,6 +33,7 @@ type Props = {
     };
     eventType: unknown;
   };
+  isHost: boolean;
 };
 
 export default function CancelBooking(props: Props) {
@@ -70,7 +71,7 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          <label className="text-default font-medium">{t("cancellation_reason")}</label>
+          <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
           <TextArea
             data-testid="cancel_reason"
             ref={cancelBookingRef}
@@ -90,6 +91,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
+                disabled={props.isHost && !cancellationReason}
                 onClick={async () => {
                   setLoading(true);
 

@@ -52,6 +52,7 @@
   "you_can_view_booking_details_with_this_url": "You can view the booking details from this url {{url}} and add the event to your calendar",
   "no_options_available": "No options available",
   "cancellation_reason": "Reason for cancellation (optional)",
+  "cancellation_reason_host": "Reason for cancellation",
   "cancellation_reason_placeholder": "Why are you cancelling?",
   "rejection_reason_placeholder": "Why are you rejecting?",
   "rejection_reason": "Reason for rejecting",

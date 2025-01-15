@@ -134,7 +134,6 @@ export default function Success(props: PageProps) {
   ) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
-
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     bookingInfo?.metadata || {}
   )?.videoCallUrl;
@@ -151,6 +150,7 @@ export default function Success(props: PageProps) {
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
   );
   const { data: session } = useSession();
+  const isHost = bookingInfo?.user?.id === session?.user?.id;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
 
@@ -319,7 +319,6 @@ export default function Success(props: PageProps) {
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
     if (bookingInfo.user) {
-      const isHost = bookingInfo.user.id === session?.user?.id;
       const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
       const host = bookingInfo.user.name || bookingInfo.user.email;
@@ -785,6 +784,7 @@ export default function Success(props: PageProps) {
                             seatReferenceUid={seatReferenceUid}
                             bookingCancelledEventProps={bookingCancelledEventProps}
                             currentUserEmail={currentUserEmail}
+                            isHost={isHost}
                           />
                         </>
                       ))}
