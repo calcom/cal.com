@@ -3,6 +3,7 @@ import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecale
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
@@ -345,4 +346,44 @@ export async function enrichUserWithDwdConferencingCredentialsWithoutOrgId<
     ...restUser,
     credentials: credentials.filter(_isConferencingCredential),
   };
+}
+
+export async function findDwdOrRegularCredential({
+  id,
+  dwdCredentials,
+}: {
+  id: {
+    credentialId: number | null | undefined;
+    domainWideDelegationCredentialId: string | null | undefined;
+  };
+  dwdCredentials: CredentialForCalendarService[];
+}) {
+  return id.domainWideDelegationCredentialId
+    ? dwdCredentials.find((cred) => cred.delegatedToId === id.domainWideDelegationCredentialId)
+    : id.credentialId
+    ? await CredentialRepository.findCredentialForCalendarServiceById({
+        id: id.credentialId,
+      })
+    : null;
+}
+
+/**
+ * Utility function to find a credential from a list of credentials, supporting both regular and DWD credentials
+ */
+export function getDwdOrRegularCredential<TCredential extends { delegatedToId?: string | null; id: number }>({
+  credentials,
+  id,
+}: {
+  credentials: TCredential[];
+  id: { credentialId: number | null | undefined; dwdId: string | null | undefined };
+}) {
+  return (
+    credentials.find((cred) => {
+      // Ensure that we don't match null to null
+      if (cred.delegatedToId) {
+        return cred.delegatedToId === id.dwdId;
+      }
+      return cred.id === id.credentialId;
+    }) || null
+  );
 }

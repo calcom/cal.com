@@ -75,6 +75,21 @@ export const getLocationRequestFromIntegration = (location: string) => {
   return null;
 };
 
+const getCredential = ({
+  id,
+  allCredentials,
+}: {
+  id: {
+    domainWideDelegationCredentialId: string | null;
+    credentialId: number | null;
+  };
+  allCredentials: CredentialForCalendarService[];
+}) => {
+  return id.domainWideDelegationCredentialId
+    ? allCredentials.find((c) => c.delegatedToId === id.domainWideDelegationCredentialId)
+    : allCredentials.find((c) => c.id === id.credentialId);
+};
+
 export const processLocation = (event: CalendarEvent): CalendarEvent => {
   // If location is set to an integration location
   // Build proper transforms for evt object
@@ -681,11 +696,13 @@ export default class EventManager {
         if (eventCreated) break;
         log.silly("Creating Calendar event", JSON.stringify({ destination }));
         if (destination.credentialId || destination.domainWideDelegationCredentialId) {
-          let credential = destination.domainWideDelegationCredentialId
-            ? this.calendarCredentials.find(
-                (c) => c.delegatedToId === destination.domainWideDelegationCredentialId
-              )
-            : this.calendarCredentials.find((c) => c.id === destination.credentialId);
+          let credential = getCredential({
+            id: {
+              credentialId: destination.credentialId,
+              domainWideDelegationCredentialId: destination.domainWideDelegationCredentialId,
+            },
+            allCredentials: this.calendarCredentials,
+          });
           if (!credential) {
             if (destination.credentialId) {
               // Fetch credential from DB
