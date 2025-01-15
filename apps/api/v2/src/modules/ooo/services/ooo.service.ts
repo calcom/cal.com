@@ -2,6 +2,8 @@ import {
   CreateOutOfOfficeEntryDto,
   UpdateOutOfOfficeEntryDto,
   OutOfOfficeReason,
+  GetOutOfOfficeEntryFiltersDTO,
+  SortOrder,
 } from "@/modules/ooo/inputs/ooo.input";
 import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
@@ -128,8 +130,13 @@ export class UserOOOService {
     return this.formatOooReason(ooo);
   }
 
-  async getUserOOOPaginated(userId: number, skip: number, take: number) {
-    const ooos = await this.oooRepository.getUserOOOPaginated(userId, skip, take);
+  async getUserOOOPaginated(
+    userId: number,
+    skip: number,
+    take: number,
+    sort?: { sortStart?: "asc" | "desc"; sortEnd?: "asc" | "desc" }
+  ) {
+    const ooos = await this.oooRepository.getUserOOOPaginated(userId, skip, take, sort);
     return ooos.map((ooo) => this.formatOooReason(ooo));
   }
 }
