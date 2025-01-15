@@ -1,1 +1,1 @@
-export { getServerSideProps, default } from "@pages/team/[slug]";
+export { getServerSideProps, default } from "@pages/org/[orgSlug]/index";
