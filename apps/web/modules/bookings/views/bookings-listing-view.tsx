@@ -26,6 +26,8 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
+export const BOOKING_LIST_LIMIT = 10;
+
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
@@ -74,13 +76,14 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
 
+  const bookingListFilters = {
+    ...filterQuery,
+    status: filterQuery.status ?? status,
+  };
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
-      limit: 10,
-      filters: {
-        ...filterQuery,
-        status: filterQuery.status ?? status,
-      },
+      limit: BOOKING_LIST_LIMIT,
+      filters: bookingListFilters,
     },
     {
       enabled: true,
@@ -173,6 +176,7 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
                               }}
                               listingStatus={status}
                               recurringInfo={recurringInfoToday}
+                              bookingListFilters={bookingListFilters}
                               {...booking}
                             />
                           ))}
@@ -203,6 +207,7 @@ export default function Bookings({ status }: { status: (typeof validStatuses)[nu
                                 }}
                                 listingStatus={status}
                                 recurringInfo={recurringInfo}
+                                bookingListFilters={bookingListFilters}
                                 {...booking}
                               />
                             );
