@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as hubspot from "@hubspot/api-client";
-import type { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
+import { AssociationTypes } from "@hubspot/api-client";
+// import { AssociationSpecAssociationCategoryEnum } from "@hubspot/api-client"
 import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import type {
-  SimplePublicObject,
   SimplePublicObjectInput,
+  SimplePublicObjectInputForCreate,
+  PublicAssociationsForObject,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import { AssociationSpecAssociationCategoryEnum } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -50,35 +53,40 @@ export default class HubspotCalendarService implements CRM {
     }`;
   };
 
-  private hubspotCreateMeeting = async (event: CalendarEvent) => {
-    const simplePublicObjectInput: SimplePublicObjectInput = {
-      properties: {
-        hs_timestamp: Date.now().toString(),
-        hs_meeting_title: event.title,
-        hs_meeting_body: this.getHubspotMeetingBody(event),
-        hs_meeting_location: getLocation(event),
-        hs_meeting_start_time: new Date(event.startTime).toISOString(),
-        hs_meeting_end_time: new Date(event.endTime).toISOString(),
-        hs_meeting_outcome: "SCHEDULED",
-      },
-    };
+  private hubspotCreateMeeting = async (event: CalendarEvent, contacts: Contact[]) => {
+    try {
+      const simplePublicObjectInput: SimplePublicObjectInputForCreate = {
+        properties: {
+          hs_timestamp: Date.now().toString(),
+          hs_meeting_title: event.title,
+          hs_meeting_body: this.getHubspotMeetingBody(event),
+          hs_meeting_location: getLocation(event),
+          hs_meeting_start_time: new Date(event.startTime).toISOString(),
+          hs_meeting_end_time: new Date(event.endTime).toISOString(),
+          hs_meeting_outcome: "SCHEDULED",
+        },
+        associations: contacts.reduce((associations, contact) => {
+          if (contact.id) {
+            associations.push({
+              to: {
+                id: contact.id,
+              },
+              types: [
+                {
+                  associationCategory: AssociationSpecAssociationCategoryEnum.HubspotDefined,
+                  associationTypeId: AssociationTypes.meetingToContact,
+                },
+              ],
+            });
+          }
+          return associations;
+        }, [] as PublicAssociationsForObject[]),
+      };
 
-    return hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
-  };
-
-  private hubspotAssociate = async (meeting: SimplePublicObject, contacts: Array<{ id: string }>) => {
-    const batchInputPublicAssociation: BatchInputPublicAssociation = {
-      inputs: contacts.map((contact: { id: string }) => ({
-        _from: { id: meeting.id },
-        to: { id: contact.id },
-        type: "meeting_event_to_contact",
-      })),
-    };
-    return hubspotClient.crm.associations.batchApi.create(
-      "meetings",
-      "contacts",
-      batchInputPublicAssociation
-    );
+      return await hubspotClient.crm.objects.meetings.basicApi.create(simplePublicObjectInput);
+    } catch (e) {
+      this.log.warn(`error creating event for bookingUid ${event.uid}, ${e}`);
+    }
   };
 
   private hubspotUpdateMeeting = async (uid: string, event: CalendarEvent) => {
@@ -156,23 +164,18 @@ export default class HubspotCalendarService implements CRM {
   };
 
   async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
-    const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
-    const meetingEvent = await this.hubspotCreateMeeting(event);
+    const meetingEvent = await this.hubspotCreateMeeting(event, contacts);
+
     if (meetingEvent) {
       this.log.debug("meeting:creation:ok", { meetingEvent });
-      const associatedMeeting = await this.hubspotAssociate(meetingEvent, contactIds as any);
-      if (associatedMeeting) {
-        this.log.debug("association:creation:ok", { associatedMeeting });
-        return Promise.resolve({
-          uid: meetingEvent.id,
-          id: meetingEvent.id,
-          type: "hubspot_other_calendar",
-          password: "",
-          url: "",
-          additionalInfo: { contacts, associatedMeeting },
-        });
-      }
-      return Promise.reject("Something went wrong when associating the meeting and attendees in HubSpot");
+      return Promise.resolve({
+        uid: meetingEvent.id,
+        id: meetingEvent.id,
+        type: "hubspot_other_calendar",
+        password: "",
+        url: "",
+        additionalInfo: { contacts, meetingEvent },
+      });
     }
     this.log.debug("meeting:creation:notOk", { meetingEvent, event, contacts });
     return Promise.reject("Something went wrong when creating a meeting in HubSpot");
