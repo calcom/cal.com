@@ -1,4 +1,4 @@
-import * as hubspot from "@hubspot/api-client";
+import { Client } from "@hubspot/api-client";
 import type { TokenResponseIF } from "@hubspot/api-client/lib/codegen/oauth/models/TokenResponseIF";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -13,7 +13,6 @@ import metadata from "../_metadata";
 
 let client_id = "";
 let client_secret = "";
-const hubspotClient = new hubspot.Client();
 
 export interface HubspotToken extends TokenResponseIF {
   expiryDate?: number;
@@ -22,6 +21,8 @@ export interface HubspotToken extends TokenResponseIF {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const state = decodeOAuthState(req);
+
+  const oauth = new Client().oauth;
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -38,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
   if (!client_secret) return res.status(400).json({ message: "HubSpot client secret missing." });
 
-  const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.create(
+  const hubspotToken: HubspotToken = await oauth.tokensApi.create(
     "authorization_code",
     code,
     `${WEBAPP_URL_FOR_OAUTH}/api/integrations/hubspot/callback`,
