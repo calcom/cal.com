@@ -2389,6 +2389,8 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "minimum": 1,
+              "maximum": 1000,
               "type": "number"
             }
           },
@@ -2399,6 +2401,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
               "type": "number"
             }
           },
@@ -2581,6 +2584,28 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2670,6 +2695,80 @@
             "in": "path",
             "schema": {
               "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Orgs / Users / OOO"]
+      }
+    },
+    "/v2/organizations/{orgId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
+        "summary": "Get all OOO entries of org users",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "description": "Filter ooo entries by the user email address. user must be within your organization.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -7312,7 +7411,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "only allowed value for type is `name`"
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name."
           },
           "label": {
             "type": "string"
@@ -8038,7 +8137,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
           },
           "label": {
