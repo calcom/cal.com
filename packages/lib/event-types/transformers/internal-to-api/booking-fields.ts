@@ -242,17 +242,19 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
             })
           ),
         }),
-        firstAndLastName: z.object({
-          fields: z.array(
-            z.object({
-              name: z.enum(["firstName", "lastName"]),
-              type: z.literal("text"),
-              label: z.string().optional(),
-              required: z.boolean(),
-              placeholder: z.string().optional(),
-            })
-          ),
-        }),
+        firstAndLastName: z
+          .object({
+            fields: z.array(
+              z.object({
+                name: z.enum(["firstName", "lastName"]),
+                type: z.literal("text"),
+                label: z.string().optional(),
+                required: z.boolean(),
+                placeholder: z.string().optional(),
+              })
+            ),
+          })
+          .optional(),
       }),
     })
     .optional(),
