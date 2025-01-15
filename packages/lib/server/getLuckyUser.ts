@@ -907,7 +907,7 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
       });
 
       if (attributeWithEnabledWeights) {
-        // Virtual queues are defined by the attribute that has weights and is used with 'Value of field ...'
+        // Virtual queues are defined by the attribute that is used for weights
         const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
           allRRHosts,
           routingFormResponse,

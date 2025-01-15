@@ -281,9 +281,33 @@ const Route = ({
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
+
+    //check if attributeIdForWeights does still exist, if not set to undefined
+    let attributeStillExists = false;
+
+    if (attributeIdForWeights) {
+      if (jsonTree.children1) {
+        attributeStillExists = Object.values(jsonTree.children1).some((rule) => {
+          if (rule.type === "rule" && rule?.properties?.field === attributeIdForWeights) {
+            if (
+              rule.properties.value.flat().length == 1 &&
+              rule.properties.value.flat().some((value) => value && value.includes("field:"))
+            ) {
+              return true;
+            }
+          }
+          return false;
+        });
+      }
+      if (!attributeStillExists) {
+        setAttributeIdForWeights(undefined);
+      }
+    }
+
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
       attributesQueryValue: jsonTree as AttributesQueryValue,
+      attributeIdForWeights: attributeStillExists ? attributeIdForWeights : undefined,
     });
   };
 
@@ -301,7 +325,7 @@ const Route = ({
 
   const onChangeAttributeIdForWeights = (
     route: EditFormRoute & { attributeIdForWeights?: string },
-    attributeIdForWeights: string | undefined
+    attributeIdForWeights?: string
   ) => {
     setRoute(route.id, {
       attributeIdForWeights,
@@ -416,7 +440,12 @@ const Route = ({
     ) {
       const attributeIds = Object.values(validatedQueryValue.children1).map((rule) => {
         if (rule.type === "rule" && rule?.properties?.field) {
-          return rule.properties.field;
+          if (
+            rule.properties.value.flat().length == 1 &&
+            rule.properties.value.flat().some((value) => value && value.includes("field:"))
+          ) {
+            return rule.properties.field;
+          }
         }
       });
 
