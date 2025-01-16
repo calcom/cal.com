@@ -182,20 +182,7 @@ export default class SalesforceCRMService implements CRM {
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const appOptions = this.getAppOptions();
 
-    const customFieldInputsEnabled =
-      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
-
-    const customFieldInputs = customFieldInputsEnabled
-      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
-      : [];
-
-    const confirmedCustomFieldInputs: {
-      [key: string]: any;
-    } = {};
-
-    for (const field of customFieldInputs) {
-      confirmedCustomFieldInputs[field.name] = appOptions.onBookingWriteToEventObjectMap[field.name];
-    }
+    const writeToEventRecord = await this.generateWriteToEventBody(event);
 
     let ownerId = null;
     if (event?.organizer?.email) {
@@ -216,7 +203,7 @@ export default class SalesforceCRMService implements CRM {
 
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
-      ...confirmedCustomFieldInputs,
+      ...writeToEventRecord,
       ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
@@ -1006,6 +993,35 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
+
+  private async generateWriteToEventBody(event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+
+    if (!customFieldInputsEnabled) return {};
+
+    const customFieldInputs = customFieldInputsEnabled
+      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
+      : [];
+
+    const confirmedCustomFieldInputs: {
+      [key: string]: any;
+    } = {};
+
+    for (const field of customFieldInputs) {
+      confirmedCustomFieldInputs[field.name] = await this.getTextFieldValue({
+        fieldValue: appOptions.onBookingWriteToEventObjectMap[field.name],
+        fieldLength: field.length,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+      });
+    }
+
+    return confirmedCustomFieldInputs;
+  }
+
   private async getTextFieldValue({
     fieldValue,
     fieldLength,

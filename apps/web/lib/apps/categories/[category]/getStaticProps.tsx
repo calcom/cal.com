@@ -1,10 +1,12 @@
+import type { GetStaticPropsContext } from "next";
+
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
-export type CategoryDataProps = NonNullable<Awaited<ReturnType<typeof getStaticProps>>>;
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const category = context.params?.category as AppCategories;
 
-export const getStaticProps = async (category: AppCategories) => {
   const appQuery = await prisma.app.findMany({
     where: {
       categories: {
@@ -22,7 +24,8 @@ export const getStaticProps = async (category: AppCategories) => {
 
   const apps = appStore.filter((app) => dbAppsSlugs.includes(app.slug));
   return {
-    apps,
-    category,
+    props: {
+      apps,
+    },
   };
 };
