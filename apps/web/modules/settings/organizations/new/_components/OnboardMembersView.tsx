@@ -31,10 +31,38 @@ const AddNewTeamMembers = () => {
   return <AddNewTeamMembersForm />;
 };
 
+const useCheckout = () => {
+  const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
+    onSuccess: (data) => {
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      }
+    },
+  });
+
+  return {
+    mutation,
+    mutate: mutation.mutate,
+    isLoading: mutation.isLoading,
+    redirectUrl: mutation.data?.redirectUrl,
+  };
+};
+
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
-  const { teams, invitedMembers, addInvitedMember, removeInvitedMember } = useOnboardingStore();
-  const session = useSession();
+  const {
+    addInvitedMember,
+    removeInvitedMember,
+    name,
+    slug,
+    orgOwnerEmail,
+    billingPeriod,
+    pricePerSeat,
+    seats,
+    teams,
+    invitedMembers,
+  } = useOnboardingStore();
+  const checkout = useCheckout();
 
   const teamIds = teams.filter((team) => team.isBeingMigrated && team.id > 0).map((team) => team.id);
 
@@ -145,7 +173,33 @@ export const AddNewTeamMembersForm = () => {
         )}
       </div>
       <div className="mt-3 mt-6 flex items-center justify-end">
-        <Button>{t("continue")}</Button>
+        <Button
+          onClick={() => {
+            console.log("Checkout", {
+              name,
+              slug,
+              orgOwnerEmail,
+              billingPeriod,
+              pricePerSeat,
+              seats,
+              teams,
+              invitedMembers,
+            });
+
+            checkout.mutation.mutate({
+              name,
+              slug,
+              orgOwnerEmail,
+              billingPeriod,
+              pricePerSeat,
+              seats,
+              teams,
+              invitedMembers,
+            });
+          }}
+          loading={checkout.isLoading}>
+          {t("checkout")}
+        </Button>
       </div>
     </>
   );

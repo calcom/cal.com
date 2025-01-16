@@ -84,6 +84,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         id: team.id,
         shouldMove: false,
         newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: orgRequestedSlug }),
+        name: team.name,
       })),
     }, // Set initial values
     resolver: async (data) => {
@@ -130,17 +131,20 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         id: team.id,
         isBeingMigrated: team.shouldMove,
         slug: team.newSlug,
-      };
-    });
-
-    const newTeams = fields.map((team) => {
-      return {
-        id: -1,
-        isBeingMigrated: false,
-        slug: getSuggestedSlug({ teamSlug: team.name, orgSlug: orgRequestedSlug }),
         name: team.name,
       };
     });
+
+    const newTeams = fields
+      .map((team) => {
+        return {
+          id: -1,
+          isBeingMigrated: false,
+          slug: getSuggestedSlug({ teamSlug: team.name, orgSlug: orgRequestedSlug }),
+          name: team.name,
+        };
+      })
+      .filter((team) => team.slug !== "");
 
     setTeams([...teamsBeingMoved, ...newTeams]);
     router.push(`/settings/organizations/new/onboard-members`);

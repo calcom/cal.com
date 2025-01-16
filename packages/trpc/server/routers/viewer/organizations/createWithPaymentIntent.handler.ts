@@ -53,6 +53,26 @@ function hasModifiedDefaultPayment(input: CreateOptions["input"]) {
   );
 }
 
+async function hasPermissionToMigrateTeams(
+  user: CreateOptions["ctx"]["user"],
+  teams: CreateOptions["input"]["teams"]
+) {
+  const teamMemberships = await prisma.membership.findMany({
+    where: {
+      userId: user.id,
+      team: {
+        id: {
+          in: teams,
+        },
+      },
+      role: {
+        in: ["OWNER", "ADMIN"],
+      },
+    },
+  });
+  return teamMemberships.length === teams.length;
+}
+
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const { name, slug, orgOwnerEmail, seats, pricePerSeat, billingPeriod } = input;
 
@@ -73,6 +93,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You do not have permission to modify the default payment settings",
+    });
+  }
+
+  if (!hasPermissionToMigrateTeams(ctx.user, input.teams)) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You do not have permission to migrate these teams",
     });
   }
 
@@ -135,8 +162,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   // Create subscription checkout
   const subscription = await billingService.createSubscriptionCheckout({
     customerId: stripeCustomerId,
-    successUrl: `${WEBAPP_URL}/organizations/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${WEBAPP_URL}/organizations/cancel?session_id={CHECKOUT_SESSION_ID}`,
+    successUrl: `${WEBAPP_URL}/settings/organizations/new/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancelUrl: `${WEBAPP_URL}/settings/organizations/new/cancel?session_id={CHECKOUT_SESSION_ID}`,
     priceId,
     quantity: seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
     metadata: {

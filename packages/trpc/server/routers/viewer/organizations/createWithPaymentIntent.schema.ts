@@ -13,6 +13,24 @@ export const ZCreateUserInputSchema = z.object({
   slug: z.string().transform((val) => slugify(val.trim())),
   orgOwnerEmail: z.string().email(),
   language: z.string().optional(),
+  invitedMembers: z
+    .array(
+      z.object({
+        email: z.string().email(),
+        name: z.string().optional(),
+      })
+    )
+    .optional(),
+  teams: z
+    .array(
+      z.object({
+        id: z.number(), // New teams are treated as -1
+        name: z.string(),
+        slug: z.string().transform((val) => slugify(val.trim())),
+        isBeingMigrated: z.boolean(),
+      })
+    )
+    .optional(),
 });
 
 // Admin-only schema - fields that only admins can set
