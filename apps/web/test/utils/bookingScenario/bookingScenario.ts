@@ -30,8 +30,10 @@ import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { AppMeta } from "@calcom/types/App";
+import type { CalendarEvent, IntegrationCalendar } from "@calcom/types/Calendar";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import { getMockPaymentService } from "./MockPaymentService";
 import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
@@ -855,7 +857,8 @@ export async function createOrganization(orgData: {
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
   withTeam?: boolean;
-}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]> }> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): Promise<TeamCreateReturnType & { slug: NonNullable<TeamCreateReturnType["slug"]>; children: any }> {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
@@ -882,7 +885,7 @@ export async function createOrganization(orgData: {
     });
   }
   assertNonNullableSlug(org);
-  return org;
+  return await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
 }
 
 export async function createCredentials(
@@ -1429,6 +1432,52 @@ export const enum BookingLocations {
   GoogleMeet = "integrations:google:meet",
 }
 
+export type CalendarServiceMethodMockCallBase = {
+  calendarServiceConstructorArgs: {
+    credential: CredentialForCalendarService;
+  };
+};
+
+type CreateEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    calEvent: CalendarEvent;
+    credentialId: number;
+    externalCalendarId?: string;
+  };
+};
+
+type UpdateEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    uid: string;
+    event: CalendarEvent;
+    externalCalendarId?: string;
+  };
+};
+
+type DeleteEventMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    uid: string;
+    event: CalendarEvent;
+    externalCalendarId?: string;
+  };
+};
+
+type GetAvailabilityMethodMockCall = CalendarServiceMethodMockCallBase & {
+  args: {
+    dateFrom: string;
+    dateTo: string;
+    selectedCalendars: IntegrationCalendar[];
+    shouldServeCache?: boolean;
+  };
+};
+
+export type CalendarServiceMethodMock = {
+  createEventCalls: CreateEventMethodMockCall[];
+  updateEventCalls: UpdateEventMethodMockCall[];
+  deleteEventCalls: DeleteEventMethodMockCall[];
+  getAvailabilityCalls: GetAvailabilityMethodMockCall[];
+};
+
 /**
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
@@ -1440,18 +1489,28 @@ export function mockCalendar(
       id?: string;
       uid?: string;
       iCalUID?: string;
+      appSpecificData?: {
+        googleCalendar?: {
+          hangoutLink?: string;
+        };
+      };
     };
     update?: {
       id?: string;
       uid: string;
       iCalUID?: string;
+      appSpecificData?: {
+        googleCalendar?: {
+          hangoutLink?: string;
+        };
+      };
     };
     busySlots?: { start: `${string}Z`; end: `${string}Z` }[];
     creationCrash?: boolean;
     updationCrash?: boolean;
     getAvailabilityCrash?: boolean;
   }
-) {
+): CalendarServiceMethodMock {
   const appStoreLookupKey = metadataLookupKey;
   const normalizedCalendarData = calendarData || {
     create: {
@@ -1462,12 +1521,11 @@ export function mockCalendar(
     },
   };
   log.silly(`Mocking ${appStoreLookupKey} on appStoreMock`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const createEventCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateEventCalls: any[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const deleteEventCalls: any[] = [];
+
+  const createEventCalls: CreateEventMethodMockCall[] = [];
+  const updateEventCalls: UpdateEventMethodMockCall[] = [];
+  const deleteEventCalls: DeleteEventMethodMockCall[] = [];
+  const getAvailabilityCalls: GetAvailabilityMethodMockCall[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
 
   const appMock = appStoreMock.default[appStoreLookupKey as keyof typeof appStoreMock.default];
@@ -1478,20 +1536,36 @@ export function mockCalendar(
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        CalendarService: function MockCalendarService() {
+        CalendarService: function MockCalendarService(credential: CredentialForCalendarService) {
           return {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             createEvent: async function (...rest: any[]): Promise<NewCalendarEventType> {
               if (calendarData?.creationCrash) {
                 throw new Error("MockCalendarService.createEvent fake error");
               }
-              const [calEvent, credentialId] = rest;
-              log.silly("mockCalendar.createEvent", JSON.stringify({ calEvent, credentialId }));
-              createEventCalls.push(rest);
+              const [calEvent, credentialId, externalCalendarId] = rest;
+              log.debug(
+                "mockCalendar.createEvent",
+                JSON.stringify({ calEvent, credentialId, externalCalendarId })
+              );
+              createEventCalls.push({
+                args: {
+                  calEvent,
+                  credentialId,
+                  externalCalendarId,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
+              const isGoogleMeetLocation = calEvent?.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
+                hangoutLink: isGoogleMeetLocation
+                  ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
+                  : undefined,
                 // A Calendar is always expected to return an id.
                 id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
                 iCalUID: normalizedCalendarData.create?.iCalUID,
@@ -1508,21 +1582,31 @@ export function mockCalendar(
               const [uid, event, externalCalendarId] = rest;
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
-              updateEventCalls.push(rest);
+              updateEventCalls.push({
+                args: {
+                  uid,
+                  event,
+                  externalCalendarId,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
               const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
                 iCalUID: normalizedCalendarData.update?.iCalUID,
-
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 id: normalizedCalendarData.update?.uid || "FALLBACK_MOCK_ID",
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
                 location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
-                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink: isGoogleMeetLocation
+                  ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
+                  : undefined,
                 conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },
@@ -1530,12 +1614,33 @@ export function mockCalendar(
             deleteEvent: async (...rest: any[]) => {
               log.silly("mockCalendar.deleteEvent", JSON.stringify({ rest }));
               // eslint-disable-next-line prefer-rest-params
-              deleteEventCalls.push(rest);
+              deleteEventCalls.push({
+                args: {
+                  uid: rest[0],
+                  event: rest[1],
+                  externalCalendarId: rest[2],
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
             },
-            getAvailability: async (): Promise<EventBusyDate[]> => {
+            getAvailability: async (...rest: any[]): Promise<EventBusyDate[]> => {
               if (calendarData?.getAvailabilityCrash) {
                 throw new Error("MockCalendarService.getAvailability fake error");
               }
+              const [dateFrom, dateTo, selectedCalendars, shouldServeCache] = rest;
+              getAvailabilityCalls.push({
+                args: {
+                  dateFrom,
+                  dateTo,
+                  selectedCalendars,
+                  shouldServeCache,
+                },
+                calendarServiceConstructorArgs: {
+                  credential,
+                },
+              });
               return new Promise((resolve) => {
                 resolve(calendarData?.busySlots || []);
               });
@@ -1548,6 +1653,7 @@ export function mockCalendar(
     createEventCalls,
     deleteEventCalls,
     updateEventCalls,
+    getAvailabilityCalls,
   };
 }
 
@@ -2089,4 +2195,17 @@ export const createDwdCredential = async (orgId: number) => {
   });
 
   return dwd;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const buildDwdCredential = ({ serviceAccountKey }: { serviceAccountKey: any }) => {
+  return {
+    id: -1,
+    key: {
+      access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+    },
+    delegatedTo: {
+      serviceAccountKey,
+    },
+  };
 };

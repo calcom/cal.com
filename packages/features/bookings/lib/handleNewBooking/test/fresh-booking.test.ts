@@ -28,8 +28,6 @@ import {
   mockCalendarToCrashOnCreateEvent,
   mockVideoAppToCrashOnCreateMeeting,
   BookingLocations,
-  createDwdCredential,
-  createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
@@ -59,7 +57,6 @@ import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
@@ -352,7 +349,6 @@ describe("handleNewBooking", () => {
           });
 
           const createdBooking = await handleNewBooking(req);
-
           expect(createdBooking.responses).toEqual(
             expect.objectContaining({
               email: booker.email,
@@ -386,212 +382,6 @@ describe("handleNewBooking", () => {
                 meetingId: "GOOGLE_CALENDAR_EVENT_ID",
                 meetingPassword: "MOCK_PASSWORD",
                 meetingUrl: "https://UNUSED_URL",
-              },
-            ],
-            iCalUID: createdBooking.iCalUID,
-          });
-
-          expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
-          expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
-            videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
-            // We won't be sending evt.destinationCalendar in this case.
-            // Google Calendar in this case fallbacks to the "primary" calendar - https://github.com/calcom/cal.com/blob/7d5dad7fea78ff24dddbe44f1da5d7e08e1ff568/packages/app-store/googlecalendar/lib/CalendarService.ts#L217
-            // Not sure if it's the correct behaviour. Right now, it isn't possible to have an organizer with connected calendar but no destination calendar - As soon as the Google Calendar app is installed, a destination calendar is created.
-            calendarId: null,
-          });
-
-          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
-
-          expectSuccessfulBookingCreationEmails({
-            booking: {
-              uid: createdBooking.uid!,
-            },
-            booker,
-            organizer,
-            emails,
-            iCalUID,
-          });
-          expectBookingCreatedWebhookToHaveBeenFired({
-            booker,
-            organizer,
-            location: BookingLocations.CalVideo,
-            subscriberUrl: "http://my-webhook.example.com",
-            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
-          });
-        },
-        timeout
-      );
-
-      test(
-        `should create a successful booking using the domain wide delegation credential
-          1. Should create a booking in the database
-          2. Should send emails to the booker as well as organizer
-          3. Should fallback to creating the booking in the first connected Calendar when neither event nor organizer has a destination calendar - This doesn't practically happen because organizer is always required to have a schedule set
-          3. Should trigger BOOKING_CREATED webhook
-    `,
-        async ({ emails }) => {
-          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-
-          const org = await createOrganization({
-            name: "Test Org",
-            slug: "testorg",
-          });
-
-          const childTeam = {
-            id: 202,
-            name: "Team 1",
-            slug: "team-1",
-            parentId: org.id,
-          };
-
-          const booker = getBooker({
-            email: "booker@example.com",
-            name: "Booker",
-          });
-
-          const organizer = getOrganizer({
-            name: "Organizer",
-            email: "organizer@example.com",
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            selectedCalendars: [TestData.selectedCalendars.google],
-            teams: [
-              {
-                membership: {
-                  accepted: true,
-                  role: MembershipRole.ADMIN,
-                },
-                team: {
-                  id: org.id,
-                  name: "Test Org",
-                  slug: "testorg",
-                },
-              },
-              {
-                membership: {
-                  accepted: true,
-                  role: MembershipRole.ADMIN,
-                },
-                team: {
-                  id: childTeam.id,
-                  name: "Team 1",
-                  slug: "team-1",
-                  parentId: org.id,
-                },
-              },
-            ],
-          });
-
-          const dwd = await createDwdCredential(org.id);
-
-          await createBookingScenario(
-            getScenarioData({
-              webhooks: [
-                {
-                  userId: organizer.id,
-                  eventTriggers: ["BOOKING_CREATED"],
-                  subscriberUrl: "http://my-webhook.example.com",
-                  active: true,
-                  eventTypeId: 1,
-                  appId: null,
-                },
-              ],
-              workflows: [
-                {
-                  userId: organizer.id,
-                  trigger: "NEW_EVENT",
-                  action: "EMAIL_HOST",
-                  template: "REMINDER",
-                  activeOn: [1],
-                },
-              ],
-              eventTypes: [
-                {
-                  id: 1,
-                  slotInterval: 30,
-                  length: 30,
-                  users: [
-                    {
-                      id: 101,
-                    },
-                  ],
-                },
-              ],
-              organizer,
-              apps: [TestData.apps["daily-video"]],
-            })
-          );
-
-          mockSuccessfulVideoMeetingCreation({
-            metadataLookupKey: "dailyvideo",
-            videoMeetingData: {
-              id: "MOCK_ID",
-              password: "MOCK_PASS",
-              url: `http://mock-dailyvideo.example.com/meeting-1`,
-            },
-          });
-
-          // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
-          const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
-            create: {
-              id: "GOOGLE_CALENDAR_EVENT_ID",
-              uid: "MOCK_ID",
-            },
-          });
-
-          const mockBookingData = getMockRequestDataForBooking({
-            data: {
-              eventTypeId: 1,
-              responses: {
-                email: booker.email,
-                name: booker.name,
-                location: { optionValue: "", value: BookingLocations.CalVideo },
-              },
-            },
-          });
-
-          const { req } = createMockNextJsRequest({
-            method: "POST",
-            body: mockBookingData,
-          });
-
-          const createdBooking = await handleNewBooking(req);
-
-          expect(createdBooking.responses).toEqual(
-            expect.objectContaining({
-              email: booker.email,
-              name: booker.name,
-            })
-          );
-
-          expect(createdBooking).toEqual(
-            expect.objectContaining({
-              location: BookingLocations.CalVideo,
-            })
-          );
-
-          await expectBookingToBeInDatabase({
-            description: "",
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            uid: createdBooking.uid!,
-            eventTypeId: mockBookingData.eventTypeId,
-            status: BookingStatus.ACCEPTED,
-            references: [
-              {
-                type: appStoreMetadata.dailyvideo.type,
-                uid: "MOCK_ID",
-                meetingId: "MOCK_ID",
-                meetingPassword: "MOCK_PASS",
-                meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
-              },
-              {
-                type: appStoreMetadata.googlecalendar.type,
-                uid: "GOOGLE_CALENDAR_EVENT_ID",
-                meetingId: "GOOGLE_CALENDAR_EVENT_ID",
-                meetingPassword: "MOCK_PASSWORD",
-                meetingUrl: "https://UNUSED_URL",
-                // Verify DWD credential was used
-                domainWideDelegationCredentialId: dwd.id,
               },
             ],
             iCalUID: createdBooking.iCalUID,

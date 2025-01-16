@@ -131,7 +131,7 @@ export interface App {
   isGlobal?: boolean;
   /**
    * For apps that are accessible on an alternate URL(which is simpler and shorter), this can be set.
-   * e.g. Routing Forms App is available as /routing-forms in addition to regular /routing.
+   * e.g. Routing Forms App is available as /routing-forms in addition to regular /apps/routing-forms.
    */
   simplePath?: string;
   /** A contact email, mainly to ask for support */

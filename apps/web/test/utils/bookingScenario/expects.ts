@@ -1,6 +1,6 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
+import type { InputEventType, getOrganizer, CalendarServiceMethodMock } from "./bookingScenario";
 
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
@@ -16,6 +16,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CredentialForCalendarService } from "@calcom/types/Credential";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
@@ -1170,32 +1171,32 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
   });
 }
 
+type ExpectedForSuccessfulCalendarEventCreationInCalendar = {
+  calendarId?: string | null;
+  /**
+   * explciityl set to null if you don't want to match on videoCallUrl
+   */
+  videoCallUrl: string | null;
+  destinationCalendars?: Partial<DestinationCalendar>[];
+  credential?: Partial<CredentialForCalendarService>;
+};
+
 export function expectSuccessfulCalendarEventCreationInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected:
-    | {
-        calendarId?: string | null;
-        videoCallUrl: string;
-        destinationCalendars?: Partial<DestinationCalendar>[];
-      }
-    | {
-        calendarId?: string | null;
-        videoCallUrl: string;
-        destinationCalendars?: Partial<DestinationCalendar>[];
-      }[]
+    | ExpectedForSuccessfulCalendarEventCreationInCalendar
+    | ExpectedForSuccessfulCalendarEventCreationInCalendar[]
 ) {
   const expecteds = expected instanceof Array ? expected : [expected];
   expect(calendarMock.createEventCalls.length).toBe(expecteds.length);
   for (let i = 0; i < calendarMock.createEventCalls.length; i++) {
     const expected = expecteds[i];
-
-    const calEvent = calendarMock.createEventCalls[i][0];
-
+    const createEventCall = calendarMock.createEventCalls[i];
+    const { credential } = createEventCall.calendarServiceConstructorArgs;
+    const { calEvent } = createEventCall.args;
+    if (expected.credential) {
+      expect(credential).toEqual(expect.objectContaining(expected.credential));
+    }
     expect(calEvent).toEqual(
       expect.objectContaining({
         destinationCalendar: expected.calendarId
@@ -1207,21 +1208,21 @@ export function expectSuccessfulCalendarEventCreationInCalendar(
           : expected.destinationCalendars
           ? expect.arrayContaining(expected.destinationCalendars.map((cal) => expect.objectContaining(cal)))
           : null,
-        videoCallData: expect.objectContaining({
-          url: expected.videoCallUrl,
-        }),
+
+        ...(expected.videoCallUrl !== null
+          ? {
+              videoCallData: expect.objectContaining({
+                url: expected.videoCallUrl,
+              }),
+            }
+          : {}),
       })
     );
   }
 }
 
 export function expectSuccessfulCalendarEventUpdationInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected: {
     externalCalendarId: string;
     calEvent: Partial<CalendarEvent>;
@@ -1230,23 +1231,14 @@ export function expectSuccessfulCalendarEventUpdationInCalendar(
 ) {
   expect(calendarMock.updateEventCalls.length).toBe(1);
   const call = calendarMock.updateEventCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
+  const { uid, event, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 
 export function expectSuccessfulCalendarEventDeletionInCalendar(
-  calendarMock: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    createEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updateEventCalls: any[];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    deleteEventCalls: any[];
-  },
+  calendarMock: CalendarServiceMethodMock,
   expected: {
     externalCalendarId: string;
     calEvent: Partial<CalendarEvent>;
@@ -1255,12 +1247,10 @@ export function expectSuccessfulCalendarEventDeletionInCalendar(
 ) {
   expect(calendarMock.deleteEventCalls.length).toBe(1);
   const call = calendarMock.deleteEventCalls[0];
-  const uid = call[0];
-  const calendarEvent = call[1];
-  const externalId = call[2];
+  const { uid, event, externalCalendarId } = call.args;
   expect(uid).toBe(expected.uid);
-  expect(calendarEvent).toEqual(expect.objectContaining(expected.calEvent));
-  expect(externalId).toBe(expected.externalCalendarId);
+  expect(event).toEqual(expect.objectContaining(expected.calEvent));
+  expect(externalCalendarId).toBe(expected.externalCalendarId);
 }
 
 export function expectSuccessfulVideoMeetingCreation(
@@ -1350,4 +1340,24 @@ export function expectICalUIDAsString(iCalUID: string | undefined | null) {
   }
 
   return iCalUID;
+}
+
+export async function expectBookingToNotHaveReference(
+  booking: Pick<Booking, "uid">,
+  reference: Partial<BookingReference>
+) {
+  const actualBooking = await prismaMock.booking.findUnique({
+    where: {
+      uid: booking.uid,
+    },
+    include: {
+      references: true,
+    },
+  });
+
+  expect(actualBooking?.references).not.toEqual(expect.arrayContaining([expect.objectContaining(reference)]));
+}
+
+export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServiceMethodMock) {
+  expect(calendarMock.createEventCalls.length).toBe(0);
 }
