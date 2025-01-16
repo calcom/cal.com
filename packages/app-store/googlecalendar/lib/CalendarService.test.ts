@@ -671,6 +671,46 @@ describe("GoogleCalendarService credential handling", () => {
     },
   } as const;
 
+  const createMockJWTInstance = ({
+    email = "user@example.com",
+    authorizeError,
+  }: {
+    email?: string;
+    authorizeError?: { response?: { data?: { error?: string } } } | Error;
+  }) => {
+    const mockJWTInstance = {
+      type: "jwt",
+      config: {
+        email: delegatedCredential.serviceAccountKey.client_email,
+        key: delegatedCredential.serviceAccountKey.private_key,
+        scopes: ["https://www.googleapis.com/auth/calendar"],
+        subject: email,
+      },
+      authorize: vi.fn().mockRejectedValue(authorizeError ?? new Error("Default error")),
+      createScoped: vi.fn(),
+      getRequestMetadataAsync: vi.fn(),
+      fetchIdToken: vi.fn(),
+      hasUserScopes: vi.fn(),
+      getAccessToken: vi.fn(),
+      getRefreshToken: vi.fn(),
+      getTokenInfo: vi.fn(),
+      refreshAccessToken: vi.fn(),
+      revokeCredentials: vi.fn(),
+      revokeToken: vi.fn(),
+      verifyIdToken: vi.fn(),
+      on: vi.fn(),
+      setCredentials: vi.fn(),
+      getCredentials: vi.fn(),
+      hasAnyScopes: vi.fn(),
+      authorizeAsync: vi.fn(),
+      refreshTokenNoCache: vi.fn(),
+      createGToken: vi.fn(),
+    };
+
+    vi.mocked(JWT).mockImplementation(() => mockJWTInstance as unknown as JWT);
+    return mockJWTInstance;
+  };
+
   test("uses JWT auth with impersonation when DWD credential is provided", async () => {
     const credentialWithDWD = await createCredentialInDb({
       user: { email: "user@example.com" },
@@ -728,48 +768,57 @@ describe("GoogleCalendarService credential handling", () => {
       delegatedTo: delegatedCredential,
     });
 
-    const mockJWTInstance = {
-      type: "jwt",
-      config: {
-        email: delegatedCredential.serviceAccountKey.client_email,
-        key: delegatedCredential.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: "user@example.com",
-      },
-      authorize: vi.fn().mockRejectedValue({
+    createMockJWTInstance({
+      authorizeError: {
         response: {
           data: {
             error: "unauthorized_client",
           },
         },
-      }),
-      createScoped: vi.fn(),
-      getRequestMetadataAsync: vi.fn(),
-      fetchIdToken: vi.fn(),
-      hasUserScopes: vi.fn(),
-      getAccessToken: vi.fn(),
-      getRefreshToken: vi.fn(),
-      getTokenInfo: vi.fn(),
-      refreshAccessToken: vi.fn(),
-      revokeCredentials: vi.fn(),
-      revokeToken: vi.fn(),
-      verifyIdToken: vi.fn(),
-      on: vi.fn(),
-      setCredentials: vi.fn(),
-      getCredentials: vi.fn(),
-      hasAnyScopes: vi.fn(),
-      authorizeAsync: vi.fn(),
-      refreshTokenNoCache: vi.fn(),
-      createGToken: vi.fn(),
-    };
-
-    vi.mocked(JWT).mockImplementation(() => mockJWTInstance as unknown as JWT);
+      },
+    });
 
     const calendarService = new CalendarService(credentialWithDWD);
 
     await expect(calendarService.listCalendars()).rejects.toThrow(
       "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
     );
+  });
+
+  test("handles invalid_grant error (user not in workspace) appropriately", async () => {
+    const credentialWithDWD = await createCredentialInDb({
+      user: { email: "user@example.com" },
+      delegatedTo: delegatedCredential,
+    });
+
+    createMockJWTInstance({
+      authorizeError: {
+        response: {
+          data: {
+            error: "invalid_grant",
+          },
+        },
+      },
+    });
+
+    const calendarService = new CalendarService(credentialWithDWD);
+
+    await expect(calendarService.listCalendars()).rejects.toThrow("User might not exist in Google Workspace");
+  });
+
+  test("handles general DWD authorization errors appropriately", async () => {
+    const credentialWithDWD = await createCredentialInDb({
+      user: { email: "user@example.com" },
+      delegatedTo: delegatedCredential,
+    });
+
+    createMockJWTInstance({
+      authorizeError: new Error("Some unexpected error"),
+    });
+
+    const calendarService = new CalendarService(credentialWithDWD);
+
+    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing domain wide delegation");
   });
 
   test("handles missing user email for DWD appropriately", async () => {

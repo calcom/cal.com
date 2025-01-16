@@ -508,6 +508,7 @@ async function handler(
   const firstUser: (typeof allHostUsersWithoutHavingDwdCredentials)[number] | undefined =
     allHostUsersWithoutHavingDwdCredentials[0];
 
+  // We use first user's org ID assuming that each and every member would be within the same organization.
   const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
     memberId: firstUser?.id ?? null,
     teamId: eventType.teamId,
@@ -693,7 +694,7 @@ async function handler(
           });
         }
 
-        // Why can't we use eventType.users which already has hosts handled??
+        // TODO: Why can't we use eventType.users which already has hosts handled??
         const eventTypeHosts = await enrichHostsWithDwdCredentials({
           orgId: firstUserOrgId ?? null,
           hosts: eventTypeWithUsers.hosts,

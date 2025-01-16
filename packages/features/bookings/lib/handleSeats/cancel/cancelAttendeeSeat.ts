@@ -4,7 +4,7 @@ import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
-import { findDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/server";
+import { getDwdOrFindRegularCredential } from "@calcom/lib/domainWideDelegation/server";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -79,7 +79,7 @@ async function cancelAttendeeSeat(
 
     for (const reference of bookingToDelete.references) {
       if (reference.credentialId || reference.domainWideDelegationCredentialId) {
-        const credential = await findDwdOrRegularCredential({
+        const credential = await getDwdOrFindRegularCredential({
           id: {
             credentialId: reference.credentialId,
             domainWideDelegationCredentialId: reference.domainWideDelegationCredentialId,

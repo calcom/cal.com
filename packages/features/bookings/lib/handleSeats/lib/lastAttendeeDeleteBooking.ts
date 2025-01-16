@@ -4,7 +4,7 @@ import type { Attendee } from "@prisma/client";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import { getAllDwdCredentialsForUser } from "@calcom/lib/domainWideDelegation/server";
-import { findDwdOrRegularCredential } from "@calcom/lib/domainWideDelegation/server";
+import { getDwdOrFindRegularCredential } from "@calcom/lib/domainWideDelegation/server";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -30,7 +30,7 @@ const lastAttendeeDeleteBooking = async (
 
     for (const reference of originalRescheduledBooking.references) {
       if (reference.credentialId || reference.domainWideDelegationCredentialId) {
-        const credential = await findDwdOrRegularCredential({
+        const credential = await getDwdOrFindRegularCredential({
           id: {
             credentialId: reference.credentialId,
             domainWideDelegationCredentialId: reference.domainWideDelegationCredentialId,

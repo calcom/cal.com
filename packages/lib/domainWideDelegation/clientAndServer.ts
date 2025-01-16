@@ -3,9 +3,6 @@ export function isDwdCredential({ credentialId }: { credentialId: number | null 
   return typeof credentialId === "number" && credentialId < 0;
 }
 
-// Allows us to explicitly set delegatedToId to null instead of not setting it.
-// Once every credential from Credential table has delegatedToId:null available like this, we can make delegatedToId a required field instead of optional
-// It makes us avoid a scenario where on a DWD credential we accidentally forget to set delegatedToId and think of it as non-dwd credential due to that
 export const buildNonDwdCredential = <T extends Record<string, unknown> | null>(credential: T) => {
   type WithDelegatedCredential = T extends null
     ? null

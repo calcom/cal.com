@@ -351,7 +351,10 @@ export async function enrichUserWithDwdConferencingCredentialsWithoutOrgId<
   };
 }
 
-export async function findDwdOrRegularCredential({
+/**
+ * Either get DWD credential from dwdCredentials or find regular credential from Credential table
+ */
+export async function getDwdOrFindRegularCredential({
   id,
   dwdCredentials,
 }: {

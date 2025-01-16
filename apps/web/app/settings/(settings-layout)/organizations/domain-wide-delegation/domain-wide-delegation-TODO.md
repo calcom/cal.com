@@ -34,6 +34,7 @@
     - [x] When DWD is enabled, Google Calendar is pre-installed and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
   - [x] User Level Selected Calendar and Destination Calendars are honored - verified through booking the user.
   - [ ] Event Type Selected Calendar and Destination Calendar
+  - [ ] Dynamic Group Booking
   - [x] Owner must have verified email to enable DWD
   - [x] RR Team Event
     - [x] Booking
