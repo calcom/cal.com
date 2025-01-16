@@ -28,7 +28,7 @@ describe("GET /api/video/recording", () => {
   });
 
   test("returns 401 when token is invalid", async () => {
-    vi.mocked(verifyVideoToken).mockReturnValue({ valid: false, recordingId: null });
+    vi.mocked(verifyVideoToken).mockReturnValue({ valid: false });
 
     const request = new Request("http://example.com/api/video/recording?token=invalid_token");
     const response = await GET(request);
@@ -39,7 +39,7 @@ describe("GET /api/video/recording", () => {
 
   test("returns 404 when recording is not found", async () => {
     vi.mocked(verifyVideoToken).mockReturnValue({ valid: true, recordingId: "test_id" });
-    vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue(null);
+    vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue(undefined);
 
     const request = new Request("http://example.com/api/video/recording?token=valid_token");
     const response = await GET(request);
