@@ -2,8 +2,27 @@ import { z } from "zod";
 
 import type {
   OutputBookingField_2024_06_14,
-  DefaultFieldOutput_2024_06_14,
-  CustomFieldOutput_2024_06_14,
+  SplitNameDefaultFieldOutput_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  EmailDefaultFieldOutput_2024_06_14,
+  PhoneDefaultFieldOutput_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  RescheduleReasonDefaultFieldOutput_2024_06_14,
+  TitleDefaultFieldOutput_2024_06_14,
+  NotesDefaultFieldOutput_2024_06_14,
+  GuestsDefaultFieldOutput_2024_06_14,
+  OutputUnknownBookingField_2024_06_14,
+  AddressFieldOutput_2024_06_14,
+  BooleanFieldOutput_2024_06_14,
+  CheckboxGroupFieldOutput_2024_06_14,
+  MultiEmailFieldOutput_2024_06_14,
+  MultiSelectFieldOutput_2024_06_14,
+  NumberFieldOutput_2024_06_14,
+  PhoneFieldOutput_2024_06_14,
+  RadioGroupFieldOutput_2024_06_14,
+  SelectFieldOutput_2024_06_14,
+  TextAreaFieldOutput_2024_06_14,
+  TextFieldOutput_2024_06_14,
 } from "@calcom/platform-types";
 
 export function transformBookingFieldsInternalToApi(
@@ -31,7 +50,7 @@ export function transformBookingFieldsInternalToApi(
               lastNamePlaceholder: lastNameField?.placeholder,
               lastNameRequired: !!lastNameField?.required,
               disableOnPrefill: !!field.disableOnPrefill,
-            };
+            } satisfies SplitNameDefaultFieldOutput_2024_06_14;
           }
 
           return {
@@ -42,7 +61,7 @@ export function transformBookingFieldsInternalToApi(
             label: field.variantsConfig?.variants?.fullName?.fields[0]?.label,
             placeholder: field.variantsConfig?.variants?.fullName?.fields[0]?.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          };
+          } satisfies NameDefaultFieldOutput_2024_06_14;
         }
         case "email":
           return {
@@ -53,12 +72,59 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
-          } as DefaultFieldOutput_2024_06_14;
+          } satisfies EmailDefaultFieldOutput_2024_06_14;
         case "location":
+          return {
+            isDefault: true,
+            type: "radioInput",
+            slug: "location",
+            required: !!field.required,
+            hidden: !!field.hidden,
+          } satisfies LocationDefaultFieldOutput_2024_06_14;
         case "rescheduleReason":
+          return {
+            isDefault: true,
+            type: "textarea",
+            slug: "rescheduleReason",
+            required: !!field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies RescheduleReasonDefaultFieldOutput_2024_06_14;
         case "title":
+          return {
+            isDefault: true,
+            type: "text",
+            slug: "title",
+            required: !!field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies TitleDefaultFieldOutput_2024_06_14;
         case "notes":
+          return {
+            isDefault: true,
+            type: "textarea",
+            slug: "notes",
+            required: !!field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies NotesDefaultFieldOutput_2024_06_14;
         case "guests":
+          return {
+            isDefault: true,
+            type: "multiemail",
+            slug: "guests",
+            required: !!field.required,
+            label: field.label,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies GuestsDefaultFieldOutput_2024_06_14;
         case "attendeePhoneNumber":
           return {
             isDefault: true,
@@ -69,22 +135,28 @@ export function transformBookingFieldsInternalToApi(
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          } as DefaultFieldOutput_2024_06_14;
+          } satisfies PhoneDefaultFieldOutput_2024_06_14;
         default:
           return {
             type: "unknown",
             slug: "unknown",
             bookingField: JSON.stringify(field),
-          };
+          } satisfies OutputUnknownBookingField_2024_06_14;
       }
     } else {
       switch (field.type) {
         case "phone":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies PhoneFieldOutput_2024_06_14;
         case "address":
-        case "text":
-        case "number":
-        case "textarea":
-        case "multiemail":
           return {
             isDefault: false,
             type: field.type,
@@ -94,7 +166,51 @@ export function transformBookingFieldsInternalToApi(
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          } as CustomFieldOutput_2024_06_14;
+          } satisfies AddressFieldOutput_2024_06_14;
+        case "text":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies TextFieldOutput_2024_06_14;
+        case "number":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies NumberFieldOutput_2024_06_14;
+        case "textarea":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies TextAreaFieldOutput_2024_06_14;
+        case "multiemail":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label || "",
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            hidden: !!field.hidden,
+          } satisfies MultiEmailFieldOutput_2024_06_14;
         case "boolean":
           return {
             isDefault: false,
@@ -104,10 +220,41 @@ export function transformBookingFieldsInternalToApi(
             required: !!field.required,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          } as CustomFieldOutput_2024_06_14;
+          } satisfies BooleanFieldOutput_2024_06_14;
         case "select":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: !!field.required,
+            placeholder: field.placeholder,
+            disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
+            hidden: !!field.hidden,
+          } satisfies SelectFieldOutput_2024_06_14;
         case "multiselect":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: !!field.required,
+            disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
+            hidden: !!field.hidden,
+          } satisfies MultiSelectFieldOutput_2024_06_14;
         case "checkbox":
+          return {
+            isDefault: false,
+            type: field.type,
+            slug: field.name,
+            label: field.label,
+            required: !!field.required,
+            disableOnPrefill: !!field.disableOnPrefill,
+            options: field.options ? field.options.map((option) => option.value) : [],
+            hidden: !!field.hidden,
+          } satisfies CheckboxGroupFieldOutput_2024_06_14;
         case "radio":
           return {
             isDefault: false,
@@ -116,16 +263,15 @@ export function transformBookingFieldsInternalToApi(
             label: field.label,
             required: !!field.required,
             options: field.options ? field.options.map((option) => option.value) : [],
-            ...(field.type === "select" ? { placeholder: field.placeholder } : {}),
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
-          } as CustomFieldOutput_2024_06_14;
+          } satisfies RadioGroupFieldOutput_2024_06_14;
         default:
           return {
             type: "unknown",
             slug: "unknown",
             bookingField: JSON.stringify(field),
-          };
+          } satisfies OutputUnknownBookingField_2024_06_14;
       }
     }
   });

@@ -123,7 +123,6 @@ describe("Event types Endpoints", () => {
       slug: "location",
       required: false,
       hidden: false,
-      disableOnPrefill: false,
     };
 
     const defaultResponseBookingFieldTitle = {
@@ -1163,10 +1162,7 @@ describe("Event types Endpoints", () => {
         type: "radioInput",
         slug: "location",
         required: false,
-        disableOnPrefill: false,
         hidden: false,
-        label: "",
-        placeholder: "",
       },
       { isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
       {
@@ -1617,7 +1613,6 @@ describe("Event types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {

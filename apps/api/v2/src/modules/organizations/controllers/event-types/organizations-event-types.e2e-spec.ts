@@ -624,7 +624,6 @@ describe("Organizations Event Types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
@@ -787,7 +786,6 @@ describe("Organizations Event Types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
