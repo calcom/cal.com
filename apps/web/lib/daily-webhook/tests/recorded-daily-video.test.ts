@@ -15,7 +15,7 @@ import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vi
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/lib/videoClient";
+import { generateVideoToken } from "@calcom/lib/videoTokens";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -70,9 +70,9 @@ vi.mock("@calcom/app-store/dailyvideo/lib", () => {
   };
 });
 
-vi.mock("@calcom/lib/videoClient", () => {
+vi.mock("@calcom/lib/videoTokens", () => {
   return {
-    getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
+    generateVideoToken: vi.fn(),
   };
 });
 
@@ -192,7 +192,6 @@ describe("Handler: /api/recorded-daily-video", () => {
       const bookingUid = "n5Wv3eHgconAED2j4gcVhP";
       const iCalUID = `${bookingUid}@Cal.com`;
       const subscriberUrl = "http://my-webhook.example.com";
-      const recordingDownloadLink = "https://download-link.com";
 
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const booker = getBooker({
@@ -265,9 +264,7 @@ describe("Handler: /api/recorded-daily-video", () => {
 
       vi.mocked(getRoomNameFromRecordingId).mockResolvedValue("MOCK_ID");
       vi.mocked(getBatchProcessorJobAccessLink).mockResolvedValue(TRANSCRIPTION_ACCESS_LINK);
-      vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue({
-        download_link: recordingDownloadLink,
-      });
+      vi.mocked(generateVideoToken).mockResolvedValue("MOCK_TOKEN");
 
       const { req } = createMocks({
         method: "POST",
@@ -294,7 +291,7 @@ describe("Handler: /api/recorded-daily-video", () => {
           uid: bookingUid,
           downloadLinks: {
             transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
-            recording: recordingDownloadLink,
+            recording: `${WEBAPP_URL}/api/video/recording?token=MOCK_TOKEN`,
           },
           organizer: {
             email: organizer.email,
