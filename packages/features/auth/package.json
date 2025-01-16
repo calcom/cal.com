@@ -13,7 +13,7 @@
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
     "bcryptjs": "^2.4.3",
-    "dub": "^0.46.12",
+    "dub": "^0.46.15",
     "handlebars": "^4.7.7",
     "jose": "^4.13.1",
     "lru-cache": "^9.0.3",
