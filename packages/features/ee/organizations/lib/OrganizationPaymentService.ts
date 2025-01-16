@@ -33,22 +33,22 @@ type StripePrice = {
 };
 
 export class OrganizationPaymentService {
-  private billingService: StripeBillingService;
-  private user: NonNullable<TrpcSessionUser>;
+  protected billingService: StripeBillingService;
+  protected user: NonNullable<TrpcSessionUser>;
 
   constructor(user: NonNullable<TrpcSessionUser>) {
     this.billingService = new StripeBillingService();
     this.user = user;
   }
 
-  private hasPermissionToCreateForEmail(targetEmail: string) {
+  protected hasPermissionToCreateForEmail(targetEmail: string) {
     if (this.user.role === "ADMIN") {
       return true;
     }
     return this.user.email === targetEmail;
   }
 
-  private async hasPendingOrganizations(email: string) {
+  protected async hasPendingOrganizations(email: string) {
     if (this.user.role === "ADMIN") {
       return false;
     }
@@ -63,11 +63,11 @@ export class OrganizationPaymentService {
     return !!pendingOrganization;
   }
 
-  private hasPermissionToModifyDefaultPayment() {
+  protected hasPermissionToModifyDefaultPayment() {
     return this.user.role === "ADMIN";
   }
 
-  private hasModifiedDefaultPayment(input: Partial<PaymentConfig>) {
+  protected hasModifiedDefaultPayment(input: Partial<PaymentConfig>) {
     return (
       (input.billingPeriod !== undefined && input.billingPeriod !== "MONTHLY") ||
       (input.seats !== undefined && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
@@ -75,7 +75,7 @@ export class OrganizationPaymentService {
     );
   }
 
-  private async hasPermissionToMigrateTeams(teamIds: number[]) {
+  protected async hasPermissionToMigrateTeams(teamIds: number[]) {
     const teamMemberships = await prisma.membership.findMany({
       where: {
         userId: this.user.id,
@@ -92,7 +92,7 @@ export class OrganizationPaymentService {
     return teamMemberships.length === teamIds.length;
   }
 
-  private async getOrCreateStripeCustomerId(email: string) {
+  protected async getOrCreateStripeCustomerId(email: string) {
     const existingCustomer = await prisma.user.findUnique({
       where: { email },
       select: { metadata: true },
@@ -113,7 +113,7 @@ export class OrganizationPaymentService {
     return customer.stripeCustomerId;
   }
 
-  private normalizePaymentConfig(input: Partial<PaymentConfig>): PaymentConfig {
+  protected normalizePaymentConfig(input: Partial<PaymentConfig>): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
       seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
@@ -121,27 +121,62 @@ export class OrganizationPaymentService {
     };
   }
 
-  private async createOrganizationOnboarding(
+  protected async getUniqueTeamMembersCount(teamIds: number[]) {
+    if (!teamIds.length) return 0;
+
+    const memberships = await prisma.membership.findMany({
+      where: {
+        teamId: {
+          in: teamIds,
+        },
+      },
+      select: {
+        userId: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+      distinct: ["userId"],
+    });
+
+    return memberships.length;
+  }
+
+  protected async createOrganizationOnboarding(
     input: CreatePaymentIntentInput,
     config: PaymentConfig,
     stripeCustomerId: string
   ) {
+    const teamsToMigrate = input.teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
+    const teamIds = teamsToMigrate.filter((team) => team.id > 0).map((team) => team.id);
+
+    // Get unique members count from existing teams
+    const uniqueMembersCount = await this.getUniqueTeamMembersCount(teamIds);
+
+    // Create new config with updated seats if necessary
+    const updatedConfig = {
+      ...config,
+      seats: Math.max(config.seats, uniqueMembersCount),
+    };
+
     return prisma.organizationOnboarding.create({
       data: {
         name: input.name,
         slug: input.slug,
         orgOwnerEmail: input.orgOwnerEmail,
-        billingPeriod: config.billingPeriod,
-        seats: config.seats,
-        pricePerSeat: config.pricePerSeat,
+        billingPeriod: updatedConfig.billingPeriod,
+        seats: updatedConfig.seats,
+        pricePerSeat: updatedConfig.pricePerSeat,
         stripeCustomerId,
         invitedMembers: input.invitedMembers,
-        teams: input.teams?.filter((team) => team.id === -1 || team.isBeingMigrated),
+        teams: teamsToMigrate,
       },
     });
   }
 
-  private async getOrCreatePrice(
+  protected async getOrCreatePrice(
     config: PaymentConfig,
     organizationOnboardingId: number,
     shouldCreateCustomPrice: boolean
@@ -172,7 +207,7 @@ export class OrganizationPaymentService {
     };
   }
 
-  private async createSubscription(
+  protected async createSubscription(
     stripeCustomerId: string,
     priceId: string,
     config: PaymentConfig,
@@ -193,7 +228,7 @@ export class OrganizationPaymentService {
     });
   }
 
-  private async validatePermissions(input: CreatePaymentIntentInput) {
+  protected async validatePermissions(input: CreatePaymentIntentInput) {
     if (!this.hasPermissionToCreateForEmail(input.orgOwnerEmail)) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -232,6 +267,7 @@ export class OrganizationPaymentService {
 
   async createPaymentIntent(input: CreatePaymentIntentInput) {
     const shouldCreateCustomPrice = await this.validatePermissions(input);
+    // We know admin permissions have been validated in the above step so we can safely normalize the input
     const paymentConfig = this.normalizePaymentConfig(input);
 
     const stripeCustomerId = await this.getOrCreateStripeCustomerId(input.orgOwnerEmail);
