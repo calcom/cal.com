@@ -1677,6 +1677,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 
@@ -1817,6 +1818,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 
@@ -2682,6 +2684,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 
