@@ -2926,5 +2926,6 @@
   "managed_users": "Spravovaní uživatelé",
   "managed_users_description": "Zobrazit všechny spravované uživatele vytvořené vaším OAuth klientem",
   "select_oAuth_client": "Vybrat OAuth klienta",
+  "on_every_instance": "Na každé instanci",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

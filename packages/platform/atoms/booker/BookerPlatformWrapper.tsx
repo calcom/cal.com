@@ -212,9 +212,20 @@ export const BookerPlatformWrapper = (
   const { data: session } = useMe();
   const hasSession = !!session;
   const { name: defaultName, guests: defaultGuests, ...restFormValues } = props.defaultFormValues ?? {};
+
+  const prefillFormParamName = useMemo(() => {
+    if (defaultName) {
+      return defaultName;
+    }
+    if (restFormValues.firstName) {
+      return `${restFormValues.firstName} ${restFormValues.lastName}`;
+    }
+    return null;
+  }, [defaultName, restFormValues]);
+
   const prefillFormParams = useMemo(() => {
     return {
-      name: defaultName ?? null,
+      name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
   }, [defaultName, defaultGuests]);

@@ -2926,5 +2926,6 @@
   "managed_users": "Verwaltete Benutzer",
   "managed_users_description": "Sehen Sie alle verwalteten Benutzer, die von Ihrem OAuth-Client erstellt wurden",
   "select_oAuth_client": "OAuth-Client auswählen",
+  "on_every_instance": "Bei jeder Instanz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
