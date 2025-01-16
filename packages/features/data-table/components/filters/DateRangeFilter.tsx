@@ -15,7 +15,7 @@ import { ZDateRangeFilterValue } from "../../lib/types";
 type PresetOption = {
   labelKey: string;
   i18nOptions?: Record<string, string | number>;
-  value: string | null;
+  value: string;
 };
 
 type DateRangeFilterProps = {
@@ -23,24 +23,30 @@ type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: "date_range" }>;
 };
 
-const DEFAULT_PRESET_VALUE = "w" as const;
 const CUSTOM_PRESET_VALUE = "c" as const;
+
+const DEFAULT_PRESET: PresetOption = {
+  labelKey: "last_number_of_days",
+  i18nOptions: { count: 7 },
+  value: "w",
+};
+const CUSTOM_PRESET: PresetOption = { labelKey: "custom_range", value: CUSTOM_PRESET_VALUE };
 
 const PRESET_OPTIONS: PresetOption[] = [
   { labelKey: "today", value: "tdy" },
-  { labelKey: "last_number_of_days", i18nOptions: { count: 7 }, value: "w" },
+  DEFAULT_PRESET,
   { labelKey: "last_number_of_days", i18nOptions: { count: 30 }, value: "t" },
   { labelKey: "month_to_date", value: "m" },
   { labelKey: "year_to_date", value: "y" },
-  { labelKey: "custom_range", value: "c" },
+  CUSTOM_PRESET,
 ];
 
 const getDateRangeFromPreset = (val: string | null) => {
-  let startDate = dayjs();
-  let endDate = dayjs();
+  let startDate;
+  let endDate;
   const preset = PRESET_OPTIONS.find((o) => o.value === val);
   if (!preset) {
-    return { startDate, endDate, preset: undefined };
+    return { startDate: getDefaultStartDate(), endDate: getDefaultEndDate(), preset: CUSTOM_PRESET };
   }
 
   switch (val) {
@@ -65,29 +71,31 @@ const getDateRangeFromPreset = (val: string | null) => {
       endDate = dayjs().endOf("day");
       break;
     default:
+      startDate = getDefaultStartDate();
+      endDate = getDefaultEndDate();
       break;
   }
 
   return { startDate, endDate, preset };
 };
 
+const getDefaultStartDate = () => dayjs().subtract(1, "week").startOf("day");
+
+const getDefaultEndDate = () => dayjs().endOf("day");
+
 export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => {
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
-  const { updateFilter, removeFilter } = useDataTable();
+  const { updateFilter } = useDataTable();
 
   const { t } = useLocale();
   const currentDate = dayjs();
   const [startDate, setStartDate] = useState<Dayjs>(
-    filterValue?.data.startDate
-      ? dayjs(filterValue.data.startDate)
-      : dayjs().subtract(1, "week").startOf("day")
+    filterValue?.data.startDate ? dayjs(filterValue.data.startDate) : getDefaultStartDate()
   );
   const [endDate, setEndDate] = useState<Dayjs | undefined>(
-    filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : dayjs().endOf("day")
+    filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : getDefaultEndDate()
   );
-  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
-    PRESET_OPTIONS.find((o) => o.value === (filterValue?.data.preset || DEFAULT_PRESET_VALUE))
-  );
+  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(DEFAULT_PRESET);
 
   const updateValues = ({
     preset,
@@ -117,7 +125,7 @@ export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => 
   const updateDateRangeFromPreset = (val: string | null) => {
     if (val === CUSTOM_PRESET_VALUE) {
       updateValues({
-        preset: PRESET_OPTIONS.find((o) => o.value === CUSTOM_PRESET_VALUE),
+        preset: CUSTOM_PRESET,
         startDate,
         endDate,
       });
@@ -131,10 +139,16 @@ export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => 
     }
   };
 
-  const updateDateRangeFromPicker = ({ startDate, endDate }: { startDate: Date; endDate: Date }) => {
+  const updateDateRangeFromPicker = ({
+    startDate,
+    endDate,
+  }: {
+    startDate?: Date | undefined;
+    endDate?: Date | undefined;
+  }) => {
     updateValues({
-      preset: PRESET_OPTIONS.find((o) => o.value === CUSTOM_PRESET_VALUE),
-      startDate: dayjs(startDate),
+      preset: CUSTOM_PRESET,
+      startDate: startDate ? dayjs(startDate) : getDefaultStartDate(),
       endDate: endDate ? dayjs(endDate) : undefined,
     });
   };

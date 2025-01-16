@@ -142,5 +142,6 @@ export const lucideIconList = new Set([
   "zap",
   "waypoints",
   "chevrons-down-up",
-  "sliders-horizontal"
+  "sliders-horizontal",
+  "calendar-range",
 ]);

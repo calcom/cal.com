@@ -27,10 +27,10 @@ import {
   textFilter,
   dataTableFilter,
   useDataTable,
-  ZNumberFilterValue,
   ZDateRangeFilterValue,
   ZSingleSelectFilterValue,
   DateRangeFilter,
+  type FilterableColumn,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -280,14 +280,11 @@ export function RoutingFormResponsesTableContent() {
   const teamId = orgTeamsType === "team" ? selectedTeamId : undefined;
   const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
 
-  const memberUserId = useFilterValue("bookingUserId", ZNumberFilterValue)?.data.operand;
-  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data;
+  const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
+  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
-  const { startDate, endDate } = createdAtRange ?? {
-    startDate: dayjs().subtract(1, "week").startOf("day").toISOString(),
-    endDate: dayjs().endOf("day").toISOString(),
-  };
-  console.log("💡 startDate, endDate", { startDate, endDate });
+  const startDate = createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString();
+  const endDate = createdAtRange?.endDate ?? dayjs().endOf("day").toISOString();
 
   const {
     data: headers,

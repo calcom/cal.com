@@ -23,6 +23,7 @@ export type IconName =
   | "calendar-check-2"
   | "calendar-days"
   | "calendar-heart"
+  | "calendar-range"
   | "calendar-search"
   | "calendar-x-2"
   | "calendar"

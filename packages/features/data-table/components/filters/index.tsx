@@ -28,7 +28,7 @@ import { useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ClearFiltersButton } from "./ClearFiltersButton";
 import { DateRangeFilter } from "./DateRangeFilter";
-import { FilterOptions } from "./FilterOptions";
+import { FilterPopover } from "./FilterPopover";
 
 interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
@@ -195,9 +195,23 @@ function useFilterableColumns<TData>(table: Table<TData>) {
             type,
           };
           if (type === "multi_select" || type === "single_select") {
+            const values = column.getFacetedUniqueValues();
+            const options = Array.from(values.keys()).map((option) => {
+              if (typeof option === "string") {
+                return {
+                  label: option,
+                  value: option,
+                };
+              } else {
+                return {
+                  label: option.label as string,
+                  value: option.value as string | number,
+                };
+              }
+            });
             return {
               ...base,
-              options: column.getFacetedUniqueValues(),
+              options,
             };
           } else {
             return {
@@ -221,13 +235,6 @@ interface ActiveFiltersProps<TData> {
   table: Table<TData>;
 }
 
-const filterIcons = {
-  text: "file-text",
-  number: "binary",
-  multi_select: "layers",
-  single_select: "disc",
-} as const;
-
 function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
   const { activeFilters } = useDataTable();
   const filterableColumns = useFilterableColumns(table);
@@ -237,21 +244,7 @@ function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
       {activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
-        const icon = column.icon || filterIcons[column.type];
-        return (
-          <Popover key={column.id}>
-            <PopoverTrigger asChild>
-              <Button color="secondary">
-                <Icon name={icon} className="mr-2 h-4 w-4" />
-                {startCase(column.title)}
-                <Icon name="chevron-down" className="ml-2 h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-              <FilterOptions column={column} />
-            </PopoverContent>
-          </Popover>
-        );
+        return <FilterPopover key={column.id} column={column} />;
       })}
     </>
   );

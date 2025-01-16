@@ -95,12 +95,12 @@ export type FilterableColumn = {
   | {
       type: "single_select";
       icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
       type: "multi_select";
       icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
       type: "text";

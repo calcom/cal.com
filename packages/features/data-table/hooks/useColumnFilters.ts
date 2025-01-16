@@ -5,7 +5,7 @@ import { ZFilterValue } from "../lib/types";
 import { isMultiSelectFilterValue } from "../lib/utils";
 import { useDataTable } from "./useDataTable";
 
-export function useColumnFilters({ exclude }: { exclude?: string[] }): ColumnFilter[] {
+export function useColumnFilters({ exclude }: { exclude?: string[] } = {}): ColumnFilter[] {
   const { activeFilters } = useDataTable();
 
   // Stringify the exclude array for stable memoization
