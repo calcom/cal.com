@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Umožňuje rezervujúcim dohodnúť stretnutia kedykoľvek je hostiteľ k dispozícii. Použite túto možnosť na maximalizáciu počtu potenciálnych stretnutí a v prípadoch, keď rovnomerná distribúcia stretnutí medzi hostiteľmi nie je až taká dôležitá.",
   "rr_distribution_method_balanced_title": "Vyvažovanie záťaže",
   "rr_distribution_method_balanced_description": "Budeme sledovať počet rezervácií u každého hostiteľa a porovnávať ich s ostatnými. Hostiteľov, ktorí majú príliš veľa rezervácií, dočasne deaktivujeme, aby boli stretnutia distribuované rovnomerne.",
+  "edit_team_member_weights": "Upraviť váhy",
+  "weights_updated_successfully": "Váhy boli úspešne aktualizované",
   "require_confirmation_for_free_email": "Vyžadovať potvrdenie len pre poskytovateľov bezplatných e-mailov (napr. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Vylúčiť e-maily, ktoré obsahujú...",
   "require_emails_that_contain": "Vyžadovať e-maily, ktoré obsahujú ...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "Robíte testovaciu rezerváciu.",
   "icon_showcase": "Ukážka ikony",
   "icons_showcase": "Ukážka ikon",
+  "feature_currently_disabled": "Funkcia je momentálne deaktivovaná",
   "choose_an_option": "Vyberte možnosť",
   "enter_option_value": "Zadajte hodnotu možnosti",
   "remove_option": "Odstrániť možnosť",
   "managed_users": "Spravovaní používatelia",
   "managed_users_description": "Zobraziť všetkých spravovaných používateľov vytvorených vaším OAuth klientom",
   "select_oAuth_client": "Vyberte OAuth klienta",
+  "on_every_instance": "Pri každej inštancii",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

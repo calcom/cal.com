@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "يسمح للحاجزين بحجز الاجتماعات عندما يكون المضيف متاحاً. استخدم هذا الخيار لزيادة عدد الاجتماعات المحتملة التي يمكن حجزها عندما يكون التوزيع المتساوي للاجتماعات بين المضيفين أقل أهمية.",
   "rr_distribution_method_balanced_title": "توازن الأحمال",
   "rr_distribution_method_balanced_description": "سنراقب عدد الحجوزات التي تمت مع كل مضيف ونقارنها مع الآخرين، مع تعطيل بعض المضيفين الذين تجاوزوا الحد بكثير لضمان توزيع الحجوزات بشكل متساوٍ.",
+  "edit_team_member_weights": "تعديل الأوزان",
+  "weights_updated_successfully": "تم تحديث الأوزان بنجاح",
   "require_confirmation_for_free_email": "يتطلب التأكيد فقط لمزودي البريد الإلكتروني المجاني (مثل @gmail.com، @outlook.com)",
   "exclude_emails_that_contain": "استبعاد رسائل البريد الإلكتروني التي تحتوي على ...",
   "require_emails_that_contain": "يتطلب رسائل بريد إلكتروني تحتوي على ...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "أنت تقوم بحجز تجريبي.",
   "icon_showcase": "معرض الأيقونات",
   "icons_showcase": "معرض الأيقونات",
+  "feature_currently_disabled": "الميزة معطلة حالياً",
   "choose_an_option": "اختر خيارًا",
   "enter_option_value": "أدخل قيمة الخيار",
   "remove_option": "إزالة الخيار",
   "managed_users": "المستخدمون المُدارون",
   "managed_users_description": "عرض جميع المستخدمين المُدارين الذين تم إنشاؤهم بواسطة عميل OAuth الخاص بك",
   "select_oAuth_client": "اختر عميل OAuth",
+  "on_every_instance": "في كل مثيل",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

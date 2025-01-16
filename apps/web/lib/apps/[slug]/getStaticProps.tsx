@@ -1,5 +1,7 @@
 import fs from "fs";
 import matter from "gray-matter";
+import MarkdownIt from "markdown-it";
+import type { GetStaticPropsContext } from "next";
 import path from "path";
 import { z } from "zod";
 
@@ -7,6 +9,8 @@ import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import { getAppAssetFullPath } from "@calcom/app-store/getAppAssetFullPath";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 export const sourceSchema = z.object({
   content: z.string(),
@@ -25,15 +29,15 @@ export const sourceSchema = z.object({
   }),
 });
 
-export type AppDataProps = NonNullable<Awaited<ReturnType<typeof getStaticProps>>>;
+export const getStaticProps = async (ctx: GetStaticPropsContext) => {
+  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
 
-export const getStaticProps = async (slug: string) => {
   const appMeta = await getAppWithMetadata({
-    slug,
+    slug: ctx.params?.slug,
   });
 
   const appFromDb = await prisma.app.findUnique({
-    where: { slug: slug.toLowerCase() },
+    where: { slug: ctx.params.slug.toLowerCase() },
   });
 
   const isAppAvailableInFileSystem = appMeta;
@@ -41,14 +45,16 @@ export const getStaticProps = async (slug: string) => {
 
   if (!IS_PRODUCTION && isAppDisabled) {
     return {
-      isAppDisabled: true as const,
-      data: {
-        ...appMeta,
+      props: {
+        isAppDisabled: true as const,
+        data: {
+          ...appMeta,
+        },
       },
     };
   }
 
-  if (!appFromDb || !appMeta || isAppDisabled) return null;
+  if (!appFromDb || !appMeta || isAppDisabled) return { notFound: true } as const;
 
   const isTemplate = appMeta.isTemplate;
   const appDirname = path.join(isTemplate ? "templates" : "", appFromDb.dirName);
@@ -79,8 +85,10 @@ export const getStaticProps = async (slug: string) => {
     });
   }
   return {
-    isAppDisabled: false as const,
-    source: { content, data },
-    data: appMeta,
+    props: {
+      isAppDisabled: false as const,
+      source: { content, data },
+      data: appMeta,
+    },
   };
 };
