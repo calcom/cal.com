@@ -8,7 +8,8 @@ import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { TRPCError } from "@trpc/server";
+import type { IOrganizationPermissionService } from "./OrganizationPermissionService";
+import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
 type CreatePaymentIntentInput = {
   name: string;
@@ -34,62 +35,13 @@ type StripePrice = {
 
 export class OrganizationPaymentService {
   protected billingService: StripeBillingService;
+  protected permissionService: IOrganizationPermissionService;
   protected user: NonNullable<TrpcSessionUser>;
 
-  constructor(user: NonNullable<TrpcSessionUser>) {
+  constructor(user: NonNullable<TrpcSessionUser>, permissionService?: IOrganizationPermissionService) {
     this.billingService = new StripeBillingService();
+    this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
-  }
-
-  protected hasPermissionToCreateForEmail(targetEmail: string) {
-    if (this.user.role === "ADMIN") {
-      return true;
-    }
-    return this.user.email === targetEmail;
-  }
-
-  protected async hasPendingOrganizations(email: string) {
-    if (this.user.role === "ADMIN") {
-      return false;
-    }
-
-    const pendingOrganization = await prisma.organizationOnboarding.findFirst({
-      where: {
-        orgOwnerEmail: email,
-        isComplete: false,
-      },
-    });
-
-    return !!pendingOrganization;
-  }
-
-  protected hasPermissionToModifyDefaultPayment() {
-    return this.user.role === "ADMIN";
-  }
-
-  protected hasModifiedDefaultPayment(input: Partial<PaymentConfig>) {
-    return (
-      (input.billingPeriod !== undefined && input.billingPeriod !== "MONTHLY") ||
-      (input.seats !== undefined && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
-      (input.pricePerSeat !== undefined && input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE)
-    );
-  }
-
-  protected async hasPermissionToMigrateTeams(teamIds: number[]) {
-    const teamMemberships = await prisma.membership.findMany({
-      where: {
-        userId: this.user.id,
-        team: {
-          id: {
-            in: teamIds,
-          },
-        },
-        role: {
-          in: ["OWNER", "ADMIN"],
-        },
-      },
-    });
-    return teamMemberships.length === teamIds.length;
   }
 
   protected async getOrCreateStripeCustomerId(email: string) {
@@ -228,45 +180,29 @@ export class OrganizationPaymentService {
     });
   }
 
-  protected async validatePermissions(input: CreatePaymentIntentInput) {
-    if (!this.hasPermissionToCreateForEmail(input.orgOwnerEmail)) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
-    }
-
-    if (await this.hasPendingOrganizations(input.orgOwnerEmail)) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You have an existing pending organization. Please complete it before creating a new one.",
-      });
-    }
-
-    const shouldCreateCustomPrice =
-      this.hasPermissionToModifyDefaultPayment() && this.hasModifiedDefaultPayment(input);
-
-    if (!this.hasPermissionToModifyDefaultPayment() && this.hasModifiedDefaultPayment(input)) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
-      });
-    }
-
-    if (
-      input.teams &&
-      !(await this.hasPermissionToMigrateTeams(
-        input.teams.filter((team) => team.id > 0 && team.isBeingMigrated).map((team) => team.id) // Migrate out new teams and ones not being migrated
-      ))
-    ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to migrate these teams",
-      });
-    }
-
-    return shouldCreateCustomPrice;
+  protected async validatePermissions(input: CreatePaymentIntentInput): Promise<boolean> {
+    return this.permissionService.validatePermissions({
+      orgOwnerEmail: input.orgOwnerEmail,
+      teams: input.teams,
+      billingPeriod: input.billingPeriod,
+      seats: input.seats,
+      pricePerSeat: input.pricePerSeat,
+    });
   }
 
   async createPaymentIntent(input: CreatePaymentIntentInput) {
-    const shouldCreateCustomPrice = await this.validatePermissions(input);
+    await this.permissionService.validatePermissions({
+      orgOwnerEmail: input.orgOwnerEmail,
+      teams: input.teams,
+      billingPeriod: input.billingPeriod,
+      seats: input.seats,
+      pricePerSeat: input.pricePerSeat,
+    });
+
+    const shouldCreateCustomPrice =
+      this.permissionService.hasPermissionToModifyDefaultPayment() &&
+      this.permissionService.hasModifiedDefaultPayment(input);
+
     // We know admin permissions have been validated in the above step so we can safely normalize the input
     const paymentConfig = this.normalizePaymentConfig(input);
 
