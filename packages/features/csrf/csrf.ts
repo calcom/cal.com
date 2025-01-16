@@ -22,6 +22,7 @@ export class RealCSRF implements ICSRF {
   secretCookieName = "csrfSecret";
   tokenCookieName = "XSRF-TOKEN";
   constructor() {
+    // This will never be null since we would be using MockCSRF otherwise
     this.secret = process.env.CSRF_SECRET!;
     this.cookieOptions = {
       httpOnly: true,
@@ -42,7 +43,6 @@ export class RealCSRF implements ICSRF {
     return `${salt}-${this.hash(`${salt}-${secret}`)}`;
   }
   private verifyToken(secret: string, token: string) {
-    if (!secret || typeof secret !== "string" || !token || typeof token !== "string") return false;
     const index = token.indexOf("-");
     if (index === -1) return false;
     const salt = token.substr(0, index);
@@ -50,27 +50,22 @@ export class RealCSRF implements ICSRF {
     return compare(token, expected);
   }
   private createToken(secret: string) {
-    if (!secret || typeof secret !== "string") {
-      throw new TypeError("argument secret is required");
-    }
     const salt = randomBytes(32).toString("hex");
-
     return this.tokenize(secret, salt);
   }
-  private getCookie(req: IncomingMessage, name: string): string {
+  private getSecret(req: IncomingMessage): string {
     if (req.headers.cookie) {
       const parsedCookie = parse(req.headers.cookie);
-      return parsedCookie[name] || "";
+      const secret = parsedCookie[this.secretCookieName.toLowerCase()];
+      if (secret) return secret;
     }
-    return "";
-  }
-  private getSecret(req: IncomingMessage): string {
-    return this.getCookie(req, this.secretCookieName.toLowerCase());
+    // If no cookie is present, generate a new one
+    return uid.sync(18);
   }
   setup(req: IncomingMessage, res: ServerResponse) {
-    const csrfSecret = this.getSecret(req) || uid.sync(18);
+    const csrfSecret = this.getSecret(req);
     const unsignedToken = this.createToken(csrfSecret);
-    const token = this.secret !== null ? sign(unsignedToken, this.secret) : unsignedToken;
+    const token = sign(unsignedToken, this.secret);
 
     res.setHeader("Set-Cookie", [
       serialize(this.secretCookieName, csrfSecret, this.cookieOptions),
@@ -89,25 +84,20 @@ export class RealCSRF implements ICSRF {
     // Check token is in the cookie
     if (!token || !csrfSecret) throw new InvalidCSRFError();
 
-    // If user provided a secret, then the cookie is signed.
-    // Unsign and verify aka Synchronizer token pattern.
     // https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern
-    if (this.secret !== null) {
-      // unsign cookie
-      const unsignedToken = unsign(token, this.secret);
+    // unsign cookie
+    const unsignedToken = unsign(token, this.secret);
 
-      // validate signature
-      if (!unsignedToken) throw new InvalidCSRFError();
+    // validate signature
+    if (!unsignedToken) throw new InvalidCSRFError();
 
-      token = unsignedToken;
-    }
+    token = unsignedToken;
 
     // verify CSRF token
     if (!this.verifyToken(csrfSecret, token)) throw new InvalidCSRFError();
 
     // If token is verified, generate a new one and save it in the cookie
-    const newToken =
-      this.secret !== null ? sign(this.createToken(csrfSecret), this.secret) : this.createToken(csrfSecret);
+    const newToken = sign(this.createToken(csrfSecret), this.secret);
     res.setHeader("Set-Cookie", serialize(this.tokenCookieName, newToken, this.cookieOptions));
   }
 }
