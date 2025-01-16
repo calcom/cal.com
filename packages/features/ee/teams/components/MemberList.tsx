@@ -659,7 +659,7 @@ function MemberListContent(props: Props) {
   return (
     <>
       <DataTable
-        data-testid="team-member-list-container"
+        testId="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}

@@ -8,6 +8,7 @@ import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import useHasPaidPlan from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -84,6 +85,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useUtils();
 
+  const { hasPaidPlan } = useHasPaidPlan();
+
   const { step, form, reload, setReload, teamId } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId },
@@ -129,7 +132,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action);
+  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasPaidPlan);
 
   if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
@@ -370,7 +373,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       needsTeamsUpgrade: false,
     };
 
-    const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
+    const selectedTemplate = {
+      label: t(`${step.template.toLowerCase()}`),
+      value: step.template,
+      needsTeamsUpgrade: false,
+    };
 
     const canRequirePhoneNumber = (workflowStep: string) => {
       return (
@@ -879,6 +886,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         defaultValue={selectedTemplate}
                         value={selectedTemplate}
                         options={templateOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: any;
+                          needsTeamsUpgrade: boolean;
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
@@ -906,7 +918,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         refEmailSubject.current = e;
                       }}
                       rows={1}
-                      disabled={props.readOnly}
+                      disabled={props.readOnly || !hasPaidPlan}
                       className="my-0 focus:ring-transparent"
                       required
                       {...restEmailSubjectForm}
@@ -939,7 +951,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   updateTemplate={updateTemplate}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
-                  editable={!props.readOnly && !isWhatsappAction(step.action)}
+                  editable={!props.readOnly && !isWhatsappAction(step.action) && hasPaidPlan}
                   excludedToolbarItems={
                     !isSMSAction(step.action) ? [] : ["blockType", "bold", "italic", "link"]
                   }
