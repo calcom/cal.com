@@ -935,7 +935,6 @@ export default class SalesforceCRMService implements CRM {
       organizerEmail,
       calEventResponses,
     });
-
     // Update the person record
     await conn
       .sobject(personRecordType)
@@ -1023,7 +1022,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
   }: {
     fieldValue: string;
-    fieldLength: number;
+    fieldLength?: number;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
   }) {
@@ -1031,7 +1030,6 @@ export default class SalesforceCRMService implements CRM {
     if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
 
     let valueToWrite = fieldValue;
-
     if (fieldValue.startsWith("{form:")) {
       // Get routing from response
       if (!bookingUid) return;
@@ -1046,7 +1044,7 @@ export default class SalesforceCRMService implements CRM {
     if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
-    return valueToWrite.substring(0, fieldLength);
+    return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
   private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
@@ -1071,7 +1069,6 @@ export default class SalesforceCRMService implements CRM {
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
       const field = response[fieldId];
-
       if (field?.identifier === identifierField) {
         return field.value.toString();
       }
