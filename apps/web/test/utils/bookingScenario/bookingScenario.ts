@@ -885,7 +885,12 @@ export async function createOrganization(orgData: {
     });
   }
   assertNonNullableSlug(org);
-  return await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
+  const team = await prismock.team.findUnique({ where: { id: org.id }, include: { children: true } });
+  if (!team) {
+    throw new Error(`Team with id ${org.id} not found`);
+  }
+  assertNonNullableSlug(team);
+  return team;
 }
 
 export async function createCredentials(
@@ -1563,9 +1568,10 @@ export function mockCalendar(
                 type: app.type,
                 additionalInfo: {},
                 uid: "PROBABLY_UNUSED_UID",
-                hangoutLink: isGoogleMeetLocation
-                  ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
-                  : undefined,
+                hangoutLink:
+                  (isGoogleMeetLocation
+                    ? normalizedCalendarData.create?.appSpecificData?.googleCalendar?.hangoutLink
+                    : null) || "https://UNUSED_URL",
                 // A Calendar is always expected to return an id.
                 id: normalizedCalendarData.create?.id || "FALLBACK_MOCK_CALENDAR_EVENT_ID",
                 iCalUID: normalizedCalendarData.create?.iCalUID,
@@ -1604,9 +1610,10 @@ export function mockCalendar(
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
                 location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
-                hangoutLink: isGoogleMeetLocation
-                  ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
-                  : undefined,
+                hangoutLink:
+                  (isGoogleMeetLocation
+                    ? normalizedCalendarData.update?.appSpecificData?.googleCalendar?.hangoutLink
+                    : null) || "https://UNUSED_URL",
                 conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },

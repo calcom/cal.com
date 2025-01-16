@@ -1361,3 +1361,7 @@ export async function expectBookingToNotHaveReference(
 export function expectNoAttemptToCreateCalendarEvent(calendarMock: CalendarServiceMethodMock) {
   expect(calendarMock.createEventCalls.length).toBe(0);
 }
+
+export function expectNoAttemptToGetAvailability(calendarMock: CalendarServiceMethodMock) {
+  expect(calendarMock.getAvailabilityCalls.length).toBe(0);
+}
