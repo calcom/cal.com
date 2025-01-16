@@ -81,6 +81,14 @@ export default function CancelBooking(props: Props) {
             className="mb-4 mt-2 w-full "
             rows={3}
           />
+          {props.isHost ? (
+            <div className="-mt-2 mb-4 flex items-center gap-2">
+              <Icon name="info" className="text-subtle h-4 w-4" />
+              <p className="text-default text-subtle text-sm leading-none">
+                {t("notify_attendee_cancellation_reason_warning")}
+              </p>
+            </div>
+          ) : null}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
             <div className="ml-auto flex w-full space-x-4 ">
               <Button
