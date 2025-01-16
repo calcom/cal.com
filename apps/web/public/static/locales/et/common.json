@@ -2926,5 +2926,6 @@
   "managed_users": "Hallatavad kasutajad",
   "managed_users_description": "Vaata kõiki hallatavaid kasutajaid, mis on loodud sinu OAuth kliendi poolt",
   "select_oAuth_client": "Vali OAuth klient",
+  "on_every_instance": "Igal korral",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

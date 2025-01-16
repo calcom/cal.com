@@ -2926,5 +2926,6 @@
   "managed_users": "អ្នកប្រើប្រាស់ដែលគ្រប់គ្រង",
   "managed_users_description": "មើលអ្នកប្រើប្រាស់ដែលគ្រប់គ្រងទាំងអស់ដែលបានបង្កើតដោយ OAuth client របស់អ្នក",
   "select_oAuth_client": "ជ្រើសរើស OAuth Client",
+  "on_every_instance": "នៅលើគ្រប់ករណី",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
