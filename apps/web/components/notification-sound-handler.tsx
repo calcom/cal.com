@@ -14,14 +14,12 @@ export function NotificationSoundHandler() {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
 
-      // Resume context if suspended
       if (audioContextRef.current.state === "suspended") {
         await audioContextRef.current.resume();
       }
 
       if (!audioBufferRef.current) {
-        console.log("Loading audio file...");
-        const response = await fetch("/sample-12s.mp3");
+        const response = await fetch("/ring.mp3");
         const arrayBuffer = await response.arrayBuffer();
         audioBufferRef.current = await audioContextRef.current.decodeAudioData(arrayBuffer);
         console.log("Audio file loaded and decoded");
@@ -86,7 +84,6 @@ export function NotificationSoundHandler() {
       sourceRef.current.stop();
       sourceRef.current.disconnect();
       sourceRef.current = null;
-      console.log("Sound stopped");
     }
   };
 
