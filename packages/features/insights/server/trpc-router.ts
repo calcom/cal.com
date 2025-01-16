@@ -989,7 +989,7 @@ export const insightsRouter = router({
 
     return result;
   }),
-  userList: authedProcedure
+  userList: userBelongsToTeamProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullable(),
@@ -1004,7 +1004,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      if (isAll && user.organizationId && user.organization.isOrgAdmin) {
+      if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: {
             team: {

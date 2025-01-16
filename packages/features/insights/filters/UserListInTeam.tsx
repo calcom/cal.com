@@ -25,7 +25,7 @@ export const UserListInTeam = ({
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
 
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
-    teamId: selectedTeamId ?? null,
+    teamId: selectedTeamId ?? -1,
     isAll: !!isAll,
   });
 
