@@ -1,7 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import z from "zod";
 
-import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
@@ -110,36 +109,9 @@ export class DomainWideDelegationRepository {
     return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
-  static async findUniqueByOrganizationMemberEmail({ email }: { email: string }) {
-    const log = repositoryLogger.getSubLogger({ prefix: ["findUniqueByOrganizationMemberEmail"] });
-    log.debug("called with", { email });
-    const organization = await OrganizationRepository.findByMemberEmail({ email });
-    if (!organization) {
-      log.debug("Email not found in any organization:", email);
-      return null;
-    }
-
-    const emailDomain = email.split("@")[1];
-    const domainWideDelegation = await prisma.domainWideDelegation.findUnique({
-      where: {
-        organizationId_domain: {
-          organizationId: organization.id,
-          domain: emailDomain,
-        },
-      },
-      select: domainWideDelegationSafeSelect,
-    });
-
-    return domainWideDelegation;
-  }
-
-  static async findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey({
-    email,
-  }: {
-    email: string;
-  }) {
+  static async findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({ email }: { email: string }) {
     const log = repositoryLogger.getSubLogger({
-      prefix: ["findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey"],
+      prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
     log.debug("called with", { email });
     const organization = await OrganizationRepository.findByMemberEmail({ email });
@@ -162,31 +134,9 @@ export class DomainWideDelegationRepository {
     return DomainWideDelegationRepository.withParsedServiceAccountKey(domainWideDelegation);
   }
 
-  static async findByUser({ user }: { user: { email: string } }) {
-    return await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmail({ email: user.email });
-  }
-
-  static async findByUserIncludeSensitiveServiceAccountKey({ user }: { user: { email: string } }) {
-    return await DomainWideDelegationRepository.findUniqueByOrganizationMemberEmailIncludeSensitiveServiceAccountKey(
-      { email: user.email }
-    );
-  }
-
   static async findAllByDomain({ domain }: { domain: string }) {
     return await prisma.domainWideDelegation.findMany({
       where: { domain },
-      select: domainWideDelegationSafeSelect,
-    });
-  }
-
-  static async findFirstByOrganizationId({ organizationId }: { organizationId: number }) {
-    const domainWideDelegationEnabled = await getFeatureFlag(prisma, "domain-wide-delegation");
-    if (!domainWideDelegationEnabled) {
-      return null;
-    }
-
-    return await prisma.domainWideDelegation.findFirst({
-      where: { organizationId },
       select: domainWideDelegationSafeSelect,
     });
   }
@@ -233,7 +183,7 @@ export class DomainWideDelegationRepository {
     });
   }
 
-  static async findDelegationsWithServiceAccount({ organizationId }: { organizationId: number }) {
+  static async findByOrgIdIncludeSensitiveServiceAccountKey({ organizationId }: { organizationId: number }) {
     return await prisma.domainWideDelegation.findMany({
       where: { organizationId },
       select: {
@@ -247,22 +197,5 @@ export class DomainWideDelegationRepository {
         },
       },
     });
-  }
-
-  static async findByIdsIncludeSensitiveServiceAccountKey(ids: string[]) {
-    if (ids.length === 0) return [];
-    const domainWideDelegations = await prisma.domainWideDelegation.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-        enabled: true,
-      },
-      select: domainWideDelegationSelectIncludesServiceAccountKey,
-    });
-
-    return domainWideDelegations
-      .map((dwd) => DomainWideDelegationRepository.withParsedServiceAccountKey(dwd))
-      .filter((dwd): dwd is NonNullable<typeof dwd> => dwd !== null);
   }
 }

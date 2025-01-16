@@ -47,6 +47,9 @@
     - [ ] User Selected Calendar caching test
 
 ### Important
+  - **Performance**
+    - There could be 100s of users in an organization with already connected calendars. Enabling DWD adds a duplicate credential(in-memory) for each of them.
+      - Because a credential isn't aware of which externalIds it has access to(without connecting with Google Calendar API itself), we can't identify which credential is for which SelectedCalendar and thus we can't de-duplicate them. This has an impact on fetching the availability and thus for a team event with x participants, we could have 2x requests to Google Calendar API. Because for big value of x, user might be using routing already with team members and thus the actual value of x might be much lower. So, we could be fine. Also, we would have Calendar Cache enabled there already to reduce the requests.
   - Bugs
     - [x] For RR event, if I am able to see the slots for a blocked day in calendar(by temporarily unselecting the calendar), and then we enable the calendar back, the blocked day can be booked.
     - [x] Not using Goole Meet with Default conferencing app.
@@ -88,8 +91,9 @@
   - [x] We should allow setting default conferencing app during onboarding
 
 ### Follow-up release
-  - [ ] Confirmation for DwD deletion - Deletion isn't there at the moment.
   - [ ] Confirmation for DwD toggling off
+  - [ ] Confirmation for DwD deletion - Deletion isn't there at the moment.
+  - [ ] Profile pic from Google with DWD might not be working - Fix it.
 
 ### Security
   - [x] We don't let any one user see the added service account key from UI.

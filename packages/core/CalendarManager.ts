@@ -45,7 +45,7 @@ export const getCalendarCredentialsWithoutDwd = (credentials: CredentialPayload[
 };
 
 export const getConnectedCalendars = async (
-  calendarCredentials: Awaited<ReturnType<typeof getCalendarCredentials>>,
+  calendarCredentials: ReturnType<typeof getCalendarCredentials>,
   selectedCalendars: { externalId: string }[],
   destinationCalendarExternalId?: string
 ) => {

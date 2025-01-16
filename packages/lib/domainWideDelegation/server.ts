@@ -114,11 +114,10 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
-  const dwd = await DomainWideDelegationRepository.findByUserIncludeSensitiveServiceAccountKey({
-    user: {
+  const dwd =
+    await DomainWideDelegationRepository.findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey({
       email: user.email,
-    },
-  });
+    });
 
   if (!dwd || !dwd.enabled) {
     return [];
@@ -242,12 +241,12 @@ export const buildAllCredentials = ({
   dwdCredentials,
   existingCredentials,
 }: {
-  dwdCredentials: CredentialForCalendarService[] | null;
+  dwdCredentials: CredentialForCalendarService[];
   existingCredentials: CredentialPayload[];
 }) => {
   const nonDwdCredentials = existingCredentials.filter((cred) => !isDwdCredential({ credentialId: cred.id }));
   const allCredentials: CredentialForCalendarService[] = [
-    ...(dwdCredentials ?? []),
+    ...dwdCredentials,
     ...buildNonDwdCredentials(nonDwdCredentials),
   ];
 
@@ -386,8 +385,10 @@ export function getDwdOrRegularCredential<TCredential extends { delegatedToId?: 
       // Ensure that we don't match null to null
       if (cred.delegatedToId) {
         return cred.delegatedToId === id.dwdId;
+      } else if (id.credentialId) {
+        return cred.id === id.credentialId;
       }
-      return cred.id === id.credentialId;
+      return false;
     }) || null
   );
 }

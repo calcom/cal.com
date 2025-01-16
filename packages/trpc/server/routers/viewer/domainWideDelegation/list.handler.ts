@@ -16,9 +16,10 @@ export default async function handler({
   if (!organizationId) {
     throw new Error("You must be in an organization to list domain wide delegations");
   }
-  const domainWideDelegations = await DomainWideDelegationRepository.findDelegationsWithServiceAccount({
-    organizationId,
-  });
+  const domainWideDelegations =
+    await DomainWideDelegationRepository.findByOrgIdIncludeSensitiveServiceAccountKey({
+      organizationId,
+    });
 
   return domainWideDelegations.map((delegation) => {
     // Let's not parse the service account key here, we should be able to fix the item with the problem, so we always try to return the complete list
