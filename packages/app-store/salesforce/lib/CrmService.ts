@@ -915,14 +915,11 @@ export default class SalesforceCRMService implements CRM {
   ) {
     const conn = await this.conn;
     const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
-
     // Determine record type (Contact or Lead)
     const personRecordType = this.determinePersonRecordType(createEventOn);
-
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
-
     const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
     if (!personRecord) {
       this.log.warn(`No personRecord found for contactId ${contactId}`);
@@ -976,6 +973,19 @@ export default class SalesforceCRMService implements CRM {
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
         continue;
+      }
+
+      if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
+        const extractedValue = await this.getTextFieldValue({
+          fieldValue: fieldConfig.value,
+          fieldLength: field.length,
+          calEventResponses,
+          bookingUid,
+        });
+        if (extractedValue) {
+          writeOnRecordBody[field.name] = extractedValue;
+          continue;
+        }
       }
 
       // Handle different field types
