@@ -27,7 +27,7 @@ export class OrganizationPermissionService implements IOrganizationPermissionSer
     const pendingOrg = await prisma.organizationOnboarding.findFirst({
       where: {
         orgOwnerEmail: email,
-        status: "PENDING",
+        isComplete: false,
       },
     });
     return !!pendingOrg;
