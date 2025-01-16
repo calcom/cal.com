@@ -291,7 +291,7 @@ const Route = ({
           if (rule.type === "rule" && rule?.properties?.field === attributeIdForWeights) {
             if (
               rule.properties.value.flat().length == 1 &&
-              rule.properties.value.flat().some((value) => value && value.includes("field:"))
+              rule.properties.value.flat().some((value: string) => value && value.includes("field:"))
             ) {
               return true;
             }
