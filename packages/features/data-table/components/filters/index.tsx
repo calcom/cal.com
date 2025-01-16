@@ -27,6 +27,7 @@ import {
 import { useDataTable } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ClearFiltersButton } from "./ClearFiltersButton";
+import { DateRangeFilter } from "./DateRangeFilter";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -263,3 +264,5 @@ export const DataTableFilters = {
   ActiveFilters,
   ClearFiltersButton,
 };
+
+export { DateRangeFilter };

@@ -17,7 +17,7 @@ type ActiveFilter = z.infer<typeof ZActiveFilter>;
 export type DataTableContextType = {
   activeFilters: ActiveFilter[];
   setActiveFilters: (filters: ActiveFilter[]) => void;
-  clearAll: () => void;
+  clearAll: (exclude?: string[]) => void;
   updateFilter: (columnId: string, value: FilterValue) => void;
   removeFilter: (columnId: string) => void;
 
@@ -37,14 +37,28 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
     parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
   );
 
-  const clearAll = useCallback(() => {
-    setActiveFilters([]);
-  }, [setActiveFilters]);
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
+    },
+    [setActiveFilters]
+  );
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
       setActiveFilters((prev) => {
-        return prev.map((item) => (item.f === columnId ? { ...item, v: value } : item));
+        let added = false;
+        const newFilters = prev.map((item) => {
+          if (item.f === columnId) {
+            added = true;
+            return { ...item, v: value };
+          }
+          return item;
+        });
+        if (!added) {
+          newFilters.push({ f: columnId, v: value });
+        }
+        return newFilters;
       });
     },
     [setActiveFilters]

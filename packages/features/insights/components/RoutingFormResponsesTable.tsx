@@ -22,10 +22,15 @@ import {
   DataTableProvider,
   DataTableSkeleton,
   useColumnFilters,
+  useFilterValue,
   multiSelectFilter,
   textFilter,
   dataTableFilter,
   useDataTable,
+  ZNumberFilterValue,
+  ZDateRangeFilterValue,
+  ZSingleSelectFilterValue,
+  DateRangeFilter,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -44,8 +49,6 @@ import {
   HoverCardPortal,
 } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
-import { DateSelect } from "../filters/DateSelect";
 import { RoutingFormResponsesDownload } from "../filters/Download";
 import type { OrgTeamsType } from "../filters/OrgTeamsFilter";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
@@ -257,36 +260,34 @@ export function RoutingFormResponsesTable() {
   );
 }
 
+const createdAtColumn: Extract<FilterableColumn, { type: "date_range" }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: "date_range",
+};
+
 export function RoutingFormResponsesTableContent() {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
   const { copyToClipboard } = useCopy();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
   const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(currentOrgId ? "org" : "yours");
   const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>();
 
-  const [startDate, endDate] = filter.dateRange;
-
-  const wholeColumnFilters = useColumnFilters();
+  const columnFilters = useColumnFilters({ exclude: ["bookingUserId", "formId", "createdAt"] });
 
   const isAll = orgTeamsType === "org";
   const teamId = orgTeamsType === "team" ? selectedTeamId : undefined;
   const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
 
-  const memberUserId = useMemo(
-    () =>
-      wholeColumnFilters.find((filter) => filter.id === "bookingUserId")?.value.data as number | undefined,
-    [wholeColumnFilters]
-  );
-  const routingFormId = useMemo(
-    () => wholeColumnFilters.find((filter) => filter.id === "formId")?.value.data as string | undefined,
-    [wholeColumnFilters]
-  );
-  const columnFilters = useMemo(
-    () => wholeColumnFilters.filter((filter) => filter.id !== "formId" && filter.id !== "bookingUserId"),
-    [wholeColumnFilters]
-  );
+  const memberUserId = useFilterValue("bookingUserId", ZNumberFilterValue)?.data.operand;
+  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data;
+  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
+  const { startDate, endDate } = createdAtRange ?? {
+    startDate: dayjs().subtract(1, "week").startOf("day").toISOString(),
+    endDate: dayjs().endOf("day").toISOString(),
+  };
+  console.log("💡 startDate, endDate", { startDate, endDate });
 
   const {
     data: headers,
@@ -316,8 +317,8 @@ export function RoutingFormResponsesTableContent() {
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate,
+        endDate,
         userId,
         memberUserId,
         isAll,
@@ -610,12 +611,12 @@ export function RoutingFormResponsesTableContent() {
             />
             <DataTableFilters.AddFilterButton table={table} />
             <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.ClearFiltersButton />
+            <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
           </>
         }
         ToolbarRight={
           <>
-            <DateSelect />
+            <DateRangeFilter column={createdAtColumn} />
             <RoutingFormResponsesDownload
               startDate={startDate}
               endDate={endDate}

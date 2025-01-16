@@ -60,16 +60,28 @@ export const ZNumberFilterValue = z.object({
 
 export type NumberFilterValue = z.infer<typeof ZNumberFilterValue>;
 
+export const ZDateRangeFilterValue = z.object({
+  type: z.literal("date_range"),
+  data: z.object({
+    startDate: z.string().nullable(),
+    endDate: z.string().nullable(),
+    preset: z.string(),
+  }),
+});
+
+export type DateRangeFilterValue = z.infer<typeof ZDateRangeFilterValue>;
+
 export const ZFilterValue = z.union([
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
   ZTextFilterValue,
   ZNumberFilterValue,
+  ZDateRangeFilterValue,
 ]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
 
-export type ColumnFilterType = "single_select" | "multi_select" | "text" | "number";
+export type ColumnFilterType = "single_select" | "multi_select" | "text" | "number" | "date_range";
 
 export type ColumnFilterMeta = {
   type?: ColumnFilterType;
@@ -98,6 +110,10 @@ export type FilterableColumn = {
       type: "number";
       icon?: IconName;
     }
+  | {
+      type: "date_range";
+      icon?: IconName;
+    }
 );
 
 export const ZColumnFilter = z.object({
@@ -117,13 +133,9 @@ export type TypedColumnFilter<T extends ColumnFilterType> = {
     ? SingleSelectFilterValue
     : T extends "multi_select"
     ? MultiSelectFilterValue
+    : T extends "date_range"
+    ? DateRangeFilterValue
     : never;
-};
-
-export type ExternalFilter = {
-  key: string;
-  titleKey: string;
-  component: () => React.ReactNode;
 };
 
 export const ZSorting = z.object({
