@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Sallii varaajien tehdä varauksia aina kun isäntä on saatavilla. Käytä tätä maksimoidaksesi mahdollisten varausten määrän ja kun tapaamisten tasainen jakautuminen isäntien kesken ei ole niin tärkeää.",
   "rr_distribution_method_balanced_title": "Kuormituksen tasaus",
   "rr_distribution_method_balanced_description": "Seuraamme kunkin isännän varausmääriä ja vertaamme niitä muihin. Poistamme käytöstä isäntiä, joilla on liikaa varauksia, jotta varaukset jakautuvat tasaisesti.",
+  "edit_team_member_weights": "Muokkaa painotuksia",
+  "weights_updated_successfully": "Painotukset päivitetty onnistuneesti",
   "require_confirmation_for_free_email": "Vaadi vahvistus vain ilmaisten sähköpostipalvelujen käyttäjiltä (esim. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Sulje pois sähköpostit, jotka sisältävät ...",
   "require_emails_that_contain": "Vaadi sähköpostit, jotka sisältävät ...",
@@ -2917,8 +2919,13 @@
   "dry_run_mode_active": "Teet testikäyntivarausta.",
   "icon_showcase": "Kuvakegalleria",
   "icons_showcase": "Kuvakegalleria",
+  "feature_currently_disabled": "Ominaisuus on tällä hetkellä pois käytöstä",
   "choose_an_option": "Valitse vaihtoehto",
   "enter_option_value": "Syötä vaihtoehdon arvo",
   "remove_option": "Poista vaihtoehto",
+  "managed_users": "Hallinnoidut käyttäjät",
+  "managed_users_description": "Näe kaikki OAuth-asiakassovelluksesi luomat hallinnoidut käyttäjät",
+  "select_oAuth_client": "Valitse OAuth-asiakassovellus",
+  "on_every_instance": "Jokaisessa instanssissa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
