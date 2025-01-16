@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "ホストが対応可能な時はいつでも予約を受け付けることができます。潜在的な予約数を最大化したい場合や、ホスト間での予約の均等な配分が重要でない場合に使用します。",
   "rr_distribution_method_balanced_title": "負荷分散",
   "rr_distribution_method_balanced_description": "各ホストの予約数を監視し、他のホストと比較して予約数が多すぎるホストを一時的に無効にすることで、予約を均等に配分します。",
+  "edit_team_member_weights": "ウェイトを編集",
+  "weights_updated_successfully": "ウェイトが正常に更新されました",
   "require_confirmation_for_free_email": "フリーメールプロバイダー（@gmail.com、@outlook.comなど）のみ確認を必要とする",
   "exclude_emails_that_contain": "...を含むメールアドレスを除外",
   "require_emails_that_contain": "メールアドレスに含まれる必要がある文字列...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "テスト予約を実行中です。",
   "icon_showcase": "アイコンショーケース",
   "icons_showcase": "アイコンショーケース",
+  "feature_currently_disabled": "この機能は現在無効になっています",
   "choose_an_option": "オプションを選択",
   "enter_option_value": "オプション値を入力",
   "remove_option": "オプションを削除",
   "managed_users": "管理対象ユーザー",
   "managed_users_description": "OAuthクライアントによって作成された管理対象ユーザーをすべて表示",
   "select_oAuth_client": "OAuthクライアントを選択",
+  "on_every_instance": "すべてのインスタンスで",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

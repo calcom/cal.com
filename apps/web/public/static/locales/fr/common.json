@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Permet aux participants de réserver des réunions dès qu'un hôte est disponible. Utilisez cette option pour maximiser le nombre potentiel de réunions réservées lorsque la distribution équitable des réunions entre les hôtes est moins importante.",
   "rr_distribution_method_balanced_title": "Équilibrage de charge",
   "rr_distribution_method_balanced_description": "Nous surveillerons le nombre de réservations effectuées avec chaque hôte et le comparerons avec les autres, en désactivant certains hôtes trop en avance pour que les réservations soient réparties équitablement.",
+  "edit_team_member_weights": "Modifier les pondérations",
+  "weights_updated_successfully": "Pondérations mises à jour avec succès",
   "require_confirmation_for_free_email": "Exiger une confirmation uniquement pour les fournisseurs de messagerie gratuits (Ex. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Exclure les e-mails contenant ...",
   "require_emails_that_contain": "Exiger des e-mails qui contiennent...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "Vous effectuez une réservation test.",
   "icon_showcase": "Présentation des icônes",
   "icons_showcase": "Présentation des icônes",
+  "feature_currently_disabled": "La fonctionnalité est actuellement désactivée",
   "choose_an_option": "Choisir une option",
   "enter_option_value": "Saisir la valeur de l'option",
   "remove_option": "Supprimer l'option",
   "managed_users": "Utilisateurs gérés",
   "managed_users_description": "Voir tous les utilisateurs gérés créés par votre client OAuth",
   "select_oAuth_client": "Sélectionner le client OAuth",
+  "on_every_instance": "Sur chaque instance",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
