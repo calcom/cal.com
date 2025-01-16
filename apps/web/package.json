@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.9.0",
+  "version": "4.9.1-rc1",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -198,5 +198,6 @@
     "budgetPercentIncreaseRed": 20,
     "minimumChangeThreshold": 500,
     "showDetails": true
-  }
+  },
+  "stableVersion": "4.9.0"
 }
