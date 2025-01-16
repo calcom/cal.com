@@ -29,8 +29,8 @@ export const StartTimeFilters = () => {
       }
     });
 
-    search.set("afterStartDate", newStartDate.subtract(1, "day").format("YYYY-MM-DD"));
-    search.set("beforeEndDate", newEndDate.add(1, "day").format("YYYY-MM-DD"));
+    search.set("afterStartDate", newStartDate.startOf("day").format("YYYY-MM-DDTHH:mm:ss"));
+    search.set("beforeEndDate", newEndDate.endOf("day").format("YYYY-MM-DDTHH:mm:ss"));
     router.replace(`${pathname}?${search.toString()}`);
   };
 
@@ -40,7 +40,6 @@ export const StartTimeFilters = () => {
         minDate={null}
         dates={{ startDate: startValue, endDate: endValue }}
         onDatesChange={(values) => {
-          console.log(values);
           const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
           const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
           setAfterStartDate(newAfterStartDate);

@@ -57,7 +57,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -1916,10 +1916,14 @@ async function handler(
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
+      const bookingWithCalEventResponses = {
+        ...booking,
+        responses: reqBody.calEventResponses,
+      };
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -1931,7 +1935,7 @@ async function handler(
       for (const subscriber of subscribersMeetingStarted) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
@@ -2005,6 +2009,7 @@ async function handler(
 
   const evtWithMetadata = {
     ...evt,
+    rescheduleReason,
     metadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
     bookerUrl,

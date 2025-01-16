@@ -1,14 +1,13 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "app/WithEmbedSSR";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
@@ -26,7 +25,6 @@ function Type({
   slug,
   user,
   booking,
-  isEmbed,
   isBrandingHidden,
   eventData,
   isInstantMeeting,
@@ -34,33 +32,12 @@ function Type({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
-  isSEOIndexable,
+  isEmbed,
 }: PageProps) {
   const searchParams = useSearchParams();
-  const { profile, users, hidden, title } = eventData;
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={booking?.uid}
-        hideBranding={isBrandingHidden}
-        isTeamEvent
-        eventData={
-          profile && users && title && hidden !== undefined
-            ? {
-                profile,
-                users,
-                title,
-                hidden,
-              }
-            : undefined
-        }
-        entity={eventData.entity}
-        bookingData={booking}
-        isSEOIndexable={isSEOIndexable}
-      />
       <Booker
         username={user}
         eventSlug={slug}
@@ -86,7 +63,5 @@ function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

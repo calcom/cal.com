@@ -8,8 +8,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Label, Select } from "@calcom/ui";
 
-import InsightsLayout from "./layout";
-
 export default function InsightsVirtualQueuesPage() {
   const { t } = useLocale();
   const { data: routingForms, isLoading: isRoutingFormsLoading } =
@@ -24,7 +22,7 @@ export default function InsightsVirtualQueuesPage() {
   }
 
   return (
-    <InsightsLayout>
+    <>
       <Label>{t("routing_form")}</Label>
       <Select
         placeholder="Select project"
@@ -42,7 +40,7 @@ export default function InsightsVirtualQueuesPage() {
       <div className="mt-10">
         {selectedForm ? <TestForm form={selectedForm} showAllData={false} /> : <></>}
       </div>
-    </InsightsLayout>
+    </>
   );
 
   return <></>;

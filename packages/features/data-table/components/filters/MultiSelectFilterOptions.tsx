@@ -14,9 +14,9 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZMultiSelectFilterValue } from "../../lib/types";
-import { useDataTable, useFilterValue } from "../../lib/utils";
 
 export type MultiSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "multi_select" }>;

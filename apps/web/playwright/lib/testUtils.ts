@@ -45,9 +45,11 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) => {
+    let resolved = false;
+    return new Promise<void>((resolve, reject) => {
       if (requestList.length === count) {
+        resolved = true;
         resolve();
         return;
       }
@@ -57,11 +59,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
           return;
         }
         eventEmitter.off("push", pushHandler);
+        resolved = true;
         resolve();
       };
 
       eventEmitter.on("push", pushHandler);
+      setTimeout(() => {
+        if (resolved) return;
+        // Timeout after 5 seconds
+        reject(new Error("Timeout waiting for webhook"));
+      }, 5000);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];

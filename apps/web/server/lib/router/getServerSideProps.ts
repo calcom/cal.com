@@ -11,10 +11,10 @@ import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleRespon
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
 import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
-import { isAuthorizedToViewTheForm } from "@calcom/app-store/routing-forms/pages/routing-link/getServerSideProps";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
 import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm";
 import { TRPCError } from "@calcom/trpc/server";
@@ -70,7 +70,9 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
-  if (!isAuthorizedToViewTheForm({ user: formWithUserProfile.user, currentOrgDomain })) {
+  if (
+    !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
+  ) {
     return {
       notFound: true,
     };

@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -155,6 +154,7 @@ export const config = {
   matcher: [
     "/403",
     "/500",
+    "/icons",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",
@@ -173,8 +173,7 @@ export const config = {
      */
     "/apps/routing_forms/:path*",
 
-    "/event-types",
-    "/future/event-types/",
+    "/event-types/:path*",
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
     "/apps/:slug/",
@@ -188,14 +187,20 @@ export const config = {
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
-    "/bookings/:status/",
+    "/bookings/:path*",
     "/video/:path*",
-    "/teams",
-    "/future/teams/",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/[orgSlug]/[user]/[type]",
+    "/org/[orgSlug]/team/[slug]/[type]",
+    "/org/[orgSlug]/team/[slug]",
+    "/org/[orgSlug]",
   ],
 };
 

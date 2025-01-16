@@ -21,22 +21,44 @@ export function transformBookingFieldsInternalToApi(
   const responseDefaultFields: (DefaultFieldOutput_2024_06_14 | OutputUnknownBookingField_2024_06_14)[] =
     defaultFields.map((field) => {
       switch (field.name) {
-        case "name":
+        case "name": {
+          if (field.variant === "firstAndLastName") {
+            const firstNameField = field.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+              (f) => f.name === "firstName"
+            );
+            const lastNameField = field.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+              (f) => f.name === "lastName"
+            );
+
+            return {
+              isDefault: true,
+              type: "splitName",
+              slug: "splitName",
+              firstNameLabel: firstNameField?.label,
+              firstNamePlaceholder: firstNameField?.placeholder,
+              lastNameLabel: lastNameField?.label,
+              lastNamePlaceholder: lastNameField?.placeholder,
+              lastNameRequired: !!lastNameField?.required,
+              disableOnPrefill: !!field.disableOnPrefill,
+            };
+          }
+
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
-            label: field.label,
-            placeholder: field.placeholder,
+            required: !!field.required,
+            label: field.variantsConfig?.variants?.fullName?.fields[0]?.label,
+            placeholder: field.variantsConfig?.variants?.fullName?.fields[0]?.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
           };
+        }
         case "email":
           return {
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             label: field.label,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
@@ -46,7 +68,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
@@ -57,7 +79,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
@@ -68,7 +90,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
@@ -79,7 +101,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
@@ -90,7 +112,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
             label: field.label,
             placeholder: field.placeholder,
@@ -101,7 +123,7 @@ export function transformBookingFieldsInternalToApi(
             isDefault: true,
             type: field.type,
             slug: field.name,
-            required: field.required,
+            required: !!field.required,
             hidden: !!field.hidden,
           };
         default:
@@ -122,7 +144,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -133,7 +155,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -144,7 +166,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -155,7 +177,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -166,7 +188,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -177,7 +199,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -188,7 +210,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
           };
@@ -198,7 +220,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             placeholder: field.placeholder,
             options: field.options ? field.options.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
@@ -210,7 +232,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -221,7 +243,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -232,7 +254,7 @@ export function transformBookingFieldsInternalToApi(
             type: field.type,
             slug: field.name,
             label: field.label,
-            required: field.required,
+            required: !!field.required,
             options: field.options ? field.options?.map((option) => option.value) : [],
             disableOnPrefill: !!field.disableOnPrefill,
             hidden: !!field.hidden,
@@ -344,8 +366,8 @@ const SystemFieldSchema = z.object({
 const NameSystemFieldSchema = SystemFieldSchema.extend({
   name: z.literal("name"),
   type: z.literal("name"),
-  required: z.literal(true),
-  variant: z.literal("fullName").optional(),
+  required: z.boolean(),
+  variant: z.enum(["fullName", "firstAndLastName"]).optional(),
   variantsConfig: z
     .object({
       variants: z.object({
@@ -355,7 +377,18 @@ const NameSystemFieldSchema = SystemFieldSchema.extend({
               name: z.literal("fullName"),
               type: z.literal("text"),
               label: z.string().optional(),
-              required: z.literal(true),
+              required: z.boolean(),
+              placeholder: z.string().optional(),
+            })
+          ),
+        }),
+        firstAndLastName: z.object({
+          fields: z.array(
+            z.object({
+              name: z.enum(["firstName", "lastName"]),
+              type: z.literal("text"),
+              label: z.string().optional(),
+              required: z.boolean(),
               placeholder: z.string().optional(),
             })
           ),
@@ -467,8 +500,31 @@ export const systemBeforeFieldName: NameSystemField = {
           },
         ],
       },
+      firstAndLastName: {
+        fields: [
+          {
+            name: "firstName",
+            type: "text",
+            required: true,
+            label: "",
+            placeholder: "",
+          },
+          {
+            name: "lastName",
+            type: "text",
+            required: false,
+            label: "",
+            placeholder: "",
+          },
+        ],
+      },
     },
   },
+};
+
+export const systemBeforeFieldNameSplit: NameSystemField = {
+  ...systemBeforeFieldName,
+  variant: "firstAndLastName",
 };
 
 export const systemBeforeFieldEmail: EmailSystemField = {
@@ -542,7 +598,7 @@ export const systemAfterFieldTitle: TitleSystemField = {
   name: "title",
   editable: "system-but-optional",
   required: true,
-  hidden: false,
+  hidden: true,
   defaultPlaceholder: "",
   sources: [
     {

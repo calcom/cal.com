@@ -1,5 +1,6 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
@@ -7,7 +8,6 @@ import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
-import type { EmbedProps } from "app/WithEmbedSSR";
 
 import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
