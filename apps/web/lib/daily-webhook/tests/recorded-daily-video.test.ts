@@ -15,7 +15,7 @@ import { describe, afterEach, test, vi, beforeEach, beforeAll, expect } from "vi
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
-import { generateVideoToken } from "@calcom/lib/videoTokens";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -72,7 +72,7 @@ vi.mock("@calcom/app-store/dailyvideo/lib", () => {
 
 vi.mock("@calcom/lib/videoTokens", () => {
   return {
-    generateVideoToken: vi.fn(),
+    generateVideoToken: vi.fn().mockReturnValue("MOCK_TOKEN"),
   };
 });
 
@@ -264,7 +264,6 @@ describe("Handler: /api/recorded-daily-video", () => {
 
       vi.mocked(getRoomNameFromRecordingId).mockResolvedValue("MOCK_ID");
       vi.mocked(getBatchProcessorJobAccessLink).mockResolvedValue(TRANSCRIPTION_ACCESS_LINK);
-      vi.mocked(generateVideoToken).mockResolvedValue("MOCK_TOKEN");
 
       const { req } = createMocks({
         method: "POST",
