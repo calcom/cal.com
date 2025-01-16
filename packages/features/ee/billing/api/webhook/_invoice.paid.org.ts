@@ -9,7 +9,6 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const onboardingForm = await prisma.organizationOnboarding.findFirst({
     where: {
       stripeCustomerId: invoice.customer,
-      stripeSubscriptionId: invoice.subscription,
     },
   });
 
