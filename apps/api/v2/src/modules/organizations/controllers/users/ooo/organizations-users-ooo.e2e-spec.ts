@@ -387,7 +387,6 @@ describe("Organizations User OOO Endpoints", () => {
           }
           // test sort
           expect(data[1].id).toEqual(oooCreatedViaApiId);
-
         });
     });
 
