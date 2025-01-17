@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -153,19 +152,28 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/403",
+    "/500",
+    "/icons",
+    "/d/:path*",
+    "/more/:path*",
+    "/maintenance/:path*",
+    "/enterprise/:path*",
+    "/upgrade/:path*",
+    "/connect-and-join/:path*",
+    "/insights/:path*",
     "/:path*/embed",
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
+    "/auth/error",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
 
-    "/event-types",
-    "/future/event-types/",
+    "/event-types/:path*",
     "/apps/installed/:category/",
     "/future/apps/installed/:category/",
     "/apps/:slug/",
@@ -177,17 +185,22 @@ export const config = {
     "/apps/categories/:category/",
     "/future/apps/categories/:category/",
     "/workflows/:path*",
-    "/future/workflows/:path*",
-    "/getting-started/:step/",
-    "/future/getting-started/:step/",
+    "/getting-started/:path*",
     "/apps",
-    "/bookings/:status/",
-    "/future/bookings/:status/",
+    "/bookings/:path*",
     "/video/:path*",
-    "/future/video/:path*",
-    "/teams",
-    "/future/teams/",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
+    "/reschedule/:path*",
+    "/availability/:path*",
+    "/booking/:path*",
+    "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/[orgSlug]/[user]/[type]",
+    "/org/[orgSlug]/team/[slug]/[type]",
+    "/org/[orgSlug]/team/[slug]",
+    "/org/[orgSlug]",
   ],
 };
 

@@ -332,6 +332,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           metadata: {
             userId: "100",
           },
+          guests: ["bob@gmail.com"],
         };
 
         const beforeCreate = new Date();
@@ -364,6 +365,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               });
               expect(data.attendees[0]).toEqual({
                 name: body.attendee.name,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -375,7 +377,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
                 name: body.attendee.name,
                 email: body.attendee.email,
                 ...body.bookingFieldsResponses,
+                guests: body.guests,
               });
+              expect(data.guests).toEqual(body.guests);
 
               // Check createdAt date is between the time of the request and after the request
               const createdAtDate = new Date(data.createdAt);
@@ -434,6 +438,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
               expect(firstBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -455,6 +460,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(secondBooking.recurringBookingUid).toBeDefined();
               expect(secondBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,
@@ -475,6 +481,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(thirdBooking.recurringBookingUid).toBeDefined();
               expect(thirdBooking.attendees[0]).toEqual({
                 name: body.attendee.name,
+                email: body.attendee.email,
                 timeZone: body.attendee.timeZone,
                 language: body.attendee.language,
                 absent: false,

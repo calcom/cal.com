@@ -20,7 +20,7 @@ import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
-  EventTypeMetaDataSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
   bookerLayoutOptions,
   bookerLayouts as bookerLayoutsSchema,
   customInputSchema,
@@ -368,7 +368,7 @@ export const getPublicEvent = async (
 
   if (!event) return null;
 
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
   const usersAsHosts = event.hosts.map((host) => host.user);
 
@@ -517,7 +517,7 @@ function getProfileFromEvent(event: Event) {
 
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
   return {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import {
@@ -109,12 +109,14 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 {heading && (
                   <>
                     <DestinationCalendarSettingsWebWrapper />
-                    <SelectedCalendarsSettingsWebWrapper
-                      onChanged={onChanged}
-                      fromOnboarding={fromOnboarding}
-                      destinationCalendarId={data.destinationCalendar?.externalId}
-                      isPending={mutation.isPending}
-                    />
+                    <Suspense fallback={<SkeletonLoader />}>
+                      <SelectedCalendarsSettingsWebWrapper
+                        onChanged={onChanged}
+                        fromOnboarding={fromOnboarding}
+                        destinationCalendarId={data.destinationCalendar?.externalId}
+                        isPending={mutation.isPending}
+                      />
+                    </Suspense>
                   </>
                 )}
               </>

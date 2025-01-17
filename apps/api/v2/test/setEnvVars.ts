@@ -20,6 +20,7 @@ const env: Partial<Omit<Environment, "NODE_ENV">> = {
   // note(Lauris): setting high limit so that e2e tests themselves are not rate limited
   RATE_LIMIT_DEFAULT_LIMIT: 10000,
   RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS: 60000,
+  IS_TEAM_BILLING_ENABLED: false,
 };
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

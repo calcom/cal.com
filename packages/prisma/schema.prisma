@@ -91,6 +91,7 @@ model EventType {
   availability                            Availability[]
   webhooks                                Webhook[]
   destinationCalendar                     DestinationCalendar?
+  useEventLevelSelectedCalendars          Boolean                   @default(false)
   eventName                               String?
   customInputs                            EventTypeCustomInput[]
   parentId                                Int?
@@ -109,6 +110,7 @@ model EventType {
   lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
   requiresConfirmation                    Boolean                   @default(false)
   requiresConfirmationWillBlockSlot       Boolean                   @default(false)
+  requiresConfirmationForFreeEmail        Boolean                   @default(false)
   requiresBookerEmailVerification         Boolean                   @default(false)
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
@@ -157,6 +159,7 @@ model EventType {
   isRRWeightsEnabled                      Boolean                   @default(false)
   fieldTranslations                       EventTypeTranslation[]
   maxLeadThreshold                        Int?
+  selectedCalendars                       SelectedCalendar[]
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -708,27 +711,37 @@ model Availability {
 }
 
 model SelectedCalendar {
-  user                             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                           Int
-  integration                      String
-  externalId                       String
-  credential                       Credential?           @relation(fields: [credentialId], references: [id], onDelete: Cascade)
-  credentialId                     Int?
-  defaultReminder                  Int                   @default(30)
+  id              String      @id @default(uuid())
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          Int
+  integration     String
+  externalId      String
+  credential      Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  credentialId    Int?
+  defaultReminder Int         @default(30)
 
   // Used to identify a watched calendar channel in Google Calendar
-  googleChannelId                  String?               @unique
+  googleChannelId                  String?
   googleChannelKind                String?
   googleChannelResourceId          String?
   googleChannelResourceUri         String?
   googleChannelExpiration          String?
   domainWideDelegationCredential   DomainWideDelegation? @relation(fields: [domainWideDelegationCredentialId], references: [id], onDelete: Cascade)
   domainWideDelegationCredentialId String?
+  error                            String?
 
-  @@id([userId, integration, externalId])
+  eventTypeId Int?
+  eventType   EventType? @relation(fields: [eventTypeId], references: [id])
+
+  // It could still allow multiple user-level(eventTypeId is null) selected calendars for same userId, integration, externalId because NULL is not equal to NULL
+  // We currently ensure uniqueness by checking for the existence of the record before creating a new one
+  // Think about introducing a generated unique key ${userId}_${integration}_${externalId}_${eventTypeId}
+  @@unique([userId, integration, externalId, eventTypeId])
+  @@unique([googleChannelId, eventTypeId])
   @@index([userId])
   @@index([integration])
   @@index([externalId])
+  @@index([eventTypeId])
 }
 
 enum EventTypeCustomInputType {
@@ -968,24 +981,25 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id          String                          @id @default(cuid())
-  description String?
-  position    Int                             @default(0)
-  routes      Json?
-  createdAt   DateTime                        @default(now())
-  updatedAt   DateTime                        @updatedAt
-  name        String
-  fields      Json?
-  user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  id                       String                                      @id @default(cuid())
+  description              String?
+  position                 Int                                         @default(0)
+  routes                   Json?
+  createdAt                DateTime                                    @default(now())
+  updatedAt                DateTime                                    @updatedAt
+  name                     String
+  fields                   Json?
+  user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
-  userId      Int
-  team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId      Int?
-  responses   App_RoutingForms_FormResponse[]
-  disabled    Boolean                         @default(false)
+  userId                   Int
+  team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                   Int?
+  responses                App_RoutingForms_FormResponse[]
+  disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
-  settings    Json?
+  settings                 Json?
+  incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
 
   @@index([userId])
   @@index([disabled])
@@ -1006,6 +1020,30 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+}
+
+view RoutingFormResponse {
+  id                               Int            @unique
+  response                         Json
+  responseLowercase                Json
+  formId                           String
+  formName                         String
+  formTeamId                       Int?
+  formUserId                       Int?
+  bookingUid                       String?
+  bookingStatus                    BookingStatus?
+  bookingStatusOrder               Int?
+  bookingCreatedAt                 DateTime?
+  bookingAttendees                 Json? // Array of {timeZone: string, email: string}
+  bookingUserId                    Int?
+  bookingUserName                  String?
+  bookingUserEmail                 String?
+  bookingUserAvatarUrl             String?
+  bookingAssignmentReason          String?
+  bookingAssignmentReasonLowercase String?
+  bookingStartTime                 DateTime?
+  bookingEndTime                   DateTime?
+  createdAt                        DateTime
 }
 
 model Feedback {
@@ -1607,7 +1645,10 @@ model AttributeOption {
 model Attribute {
   id String @id @default(uuid())
 
-  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // This is organization
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // This is organizationId
   teamId Int
 
   type AttributeType
@@ -1624,12 +1665,17 @@ model Attribute {
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
+
+  @@index([teamId])
 }
 
 model AttributeToUser {
   id String @id @default(uuid())
 
-  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  // This is the membership of the organization
+  member Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // This is the membership id of the organization
   memberId Int
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
@@ -1668,10 +1714,13 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+
+  @@index([bookingId])
 }
 
 enum EventTypeAutoTranslatedField {
-  DESCRIPTION // Currently the only field we translate
+  DESCRIPTION
+  TITLE
 }
 
 model DomainWideDelegation {
@@ -1739,19 +1788,41 @@ enum WatchlistType {
   USERNAME
 }
 
+enum WatchlistSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model Watchlist {
-  id          String        @id @unique @default(cuid())
+  id          String            @id @unique @default(cuid())
   type        WatchlistType
   // The identifier of the Watchlisted entity (email or domain)
   value       String
   description String?
-  createdAt   DateTime      @default(now())
-  createdBy   User          @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
+  createdAt   DateTime          @default(now())
+  createdBy   User              @relation("CreatedWatchlists", onDelete: Cascade, fields: [createdById], references: [id])
   createdById Int
-  updatedAt   DateTime      @updatedAt
-  updatedBy   User?         @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
+  updatedAt   DateTime          @updatedAt
+  updatedBy   User?             @relation("UpdatedWatchlists", onDelete: SetNull, fields: [updatedById], references: [id])
   updatedById Int?
+  severity    WatchlistSeverity @default(LOW)
 
   @@unique([type, value])
   @@index([type, value])
+}
+
+enum IncompleteBookingActionType {
+  SALESFORCE
+}
+
+model App_RoutingForms_IncompleteBookingActions {
+  id           Int                         @id @default(autoincrement())
+  form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  actionType   IncompleteBookingActionType
+  data         Json
+  enabled      Boolean                     @default(true)
+  credentialId Int?
 }

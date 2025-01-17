@@ -34,6 +34,7 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
   // Query routing form field options when showRoutingFilters is true
   const { data: routingFormFieldOptions } = trpc.viewer.insights.getRoutingFormFieldOptions.useQuery(
     {
+      userId: selectedUserId ?? -1,
       teamId: selectedTeamId ?? -1,
       isAll: !!isAll,
       routingFormId: selectedRoutingFormId ?? undefined,

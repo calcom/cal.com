@@ -1,7 +1,8 @@
+import CalendarManagerMock from "../../../tests/libs/__mocks__/CalendarManager";
 import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
 
 import { v4 as uuid } from "uuid";
-import { expect, it, describe, vi } from "vitest";
+import { expect, it, describe, vi, beforeAll } from "vitest";
 
 import dayjs from "@calcom/dayjs";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
@@ -16,6 +17,10 @@ vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));
+
+beforeAll(() => {
+  vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
+});
 
 it("can find lucky user with maximize availability", async () => {
   const users: GetLuckyUserAvailableUsersType = [
@@ -45,6 +50,10 @@ it("can find lucky user with maximize availability", async () => {
       ],
     }),
   ];
+
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -59,6 +68,7 @@ it("can find lucky user with maximize availability", async () => {
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(users[1]);
 });
@@ -92,6 +102,10 @@ it("can find lucky user with maximize availability and priority ranking", async 
       ],
     }),
   ];
+
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+  prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.host.findMany.mockResolvedValue([]);
@@ -107,6 +121,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(users[1]);
 
@@ -163,6 +178,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(usersWithPriorities[2]);
 
@@ -224,6 +240,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
         team: {},
       },
       allRRHosts: [],
+      routingFormResponse: null,
     })
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
 });
@@ -264,6 +281,9 @@ describe("maximize availability and weights", () => {
         ],
       }),
     ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -291,12 +311,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -311,6 +331,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
   });
@@ -354,6 +375,8 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -386,12 +409,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -406,6 +429,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
   });
@@ -449,6 +473,8 @@ describe("maximize availability and weights", () => {
       }),
     ];
 
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -481,12 +507,12 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
@@ -501,8 +527,191 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
+  });
+
+  it("applies calibration when user had OOO entries this month", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [],
+      }),
+    ];
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([
+      {
+        start: dayjs().subtract(10, "day").toDate(),
+        end: dayjs().subtract(5, "day").toDate(),
+        userId: users[0].id,
+      },
+    ]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+
+    // bookings of current month
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 4,
+        userId: 1,
+        createdAt: dayjs().subtract(2, "days").toDate(),
+      }),
+      // happened during OOO of userId 1
+      buildBooking({
+        id: 4,
+        userId: 2,
+        createdAt: dayjs().subtract(6, "days").toDate(),
+      }),
+      // happened during OOO of userId 1
+      buildBooking({
+        id: 5,
+        userId: 2,
+        createdAt: dayjs().subtract(7, "days").toDate(),
+      }),
+    ]);
+
+    await expect(
+      getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: {},
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(users[1]); // user[1] has one more bookings, but user[0] has calibration 2
+  });
+
+  it("applies calibration when user had full day calendar events this month", async () => {
+    const users: GetLuckyUserAvailableUsersType = [
+      buildUser({
+        id: 1,
+        username: "test1",
+        name: "Test User 1",
+        email: "test1@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T05:30:00.000Z"),
+          },
+          {
+            createdAt: new Date("2022-01-25T06:30:00.000Z"),
+          },
+        ],
+      }),
+      buildUser({
+        id: 2,
+        username: "test2",
+        name: "Test User 2",
+        email: "test2@example.com",
+        bookings: [
+          {
+            createdAt: new Date("2022-01-25T04:30:00.000Z"),
+          },
+        ],
+      }),
+    ];
+
+    const allRRHosts = [
+      {
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
+        weight: users[0].weight,
+        createdAt: new Date(0),
+      },
+      {
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
+        weight: users[1].weight,
+        createdAt: new Date(0),
+      },
+    ];
+
+    CalendarManagerMock.getBusyCalendarTimes
+      .mockResolvedValueOnce([
+        {
+          start: dayjs().utc().startOf("month").toDate(),
+          end: dayjs().utc().startOf("month").add(3, "day").toDate(),
+          timeZone: "UTC",
+        },
+      ])
+      .mockResolvedValue([]);
+
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
+    prismaMock.user.findMany.mockResolvedValue(users);
+    prismaMock.host.findMany.mockResolvedValue([
+      {
+        userId: allRRHosts[0].user.id,
+        weight: allRRHosts[0].weight,
+        createdAt: allRRHosts[0].createdAt,
+      },
+    ]);
+
+    prismaMock.booking.findMany.mockResolvedValue([
+      buildBooking({
+        id: 1,
+        userId: 1,
+        createdAt: dayjs().startOf("month").add(10, "day").toDate(),
+      }),
+      // happend during OOO
+      buildBooking({
+        id: 2,
+        userId: 2,
+        createdAt: dayjs().startOf("month").add(5, "hour").toDate(),
+      }),
+      // happend during OOO
+      buildBooking({
+        id: 3,
+        userId: 2,
+        createdAt: dayjs().startOf("month").add(20, "hour").toDate(),
+      }),
+    ]);
+
+    await expect(
+      getLuckyUser({
+        availableUsers: users,
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+          team: {},
+        },
+        allRRHosts,
+        routingFormResponse: null,
+      })
+    ).resolves.toStrictEqual(users[1]); // user[1] has one more booking, but user[0] has calibration 2
   });
 
   it("applies calibration to newly added hosts so they are not penalized unfairly compared to their peers", async () => {
@@ -540,16 +749,19 @@ describe("maximize availability and weights", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: middleOfMonth,
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },
     ];
+
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
 
     // TODO: we may be able to use native prisma generics somehow?
     prismaMock.user.findMany.mockResolvedValue(users);
@@ -582,6 +794,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[1]);
     // findMany bookings are AFTER the new host (user 1) was added, calibration=0.
@@ -606,6 +819,7 @@ describe("maximize availability and weights", () => {
           team: {},
         },
         allRRHosts,
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(users[0]);
   });
@@ -742,6 +956,8 @@ describe("attribute weights and virtual queues", () => {
           user: {
             id: 1,
             email: "test1@example.com",
+            credentials: [],
+            selectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 10,
@@ -750,6 +966,8 @@ describe("attribute weights and virtual queues", () => {
           user: {
             id: 2,
             email: "test2@example.com",
+            credentials: [],
+            selectedCalendars: [],
           },
           createdAt: new Date(),
           weight: 150,
@@ -858,6 +1076,9 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
+    CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([]);
+    prismaMock.outOfOfficeEntry.findMany.mockResolvedValue([]);
+
     prismaMock.user.findMany.mockResolvedValue(users);
     prismaMock.host.findMany.mockResolvedValue([]);
     prismaMock.booking.findMany.mockResolvedValue([
@@ -950,12 +1171,12 @@ describe("attribute weights and virtual queues", () => {
 
     const allRRHosts = [
       {
-        user: { id: users[0].id, email: users[0].email },
+        user: { id: users[0].id, email: users[0].email, credentials: [], selectedCalendars: [] },
         weight: users[0].weight,
         createdAt: new Date(0),
       },
       {
-        user: { id: users[1].id, email: users[1].email },
+        user: { id: users[1].id, email: users[1].email, credentials: [], selectedCalendars: [] },
         weight: users[1].weight,
         createdAt: new Date(0),
       },

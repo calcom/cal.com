@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     (t) => t("edit_attribute_description")
   );
 
-export default OrgAttributesEditPage;
+const OrgAttributesEditPageWrapper = async () => {
+  return <OrgAttributesEditPage />;
+};
+
+export default OrgAttributesEditPageWrapper;

@@ -116,6 +116,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         href: "/insights/routing",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
       },
+      {
+        name: "router_position",
+        href: "/insights/virtual-queues",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
+      },
     ],
   },
 ];
@@ -159,6 +164,12 @@ const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Members",
     href: "/settings/platform/members",
+    icon: "users",
+    moreOnMobile: true,
+  },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
     icon: "users",
     moreOnMobile: true,
   },
@@ -214,7 +225,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (

@@ -2,63 +2,63 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
+// It ensures that we work on userLevel calendars only
+const ensureUserLevelWhere = {
+  eventTypeId: null,
+};
+
 @Injectable()
 export class SelectedCalendarsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
-
-  upsertSelectedCalendar(
+  async upsertSelectedCalendar(
     externalId: string,
     credentialId: number,
     userId: number,
     integration: string,
     defaultReminder?: number
   ) {
-    const data: {
-      userId: number;
-      externalId: string;
-      credentialId: number;
-      integration: string;
-      defaultReminder?: number;
-    } = {
+    // Why we can't use .upsert here, see server/repository/selectedCalendar.ts#upsert
+    const existingUserSelectedCalendar = await this.getUserSelectedCalendar(userId, integration, externalId);
+    const data = {
       userId,
       externalId,
       credentialId,
       integration,
+      ...ensureUserLevelWhere,
+      defaultRemider: defaultReminder ?? 30,
     };
 
-    if (!defaultReminder) {
-      data.defaultReminder = defaultReminder;
+    if (existingUserSelectedCalendar) {
+      return this.dbWrite.prisma.selectedCalendar.update({
+        where: {
+          id: existingUserSelectedCalendar.id,
+        },
+        data,
+      });
     }
 
-    return this.dbWrite.prisma.selectedCalendar.upsert({
-      create: data,
-      update: data,
-      where: {
-        userId_integration_externalId: {
-          userId,
-          integration,
-          externalId,
-        },
-      },
+    return this.dbWrite.prisma.selectedCalendar.create({
+      data,
     });
   }
 
   getUserSelectedCalendars(userId: number) {
+    // It would be unique result but we can't use .findUnique here because of eventTypeId being nullable
     return this.dbRead.prisma.selectedCalendar.findMany({
       where: {
         userId,
+        ...ensureUserLevelWhere,
       },
     });
   }
 
   getUserSelectedCalendar(userId: number, integration: string, externalId: string) {
-    return this.dbRead.prisma.selectedCalendar.findUnique({
+    return this.dbRead.prisma.selectedCalendar.findFirst({
       where: {
-        userId_integration_externalId: {
-          userId,
-          externalId,
-          integration,
-        },
+        userId,
+        externalId,
+        integration,
+        ...ensureUserLevelWhere,
       },
     });
   }
@@ -70,43 +70,47 @@ export class SelectedCalendarsRepository {
     credentialId: number,
     defaultReminder?: number
   ) {
-    const data: {
-      userId: number;
-      externalId: string;
-      credentialId: number;
-      integration: string;
-      defaultReminder?: number;
-    } = {
-      userId,
-      integration,
-      externalId,
-      credentialId,
-    };
-    if (defaultReminder) {
-      data.defaultReminder = defaultReminder;
+    const existingUserSelectedCalendar = await this.getUserSelectedCalendar(userId, integration, externalId);
+
+    if (existingUserSelectedCalendar) {
+      return;
     }
-    return await this.dbWrite.prisma.selectedCalendar.upsert({
-      where: {
-        userId_integration_externalId: {
-          userId,
-          integration,
-          externalId,
-        },
+
+    return await this.dbWrite.prisma.selectedCalendar.create({
+      data: {
+        userId,
+        integration,
+        externalId,
+        credentialId,
+        ...ensureUserLevelWhere,
+        defaultReminder: defaultReminder ?? 30,
       },
-      create: data,
-      // already exists
-      update: data,
     });
   }
 
   async removeUserSelectedCalendar(userId: number, integration: string, externalId: string) {
+    // Using deleteMany because userId_externalId_integration_eventTypeId is a unique constraint but with eventTypeId being nullable, causing it to be not used as a unique constraint
+    const records = await this.dbWrite.prisma.selectedCalendar.findMany({
+      where: {
+        userId,
+        externalId,
+        integration,
+        ...ensureUserLevelWhere,
+      },
+    });
+
+    // Make the behaviour same as .delete which throws error if no record is found
+    if (records.length === 0) {
+      throw new Error("No SelectedCalendar found.");
+    }
+
+    if (records.length > 1) {
+      throw new Error("Multiple SelecteCalendars found. Skipping deletion");
+    }
+
     return await this.dbWrite.prisma.selectedCalendar.delete({
       where: {
-        userId_integration_externalId: {
-          userId,
-          externalId,
-          integration,
-        },
+        id: records[0].id,
       },
     });
   }

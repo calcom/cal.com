@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
@@ -9,38 +9,46 @@ export class MembershipUserOutputDto {
   @IsOptional()
   @IsString()
   @Expose()
+  @ApiPropertyOptional()
   readonly avatarUrl?: string;
 
   @IsOptional()
   @IsString()
   @Expose()
+  @ApiPropertyOptional()
   readonly username?: string;
 
   @IsOptional()
   @IsString()
   @Expose()
+  @ApiPropertyOptional()
   readonly name?: string;
 
   @IsBoolean()
   @Expose()
+  @ApiProperty()
   readonly email!: string;
 }
 
 export class OrgTeamMembershipOutputDto {
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly id!: number;
 
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly userId!: number;
 
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly teamId!: number;
 
   @IsBoolean()
   @Expose()
+  @ApiProperty()
   readonly accepted!: boolean;
 
   @IsString()
@@ -51,11 +59,13 @@ export class OrgTeamMembershipOutputDto {
   @IsOptional()
   @IsBoolean()
   @Expose()
+  @ApiPropertyOptional()
   readonly disableImpersonation?: boolean;
 
   @ValidateNested()
   @Type(() => MembershipUserOutputDto)
   @Expose()
+  @ApiProperty({ type: MembershipUserOutputDto })
   user!: MembershipUserOutputDto;
 }
 
@@ -68,6 +78,7 @@ export class OrgTeamMembershipsOutputResponseDto {
   @ValidateNested()
   @Type(() => OrgTeamMembershipOutputDto)
   @IsArray()
+  @ApiProperty({ type: [OrgTeamMembershipOutputDto] })
   data!: OrgTeamMembershipOutputDto[];
 }
 
@@ -79,5 +90,6 @@ export class OrgTeamMembershipOutputResponseDto {
   @Expose()
   @ValidateNested()
   @Type(() => OrgTeamMembershipOutputDto)
+  @ApiProperty({ type: OrgTeamMembershipOutputDto })
   data!: OrgTeamMembershipOutputDto;
 }

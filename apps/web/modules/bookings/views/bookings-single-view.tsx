@@ -6,7 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -19,7 +19,6 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -31,7 +30,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -48,7 +47,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -56,14 +55,12 @@ import {
   Badge,
   Button,
   EmailInput,
-  HeadSeo,
   useCalcomTheme,
   TextArea,
   showToast,
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
-import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
@@ -110,7 +107,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
@@ -231,7 +228,13 @@ export default function Success(props: PageProps) {
     t,
   };
 
-  const giphyAppData = getEventTypeAppData(eventType, "giphy");
+  const giphyAppData = getEventTypeAppData(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    "giphy"
+  );
   const giphyImage = giphyAppData?.thankYouPage;
   const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -258,9 +261,7 @@ export default function Success(props: PageProps) {
   }, [telemetry]); */
 
   useEffect(() => {
-    setDate(
-      date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess() || "Europe/London")
-    );
+    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || CURRENT_TIMEZONE));
     setIs24h(props?.userTimeFormat ? props.userTimeFormat === 24 : !!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
@@ -345,10 +346,6 @@ export default function Success(props: PageProps) {
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
   });
-  const title = t(
-    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
-  );
-
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
@@ -437,8 +434,9 @@ export default function Success(props: PageProps) {
           </Link>
         </div>
       )}
-      <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
-      <BookingPageTagManager eventType={eventType} />
+      <BookingPageTagManager
+        eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
+      />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           <div
@@ -651,13 +649,17 @@ export default function Success(props: PageProps) {
                         )}
                       </div>
                       <div className="text-bookingdark dark:border-darkgray-200 mt-8 text-left dark:text-gray-300">
-                        {Object.entries(bookingInfo.responses).map(([name, response]) => {
-                          const field = eventType.bookingFields.find((field) => field.name === name);
+                        {eventType.bookingFields.map((field) => {
+                          if (!field) return null;
+
+                          if (!bookingInfo.responses[field.name]) return null;
+
+                          const response = bookingInfo.responses[field.name];
                           // We show location in the "where" section
                           // We show Booker Name, Emails and guests in Who section
                           // We show notes in additional notes section
                           // We show rescheduleReason at the top
-                          if (!field) return null;
+
                           const isSystemField = SystemField.safeParse(field.name);
                           // SMS_REMINDER_NUMBER_FIELD is a system field but doesn't have a dedicated place in the UI. So, it would be shown through the following responses list
                           // TITLE is also an identifier for booking question "What is this meeting about?"
@@ -671,7 +673,7 @@ export default function Success(props: PageProps) {
                           const label = field.label || t(field.defaultLabel);
 
                           return (
-                            <>
+                            <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 // eslint-disable-next-line react/no-danger
@@ -689,7 +691,7 @@ export default function Success(props: PageProps) {
                                     : t("no")
                                   : response.toString()}
                               </p>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>
@@ -818,7 +820,8 @@ export default function Success(props: PageProps) {
                                     )}`
                                   : ""
                               }`}
-                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
+                              className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2"
+                              target="_blank">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"
@@ -1114,7 +1117,6 @@ const DisplayLocation = ({
   );
 
 Success.isBookingPage = true;
-Success.PageWrapper = PageWrapper;
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];

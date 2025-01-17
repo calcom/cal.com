@@ -1,51 +1,28 @@
 "use client";
 
-import { parseAsArrayOf, parseAsJson, useQueryStates } from "nuqs";
-import { useMemo } from "react";
-import { z } from "zod";
+import type {
+  SingleSelectFilterValue,
+  MultiSelectFilterValue,
+  TextFilterValue,
+  FilterValue,
+  NumberFilterValue,
+} from "./types";
+import {
+  ZNumberFilterValue,
+  ZSingleSelectFilterValue,
+  ZMultiSelectFilterValue,
+  ZTextFilterValue,
+} from "./types";
 
-import type { SelectFilterValue, TextFilterValue } from "./types";
-import { ZSelectFilterValue, ZTextFilterValue } from "./types";
+export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
+  if (filterValue.data.operator === "isEmpty" && !cellValue) {
+    return true;
+  }
 
-const filterSchema = z.object({
-  f: z.string(),
-  v: z.union([ZSelectFilterValue, ZTextFilterValue]),
-});
+  if (typeof cellValue !== "string") {
+    return false;
+  }
 
-export const filtersSearchParams = {
-  activeFilters: parseAsArrayOf(parseAsJson(filterSchema.parse)).withDefault([]),
-};
-
-export function useFiltersSearchState() {
-  return useQueryStates(filtersSearchParams);
-}
-
-export function useColumnFilters() {
-  const [filtersSearchState] = useFiltersSearchState();
-  const columnFilters = useMemo(() => {
-    return (filtersSearchState.activeFilters || [])
-      .map((filter) => ({
-        id: filter.f,
-        value: filter.v,
-      }))
-      .filter((filter) => {
-        // The empty arrays in `filtersSearchState` keep the filter UI component,
-        // but we do not send them to the actual query.
-        // Otherwise, { value: [] } would result in nothing being returned.
-        if (Array.isArray(filter.value) && filter.value.length === 0) {
-          return false;
-        }
-        return true;
-      });
-  }, [filtersSearchState.activeFilters]);
-  return columnFilters;
-}
-
-export type FiltersSearchState = ReturnType<typeof useFiltersSearchState>[0];
-export type SetFiltersSearchState = ReturnType<typeof useFiltersSearchState>[1];
-export type ActiveFilter = NonNullable<FiltersSearchState["activeFilters"]>[number];
-
-export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
   switch (filterValue.data.operator) {
     case "equals":
       return cellValue.toLowerCase() === (filterValue.data.operand || "").toLowerCase();
@@ -69,14 +46,82 @@ export const textFilter = (cellValue: string, filterValue: TextFilterValue) => {
 };
 
 export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilterValue => {
-  return (
-    typeof filterValue === "object" &&
-    filterValue !== null &&
-    "type" in filterValue &&
-    filterValue.type === "text"
-  );
+  return ZTextFilterValue.safeParse(filterValue).success;
 };
 
-export const isSelectFilterValue = (filterValue: unknown): filterValue is SelectFilterValue => {
-  return Array.isArray(filterValue) && filterValue.every((item) => typeof item === "string");
+const isAllString = (array: (string | number)[]): array is string[] => {
+  return array.every((value) => typeof value === "string");
+};
+
+const isAllNumber = (array: (string | number)[]): array is number[] => {
+  return array.every((value) => typeof value === "number");
+};
+
+export const multiSelectFilter = (cellValue: unknown | undefined, filterValue: MultiSelectFilterValue) => {
+  const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
+
+  const filterValueArray = filterValue.data;
+  if (!filterValueArray || filterValueArray.length === 0) {
+    return true;
+  }
+
+  if (isAllString(filterValueArray) && isAllString(cellValueArray)) {
+    return cellValueArray.some((v) => filterValueArray.includes(v));
+  } else if (isAllNumber(filterValueArray) && isAllNumber(cellValueArray)) {
+    return cellValueArray.some((v) => filterValueArray.includes(v));
+  }
+
+  return false;
+};
+
+export const isMultiSelectFilterValue = (filterValue: unknown): filterValue is MultiSelectFilterValue => {
+  return ZMultiSelectFilterValue.safeParse(filterValue).success;
+};
+
+export const singleSelectFilter = (cellValue: unknown | undefined, filterValue: SingleSelectFilterValue) => {
+  return filterValue.data === cellValue;
+};
+
+export const isSingleSelectFilterValue = (filterValue: unknown): filterValue is SingleSelectFilterValue => {
+  return ZSingleSelectFilterValue.safeParse(filterValue).success;
+};
+
+export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue) => {
+  if (typeof cellValue !== "number") {
+    return false;
+  }
+
+  switch (filterValue.data.operator) {
+    case "eq":
+      return cellValue === filterValue.data.operand;
+    case "neq":
+      return cellValue !== filterValue.data.operand;
+    case "gt":
+      return cellValue > filterValue.data.operand;
+    case "gte":
+      return cellValue >= filterValue.data.operand;
+    case "lt":
+      return cellValue < filterValue.data.operand;
+    case "lte":
+      return cellValue <= filterValue.data.operand;
+  }
+
+  return false;
+};
+
+export const isNumberFilterValue = (filterValue: unknown): filterValue is NumberFilterValue => {
+  return ZNumberFilterValue.safeParse(filterValue).success;
+};
+
+export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
+  if (isSingleSelectFilterValue(filterValue)) {
+    return singleSelectFilter(cellValue, filterValue);
+  } else if (isMultiSelectFilterValue(filterValue)) {
+    return multiSelectFilter(cellValue, filterValue);
+  } else if (isTextFilterValue(filterValue)) {
+    return textFilter(cellValue, filterValue);
+  } else if (isNumberFilterValue(filterValue)) {
+    return numberFilter(cellValue, filterValue);
+  }
+  return false;
 };

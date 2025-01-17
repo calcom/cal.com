@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsDateString, IsOptional, IsString } from "class-validator";
 
 export class RescheduleBookingInput_2024_08_13 {
@@ -11,10 +11,9 @@ export class RescheduleBookingInput_2024_08_13 {
 
   @IsString()
   @IsOptional()
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: "User requested reschedule",
     description: "Reason for rescheduling the booking",
-    required: false,
   })
   reschedulingReason?: string;
 }
@@ -30,7 +29,7 @@ export class RescheduleSeatedBookingInput_2024_08_13 {
   @ApiProperty({
     type: String,
     example: "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1",
-    description: "Uid of the specific seat withing booking.",
+    description: "Uid of the specific seat within booking.",
   })
   @IsString()
   seatUid!: string;

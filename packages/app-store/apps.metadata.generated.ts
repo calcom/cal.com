@@ -13,6 +13,7 @@ import bolna_config_json from "./bolna/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
+import chatbase_config_json from "./chatbase/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
@@ -33,11 +34,13 @@ import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
+import granola_config_json from "./granola/config.json";
 import gtm_config_json from "./gtm/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import ics_feedcalendar_config_json from "./ics-feedcalendar/config.json";
+import insihts_config_json from "./insihts/config.json";
 import intercom_config_json from "./intercom/config.json";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -83,7 +86,6 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
-import test_config_json from "./test/config.json";
 import twipla_config_json from "./twipla/config.json";
 import typeform_config_json from "./typeform/config.json";
 import umami_config_json from "./umami/config.json";
@@ -113,6 +115,7 @@ export const appStoreMetadata = {
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   campsite: campsite_config_json,
+  chatbase: chatbase_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
   cron: cron_config_json,
@@ -133,11 +136,13 @@ export const appStoreMetadata = {
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
+  granola: granola_config_json,
   gtm: gtm_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,
   "ics-feedcalendar": ics_feedcalendar_config_json,
+  insihts: insihts_config_json,
   intercom: intercom_config_json,
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
@@ -183,7 +188,6 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
-  test: test_config_json,
   twipla: twipla_config_json,
   typeform: typeform_config_json,
   umami: umami_config_json,

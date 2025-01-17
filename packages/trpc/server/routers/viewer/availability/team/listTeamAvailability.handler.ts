@@ -67,9 +67,7 @@ async function getTeamMembers({
     },
     cursor: cursor ? { id: cursor } : undefined,
     take: limit + 1, // We take +1 as itll be used for the next cursor
-    orderBy: {
-      id: "asc",
-    },
+    orderBy: [{ userId: "asc" }, { id: "asc" }], // Prisma require a unique field for tie breaking duplicate value for pagination
     distinct: ["userId"],
   });
 

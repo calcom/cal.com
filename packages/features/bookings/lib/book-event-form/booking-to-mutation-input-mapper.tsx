@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
@@ -52,7 +53,9 @@ export const mapBookingToMutationInput = ({
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
   const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
   const reroutingFormResponses = searchParams.get("cal.reroutingFormResponses");
-  const isBookingDryRun = searchParams.get("cal.isBookingDryRun") === "true";
+  const _isDryRun = isBookingDryRun(searchParams);
+  const _cacheParam = searchParams?.get("cal.cache");
+  const _shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
 
   return {
     ...values,
@@ -82,7 +85,8 @@ export const mapBookingToMutationInput = ({
     skipContactOwner,
     // In case of rerouting, the form responses are actually the responses that we need to update.
     reroutingFormResponses: reroutingFormResponses ? JSON.parse(reroutingFormResponses) : undefined,
-    _isDryRun: isBookingDryRun,
+    _isDryRun,
+    _shouldServeCache,
   };
 };
 

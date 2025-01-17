@@ -2,10 +2,11 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__/OAuthManager";
 import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
-import { expect, test, beforeEach, vi } from "vitest";
+import { expect, describe, test, beforeEach, vi } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import CalendarService from "./CalendarService";
 
@@ -34,6 +35,7 @@ vi.mock("@googleapis/calendar", () => calendarMock);
 beforeEach(() => {
   vi.clearAllMocks();
   setCredentialsMock.mockClear();
+  oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
   calendarMock.calendar_v3.Calendar.mockClear();
   adminMock.admin_directory_v1.Admin.mockClear();
 });
@@ -59,6 +61,81 @@ const testSelectedCalendar = {
   integration: "google_calendar",
   externalId: "example@cal.com",
 };
+
+function expectGoogleSubscriptionToHaveOccurredAndClearMock({ calendarId }: { calendarId: string }) {
+  expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledTimes(1);
+  expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledWith(
+    expect.objectContaining({
+      calendarId,
+      requestBody: expect.objectContaining({
+        type: "web_hook",
+        token: process.env.GOOGLE_WEBHOOK_TOKEN,
+      }),
+    })
+  );
+  calendarMock.calendar_v3.Calendar().events.watch.mockClear();
+}
+
+function expectGoogleSubscriptionToNotHaveOccurredAndClearMock() {
+  expect(calendarMock.calendar_v3.Calendar().events.watch).not.toHaveBeenCalled();
+  calendarMock.calendar_v3.Calendar().events.watch.mockClear();
+}
+
+function expectGoogleUnsubscriptionToHaveOccurredAndClearMock(
+  channels: {
+    resourceId: string;
+    channelId: string;
+  }[]
+) {
+  expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledTimes(1);
+  channels.forEach((channel) => {
+    expect(calendarMock.calendar_v3.Calendar().channels.stop).toHaveBeenCalledWith({
+      requestBody: {
+        resourceId: channel.resourceId,
+        id: channel.channelId,
+      },
+    });
+  });
+  calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
+}
+
+function expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock() {
+  expect(calendarMock.calendar_v3.Calendar().channels.stop).not.toHaveBeenCalled();
+  calendarMock.calendar_v3.Calendar().channels.stop.mockClear();
+}
+
+async function expectSelectedCalendarToHaveGoogleChannelProps(
+  id: string,
+  googleChannelProps: {
+    googleChannelId: string;
+    googleChannelKind: string;
+    googleChannelResourceId: string;
+    googleChannelResourceUri: string;
+    googleChannelExpiration: string;
+  }
+) {
+  const selectedCalendar = await SelectedCalendarRepository.findById(id);
+
+  expect(selectedCalendar).toEqual(expect.objectContaining(googleChannelProps));
+}
+
+async function expectSelectedCalendarToNotHaveGoogleChannelProps(selectedCalendarId: string) {
+  const selectedCalendar = await SelectedCalendarRepository.findFirst({
+    where: {
+      id: selectedCalendarId,
+    },
+  });
+
+  expect(selectedCalendar).toEqual(
+    expect.objectContaining({
+      googleChannelId: null,
+      googleChannelKind: null,
+      googleChannelResourceId: null,
+      googleChannelResourceUri: null,
+      googleChannelExpiration: null,
+    })
+  );
+}
 
 test("Calendar Cache is being read on cache HIT", async () => {
   const credentialInDb1 = await createCredentialInDb();
@@ -124,54 +201,318 @@ test("Calendar Cache is being ignored on cache MISS", async () => {
   expect(cachedAvailability).toBeNull();
 });
 
-test("Calendar can be watched and unwatched", async () => {
-  const credentialInDb1 = await createCredentialInDb();
-  oAuthManagerMock.OAuthManager = defaultMockOAuthManager;
-  const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
-  await calendarCache.watchCalendar({ calendarId: testSelectedCalendar.externalId });
-  const watchedCalendar = await prismock.selectedCalendar.findFirst({
+async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
+  const caches = await prismock.calendarCache.findMany({
     where: {
-      userId: credentialInDb1.userId!,
-      externalId: testSelectedCalendar.externalId,
-      integration: "google_calendar",
-    },
-  });
-  expect(watchedCalendar).toEqual({
-    userId: 1,
-    integration: "google_calendar",
-    externalId: "example@cal.com",
-    defaultReminder: 30,
-    credentialId: 1,
-    domainWideDelegationCredentialId: null,
-    googleChannelId: "mock-channel-id",
-    googleChannelKind: "api#channel",
-    googleChannelResourceId: "mock-resource-id",
-    googleChannelResourceUri: "mock-resource-uri",
-    googleChannelExpiration: "1111111111",
-  });
-  await calendarCache.unwatchCalendar({ calendarId: testSelectedCalendar.externalId });
-  // There's a bug in prismock where upsert creates duplicate records so we need to acces the second element
-  const [, unWatchedCalendar] = await prismock.selectedCalendar.findMany({
-    where: {
-      userId: credentialInDb1.userId!,
-      externalId: testSelectedCalendar.externalId,
-      integration: "google_calendar",
+      credentialId,
     },
   });
 
-  expect(unWatchedCalendar).toEqual({
-    userId: 1,
-    integration: "google_calendar",
-    externalId: "example@cal.com",
-    credentialId: 1,
-    domainWideDelegationCredentialId: null,
-    googleChannelId: null,
-    googleChannelKind: null,
-    googleChannelResourceId: null,
-    googleChannelResourceUri: null,
-    googleChannelExpiration: null,
-    defaultReminder: 30,
+  expect(caches).toHaveLength(0);
+}
+
+async function expectCacheToBeSet({
+  credentialId,
+  itemsInKey,
+}: {
+  credentialId: number;
+  itemsInKey: { id: string }[];
+}) {
+  const caches = await prismock.calendarCache.findMany({
+    where: {
+      credentialId,
+    },
   });
+
+  expect(caches).toHaveLength(1);
+  expect(JSON.parse(caches[0].key)).toEqual(
+    expect.objectContaining({
+      items: itemsInKey,
+    })
+  );
+}
+
+describe("Watching and unwatching calendar", () => {
+  test("Calendar can be watched and unwatched", async () => {
+    const credentialInDb1 = await createCredentialInDb();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+    await calendarCache.watchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+    const watchedCalendar = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: credentialInDb1.userId!,
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+      },
+    });
+
+    expect(watchedCalendar).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        domainWideDelegationCredentialId: null,
+        googleChannelId: "mock-channel-id",
+        googleChannelKind: "api#channel",
+        googleChannelResourceId: "mock-resource-id",
+        googleChannelResourceUri: "mock-resource-uri",
+        googleChannelExpiration: "1111111111",
+      })
+    );
+
+    expect(watchedCalendar?.id).toBeDefined();
+
+    await calendarCache.unwatchCalendar({
+      calendarId: testSelectedCalendar.externalId,
+      eventTypeIds: [null],
+    });
+    const calendarAfterUnwatch = await prismock.selectedCalendar.findFirst({
+      where: {
+        userId: credentialInDb1.userId!,
+        externalId: testSelectedCalendar.externalId,
+        integration: "google_calendar",
+      },
+    });
+
+    expect(calendarAfterUnwatch).toEqual(
+      expect.objectContaining({
+        userId: 1,
+        eventTypeId: null,
+        integration: "google_calendar",
+        externalId: "example@cal.com",
+        credentialId: 1,
+        domainWideDelegationCredentialId: null,
+        googleChannelId: null,
+        googleChannelKind: null,
+        googleChannelResourceId: null,
+        googleChannelResourceUri: null,
+        googleChannelExpiration: null,
+      })
+    );
+    expect(calendarAfterUnwatch?.id).toBeDefined();
+  });
+
+  test("watchCalendar should not do google subscription if already subscribed for the same calendarId", async () => {
+    const credentialInDb1 = await createCredentialInDb();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb1.userId!,
+      externalId: "externalId@cal.com",
+      integration: "google_calendar",
+      eventTypeId: null,
+      credentialId: credentialInDb1.id,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      userId: credentialInDb1.userId!,
+      externalId: "externalId@cal.com",
+      integration: "google_calendar",
+      eventTypeId: 1,
+      credentialId: credentialInDb1.id,
+    });
+
+    await calendarCache.watchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+
+    expectGoogleSubscriptionToHaveOccurredAndClearMock({
+      calendarId: userLevelCalendar.externalId,
+    });
+
+    await expectSelectedCalendarToHaveGoogleChannelProps(userLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
+
+    // Watch different selectedcalendar with same externalId and credentialId
+    await calendarCache.watchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    expectGoogleSubscriptionToNotHaveOccurredAndClearMock();
+    // Google Subscription didn't occur but still the eventTypeLevelCalendar has the same googleChannelProps
+    await expectSelectedCalendarToHaveGoogleChannelProps(eventTypeLevelCalendar.id, {
+      googleChannelId: "mock-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "mock-resource-id",
+      googleChannelResourceUri: "mock-resource-uri",
+      googleChannelExpiration: "1111111111",
+    });
+  });
+
+  test("unwatchCalendar should not unsubscribe from google if there is another selectedCalendar with same externalId and credentialId", async () => {
+    const credentialInDb1 = await createCredentialInDb();
+    const calendarCache = await CalendarCache.initFromCredentialId(credentialInDb1.id);
+
+    const concernedCache = await prismock.calendarCache.create({
+      data: {
+        key: "test-key",
+        value: "test-value",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: credentialInDb1.id,
+      },
+    });
+
+    const someOtherCache = await prismock.calendarCache.create({
+      data: {
+        key: JSON.stringify({
+          items: [{ id: "someOtherExternalId@cal.com" }],
+        }),
+        value: "test-value-2",
+        expiresAt: new Date(Date.now() + 100000000),
+        credentialId: 999,
+      },
+    });
+
+    const googleChannelProps = {
+      googleChannelId: "test-channel-id",
+      googleChannelKind: "api#channel",
+      googleChannelResourceId: "test-resource-id",
+      googleChannelResourceUri: "test-resource-uri",
+      googleChannelExpiration: "1111111111",
+    };
+
+    const commonProps = {
+      userId: credentialInDb1.userId!,
+      externalId: "externalId@cal.com",
+      integration: "google_calendar",
+      credentialId: credentialInDb1.id,
+      ...googleChannelProps,
+    };
+
+    const userLevelCalendar = await SelectedCalendarRepository.create({
+      ...commonProps,
+      eventTypeId: null,
+    });
+
+    const eventTypeLevelCalendar = await SelectedCalendarRepository.create({
+      ...commonProps,
+      eventTypeId: 1,
+    });
+
+    const eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId =
+      await SelectedCalendarRepository.create({
+        ...commonProps,
+        externalId: "externalId2@cal.com",
+        eventTypeId: 2,
+      });
+
+    await calendarCache.unwatchCalendar({
+      calendarId: userLevelCalendar.externalId,
+      eventTypeIds: [userLevelCalendar.eventTypeId],
+    });
+    // There is another selectedCalendar with same externalId and credentialId, so actual unsubscription does not happen
+    expectGoogleUnsubscriptionToNotHaveOccurredAndClearMock();
+    await expectSelectedCalendarToNotHaveGoogleChannelProps(userLevelCalendar.id);
+
+    await calendarCache.unwatchCalendar({
+      calendarId: eventTypeLevelCalendar.externalId,
+      eventTypeIds: [eventTypeLevelCalendar.eventTypeId],
+    });
+
+    expectGoogleUnsubscriptionToHaveOccurredAndClearMock([
+      {
+        resourceId: "test-resource-id",
+        channelId: "test-channel-id",
+      },
+    ]);
+
+    // Concerned cache will just have remaining externalIds
+    expectCacheToBeSet({
+      credentialId: concernedCache.credentialId,
+      itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
+    });
+
+    expectCacheToBeSet({
+      credentialId: someOtherCache.credentialId,
+      itemsInKey: JSON.parse(someOtherCache.key).items,
+    });
+
+    await expectSelectedCalendarToNotHaveGoogleChannelProps(eventTypeLevelCalendar.id);
+
+    // Some other selectedCalendar stays unaffected
+    await expectSelectedCalendarToHaveGoogleChannelProps(
+      eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.id,
+      googleChannelProps
+    );
+  });
+});
+test("fetchAvailabilityAndSetCache should fetch and cache availability for selected calendars grouped by eventTypeId", async () => {
+  const credentialInDb = await createCredentialInDb();
+  const calendarService = new CalendarService(credentialInDb);
+
+  const selectedCalendars = [
+    {
+      externalId: "calendar1@test.com",
+      eventTypeId: 1,
+    },
+    {
+      externalId: "calendar2@test.com",
+      eventTypeId: 1,
+    },
+    {
+      externalId: "calendar1@test.com",
+      eventTypeId: 2,
+    },
+    {
+      externalId: "calendar1@test.com",
+      eventTypeId: null,
+    },
+    {
+      externalId: "calendar2@test.com",
+      eventTypeId: null,
+    },
+  ];
+
+  const mockAvailabilityData = { busy: [] };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  vi.spyOn(calendarService, "fetchAvailability").mockResolvedValue(mockAvailabilityData as any);
+  const setAvailabilityInCacheSpy = vi.spyOn(calendarService, "setAvailabilityInCache");
+
+  await calendarService.fetchAvailabilityAndSetCache(selectedCalendars);
+
+  // Should make 2 calls - one for each unique eventTypeId
+  expect(calendarService.fetchAvailability).toHaveBeenCalledTimes(3);
+
+  // First call for eventTypeId 1 calendars
+  expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(1, {
+    timeMin: expect.any(String),
+    timeMax: expect.any(String),
+    items: [{ id: "calendar1@test.com" }, { id: "calendar2@test.com" }],
+  });
+
+  // Second call for eventTypeId 2 calendar
+  expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(2, {
+    timeMin: expect.any(String),
+    timeMax: expect.any(String),
+    items: [{ id: "calendar1@test.com" }],
+  });
+
+  // Second call for eventTypeId 2 calendar
+  expect(calendarService.fetchAvailability).toHaveBeenNthCalledWith(3, {
+    timeMin: expect.any(String),
+    timeMax: expect.any(String),
+    items: [{ id: "calendar1@test.com" }, { id: "calendar2@test.com" }],
+  });
+
+  // Should cache results for both calls
+  expect(setAvailabilityInCacheSpy).toHaveBeenCalledTimes(3);
+  expect(setAvailabilityInCacheSpy).toHaveBeenCalledWith(
+    expect.objectContaining({
+      items: expect.any(Array),
+    }),
+    mockAvailabilityData
+  );
 });
 
 test("`updateTokenObject` should update credential in DB as well as myGoogleAuth", async () => {

@@ -16,27 +16,46 @@ export function getBasicMockRequestDataForBooking() {
     hashedLink: null,
   };
 }
+
+type CommonPropsMockRequestData = {
+  rescheduleUid?: string;
+  bookingUid?: string;
+  recurringEventId?: string;
+  recurringCount?: number;
+  rescheduledBy?: string;
+  cancelledBy?: string;
+  schedulingType?: SchedulingType;
+  responses: {
+    email: string;
+    name: string;
+    location?: { optionValue: ""; value: string };
+    attendeePhoneNumber?: string;
+    smsReminderNumber?: string;
+  };
+};
+
 export function getMockRequestDataForBooking({
   data,
 }: {
   data: Partial<ReturnType<typeof getBasicMockRequestDataForBooking>> & {
     eventTypeId: number;
     user?: string;
-    rescheduleUid?: string;
-    bookingUid?: string;
-    recurringEventId?: string;
-    recurringCount?: number;
-    rescheduledBy?: string;
-    cancelledBy?: string;
-    schedulingType?: SchedulingType;
-    responses: {
-      email: string;
-      name: string;
-      location?: { optionValue: ""; value: string };
-      attendeePhoneNumber?: string;
-      smsReminderNumber?: string;
-    };
+  } & CommonPropsMockRequestData;
+}) {
+  return {
+    ...getBasicMockRequestDataForBooking(),
+    ...data,
   };
+}
+
+export function getMockRequestDataForDynamicGroupBooking({
+  data,
+}: {
+  data: Partial<ReturnType<typeof getBasicMockRequestDataForBooking>> & {
+    eventTypeId: 0;
+    eventTypeSlug: string;
+    user: string;
+  } & CommonPropsMockRequestData;
 }) {
   return {
     ...getBasicMockRequestDataForBooking(),

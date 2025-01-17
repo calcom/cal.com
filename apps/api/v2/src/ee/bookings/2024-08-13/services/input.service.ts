@@ -1,7 +1,7 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import {
   bookingResponsesSchema,
-  seatedBookingResponsesSchema,
+  seatedBookingDataSchema,
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
@@ -146,6 +146,8 @@ export class InputBookingsService_2024_08_13 {
     );
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
+    const guests = inputBooking.guests;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -154,15 +156,22 @@ export class InputBookingsService_2024_08_13 {
       language: inputBooking.attendee.language || "en",
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
-      guests: inputBooking.guests,
+      guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
+          },
     };
   }
 
@@ -246,6 +255,8 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    const guests = inputBooking.guests;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -258,15 +269,16 @@ export class InputBookingsService_2024_08_13 {
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
-        guests: inputBooking.guests,
+        guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
               name: inputBooking.attendee.name,
               email: inputBooking.attendee.email,
+              guests,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
         schedulingType: eventType.schedulingType,
       });
 
@@ -340,7 +352,7 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
+    const { responses: bookingResponses } = seatedBookingDataSchema.parse(seat.data);
     const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {

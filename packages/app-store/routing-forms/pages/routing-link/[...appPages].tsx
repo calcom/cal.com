@@ -92,7 +92,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
-  const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
+  const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
     onSuccess: async (data) => {
       const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;

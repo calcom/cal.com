@@ -15,6 +15,7 @@ const selectedCalendarSelectSchema = z.object({
   externalId: z.string(),
   credentialId: z.coerce.number(),
   defaultReminder: z.number().optional(),
+  eventTypeId: z.coerce.number().nullish(),
 });
 
 /** Shared authentication middleware for GET, DELETE and POST requests */
@@ -41,15 +42,15 @@ type CustomNextApiRequest = NextApiRequest & {
 async function postHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const { integration, externalId, credentialId, defaultReminder } = selectedCalendarSelectSchema.parse(
-    req.body
-  );
+  const { integration, externalId, credentialId, eventTypeId, defaultReminder } =
+    selectedCalendarSelectSchema.parse(req.body);
   await SelectedCalendarRepository.upsert({
     userId: user.id,
     integration,
     externalId,
     credentialId,
     defaultReminder: defaultReminder || 30,
+    eventTypeId: eventTypeId ?? null,
   });
 
   return { message: "Calendar Selection Saved" };
@@ -58,18 +59,27 @@ async function postHandler(req: CustomNextApiRequest) {
 async function deleteHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
-  const { integration, externalId, credentialId } = selectedCalendarSelectSchema.parse(req.query);
+  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(
+    req.query
+  );
   const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-  await calendarCacheRepository.unwatchCalendar({ calendarId: externalId });
+  await calendarCacheRepository.unwatchCalendar({
+    calendarId: externalId,
+    eventTypeIds: [eventTypeId ?? null],
+  });
   await SelectedCalendarRepository.delete({
-    userId: user.id,
-    externalId,
-    integration,
+    where: {
+      userId: user.id,
+      externalId,
+      integration,
+      eventTypeId: eventTypeId ?? null,
+    },
   });
 
   return { message: "Calendar Selection Saved" };
 }
 
+// TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
 async function getHandler(req: CustomNextApiRequest) {
   if (!req.userWithCredentials) throw new HttpError({ statusCode: 401, message: "Not authenticated" });
   const user = req.userWithCredentials;
@@ -80,7 +90,10 @@ async function getHandler(req: CustomNextApiRequest) {
   // get user's credentials + their connected integrations
   const calendarCredentials = getCalendarCredentials(user.credentials);
   // get all the connected integrations' calendars (from third party)
-  const { connectedCalendars } = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
+  const { connectedCalendars } = await getConnectedCalendars(
+    calendarCredentials,
+    user.userLevelSelectedCalendars
+  );
   const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
   const selectableCalendars = calendars.map((cal) => {
     return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };

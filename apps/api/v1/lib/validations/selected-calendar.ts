@@ -11,12 +11,26 @@ export const schemaSelectedCalendarPublic = SelectedCalendar.omit({}).extend({
   defaultReminder: SelectedCalendar.shape.defaultReminder.optional(),
 });
 
-export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams.partial({
-  userId: true,
-  defaultReminder: true,
-});
+export const schemaSelectedCalendarBodyParams = schemaSelectedCalendarBaseBodyParams
+  .partial({
+    userId: true,
+    defaultReminder: true,
+  })
+  .omit({
+    // id will be set by the database
+    id: true,
+    // No eventTypeId support in API v1
+    eventTypeId: true,
+  });
 
-export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams.partial();
+export const schemaSelectedCalendarUpdateBodyParams = schemaSelectedCalendarBaseBodyParams
+  .omit({
+    // id is decided by DB
+    id: true,
+    // No eventTypeId support in API v1
+    eventTypeId: true,
+  })
+  .partial();
 
 export const selectedCalendarIdSchema = schemaQueryIdAsString.transform((v, ctx) => {
   /** We can assume the first part is the userId since it's an integer */

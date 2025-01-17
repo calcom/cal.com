@@ -1,16 +1,40 @@
-import type { InputBookingField_2024_06_14 } from "@calcom/platform-types";
+import type {
+  InputBookingField_2024_06_14,
+  LocationDefaultFieldOutput_2024_06_14,
+  PhoneDefaultFieldOutput_2024_06_14,
+  MultiSelectFieldInput_2024_06_14,
+  CheckboxGroupFieldInput_2024_06_14,
+  RadioGroupFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
+} from "@calcom/platform-types";
 
 import {
   systemBeforeFieldEmail,
   systemBeforeFieldName,
+  systemBeforeFieldLocation,
+  systemBeforeFieldPhone,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
+  systemAfterFieldRescheduleReason,
   type CustomField,
   type SystemField,
+  systemBeforeFieldNameSplit,
 } from "../internal-to-api";
 
-export function transformBookingFieldsApiToInternal(
-  inputBookingFields: InputBookingField_2024_06_14[]
-): (SystemField | CustomField)[] {
-  const customBookingFields = inputBookingFields.map((field) => {
+type InputBookingField =
+  | InputBookingField_2024_06_14
+  | LocationDefaultFieldOutput_2024_06_14
+  | PhoneDefaultFieldOutput_2024_06_14;
+
+export function transformBookingFieldsApiToInternal(bookingFields: InputBookingField[]) {
+  const customBookingFields = bookingFields.map((field) => {
     const baseProperties = getBaseProperties(field);
 
     const options =
@@ -29,8 +53,47 @@ export function transformBookingFieldsApiToInternal(
   return customBookingFields;
 }
 
-function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | CustomField {
-  if (field.type === "name") {
+function getBaseProperties(field: InputBookingField): CustomField | SystemField {
+  if (fieldIsSelect(field)) {
+    return {
+      name: field.slug,
+      type: field.type,
+      label: field.label,
+      sources: [
+        {
+          id: "user",
+          type: "user",
+          label: "User",
+          fieldRequired: true,
+        },
+      ],
+      editable: "user",
+      required: field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: "hidden" in field ? field.hidden : false,
+    };
+  }
+
+  if (fieldIsDefaultSystemLocation(field)) {
+    return {
+      ...systemBeforeFieldLocation,
+      required: field.required,
+      hidden: field.hidden,
+    };
+  }
+
+  if (fieldIsDefaultAttendeePhone(field)) {
+    return {
+      ...systemBeforeFieldPhone,
+      required: field.required,
+      hidden: field.hidden,
+      label: field.label,
+      placeholder: field.placeholder,
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemName(field)) {
     const systemName = { ...systemBeforeFieldName };
     if (systemName.variantsConfig?.variants?.fullName?.fields?.[0]) {
       systemName.variantsConfig.variants.fullName.fields[0].label = field.label;
@@ -46,16 +109,88 @@ function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | C
 
     return {
       ...systemName,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
-  if (field.type === "email") {
+  if (fieldIsCustomSystemNameSplit(field)) {
+    const systemNameSplit = { ...systemBeforeFieldNameSplit };
+
+    const firstNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "firstName"
+    );
+    const lastNameField = systemNameSplit.variantsConfig?.variants?.firstAndLastName?.fields?.find(
+      (field) => field.name === "lastName"
+    );
+
+    if (firstNameField) {
+      firstNameField.label = field.firstNameLabel || "";
+      firstNameField.placeholder = field.firstNamePlaceholder || "";
+    }
+
+    if (lastNameField) {
+      lastNameField.label = field.lastNameLabel || "";
+      lastNameField.placeholder = field.lastNamePlaceholder || "";
+      lastNameField.required = !!field.lastNameRequired;
+    }
+
+    return {
+      ...systemNameSplit,
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemEmail(field)) {
     return {
       ...systemBeforeFieldEmail,
       label: field.label,
       placeholder: field.placeholder,
-      disableOnPrefill: field.disableOnPrefill,
+      disableOnPrefill: !!field.disableOnPrefill,
+      required: field.required,
+    };
+  }
+
+  if (fieldIsCustomSystemRescheduleReason(field)) {
+    return {
+      ...systemAfterFieldRescheduleReason,
+      required: !!field.required,
+      hidden: !!field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemTitle(field)) {
+    return {
+      ...systemAfterFieldTitle,
+      required: !!field.required,
+      hidden: !!field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemNotes(field)) {
+    return {
+      ...systemAfterFieldNotes,
+      required: !!field.required,
+      hidden: !!field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: !!field.disableOnPrefill,
+    };
+  }
+
+  if (fieldIsCustomSystemGuests(field)) {
+    return {
+      ...systemAfterFieldGuests,
+      required: !!field.required,
+      hidden: !!field.hidden,
+      label: field.label,
+      placeholder: "placeholder" in field ? field.placeholder : "",
+      disableOnPrefill: !!field.disableOnPrefill,
     };
   }
 
@@ -74,15 +209,16 @@ function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | C
         },
       ],
       editable: "user",
-      required: field.required,
-      disableOnPrefill: field.disableOnPrefill,
+      required: !!field.required,
+      disableOnPrefill: !!field.disableOnPrefill,
+      hidden: !!field.hidden,
     };
   }
 
   return {
     name: field.slug,
     type: field.type,
-    label: field.label,
+    label: "label" in field ? field.label : "",
     sources: [
       {
         id: "user",
@@ -92,10 +228,64 @@ function getBaseProperties(field: InputBookingField_2024_06_14): SystemField | C
       },
     ],
     editable: "user",
-    required: field.required,
-    placeholder: "placeholder" in field && field.placeholder ? field.placeholder : "",
-    disableOnPrefill: field.disableOnPrefill,
+    required: !!field.required,
+    placeholder: field.placeholder,
+    disableOnPrefill: !!field.disableOnPrefill,
+    hidden: !!field.hidden,
   };
+}
+
+function fieldIsCustomSystemName(field: InputBookingField): field is NameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "name";
+}
+
+function fieldIsCustomSystemNameSplit(
+  field: InputBookingField
+): field is SplitNameDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "splitName";
+}
+
+function fieldIsCustomSystemEmail(field: InputBookingField): field is EmailDefaultFieldInput_2024_06_14 {
+  return "type" in field && field.type === "email";
+}
+
+function fieldIsCustomSystemTitle(field: InputBookingField): field is TitleDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "title";
+}
+
+function fieldIsCustomSystemNotes(field: InputBookingField): field is NotesDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "notes";
+}
+
+function fieldIsCustomSystemGuests(field: InputBookingField): field is GuestsDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "guests";
+}
+
+function fieldIsCustomSystemRescheduleReason(
+  field: InputBookingField
+): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "rescheduleReason";
+}
+
+function fieldIsDefaultAttendeePhone(field: InputBookingField): field is PhoneDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "attendeePhoneNumber";
+}
+
+function fieldIsDefaultSystemLocation(
+  field: InputBookingField
+): field is LocationDefaultFieldOutput_2024_06_14 {
+  return "slug" in field && field.slug === "location";
+}
+
+function fieldIsSelect(
+  field: InputBookingField
+): field is
+  | CheckboxGroupFieldInput_2024_06_14
+  | RadioGroupFieldInput_2024_06_14
+  | MultiSelectFieldInput_2024_06_14 {
+  return (
+    "type" in field && (field.type === "checkbox" || field.type === "radio" || field.type === "multiselect")
+  );
 }
 
 export function transformSelectOptionsApiToInternal(options: string[]) {

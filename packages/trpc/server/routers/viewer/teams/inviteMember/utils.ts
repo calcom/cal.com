@@ -298,12 +298,13 @@ export async function createNewUsersConnectToOrgIfExists({
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
         const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
         const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
+        const [domainName, TLD] = emailDomain.split(".");
 
         // An org member can't change username during signup, so we set the username
         const orgMemberUsername =
           emailDomain === autoAcceptEmailDomain
             ? slugify(emailUser)
-            : slugify(`${emailUser}-${emailDomain.split(".")[0]}`);
+            : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
 
         // As a regular team member is allowed to change username during signup, we don't set any username for him
         const regularTeamMemberUsername = null;

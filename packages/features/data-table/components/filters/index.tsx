@@ -1,7 +1,9 @@
 "use client";
 
 import { type Table } from "@tanstack/react-table";
-import { forwardRef, useState, useMemo } from "react";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
+import { forwardRef, useState, useMemo, useCallback, Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,8 +24,8 @@ import {
   Icon,
 } from "@calcom/ui";
 
-import type { FilterableColumn } from "../../lib/types";
-import { useFiltersSearchState } from "../../lib/utils";
+import { useDataTable } from "../../hooks";
+import type { FilterableColumn, ExternalFilter } from "../../lib/types";
 import { FilterOptions } from "./FilterOptions";
 
 interface ColumnVisiblityProps<TData> {
@@ -118,37 +120,29 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 ) => ReturnType<typeof ColumnVisibilityButtonComponent>;
 
 // Filters
-interface FilterButtonProps<TData> {
+interface AddFilterButtonProps<TData> {
   table: Table<TData>;
-  omit?: string[];
+  externalFilters?: ExternalFilter[];
 }
 
-function FilterButtonComponent<TData>(
-  { table, omit }: FilterButtonProps<TData>,
+function AddFilterButtonComponent<TData>(
+  { table, externalFilters }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
-  const [_state, _setState] = useFiltersSearchState();
+  const { activeFilters, setActiveFilters, displayedExternalFilters, setDisplayedExternalFilters } =
+    useDataTable();
 
-  const activeFilters = _state.activeFilters;
-  const columns = table
-    .getAllColumns()
-    .filter((column) => column.getCanFilter())
-    .filter((column) => !omit?.includes(column.id));
+  const filterableColumns = useFilterableColumns(table);
 
-  const filterableColumns = useMemo(() => {
-    return columns.map((column) => ({
-      id: column.id,
-      title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
-      options: column.getFacetedUniqueValues(),
-    }));
-  }, [columns]);
-
-  const handleAddFilter = (columnId: string) => {
-    if (!activeFilters?.some((filter) => filter.f === columnId)) {
-      _setState({ activeFilters: [...activeFilters, { f: columnId, v: [] }] });
-    }
-  };
+  const handleAddFilter = useCallback(
+    (columnId: string) => {
+      if (!activeFilters?.some((filter) => filter.f === columnId)) {
+        setActiveFilters([...activeFilters, { f: columnId, v: undefined }]);
+      }
+    },
+    [activeFilters, setActiveFilters]
+  );
 
   return (
     <div className="flex items-center space-x-2">
@@ -167,11 +161,24 @@ function FilterButtonComponent<TData>(
               {filterableColumns.map((column) => {
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
-                  <CommandItem key={column.id} onSelect={() => handleAddFilter(column.id)}>
-                    {column.title}
+                  <CommandItem
+                    key={column.id}
+                    onSelect={() => handleAddFilter(column.id)}
+                    className="px-4 py-2">
+                    {startCase(column.title)}
                   </CommandItem>
                 );
               })}
+              {(externalFilters || [])
+                .filter((filter) => !displayedExternalFilters.includes(filter.key))
+                .map((filter, index) => (
+                  <CommandItem
+                    key={index}
+                    onSelect={() => setDisplayedExternalFilters((prev) => [...prev, filter.key])}
+                    className="px-4 py-2">
+                    {t(filter.titleKey)}
+                  </CommandItem>
+                ))}
             </CommandList>
           </Command>
         </PopoverContent>
@@ -180,59 +187,91 @@ function FilterButtonComponent<TData>(
   );
 }
 
-const FilterButton = forwardRef(FilterButtonComponent) as <TData>(
-  props: FilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement>; omit?: string[] }
-) => ReturnType<typeof FilterButtonComponent>;
+function useFilterableColumns<TData>(table: Table<TData>) {
+  const columns = useMemo(
+    () => table.getAllColumns().filter((column) => column.getCanFilter()),
+    [table.getAllColumns()]
+  );
+
+  const filterableColumns = useMemo<FilterableColumn[]>(
+    () =>
+      columns
+        .map((column) => {
+          const type = column.columnDef.meta?.filter?.type || "multi_select";
+          const base = {
+            id: column.id,
+            title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
+            ...(column.columnDef.meta?.filter || {}),
+            type,
+          };
+          if (type === "multi_select" || type === "single_select") {
+            return {
+              ...base,
+              options: column.getFacetedUniqueValues(),
+            };
+          } else {
+            return {
+              ...base,
+            };
+          }
+        })
+        .filter((column): column is FilterableColumn => Boolean(column)),
+    [columns]
+  );
+
+  return filterableColumns;
+}
+
+const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
+  props: AddFilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
+) => ReturnType<typeof AddFilterButtonComponent>;
 
 // Add the new ActiveFilters component
 interface ActiveFiltersProps<TData> {
   table: Table<TData>;
+  externalFilters?: ExternalFilter[];
 }
 
-function ActiveFilters<TData>({ table }: ActiveFiltersProps<TData>) {
-  const [_state, _setState] = useFiltersSearchState();
+const filterIcons = {
+  text: "file-text",
+  number: "binary",
+  multi_select: "layers",
+  single_select: "disc",
+} as const;
 
-  const columns = table.getAllColumns().filter((column) => column.getCanFilter());
-
-  const filterableColumns = useMemo<FilterableColumn[]>(() => {
-    return columns.map((column) => {
-      return {
-        id: column.id,
-        title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
-        filterType: column.columnDef.meta?.filterType || "select",
-        options: column.getFacetedUniqueValues(),
-      };
-    });
-  }, [columns]);
+function ActiveFilters<TData>({ table, externalFilters }: ActiveFiltersProps<TData>) {
+  const { activeFilters, displayedExternalFilters } = useDataTable();
+  const filterableColumns = useFilterableColumns(table);
 
   return (
     <>
-      {(_state.activeFilters || []).map((filter) => {
+      {activeFilters.map((filter) => {
         const column = filterableColumns.find((col) => col.id === filter.f);
         if (!column) return null;
+        const icon = column.icon || filterIcons[column.type];
         return (
           <Popover key={column.id}>
             <PopoverTrigger asChild>
               <Button color="secondary">
-                {column.title}
+                <Icon name={icon} className="mr-2 h-4 w-4" />
+                {startCase(column.title)}
                 <Icon name="chevron-down" className="ml-2 h-4 w-4" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0" align="start">
-              <FilterOptions
-                column={column}
-                filter={filter}
-                state={_state}
-                setState={_setState}
-                table={table}
-              />
+              <FilterOptions column={column} />
             </PopoverContent>
           </Popover>
         );
+      })}
+      {(displayedExternalFilters || []).map((key) => {
+        const filter = externalFilters?.find((filter) => filter.key === key);
+        if (!filter) return null;
+        return <Fragment key={key}>{filter.component()}</Fragment>;
       })}
     </>
   );
 }
 
 // Update the export to include ActiveFilters
-export const DataTableFilters = { ColumnVisibilityButton, FilterButton, ActiveFilters };
+export const DataTableFilters = { ColumnVisibilityButton, AddFilterButton, ActiveFilters };

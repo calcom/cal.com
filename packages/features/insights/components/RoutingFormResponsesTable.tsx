@@ -8,15 +8,30 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
+// eslint-disable-next-line no-restricted-imports
+import startCase from "lodash/startCase";
 import Link from "next/link";
-import { useRef, useMemo, useId } from "react";
+import { useMemo, useId } from "react";
+import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { DataTable, useFetchMoreOnBottomReached } from "@calcom/features/data-table";
+import type { ExternalFilter } from "@calcom/features/data-table";
+import {
+  DataTableWrapper,
+  DataTableFilters,
+  DataTableProvider,
+  DataTableSkeleton,
+  useColumnFilters,
+  multiSelectFilter,
+  textFilter,
+  dataTableFilter,
+  useDataTable,
+} from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Badge,
@@ -25,26 +40,33 @@ import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
+  type BadgeProps,
   HoverCardPortal,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "@calcom/ui";
-import type { BadgeProps } from "@calcom/ui/components/badge/Badge";
 
 import { useFilterContext } from "../context/provider";
+import { ClearFilters } from "../filters/ClearFilters";
+import { DateSelect } from "../filters/DateSelect";
+import { RoutingFormResponsesDownload } from "../filters/Download";
+import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
+import { TeamAndSelfList } from "../filters/TeamAndSelfList";
+import { UserListInTeam } from "../filters/UserListInTeam";
+import {
+  ZResponseMultipleValues,
+  ZResponseSingleValue,
+  ZResponseTextValue,
+  ZResponseNumericValue,
+} from "../lib/types";
+import { RoutingKPICards } from "./RoutingKPICards";
 
-type RoutingFormResponse = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
+type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
-type RoutingFormTableRow = {
-  id: number;
-  formName: string;
-  createdAt: Date;
-  routedToBooking: RoutingFormResponse["routedToBooking"];
-  [key: string]: any;
+const statusOrder: Record<BookingStatus, number> = {
+  [BookingStatus.ACCEPTED]: 1,
+  [BookingStatus.PENDING]: 2,
+  [BookingStatus.AWAITING_HOST]: 3,
+  [BookingStatus.CANCELLED]: 4,
+  [BookingStatus.REJECTED]: 5,
 };
 
 function CellWithOverflowX({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -83,7 +105,7 @@ function BookedByCell({
   attendees,
   rowId,
 }: {
-  attendees: { email: string; timeZone: string }[] | undefined;
+  attendees: RoutingFormTableRow["bookingAttendees"] | undefined;
   rowId: number;
 }) {
   const cellId = useId();
@@ -93,8 +115,8 @@ function BookedByCell({
     <div className="flex min-w-[200px] flex-wrap gap-1">
       {attendees.map((attendee) => (
         <CellWithOverflowX key={`${cellId}-${attendee.email}-${rowId}`} className="w-[200px]">
-          <Badge variant="gray" className="whitespace-nowrap">
-            {attendee.email}
+          <Badge variant="gray" className="whitespace-nowrap" title={attendee.email}>
+            {attendee.name}
           </Badge>
         </CellWithOverflowX>
       ))}
@@ -102,29 +124,37 @@ function BookedByCell({
   );
 }
 
-function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number }) {
+function ResponseValueCell({
+  optionMap,
+  values,
+  rowId,
+}: {
+  optionMap: Record<string, string>;
+  values: string[];
+  rowId: number;
+}) {
   const cellId = useId();
-  if (value.length === 0) return <div className="h-6 w-[200px]" />;
+  if (values.length === 0) return <div className="h-6 w-[200px]" />;
 
   return (
     <CellWithOverflowX className="flex w-[200px] gap-1">
-      {value.length > 2 ? (
+      {values.length > 2 ? (
         <>
-          {value.slice(0, 2).map((v: string, i: number) => (
+          {values.slice(0, 2).map((id: string, i: number) => (
             <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-              {v}
+              {optionMap[id] ?? id}
             </Badge>
           ))}
           <HoverCard>
             <HoverCardTrigger>
-              <Badge variant="gray">+{value.length - 2}</Badge>
+              <Badge variant="gray">+{values.length - 2}</Badge>
             </HoverCardTrigger>
             <HoverCardPortal>
               <HoverCardContent side="bottom" align="start" className="w-fit">
                 <div className="flex flex-col gap-1">
-                  {value.slice(2).map((v: string, i: number) => (
+                  {values.slice(2).map((id: string, i: number) => (
                     <span key={`${cellId}-overflow-${i}-${rowId}`} className="text-default text-sm">
-                      {v}
+                      {optionMap[id] ?? id}
                     </span>
                   ))}
                 </div>
@@ -133,9 +163,9 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
           </HoverCard>
         </>
       ) : (
-        value.map((v: string, i: number) => (
+        values.map((id: string, i: number) => (
           <Badge key={`${cellId}-${i}-${rowId}`} variant="gray">
-            {v}
+            {optionMap[id] ?? id}
           </Badge>
         ))
       )}
@@ -143,12 +173,12 @@ function ResponseValueCell({ value, rowId }: { value: string[]; rowId: number })
   );
 }
 
-function BookingStatusBadge({ booking }: { booking: RoutingFormResponse["routedToBooking"] }) {
+function BookingStatusBadge({ bookingStatus }: { bookingStatus: BookingStatus | null }) {
   let badgeVariant: BadgeProps["variant"] = "success";
 
-  if (!booking) return null;
+  if (!bookingStatus) return null;
 
-  switch (booking.status) {
+  switch (bookingStatus) {
     case BookingStatus.REJECTED:
     case BookingStatus.AWAITING_HOST:
     case BookingStatus.PENDING:
@@ -157,23 +187,23 @@ function BookingStatusBadge({ booking }: { booking: RoutingFormResponse["routedT
       break;
   }
 
-  return <Badge variant={badgeVariant}>{bookingStatusToText(booking.status)}</Badge>;
+  return <Badge variant={badgeVariant}>{bookingStatusToText(bookingStatus)}</Badge>;
 }
 
 function BookingAtCell({
-  booking,
+  row,
   rowId,
   copyToClipboard,
   t,
 }: {
-  booking: RoutingFormResponse["routedToBooking"];
+  row: RoutingFormTableRow;
   rowId: number;
   copyToClipboard: (text: string) => void;
   t: (key: string) => string;
 }) {
   const cellId = useId();
 
-  if (!booking || !booking.user) {
+  if (!row.bookingUserId || !row.bookingCreatedAt) {
     return <div className="w-[250px]" />;
   }
 
@@ -181,9 +211,9 @@ function BookingAtCell({
     <HoverCard>
       <HoverCardTrigger asChild>
         <div className="flex items-center gap-2" key={`${cellId}-booking-${rowId}`}>
-          <Avatar size="xs" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
-          <Link href={`/booking/${booking.uid}`}>
-            <Badge variant="gray">{dayjs(booking.createdAt).format("MMM D, YYYY HH:mm")}</Badge>
+          <Avatar size="xs" imageSrc={row.bookingUserAvatarUrl ?? ""} alt={row.bookingUserName ?? ""} />
+          <Link href={`/booking/${row.bookingUid}`}>
+            <Badge variant="gray">{dayjs(row.bookingCreatedAt).format("MMM D, YYYY HH:mm")}</Badge>
           </Link>
         </div>
       </HoverCardTrigger>
@@ -191,17 +221,17 @@ function BookingAtCell({
         <HoverCardContent>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <Avatar size="sm" imageSrc={booking.user.avatarUrl ?? ""} alt={booking.user.name ?? ""} />
+              <Avatar size="sm" imageSrc={row.bookingUserAvatarUrl ?? ""} alt={row.bookingUserName ?? ""} />
               <div>
-                <p className="text-sm font-medium">{booking.user.name}</p>
+                <p className="text-sm font-medium">{row.bookingUserName}</p>
                 <p className="group/booking_status_email text-subtle flex items-center text-xs">
-                  <span className="truncate">{booking.user.email}</span>
+                  <span className="truncate">{row.bookingUserEmail}</span>
                   <button
                     className="invisible ml-2 group-hover/booking_status_email:visible"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      copyToClipboard(booking.user?.email ?? "");
+                      copyToClipboard(row.bookingUserEmail ?? "");
                     }}>
                     <Icon name="copy" />
                   </button>
@@ -210,7 +240,7 @@ function BookingAtCell({
             </div>
             <div className="text-emphasis mt-4 flex items-center gap-2 text-xs">
               <span>Status:</span>
-              <BookingStatusBadge booking={booking} />
+              <BookingStatusBadge bookingStatus={row.bookingStatus} />
             </div>
           </div>
         </HoverCardContent>
@@ -221,15 +251,18 @@ function BookingAtCell({
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-export function RoutingFormResponsesTable({
-  children,
-}: {
-  children?: React.ReactNode | ((table: RoutingFormTableType) => React.ReactNode);
-}) {
+export function RoutingFormResponsesTable() {
+  return (
+    <DataTableProvider>
+      <RoutingFormResponsesTableContent />
+    </DataTableProvider>
+  );
+}
+
+export function RoutingFormResponsesTableContent() {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-  const { copyToClipboard, isCopied } = useCopy();
+  const { copyToClipboard } = useCopy();
 
   const {
     dateRange,
@@ -238,35 +271,48 @@ export function RoutingFormResponsesTable({
     initialConfig,
     selectedRoutingFormId,
     selectedMemberUserId,
-    selectedBookingStatus,
-    selectedRoutingFormFilter,
+    selectedUserId,
   } = filter;
   const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
   const [startDate, endDate] = dateRange;
 
-  const { data: headers, isLoading: isHeadersLoading } =
-    trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-      {
-        teamId: selectedTeamId ?? undefined,
-        isAll: isAll ?? false,
-        routingFormId: selectedRoutingFormId ?? undefined,
-      },
-      {
-        enabled: initialConfigIsReady,
-      }
-    );
+  const columnFilters = useColumnFilters();
+
+  const teamId = selectedTeamId ?? undefined;
+  const userId = selectedUserId ?? undefined;
+  const memberUserId = selectedMemberUserId ?? undefined;
+  const routingFormId = selectedRoutingFormId ?? undefined;
+
+  const {
+    data: headers,
+    isLoading: isHeadersLoading,
+    isSuccess: isHeadersSuccess,
+  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
+    {
+      userId,
+      teamId,
+      isAll: isAll ?? false,
+      routingFormId,
+    },
+    {
+      enabled: initialConfigIsReady,
+    }
+  );
+
+  const { removeDisplayedExternalFilter, sorting, setSorting } = useDataTable();
 
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
-        teamId: selectedTeamId,
+        teamId,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        userId: selectedMemberUserId ?? undefined,
+        userId,
+        memberUserId,
         isAll: isAll ?? false,
-        routingFormId: selectedRoutingFormId ?? undefined,
-        bookingStatus: selectedBookingStatus ?? undefined,
-        fieldFilter: selectedRoutingFormFilter ?? undefined,
+        routingFormId,
+        columnFilters,
+        sorting,
         limit: 30,
       },
       {
@@ -279,143 +325,171 @@ export function RoutingFormResponsesTable({
       }
     );
 
-  const flatData = useMemo(() => data?.pages?.flatMap((page) => page.data) ?? [], [data]);
-  const totalDBRowCount = data?.pages?.[0]?.total ?? 0;
-  const totalFetched = flatData.length;
-
   const processedData = useMemo(() => {
-    if (isHeadersLoading) return [];
-    return flatData.map((response) => {
-      const row: RoutingFormTableRow = {
-        id: response.id,
-        formName: response.form.name,
-        formId: response.form.id,
-        createdAt: response.createdAt,
-        routedToBooking: response.routedToBooking,
-      };
-
-      Object.entries(response.response).forEach(([fieldId, field]) => {
-        const header = headers?.find((h) => h.id === fieldId);
-
-        if (header?.options) {
-          if (Array.isArray(field.value)) {
-            // Map the IDs to their corresponding labels for array values
-            const labels = field.value.map((id) => {
-              const option = header.options?.find((opt) => opt.id === id);
-              return option?.label ?? id;
-            });
-            row[fieldId] = labels;
-          } else {
-            // Handle single value case
-            const option = header.options?.find((opt) => opt.id === field.value);
-            row[fieldId] = option?.label ?? field.value;
-          }
-        } else {
-          row[fieldId] = field.value;
-        }
-      });
-
-      return row;
-    });
-  }, [flatData, headers, isHeadersLoading]);
-
-  const statusOrder: Record<BookingStatus, number> = {
-    [BookingStatus.ACCEPTED]: 1,
-    [BookingStatus.PENDING]: 2,
-    [BookingStatus.AWAITING_HOST]: 3,
-    [BookingStatus.CANCELLED]: 4,
-    [BookingStatus.REJECTED]: 5,
-  };
+    if (!isHeadersSuccess) return [];
+    return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
+  }, [data, isHeadersSuccess]);
 
   const columnHelper = createColumnHelper<RoutingFormTableRow>();
 
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor("bookedAttendees", {
-        id: "bookedBy",
+  const columns = useMemo(() => {
+    if (!isHeadersSuccess) {
+      return [];
+    }
+    return [
+      columnHelper.accessor("bookingAttendees", {
+        id: "bookingAttendees",
         header: t("routing_form_insights_booked_by"),
         size: 200,
+        enableColumnFilter: false,
+        enableSorting: false,
         cell: (info) => {
-          const row = info.row.original;
-          return <BookedByCell attendees={row.routedToBooking?.attendees || []} rowId={row.id} />;
+          return <BookedByCell attendees={info.getValue()} rowId={info.row.original.id} />;
         },
       }),
 
-      ...(headers?.map((header) => {
-        return columnHelper.accessor(header.id, {
-          id: header.id,
-          header: header.label,
-          size: 200,
+      ...((headers || []).map((fieldHeader) => {
+        const isText = [
+          RoutingFormFieldType.TEXT,
+          RoutingFormFieldType.EMAIL,
+          RoutingFormFieldType.PHONE,
+          RoutingFormFieldType.TEXTAREA,
+        ].includes(fieldHeader.type as RoutingFormFieldType);
+
+        const isNumber = fieldHeader.type === RoutingFormFieldType.NUMBER;
+
+        const isSingleSelect = fieldHeader.type === RoutingFormFieldType.SINGLE_SELECT;
+        const isMultiSelect = fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
+
+        const filterType = isSingleSelect
+          ? "single_select"
+          : isNumber
+          ? "number"
+          : isText
+          ? "text"
+          : "multi_select";
+
+        const optionMap =
+          fieldHeader.options?.reduce((acc, option) => {
+            if (option.id) {
+              acc[option.id] = option.label;
+            }
+            return acc;
+          }, {} as Record<string, string>) ?? {};
+
+        return columnHelper.accessor(`response.${fieldHeader.id}`, {
+          id: fieldHeader.id,
+          header: startCase(fieldHeader.label),
+          enableSorting: false,
           cell: (info) => {
-            let value = info.getValue();
-            value = Array.isArray(value) ? value : [value];
-            return (
-              <div className="max-w-[200px]">
-                <ResponseValueCell value={value} rowId={info.row.original.id} />
-              </div>
-            );
+            const values = info.getValue();
+            if (isMultiSelect || isSingleSelect) {
+              const result = z.union([ZResponseMultipleValues, ZResponseSingleValue]).safeParse(values);
+              return (
+                result.success && (
+                  <ResponseValueCell
+                    optionMap={optionMap}
+                    values={Array.isArray(result.data.value) ? result.data.value : [result.data.value]}
+                    rowId={info.row.original.id}
+                  />
+                )
+              );
+            } else if (isText || isNumber) {
+              const result = z.union([ZResponseTextValue, ZResponseNumericValue]).safeParse(values);
+              return (
+                result.success && (
+                  <div className="truncate">
+                    <span title={String(result.data.value)}>{result.data.value}</span>
+                  </div>
+                )
+              );
+            } else {
+              return null;
+            }
+          },
+          meta: {
+            filter: { type: filterType },
+          },
+          filterFn: (row, id, filterValue) => {
+            const cellValue = row.original.response[id].value;
+            return dataTableFilter(cellValue, filterValue);
           },
         });
       }) ?? []),
-      columnHelper.accessor("routedToBooking", {
-        id: "bookingStatus",
+      columnHelper.accessor("bookingStatusOrder", {
+        id: "bookingStatusOrder",
         header: t("routing_form_insights_booking_status"),
-        size: 250,
+        sortDescFirst: false,
         cell: (info) => (
           <div className="max-w-[250px]">
-            <BookingStatusBadge booking={info.getValue()} />
+            <BookingStatusBadge bookingStatus={info.row.original.bookingStatus} />
           </div>
         ),
+        meta: {
+          filter: { type: "multi_select", icon: "circle" },
+        },
+        filterFn: (row, id, filterValue) => {
+          return multiSelectFilter(row.original.bookingStatusOrder, filterValue);
+        },
         sortingFn: (rowA, rowB) => {
-          const statusA = rowA.original.routedToBooking?.status;
-          const statusB = rowB.original.routedToBooking?.status;
-          // Default to highest number (5) + 1 for null/undefined values to sort them last
-          const orderA = statusA ? statusOrder[statusA] : 6;
-          const orderB = statusB ? statusOrder[statusB] : 6;
-          return orderA - orderB;
+          const statusA = rowA.original.bookingStatusOrder ?? 6; // put it at the end if bookingStatusOrder is null
+          const statusB = rowB.original.bookingStatusOrder ?? 6;
+          return statusA - statusB;
         },
       }),
-      columnHelper.accessor("routedToBooking", {
-        id: "bookingAt",
+      columnHelper.accessor("bookingCreatedAt", {
+        id: "bookingCreatedAt",
         header: t("routing_form_insights_booking_at"),
-        size: 250,
+        enableColumnFilter: false,
         cell: (info) => (
           <div className="max-w-[250px]">
             <BookingAtCell
-              booking={info.getValue()}
+              row={info.row.original}
               rowId={info.row.original.id}
               copyToClipboard={copyToClipboard}
               t={t}
             />
           </div>
         ),
+        sortingFn: (rowA, rowB) => {
+          const dateA = rowA.original.bookingCreatedAt;
+          const dateB = rowB.original.bookingCreatedAt;
+          if (!dateA && !dateB) return 0;
+          if (!dateA) return -1;
+          if (!dateB) return 1;
+          if (!(dateA instanceof Date) || !(dateB instanceof Date)) return 0;
+
+          return dateA.getTime() - dateB.getTime();
+        },
       }),
-      columnHelper.accessor("routedToBooking", {
-        id: "assignmentReason",
+      columnHelper.accessor("bookingAssignmentReason", {
+        id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
-        size: 250,
+        enableSorting: false,
+        meta: {
+          filter: { type: "text" },
+        },
         cell: (info) => {
-          const assignmentReason = info.getValue()?.assignmentReason;
-          return (
-            <div className="max-w-[250px]">
-              {assignmentReason && assignmentReason.length > 0 ? assignmentReason[0].reasonString : ""}
-            </div>
-          );
+          const assignmentReason = info.getValue();
+          return <div className="max-w-[250px]">{assignmentReason}</div>;
+        },
+        filterFn: (row, id, filterValue) => {
+          const reason = row.original.bookingAssignmentReason;
+          return textFilter(reason, filterValue);
         },
       }),
       columnHelper.accessor("createdAt", {
-        id: "submittedAt",
+        id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
-        size: 250,
+        enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
       }),
-    ],
-    [headers, t, copyToClipboard]
-  );
+    ];
+  }, [isHeadersSuccess, headers, t, copyToClipboard]);
 
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
@@ -424,77 +498,92 @@ export function RoutingFormResponsesTable({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     defaultColumn: {
-      size: 200,
+      size: 150,
+    },
+    state: {
+      sorting,
+      columnFilters,
+    },
+    onSortingChange: setSorting,
+    getFacetedUniqueValues: (_, columnId) => () => {
+      if (!headers) {
+        return new Map();
+      }
+
+      const fieldHeader = headers.find((h) => h.id === columnId);
+      if (fieldHeader?.options) {
+        return new Map(fieldHeader.options.map((option) => [{ label: option.label, value: option.id }, 1]));
+      } else if (columnId === "bookingStatusOrder") {
+        return new Map(
+          Object.keys(statusOrder).map((status) => [
+            {
+              value: statusOrder[status as BookingStatus],
+              label: bookingStatusToText(status as BookingStatus),
+            },
+            1,
+          ])
+        );
+      }
+      return new Map();
     },
   });
 
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached(
-    tableContainerRef,
-    fetchNextPage,
-    isFetching,
-    totalFetched,
-    totalDBRowCount
+  const externalFilters = useMemo<ExternalFilter[]>(
+    () => [
+      {
+        key: "memberUserId",
+        titleKey: "people",
+        component: () => (
+          <UserListInTeam
+            showOnlyWhenSelectedInContext={false}
+            onClear={() => removeDisplayedExternalFilter("memberUserId")}
+          />
+        ),
+      },
+    ],
+    [removeDisplayedExternalFilter]
   );
 
   if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
-    return (
-      <div
-        className="grid h-[85dvh]"
-        style={{ gridTemplateRows: "auto 1fr auto", gridTemplateAreas: "'header' 'body' 'footer'" }}>
-        <div
-          className="scrollbar-thin border-subtle relative h-full overflow-auto rounded-md border"
-          style={{ gridArea: "body" }}>
-          <Table>
-            <TableHeader className="bg-subtle sticky top-0 z-10">
-              <TableRow>
-                {[...Array(4)].map((_, index) => (
-                  <TableHead key={`skeleton-header-${index}`}>
-                    <div className="bg-subtle h-4 w-[200px] animate-pulse rounded-md" />
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {[...Array(10)].map((_, rowIndex) => (
-                <TableRow key={`skeleton-row-${rowIndex}`}>
-                  {[...Array(4)].map((_, colIndex) => (
-                    <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                      <div
-                        className={classNames(
-                          "bg-subtle h-6 animate-pulse rounded-md",
-                          colIndex === 0
-                            ? "w-[200px]"
-                            : colIndex === 2
-                            ? "w-[250px]"
-                            : colIndex === 3
-                            ? "w-[250px]"
-                            : "w-[200px]"
-                        )}
-                      />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
+    return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (
     <div className="flex-1">
-      <DataTable
+      <DataTableWrapper
         table={table}
-        tableContainerRef={tableContainerRef}
-        onScroll={(e) => {
-          if (hasNextPage) {
-            fetchMoreOnBottomReached(e.target as HTMLDivElement);
-          }
-        }}
-        isPending={isFetching && !data}>
-        {typeof children === "function" ? children(table) : children}
-      </DataTable>
+        isPending={isFetching && !data}
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        ToolbarLeft={
+          <>
+            <TeamAndSelfList omitOrg={true} className="mb-0" />
+            <DataTableFilters.AddFilterButton table={table} externalFilters={externalFilters} />
+            <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
+            <DataTableFilters.ActiveFilters table={table} externalFilters={externalFilters} />
+            <ClearFilters />
+          </>
+        }
+        ToolbarRight={
+          <>
+            <DateSelect />
+            <RoutingFormResponsesDownload
+              startDate={startDate}
+              endDate={endDate}
+              teamId={teamId}
+              userId={userId}
+              isAll={isAll ?? false}
+              memberUserId={memberUserId}
+              routingFormId={routingFormId}
+              columnFilters={columnFilters}
+              sorting={sorting}
+            />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+          </>
+        }>
+        <RoutingKPICards />
+      </DataTableWrapper>
     </div>
   );
 }
