@@ -14,7 +14,6 @@ checkRoute "$APP_ROUTER_APPS_CATEGORIES_CATEGORY_ENABLED" app/future/apps/catego
 checkRoute "$APP_ROUTER_AUTH_FORGOT_PASSWORD_ENABLED" app/future/auth/forgot-password
 checkRoute "$APP_ROUTER_AUTH_LOGIN_ENABLED" app/future/auth/login
 checkRoute "$APP_ROUTER_AUTH_LOGOUT_ENABLED" app/future/auth/logout
-checkRoute "$APP_ROUTER_AUTH_NEW_ENABLED" app/future/auth/new
 checkRoute "$APP_ROUTER_AUTH_SAML_ENABLED" app/future/auth/saml-idp
 checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
 checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
