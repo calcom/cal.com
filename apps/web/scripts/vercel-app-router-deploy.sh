@@ -16,7 +16,6 @@ checkRoute "$APP_ROUTER_AUTH_LOGIN_ENABLED" app/future/auth/login
 checkRoute "$APP_ROUTER_AUTH_LOGOUT_ENABLED" app/future/auth/logout
 checkRoute "$APP_ROUTER_AUTH_NEW_ENABLED" app/future/auth/new
 checkRoute "$APP_ROUTER_AUTH_SAML_ENABLED" app/future/auth/saml-idp
-checkRoute "$APP_ROUTER_AUTH_ERROR_ENABLED" app/future/auth/error
 checkRoute "$APP_ROUTER_AUTH_PLATFORM_ENABLED" app/future/auth/platform
 checkRoute "$APP_ROUTER_AUTH_OAUTH2_ENABLED" app/future/auth/oauth2
 checkRoute "$APP_ROUTER_TEAM_ENABLED" app/future/team
