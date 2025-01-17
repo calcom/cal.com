@@ -14,7 +14,7 @@ type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForD
 type Props = {
   teamId: number | undefined;
   userId: number | undefined;
-  memberUserId: number | undefined;
+  memberUserIds: number[] | undefined;
   routingFormId: string | undefined;
   isAll: boolean;
   startDate: string;
@@ -31,7 +31,7 @@ type Batch = {
 export const RoutingFormResponsesDownload = ({
   teamId,
   userId,
-  memberUserId,
+  memberUserIds,
   routingFormId,
   isAll,
   startDate,
@@ -55,8 +55,8 @@ export const RoutingFormResponsesDownload = ({
       startDate,
       endDate,
       userId,
-      memberUserId,
-      isAll: isAll ?? false,
+      memberUserIds,
+      isAll: isAll,
       routingFormId,
       columnFilters,
       sorting,
