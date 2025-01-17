@@ -16,6 +16,7 @@ import type {
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -155,6 +156,25 @@ export const EventSetupTab = (
               />
             </div>
           )}
+          <Controller
+            name="userInterfaceLanguage"
+            render={({ field: { value, onChange } }) => {
+              return (
+                <>
+                  <Label className="text-emphasis">{t("interface_language")}</Label>
+                  <Select<{ label: string; value: string }>
+                    className="capitalize"
+                    options={[
+                      { label: t("visitor's browser language"), value: "auto-detect" },
+                      ...localeOptions,
+                    ]}
+                    value={value}
+                    onChange={onChange}
+                  />
+                </>
+              );
+            }}
+          />
           <TextField
             required
             label={isPlatform ? "Slug" : t("URL")}

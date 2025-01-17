@@ -19,6 +19,7 @@ import type {
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 
@@ -44,6 +45,18 @@ export const useEventTypeForm = ({
   // this is a nightmare to type, will do in follow up PR
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const defaultValues: any = useMemo(() => {
+    let calculatedUserInterfaceLanguage = {
+      label: t("visitor's browser language"),
+      value: "auto-detect",
+    };
+
+    if (eventType.userInterfaceLanguage) {
+      const localeFound = localeOptions.find((locale) => locale.value === eventType.userInterfaceLanguage);
+      if (localeFound) {
+        calculatedUserInterfaceLanguage = localeFound;
+      }
+    }
+
     return {
       title: eventType.title,
       id: eventType.id,
@@ -59,6 +72,7 @@ export const useEventTypeForm = ({
       seatsShowAvailabilityCount: eventType.seatsShowAvailabilityCount,
       lockTimeZoneToggleOnBookingPage: eventType.lockTimeZoneToggleOnBookingPage,
       locations: eventType.locations || [],
+      userInterfaceLanguage: calculatedUserInterfaceLanguage,
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
@@ -131,7 +145,7 @@ export const useEventTypeForm = ({
       maxLeadThreshold: eventType.maxLeadThreshold,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
     };
-  }, [eventType, periodDates]);
+  }, [eventType, periodDates, t]);
 
   const form = useForm<FormValues>({
     defaultValues,
@@ -331,7 +345,7 @@ export const useEventTypeForm = ({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { availability, users, scheduleName, ...rest } = input;
+    const { availability, users, scheduleName, userInterfaceLanguage, ...rest } = input;
     const payload = {
       ...rest,
       length,
@@ -355,6 +369,11 @@ export const useEventTypeForm = ({
       children,
       assignAllTeamMembers,
       multiplePrivateLinks: values.multiplePrivateLinks,
+      userInterfaceLanguage: userInterfaceLanguage
+        ? userInterfaceLanguage.value !== "auto-detect"
+          ? userInterfaceLanguage.value
+          : null
+        : null,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }
         : undefined,
