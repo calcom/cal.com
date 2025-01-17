@@ -910,6 +910,11 @@ export default class SalesforceCRMService implements CRM {
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
 
+    if (!existingFields.length) {
+      this.log.warn(`No fields found for record type ${personRecordType}`);
+      return;
+    }
+
     const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
     if (!personRecord) {
       this.log.warn(`No personRecord found for contactId ${contactId}`);
