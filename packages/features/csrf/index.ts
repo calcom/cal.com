@@ -4,7 +4,7 @@ import { MockCSRF } from "./csrf.mock";
 
 export class CSRF {
   static init(): ICSRF {
-    if (process.env.CSRF_SECRET) return new RealCSRF();
+    if (process.env.NEXTAUTH_SECRET) return new RealCSRF();
     return new MockCSRF();
   }
 }

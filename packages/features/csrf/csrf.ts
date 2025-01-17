@@ -23,7 +23,7 @@ export class RealCSRF implements ICSRF {
   tokenCookieName = "XSRF-TOKEN";
   constructor() {
     // This will never be null since we would be using MockCSRF otherwise
-    this.secret = process.env.CSRF_SECRET!;
+    this.secret = process.env.NEXTAUTH_SECRET!;
     this.cookieOptions = {
       httpOnly: true,
       path: "/",
