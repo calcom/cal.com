@@ -182,20 +182,7 @@ export default class SalesforceCRMService implements CRM {
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const appOptions = this.getAppOptions();
 
-    const customFieldInputsEnabled =
-      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
-
-    const customFieldInputs = customFieldInputsEnabled
-      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
-      : [];
-
-    const confirmedCustomFieldInputs: {
-      [key: string]: any;
-    } = {};
-
-    for (const field of customFieldInputs) {
-      confirmedCustomFieldInputs[field.name] = appOptions.onBookingWriteToEventObjectMap[field.name];
-    }
+    const writeToEventRecord = await this.generateWriteToEventBody(event);
 
     let ownerId = null;
     if (event?.organizer?.email) {
@@ -216,7 +203,7 @@ export default class SalesforceCRMService implements CRM {
 
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
       EventWhoIds: contacts.map((contact) => contact.id),
-      ...confirmedCustomFieldInputs,
+      ...writeToEventRecord,
       ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
@@ -915,13 +902,16 @@ export default class SalesforceCRMService implements CRM {
   ) {
     const conn = await this.conn;
     const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
-
     // Determine record type (Contact or Lead)
     const personRecordType = this.determinePersonRecordType(createEventOn);
-
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
+
+    if (!existingFields.length) {
+      this.log.warn(`No fields found for record type ${personRecordType}`);
+      return;
+    }
 
     const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
     if (!personRecord) {
@@ -938,7 +928,6 @@ export default class SalesforceCRMService implements CRM {
       organizerEmail,
       calEventResponses,
     });
-
     // Update the person record
     await conn
       .sobject(personRecordType)
@@ -978,6 +967,19 @@ export default class SalesforceCRMService implements CRM {
         continue;
       }
 
+      if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
+        const extractedValue = await this.getTextFieldValue({
+          fieldValue: fieldConfig.value,
+          fieldLength: field.length,
+          calEventResponses,
+          bookingUid,
+        });
+        if (extractedValue) {
+          writeOnRecordBody[field.name] = extractedValue;
+          continue;
+        }
+      }
+
       // Handle different field types
       if (fieldConfig.fieldType === field.type) {
         if (field.type === SalesforceFieldType.TEXT || field.type === SalesforceFieldType.PHONE) {
@@ -1006,6 +1008,35 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
+
+  private async generateWriteToEventBody(event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+
+    if (!customFieldInputsEnabled) return {};
+
+    const customFieldInputs = customFieldInputsEnabled
+      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
+      : [];
+
+    const confirmedCustomFieldInputs: {
+      [key: string]: any;
+    } = {};
+
+    for (const field of customFieldInputs) {
+      confirmedCustomFieldInputs[field.name] = await this.getTextFieldValue({
+        fieldValue: appOptions.onBookingWriteToEventObjectMap[field.name],
+        fieldLength: field.length,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+      });
+    }
+
+    return confirmedCustomFieldInputs;
+  }
+
   private async getTextFieldValue({
     fieldValue,
     fieldLength,
@@ -1013,7 +1044,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
   }: {
     fieldValue: string;
-    fieldLength: number;
+    fieldLength?: number;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
   }) {
@@ -1021,7 +1052,6 @@ export default class SalesforceCRMService implements CRM {
     if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
 
     let valueToWrite = fieldValue;
-
     if (fieldValue.startsWith("{form:")) {
       // Get routing from response
       if (!bookingUid) return;
@@ -1036,7 +1066,7 @@ export default class SalesforceCRMService implements CRM {
     if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
-    return valueToWrite.substring(0, fieldLength);
+    return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
   private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
@@ -1061,7 +1091,6 @@ export default class SalesforceCRMService implements CRM {
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
       const field = response[fieldId];
-
       if (field?.identifier === identifierField) {
         return field.value.toString();
       }

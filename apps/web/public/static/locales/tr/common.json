@@ -2926,5 +2926,6 @@
   "managed_users": "Yönetilen kullanıcılar",
   "managed_users_description": "OAuth istemciniz tarafından oluşturulan tüm yönetilen kullanıcıları görün",
   "select_oAuth_client": "OAuth istemcisi seçin",
+  "on_every_instance": "Her örnekte",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
