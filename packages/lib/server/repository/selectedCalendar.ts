@@ -213,7 +213,7 @@ export class SelectedCalendarRepository {
   }
 
   static async findFirstByGoogleChannelId(googleChannelId: string) {
-    return await prisma.selectedCalendar.findFirst({
+    const selectedCalendar = await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
       },
@@ -241,6 +241,11 @@ export class SelectedCalendarRepository {
         },
       },
     });
+    if (!selectedCalendar) {
+      return null;
+    }
+    const { credential, ...rest } = selectedCalendar;
+    return { credential: buildNonDwdCredential(credential), ...rest };
   }
 
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {

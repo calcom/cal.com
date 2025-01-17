@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { uniqueBy } from "@calcom/lib/array";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -93,7 +93,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
   }) {
     const key = parseKeyForCache(args);
     let where;
-    if (isDomainWideDelegationCredential({ credentialId })) {
+    if (isDwdCredential({ credentialId })) {
       if (!userId) {
         console.error("Could not upsert cached availability for DWD case, userId is required");
         return;
@@ -127,7 +127,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
       await prisma.calendarCache.create({
         data: {
           key,
-          credentialId: isDomainWideDelegationCredential({ credentialId }) ? null : credentialId,
+          credentialId: isDwdCredential({ credentialId }) ? null : credentialId,
           userId,
           value,
           expiresAt: new Date(Date.now() + CACHING_TIME),

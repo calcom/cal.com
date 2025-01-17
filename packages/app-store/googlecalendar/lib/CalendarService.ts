@@ -24,7 +24,7 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
-import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -80,7 +80,7 @@ const getWhereForSelectedCalendar = ({
   userId: number | null;
 }) => {
   let where;
-  if (isDomainWideDelegationCredential({ credentialId })) {
+  if (isDwdCredential({ credentialId })) {
     if (!userId) {
       console.error("Skipping querying calendar as `userId` is missing, needed for DWD");
       return;

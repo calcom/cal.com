@@ -111,7 +111,13 @@ const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegat
   };
 };
 
-const _buildDwdCredentials = ({ dwd, user }: { dwd: DomainWideDelegation | null; user: User }) => {
+const _buildDwdCredentials = ({
+  dwd,
+  user,
+}: {
+  dwd: (DomainWideDelegation & { enabled: boolean }) | null;
+  user: User;
+}) => {
   if (!dwd || !dwd.enabled) {
     return [];
   }
@@ -413,7 +419,7 @@ export function getFirstDwdConferencingCredentialAppLocation({
 }) {
   const dwdConferencingCredential = getFirstDwdConferencingCredential({ credentials });
   if (dwdConferencingCredential?.appId === googleMeetMetadata.slug) {
-    return googleMeetMetadata.appData.location?.type ?? null;
+    return googleMeetMetadata.appData?.location?.type ?? null;
   }
   return null;
 }
@@ -424,7 +430,9 @@ export async function findDwdCredentials({ userId, dwdId }: { userId: number; dw
   });
 
   const user = await UserRepository.findById({ id: userId });
-
+  if (!user) {
+    return [];
+  }
   return _buildDwdCredentials({ dwd, user });
 }
 
