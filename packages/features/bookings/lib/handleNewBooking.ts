@@ -50,6 +50,7 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getFirstDwdConferencingCredentialAppLocation } from "@calcom/lib/domainWideDelegation/server";
 import {
   enrichHostsWithDwdCredentials,
   enrichUsersWithDwdCredentials,
@@ -505,12 +506,12 @@ async function handler(
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
 
-  const firstUser: (typeof allHostUsersWithoutHavingDwdCredentials)[number] | undefined =
+  const firstUserWithoutDwdCredentials: (typeof allHostUsersWithoutHavingDwdCredentials)[number] | undefined =
     allHostUsersWithoutHavingDwdCredentials[0];
 
   // We use first user's org ID assuming that each and every member would be within the same organization.
   const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
-    memberId: firstUser?.id ?? null,
+    memberId: firstUserWithoutDwdCredentials?.id ?? null,
     teamId: eventType.teamId,
   });
 
@@ -521,12 +522,12 @@ async function handler(
 
   // We filter out users but ensure allHostUsers remain same.
   let users = allHostUsers;
-
-  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
+  const firstUser = users[0];
+  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
     dynamicUserList,
     users,
-    location
-  );
+    location,
+  });
 
   await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
@@ -819,6 +820,11 @@ async function handler(
       locationBodyString = OrganizerDefaultConferencingAppType;
     }
   }
+
+  const organizationDefaultLocation = getFirstDwdConferencingCredentialAppLocation({
+    credentials: firstUser.credentials,
+  });
+
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -830,6 +836,8 @@ async function handler(
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
+    } else if (organizationDefaultLocation) {
+      locationBodyString = organizationDefaultLocation;
     } else {
       locationBodyString = "integrations:daily";
     }

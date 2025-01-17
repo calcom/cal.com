@@ -10,6 +10,7 @@
 import {
   createBookingScenario,
   TestData,
+  getDate,
   getOrganizer,
   getBooker,
   getScenarioData,
@@ -31,7 +32,10 @@ import {
   expectBookingToNotHaveReference,
   expectNoAttemptToCreateCalendarEvent,
 } from "@calcom/web/test/utils/bookingScenario/expects";
-import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
+import {
+  getMockRequestDataForBooking,
+  getMockRequestDataForDynamicGroupBooking,
+} from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect } from "vitest";
@@ -51,6 +55,7 @@ describe("handleNewBooking", () => {
       `should create a successful booking using the domain wide delegation credential
       1. Should create a booking in the database with reference having DWD credential
       2. Should create an event in calendar with DWD credential
+      3. Should use Google Meet as the location even when not explicitly set.
 `,
       async ({ emails }) => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -97,7 +102,6 @@ describe("handleNewBooking", () => {
           id: 1,
           slotInterval: 30,
           length: 30,
-          location: BookingLocations.GoogleMeet,
           users: [
             {
               id: organizer.id,
@@ -390,6 +394,166 @@ describe("handleNewBooking", () => {
         expectBookingToNotHaveReference(createdBooking, {
           type: appStoreMetadata.googlecalendar.type,
           uid: "GOOGLE_CALENDAR_EVENT_ID",
+        });
+      },
+      timeout
+    );
+
+    test(
+      `should create a successful dynamic group booking using the domain wide delegation credential
+      1. Should create a booking in the database with reference having DWD credential
+      2. Should create an event in calendar with DWD credential for both users
+      3. Should use Google Meet as the location even when not explicitly set.
+`,
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const org = await createOrganization({
+          name: "Test Org",
+          slug: "testorg",
+        });
+
+        const payloadToMakePartOfOrganization = [
+          {
+            membership: {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+            },
+            team: {
+              id: org.id,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ];
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const groupUser1 = getOrganizer({
+          name: "group-user-1",
+          username: "group-user-1",
+          email: "group-user-1@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: payloadToMakePartOfOrganization,
+          credentials: [],
+          destinationCalendar: [TestData.selectedCalendars.google],
+        });
+
+        const groupUser2 = getOrganizer({
+          name: "group-user-2",
+          username: "group-user-2",
+          email: "group-user-2@example.com",
+          id: 102,
+          schedules: [TestData.schedules.IstWorkHours],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          teams: payloadToMakePartOfOrganization,
+          credentials: [],
+          destinationCalendar: [TestData.selectedCalendars.google],
+        });
+
+        const dwd = await createDwdCredential(org.id);
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: groupUser1.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 0,
+                appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: groupUser1.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [0],
+              },
+            ],
+            eventTypes: [],
+            users: [groupUser1, groupUser2],
+            apps: [TestData.apps["daily-video"], TestData.apps["google-calendar"]],
+          })
+        );
+
+        // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
+        const calendarMock = mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "GOOGLE_CALENDAR_EVENT_ID",
+            uid: "MOCK_ID",
+            appSpecificData: {
+              googleCalendar: {
+                hangoutLink: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+              },
+            },
+          },
+        });
+
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+
+        const mockBookingData = getMockRequestDataForDynamicGroupBooking({
+          data: {
+            start: `${plus1DateString}T05:00:00.000Z`,
+            end: `${plus1DateString}T05:30:00.000Z`,
+            eventTypeId: 0,
+            eventTypeSlug: "group-user-1+group-user-2",
+            user: "group-user-1+group-user-2",
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              // There is no location option during booking for Dynamic Group Bookings
+              // location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: BookingLocations.GoogleMeet,
+          })
+        );
+
+        await expectBookingToBeInDatabase({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: null,
+          status: BookingStatus.ACCEPTED,
+          location: BookingLocations.GoogleMeet,
+          references: [
+            {
+              type: appStoreMetadata.googlecalendar.type,
+              uid: "GOOGLE_CALENDAR_EVENT_ID",
+              meetingId: "GOOGLE_CALENDAR_EVENT_ID",
+              meetingPassword: "MOCK_PASSWORD",
+              meetingUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+              // Verify DWD credential was used
+              domainWideDelegationCredentialId: dwd.id,
+            },
+          ],
+          iCalUID: createdBooking.iCalUID,
         });
       },
       timeout

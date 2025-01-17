@@ -1,11 +1,9 @@
 ## Version 1.0
 ### Release Plan
   1. Read the document(domain-wide-delegation.md) and acknowledge it.
-  2. Deploy the migrations PR first.
-  3. Deploy the PR(without Calendar Cache Support)
   3. Deploy:
      1. Follow "Setting up Domain-Wide Delegation for Google Calendar API" in domain-wide-delegation.md to create Service Account and create a workspace.
-     2. Merge PR and then deploy.
+     2. Merge PR(without Calendar Cache Support) and then deploy.
   4. Enable for i.cal.com:
      1. Disable Calendar Cache for i.cal.com
      2. Enable DWD for i.cal.com first and then test there
@@ -94,6 +92,7 @@
 ### Follow-up release
   - [ ] Confirmation for DwD toggling off
   - [ ] Confirmation for DwD deletion - Deletion isn't there at the moment.
+  - [ ] Make Google Meet "show up" as default conferencing app when DWD for Google is enabled.
   - [ ] Profile pic from Google with DWD might not be working - Fix it.
 
 ### Security

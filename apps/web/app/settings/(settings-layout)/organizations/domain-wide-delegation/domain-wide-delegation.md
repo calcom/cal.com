@@ -41,9 +41,10 @@ Last Step (To Be Taken By Cal.com organization Owner/Admin): Assign Specific API
 
 
 ## Onboarding Improvement
-- Just adding a member to the organization would allow the member to receive events in their calendar, even if they don't login to their account and complete the onboarding process.
+- Just adding a member to the organization would do the following:
+   - Member to receive events in their calendar, even if they don't login to their account and complete the onboarding process.
+   - The booking location would be Google Meet, even if the user hasn't set it as default(Though Cal Video would show up as default, but we still use Google Meet in this case. We will fix it later.)
    - It would still not use their calendar for conflict checking, but user can complete the onboarding(just select one calendar there for conflict checking)
-   - It would still use CalVideo as the default location as the user hasn't confirmed their preferred conferencing app as Google Meet. They could do that in the onboarding process by just clicking 'Set Default'
 - Onboarding process: Google Calendar is pre-installed for any new member of the organization(assuming the user has an email of the DWD domain) and Destination Calendar and Selected Calendar are configurable. On next step, Google Meet is pre-installed and shown at the top and could be set as default.
 
 ## Restrictions after enabling DWD

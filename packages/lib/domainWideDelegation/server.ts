@@ -395,3 +395,23 @@ export function getDwdOrRegularCredential<TCredential extends { delegatedToId?: 
     }) || null
   );
 }
+
+export function getFirstDwdConferencingCredential({
+  credentials,
+}: {
+  credentials: CredentialForCalendarService[];
+}) {
+  return credentials.find((credential) => _isConferencingCredential(credential));
+}
+
+export function getFirstDwdConferencingCredentialAppLocation({
+  credentials,
+}: {
+  credentials: CredentialForCalendarService[];
+}) {
+  const dwdConferencingCredential = getFirstDwdConferencingCredential({ credentials });
+  if (dwdConferencingCredential?.appId === googleMeetMetadata.slug) {
+    return googleMeetMetadata.appData.location?.type ?? null;
+  }
+  return null;
+}
