@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsArray,
@@ -100,11 +100,13 @@ export class GetAvailableSlotsInput {
   @Transform(({ value }) => value && value.toLowerCase() === "true")
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   skipContactOwner?: boolean;
 
   @Transform(({ value }) => value && value.toLowerCase() === "true")
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   shouldServeCache?: boolean;
 
   @IsOptional()
@@ -116,6 +118,7 @@ export class GetAvailableSlotsInput {
   })
   @IsArray()
   @IsNumber({}, { each: true })
+  @ApiHideProperty()
   routedTeamMemberIds?: number[];
 }
 

@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
@@ -130,26 +130,32 @@ export class CreateBookingInput_2024_04_15 {
   @IsArray()
   @Type(() => Number)
   @IsOptional()
+  @ApiHideProperty()
   routedTeamMemberIds?: number[];
 
   @IsNumber()
   @IsOptional()
+  @ApiHideProperty()
   routingFormResponseId?: number;
 
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   skipContactOwner?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   _shouldServeCache?: boolean;
 
   @IsBoolean()
   @IsOptional()
+  @ApiHideProperty()
   _isDryRun?: boolean;
 
   @IsObject()
   @IsOptional()
+  @ApiHideProperty()
   reroutingFormResponses?: Record<
     string,
     {
