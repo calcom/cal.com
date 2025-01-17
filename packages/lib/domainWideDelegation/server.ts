@@ -411,7 +411,7 @@ export function getFirstDwdConferencingCredentialAppLocation({
 }) {
   const dwdConferencingCredential = getFirstDwdConferencingCredential({ credentials });
   if (dwdConferencingCredential?.appId === googleMeetMetadata.slug) {
-    return googleMeetMetadata.appData.location?.type ?? null;
+    return googleMeetMetadata.appData?.location?.type ?? null;
   }
   return null;
 }
