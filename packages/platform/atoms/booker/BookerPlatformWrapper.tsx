@@ -275,8 +275,6 @@ export const BookerPlatformWrapper = (
     const _cacheParam = searchParams?.get("cal.cache");
     const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
 
-    console.log(routedTeamMemberIds, "these are the routed team member ids".toLocaleUpperCase());
-
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
