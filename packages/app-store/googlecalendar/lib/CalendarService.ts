@@ -24,6 +24,7 @@ import {
   CREDENTIAL_SYNC_SECRET,
   CREDENTIAL_SYNC_SECRET_HEADER_NAME,
 } from "@calcom/lib/constants";
+import { isDomainWideDelegationCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -69,6 +70,30 @@ type GoogleChannelProps = {
   resourceId?: string | null;
   resourceUri?: string | null;
   expiration?: string | null;
+};
+
+const getWhereForSelectedCalendar = ({
+  credentialId,
+  userId,
+}: {
+  credentialId: number;
+  userId: number | null;
+}) => {
+  let where;
+  if (isDomainWideDelegationCredential({ credentialId })) {
+    if (!userId) {
+      console.error("Skipping querying calendar as `userId` is missing, needed for DWD");
+      return;
+    }
+    where = {
+      userId,
+    };
+  } else {
+    where = {
+      credentialId,
+    };
+  }
+  return where;
 };
 
 export default class GoogleCalendarService implements Calendar {
@@ -882,14 +907,20 @@ export default class GoogleCalendarService implements Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
+    log.debug("watchCalendar", safeStringify({ calendarId, eventTypeIds }));
     if (!process.env.GOOGLE_WEBHOOK_TOKEN) {
       log.warn("GOOGLE_WEBHOOK_TOKEN is not set, skipping watching calendar");
       return;
     }
 
+    const where = getWhereForSelectedCalendar({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+    });
+
     const allCalendarsWithSubscription = await SelectedCalendarRepository.findMany({
       where: {
-        credentialId: this.credential.id,
+        ...where,
         externalId: calendarId,
         integration: this.integrationName,
         googleChannelId: {
@@ -954,13 +985,16 @@ export default class GoogleCalendarService implements Calendar {
     calendarId: string;
     eventTypeIds: SelectedCalendarEventTypeIds;
   }) {
+    log.debug("unwatchCalendar", safeStringify({ calendarId, eventTypeIds }));
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
 
+    const where = getWhereForSelectedCalendar({
+      credentialId,
+      userId: this.credential.userId,
+    });
     const calendarsWithSameCredentialId = await SelectedCalendarRepository.findMany({
-      where: {
-        credentialId,
-      },
+      where,
     });
 
     const calendarWithSameExternalId = calendarsWithSameCredentialId.filter(
@@ -1008,6 +1042,8 @@ export default class GoogleCalendarService implements Calendar {
 
     // Delete the calendar cache to force a fresh cache
     await prisma.calendarCache.deleteMany({ where: { credentialId } });
+    // Helps in identifying the caches created for DWD credential which doesn't have a valid credentialId
+    await prisma.calendarCache.deleteMany({ where: { userId: this.credential.userId } });
     await this.stopWatchingCalendarsInGoogle(allChannelsForThisCalendarBeingUnwatched);
     await this.upsertSelectedCalendarsForEventTypeIds(
       {
@@ -1031,10 +1067,16 @@ export default class GoogleCalendarService implements Calendar {
 
   async setAvailabilityInCache(args: FreeBusyArgs, data: calendar_v3.Schema$FreeBusyResponse): Promise<void> {
     const calendarCache = await CalendarCache.init(null);
-    await calendarCache.upsertCachedAvailability(this.credential.id, args, JSON.parse(JSON.stringify(data)));
+    await calendarCache.upsertCachedAvailability({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      args,
+      value: JSON.parse(JSON.stringify(data)),
+    });
   }
 
   async fetchAvailabilityAndSetCache(selectedCalendars: IntegrationCalendar[]) {
+    this.log.debug("fetchAvailabilityAndSetCache", safeStringify({ selectedCalendars }));
     const selectedCalendarsPerEventType = new Map<
       SelectedCalendarEventTypeIds[number],
       IntegrationCalendar[]

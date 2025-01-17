@@ -1,13 +1,16 @@
 import type { NextApiRequest } from "next";
 
-import { buildNonDwdCredential } from "@calcom/lib/domainWideDelegation/server";
+import { findDwdCalendarCredential } from "@calcom/lib/domainWideDelegation/server";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
+const log = logger.getSubLogger({ prefix: ["googlecalendar", "api", "webhook"] });
 async function postHandler(req: NextApiRequest) {
+  log.debug("postHandler");
   if (req.headers["x-goog-channel-token"] !== process.env.GOOGLE_WEBHOOK_TOKEN) {
     throw new HttpError({ statusCode: 403, message: "Invalid API key" });
   }
@@ -29,19 +32,35 @@ async function postHandler(req: NextApiRequest) {
       message: `No selected calendar found for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
   }
-  const { credential } = selectedCalendar;
-  if (!credential)
+  const { credential, domainWideDelegationCredential, userId } = selectedCalendar;
+
+  let selectedCalendars;
+  let credentialForCalendarService;
+  if (credential) {
+    selectedCalendars = credential.selectedCalendars;
+    credentialForCalendarService = credential;
+  } else if (domainWideDelegationCredential) {
+    const organizationAllMembersSelectedCalendars = domainWideDelegationCredential.selectedCalendars;
+    // Use all the selected calendars of the same selectedCalendar's user
+    // Because same dwd is used across all members of the same organization, we must have userId in the filter
+    selectedCalendars = organizationAllMembersSelectedCalendars.filter(
+      (selectedCalendar) => selectedCalendar.userId === userId
+    );
+    const dwdCalendarCredential = await findDwdCalendarCredential({
+      userId,
+      dwdId: domainWideDelegationCredential.id,
+    });
+    credentialForCalendarService = dwdCalendarCredential;
+  } else {
     throw new HttpError({
       statusCode: 200,
-      message: `No credential found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
+      message: `No credential or DomainWideDelegation found for selected calendar for googleChannelId: ${req.headers["x-goog-channel-id"]}`,
     });
-  const { selectedCalendars } = credential;
+  }
 
-  const calendar = await getCalendar(buildNonDwdCredential(credential));
-
-  // Make sure to pass unique SelectedCalendars to avoid unnecessary third party api calls
-  // Necessary to do here so that it is ensure for all calendar apps
+  const calendar = await getCalendar(credentialForCalendarService);
   await calendar?.fetchAvailabilityAndSetCache?.(selectedCalendars);
+
   return { message: "ok" };
 }
 

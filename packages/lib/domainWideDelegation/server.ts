@@ -6,6 +6,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWideDelegation";
 import { DomainWideDelegationRepository } from "@calcom/lib/server/repository/domainWideDelegation";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { CredentialForCalendarService, CredentialPayload } from "@calcom/types/Credential";
 
 import { buildNonDwdCredentials, isDwdCredential } from "./clientAndServer";
@@ -35,6 +36,10 @@ const _isConferencingCredential = (credential: CredentialPayload) => {
     credential.type.endsWith("_conferencing") ||
     credential.type.endsWith("_messaging")
   );
+};
+
+const _isCalendarCredential = (credential: CredentialPayload) => {
+  return credential.type.endsWith("_calendar");
 };
 
 const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
@@ -106,6 +111,15 @@ const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegat
   };
 };
 
+const _buildDwdCredentials = ({ dwd, user }: { dwd: DomainWideDelegation | null; user: User }) => {
+  if (!dwd || !dwd.enabled) {
+    return [];
+  }
+  return [_buildDwdCalendarCredential({ dwd, user }), _buildDwdConferencingCredential({ dwd, user })].filter(
+    (credential): credential is NonNullable<typeof credential> => credential !== null
+  );
+};
+
 /**
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DomainWideDelegation.
  */
@@ -119,22 +133,14 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
       email: user.email,
     });
 
-  if (!dwd || !dwd.enabled) {
-    return [];
-  }
-
-  const domainWideDelegationCredentials = [
-    _buildDwdCalendarCredential({ dwd, user }),
-    _buildDwdConferencingCredential({ dwd, user }),
-  ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
-
-  log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
-  return domainWideDelegationCredentials;
+  const dwdCredentials = _buildDwdCredentials({ dwd, user });
+  log.debug("Returned", safeStringify({ dwdCredentials }));
+  return dwdCredentials;
 }
 
 export async function getAllDwdCalendarCredentialsForUser({ user }: { user: { email: string; id: number } }) {
   const dwdCredentials = await getAllDwdCredentialsForUser({ user });
-  return dwdCredentials.filter((credential) => credential.type.endsWith("_calendar"));
+  return dwdCredentials.filter(_isCalendarCredential);
 }
 
 async function _getDwdCredentialsMapPerUser({
@@ -168,13 +174,9 @@ async function _getDwdCredentialsMapPerUser({
   >();
 
   for (const user of users) {
-    const domainWideDelegationCredentials = [
-      _buildDwdCalendarCredential({ dwd, user }),
-      _buildDwdConferencingCredential({ dwd, user }),
-    ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
-
-    log.debug("Returned for user", safeStringify({ user, domainWideDelegationCredentials }));
-    credentialsByUserId.set(user.id, domainWideDelegationCredentials);
+    const dwdCredentials = _buildDwdCredentials({ dwd, user });
+    log.debug("Returned for user", safeStringify({ user, dwdCredentials }));
+    credentialsByUserId.set(user.id, dwdCredentials);
   }
 
   return credentialsByUserId;
@@ -414,4 +416,30 @@ export function getFirstDwdConferencingCredentialAppLocation({
     return googleMeetMetadata.appData.location?.type ?? null;
   }
   return null;
+}
+
+export async function findDwdCredentials({ userId, dwdId }: { userId: number; dwdId: string }) {
+  const dwd = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({
+    id: dwdId,
+  });
+
+  const user = await UserRepository.findById({ id: userId });
+
+  return _buildDwdCredentials({ dwd, user });
+}
+
+export async function findDwdCalendarCredential({ userId, dwdId }: { userId: number; dwdId: string }) {
+  const dwdCredentials = await findDwdCredentials({ userId, dwdId });
+  const calendarCredentials = dwdCredentials.filter((cred) => _isCalendarCredential(cred));
+  if (calendarCredentials.length > 1) {
+    log.error(
+      "More than one calendar credential found for user and dwd",
+      safeStringify({
+        userId,
+        dwdId,
+        calendarCredentials,
+      })
+    );
+  }
+  return calendarCredentials[0] ?? null;
 }

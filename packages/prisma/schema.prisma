@@ -366,7 +366,7 @@ model User {
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
-
+  calendarCache              CalendarCache[]
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -1389,14 +1389,17 @@ view BookingTimeStatus {
 }
 
 model CalendarCache {
+  id           String                @id @default(uuid())
   // The key would be the unique URL that is requested by the user
   key          String
   value        Json
   expiresAt    DateTime
-  credentialId Int
+  credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  
+  userId       Int?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([credentialId, key])
   @@unique([credentialId, key])
 }
 
