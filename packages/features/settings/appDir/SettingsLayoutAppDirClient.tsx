@@ -109,10 +109,6 @@ const getTabs = (orgBranding: OrganizationBranding | null) => {
           name: "admin_api",
           href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
         },
-        {
-          name: "domain_wide_delegation",
-          href: "/settings/organizations/domain-wide-delegation",
-        },
       ],
     },
     {
@@ -175,7 +171,7 @@ const organizationAdminKeys = [
   "domain_wide_delegation",
 ];
 
-const useTabs = () => {
+const useTabs = ({ isDwdEnabled }: { isDwdEnabled: boolean }) => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
@@ -203,6 +199,14 @@ const useTabs = () => {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
+          });
+        }
+
+        // Add domain-wide-delegation menu item only if feature flag is enabled
+        if (isDwdEnabled) {
+          newArray.push({
+            name: "domain_wide_delegation",
+            href: "/settings/organizations/domain-wide-delegation",
           });
         }
 
@@ -239,7 +243,7 @@ const useTabs = () => {
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
     });
-  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user, isDwdEnabled]);
 
   return processTabsMemod;
 };
@@ -425,7 +429,6 @@ const SettingsSidebarContainer = ({
 }: SettingsSidebarContainerProps) => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-  const tabsWithPermissions = useTabs();
   const [otherTeamMenuState, setOtherTeamMenuState] = useState<
     {
       teamId: number | undefined;
@@ -436,6 +439,8 @@ const SettingsSidebarContainer = ({
   const { data: _currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !currentOrgProp,
   });
+
+  const tabsWithPermissions = useTabs({ isDwdEnabled: !!_currentOrg?.features?.domainWideDelegation });
 
   const { data: _otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
     enabled: !!session.data?.user?.org && !otherTeamsProp,
