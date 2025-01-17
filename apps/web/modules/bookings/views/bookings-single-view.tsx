@@ -19,7 +19,6 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -61,7 +60,6 @@ import {
   showToast,
   EmptyScreen,
   Icon,
-  HeadSeo,
 } from "@calcom/ui";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -109,7 +107,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
@@ -347,10 +345,6 @@ export default function Success(props: PageProps) {
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
   });
-  const title = t(
-    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
-  );
-
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
@@ -439,7 +433,6 @@ export default function Success(props: PageProps) {
           </Link>
         </div>
       )}
-      <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
       <BookingPageTagManager
         eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
       />
