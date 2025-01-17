@@ -31234,7 +31234,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:^1.11.18":
+"libphonenumber-js@npm:^1.10.12, libphonenumber-js@npm:^1.10.53, libphonenumber-js@npm:^1.11.18":
   version: 1.11.18
   resolution: "libphonenumber-js@npm:1.11.18"
   checksum: f03b4a287e853d82e07363c010afa4ab2930528a6d79dbe951649adfc3f0daf15bae0891d881baa16a6b5da891fa119d40816401d782171080529c9c42e88c48
