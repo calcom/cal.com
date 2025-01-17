@@ -1,8 +1,8 @@
 import type { TFunction } from "next-i18next";
 
-import { WEBAPP_URL, APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
+import { WEBAPP_URL, COMPANY_NAME } from "@calcom/lib/constants";
 
-import { V2BaseEmailHtml, CallToAction } from "../components";
+import { V2BaseEmailHtml } from "../components";
 
 interface DailyVideoDownloadTranscriptEmailProps {
   language: TFunction;
@@ -55,13 +55,13 @@ export const DailyVideoDownloadTranscriptEmail = (
         <>{props.language("hi_user_name", { name: props.name })},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginBottom: "40px" }}>
-        <>{props.language("transcript_from_previous_call", { appName: APP_NAME })}</>
+        <>{props.language("you_can_download_transcript_from_attachments")}</>
       </p>
 
-      {props.transcriptDownloadLinks.map((downloadLink, index) => {
+      {props.transcriptDownloadLinks.map((_, index) => {
         return (
           <div
-            key={downloadLink}
+            key={`transcript-${index}`}
             style={{
               backgroundColor: "#F3F4F6",
               padding: "32px",
@@ -87,14 +87,9 @@ export const DailyVideoDownloadTranscriptEmail = (
               }}>
               {props.date} Transcript {index + 1}
             </p>
-            <CallToAction label={props.language("download_transcript")} href={downloadLink} />
           </div>
         );
       })}
-
-      <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>
-        <>{props.language("you_can_download_transcript_from_attachments")},</>
-      </p>
 
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>
         <>{props.language("happy_scheduling")},</>
