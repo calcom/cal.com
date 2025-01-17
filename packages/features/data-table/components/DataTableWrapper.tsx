@@ -23,6 +23,8 @@ export type DataTableWrapperProps<TData, TValue> = {
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
+  className?: string;
+  containerClassName?: string;
   children?: React.ReactNode;
 };
 
@@ -39,6 +41,8 @@ export function DataTableWrapper<TData, TValue>({
   hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  className,
+  containerClassName,
   children,
 }: DataTableWrapperProps<TData, TValue>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -59,6 +63,8 @@ export function DataTableWrapper<TData, TValue>({
       enableColumnResizing={true}
       hideHeader={hideHeader}
       variant={variant}
+      className={className}
+      containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
       <DataTableToolbar.Root>
         <div className="flex w-full flex-col gap-2">
