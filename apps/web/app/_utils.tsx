@@ -114,6 +114,7 @@ export const generateMeetingMetadata = async (
 ) => {
   const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
   const image = SEO_IMG_OGIMG + constructMeetingImage(meeting);
+
   return {
     ...metadata,
     openGraph: {

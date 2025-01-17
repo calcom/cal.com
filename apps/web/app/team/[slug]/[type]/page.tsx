@@ -1,52 +1,53 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { EventRepository } from "@calcom/lib/server/repository/event";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
-import LegacyPage, { type PageProps as LegacyPageProps } from "~/team/type-view";
+import LegacyPage from "~/team/type-view";
+import type { PageProps as LegacyPageProps } from "~/team/type-view";
 
 export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(legacyCtx);
-  const { user: username, slug: eventSlug, booking, isSEOIndexable, eventData, isBrandingHidden } = props;
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(legacyCtx.req, legacyCtx.params?.orgSlug);
+  const { booking, isSEOIndexable, eventData, isBrandingHidden } = props;
 
-  const event = await EventRepository.getPublicEvent({
-    username,
-    eventSlug,
-    isTeamEvent: true,
-    org: isValidOrgDomain ? currentOrgDomain : null,
-    fromRedirectOfNonOrgLink: legacyCtx.query.orgRedirection === "true",
-  });
+  const profileName = eventData?.profile?.name ?? "";
+  const profileImage = eventData?.profile.image;
+  const title = eventData?.title ?? "";
+  const meeting = {
+    title,
+    profile: { name: profileName, image: profileImage },
+    users: [
+      ...(eventData?.users || []).map((user) => ({
+        name: `${user.name}`,
+        username: `${user.username}`,
+      })),
+    ],
+  };
 
-  return await generateEventBookingPageMetadata({
-    profile: {
-      name: event?.profile?.name ?? "",
-      image: event?.profile.image ?? "",
+  const metadata = await generateMeetingMetadata(
+    meeting,
+    (t) => `${booking?.uid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${booking?.uid ? t("reschedule") : ""} ${title}`,
+    isBrandingHidden,
+    getOrgFullOrigin(eventData.entity.orgSlug ?? null)
+  );
+
+  return {
+    ...metadata,
+    robots: {
+      follow: !(eventData?.hidden || !isSEOIndexable),
+      index: !(eventData?.hidden || !isSEOIndexable),
     },
-    event: {
-      title: event?.title ?? "",
-      hidden: event?.hidden ?? false,
-      users: [
-        ...(event?.users || []).map((user) => ({
-          name: `${user.name}`,
-          username: `${user.username}`,
-        })),
-      ],
-    },
-    hideBranding: isBrandingHidden,
-    orgSlug: eventData?.entity.orgSlug ?? null,
-    isSEOIndexable,
-    isReschedule: !!booking,
-  });
+  };
 };
+
 const getData = withAppDirSsr<LegacyPageProps>(getServerSideProps);
 
 export default WithLayout({

@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
+import { getShortenLink } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { defaultHandler } from "@calcom/lib/server";
@@ -120,6 +121,33 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
         );
 
+        const urls = {
+          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl || "",
+          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true` || "",
+          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
+        };
+
+        const [meetingUrl, cancelLink, rescheduleLink] = await Promise.allSettled([
+          getShortenLink(urls.meetingUrl),
+          getShortenLink(urls.cancelLink),
+          getShortenLink(urls.rescheduleLink),
+        ]).then((results) => {
+          return results.map((result) => {
+            let finalResult = "";
+
+            if (result.status === "fulfilled") {
+              const v = result.value;
+              if (typeof v === "string") {
+                finalResult = v;
+              } else {
+                finalResult = v.shortLink;
+              }
+            }
+
+            return finalResult;
+          });
+        });
+
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
           organizerName: reminder.booking?.user?.name || "",
@@ -131,9 +159,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           location: reminder.booking?.location || "",
           additionalNotes: reminder.booking?.description,
           responses: responses,
-          meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
-          cancelLink: `${bookerUrl}/booking/${reminder.booking.uid}?cancel=true`,
-          rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}`,
+          meetingUrl,
+          cancelLink,
+          rescheduleLink,
           attendeeTimezone: reminder.booking.attendees[0].timeZone,
           eventTimeInAttendeeTimezone: dayjs(reminder.booking.startTime).tz(
             reminder.booking.attendees[0].timeZone

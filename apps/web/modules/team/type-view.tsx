@@ -25,7 +25,6 @@ function Type({
   slug,
   user,
   booking,
-  isEmbed,
   isBrandingHidden,
   eventData,
   isInstantMeeting,
@@ -33,6 +32,7 @@ function Type({
   teamMemberEmail,
   crmOwnerRecordType,
   crmAppSlug,
+  isEmbed,
 }: PageProps) {
   const searchParams = useSearchParams();
 
@@ -63,7 +63,5 @@ function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;
 
 export default Type;

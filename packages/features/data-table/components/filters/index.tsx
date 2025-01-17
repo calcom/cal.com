@@ -122,19 +122,18 @@ const ColumnVisibilityButton = forwardRef(ColumnVisibilityButtonComponent) as <T
 // Filters
 interface AddFilterButtonProps<TData> {
   table: Table<TData>;
-  omit?: string[];
   externalFilters?: ExternalFilter[];
 }
 
 function AddFilterButtonComponent<TData>(
-  { table, omit, externalFilters }: AddFilterButtonProps<TData>,
+  { table, externalFilters }: AddFilterButtonProps<TData>,
   ref: React.Ref<HTMLButtonElement>
 ) {
   const { t } = useLocale();
   const { activeFilters, setActiveFilters, displayedExternalFilters, setDisplayedExternalFilters } =
     useDataTable();
 
-  const filterableColumns = useFilterableColumns(table, omit);
+  const filterableColumns = useFilterableColumns(table);
 
   const handleAddFilter = useCallback(
     (columnId: string) => {
@@ -188,14 +187,10 @@ function AddFilterButtonComponent<TData>(
   );
 }
 
-function useFilterableColumns<TData>(table: Table<TData>, omit?: string[]) {
+function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(
-    () =>
-      table
-        .getAllColumns()
-        .filter((column) => column.getCanFilter())
-        .filter((column) => !omit?.includes(column.id)),
-    [table.getAllColumns(), omit]
+    () => table.getAllColumns().filter((column) => column.getCanFilter()),
+    [table.getAllColumns()]
   );
 
   const filterableColumns = useMemo<FilterableColumn[]>(
@@ -228,7 +223,7 @@ function useFilterableColumns<TData>(table: Table<TData>, omit?: string[]) {
 }
 
 const AddFilterButton = forwardRef(AddFilterButtonComponent) as <TData>(
-  props: AddFilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement>; omit?: string[] }
+  props: AddFilterButtonProps<TData> & { ref?: React.Ref<HTMLButtonElement> }
 ) => ReturnType<typeof AddFilterButtonComponent>;
 
 // Add the new ActiveFilters component

@@ -24,7 +24,7 @@ export const PeopleFilter = () => {
   const debouncedSearch = useDebounce(searchText, 500);
 
   const queryMembers = trpc.viewer.teams.legacyListMembers.useInfiniteQuery(
-    { limit: 10, searchText: debouncedSearch },
+    { limit: 10, searchText: debouncedSearch, includeEmail: true },
     {
       enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -54,6 +54,8 @@ export const PeopleFilter = () => {
   return (
     <AnimatedPopover text={getTextForPopover()} prefix={`${t("people")}: `}>
       <FilterCheckboxFieldsContainer>
+        <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
+
         <FilterCheckboxField
           id="all"
           icon={<Icon name="user" className="h-4 w-4" />}
@@ -62,7 +64,6 @@ export const PeopleFilter = () => {
           label={t("all_users_filter_label")}
         />
         <Divider />
-        <FilterSearchField onChange={(e) => setSearchText(e.target.value)} placeholder={t("search")} />
 
         {filteredMembers?.map((member) => (
           <FilterCheckboxField
