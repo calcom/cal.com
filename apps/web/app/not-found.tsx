@@ -126,7 +126,8 @@ async function NotFound() {
 
               {username ? (
                 <>
-                  <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                  <strong className="text-blue-500">{username}</strong>
+                  {` ${t("is_still_available")} `}
                   <span className="text-blue-500">{t("register_now")}</span>.
                 </>
               ) : null}
