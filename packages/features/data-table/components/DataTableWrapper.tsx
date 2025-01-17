@@ -61,11 +61,10 @@ export function DataTableWrapper<TData, TValue>({
       variant={variant}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
       <DataTableToolbar.Root>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <div className="flex justify-start gap-2">{ToolbarLeft}</div>
-            <div className="grow" />
-            <div className="flex justify-end gap-2">{ToolbarRight}</div>
+        <div className="flex w-full flex-col gap-2">
+          <div className="flex w-full flex-wrap justify-between gap-2">
+            <div className="flex flex-wrap gap-2">{ToolbarLeft}</div>
+            <div className="flex flex-wrap gap-2">{ToolbarRight}</div>
           </div>
         </div>
 
