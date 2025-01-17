@@ -93,6 +93,10 @@ export const DailyVideoDownloadTranscriptEmail = (
       })}
 
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>
+        <>{props.language("you_can_download_transcript_from_attachments")},</>
+      </p>
+
+      <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "32px", marginBottom: "8px" }}>
         <>{props.language("happy_scheduling")},</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px", marginTop: "0px" }}>
