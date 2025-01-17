@@ -24,7 +24,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
   const { error } = querySchema.parse({ error: searchParams?.error || undefined });
   const errorMsg = error || t("error_during_login");
   return (
-    <AuthContainer title="" description="">
+    <AuthContainer title="" description="" isAppDir={true}>
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="x" className="h-6 w-6 text-red-600" />
@@ -36,7 +36,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
         </div>
       </div>
       <div className="mt-5 sm:mt-6">
-        <Link href="/auth/login" passHref legacyBehavior>
+        <Link href="/auth/login">
           <Button className="flex w-full justify-center">{t("go_back_login")}</Button>
         </Link>
       </div>
