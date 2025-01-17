@@ -20,11 +20,12 @@ export const generateMetadata = async () =>
 
 const Page = async ({ params, searchParams }: PageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  await ssrInit(context);
   const session = await getServerSessionForAppDir();
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
+
+  await ssrInit(context);
 
   return <EventTypes />;
 };
