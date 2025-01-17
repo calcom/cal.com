@@ -11,6 +11,7 @@ import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/u
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
@@ -259,6 +260,30 @@ export const BookerPlatformWrapper = (
     selectedDate,
   });
 
+  const [routingParams, setRoutingParams] = useState<{
+    routedTeamMemberIds?: number[];
+    shouldServeCache?: boolean;
+    skipContactOwner?: boolean;
+  }>({});
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
+    const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+
+    const _cacheParam = searchParams?.get("cal.cache");
+    const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+
+    console.log(routedTeamMemberIds, "these are the routed team member ids".toLocaleUpperCase());
+
+    setRoutingParams({
+      ...(skipContactOwner ? { skipContactOwner } : {}),
+      ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
+      ...(shouldServeCache ? { shouldServeCache } : {}),
+    });
+  }, []);
+
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -281,6 +306,7 @@ export const BookerPlatformWrapper = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
+    ...routingParams,
   });
 
   const bookerForm = useBookingForm({

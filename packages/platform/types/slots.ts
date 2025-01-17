@@ -96,6 +96,27 @@ export class GetAvailableSlotsInput {
     enum: SlotFormat,
   })
   slotFormat?: SlotFormat;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  skipContactOwner?: boolean;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  shouldServeCache?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map((s: string) => parseInt(s));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  routedTeamMemberIds?: number[];
 }
 
 export class RemoveSelectedSlotInput {

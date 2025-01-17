@@ -126,4 +126,35 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   locationUrl?: string;
+
+  @IsArray()
+  @Type(() => Number)
+  @IsOptional()
+  routedTeamMemberIds?: number[];
+
+  @IsNumber()
+  @IsOptional()
+  routingFormResponseId?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  skipContactOwner?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  _shouldServeCache?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  _isDryRun?: boolean;
+
+  @IsObject()
+  @IsOptional()
+  reroutingFormResponses?: Record<
+    string,
+    {
+      value: (string | number | string[]) & (string | number | string[] | undefined);
+      label?: string | undefined;
+    }
+  >;
 }
