@@ -166,6 +166,13 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
     schedulingType: SchedulingType.ROUND_ROBIN,
     metadata: null,
     length: 30,
+    hosts: [
+      {
+        user: {
+          email: "owner@example.com",
+        },
+      },
+    ],
   };
 
   it("should return null when email is not provided in query", async () => {
@@ -235,7 +242,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
   });
 
   it("should return null when CRM owner is not part of event type", async () => {
-    const ownerEmail = "owner@example.com";
+    const ownerEmail = "ownerNotInEventType@example.com";
     const bookerEmail = "booker@example.com";
     mockGetCRMContactOwnerForRRLeadSkip({ bookerEmail, teamMemberEmail: ownerEmail });
 
@@ -331,7 +338,7 @@ describe("getTeamMemberEmailForResponseOrContactUsingUrlQuery", () => {
 
     it("should return null when when cal.routingFormResponseId and cal.salesforce.xxxx=true is provided but the returned email isn't an event member", async () => {
       const bookerEmail = "booker@example.com";
-      const teamMemberEmail = "owner@example.com";
+      const teamMemberEmail = "ownerNotInEventType@example.com";
       mockBookingFormHandler({ bookerEmail, teamMemberEmail });
       const SOME_OTHER_EVENT_ID = 200;
       await createHostForEvent({

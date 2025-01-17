@@ -34,6 +34,7 @@ import ga4_config_json from "./ga4/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
+import granola_config_json from "./granola/config.json";
 import gtm_config_json from "./gtm/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
@@ -135,6 +136,7 @@ export const appStoreMetadata = {
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
+  granola: granola_config_json,
   gtm: gtm_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
   hubspot: hubspot__metadata_ts,

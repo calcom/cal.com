@@ -21,8 +21,8 @@ const querySchema = z.object({
 
 const getWorkflow = cache((id: number) => WorkflowRepository.getById({ id }));
 
-export const generateMetadata = async ({ params, searchParams }: PageProps): Promise<Metadata | null> => {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+export const generateMetadata = async ({ params }: PageProps): Promise<Metadata | null> => {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
   }
@@ -38,11 +38,11 @@ export const generateMetadata = async ({ params, searchParams }: PageProps): Pro
 
 export const generateStaticParams = () => [];
 
-const Page = async ({ params, searchParams }: PageProps) => {
+const Page = async ({ params }: PageProps) => {
   // FIXME: Refactor me once next-auth endpoint is migrated to App Router
   // const session = await getServerSessionForAppDir();
   // const user = session?.user;
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
   }

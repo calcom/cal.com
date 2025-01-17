@@ -36,6 +36,7 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
     <div>
       <Shell
         withoutMain={false}
+        withoutSeo={true}
         heading={t("insights")}
         subtitle={t("insights_subtitle")}
         title={t("insights")}
