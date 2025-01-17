@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Omogućava zakazivanje sastanaka kad god je domaćin dostupan. Koristite ovo da maksimalno povećate broj potencijalnih sastanaka kada je ravnomerna distribucija sastanaka među domaćinima manje važna.",
   "rr_distribution_method_balanced_title": "Balansiranje opterećenja",
   "rr_distribution_method_balanced_description": "Pratićemo broj zakazanih sastanaka kod svakog domaćina i upoređivati ga sa ostalima, privremeno onemogućavajući domaćine koji imaju previše sastanaka kako bi distribucija bila ravnomerna.",
+  "edit_team_member_weights": "Izmeni težine",
+  "weights_updated_successfully": "Težine su uspešno ažurirane",
   "require_confirmation_for_free_email": "Zahtevaj potvrdu samo za besplatne email provajdere (npr. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Isključi e-poruke koje sadrže ...",
   "require_emails_that_contain": "Zahtevaj email adrese koje sadrže...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "Pravite probnu rezervaciju.",
   "icon_showcase": "Prikaz ikonica",
   "icons_showcase": "Prikaz ikonica",
+  "feature_currently_disabled": "Funkcija je trenutno onemogućena",
   "choose_an_option": "Izaberite opciju",
   "enter_option_value": "Unesite vrednost opcije",
   "remove_option": "Ukloni opciju",
   "managed_users": "Upravljani korisnici",
   "managed_users_description": "Pogledajte sve upravljane korisnike koje je kreirao vaš OAuth klijent",
   "select_oAuth_client": "Izaberite OAuth klijenta",
+  "on_every_instance": "Na svakoj instanci",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Ermöglicht Buchenden, Meetings zu buchen, wann immer ein Host verfügbar ist. Nutzen Sie dies, um die Anzahl potenzieller Meetings zu maximieren, wenn die gleichmäßige Verteilung der Meetings auf die Hosts weniger wichtig ist.",
   "rr_distribution_method_balanced_title": "Lastverteilung",
   "rr_distribution_method_balanced_description": "Wir überwachen, wie viele Buchungen bei jedem Host eingegangen sind und vergleichen dies mit anderen. Hosts, die zu weit voraus sind, werden temporär deaktiviert, damit die Buchungen gleichmäßig verteilt werden.",
+  "edit_team_member_weights": "Gewichtungen bearbeiten",
+  "weights_updated_successfully": "Gewichtungen erfolgreich aktualisiert",
   "require_confirmation_for_free_email": "Bestätigung nur für kostenlose E-Mail-Anbieter erforderlich (z.B. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "E-Mails ausschließen, die ... enthalten",
   "require_emails_that_contain": "E-Mails müssen enthalten ...",
@@ -2917,11 +2919,13 @@
   "dry_run_mode_active": "Sie führen eine Testbuchung durch.",
   "icon_showcase": "Icon-Übersicht",
   "icons_showcase": "Icons-Übersicht",
+  "feature_currently_disabled": "Funktion ist derzeit deaktiviert",
   "choose_an_option": "Option auswählen",
   "enter_option_value": "Optionswert eingeben",
   "remove_option": "Option entfernen",
   "managed_users": "Verwaltete Benutzer",
   "managed_users_description": "Sehen Sie alle verwalteten Benutzer, die von Ihrem OAuth-Client erstellt wurden",
   "select_oAuth_client": "OAuth-Client auswählen",
+  "on_every_instance": "Bei jeder Instanz",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
