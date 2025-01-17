@@ -2,6 +2,7 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
@@ -31,6 +32,7 @@ type NotFound = {
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
+  "routing-forms": RoutingFormsRoutingConfig,
   typeform: TypeformRoutingConfig,
 };
 

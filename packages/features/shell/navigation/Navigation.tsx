@@ -87,10 +87,10 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "ellipsis",
   },
   {
-    name: "routing",
-    href: "/routing/forms",
-    icon: "split",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/forms") ?? false,
+    name: "routing_forms",
+    href: "/apps/routing-forms/forms",
+    icon: "file-text",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
     moreOnMobile: true,
   },
   {

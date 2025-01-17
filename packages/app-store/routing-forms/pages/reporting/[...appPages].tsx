@@ -293,5 +293,9 @@ export default function ReporterWrapper({
 }
 
 ReporterWrapper.getLayout = (page: React.ReactElement) => {
-  return <Shell withoutMain={true}>{page}</Shell>;
+  return (
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
+      {page}
+    </Shell>
+  );
 };
