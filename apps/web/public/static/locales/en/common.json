@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Allows bookers to book meetings whenever a host is available. Use this to maximize the number of potential meetings booked and when the even distribution of meetings across hosts is less important.",
   "rr_distribution_method_balanced_title": "Load balancing",
   "rr_distribution_method_balanced_description": "We will monitor how many bookings have been made with each host and compare this with others, disabling some hosts that are too far ahead so bookings are evenly distributed.",
+  "edit_team_member_weights": "Edit Weights",
+  "weights_updated_successfully": "Weights updated successfully",
   "require_confirmation_for_free_email": "Only require confirmation for free email providers (Ex. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Exclude emails that contain ...",
   "require_emails_that_contain": "Require emails that contain ...",
@@ -2919,8 +2921,13 @@
   "dry_run_mode_active": "You are doing a test booking.",
   "icon_showcase": "Icon showcase",
   "icons_showcase": "Icons showcase",
+  "feature_currently_disabled": "Feature is currently disabled",
   "choose_an_option": "Choose an option",
   "enter_option_value": "Enter option value",
   "remove_option": "Remove option",
+  "managed_users": "Managed Users",
+  "managed_users_description": "See all the managed users created by your OAuth client",
+  "select_oAuth_client": "Select Oauth Client",
+  "on_every_instance": "On every instance",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

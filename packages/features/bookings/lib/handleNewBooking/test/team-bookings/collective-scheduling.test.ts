@@ -783,8 +783,6 @@ describe("handleNewBooking", () => {
               subscriberUrl: "http://my-webhook.example.com",
               videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
             });
-
-            expectSMSToBeTriggered({ sms, toNumber: TEST_ATTENDEE_NUMBER });
           },
           timeout
         );

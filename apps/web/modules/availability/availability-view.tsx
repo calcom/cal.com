@@ -237,6 +237,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
         title={t("availability")}
         description={t("configure_availability")}
         hideHeadingOnMobile
+        withoutSeo={true}
         withoutMain={false}
         CTA={
           <div className="flex gap-2">

@@ -6,7 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -679,7 +679,7 @@ export default function Success(props: PageProps) {
                           const label = field.label || t(field.defaultLabel);
 
                           return (
-                            <>
+                            <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 // eslint-disable-next-line react/no-danger
@@ -697,7 +697,7 @@ export default function Success(props: PageProps) {
                                     : t("no")
                                   : response.toString()}
                               </p>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>

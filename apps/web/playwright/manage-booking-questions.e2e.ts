@@ -231,6 +231,7 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For Team EventType", () => {
+    // eslint-disable-next-line playwright/no-skipped-test
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -257,7 +258,9 @@ test.describe("Manage Booking Questions", () => {
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
-        await page.getByTestId(`horizontal-tab-${team?.name}`).click();
+        const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
+        await locator.click();
+        await expect(locator).toHaveClass(/bg-emphasis/);
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 

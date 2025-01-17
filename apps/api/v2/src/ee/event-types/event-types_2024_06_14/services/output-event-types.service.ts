@@ -128,6 +128,7 @@ export class OutputEventTypesService_2024_06_14 {
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
       : this.getDefaultBookingFields(isOrgTeamEvent);
+
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users || []);
@@ -242,19 +243,7 @@ export class OutputEventTypesService_2024_06_14 {
       }
     }
 
-    const fields = [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
-
-    // ensure additional notes are always at the end
-    return fields.sort((a, b) => {
-      if (!a?.slug || !b?.slug) return 0;
-      if (a.slug === "notes" && b.slug !== "notes") {
-        return 1;
-      }
-      if (b.slug === "notes" && a.slug !== "notes") {
-        return -1;
-      }
-      return 0;
-    });
+    return [...transformBookingFieldsInternalToApi(knownBookingFields), ...unknownBookingFields];
   }
 
   getDefaultBookingFields(isOrgTeamEvent: boolean) {

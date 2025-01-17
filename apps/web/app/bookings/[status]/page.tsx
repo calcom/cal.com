@@ -20,8 +20,8 @@ export const generateStaticParams = async () => {
   return validStatuses.map((status) => ({ status }));
 };
 
-const Page = ({ params, searchParams }: PageProps) => {
-  const parsed = querySchema.safeParse({ ...params, ...searchParams });
+const Page = ({ params }: PageProps) => {
+  const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }

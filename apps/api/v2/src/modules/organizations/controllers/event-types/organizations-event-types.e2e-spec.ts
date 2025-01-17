@@ -577,6 +577,100 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should be able to configure phone-only event type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: true,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: false,
+              label: "Email",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: true,
+              hidden: true,
+              label: "Phone number",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+          ]);
+        });
+    });
+
     it("should assign all members to managed event-type", async () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         assignAllTeamMembers: true,
@@ -679,13 +773,19 @@ describe("Organizations Event Types Endpoints", () => {
           expect(fetchedEventType.bookingFields).toEqual([
             { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
             { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
-            { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
+            {
+              disableOnPrefill: false,
+              isDefault: true,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: false,
+              hidden: true,
+            },
             {
               isDefault: true,
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
@@ -699,6 +799,14 @@ describe("Organizations Event Types Endpoints", () => {
             {
               isDefault: true,
               required: false,
+              slug: "notes",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              required: false,
               slug: "guests",
               type: "multiemail",
               disableOnPrefill: false,
@@ -708,14 +816,6 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               required: false,
               slug: "rescheduleReason",
-              type: "textarea",
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
-              required: false,
-              slug: "notes",
               type: "textarea",
               disableOnPrefill: false,
               hidden: false,
