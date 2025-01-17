@@ -77,7 +77,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   }
 };
 
-export const Page = async (props: OrgPageProps) => {
+const Page = async (props: OrgPageProps) => {
   if ((props as TeamPageProps)?.team) {
     return <TeamPage {...(props as TeamPageProps)} />;
   }
