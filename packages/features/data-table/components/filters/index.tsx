@@ -148,9 +148,9 @@ function AddFilterButtonComponent<TData>(
     <div className="flex items-center space-x-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button ref={ref} color="secondary">
+          <Button ref={ref} color="secondary" data-testid="add-filter-button">
             <Icon name="sliders-horizontal" className="mr-2 h-4 w-4" />
-            {t("add_filter")}
+            {t("filter")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0" align="start">

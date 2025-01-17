@@ -119,7 +119,6 @@ export type IconName =
   | "sliders-vertical"
   | "smartphone"
   | "sparkles"
-  | "split"
   | "square-check"
   | "star"
   | "sun"
