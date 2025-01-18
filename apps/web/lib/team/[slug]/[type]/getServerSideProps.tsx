@@ -4,7 +4,6 @@ import { z } from "zod";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
-import { CSRF } from "@calcom/features/csrf";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -27,7 +26,7 @@ const paramsSchema = z.object({
 // 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
-  CSRF.init().setup(context.req, context.res);
+  //CSRF.init().setup(context.req, context.res);
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
