@@ -1,3 +1,4 @@
+import axios from "axios";
 import { decodeHTML } from "entities";
 import { createTransport } from "nodemailer";
 import { z } from "zod";
@@ -53,6 +54,10 @@ export default class BaseEmail {
     const from = "from" in payload ? (payload.from as string) : "";
     const to = "to" in payload ? (payload.to as string) : "";
 
+    if (!(await checkSpamScore(payload))) {
+      return new Promise((r) => r(`Skipped Sending Email to email due to spam score: ${to}`));
+    }
+
     if (isSmsCalEmail(to)) {
       console.log(`Skipped Sending Email to faux email: ${to}`);
       return new Promise((r) => r(`Skipped Sending Email to faux email: ${to}`));
@@ -93,6 +98,25 @@ export default class BaseEmail {
       )
     );
     return new Promise((resolve) => resolve("send mail async"));
+  }
+
+  protected async checkSpamScore(payload: Record<string, unknown>) {
+    try {
+      const result = await axios.post("https://spamcheck.postmarkapp.com./filter", {
+        email: payload.toString(),
+        options: "long",
+      });
+
+      const spamScore = parseFloat(result.data.score);
+
+      if (!isNaN(spamScore) && result.data.score < 8) {
+        return false;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return true;
   }
   protected getMailerOptions() {
     return {
