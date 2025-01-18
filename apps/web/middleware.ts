@@ -1,3 +1,4 @@
+import { CsrfError, createCsrfProtect } from "@edge-csrf/nextjs";
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import { cookies } from "next/headers";
@@ -18,6 +19,12 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
+
+const csrfProtect = createCsrfProtect({
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+  },
+});
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
@@ -100,6 +107,16 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
+  try {
+    // So we don't have to attach the token to each POST request (for now)
+    const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
+    if (csrfTokenFromCookie) req.headers.set("x-csrf-token", csrfTokenFromCookie);
+    await csrfProtect(req, res);
+  } catch (err) {
+    if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
+    throw err;
+  }
+
   return responseWithHeaders({ url, res, req });
 };
 
@@ -163,6 +180,7 @@ export const config = {
     "/connect-and-join/:path*",
     "/insights/:path*",
     "/:path*/embed",
+    "/api/book/:path*",
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
@@ -201,6 +219,7 @@ export const config = {
     "/org/[orgSlug]/team/[slug]/[type]",
     "/org/[orgSlug]/team/[slug]",
     "/org/[orgSlug]",
+    "/:user*",
   ],
 };
 

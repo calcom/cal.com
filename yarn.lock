@@ -4154,20 +4154,13 @@ __metadata:
     "@tanstack/react-table": ^8.9.3
     "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
-    "@types/cookie-signature": ^1.1.2
-    "@types/tsscmp": ^1.0.2
-    "@types/uid-safe": ^2.1.5
     "@types/web-push": ^3.6.3
     "@vercel/functions": ^1.4.0
-    cookie: ^1.0.2
-    cookie-signature: ^1.2.2
     framer-motion: ^10.12.8
     lexical: ^0.9.0
     react-select: ^5.7.0
     react-sticky-box: ^2.0.4
     stripe-event-types: ^3.1.0
-    tsscmp: ^1.0.6
-    uid-safe: ^2.1.5
     web-push: ^3.6.7
     zustand: ^4.3.2
   languageName: unknown
@@ -5043,6 +5036,7 @@ __metadata:
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
+    "@edge-csrf/nextjs": ^2.5.3-cloudflare-rc1
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@googleapis/admin": ^23.0.0
@@ -5635,6 +5629,15 @@ __metadata:
   dependencies:
     server-only: ^0.0.1
   checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
+  languageName: node
+  linkType: hard
+
+"@edge-csrf/nextjs@npm:^2.5.3-cloudflare-rc1":
+  version: 2.5.3-cloudflare-rc1
+  resolution: "@edge-csrf/nextjs@npm:2.5.3-cloudflare-rc1"
+  peerDependencies:
+    next: ^13.0.0 || ^14.0.0 || ^15.0.0
+  checksum: d88d9d5dce39336ddeb1e860d72181ecf0700c6f753d3a651d34daf42ea82383f74556db4f941a525b28245c7f568f2dd439398fc074e92249f214c2148873a0
   languageName: node
   linkType: hard
 
@@ -15783,15 +15786,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cookie-signature@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@types/cookie-signature@npm:1.1.2"
-  dependencies:
-    "@types/node": "*"
-  checksum: 552c10e75ca0bbb57e087ccda8ef55eb1d844029c5835d87ce73f8afadd46b58d931193682be9ad51798fe8886f0b4d3003d049abaa6653c70c6c13a770084f5
-  languageName: node
-  linkType: hard
-
 "@types/cookie@npm:^0.4.1":
   version: 0.4.1
   resolution: "@types/cookie@npm:0.4.1"
@@ -16960,24 +16954,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tsscmp@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@types/tsscmp@npm:1.0.2"
-  checksum: c02c0bb9f14f550947fea9fa6f9f3c28e6b2d47a6d049a5450ed466fb0c8a685b6ff37d070d4c43d930a5affc9d828f5e16e35cde1e734de228ffd2df76ac2a8
-  languageName: node
-  linkType: hard
-
 "@types/turndown@npm:^5.0.1":
   version: 5.0.1
   resolution: "@types/turndown@npm:5.0.1"
   checksum: 137c02fb863f96a2f032292fbfaf958fb784b62d97acb6a4968c012d365fa092997443584bd50205f89ad9128c729119efdf5db67cdda586f1cdd43049b26d6b
-  languageName: node
-  linkType: hard
-
-"@types/uid-safe@npm:^2.1.5":
-  version: 2.1.5
-  resolution: "@types/uid-safe@npm:2.1.5"
-  checksum: 3526120fb25d6424cbf52f1daa8baa1c021e212b2e0e248f7c7358053a4e52c0a8bd73fbca23e6de52141608269fab808f9936a2909f05dfdde613cd089d0b4f
   languageName: node
   linkType: hard
 
@@ -21696,13 +21676,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie-signature@npm:^1.2.2":
-  version: 1.2.2
-  resolution: "cookie-signature@npm:1.2.2"
-  checksum: 1ad4f9b3907c9f3673a0f0a07c0a23da7909ac6c9204c5d80a0ec102fe50ccc45f27fdf496361840d6c132c5bb0037122c0a381f856d070183d1ebe3e5e041ff
-  languageName: node
-  linkType: hard
-
 "cookie@npm:0.4.1":
   version: 0.4.1
   resolution: "cookie@npm:0.4.1"
@@ -21721,13 +21694,6 @@ __metadata:
   version: 0.4.2
   resolution: "cookie@npm:0.4.2"
   checksum: a00833c998bedf8e787b4c342defe5fa419abd96b32f4464f718b91022586b8f1bafbddd499288e75c037642493c83083da426c6a9080d309e3bd90fd11baa9b
-  languageName: node
-  linkType: hard
-
-"cookie@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "cookie@npm:1.0.2"
-  checksum: 2c5a6214147ffa7135ce41860c781de17e93128689b0d080d3116468274b3593b607bcd462ac210d3a61f081db3d3b09ae106e18d60b1f529580e95cf2db8a55
   languageName: node
   linkType: hard
 
@@ -37224,13 +37190,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"random-bytes@npm:~1.0.0":
-  version: 1.0.0
-  resolution: "random-bytes@npm:1.0.0"
-  checksum: 09faa256394aa2ca9754aa57e92a27c452c3e97ffb266e98bebb517332e9df7168fea393159f88d884febce949ba8bec8ddb02f03342da6c6023ecc7b155e0ae
-  languageName: node
-  linkType: hard
-
 "randombytes@npm:^2.0.0, randombytes@npm:^2.0.1, randombytes@npm:^2.0.5, randombytes@npm:^2.1.0":
   version: 2.1.0
   resolution: "randombytes@npm:2.1.0"
@@ -42950,13 +42909,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsscmp@npm:^1.0.6":
-  version: 1.0.6
-  resolution: "tsscmp@npm:1.0.6"
-  checksum: 1512384def36bccc9125cabbd4c3b0e68608d7ee08127ceaa0b84a71797263f1a01c7f82fa69be8a3bd3c1396e2965d2f7b52d581d3a5eeaf3967fbc52e3b3bf
-  languageName: node
-  linkType: hard
-
 "tsutils@npm:^3.21.0":
   version: 3.21.0
   resolution: "tsutils@npm:3.21.0"
@@ -43540,15 +43492,6 @@ __metadata:
   bin:
     uglifyjs: bin/uglifyjs
   checksum: 7b3897df38b6fc7d7d9f4dcd658599d81aa2b1fb0d074829dd4e5290f7318dbca1f4af2f45acb833b95b1fe0ed4698662ab61b87e94328eb4c0a0d3435baf924
-  languageName: node
-  linkType: hard
-
-"uid-safe@npm:^2.1.5":
-  version: 2.1.5
-  resolution: "uid-safe@npm:2.1.5"
-  dependencies:
-    random-bytes: ~1.0.0
-  checksum: 07536043da9a026f4a2bc397543d0ace7587449afa1d9d2c4fd3ce76af8a5263a678788bcc429dff499ef29d45843cd5ee9d05434450fcfc19cc661229f703d1
   languageName: node
   linkType: hard
 

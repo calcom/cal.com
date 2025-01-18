@@ -15,23 +15,16 @@
     "@tanstack/react-table": "^8.9.3",
     "@tanstack/react-virtual": "^3.10.9",
     "@vercel/functions": "^1.4.0",
-    "cookie": "^1.0.2",
-    "cookie-signature": "^1.2.2",
     "framer-motion": "^10.12.8",
     "lexical": "^0.9.0",
     "react-select": "^5.7.0",
     "react-sticky-box": "^2.0.4",
     "stripe-event-types": "^3.1.0",
-    "tsscmp": "^1.0.6",
-    "uid-safe": "^2.1.5",
     "web-push": "^3.6.7",
     "zustand": "^4.3.2"
   },
   "devDependencies": {
     "@testing-library/react-hooks": "^8.0.1",
-    "@types/cookie-signature": "^1.1.2",
-    "@types/tsscmp": "^1.0.2",
-    "@types/uid-safe": "^2.1.5",
     "@types/web-push": "^3.6.3"
   }
 }
