@@ -25,6 +25,7 @@ export async function post<T, U>(path: string, body: T, config?: RequestInit): P
   const init = {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include" as const,
     body: JSON.stringify(body),
     ...config,
   };

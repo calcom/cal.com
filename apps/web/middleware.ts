@@ -108,6 +108,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   });
 
   try {
+    // So we don't have to attach the token to each POST request (for now)
+    const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
+    if (csrfTokenFromCookie) req.headers.set("x-csrf-token", csrfTokenFromCookie);
     await csrfProtect(req, res);
   } catch (err) {
     if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
@@ -216,6 +219,7 @@ export const config = {
     "/org/[orgSlug]/team/[slug]/[type]",
     "/org/[orgSlug]/team/[slug]",
     "/org/[orgSlug]",
+    "/:user*",
   ],
 };
 
