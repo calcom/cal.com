@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -30,4 +29,4 @@ const Page = async ({ params, searchParams }: PageProps) => {
   return <EventTypes />;
 };
 
-export default WithLayout({ ServerPage: Page })<"P">;
+export default Page;

@@ -1,15 +1,15 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps } from "app/_types";
+import type { PageProps as _PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import type { PageProps as EventTypePageProps } from "@lib/event-types/[type]/getServerSideProps";
 import { getServerSideProps } from "@lib/event-types/[type]/getServerSideProps";
 
 import EventTypePageWrapper from "~/event-types/views/event-types-single-view";
 
-export const generateMetadata = async ({ params, searchParams }: PageProps) => {
+export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const { eventType } = await getData(legacyCtx);
 
@@ -19,6 +19,13 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-const getData = withAppDirSsr(getServerSideProps);
+const getData = withAppDirSsr<EventTypePageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, Page: EventTypePageWrapper })<"P">;
+const ServerPage = async ({ params, searchParams }: _PageProps) => {
+  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const props = await getData(legacyCtx);
+
+  return <EventTypePageWrapper {...props} />;
+};
+
+export default ServerPage;
