@@ -121,8 +121,7 @@ function UsersTableBare() {
   });
 
   const handleImpersonateUser = async (username: string | null) => {
-    await signIn("impersonation-auth", { redirect: false, username: username });
-    router.push(`/event-types`);
+    await signIn("impersonation-auth", { username: username, callbackUrl: `${WEBAPP_URL}/event-types` });
   };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
