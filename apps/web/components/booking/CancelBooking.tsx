@@ -94,6 +94,7 @@ export default function CancelBooking(props: Props) {
         uid: booking?.uid,
         cancellationReason: cancellationReason,
         allRemainingBookings,
+        // @NOTE: very important this shouldn't cancel with number ID use uid instead
         seatReferenceUid,
         cancelledBy: currentUserEmail,
       }),
@@ -109,6 +110,7 @@ export default function CancelBooking(props: Props) {
     } as unknown;
 
     if (res.status >= 200 && res.status < 300) {
+      // tested by apps/web/playwright/booking-pages.e2e.ts
       sdkActionManager?.fire("bookingCancelled", {
         ...bookingCancelledEventProps,
         booking: bookingWithCancellationReason,
