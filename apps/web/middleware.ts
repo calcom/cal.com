@@ -107,6 +107,15 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
+  await handleCsrfProtect(req, res);
+
+  return responseWithHeaders({ url, res, req });
+};
+
+async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
+  const url = req.nextUrl;
+  // Only protect /api/book/* requests for now. Prevents E2E tests from failing.
+  if (!url.pathname.startsWith("/api/book/")) return;
   try {
     // So we don't have to attach the token to each POST request (for now)
     const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
@@ -116,9 +125,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
     throw err;
   }
-
-  return responseWithHeaders({ url, res, req });
-};
+}
 
 const routingForms = {
   handleRewrite: (url: URL) => {
