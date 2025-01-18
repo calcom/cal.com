@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
@@ -89,4 +88,4 @@ const Page = async ({ params }: PageProps) => {
   );
 };
 
-export default WithLayout({ ServerPage: Page });
+export default Page;

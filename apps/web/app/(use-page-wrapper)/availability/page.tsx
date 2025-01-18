@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { notFound } from "next/navigation";
 
 // import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
@@ -36,4 +35,4 @@ const Page = async () => {
   }
 };
 
-export default WithLayout({ ServerPage: Page });
+export default Page;
