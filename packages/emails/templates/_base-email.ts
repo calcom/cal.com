@@ -55,7 +55,8 @@ export default class BaseEmail {
     const to = "to" in payload ? (payload.to as string) : "";
 
     if (!(await checkSpamScore(payload))) {
-      return new Promise((r) => r(`Skipped Sending Email to email due to spam score: ${to}`));
+      console.log(`Skipped Sending Email email due to spam score: ${to}`);
+      return new Promise((r) => r(`Skipped Sending Email email due to spam score: ${to}`));
     }
 
     if (isSmsCalEmail(to)) {
