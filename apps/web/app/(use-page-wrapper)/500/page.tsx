@@ -1,5 +1,4 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
@@ -42,6 +41,4 @@ async function Error500({ searchParams }: { searchParams: { error?: string } }) 
   );
 }
 
-export default WithLayout({
-  ServerPage: Error500,
-});
+export default Error500;
