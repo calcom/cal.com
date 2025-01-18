@@ -1397,10 +1397,14 @@ model CalendarCache {
   credentialId Int?
   credential   Credential? @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
+  dwdId String?
+  dwd   DomainWideDelegation? @relation(fields: [dwdId], references: [id], onDelete: Cascade)
+  
   userId Int?
   user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([credentialId, key])
+  @@unique([dwdId, key])
 }
 
 enum RedirectType {
@@ -1738,6 +1742,8 @@ model DomainWideDelegation {
   selectedCalendars   SelectedCalendar[]
   destinationCalendar DestinationCalendar[]
   bookingReferences   BookingReference[]
+  calendarCaches      CalendarCache[]
+
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
 

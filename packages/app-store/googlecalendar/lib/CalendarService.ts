@@ -232,7 +232,8 @@ export default class GoogleCalendarService implements Calendar {
     try {
       await authClient.authorize();
     } catch (error) {
-      this.log.error("DWD: Error authorizing domain wide delegation", JSON.stringify(error));
+      const errorMessage = error instanceof Error ? error.stack : error;
+      this.log.error("DWD: Error authorizing domain wide delegation", JSON.stringify(errorMessage));
 
       if ((error as any).response?.data?.error === "unauthorized_client") {
         throw new CalendarAppDomainWideDelegationClientIdNotAuthorizedError(
@@ -687,7 +688,14 @@ export default class GoogleCalendarService implements Calendar {
   ): Promise<calendar_v3.Schema$FreeBusyResponse> {
     if (shouldServeCache === false) return await this.fetchAvailability(args);
     const calendarCache = await CalendarCache.init(null);
-    const cached = await calendarCache.getCachedAvailability(this.credential.id, args);
+
+    const cached = await calendarCache.getCachedAvailability({
+      credentialId: this.credential.id,
+      dwdId: this.credential.delegatedToId,
+      userId: this.credential.userId,
+      args,
+    });
+
     if (cached) return cached.value as unknown as calendar_v3.Schema$FreeBusyResponse;
     return await this.fetchAvailability(args);
   }
@@ -1070,6 +1078,7 @@ export default class GoogleCalendarService implements Calendar {
     await calendarCache.upsertCachedAvailability({
       credentialId: this.credential.id,
       userId: this.credential.userId,
+      dwdId: this.credential.delegatedToId,
       args,
       value: JSON.parse(JSON.stringify(data)),
     });

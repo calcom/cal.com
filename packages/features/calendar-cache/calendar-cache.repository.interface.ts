@@ -8,10 +8,16 @@ export interface ICalendarCacheRepository {
   watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   unwatchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }): Promise<any>;
   upsertCachedAvailability(args: {
-    credentialId: number;
+    credentialId: number | null;
     userId: number | null;
+    dwdId: string | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
   }): Promise<void>;
-  getCachedAvailability(credentialId: number, args: FreeBusyArgs): Promise<CalendarCache | null>;
+  getCachedAvailability(args: {
+    credentialId: number | null;
+    dwdId: string | null;
+    userId: number | null;
+    args: FreeBusyArgs;
+  }): Promise<CalendarCache | null>;
 }

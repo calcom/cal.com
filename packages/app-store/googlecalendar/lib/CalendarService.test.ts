@@ -3,16 +3,20 @@ import oAuthManagerMock, { defaultMockOAuthManager } from "../../tests/__mocks__
 import { adminMock, calendarMock, setCredentialsMock } from "./__mocks__/googleapis";
 
 import { JWT } from "googleapis-common";
-import { expect, test, beforeEach, vi, describe } from "vitest";
+import { expect, test, beforeEach, afterEach, vi, describe } from "vitest";
 import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
+import { getTimeMax, getTimeMin } from "@calcom/features/calendar-cache/lib/datesForCache";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 import type { CredentialForCalendarService } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
+const log = logger.getSubLogger({ prefix: ["CalendarService.test"] });
 vi.stubEnv("GOOGLE_WEBHOOK_TOKEN", "test-webhook-token");
 
 interface MockJWT {
@@ -102,6 +106,152 @@ const testSelectedCalendar = {
   externalId: "example@cal.com",
 };
 
+const calendarCacheHelpers = {
+  FUTURE_EXPIRATION_DATE: new Date(Date.now() + 100000000),
+  getDatePair: () => {
+    // Keep it small to not go to next month
+    const timeDiffInMinutes = 1;
+    const dateFrom = new Date(Date.now()).toISOString();
+    const dateTo = new Date(Date.now() + timeDiffInMinutes * 60 * 1000).toISOString();
+    return { dateFrom, dateTo, minDateFrom: getTimeMin(dateFrom), maxDateTo: getTimeMax(dateTo) };
+  },
+  setCache: async ({
+    credentialId,
+    dwdId,
+    key,
+    value,
+    userId,
+    expiresAt,
+  }: {
+    credentialId: number | null;
+    dwdId: string | null;
+    key: string;
+    value: string;
+    userId: number | null;
+    expiresAt: Date;
+  }) => {
+    log.info("Setting Calendar Cache", safeStringify({ key, value, expiresAt, credentialId, userId, dwdId }));
+    await prismock.calendarCache.create({
+      data: {
+        key,
+        value,
+        expiresAt,
+        credentialId,
+        userId,
+        dwdId,
+      },
+    });
+  },
+
+  setRegularCredentialCache: async ({
+    credentialId,
+    userId,
+    key,
+    value,
+    expiresAt,
+  }: {
+    credentialId: number;
+    userId: number;
+    key: string;
+    value: string;
+    expiresAt: Date;
+  }) => {
+    await calendarCacheHelpers.setCache({
+      credentialId,
+      dwdId: null,
+      key,
+      value,
+      userId,
+      expiresAt,
+    });
+  },
+
+  setDwdCredentialCache: async ({
+    dwdId,
+    userId,
+    key,
+    value,
+    expiresAt,
+  }: {
+    dwdId: string;
+    userId: number | null;
+    key: {
+      timeMin: string;
+      timeMax: string;
+      items: { id: string }[];
+    };
+    value: {
+      kind: string;
+      timeMax: string;
+      timeMin: string;
+      calendars: {
+        [key: string]: {
+          busy: { end: string; start: string }[];
+        };
+      };
+    };
+    expiresAt: Date;
+  }) => {
+    await calendarCacheHelpers.setCache({
+      credentialId: null,
+      dwdId,
+      key: JSON.stringify(key),
+      //@ts-expect-error Setting it as object so that prismock returns it as object, unlike prisma which returns an object when set as string
+      value: value,
+      userId,
+      expiresAt,
+    });
+  },
+  setCacheSimpleForDwd: async ({
+    dwdId,
+    userId,
+    busyTimes,
+  }: {
+    dwdId: string;
+    userId: number | null;
+    busyTimes: { start: string; end: string }[];
+  }) => {
+    const { dateFrom, dateTo, minDateFrom, maxDateTo } = calendarCacheHelpers.getDatePair();
+
+    await calendarCacheHelpers.setDwdCredentialCache({
+      dwdId,
+      userId,
+      key: {
+        timeMin: minDateFrom,
+        timeMax: maxDateTo,
+        items: [{ id: testSelectedCalendar.externalId }],
+      },
+      value: {
+        kind: "calendar#freeBusy",
+        timeMin: minDateFrom,
+        timeMax: maxDateTo,
+        calendars: {
+          [testSelectedCalendar.externalId]: {
+            busy: busyTimes,
+          },
+        },
+      },
+      expiresAt: calendarCacheHelpers.FUTURE_EXPIRATION_DATE,
+    });
+
+    return {
+      dateFrom,
+      dateTo,
+    };
+  },
+};
+
+const calendarHelpers = {
+  buildBusyTimes: (count: number) => {
+    const busyTimes = [];
+    for (let i = 0; i < count; i++) {
+      const start = new Date(Date.now() + Math.random() * 100000000).toISOString();
+      const end = new Date(Date.now() + Math.random() * 100000000).toISOString();
+      busyTimes.push({ start, end });
+    }
+    return busyTimes;
+  },
+};
 function expectGoogleSubscriptionToHaveOccurredAndClearMock({ calendarId }: { calendarId: string }) {
   expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledTimes(1);
   expect(calendarMock.calendar_v3.Calendar().events.watch).toHaveBeenCalledWith(
@@ -233,38 +383,86 @@ test("Calendar Cache is being ignored on cache MISS", async () => {
   await calendarService.getAvailability(dateFrom, dateTo, [testSelectedCalendar]);
 
   // Expect cache to be ignored in case of a MISS
-  const cachedAvailability = await calendarCache.getCachedAvailability(credentialInDb.id, {
-    timeMin: dateFrom,
-    timeMax: dateTo,
-    items: [{ id: testSelectedCalendar.externalId }],
+  const cachedAvailability = await calendarCache.getCachedAvailability({
+    credentialId: credentialInDb.id,
+    dwdCredential: null,
+    args: {
+      timeMin: dateFrom,
+      timeMax: dateTo,
+      items: [{ id: testSelectedCalendar.externalId }],
+    },
   });
 
   expect(cachedAvailability).toBeNull();
 });
 
-async function expectCacheToBeNotSet({ credentialId }: { credentialId: number }) {
-  const caches = await prismock.calendarCache.findMany({
-    where: {
-      credentialId,
-    },
-  });
+async function expectCacheToBeNotSet({
+  credentialId,
+  dwdCredential,
+}: {
+  credentialId: number;
+  dwdCredential: {
+    userId: number | null;
+    dwdId: string;
+  };
+}) {
+  let caches;
+  if (dwdCredential) {
+    if (!dwdCredential.userId) {
+      throw new Error("userId is required for dwdCredential");
+    }
+    caches = await prismock.calendarCache.findMany({
+      where: {
+        credentialId,
+        userId: dwdCredential.userId,
+        dwdId: dwdCredential.dwdId,
+      },
+    });
+  } else {
+    caches = await prismock.calendarCache.findMany({
+      where: {
+        credentialId,
+      },
+    });
+  }
 
   expect(caches).toHaveLength(0);
 }
 
 async function expectCacheToBeSet({
   credentialId,
+  dwdCredential,
   itemsInKey,
 }: {
-  credentialId: number;
+  credentialId: number | null;
+  dwdCredential: {
+    userId: number | null;
+    dwdId: string;
+  } | null;
   itemsInKey: { id: string }[];
 }) {
-  const caches = await prismock.calendarCache.findMany({
-    where: {
-      credentialId,
-    },
-  });
+  let caches;
+  if (dwdCredential) {
+    if (!dwdCredential.userId) {
+      throw new Error("userId is required for dwdCredential");
+    }
+    caches = await prismock.calendarCache.findMany({
+      where: {
+        userId: dwdCredential.userId,
+        dwdId: dwdCredential.dwdId,
+      },
+    });
 
+    console.log("caches", caches);
+  } else if (credentialId) {
+    caches = await prismock.calendarCache.findMany({
+      where: {
+        credentialId,
+      },
+    });
+  } else {
+    throw new Error("Either credentialId or dwdCredential must be provided");
+  }
   expect(caches).toHaveLength(1);
   expect(JSON.parse(caches[0].key)).toEqual(
     expect.objectContaining({
@@ -272,6 +470,126 @@ async function expectCacheToBeSet({
     })
   );
 }
+
+async function createCredentialInDb({
+  user = undefined,
+  delegatedTo = null,
+  dwdId = null,
+}: {
+  user?: { email: string | null };
+  delegatedTo?: NonNullable<CredentialForCalendarService["delegatedTo"]> | null;
+  dwdId?: string | null;
+} = {}): Promise<CredentialForCalendarService> {
+  const defaultUser = await prismock.user.create({
+    data: {
+      email: user?.email ?? "",
+    },
+  });
+
+  const app = await prismock.app.create({
+    data: {
+      slug: "google-calendar",
+      dirName: "google-calendar",
+    },
+  });
+
+  const credential = {
+    ...getSampleCredential(),
+    key: {
+      ...googleTestCredentialKey,
+      expiry_date: Date.now() - 1000,
+    },
+  };
+
+  const credentialInDb = !delegatedTo
+    ? await prismock.credential.create({
+        data: {
+          ...credential,
+          user: {
+            connect: {
+              id: defaultUser.id,
+            },
+          },
+          app: {
+            connect: {
+              slug: app.slug,
+            },
+          },
+        },
+        include: {
+          user: true,
+        },
+      })
+    : {
+        id: -1,
+        userId: defaultUser.id,
+        key: {
+          access_token: "NOOP_UNUSED_DELEGATION_TOKEN",
+        },
+        invalid: false,
+        teamId: null,
+        team: null,
+        delegatedToId: dwdId,
+        delegatedTo: delegatedTo.serviceAccountKey
+          ? {
+              serviceAccountKey: delegatedTo.serviceAccountKey,
+            }
+          : null,
+      };
+
+  return {
+    ...credentialInDb,
+    user: user ? { email: user.email ?? "" } : null,
+  } as CredentialForCalendarService;
+}
+
+const delegatedCredential = {
+  serviceAccountKey: {
+    client_email: "service@example.com",
+    client_id: "service-client-id",
+    private_key: "service-private-key",
+  },
+} as const;
+
+const createMockJWTInstance = ({
+  email = "user@example.com",
+  authorizeError,
+}: {
+  email?: string;
+  authorizeError?: { response?: { data?: { error?: string } } } | Error;
+}) => {
+  const mockJWTInstance = {
+    type: "jwt",
+    config: {
+      email: delegatedCredential.serviceAccountKey.client_email,
+      key: delegatedCredential.serviceAccountKey.private_key,
+      scopes: ["https://www.googleapis.com/auth/calendar"],
+      subject: email,
+    },
+    authorize: authorizeError ? vi.fn().mockRejectedValue(authorizeError) : vi.fn().mockResolvedValue(),
+    createScoped: vi.fn(),
+    getRequestMetadataAsync: vi.fn(),
+    fetchIdToken: vi.fn(),
+    hasUserScopes: vi.fn(),
+    getAccessToken: vi.fn(),
+    getRefreshToken: vi.fn(),
+    getTokenInfo: vi.fn(),
+    refreshAccessToken: vi.fn(),
+    revokeCredentials: vi.fn(),
+    revokeToken: vi.fn(),
+    verifyIdToken: vi.fn(),
+    on: vi.fn(),
+    setCredentials: vi.fn(),
+    getCredentials: vi.fn(),
+    hasAnyScopes: vi.fn(),
+    authorizeAsync: vi.fn(),
+    refreshTokenNoCache: vi.fn(),
+    createGToken: vi.fn(),
+  };
+
+  vi.mocked(JWT).mockImplementation(() => mockJWTInstance as unknown as JWT);
+  return mockJWTInstance;
+};
 
 describe("Watching and unwatching calendar", () => {
   test("Calendar can be watched and unwatched", async () => {
@@ -469,11 +787,13 @@ describe("Watching and unwatching calendar", () => {
 
     // Concerned cache will just have remaining externalIds
     expectCacheToBeSet({
-      credentialId: concernedCache.credentialId,
+      dwdCredential: null,
+      credentialId: credentialInDb1.id,
       itemsInKey: [{ id: eventTypeLevelCalendarForSomeOtherExternalIdButSameCredentialId.externalId }],
     });
 
     expectCacheToBeSet({
+      dwdCredential: null,
       credentialId: someOtherCache.credentialId,
       itemsInKey: JSON.parse(someOtherCache.key).items,
     });
@@ -604,113 +924,14 @@ test("`updateTokenObject` should update credential in DB as well as myGoogleAuth
   expect(setCredentialsMock).toHaveBeenCalledWith(newTokenObject);
 });
 
-async function createCredentialInDb({
-  user = undefined,
-  delegatedTo = null,
-}: {
-  user?: { email: string | null };
-  delegatedTo?: NonNullable<CredentialForCalendarService["delegatedTo"]> | null;
-} = {}): Promise<CredentialForCalendarService> {
-  const defaultUser = await prismock.user.create({
-    data: {
-      email: user?.email ?? "",
-    },
-  });
-
-  const app = await prismock.app.create({
-    data: {
-      slug: "google-calendar",
-      dirName: "google-calendar",
-    },
-  });
-
-  const credential = {
-    ...getSampleCredential(),
-    key: {
-      ...googleTestCredentialKey,
-      expiry_date: Date.now() - 1000,
-    },
-  };
-
-  const credentialInDb = await prismock.credential.create({
-    data: {
-      ...credential,
-      user: {
-        connect: {
-          id: defaultUser.id,
-        },
-      },
-      app: {
-        connect: {
-          slug: app.slug,
-        },
-      },
-    },
-    include: {
-      user: true,
-    },
-  });
-
-  return {
-    ...credentialInDb,
-    delegatedTo: delegatedTo ?? null,
-    user: user ? { email: user.email ?? "" } : null,
-  } as CredentialForCalendarService;
-}
-
 describe("GoogleCalendarService credential handling", () => {
   beforeEach(() => {
     lastCreatedJWT = null;
     lastCreatedOAuth2Client = null;
   });
-
-  const delegatedCredential = {
-    serviceAccountKey: {
-      client_email: "service@example.com",
-      client_id: "service-client-id",
-      private_key: "service-private-key",
-    },
-  } as const;
-
-  const createMockJWTInstance = ({
-    email = "user@example.com",
-    authorizeError,
-  }: {
-    email?: string;
-    authorizeError?: { response?: { data?: { error?: string } } } | Error;
-  }) => {
-    const mockJWTInstance = {
-      type: "jwt",
-      config: {
-        email: delegatedCredential.serviceAccountKey.client_email,
-        key: delegatedCredential.serviceAccountKey.private_key,
-        scopes: ["https://www.googleapis.com/auth/calendar"],
-        subject: email,
-      },
-      authorize: vi.fn().mockRejectedValue(authorizeError ?? new Error("Default error")),
-      createScoped: vi.fn(),
-      getRequestMetadataAsync: vi.fn(),
-      fetchIdToken: vi.fn(),
-      hasUserScopes: vi.fn(),
-      getAccessToken: vi.fn(),
-      getRefreshToken: vi.fn(),
-      getTokenInfo: vi.fn(),
-      refreshAccessToken: vi.fn(),
-      revokeCredentials: vi.fn(),
-      revokeToken: vi.fn(),
-      verifyIdToken: vi.fn(),
-      on: vi.fn(),
-      setCredentials: vi.fn(),
-      getCredentials: vi.fn(),
-      hasAnyScopes: vi.fn(),
-      authorizeAsync: vi.fn(),
-      refreshTokenNoCache: vi.fn(),
-      createGToken: vi.fn(),
-    };
-
-    vi.mocked(JWT).mockImplementation(() => mockJWTInstance as unknown as JWT);
-    return mockJWTInstance;
-  };
+  afterEach(() => {
+    vi.mocked(JWT).mockReset();
+  });
 
   test("uses JWT auth with impersonation when DWD credential is provided", async () => {
     const credentialWithDWD = await createCredentialInDb({
@@ -763,63 +984,69 @@ describe("GoogleCalendarService credential handling", () => {
     });
   });
 
-  test("handles DWD authorization errors appropriately", async () => {
-    const credentialWithDWD = await createCredentialInDb({
-      user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
-    });
+  describe("Dwd Error handling", () => {
+    test("handles clientId not added to Google Workspace Admin Console error", async () => {
+      const credentialWithDWD = await createCredentialInDb({
+        user: { email: "user@example.com" },
+        delegatedTo: delegatedCredential,
+      });
 
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "unauthorized_client",
+      createMockJWTInstance({
+        authorizeError: {
+          response: {
+            data: {
+              error: "unauthorized_client",
+            },
           },
         },
-      },
+      });
+
+      const calendarService = new CalendarService(credentialWithDWD);
+
+      await expect(calendarService.listCalendars()).rejects.toThrow(
+        "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
+      );
     });
 
-    const calendarService = new CalendarService(credentialWithDWD);
+    test("handles invalid_grant error (user not in workspace) appropriately", async () => {
+      const credentialWithDWD = await createCredentialInDb({
+        user: { email: "user@example.com" },
+        delegatedTo: delegatedCredential,
+      });
 
-    await expect(calendarService.listCalendars()).rejects.toThrow(
-      "Make sure that the Client ID for the domain wide delegation is added to the Google Workspace Admin Console"
-    );
-  });
-
-  test("handles invalid_grant error (user not in workspace) appropriately", async () => {
-    const credentialWithDWD = await createCredentialInDb({
-      user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
-    });
-
-    createMockJWTInstance({
-      authorizeError: {
-        response: {
-          data: {
-            error: "invalid_grant",
+      createMockJWTInstance({
+        authorizeError: {
+          response: {
+            data: {
+              error: "invalid_grant",
+            },
           },
         },
-      },
+      });
+
+      const calendarService = new CalendarService(credentialWithDWD);
+
+      await expect(calendarService.listCalendars()).rejects.toThrow(
+        "User might not exist in Google Workspace"
+      );
     });
 
-    const calendarService = new CalendarService(credentialWithDWD);
+    test("handles general DWD authorization errors appropriately", async () => {
+      const credentialWithDWD = await createCredentialInDb({
+        user: { email: "user@example.com" },
+        delegatedTo: delegatedCredential,
+      });
 
-    await expect(calendarService.listCalendars()).rejects.toThrow("User might not exist in Google Workspace");
-  });
+      createMockJWTInstance({
+        authorizeError: new Error("FAKE: Some unexpected error occurred"),
+      });
 
-  test("handles general DWD authorization errors appropriately", async () => {
-    const credentialWithDWD = await createCredentialInDb({
-      user: { email: "user@example.com" },
-      delegatedTo: delegatedCredential,
+      const calendarService = new CalendarService(credentialWithDWD);
+
+      await expect(calendarService.listCalendars()).rejects.toThrow(
+        "Error authorizing domain wide delegation"
+      );
     });
-
-    createMockJWTInstance({
-      authorizeError: new Error("Some unexpected error"),
-    });
-
-    const calendarService = new CalendarService(credentialWithDWD);
-
-    await expect(calendarService.listCalendars()).rejects.toThrow("Error authorizing domain wide delegation");
   });
 
   test("handles missing user email for DWD appropriately", async () => {
@@ -842,5 +1069,127 @@ describe("GoogleCalendarService credential handling", () => {
     };
 
     expect(lastCreatedOAuth2Client).toEqual(expectedOAuth2Client);
+  });
+});
+
+describe("DWD + Calendar Cache Integration", () => {
+  beforeEach(() => {
+    createMockJWTInstance({});
+  });
+  const delegatedCredential = {
+    serviceAccountKey: {
+      client_email: "service@example.com",
+      client_id: "service-client-id",
+      private_key: "service-private-key",
+    },
+  };
+
+  describe("getAvailability", () => {
+    test("cache should be isolated between users", async () => {
+      const domain = "workspace.com";
+      const user1Email = `user1@${domain}`;
+      const user2Email = `user2@${domain}`;
+      const dwdId = "dwd-id-1";
+
+      // Create DWD credentials for two different users
+      const credentialUser1 = await createCredentialInDb({
+        user: { email: user1Email },
+        delegatedTo: delegatedCredential,
+        dwdId,
+      });
+
+      const credentialUser2 = await createCredentialInDb({
+        user: { email: user2Email },
+        delegatedTo: delegatedCredential,
+        dwdId,
+      });
+
+      // Initialize calendar services
+      const calendarService1 = new CalendarService(credentialUser1);
+      const calendarService2 = new CalendarService(credentialUser2);
+
+      const user1BusyTimes = calendarHelpers.buildBusyTimes(2);
+      const user2BusyTimes = calendarHelpers.buildBusyTimes(2);
+      const { dateFrom, dateTo } = calendarCacheHelpers.getDatePair();
+      await calendarCacheHelpers.setCacheSimpleForDwd({
+        dwdId,
+        userId: credentialUser1.userId,
+        busyTimes: user1BusyTimes,
+      });
+
+      await calendarCacheHelpers.setCacheSimpleForDwd({
+        dwdId,
+        userId: credentialUser2.userId,
+        busyTimes: user2BusyTimes,
+      });
+      const result1 = await calendarService1.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+      expect(result1).toEqual(user1BusyTimes);
+
+      const result2 = await calendarService2.getAvailability(dateFrom, dateTo, [testSelectedCalendar], true);
+      expect(result2).toEqual(user2BusyTimes);
+    });
+  });
+
+  describe("fetchAvailabilityAndSetCache", () => {
+    test("cache should be isolated between users", async () => {
+      const domain = "workspace.com";
+      const user1Email = `user1@${domain}`;
+      const user2Email = `user2@${domain}`;
+      const dwdId = "dwd-id-1";
+
+      // Create DWD credentials for two different users
+      const credentialUser1 = await createCredentialInDb({
+        user: { email: user1Email },
+        delegatedTo: delegatedCredential,
+        dwdId,
+      });
+
+      const credentialUser2 = await createCredentialInDb({
+        user: { email: user2Email },
+        delegatedTo: delegatedCredential,
+        dwdId,
+      });
+
+      const dwdCredential1 = {
+        userId: credentialUser1.userId,
+        dwdId,
+      };
+      const dwdCredential2 = {
+        userId: credentialUser2.userId,
+        dwdId,
+      };
+
+      const calendarService1 = new CalendarService(credentialUser1);
+      const calendarService2 = new CalendarService(credentialUser2);
+
+      expectCacheToBeNotSet({
+        credentialId: null,
+        dwdCredential: dwdCredential1,
+      });
+
+      expectCacheToBeNotSet({
+        credentialId: null,
+        dwdCredential: dwdCredential2,
+      });
+
+      await calendarService1.fetchAvailabilityAndSetCache([testSelectedCalendar]);
+      expectCacheToBeSet({
+        credentialId: null,
+        dwdCredential: dwdCredential1,
+        itemsInKey: [{ id: testSelectedCalendar.externalId }],
+      });
+
+      expectCacheToBeNotSet({
+        credentialId: null,
+        dwdCredential: dwdCredential2,
+      });
+
+      await calendarService2.fetchAvailabilityAndSetCache([testSelectedCalendar]);
+      expectCacheToBeSet({
+        credentialId: null,
+        dwdCredential: dwdCredential2,
+        itemsInKey: [{ id: testSelectedCalendar.externalId }],
+      });
+    });
   });
 });

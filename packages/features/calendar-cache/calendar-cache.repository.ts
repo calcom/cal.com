@@ -38,11 +38,22 @@ function handleMinMax(min: string, max: string) {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
+const buildDwdCredential = ({ userId, dwdId }: { userId: number | null; dwdId: string | null }) => {
+  if (!userId || !dwdId) {
+    return null;
+  }
+  return {
+    userId,
+    dwdId,
+  };
+};
+
 export class CalendarCacheRepository implements ICalendarCacheRepository {
   calendar: Calendar | null;
   constructor(calendar: Calendar | null = null) {
     this.calendar = calendar;
   }
+
   async watchCalendar(args: { calendarId: string; eventTypeIds: SelectedCalendarEventTypeIds }) {
     const { calendarId, eventTypeIds } = args;
     if (typeof this.calendar?.watchCalendar !== "function") {
@@ -66,47 +77,93 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     return response;
   }
 
-  async getCachedAvailability(credentialId: number, args: FreeBusyArgs) {
-    const key = parseKeyForCache(args);
-    const cached = await prisma.calendarCache.findUnique({
-      where: {
-        credentialId_key: {
+  async findUnique({
+    credentialId,
+    dwdCredential,
+    key,
+  }: {
+    credentialId: number;
+    dwdCredential: { dwdId: string; userId: number } | null;
+    key: string;
+  }) {
+    log.debug("findUnique", safeStringify({ credentialId, dwdCredential, key }));
+    if (dwdCredential) {
+      const calendarCaches = await prisma.calendarCache.findMany({
+        where: {
+          dwdId: dwdCredential.dwdId,
+          userId: dwdCredential.userId,
+          key,
+          expiresAt: { gte: new Date(Date.now()) },
+        },
+      });
+      return calendarCaches[0] ?? null;
+    } else if (credentialId) {
+      return prisma.calendarCache.findFirst({
+        where: {
           credentialId,
           key,
+          expiresAt: { gte: new Date(Date.now()) },
         },
-        expiresAt: { gte: new Date(Date.now()) },
-      },
-    });
-    log.info("Got cached availability", safeStringify({ key, cached }));
+      });
+    } else {
+      log.error("findUnique: No credentialId or dwdId provided");
+      return null;
+    }
+  }
+
+  async getCachedAvailability({
+    credentialId,
+    dwdId,
+    userId,
+    args,
+  }: {
+    credentialId: number;
+    dwdId: string | null;
+    userId: number | null;
+    args: FreeBusyArgs;
+  }) {
+    log.debug("getCachedAvailability", safeStringify({ credentialId, dwdId, userId, args }));
+    const key = parseKeyForCache(args);
+    const dwdCredential = buildDwdCredential({ userId, dwdId });
+    const cached = await this.findUnique({ credentialId, dwdCredential, key });
+    log.info("Cached availability result", safeStringify({ key, cached }));
     return cached;
   }
   async upsertCachedAvailability({
-    credentialId,
+    dwdId,
     userId,
+    credentialId,
     args,
     value,
   }: {
-    credentialId: number;
+    dwdId: string | null;
     userId: number | null;
+    credentialId: number | null;
     args: FreeBusyArgs;
     value: Prisma.JsonNullValueInput | Prisma.InputJsonValue;
   }) {
+    log.debug("upsertCachedAvailability", safeStringify({ dwdId, userId, credentialId, args, value }));
     const key = parseKeyForCache(args);
+    const dwdCredential = buildDwdCredential({ userId, dwdId });
     let where;
-    if (isDwdCredential({ credentialId })) {
-      if (!userId) {
-        console.error("Could not upsert cached availability for DWD case, userId is required");
-        return;
-      }
+    if (dwdCredential) {
       where = {
-        userId,
+        dwdId: dwdCredential.dwdId,
+        userId: dwdCredential.userId,
         key,
       };
-    } else {
+    } else if (credentialId) {
+      if (isDwdCredential({ credentialId })) {
+        log.error("upsertCachedAvailability: dwdCredential seems to be invalid");
+        return;
+      }
       where = {
         credentialId,
         key,
       };
+    } else {
+      log.error("upsertCachedAvailability: No credentialId or dwdCredential provided");
+      return;
     }
 
     const existingCache = await prisma.calendarCache.findFirst({
@@ -114,6 +171,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     });
 
     if (existingCache) {
+      log.debug("Updating existing cache", safeStringify({ existingCache }));
       await prisma.calendarCache.update({
         where: {
           id: existingCache.id,
@@ -128,7 +186,8 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
         data: {
           key,
           credentialId: isDwdCredential({ credentialId }) ? null : credentialId,
-          userId,
+          dwdId: dwdCredential?.dwdId ?? null,
+          userId: dwdCredential?.userId ?? null,
           value,
           expiresAt: new Date(Date.now() + CACHING_TIME),
         },
