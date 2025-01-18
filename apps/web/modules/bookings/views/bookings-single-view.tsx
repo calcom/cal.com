@@ -162,6 +162,7 @@ export default function Success(props: PageProps) {
   const currentUserEmail =
     searchParams?.get("rescheduledBy") ??
     searchParams?.get("cancelledBy") ??
+    (bookingInfo.responses?.email as string) ??
     session?.user?.email ??
     undefined;
 

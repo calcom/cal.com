@@ -2927,5 +2927,8 @@
   "managed_users_description": "See all the managed users created by your OAuth client",
   "select_oAuth_client": "Select Oauth Client",
   "on_every_instance": "On every instance",
+  "email_verification_error" : "Email dosen't match the booking email",
+  "verify_email" : "Verify Email",
+  "verify_email_description" : "Please enter the email address used for this booking to proceed with cancellation", 
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

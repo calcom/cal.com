@@ -1,3 +1,4 @@
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
@@ -5,7 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button, Icon, TextArea } from "@calcom/ui";
+import { Button, Icon, TextArea, Dialog, DialogContent, DialogHeader, Input } from "@calcom/ui";
 
 type Props = {
   booking: {
@@ -44,6 +45,10 @@ export default function CancelBooking(props: Props) {
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
+  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [verificationError, setVerificationError] = useState("");
+  const searchParams = useSearchParams();
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -53,6 +58,67 @@ export default function CancelBooking(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handleCancellation = async () => {
+    const emailFromParams = searchParams?.get("email");
+
+    if (!emailFromParams) {
+      setShowVerificationDialog(true);
+      return;
+    }
+
+    if (emailFromParams.toLowerCase() !== currentUserEmail?.toLowerCase()) {
+      setError(t("email_verification_error"));
+      return;
+    }
+
+    await processCancellation();
+  };
+
+  const handleVerification = () => {
+    if (verificationEmail.toLowerCase() === currentUserEmail?.toLowerCase()) {
+      setShowVerificationDialog(false);
+      setVerificationError("");
+      processCancellation();
+    } else {
+      setVerificationError(t("email_verification_error"));
+    }
+  };
+
+  const processCancellation = async () => {
+    setLoading(true);
+    telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+
+    const res = await fetch("/api/cancel", {
+      body: JSON.stringify({
+        uid: booking?.uid,
+        cancellationReason: cancellationReason,
+        allRemainingBookings,
+        seatReferenceUid,
+        cancelledBy: currentUserEmail,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    const bookingWithCancellationReason = {
+      ...(bookingCancelledEventProps.booking as object),
+      cancellationReason,
+    } as unknown;
+
+    if (res.status >= 200 && res.status < 300) {
+      sdkActionManager?.fire("bookingCancelled", {
+        ...bookingCancelledEventProps,
+        booking: bookingWithCancellationReason,
+      });
+      refreshData();
+    } else {
+      setLoading(false);
+      setError(`${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`);
+    }
+  };
 
   return (
     <>
@@ -77,67 +143,45 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mb-4 mt-2 w-full "
+            className="mb-4 mt-2 w-full"
             rows={3}
           />
-          <div className="flex flex-col-reverse rtl:space-x-reverse ">
-            <div className="ml-auto flex w-full space-x-4 ">
+          <div className="flex flex-col-reverse rtl:space-x-reverse">
+            <div className="ml-auto flex w-full space-x-4">
               <Button
                 className="ml-auto"
                 color="secondary"
                 onClick={() => props.setIsCancellationMode(false)}>
                 {t("nevermind")}
               </Button>
-              <Button
-                data-testid="confirm_cancel"
-                onClick={async () => {
-                  setLoading(true);
-
-                  telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
-
-                  const res = await fetch("/api/cancel", {
-                    body: JSON.stringify({
-                      uid: booking?.uid,
-                      cancellationReason: cancellationReason,
-                      allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
-                      seatReferenceUid,
-                      cancelledBy: currentUserEmail,
-                    }),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    method: "POST",
-                  });
-
-                  const bookingWithCancellationReason = {
-                    ...(bookingCancelledEventProps.booking as object),
-                    cancellationReason,
-                  } as unknown;
-
-                  if (res.status >= 200 && res.status < 300) {
-                    // tested by apps/web/playwright/booking-pages.e2e.ts
-                    sdkActionManager?.fire("bookingCancelled", {
-                      ...bookingCancelledEventProps,
-                      booking: bookingWithCancellationReason,
-                    });
-                    refreshData();
-                  } else {
-                    setLoading(false);
-                    setError(
-                      `${t("error_with_status_code_occured", { status: res.status })} ${t(
-                        "please_try_again"
-                      )}`
-                    );
-                  }
-                }}
-                loading={loading}>
+              <Button data-testid="confirm_cancel" onClick={handleCancellation} loading={loading}>
                 {props.allRemainingBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>
             </div>
           </div>
         </div>
       )}
+
+      <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
+        <DialogContent>
+          <DialogHeader title={t("verify_email") || "Verify Email"} />
+          <div className="space-y-4 py-4">
+            <p className="text-default text-sm">{t("verify_email_description")}</p>
+            <Input
+              type="email"
+              placeholder={t("email_placeholder")}
+              value={verificationEmail}
+              onChange={(e) => setVerificationEmail(e.target.value)}
+              className="mb-2"
+            />
+            {verificationError && <p className="text-error text-sm">{verificationError}</p>}
+            <div className="flex justify-end space-x-2">
+              <Button onClick={() => setShowVerificationDialog(false)}>{t("cancel")}</Button>
+              <Button onClick={handleVerification}>{t("verify")}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
