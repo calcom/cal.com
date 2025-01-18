@@ -177,6 +177,7 @@ export const config = {
     "/connect-and-join/:path*",
     "/insights/:path*",
     "/:path*/embed",
+    "/api/book/:path*",
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
