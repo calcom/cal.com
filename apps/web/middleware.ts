@@ -1,3 +1,4 @@
+import { CsrfError, createCsrfProtect } from "@edge-csrf/nextjs";
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
 import { cookies } from "next/headers";
@@ -18,6 +19,12 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
     // Don't crash if EDGE_CONFIG env var is missing
   }
 };
+
+const csrfProtect = createCsrfProtect({
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+  },
+});
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
@@ -99,6 +106,13 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  try {
+    await csrfProtect(req, res);
+  } catch (err) {
+    if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
+    throw err;
+  }
 
   return responseWithHeaders({ url, res, req });
 };

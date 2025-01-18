@@ -46,6 +46,7 @@
     "@daily-co/daily-js": "^0.59.0",
     "@daily-co/daily-react": "^0.17.2",
     "@dub/analytics": "^0.0.15",
+    "@edge-csrf/nextjs": "^2.5.3-cloudflare-rc1",
     "@formkit/auto-animate": "1.0.0-beta.5",
     "@glidejs/glide": "^3.5.2",
     "@googleapis/admin": "^23.0.0",

@@ -5043,6 +5043,7 @@ __metadata:
     "@daily-co/daily-js": ^0.59.0
     "@daily-co/daily-react": ^0.17.2
     "@dub/analytics": ^0.0.15
+    "@edge-csrf/nextjs": ^2.5.3-cloudflare-rc1
     "@formkit/auto-animate": 1.0.0-beta.5
     "@glidejs/glide": ^3.5.2
     "@googleapis/admin": ^23.0.0
@@ -5635,6 +5636,15 @@ __metadata:
   dependencies:
     server-only: ^0.0.1
   checksum: afff2252db4a43593efc5c990fd684b5423f47978191078d3b788a7c3e51f912cf21a65d4cfdffe57a20dbe3a89c5f4ac47ff2899e266ae4ac0653a58ff0076f
+  languageName: node
+  linkType: hard
+
+"@edge-csrf/nextjs@npm:^2.5.3-cloudflare-rc1":
+  version: 2.5.3-cloudflare-rc1
+  resolution: "@edge-csrf/nextjs@npm:2.5.3-cloudflare-rc1"
+  peerDependencies:
+    next: ^13.0.0 || ^14.0.0 || ^15.0.0
+  checksum: d88d9d5dce39336ddeb1e860d72181ecf0700c6f753d3a651d34daf42ea82383f74556db4f941a525b28245c7f568f2dd439398fc074e92249f214c2148873a0
   languageName: node
   linkType: hard
 
