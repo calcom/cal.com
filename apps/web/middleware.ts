@@ -1,10 +1,13 @@
 import { get } from "@vercel/edge-config";
+import type { IncomingMessage } from "http";
 import { collectEvents } from "next-collect/server";
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { CSRF } from "@calcom/features/csrf";
+import { InvalidCSRFError } from "@calcom/features/csrf/csrf";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "@lib/csp";
@@ -19,10 +22,35 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+// CSRF protected paths
+const csrfProtectedPaths = ["/team", "/org"];
+
+const shouldApplyCSRF = (pathname: string) => {
+  return csrfProtectedPaths.some((path) => pathname.startsWith(path));
+};
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
+
+  if (shouldApplyCSRF(url.pathname)) {
+    const csrf = CSRF.init();
+    try {
+      const mockReq = {
+        headers: {
+          cookie: req.headers.get("cookie") ?? "",
+        },
+      } as unknown as IncomingMessage;
+
+      csrf.setup(mockReq, { cookies: cookies() } as any);
+    } catch (error) {
+      if (error instanceof InvalidCSRFError) {
+        return new NextResponse("Invalid CSRF token", { status: 403 });
+      }
+      throw error;
+    }
+  }
 
   if (!url.pathname.startsWith("/api")) {
     //

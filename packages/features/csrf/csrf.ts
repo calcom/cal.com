@@ -10,7 +10,7 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import type { ICSRF } from "./csrf.interface";
 
-class InvalidCSRFError extends HttpError {
+export class InvalidCSRFError extends HttpError {
   constructor() {
     super({ statusCode: 403, message: "Invalid CSRF token" });
   }
@@ -67,10 +67,18 @@ export class RealCSRF implements ICSRF {
     const unsignedToken = this.createToken(csrfSecret);
     const token = sign(unsignedToken, this.secret);
 
-    res.setHeader("Set-Cookie", [
-      serialize(this.secretCookieName, csrfSecret, this.cookieOptions),
-      serialize(this.tokenCookieName, token, this.cookieOptions),
-    ]);
+    if ("setHeader" in res) {
+      // Pages Router
+      res.setHeader("Set-Cookie", [
+        serialize(this.secretCookieName, csrfSecret, this.cookieOptions),
+        serialize(this.tokenCookieName, token, this.cookieOptions),
+      ]);
+    } else if ("cookies" in res) {
+      // App Router
+      const cookieAPI = (res as any).cookies;
+      cookieAPI.set(this.secretCookieName, csrfSecret, this.cookieOptions);
+      cookieAPI.set(this.tokenCookieName, token, this.cookieOptions);
+    }
   }
   verify(req: IncomingMessage, res: ServerResponse) {
     // Fail if no cookie is present
