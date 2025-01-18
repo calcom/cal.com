@@ -1,18 +1,17 @@
 "use client";
 
-import type { ReactElement } from "react";
+import { useSession } from "next-auth/react";
 
 import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 export default function InsightsLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
+  const session = useSession();
 
   const features = [
     {
@@ -59,11 +58,9 @@ export default function InsightsLayout({ children }: { children: React.ReactNode
               </ButtonGroup>
             </div>
           }>
-          {!user ? null : children}
+          {!session.data?.user ? null : children}
         </UpgradeTip>
       </Shell>
     </div>
   );
 }
-
-export const getInsightsLayout = (page: ReactElement) => <InsightsLayout>{page}</InsightsLayout>;
