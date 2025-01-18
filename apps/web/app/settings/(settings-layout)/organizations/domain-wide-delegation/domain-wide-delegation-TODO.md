@@ -67,6 +67,7 @@
   - TODO:
     - [ ] Add experimental/Beta flag in DWD
     - [ ] Consideration of multiple domains email in a single team event. We might need to consider all the member's domains in the team event when fetching availabilituy. 
+    
     - [x] Performance
       - [x] Available Slots and booking flow shouldn't slow down. Right now the querying logic is not optimized. We query per team member, we should do one query - This is fixed and took quite a refactor but it is cleaner code now.
     - [ ] Tag all DWD related logs and errors with "DWD:"
@@ -91,9 +92,9 @@
 
 ### Follow-up release
   - [ ] Confirmation for DwD toggling off
-  - [ ] Confirmation for DwD deletion - Deletion isn't there at the moment.
   - [ ] Make Google Meet "show up" as default conferencing app when DWD for Google is enabled.
   - [ ] Profile pic from Google with DWD might not be working - Fix it.
+  - [ ] Primary Calendar as the default selected calendar for a user. Without DWD, it is done when the calendar is first connected, but with DWD there is no action on user's behalf. Maybe we could do it when the user is invited to organization. But invitation might not actually happen and it could be an Okta sync.
 
 ### Security
   - [x] We don't let any one user see the added service account key from UI.

@@ -130,7 +130,7 @@ const _buildDwdCredentials = ({
  * Gets calendar as well as conferencing credentials(stored in-memory) for the user from the corresponding enabled DomainWideDelegation.
  */
 export async function getAllDwdCredentialsForUser({ user }: { user: { email: string; id: number } }) {
-  log.debug("called with", safeStringify({ user }));
+  log.debug("getAllDwdCredentialsForUser called with", safeStringify({ user }));
   // We access the repository without checking for feature flag here.
   // In case we need to disable the effects of DWD on credential we need to toggle DWD off from organization settings.
   // We could think of the teamFeatures flag to just disable the UI. The actual effect of DWD on credentials is disabled by toggling DWD off from UI
@@ -340,13 +340,15 @@ export const enrichUserWithDwdCredentialsWithoutOrgId = async <
 }) => {
   const dwdCredentials = await getAllDwdCredentialsForUser({ user });
   const { credentials, ...restUser } = user;
-  return {
+  const enrichedUser = {
     ...restUser,
     credentials: buildAllCredentials({
       dwdCredentials: dwdCredentials,
       existingCredentials: credentials,
     }),
   };
+  log.debug("enrichUserWithDwdCredentialsWithoutOrgId returned", safeStringify({ enrichedUser }));
+  return enrichedUser;
 };
 
 export async function enrichUserWithDwdConferencingCredentialsWithoutOrgId<

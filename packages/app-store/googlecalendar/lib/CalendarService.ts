@@ -63,7 +63,6 @@ const GOOGLE_WEBHOOK_URL = `${GOOGLE_WEBHOOK_URL_BASE}/api/integrations/googleca
 
 const isGaxiosResponse = (error: unknown): error is GaxiosResponse<calendar_v3.Schema$Event> =>
   typeof error === "object" && !!error && error.hasOwnProperty("config");
-
 type GoogleChannelProps = {
   kind?: string | null;
   id?: string | null;
@@ -817,6 +816,7 @@ export default class GoogleCalendarService implements Calendar {
 
       // /freebusy from google api only allows a date range of 90 days
       if (diff <= 90) {
+        console.log("Range < 90 days");
         const freeBusyData = await this.getCacheOrFetchAvailability(
           {
             timeMin: dateFrom,
@@ -996,6 +996,7 @@ export default class GoogleCalendarService implements Calendar {
     log.debug("unwatchCalendar", safeStringify({ calendarId, eventTypeIds }));
     const credentialId = this.credential.id;
     const eventTypeIdsToBeUnwatched = eventTypeIds;
+    const calendarCache = await CalendarCache.init(null);
 
     const where = getWhereForSelectedCalendar({
       credentialId,
@@ -1049,9 +1050,12 @@ export default class GoogleCalendarService implements Calendar {
     );
 
     // Delete the calendar cache to force a fresh cache
-    await prisma.calendarCache.deleteMany({ where: { credentialId } });
-    // Helps in identifying the caches created for DWD credential which doesn't have a valid credentialId
-    await prisma.calendarCache.deleteMany({ where: { userId: this.credential.userId } });
+    await calendarCache.deleteManyByCredential({
+      credentialId: this.credential.id,
+      userId: this.credential.userId,
+      dwdId: this.credential.delegatedToId,
+    });
+
     await this.stopWatchingCalendarsInGoogle(allChannelsForThisCalendarBeingUnwatched);
     await this.upsertSelectedCalendarsForEventTypeIds(
       {

@@ -7,7 +7,11 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import type { Calendar, SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
-import type { ICalendarCacheRepository } from "./calendar-cache.repository.interface";
+import type {
+  ICalendarCacheRepository,
+  DwdCredentialArgs,
+  CredentialArgs,
+} from "./calendar-cache.repository.interface";
 import { getTimeMax, getTimeMin } from "./lib/datesForCache";
 
 const log = logger.getSubLogger({ prefix: ["CalendarCacheRepository"] });
@@ -38,7 +42,7 @@ function handleMinMax(min: string, max: string) {
 
 type FreeBusyArgs = { timeMin: string; timeMax: string; items: { id: string }[] };
 
-const buildDwdCredential = ({ userId, dwdId }: { userId: number | null; dwdId: string | null }) => {
+const buildDwdCredential = ({ userId, dwdId }: DwdCredentialArgs) => {
   if (!userId || !dwdId) {
     return null;
   }
@@ -82,7 +86,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     dwdCredential,
     key,
   }: {
-    credentialId: number;
+    credentialId: number | null;
     dwdCredential: { dwdId: string; userId: number } | null;
     key: string;
   }) {
@@ -116,10 +120,7 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
     dwdId,
     userId,
     args,
-  }: {
-    credentialId: number;
-    dwdId: string | null;
-    userId: number | null;
+  }: CredentialArgs & {
     args: FreeBusyArgs;
   }) {
     log.debug("getCachedAvailability", safeStringify({ credentialId, dwdId, userId, args }));
@@ -192,6 +193,32 @@ export class CalendarCacheRepository implements ICalendarCacheRepository {
           expiresAt: new Date(Date.now() + CACHING_TIME),
         },
       });
+    }
+  }
+
+  async deleteManyByCredential({ dwdId, credentialId, userId }: CredentialArgs) {
+    const dwdCredential = buildDwdCredential({ userId, dwdId });
+
+    if (dwdCredential) {
+      await prisma.calendarCache.deleteMany({
+        where: {
+          dwdId: dwdCredential.dwdId,
+          userId: dwdCredential.userId,
+        },
+      });
+    } else if (credentialId) {
+      if (isDwdCredential({ credentialId })) {
+        log.error("deleteMany: dwdCredential seems to be invalid");
+        return;
+      }
+      await prisma.calendarCache.deleteMany({
+        where: {
+          credentialId,
+        },
+      });
+    } else {
+      log.error("deleteMany: No credentialId or dwdId provided");
+      return;
     }
   }
 }

@@ -367,6 +367,7 @@ model User {
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
   calendarCache              CalendarCache[]
+
   @@unique([email])
   @@unique([email, username])
   @@unique([username, organizationId])
@@ -1404,7 +1405,7 @@ model CalendarCache {
   user   User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([credentialId, key])
-  @@unique([dwdId, key])
+  @@unique([dwdId, userId, key])
 }
 
 enum RedirectType {

@@ -68,7 +68,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
       target: "__blank",
     },
     {
-      name: "copy_public_page_link",
+      name: "copy_public_page_linksdfasfasdfasdf",
       href: "",
       onClick: (e: { preventDefault: () => void }) => {
         e.preventDefault();

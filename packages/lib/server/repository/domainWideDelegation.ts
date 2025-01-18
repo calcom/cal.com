@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 
 import { OrganizationRepository } from "./organization";
@@ -113,7 +114,7 @@ export class DomainWideDelegationRepository {
     const log = repositoryLogger.getSubLogger({
       prefix: ["findUniqueByOrgMemberEmailIncludeSensitiveServiceAccountKey"],
     });
-    log.debug("called with", { email });
+    log.debug("called with", safeStringify({ email }));
     const organization = await OrganizationRepository.findByMemberEmail({ email });
     if (!organization) {
       log.debug("Email not found in any organization:", email);
