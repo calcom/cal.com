@@ -94,6 +94,67 @@ export default function CancelBooking(props: Props) {
         uid: booking?.uid,
         cancellationReason: cancellationReason,
         allRemainingBookings,
+        seatReferenceUid,
+        cancelledBy: currentUserEmail,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    });
+
+    const bookingWithCancellationReason = {
+      ...(bookingCancelledEventProps.booking as object),
+      cancellationReason,
+    } as unknown;
+
+    if (res.status >= 200 && res.status < 300) {
+      sdkActionManager?.fire("bookingCancelled", {
+        ...bookingCancelledEventProps,
+        booking: bookingWithCancellationReason,
+      });
+      refreshData();
+    } else {
+      setLoading(false);
+      setError(`${t("error_with_status_code_occured", { status: res.status })} ${t("please_try_again")}`);
+    }
+  };
+
+  const handleCancellation = async () => {
+    const emailFromParams = searchParams?.get("email");
+
+    if (!emailFromParams) {
+      setShowVerificationDialog(true);
+      return;
+    }
+
+    if (emailFromParams.toLowerCase() !== currentUserEmail?.toLowerCase()) {
+      setError(t("email_verification_error"));
+      return;
+    }
+
+    await processCancellation();
+  };
+
+  const handleVerification = () => {
+    if (verificationEmail.toLowerCase() === currentUserEmail?.toLowerCase()) {
+      setShowVerificationDialog(false);
+      setVerificationError("");
+      processCancellation();
+    } else {
+      setVerificationError(t("email_verification_error"));
+    }
+  };
+
+  const processCancellation = async () => {
+    setLoading(true);
+    telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());
+
+    const res = await fetch("/api/cancel", {
+      body: JSON.stringify({
+        uid: booking?.uid,
+        cancellationReason: cancellationReason,
+        allRemainingBookings,
         // @NOTE: very important this shouldn't cancel with number ID use uid instead
         seatReferenceUid,
         cancelledBy: currentUserEmail,
