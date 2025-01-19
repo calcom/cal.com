@@ -70,10 +70,13 @@ test.describe("Event Types tests", () => {
       await expect(firstEventTitle).toBe(eventTitle);
     });
 
-    test("enabling recurring event comes with default options", async ({ page }) => {
+    test("enabling recurring event comes with default options @test", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
+
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(1000); // waits for 1 second
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();
