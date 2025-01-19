@@ -53,7 +53,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
 
   const eventType = await getEventTypeById(typeParam, context);
   if (!eventType) {
-    return redirect("/event-types");
+    redirect("/event-types");
   }
 
   return <EventType {...eventType} id={typeParam} />;
