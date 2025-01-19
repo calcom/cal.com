@@ -1,7 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
+import { cookies, headers } from "next/headers";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 import type { SignupProps } from "~/signup-view";
@@ -15,8 +18,11 @@ export const generateMetadata = async () =>
 
 const getData = withAppDirSsr<SignupProps>(getServerSideProps);
 
-export default WithLayout({
-  Page: Signup,
-  getLayout: null,
-  getData,
-})<"P">;
+const ServerPage = async ({ params, searchParams }: PageProps) => {
+  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+
+  const props = await getData(context);
+  return <Signup {...props} />;
+};
+
+export default ServerPage;
