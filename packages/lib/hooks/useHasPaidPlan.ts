@@ -44,7 +44,7 @@ export function useHasActiveTeamPlan(teamId?: number) {
 
   const { data, isPending } = trpc.viewer.teams.hasActiveTeamPlan.useQuery({ teamId });
 
-  return { isPending, hasActiveTeamPlan: data };
+  return { isPending, hasActiveTeamPlan: !!data };
 }
 
 export default useHasPaidPlan;
