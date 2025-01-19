@@ -1,12 +1,12 @@
 import dynamic from "next/dynamic";
-import React from "react";
 
 import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
-import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
-import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";
+import type { AdminLayoutProps } from "@components/auth/layouts/AdminLayoutAppDirClient";
 
-const AdminLayoutAppDirClient = dynamic(() => import("./AdminLayoutAppDirClient"), {
+import SettingsLayoutAppDir from "../(settings-layout)/layout";
+
+const AdminLayoutAppDirClient = dynamic(() => import("@components/auth/layouts/AdminLayoutAppDirClient"), {
   ssr: false,
 });
 
@@ -19,5 +19,3 @@ export default async function AdminLayoutAppDir(props: AdminLayoutAppDirProps) {
 
   return await SettingsLayoutAppDir({ children: <AdminLayoutAppDirClient {...props} userRole={userRole} /> });
 }
-
-export const getLayout = async (page: React.ReactElement) => await AdminLayoutAppDir({ children: page });
