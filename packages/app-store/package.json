@@ -26,7 +26,8 @@
     "lodash": "^4.17.21",
     "qs-stringify": "^1.2.1",
     "react-i18next": "^12.2.0",
-    "stripe": "^9.16.0"
+    "stripe": "^9.16.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@calcom/types": "*"
