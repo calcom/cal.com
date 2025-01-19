@@ -1,9 +1,9 @@
+import SettingsLayoutAppDir from "app/(use-page-wrapper)/settings/(settings-layout)/layout";
 import { _generateMetadata, getTranslate } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
