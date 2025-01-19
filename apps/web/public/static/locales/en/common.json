@@ -2925,6 +2925,10 @@
   "remove_option": "Remove option",
   "managed_users": "Managed Users",
   "managed_users_description": "See all the managed users created by your OAuth client",
+  "can_you_tell_me_about": "Can you tell me about ",
+  "use_ai_to_answer_your_questions": "Use AI to answer your questions",
+  "error_fetching_answer": "Error while fetching answer ",
+  "k_bar_ai_error": "An unexpected error occured. Please try again later",
   "select_oAuth_client": "Select Oauth Client",
   "on_every_instance": "On every instance",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
