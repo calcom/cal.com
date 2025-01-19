@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 
 // import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 // import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
@@ -37,4 +36,4 @@ const Page = async ({ params, searchParams }: PageProps) => {
   );
 };
 
-export default WithLayout({ getLayout: null, ServerPage: Page })<"P">;
+export default Page;

@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -70,7 +69,7 @@ const Page = async ({ params }: PageProps) => {
   );
 };
 
-export default WithLayout({ getLayout: null, ServerPage: Page });
+export default Page;
 export const dynamic = "force-static";
 // generate segments on demand
 export const dynamicParams = true;
