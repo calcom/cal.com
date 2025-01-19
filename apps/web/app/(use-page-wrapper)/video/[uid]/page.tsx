@@ -1,12 +1,14 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps as ServerPageProps } from "app/_types";
 import { getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { cookies, headers } from "next/headers";
 
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/[uid]/getServerSideProps";
 
-import type { PageProps } from "~/videos/views/videos-single-view";
+import type { PageProps as ClientPageProps } from "~/videos/views/videos-single-view";
 import VideosSingleView from "~/videos/views/videos-single-view";
 
 export const generateMetadata = async () => {
@@ -34,6 +36,13 @@ export const generateMetadata = async () => {
   };
 };
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
-export default WithLayout({ getData, Page: VideosSingleView, getLayout: null })<"P">;
+const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
+  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+
+  const props = await getData(context);
+  return <VideosSingleView {...props} />;
+};
+
+export default ServerPage;

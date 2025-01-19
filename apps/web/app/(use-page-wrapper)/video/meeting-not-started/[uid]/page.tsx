@@ -1,22 +1,23 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import type { PageProps as _PageProps } from "app/_types";
+import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/video/meeting-not-started/[uid]/getServerSideProps";
 
-import type { PageProps } from "~/videos/views/videos-meeting-not-started-single-view";
+import type { PageProps as ClientPageProps } from "~/videos/views/videos-meeting-not-started-single-view";
 import MeetingNotStarted from "~/videos/views/videos-meeting-not-started-single-view";
 
 const querySchema = z.object({
   uid: z.string(),
 });
 
-export const generateMetadata = async ({ params }: _PageProps) => {
+export const generateMetadata = async ({ params }: ServerPageProps) => {
   const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     notFound();
@@ -31,6 +32,13 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   );
 };
 
-const getData = withAppDirSsr<PageProps>(getServerSideProps);
+const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
-export default WithLayout({ getData, Page: MeetingNotStarted, getLayout: null })<"P">;
+const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
+  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+
+  const props = await getData(context);
+  return <MeetingNotStarted {...props} />;
+};
+
+export default ServerPage;
