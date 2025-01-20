@@ -429,6 +429,7 @@
     "NEXT_PUBLIC_API_V2_ROOT_URL",
     "SUPABASE_ANON_KEY",
     "SUPABASE_BASE_URL",
-    "V2_API_KEY"
+    "V2_API_KEY",
+    "SPEDY_API_KEY"
   ]
 }

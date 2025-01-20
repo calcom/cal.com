@@ -326,7 +326,7 @@ export default function Success(props: PageProps) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
       const getEventTypeSlugUrl =
-        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1154,1375,1379,1383,1389,1523,1518)";
+        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1515,1375,1379,1383,1389,1523,1518)";
       const getBookedTimeUrl = `https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?uid=eq.${bookingUID}`;
 
       fetch(getEventTypeSlugUrl, {
@@ -498,7 +498,7 @@ export default function Success(props: PageProps) {
       case noShowHost && medicalAppointments:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
         };
       case noShowHost && occupationalTherapy:
         return {
@@ -575,7 +575,7 @@ export default function Success(props: PageProps) {
       case moreOrEqualThan7DaysFromPurchase && medicalAppointments:
         return {
           description: VariantDescription.MORE_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
         };
       case moreOrEqualThan7DaysFromPurchase && occupationalTherapy:
         return {
@@ -590,14 +590,14 @@ export default function Success(props: PageProps) {
       case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1154"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
         };
-      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && occupationalTherapy:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
           rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
         };
-      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
+      case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
           rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
@@ -757,10 +757,10 @@ export default function Success(props: PageProps) {
                       <div className="border-subtle text-default mt-8 grid grid-cols-3 border-t pt-8 text-left rtl:text-right">
                         {(isCancelled || reschedule) && cancellationReason && (
                           <>
-                            <div className="font-medium">
+                            <div className="mb-6 font-medium">
                               {isCancelled ? t("reason") : t("reschedule_reason")}
                             </div>
-                            <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                            <div className="col-span-2 last:mb-0">{cancellationReason}</div>
                           </>
                         )}
                         <div className="font-medium">{t("what")}</div>
