@@ -11,6 +11,7 @@ import type { ReactElement } from "react";
 import { useMemo, useState } from "react";
 import type { z } from "zod";
 
+import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
@@ -251,17 +252,22 @@ function BookingsContent({ status }: BookingsProps) {
           )}
           {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
           {query.status === "success" && !isEmpty && (
-            <DataTableWrapper
-              table={table}
-              testId={`${status}-bookings`}
-              bodyTestId="bookings"
-              hideHeader={true}
-              isPending={query.isFetching && !flatData}
-              hasNextPage={query.hasNextPage}
-              fetchNextPage={query.fetchNextPage}
-              isFetching={query.isFetching}
-              variant="compact"
-            />
+            <>
+              {!!bookingsToday.length && status === "upcoming" && (
+                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+              )}
+              <DataTableWrapper
+                table={table}
+                testId={`${status}-bookings`}
+                bodyTestId="bookings"
+                hideHeader={true}
+                isPending={query.isFetching && !flatData}
+                hasNextPage={query.hasNextPage}
+                fetchNextPage={query.fetchNextPage}
+                isFetching={query.isFetching}
+                variant="compact"
+              />
+            </>
           )}
           {query.status === "success" && isEmpty && (
             <div className="flex items-center justify-center pt-2 xl:pt-0">
