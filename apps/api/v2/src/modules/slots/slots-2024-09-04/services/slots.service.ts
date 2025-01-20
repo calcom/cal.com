@@ -65,7 +65,7 @@ export class SlotsService_2024_09_04 {
   }
 
   adjustEndTime(endTime: string) {
-    let dateTime = DateTime.fromISO(endTime);
+    let dateTime = DateTime.fromISO(endTime, { zone: "utc" });
     if (dateTime.hour === 0 && dateTime.minute === 0 && dateTime.second === 0) {
       dateTime = dateTime.set({ hour: 23, minute: 59, second: 59 });
     }
