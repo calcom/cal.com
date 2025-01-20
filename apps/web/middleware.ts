@@ -27,6 +27,7 @@ const csrfProtect = createCsrfProtect({
 });
 
 const NON_BOOKING_ROUTES_IN_APP_ROUTER = [
+  "/",
   "/api",
   "/403",
   "/500",
