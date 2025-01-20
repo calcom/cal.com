@@ -23,7 +23,7 @@ import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBo
 import { BookingFields } from "./BookingFields";
 import { FormSkeleton } from "./Skeleton";
 
-const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
+const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 type BookEventFormProps = {
   onCancel?: () => void;
