@@ -42,6 +42,12 @@ enum PeriodType {
   RANGE          @map("range")
 }
 
+enum CreationSource {
+  API_V1 @map("api_v1")
+  API_V2 @map("api_v2")
+  WEBAPP @map("webapp")
+}
+
 model Host {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           Int
@@ -366,6 +372,7 @@ model User {
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
+  creationSource             CreationSource?
 
   @@unique([email])
   @@unique([email, username])
@@ -668,6 +675,7 @@ model Booking {
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
   assignmentReason             AssignmentReason[]
+  creationSource               CreationSource?
 
   @@index([eventTypeId])
   @@index([userId])
