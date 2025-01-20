@@ -11,7 +11,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
+import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
@@ -82,8 +82,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let isTeamsPlan = false;
   if (!isCurrentUsernamePremium) {
-    const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
-    isTeamsPlan = !!hasTeamPlan;
+    isTeamsPlan = await hasActiveTeamPlanHandler({
+      ctx,
+      input: { teamId: userWorkflow?.teamId ?? undefined },
+    });
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
