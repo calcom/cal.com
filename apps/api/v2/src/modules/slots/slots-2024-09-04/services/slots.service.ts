@@ -33,7 +33,7 @@ export class SlotsService_2024_09_04 {
 
     const startTime = query.start;
     const endTime = this.adjustEndTime(query.end);
-    const duration = eventType.length;
+    const duration = query.duration;
     const eventTypeId = eventType.id;
     const eventTypeSlug = eventType.slug;
     const usernameList = "usernames" in query ? query.usernames : [];
