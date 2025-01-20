@@ -1,4 +1,5 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { isDwdCredential } from "@calcom/lib/domainWideDelegation/clientAndServer";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential, getPiiFreeSelectedCalendar } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -57,10 +58,13 @@ const getCalendarsEvents = async (
     .filter((credential) => !credential.invalid);
 
   const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
+  const calendarToCredentialMap = new Map(
+    calendarCredentials.map((credential, index) => [calendars[index], credential])
+  );
   performance.mark("getBusyCalendarTimesStart");
-  const results = calendars.map(async (c, i) => {
+  const results = calendars.map(async (calendarService, i) => {
     /** Filter out nulls */
-    if (!c) return [];
+    if (!calendarService) return [];
     /** We rely on the index so we can match credentials with calendars */
     const { type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
@@ -71,8 +75,22 @@ const getCalendarsEvents = async (
       .filter((sc) => sc.integration === type)
       // Needed to ensure cache keys are consistent
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
+    const credential = calendarToCredentialMap.get(calendarService);
+    const isADwdCredential = credential && isDwdCredential({ credentialId: credential.id });
 
-    if (!passedSelectedCalendars.length) return [];
+    if (!passedSelectedCalendars.length) {
+      if (!isADwdCredential) {
+        // It was done to fix the secondary calendar connections from always checking the conflicts even if intentional no calendars are selected.
+        // https://github.com/calcom/cal.com/issues/8929
+        log.debug("No selected calendars for non DWD credential: Skipping getAvailability call");
+        return [];
+      }
+      // For DWD credential, we should allow getAvailability even without any selected calendars, because DWD credential is enforced at organization level where it would be expected.
+      // If it ever comes up us a requirement to not do this always, we would have to ensure to add SelectedCalendar entry for all existing members and any new members being added.
+      // CalendarService can then choose the primary calendar for conflicts checking.
+      // This is also, similar to how Google Calendar connect flow(through /googlecalendar/api/callback) sets the primary calendar as the selected calendar automatically.
+      log.debug("Allowing getAvailability even without any selected calendars for DWD credential");
+    }
     /** We extract external Ids so we don't cache too much */
 
     const selectedCalendarIds = passedSelectedCalendars.map((sc) => sc.externalId);
@@ -81,11 +99,11 @@ const getCalendarsEvents = async (
     log.debug(
       `Getting availability for`,
       safeStringify({
-        calendarService: c.constructor.name,
+        calendarService: calendarService.constructor.name,
         selectedCalendars: passedSelectedCalendars.map(getPiiFreeSelectedCalendar),
       })
     );
-    const eventBusyDates = await c.getAvailability(
+    const eventBusyDates = await calendarService.getAvailability(
       dateFrom,
       dateTo,
       passedSelectedCalendars,
