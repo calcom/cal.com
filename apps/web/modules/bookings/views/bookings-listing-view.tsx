@@ -173,7 +173,7 @@ function BookingsContent({ status }: BookingsProps) {
           return false;
         }
         shownBookings[booking.recurringEventId] = [booking];
-      } else if (status === "next") {
+      } else if (status === "upcoming") {
         return (
           dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
           dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
@@ -195,7 +195,7 @@ function BookingsContent({ status }: BookingsProps) {
     );
   }, [query.data]);
 
-  const bookingsToday = useMemo(() => {
+  const bookingsToday = useMemo<RowData[]>(() => {
     return (
       query.data?.pages.map((page) =>
         page.bookings
@@ -205,7 +205,7 @@ function BookingsContent({ status }: BookingsProps) {
               dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
           )
           .map((booking) => ({
-            type: "data",
+            type: "data" as const,
             booking,
             recurringInfo: page.recurringInfo.find(
               (info) => info.recurringEventId === booking.recurringEventId
@@ -217,7 +217,13 @@ function BookingsContent({ status }: BookingsProps) {
 
   const finalData = useMemo<RowData[]>(() => {
     if (bookingsToday.length > 0 && status === "upcoming") {
-      return [{ type: "today" }, ...bookingsToday, { type: "next" }, ...flatData];
+      const merged: RowData[] = [
+        { type: "today" as const },
+        ...bookingsToday,
+        { type: "next" as const },
+        ...flatData,
+      ];
+      return merged;
     } else {
       return flatData;
     }
