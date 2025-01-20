@@ -109,6 +109,8 @@ export const BookEventForm = ({
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
+  const watchedCfToken = bookingForm.watch("cfToken");
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -211,7 +213,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                // disabled={shouldRenderCaptcha && !bookingForm.getValues().cfToken}
+                disabled={shouldRenderCaptcha && !watchedCfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
