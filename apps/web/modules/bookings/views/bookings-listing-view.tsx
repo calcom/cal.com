@@ -89,6 +89,7 @@ type RowData =
   | {
       type: "data";
       booking: BookingOutput;
+      isToday: boolean;
       recurringInfo?: RecurringInfo;
     }
   | {
@@ -124,10 +125,11 @@ function BookingsContent({ status }: BookingsProps) {
         id: "custom-view",
         cell: (props) => {
           if (props.row.original.type === "data") {
-            const { booking, recurringInfo } = props.row.original;
+            const { booking, recurringInfo, isToday } = props.row.original;
             return (
               <BookingListItem
                 key={booking.id}
+                isToday={isToday}
                 loggedInUser={{
                   userId: user?.id,
                   userTimeZone: user?.timeZone,
@@ -157,7 +159,7 @@ function BookingsContent({ status }: BookingsProps) {
     ];
   }, [user, status]);
 
-  const isEmpty = !query.data?.pages[0]?.bookings.length;
+  const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
   const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
@@ -191,6 +193,7 @@ function BookingsContent({ status }: BookingsProps) {
           recurringInfo: page.recurringInfo.find(
             (info) => info.recurringEventId === booking.recurringEventId
           ),
+          isToday: false,
         }))
       ) || []
     );
@@ -211,6 +214,7 @@ function BookingsContent({ status }: BookingsProps) {
             recurringInfo: page.recurringInfo.find(
               (info) => info.recurringEventId === booking.recurringEventId
             ),
+            isToday: true,
           }))
       )[0] || []
     );
