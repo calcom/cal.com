@@ -1,6 +1,6 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
 
-import TeamBookingLimitsView from "@calcom/features/ee/teams/pages/team-booking-limits-view";
+import TeamSettingsView from "@calcom/features/ee/teams/pages/team-settings-view";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
 export const generateMetadata = async () =>
@@ -16,7 +16,7 @@ const Page = async () => {
       title={t("settings")}
       description={t("team_settings_description")}
       borderInShellHeader={false}>
-      <TeamBookingLimitsView />
+      <TeamSettingsView />
     </SettingsHeader>
   );
 };

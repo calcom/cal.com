@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
 import { IntervalLimitsManager } from "@calcom/features/eventtypes/components/tabs/limits/EventLimitsTab";
@@ -14,7 +14,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
+import { Button, CheckboxField, Form, SettingsToggle, showToast, Icon } from "@calcom/ui";
 
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
@@ -136,7 +136,82 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
-const BookingLimitsViewWrapper = () => {
+const InternalNotePresetsView = () => {
+  const { t } = useLocale();
+  const params = useParamsWithFallback();
+  const utils = trpc.useContext();
+
+  type FormValues = {
+    presets: { id: string; name: string }[];
+  };
+
+  const generateId = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+  const { control, handleSubmit } = useForm<FormValues>({
+    defaultValues: {
+      presets: [{ id: generateId(), name: "" }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "presets",
+  });
+
+  const addNewPreset = () => {
+    append({ id: generateId(), name: "" });
+  };
+
+  const onSubmit = async (data: FormValues) => {
+    // TODO: Implement save functionality
+    showToast("Changes saved", "success");
+  };
+
+  return (
+    <div className="mt-8">
+      <Form form={{ handleSubmit: handleSubmit(onSubmit), control }} handleSubmit={handleSubmit(onSubmit)}>
+        <div className="flex flex-col space-y-4">
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex items-center space-x-2">
+              <Controller
+                name={`presets.${index}.name`}
+                control={control}
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    {...field}
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                    placeholder={t("note_preset_name")}
+                  />
+                )}
+              />
+              <Button
+                type="button"
+                color="destructive"
+                variant="icon"
+                onClick={() => remove(index)}
+                disabled={fields.length === 1}>
+                <Icon name="trash" className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 flex justify-between">
+          <Button type="button" color="secondary" StartIcon="plus" onClick={addNewPreset}>
+            {t("add_preset")}
+          </Button>
+          <SectionBottomActions align="end">
+            <Button type="submit" color="primary">
+              {t("save")}
+            </Button>
+          </SectionBottomActions>
+        </div>
+      </Form>
+    </div>
+  );
+};
+
+const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
@@ -164,7 +239,12 @@ const BookingLimitsViewWrapper = () => {
 
   if (!team) return null;
 
-  return <BookingLimitsView team={team} />;
+  return (
+    <>
+      <BookingLimitsView team={team} />
+      <InternalNotePresetsView />
+    </>
+  );
 };
 
-export default BookingLimitsViewWrapper;
+export default TeamSettingsViewWrapper;
