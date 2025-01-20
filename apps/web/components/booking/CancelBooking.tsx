@@ -106,7 +106,7 @@ export default function CancelBooking(props: Props) {
     }
 
     if (emailFromParams.toLowerCase() !== currentUserEmail?.toLowerCase()) {
-      setError(t("email_verification_error") || "Email doesn't match the booking email");
+      setError(t("email_verification_error"));
       return;
     }
 
@@ -116,7 +116,7 @@ export default function CancelBooking(props: Props) {
   const handleVerification = () => {
     setVerificationError("");
     if (!verificationEmail) {
-      setVerificationError(t("email_required") || "Email is required");
+      setVerificationError(t("email_required"));
       return;
     }
 
@@ -124,7 +124,7 @@ export default function CancelBooking(props: Props) {
       setShowVerificationDialog(false);
       handleCancellation();
     } else {
-      setVerificationError(t("email_verification_error") || "Email doesn't match the booking email");
+      setVerificationError(t("email_verification_error"));
     }
   };
 
@@ -171,15 +171,12 @@ export default function CancelBooking(props: Props) {
       )}
       <Dialog open={showVerificationDialog} onOpenChange={setShowVerificationDialog}>
         <DialogContent>
-          <DialogHeader title={t("verify_email") || "Verify Email"} />
+          <DialogHeader title={t("verify_email")} />
           <div className="space-y-4 py-4">
-            <p className="text-default text-sm">
-              {t("verify_email_description") ||
-                "Please enter the email address used for this booking to proceed with cancellation"}
-            </p>
+            <p className="text-default text-sm">{t("verify_email_description")}</p>
             <Input
               type="email"
-              placeholder={t("email_placeholder") || "Enter your email"}
+              placeholder={t("email_placeholder")}
               value={verificationEmail}
               onChange={(e) => setVerificationEmail(e.target.value)}
               className="mb-2"
