@@ -75,7 +75,6 @@ export const BookEventForm = ({
   const shouldRenderCaptcha =
     renderCaptcha && CLOUDFLARE_SITE_ID && CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
 
-
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
 
@@ -207,7 +206,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={shouldRenderCaptcha && !watchedCfToken}
+                disabled={!!shouldRenderCaptcha && !watchedCfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
