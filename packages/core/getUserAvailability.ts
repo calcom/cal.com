@@ -287,8 +287,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   } = availabilitySchema.parse(query);
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with input: ${safeStringify(
-      query
+    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify(
+      {
+        query,
+        initialData,
+      }
     )}`
   );
 
