@@ -118,6 +118,8 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   // Skip CSRF protection for trpc requests for now. Prevents E2E tests from failing.
   // Most trcp endpoints are authenticated.
   if (url.pathname.startsWith("/api/trpc/")) return;
+  // NextAuth handles CSRF protection for itself
+  if (url.pathname.startsWith("/api/auth/")) return;
   try {
     // So we don't have to attach the token to each POST request (for now)
     const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
