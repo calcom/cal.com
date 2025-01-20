@@ -331,8 +331,7 @@ export default function Success(props: PageProps) {
 
       fetch(getEventTypeSlugUrl, {
         headers: {
-          apikey:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_API_KEY || "",
         },
       }).then((data) => {
         data.json().then((response: EventType[]) => {
@@ -347,8 +346,7 @@ export default function Success(props: PageProps) {
 
       fetch(getBookedTimeUrl, {
         headers: {
-          apikey:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9nYmZid2tmdGdwZGllanFhZmRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY2OTY3NzMsImV4cCI6MjAzMjI3Mjc3M30._m1hW5-UcdpgWNUwU9V8RAAvMwOzWOgpbL_ykoPJGIw",
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_API_KEY || "",
         },
       }).then((data) => {
         data.json().then((response: BookingInfo[]) => {

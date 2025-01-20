@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { Button, Input } from "@calcom/ui";
 
 const SPEDY_BASE_URL = "https://api.spedy.com.br/v1";
-const SPEDY_API_KEY = process.env.SPEDY_API_KEY;
+const SPEDY_API_KEY = process.env.NEXT_PUBLIC_SPEDY_API_KEY;
 const PASSWORD_ERROR = "Senha do certificado inválida.";
 
 const AddCertificate = () => {
