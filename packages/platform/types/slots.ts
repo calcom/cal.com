@@ -97,6 +97,10 @@ export class GetAvailableSlotsInput {
   })
   slotFormat?: SlotFormat;
 
+  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
+  // that the below properties were not being included inside getSlots :- cc @morgan
+  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting, cal.routingFormResponseId, cal.reroutingFormResponses & cal.isTestPreviewLink
+  // hence no input values have been setup for them in GetAvailableSlotsInput
   @Transform(({ value }) => value && value.toLowerCase() === "true")
   @IsBoolean()
   @IsOptional()

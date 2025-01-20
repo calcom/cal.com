@@ -127,6 +127,10 @@ export class CreateBookingInput_2024_04_15 {
   @ApiPropertyOptional()
   locationUrl?: string;
 
+  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
+  // that the below properties were not being included inside of handleNewBooking :- cc @morgan
+  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting & cal.isTestPreviewLink
+  // hence no input values have been setup for them in CreateBookingInput_2024_04_15
   @IsArray()
   @Type(() => Number)
   @IsOptional()
@@ -153,6 +157,8 @@ export class CreateBookingInput_2024_04_15 {
   @ApiHideProperty()
   _isDryRun?: boolean;
 
+  // reroutingFormResponses is similar to rescheduling which can only be done by the organiser
+  // won't really be necessary here in our usecase though :- cc @Hariom
   @IsObject()
   @IsOptional()
   @ApiHideProperty()
