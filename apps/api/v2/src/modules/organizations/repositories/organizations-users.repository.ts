@@ -4,6 +4,8 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
+import { CreationSource } from "@calcom/prisma/enums";
+
 @Injectable()
 export class OrganizationsUsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -70,7 +72,7 @@ export class OrganizationsUsersRepository {
 
   async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
     const createdUser = await this.dbWrite.prisma.user.create({
-      data: createUserBody,
+      data: { ...createUserBody, creationSource: CreationSource.API_V2 },
     });
 
     return createdUser;

@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -624,6 +625,7 @@ export class UserRepository {
               },
             }
           : undefined,
+        creationSource: CreationSource.WEBAPP,
       },
     });
   }
