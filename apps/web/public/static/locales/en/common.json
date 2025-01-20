@@ -2930,5 +2930,6 @@
   "email_verification_error" : "Email dosen't match the booking email",
   "verify_email" : "Verify Email",
   "verify_email_description" : "Please enter the email address used for this booking to proceed with cancellation", 
+  "next": "Next",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
