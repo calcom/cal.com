@@ -6,7 +6,6 @@ import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { prefillAvatar } from "@calcom/features/auth/signup/utils/prefillAvatar";
-import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromRequest } from "@calcom/lib/getLocaleFromRequest";
 import { HttpError } from "@calcom/lib/http-error";
@@ -38,8 +37,6 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
       token: true,
     })
     .parse(req.body);
-
-  const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(_email);
 
   log.debug("handler", { email: _email });
 
@@ -189,11 +186,10 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   } else {
     // Create the user
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         username,
         email,
-        locked: shouldLockByDefault,
         password: { create: { hash: hashedPassword } },
         metadata: {
           stripeCustomerId: customer.id,
