@@ -8,6 +8,7 @@ import { shallow } from "zustand/shallow";
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
+import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
@@ -151,17 +152,24 @@ const BookerComponent = ({
     }
   };
 
+  const skipEventBooker = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (!selectedTimeslot || skipEventBooker) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, skipEventBooker]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
+
+  const onSubmit = (timeSlot?: string) => {
+    renderConfirmNotVerifyEmailButtonCond ? handleBookEvent(timeSlot) : handleVerifyEmail();
+  };
+
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
@@ -246,6 +254,7 @@ const BookerComponent = ({
     verifyCode?.verifyCodeWithSessionNotRequired,
     verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
+    onSubmit,
   ]);
 
   /**
@@ -438,6 +447,11 @@ const BookerComponent = ({
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
                 event={event}
+                loadingStates={loadingStates}
+                renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
+                isVerificationCodeSending={isVerificationCodeSending}
+                onSubmit={onSubmit}
+                skipEventBooker={skipEventBooker}
               />
             </BookerSection>
           </AnimatePresence>
