@@ -321,6 +321,10 @@ export const BookerPlatformWrapper = (
     onSuccess: (data) => {
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
+
+      if (!!event.data?.successRedirectUrl) {
+        window.location.href = event.data.successRedirectUrl;
+      }
     },
     onError: props.onCreateRecurringBookingError,
   });
