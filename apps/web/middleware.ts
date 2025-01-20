@@ -114,12 +114,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
 async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   const url = req.nextUrl;
-  // Only protect /api/book/* requests for now. Prevents E2E tests from failing.
-  if (!url.pathname.startsWith("/api/book/")) return;
+  // Skip CSRF protection for trpc requests for now. Prevents E2E tests from failing.
+  // Most trcp endpoints are authenticated.
+  if (url.pathname.startsWith("/api/trpc/")) return;
   try {
     // So we don't have to attach the token to each POST request (for now)
-    const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
-    if (csrfTokenFromCookie) req.headers.set("x-csrf-token", csrfTokenFromCookie);
+    // const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
+    // const csrfTokenFromHeader = req.headers.get("x-csrf-token");
+    // if (csrfTokenFromCookie && !csrfTokenFromHeader) req.headers.set("x-csrf-token", csrfTokenFromCookie);
     await csrfProtect(req, res);
   } catch (err) {
     if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
