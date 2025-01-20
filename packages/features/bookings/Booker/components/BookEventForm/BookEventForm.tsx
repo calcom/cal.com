@@ -75,12 +75,6 @@ export const BookEventForm = ({
   const shouldRenderCaptcha =
     renderCaptcha && CLOUDFLARE_SITE_ID && CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
 
-  console.log({
-    renderCaptcha,
-    shouldRenderCaptcha,
-    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
-    cloudflare: CLOUDFLARE_SITE_ID,
-  });
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
