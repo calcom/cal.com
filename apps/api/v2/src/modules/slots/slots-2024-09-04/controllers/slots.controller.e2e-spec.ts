@@ -260,6 +260,7 @@ describe("Slots Endpoints", () => {
     let user: User;
     let eventTypeId: number;
     let eventTypeSlug: string;
+    let eventTypeLength: number;
     let reservedSlotUid: string;
 
     beforeAll(async () => {
@@ -309,6 +310,7 @@ describe("Slots Endpoints", () => {
       );
       eventTypeId = event.id;
       eventTypeSlug = event.slug;
+      eventTypeLength = event.length;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -554,7 +556,7 @@ describe("Slots Endpoints", () => {
         .post(`/api/v2/slots`)
         .send({
           eventTypeId,
-          start: slotStartTime,
+          slotStart: slotStartTime,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(201);
@@ -562,11 +564,19 @@ describe("Slots Endpoints", () => {
       const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
-      expect(reservedSlot.uid).toBeDefined();
-      if (!reservedSlot.uid) {
+      expect(reservedSlot.reservationUid).toBeDefined();
+      expect(reservedSlot.eventTypeId).toEqual(eventTypeId);
+      expect(reservedSlot.slotStart).toEqual(slotStartTime);
+      expect(reservedSlot.slotDuration).toEqual(eventTypeLength);
+      expect(reservedSlot.slotEnd).toEqual(
+        DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
+      );
+      expect(reservedSlot.reservationDuration).toEqual(5);
+
+      if (!reservedSlot.reservationUid) {
         throw new Error("Reserved slot uid is undefined");
       }
-      reservedSlotUid = reservedSlot.uid;
+      reservedSlotUid = reservedSlot.reservationUid;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
@@ -592,6 +602,7 @@ describe("Slots Endpoints", () => {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
+        expect(reservedSlot.reservationUntil).toEqual(expectedReleaseAt);
       }
       clear();
     });
@@ -614,8 +625,8 @@ describe("Slots Endpoints", () => {
         .post(`/api/v2/slots`)
         .send({
           eventTypeId,
-          start: slotStartTime,
-          duration: 10,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(201);
@@ -623,11 +634,11 @@ describe("Slots Endpoints", () => {
       const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
-      expect(reservedSlot.uid).toBeDefined();
-      if (!reservedSlot.uid) {
+      expect(reservedSlot.reservationUid).toBeDefined();
+      if (!reservedSlot.reservationUid) {
         throw new Error("Reserved slot uid is undefined");
       }
-      reservedSlotUid = reservedSlot.uid;
+      reservedSlotUid = reservedSlot.reservationUid;
 
       const response = await request(app.getHttpServer())
         .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)

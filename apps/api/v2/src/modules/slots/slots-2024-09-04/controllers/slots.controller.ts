@@ -64,15 +64,13 @@ export class SlotsController_2024_09_04 {
     @Cookies("uid") uidCookie: string | undefined,
     @Res({ passthrough: true }) response: ExpressResponse
   ): Promise<ReserveSlotOutput_2024_09_04> {
-    const uid = await this.slotsService.reserveSlot(body, uidCookie);
+    const reservedSlot = await this.slotsService.reserveSlot(body, uidCookie);
 
-    response.cookie("uid", uid);
+    response.cookie("uid", reservedSlot.reservationUid);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        uid,
-      },
+      data: reservedSlot,
     };
   }
 

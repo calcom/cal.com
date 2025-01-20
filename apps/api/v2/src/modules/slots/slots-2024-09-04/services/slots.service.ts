@@ -11,9 +11,14 @@ import {
 } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
+import { z } from "zod";
 
 import { getAvailableSlots, dynamicEvent } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
+
+const eventTypeMetadataSchema = z.object({
+  multipleDuration: z.number().array().optional(),
+});
 
 @Injectable()
 export class SlotsService_2024_09_04 {
@@ -79,12 +84,25 @@ export class SlotsService_2024_09_04 {
       throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
     }
 
-    const startDate = DateTime.fromISO(input.start, { zone: "utc" });
+    const startDate = DateTime.fromISO(input.slotStart, { zone: "utc" });
     if (!startDate.isValid) {
       throw new BadRequestException("Invalid start date");
     }
 
-    const endDate = startDate.plus({ minutes: eventType.length });
+    const metadata = eventTypeMetadataSchema.parse(eventType);
+    if (
+      input.slotDuration &&
+      metadata.multipleDuration &&
+      !metadata.multipleDuration.includes(input.slotDuration)
+    ) {
+      throw new BadRequestException(
+        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
+          ", "
+        )}`
+      );
+    }
+
+    const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
     if (!endDate.isValid) {
       throw new BadRequestException("Invalid end date");
     }
@@ -100,7 +118,7 @@ export class SlotsService_2024_09_04 {
         const seatsLeft = eventType.seatsPerTimeSlot - attendeesCount;
         if (seatsLeft < 1) {
           throw new UnprocessableEntityException(
-            `Booking with id=${input.eventTypeId} at ${input.start} has no more seats left.`
+            `Booking with id=${input.eventTypeId} at ${input.slotStart} has no more seats left.`
           );
         }
       }
@@ -113,29 +131,55 @@ export class SlotsService_2024_09_04 {
 
     const uid = existingUid || uuid();
     if (eventType.userId) {
-      await this.slotsRepository.upsertSlot(
+      const slot = await this.slotsRepository.upsertSlot(
         eventType.userId,
         eventType.id,
         startDate.toISO(),
         endDate.toISO(),
         uid,
         eventType.seatsPerTimeSlot !== null,
-        input.duration
+        input.reservationDuration
       );
-    } else {
-      const host = eventType.hosts[0];
-      await this.slotsRepository.upsertSlot(
-        host.userId,
-        eventType.id,
-        startDate.toISO(),
-        endDate.toISO(),
-        uid,
-        eventType.seatsPerTimeSlot !== null,
-        input.duration
-      );
+      return {
+        eventTypeId: eventType.id,
+        slotStart:
+          DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+        slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+        slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+          DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+          "minutes"
+        ).minutes,
+        reservationDuration: input.reservationDuration,
+        reservationUid: slot.uid,
+        reservationUntil:
+          DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+      };
     }
 
-    return uid;
+    const host = eventType.hosts[0];
+    const slot = await this.slotsRepository.upsertSlot(
+      host.userId,
+      eventType.id,
+      startDate.toISO(),
+      endDate.toISO(),
+      uid,
+      eventType.seatsPerTimeSlot !== null,
+      input.reservationDuration
+    );
+
+    return {
+      eventTypeId: eventType.id,
+      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+        "minutes"
+      ).minutes,
+      reservationDuration: input.reservationDuration,
+      reservationUid: slot.uid,
+      reservationUntil:
+        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+    };
   }
 
   async deleteSelectedSlot(uid: string) {
