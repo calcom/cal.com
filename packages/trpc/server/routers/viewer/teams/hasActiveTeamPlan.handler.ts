@@ -26,6 +26,7 @@ export const hasActiveTeamPlanHandler = async ({ input, ctx }: HasActiveTeamPlan
       members: {
         some: {
           userId: userId,
+          accepted: true,
         },
       },
     },
