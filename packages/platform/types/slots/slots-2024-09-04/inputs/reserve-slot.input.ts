@@ -19,7 +19,7 @@ export class ReserveSlotInput_2024_09_04 {
   @ApiPropertyOptional({
     example: 5,
     description:
-      "The length of the reservation in minutes - for this long time noone else can book this event type at `start` time.",
+      "For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time.",
   })
-  reservationLength = 5;
+  duration = 5;
 }

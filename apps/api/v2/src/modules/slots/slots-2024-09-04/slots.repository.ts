@@ -21,9 +21,9 @@ export class SlotsRepository_2024_09_04 {
     slotUtcEndDate: string,
     uid: string,
     isSeat: boolean,
-    reservationLength: number
+    duration: number
   ) {
-    const releaseAt = DateTime.utc().plus({ minutes: reservationLength }).toISO();
+    const releaseAt = DateTime.utc().plus({ minutes: duration }).toISO();
 
     return this.dbWrite.prisma.selectedSlots.upsert({
       where: {

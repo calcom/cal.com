@@ -106,7 +106,8 @@ export class SlotsService_2024_09_04 {
       }
     }
 
-    if (!eventType.seatsPerTimeSlot && booking) {
+    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
+    if (nonSeatedEventAlreadyBooked) {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
@@ -119,7 +120,7 @@ export class SlotsService_2024_09_04 {
         endDate.toISO(),
         uid,
         eventType.seatsPerTimeSlot !== null,
-        input.reservationLength
+        input.duration
       );
     } else {
       const host = eventType.hosts[0];
@@ -130,7 +131,7 @@ export class SlotsService_2024_09_04 {
         endDate.toISO(),
         uid,
         eventType.seatsPerTimeSlot !== null,
-        input.reservationLength
+        input.duration
       );
     }
 

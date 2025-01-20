@@ -13,6 +13,8 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
+import { advanceTo, clear } from "jest-date-mock";
+import { DateTime } from "luxon";
 import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
@@ -542,6 +544,11 @@ describe("Slots Endpoints", () => {
     });
 
     it("should reserve a slot and it should not appear in available slots", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/api/v2/slots`)
@@ -578,6 +585,15 @@ describe("Slots Endpoints", () => {
         (slot) => slot !== slotStartTime
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlotUid);
+      expect(dbSlot).toBeDefined();
+      if (dbSlot) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+      clear();
     });
 
     it("should delete reserved slot", async () => {
@@ -585,6 +601,61 @@ describe("Slots Endpoints", () => {
         .delete(`/api/v2/slots/${reservedSlotUid}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
+    });
+
+    it("should reserve a slot with custom duration and it should not appear in available slots", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const reserveResponse = await request(app.getHttpServer())
+        .post(`/api/v2/slots`)
+        .send({
+          eventTypeId,
+          start: slotStartTime,
+          duration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(reservedSlot.uid).toBeDefined();
+      if (!reservedSlot.uid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+      reservedSlotUid = reservedSlot.uid;
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot !== slotStartTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlotUid);
+      expect(dbSlot).toBeDefined();
+      if (dbSlot) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      clear();
     });
 
     it("should do a booking and slot should not be available at that time", async () => {
@@ -633,6 +704,7 @@ describe("Slots Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      clear();
 
       await app.close();
     });
