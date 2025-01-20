@@ -1,5 +1,5 @@
 diff --git a/index.cjs b/index.cjs
-index c83f700ae9998cd87b4c2d66ecbb2ad3d7b4603c..76a2200b57f0b9243e2c61464d578b67746ad5a4 100644
+index c83f700..da6fc7e 100644
 --- a/index.cjs
 +++ b/index.cjs
 @@ -13,8 +13,8 @@ function withMetadataArgument(func, _arguments) {
