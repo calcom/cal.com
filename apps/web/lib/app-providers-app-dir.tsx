@@ -20,6 +20,7 @@ import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import PlainChat from "@lib/plain/plainChat";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
@@ -48,7 +49,6 @@ export type AppProps = Omit<
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
     getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
@@ -129,7 +129,7 @@ type CalcomThemeProps = Readonly<{
   themeBasis: string | null;
   nonce: string | undefined;
   children: React.ReactNode;
-  isThemeSupported?: boolean;
+  isThemeSupported: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -196,8 +196,7 @@ function getThemeProviderProps({
 }) {
   const themeSupport = props.isBookingPage
     ? ThemeSupport.Booking
-    : // if isThemeSupported is explicitly false, we don't use theme there
-    props.isThemeSupported === false
+    : props.isThemeSupported === false
     ? ThemeSupport.None
     : ThemeSupport.App;
 
@@ -263,6 +262,7 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
+  const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
@@ -273,7 +273,7 @@ const AppProviders = (props: PageWrapperProps) => {
           <CalcomThemeProvider
             themeBasis={props.themeBasis}
             nonce={props.nonce}
-            isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
+            isThemeSupported={isThemeSupported}
             isBookingPage={props.isBookingPage || isBookingPage}>
             <FeatureFlagsProvider>
               <OrgBrandProvider>{props.children}</OrgBrandProvider>
