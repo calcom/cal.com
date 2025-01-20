@@ -84,16 +84,17 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-type RowData = {
-  type: "data";
-  booking: BookingOutput;
-  recurringInfo?: RecurringInfo;
-} & {
-  type: "today" | "next";
-};
+type RowData =
+  | {
+      type: "data";
+      booking: BookingOutput;
+      recurringInfo?: RecurringInfo;
+    }
+  | {
+      type: "today" | "next";
+    };
 
 function BookingsContent({ status }: BookingsProps) {
-  console.log("💡 BookingsContent");
   const { data: filterQuery } = useFilterQuery();
 
   const { t } = useLocale();
