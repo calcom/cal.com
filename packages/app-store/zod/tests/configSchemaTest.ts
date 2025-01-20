@@ -24,18 +24,18 @@ describe("appConfigSchema", () => {
 
   it("should invalidate a config object with incorrect types", () => {
     const result = appConfigSchema.safeParse({
-      name: 123, // should be a string
+      name: 123,
       slug: "qr_code",
       type: "qr_code_other",
       logo: "icon.svg",
-      url: "not-a-valid-url", // should be a valid URL
+      url: "not-a-valid-url",
       variant: "other",
-      categories: "other", // should be an array
+      categories: "other",
       extendsFeature: "EventType",
       publisher: "Cal.com, Inc.",
-      email: "not-an-email", // should be a valid email
+      email: "not-an-email",
       description: "Easily generate a QR code for your links to print, share, or embed.",
-      __createdUsingCli: "yes", // should be a boolean
+      __createdUsingCli: "yes",
     });
 
     expect(result.success).toBe(false);
