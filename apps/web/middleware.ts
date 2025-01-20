@@ -107,7 +107,8 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
-  await handleCsrfProtect(req, res);
+  const csrfResponse = await handleCsrfProtect(req, res);
+  if (csrfResponse) return csrfResponse;
 
   return responseWithHeaders({ url, res, req });
 };
@@ -119,9 +120,9 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   if (url.pathname.startsWith("/api/trpc/")) return;
   try {
     // So we don't have to attach the token to each POST request (for now)
-    // const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
-    // const csrfTokenFromHeader = req.headers.get("x-csrf-token");
-    // if (csrfTokenFromCookie && !csrfTokenFromHeader) req.headers.set("x-csrf-token", csrfTokenFromCookie);
+    const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
+    const csrfTokenFromHeader = req.headers.get("x-csrf-token");
+    if (csrfTokenFromCookie && !csrfTokenFromHeader) req.headers.set("x-csrf-token", csrfTokenFromCookie);
     await csrfProtect(req, res);
   } catch (err) {
     if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
