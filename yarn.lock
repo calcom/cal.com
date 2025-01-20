@@ -3944,7 +3944,7 @@ __metadata:
     "@hookform/resolvers": ^2.9.7
     "@sendgrid/client": ^7.7.0
     "@sendgrid/mail": ^7.6.2
-    libphonenumber-js: ^1.10.51
+    libphonenumber-js: ^1.11.18
     twilio: ^3.80.1
     zod: ^3.22.4
   languageName: unknown
@@ -5116,7 +5116,7 @@ __metadata:
     ics: ^2.37.0
     jose: ^4.13.1
     kbar: ^0.1.0-beta.36
-    libphonenumber-js: ^1.10.51
+    libphonenumber-js: ^1.11.18
     lodash: ^4.17.21
     lottie-react: ^2.3.1
     markdown-it: ^13.0.1
@@ -31234,24 +31234,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:1.10.51":
-  version: 1.10.51
-  resolution: "libphonenumber-js@npm:1.10.51"
-  checksum: e3fd98e3cb7b2197e949f2a53744610942c831a9c3b864c6ce128f0b0ff6884b28ffd3f5f6fc6cb804a2556dfac3a07aa8c63b4bf9d36288a553bae2faea48d0
+"libphonenumber-js@npm:1.11.18":
+  version: 1.11.18
+  resolution: "libphonenumber-js@npm:1.11.18"
+  checksum: f03b4a287e853d82e07363c010afa4ab2930528a6d79dbe951649adfc3f0daf15bae0891d881baa16a6b5da891fa119d40816401d782171080529c9c42e88c48
   languageName: node
   linkType: hard
 
-"libphonenumber-js@npm:^1.10.53":
-  version: 1.10.58
-  resolution: "libphonenumber-js@npm:1.10.58"
-  checksum: c6e6c5cc7b917eff604b528cbb417285f4c5d2ab730266a0a5339876714ae4b841556b7dd2faa00c0ced989dfb9f77eb562e2f401c98a988c2533ec09898ca74
-  languageName: node
-  linkType: hard
-
-"libphonenumber-js@patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch::locator=calcom-monorepo%40workspace%3A.":
-  version: 1.10.51
-  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.10.51#./.yarn/patches/libphonenumber-js-npm-1.10.51-4ff79b15f8.patch::version=1.10.51&hash=1455d3&locator=calcom-monorepo%40workspace%3A."
-  checksum: 6730b41757b106a2cbd298bb51e2a794e80c37c08942530f65e5e3c54aabf2b673c551a3dc17ccfe983dd948764fd7665048584b862b439a213f5ccb2fc3355b
+"libphonenumber-js@patch:libphonenumber-js@1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::locator=calcom-monorepo%40workspace%3A.":
+  version: 1.11.18
+  resolution: "libphonenumber-js@patch:libphonenumber-js@npm%3A1.11.18#./.yarn/patches/libphonenumber-js+1.11.18.patch::version=1.11.18&hash=18a67d&locator=calcom-monorepo%40workspace%3A."
+  checksum: 947ad2cb3c8eb8e51b98e20d9f80338cb492d007f32b998aad03098372b07bef93a17306e90f0a85554327e807d968a0bfa68a17c5eb7efcba7b86c38f63b42c
   languageName: node
   linkType: hard
 
