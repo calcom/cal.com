@@ -36,7 +36,7 @@ async function shouldLockUser(data: any) {
 
   // Check if email is in watchlist with critical severity
   const watchlistRepository = new WatchlistRepository();
-  const watchlistResult = await watchlistRepository.getBlockedEmailInWatchlist(data.email.toLowercase());
+  const watchlistResult = await watchlistRepository.getBlockedEmailInWatchlist(data.email);
   const isInWatchlist = !!watchlistResult;
 
   return isInWatchlist;
