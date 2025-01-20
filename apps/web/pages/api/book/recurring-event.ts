@@ -15,7 +15,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
     await checkCfTurnstileToken({
-      token: req.body["cfToken"] as string,
+      token: req.body[0]["cfToken"] as string,
       remoteIp: userIp,
     });
   }
