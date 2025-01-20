@@ -1,4 +1,4 @@
-import { getServerSideProps as _getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
+import { getServerSideProps as _getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps.pages";
 import withEmbedSsr from "@lib/withEmbedSsr";
 
 import PageWrapper from "@components/PageWrapper";

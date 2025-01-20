@@ -1,7 +1,7 @@
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
 
-import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps.appDir";
 
 import LegacyPage, { type PageProps } from "~/users/views/users-type-public-view";
 

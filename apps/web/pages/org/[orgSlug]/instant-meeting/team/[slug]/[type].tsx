@@ -6,5 +6,5 @@ import Type from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-mee
 const Page = (props: PageProps) => <Type {...props} />;
 Page.PageWrapper = PageWrapper;
 
-export { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
+export { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps.pages";
 export default Page;

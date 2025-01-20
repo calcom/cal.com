@@ -226,6 +226,7 @@ export const config = {
     "/org/[orgSlug]/team/[slug]/[type]",
     "/org/[orgSlug]/team/[slug]",
     "/org/[orgSlug]",
+    // In order to protect all public pages from CSRF
     "/:user*",
   ],
 };
