@@ -2927,5 +2927,6 @@
   "managed_users_description": "Se alle administrerede brugere oprettet af din OAuth-klient",
   "select_oAuth_client": "Vælg OAuth-klient",
   "on_every_instance": "På hver forekomst",
+  "next": "Næste",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
