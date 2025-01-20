@@ -102,8 +102,15 @@ export class SlotsController_2024_09_04 {
     name: "duration",
     required: false,
     description:
-      "Duration of the intended meeting in minutes. Defaults to 30, meaning that returned slots will be each 30 minutes long. Only available when checking slots by usernames.",
+      "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
     example: "60",
+  })
+  @ApiQuery({
+    name: "slotFormat",
+    required: false,
+    description:
+      "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
+    example: "range",
   })
   @ApiQuery({
     name: "usernames",
@@ -124,8 +131,15 @@ export class SlotsController_2024_09_04 {
   @ApiQuery({
     name: "eventTypeSlug",
     required: false,
-    description: "The slug of the event type for which available slots should be checked.",
+    description:
+      "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too.",
     example: "event-type-slug",
+  })
+  @ApiQuery({
+    name: "username",
+    required: false,
+    description: "The username of the user to get event types for.",
+    example: "bob",
   })
   @ApiQuery({
     name: "end",
@@ -154,7 +168,7 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description:
-      "A map of available slots indexed by date, where each date is associated with an array of time slots.",
+      "A map of available slots indexed by date, where each date is associated with an array of time slots. If you pass query parameter `format=range` then each slot will be an object with `start` and `end` properties denoting start and end of the slot.",
     schema: {
       type: "object",
       additionalProperties: {

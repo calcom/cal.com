@@ -1,5 +1,6 @@
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
@@ -19,7 +20,8 @@ export class SlotsService_2024_09_04 {
   constructor(
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly slotsRepository: SlotsRepository_2024_09_04,
-    private readonly usersRepository: UsersRepository
+    private readonly usersRepository: UsersRepository,
+    private readonly slotsOutputService: SlotsOutputService_2024_09_04
   ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
@@ -51,23 +53,15 @@ export class SlotsService_2024_09_04 {
       ctx: {},
     });
 
-    const slots: { [key: string]: string[] } = {};
-    for (const date in availableSlots.slots) {
-      slots[date] = availableSlots.slots[date].map((slot) => {
-        const slotTimezoneAdjusted = timeZone
-          ? DateTime.fromISO(slot.time).setZone(timeZone).toISO()
-          : slot.time;
-        if (!slotTimezoneAdjusted) {
-          throw new BadRequestException(
-            `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
-          );
-        }
+    const formatted = await this.slotsOutputService.getOutputSlots(
+      availableSlots,
+      duration,
+      eventTypeId,
+      query.format,
+      timeZone
+    );
 
-        return slotTimezoneAdjusted;
-      });
-    }
-
-    return slots;
+    return formatted;
   }
 
   adjustEndTime(endTime: string) {
