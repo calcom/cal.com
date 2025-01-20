@@ -1198,6 +1198,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
+        creationSource: req.creationSource,
       });
 
       if (booking?.userId) {
