@@ -26,6 +26,34 @@ const csrfProtect = createCsrfProtect({
   },
 });
 
+const NON_BOOKING_ROUTES_IN_APP_ROUTER = [
+  "/api",
+  "/403",
+  "/500",
+  "/apps",
+  "/auth",
+  "/availability",
+  "/booking",
+  "/bookings",
+  "/connect-and-join",
+  "/d",
+  "/enterprise",
+  "/event-types",
+  "/future",
+  "/getting-started",
+  "/icons",
+  "/insights",
+  "/maintenance",
+  "/more",
+  "/reschedule",
+  "/settings",
+  "/signup",
+  "/teams",
+  "/upgrade",
+  "/video",
+  "/workflows",
+];
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -106,6 +134,19 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  const firstDomainInPathname = `/${url.pathname.split("/")[1]}`;
+
+  if (!NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname)) {
+    // either /team/** pages, or /org/** pages, or /[user]/** pages
+    const csrfToken = requestHeaders.get("x-csrf-token") || "missing";
+    res.cookies.set("x-csrf-token", `${csrfToken}`, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
 
   const csrfResponse = await handleCsrfProtect(req, res);
   if (csrfResponse) return csrfResponse;
