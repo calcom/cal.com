@@ -36,6 +36,7 @@ export const apiHandlers = {
   googlevideo: import("./googlevideo/api"),
   granola: import("./granola/api"),
   gtm: import("./gtm/api"),
+  hitpay: import("./hitpay/api"),
   "horizon-workrooms": import("./horizon-workrooms/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
