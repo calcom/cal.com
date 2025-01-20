@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { DefaultArgs, InternalArgs } from "@prisma/client/runtime/library";
 
-import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { WatchlistRepository } from "@calcom/features/watchlist/watchlist.repository";
 
 export function autoLockUsersExtension() {
   return Prisma.defineExtension({
@@ -35,7 +35,8 @@ async function shouldLockUser(data: any) {
   if (!data.email) return false;
 
   // Check if email is in watchlist with critical severity
-  const watchlistResult = await checkIfEmailIsBlockedInWatchlistController(data.email);
+  const watchlistRepository = new WatchlistRepository();
+  const watchlistResult = await watchlistRepository.getBlockedEmailInWatchlist(data.email.toLowercase());
   const isInWatchlist = !!watchlistResult;
 
   return isInWatchlist;
