@@ -37,6 +37,7 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  renderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -53,6 +54,7 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
+  renderCaptcha,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -68,6 +70,17 @@ export const BookEventForm = ({
   const username = useBookerStore((state) => state.username);
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
+
+  // Cloudflare Turnstile Captcha
+  const shouldRenderCaptcha =
+    renderCaptcha && CLOUDFLARE_SITE_ID && CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
+
+  console.log({
+    renderCaptcha,
+    shouldRenderCaptcha,
+    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER,
+    cloudflare: CLOUDFLARE_SITE_ID,
+  });
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();
@@ -128,6 +141,14 @@ export const BookEventForm = ({
             />
           </div>
         )}
+        {/* Cloudflare Turnstile Captcha */}
+        {shouldRenderCaptcha ? (
+          <TurnstileCaptcha
+            onVerify={(token) => {
+              bookingForm.setValue("cfToken", token);
+            }}
+          />
+        ) : null}
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans
@@ -151,6 +172,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
         {isPlatformBookerEmbed && (
           <div className="text-subtle my-3 w-full text-xs">
             {t("proceeding_agreement")}{" "}
@@ -185,23 +207,10 @@ export const BookEventForm = ({
                 </Button>
               )}
 
-              {/* Cloudflare Turnstile Captcha */}
-              {CLOUDFLARE_SITE_ID && CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" ? (
-                <TurnstileCaptcha
-                  appearance="interaction-only"
-                  onVerify={(token) => {
-                    // INFO: Just using as placeholder to test. Need to store this somewhere and put in header
-                    // to api/book/event
-                    const values = bookingForm.getValues();
-                    values["cfToken"] = token;
-                    setFormValues(values);
-                  }}
-                />
-              ) : null}
-
               <Button
                 type="submit"
                 color="primary"
+                disabled={shouldRenderCaptcha && !bookingForm.getValues().cfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
