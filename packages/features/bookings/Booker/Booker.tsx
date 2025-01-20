@@ -11,8 +11,12 @@ import dayjs from "@calcom/dayjs";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
@@ -151,12 +155,40 @@ const BookerComponent = ({
     }
   };
 
+  const { i18n } = useLocale();
+  const eventUILanguage = useMemo(
+    () => localeOptions.find((locale) => locale.value === event.data?.userInterfaceLanguage)?.value,
+    [event.data?.userInterfaceLanguage]
+  );
+
+  const i18nOverrideQuery = trpc.viewer.public.i18n.useQuery(
+    {
+      locale: eventUILanguage || "en",
+      CalComVersion: CALCOM_VERSION,
+    },
+    {
+      staleTime: Infinity,
+      enabled: !!eventUILanguage,
+    }
+  );
+
   useEffect(() => {
-    if (event.isPending) return setBookerState("loading");
+    if (eventUILanguage && i18nOverrideQuery.isSuccess) {
+      i18n.addResourceBundle(
+        eventUILanguage,
+        "common",
+        i18nOverrideQuery.data.i18n._nextI18Next?.initialI18nStore[eventUILanguage].common
+      );
+      i18n.changeLanguage(eventUILanguage);
+    }
+  }, [eventUILanguage, i18n, i18nOverrideQuery.data, i18nOverrideQuery.isSuccess]);
+
+  useEffect(() => {
+    if (event.isPending || (eventUILanguage && i18nOverrideQuery.isPending)) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, i18nOverrideQuery.isPending, eventUILanguage]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {

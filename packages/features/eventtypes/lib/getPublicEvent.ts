@@ -141,6 +141,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   hidden: true,
   assignAllTeamMembers: true,
   rescheduleWithSameRoundRobinHost: true,
+  userInterfaceLanguage: true,
 });
 
 export async function isCurrentlyAvailable({
@@ -460,6 +461,7 @@ export const getPublicEvent = async (
   }
   return {
     ...eventWithUserProfiles,
+    userInterfaceLanguage: event.userInterfaceLanguage,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
     description: markdownToSafeHTML(eventWithUserProfiles.description),
     metadata: eventMetaData,

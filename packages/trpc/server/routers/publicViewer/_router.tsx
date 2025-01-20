@@ -2,9 +2,9 @@ import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
 import { ZUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
-import { i18nInputSchema } from "./i18n.schema";
 import { ZMarkHostAsNoShowInputSchema } from "./markHostAsNoShow.schema";
 import { event } from "./procedures/event";
+import { i18n } from "./procedures/i18n";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
@@ -17,10 +17,7 @@ const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 // things that unauthenticated users can query about themselves
 export const publicViewerRouter = router({
   session,
-  i18n: publicProcedure.input(i18nInputSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("i18n"), () => import("./i18n.handler"));
-    return handler(opts);
-  }),
+  i18n: i18n,
   countryCode: publicProcedure.query(async (opts) => {
     const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
     return handler(opts);

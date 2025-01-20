@@ -8,6 +8,7 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -246,6 +247,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       ? user?.allowSEOIndexing
       : false
     : user?.allowSEOIndexing;
+
+  if (eventData.userInterfaceLanguage) {
+    ssr.viewer.public.i18n.prefetch({
+      locale: eventData.userInterfaceLanguage,
+      CalComVersion: CALCOM_VERSION,
+    });
+  }
 
   const props: Props = {
     eventData: {
