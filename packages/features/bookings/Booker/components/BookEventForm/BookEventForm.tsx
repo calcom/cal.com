@@ -144,6 +144,7 @@ export const BookEventForm = ({
         {/* Cloudflare Turnstile Captcha */}
         {shouldRenderCaptcha ? (
           <TurnstileCaptcha
+            appearance="interaction-only"
             onVerify={(token) => {
               bookingForm.setValue("cfToken", token);
             }}
@@ -210,7 +211,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={shouldRenderCaptcha && !bookingForm.getValues().cfToken}
+                // disabled={shouldRenderCaptcha && !bookingForm.getValues().cfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
