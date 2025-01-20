@@ -340,6 +340,7 @@ export default function Success(props: PageProps) {
             return { ...acc, [id]: slug };
           }, eventTypes);
 
+          console.log(response, eventSlugs);
           setEventTypes(eventSlugs);
         });
       });
