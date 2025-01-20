@@ -383,7 +383,11 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
     });
     Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
-    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    clone.body = {
+      ...clone.body,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
+    };
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 

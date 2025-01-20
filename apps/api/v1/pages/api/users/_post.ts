@@ -93,7 +93,7 @@ async function postHandler(req: NextApiRequest) {
   // If user is not ADMIN, return unauthorized.
   if (!isSystemWideAdmin) throw new HttpError({ statusCode: 401, message: "You are not authorized" });
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
-  const user = await prisma.user.create({ ...data, creationSource: CreationSource.API_V1 });
+  const user = await prisma.user.create({ data: { ...data, creationSource: CreationSource.API_V1 } });
   req.statusCode = 201;
   return { user };
 }
