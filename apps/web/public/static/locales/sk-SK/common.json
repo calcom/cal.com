@@ -2927,5 +2927,6 @@
   "managed_users_description": "Zobraziť všetkých spravovaných používateľov vytvorených vaším OAuth klientom",
   "select_oAuth_client": "Vyberte OAuth klienta",
   "on_every_instance": "Pri každej inštancii",
+  "next": "Ďalej",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
