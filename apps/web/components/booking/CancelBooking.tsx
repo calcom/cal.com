@@ -45,9 +45,9 @@ export default function CancelBooking(props: Props) {
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
-  const [showVerificationDialog, setShowVerificationDialog] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState("");
-  const [verificationError, setVerificationError] = useState("");
+  const [showVerificationDialog, setShowVerificationDialog] = useState<boolean>(false);
+  const [verificationEmail, setVerificationEmail] = useState<string>("");
+  const [verificationError, setVerificationError] = useState<string>("");
   const searchParams = useSearchParams();
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
