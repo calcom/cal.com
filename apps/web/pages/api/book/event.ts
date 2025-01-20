@@ -6,6 +6,7 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
+import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
@@ -18,6 +19,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const session = await getServerSession({ req, res });
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
+  req.creationSource = CreationSource.WEBAPP;
   const booking = await handleNewBooking(req);
   return booking;
 }
