@@ -35,7 +35,10 @@ export class BookingsRepositoryFixture {
   }
 
   async deleteById(bookingId: Booking["id"]) {
-    return this.prismaWriteClient.booking.delete({ where: { id: bookingId } });
+    const booking = await this.getById(bookingId);
+    if (booking) {
+      return this.prismaWriteClient.booking.delete({ where: { id: bookingId } });
+    }
   }
 
   async deleteAllBookings(userId: User["id"], userEmail: User["email"]) {
