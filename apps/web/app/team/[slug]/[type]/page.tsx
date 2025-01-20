@@ -7,7 +7,7 @@ import { cookies, headers } from "next/headers";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
-import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps.appDir";
+import { getServerSideProps } from "@lib/team/[slug]/[type]/getServerSideProps";
 
 import LegacyPage from "~/team/type-view";
 import type { PageProps as LegacyPageProps } from "~/team/type-view";
