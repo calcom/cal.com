@@ -14,7 +14,7 @@ import {
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-export class GetAvailableSlotsInput {
+export class GetAvailableSlotsInput_2024_04_15 {
   @IsDateString()
   @ApiProperty({
     description: "Start date string starting from which to fetch slots in UTC timezone.",
@@ -98,7 +98,7 @@ export class GetAvailableSlotsInput {
   slotFormat?: SlotFormat;
 }
 
-export class RemoveSelectedSlotInput {
+export class RemoveSelectedSlotInput_2024_04_15 {
   @IsString()
   @IsOptional()
   @ApiProperty({
@@ -109,7 +109,7 @@ export class RemoveSelectedSlotInput {
   uid?: string;
 }
 
-export class ReserveSlotInput {
+export class ReserveSlotInput_2024_04_15 {
   @IsInt()
   @ApiProperty({ description: "Event Type ID for which timeslot is being reserved.", example: 100 })
   eventTypeId!: number;

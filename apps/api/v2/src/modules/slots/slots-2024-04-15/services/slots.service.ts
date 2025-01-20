@@ -1,20 +1,20 @@
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
-import { SlotsRepository } from "@/modules/slots/slots.repository";
+import { SlotsRepository_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.repository";
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 import { v4 as uuid } from "uuid";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import { ReserveSlotInput } from "@calcom/platform-types";
+import { ReserveSlotInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
-export class SlotsService {
+export class SlotsService_2024_04_15 {
   constructor(
     private readonly eventTypeRepo: EventTypesRepository_2024_04_15,
-    private readonly slotsRepo: SlotsRepository
+    private readonly slotsRepo: SlotsRepository_2024_04_15
   ) {}
 
-  async reserveSlot(input: ReserveSlotInput, headerUid?: string) {
+  async reserveSlot(input: ReserveSlotInput_2024_04_15, headerUid?: string) {
     const uid = headerUid || uuid();
     const eventType = await this.eventTypeRepo.getEventTypeWithSeats(input.eventTypeId);
     if (!eventType) {

@@ -4991,7 +4991,7 @@
     },
     "/v2/slots/reserve": {
       "post": {
-        "operationId": "SlotsController_reserveSlot",
+        "operationId": "SlotsController_2024_04_15_reserveSlot",
         "summary": "Reserve a slot",
         "parameters": [],
         "requestBody": {
@@ -4999,7 +4999,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReserveSlotInput"
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_04_15"
               }
             }
           }
@@ -5036,7 +5036,7 @@
     },
     "/v2/slots/selected-slot": {
       "delete": {
-        "operationId": "SlotsController_deleteSelectedSlot",
+        "operationId": "SlotsController_2024_04_15_deleteSelectedSlot",
         "summary": "Delete a selected slot",
         "parameters": [
           {
@@ -5073,7 +5073,7 @@
     },
     "/v2/slots/available": {
       "get": {
-        "operationId": "SlotsController_getAvailableSlots",
+        "operationId": "SlotsController_2024_04_15_getAvailableSlots",
         "summary": "Get available slots",
         "parameters": [
           {
@@ -14838,7 +14838,7 @@
         },
         "required": ["status", "data"]
       },
-      "ReserveSlotInput": {
+      "ReserveSlotInput_2024_04_15": {
         "type": "object",
         "properties": {
           "eventTypeId": {

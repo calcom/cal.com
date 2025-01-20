@@ -8,7 +8,7 @@ type TimeSlots = { slots: Record<string, { time: string }[]> };
 type RangeSlots = { slots: Record<string, { startTime: string; endTime: string }[]> };
 
 @Injectable()
-export class SlotsOutputService {
+export class SlotsOutputService_2024_04_15 {
   constructor(private readonly eventTypesRepository: EventTypesRepository_2024_04_15) {}
 
   async getOutputSlots(
