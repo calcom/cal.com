@@ -3,6 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 
@@ -94,6 +95,7 @@ async function postHandler(req: NextApiRequest) {
   const data = await schemaUserCreateBodyParams.parseAsync(req.body);
   const user = await prisma.user.create({ data });
   req.statusCode = 201;
+  req.creationSource = CreationSource.API_V1;
   return { user };
 }
 
