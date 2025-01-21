@@ -6752,7 +6752,7 @@
           "integration": {
             "type": "string",
             "example": "cal-video",
-            "enum": ["cal-video", "google-meet"]
+            "enum": ["cal-video", "google-meet", "zoom", "msteams"]
           }
         },
         "required": ["type", "integration"]
