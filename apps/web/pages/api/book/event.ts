@@ -18,10 +18,14 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     });
   }
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: userIp,
-  });
+  try {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: userIp,
+    });
+  } catch (error) {
+    return res.status(429).json({ message: "Rate limit exceeded" });
+  }
 
   const session = await getServerSession({ req, res });
   /* To mimic API behavior and comply with types */

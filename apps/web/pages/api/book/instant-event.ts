@@ -9,10 +9,14 @@ import { defaultResponder } from "@calcom/lib/server";
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
 
-  await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
-    identifier: `instant.event-${userIp}`,
-  });
+  try {
+    await checkRateLimitAndThrowError({
+      rateLimitingType: "core",
+      identifier: `instant.event-${userIp}`,
+    });
+  } catch (error) {
+    return res.status(429).json({ message: "Rate limit exceeded" });
+  }
 
   const session = await getServerSession({ req, res });
   req.userId = session?.user?.id || -1;
