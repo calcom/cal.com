@@ -1544,6 +1544,7 @@
   "download_transcript": "تحميل التفريغ النصي",
   "recording_from_your_recent_call": "تسجيل من مكالمتك الأخيرة على {{appName}} جاهز للتنزيل",
   "transcript_from_previous_call": "التفريغ النصي من مكالمة الأخيرة على {{appName}} جاهز للتحميل. الروابط متاحة لمدة ساعة واحدة فقط",
+  "you_can_download_transcript_from_attachments": "يمكنك أيضاً تحميل النص المكتوب من المرفقات",
   "link_valid_for_12_hrs": "ملاحظة: رابط التحميل متاح لمدة 12 ساعة فقط. يمكنك إنشاء رابط تحميل جديد بإتباع التعليمات <1>هنا</1>.",
   "create_your_first_form": "إنشاء أول استمارة",
   "create_your_first_form_description": "باستخدام نماذج المسارات، يمكنك طرح أسئلة التأهيل والتوجيه إلى الشخص/نوع الحدث المناسب.",
@@ -2927,6 +2928,7 @@
   "managed_users_description": "عرض جميع المستخدمين المُدارين الذين تم إنشاؤهم بواسطة عميل OAuth الخاص بك",
   "select_oAuth_client": "اختر عميل OAuth",
   "on_every_instance": "في كل مثيل",
+  "authorize": "تفويض",
   "next": "التالي",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
