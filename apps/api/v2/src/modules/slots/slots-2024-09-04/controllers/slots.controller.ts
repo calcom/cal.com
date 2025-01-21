@@ -54,11 +54,11 @@ export class SlotsController_2024_09_04 {
     description: `
       There are 3 ways to get available slots:
       
-      1. By event type id. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By event type id. Event type id can be of user and team event types. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
       2. By event type slug + username. Example '/api/v2/slots/available?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
-      3. By usernames (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/api/v2/slots/available?usernames=alice,bob&username=bob&start=2050-09-05&end=2050-09-06&duration=60'
+      3. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/api/v2/slots/available?usernames=alice,bob&username=bob&start=2050-09-05&end=2050-09-06&duration=60'
 
       All of them require "start" and "end" query parameters which define the time range for which available slots should be checked.
       Optional parameters are:
