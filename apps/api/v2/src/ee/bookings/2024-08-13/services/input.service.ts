@@ -33,6 +33,7 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -97,10 +98,14 @@ export class InputBookingsService_2024_08_13 {
 
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        creationSource: CreationSource.API_V2,
+      };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false };
+      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
     return newRequest as unknown as BookingRequest;
