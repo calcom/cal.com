@@ -306,6 +306,7 @@ export const roundRobinReassignment = async ({
     include: {
       user: {
         select: {
+          id: true,
           email: true,
         },
       },

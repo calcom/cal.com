@@ -61,7 +61,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: 0,
-        user: { email: "" },
+        user: { id: 0, email: "" },
         teamId: null,
         appId: appMeta.slug,
         invalid: false,

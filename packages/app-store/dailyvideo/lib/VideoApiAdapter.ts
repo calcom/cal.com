@@ -48,7 +48,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: 0,
-  user: { email: "" },
+  user: { id: 0, email: "" },
   appId: "daily-video",
   invalid: false,
   teamId: null,

@@ -69,6 +69,7 @@ async function handleCRMNoShow(
     include: {
       user: {
         select: {
+          id: true,
           email: true,
         },
       },

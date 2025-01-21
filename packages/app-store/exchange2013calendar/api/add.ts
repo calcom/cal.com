@@ -43,7 +43,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     const dav = new CalendarService({
       id: 0,
       ...data,
-      user: { email: user.email },
+      user: { id: user.id, email: user.email },
     });
     await dav?.listCalendars();
     await prisma.credential.create({

@@ -42,7 +42,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const dav = new CalendarService({
       id: 0,
-      user: { email: user.email },
+      user: { id: user.id, email: user.email },
       ...data,
     });
     await dav?.listCalendars();

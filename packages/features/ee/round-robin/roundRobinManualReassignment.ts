@@ -271,7 +271,7 @@ export const roundRobinManualReassignment = async ({
 
   const credentials = await prisma.credential.findMany({
     where: { userId: newUser.id },
-    include: { user: { select: { email: true } } },
+    include: { user: { select: { id: true, email: true } } },
   });
 
   const previousHostDestinationCalendar = hasOrganizerChanged
