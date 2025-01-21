@@ -771,6 +771,7 @@ export default function Success(props: PageProps) {
                             profile={{ name: props.profile.name, slug: props.profile.slug }}
                             recurringEvent={eventType.recurringEvent}
                             team={eventType?.team?.name}
+                            teamId={eventType?.team?.id}
                             setIsCancellationMode={setIsCancellationMode}
                             theme={isSuccessBookingPage ? props.profile.theme : "light"}
                             allRemainingBookings={allRemainingBookings}
@@ -778,6 +779,7 @@ export default function Success(props: PageProps) {
                             bookingCancelledEventProps={bookingCancelledEventProps}
                             currentUserEmail={currentUserEmail}
                             isHost={isHost}
+                            internalNotePresets={props.internalNotePresets}
                           />
                         </>
                       ))}

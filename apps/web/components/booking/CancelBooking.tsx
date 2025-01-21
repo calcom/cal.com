@@ -5,7 +5,38 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button, Icon, Label, TextArea } from "@calcom/ui";
+import { Button, Icon, Label, TextArea, Select } from "@calcom/ui";
+
+interface InternalNotePresetsSelectProps {
+  internalNotePresets: { id: number; name: string }[];
+  onPresetSelect: (value: string) => void;
+}
+
+const InternalNotePresetsSelect = ({
+  internalNotePresets,
+  onPresetSelect,
+}: InternalNotePresetsSelectProps) => {
+  const { t } = useLocale();
+
+  if (!internalNotePresets?.length) {
+    return null;
+  }
+
+  return (
+    <div className="mb-2 flex flex-col">
+      <Label>{t("internal_booking_note")}</Label>
+      <Select
+        className="mb-2 mt-2"
+        options={internalNotePresets?.map((preset) => ({
+          label: preset.name,
+          value: preset.id,
+        }))}
+        onChange={onPresetSelect}
+        placeholder={t("select_preset_note")}
+      />
+    </div>
+  );
+};
 
 type Props = {
   booking: {
@@ -34,17 +65,25 @@ type Props = {
     eventType: unknown;
   };
   isHost: boolean;
+  internalNotePresets: { id: number; name: string }[];
 };
 
 export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const refreshData = useRefreshData();
-  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
-    props;
+  const {
+    booking,
+    allRemainingBookings,
+    seatReferenceUid,
+    bookingCancelledEventProps,
+    currentUserEmail,
+    teamId,
+  } = props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
+  const [internalNote, setInternalNote] = useState<{ id: number; name: string } | null>(null);
 
   const cancelBookingRef = useCallback((node: HTMLTextAreaElement) => {
     if (node !== null) {
@@ -71,7 +110,24 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
+          {props.isHost && teamId && (
+            <>
+              <InternalNotePresetsSelect
+                internalNotePresets={props.internalNotePresets}
+                onPresetSelect={(value) => {
+                  const foundInternalNote = props.internalNotePresets.find(
+                    (preset) => preset.id === Number(value)
+                  );
+                  if (foundInternalNote) {
+                    setInternalNote(foundInternalNote);
+                  }
+                }}
+              />
+            </>
+          )}
+
           <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
+
           <TextArea
             data-testid="cancel_reason"
             ref={cancelBookingRef}

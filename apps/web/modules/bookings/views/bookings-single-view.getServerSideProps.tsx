@@ -193,6 +193,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const { currentOrgDomain } = orgDomainConfig(context.req);
+
+  async function getInternalNotePresets(teamId: number) {
+    return await prisma.internalNotePreset.findMany({
+      where: {
+        teamId,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+  }
+
   return {
     props: {
       orgSlug: currentOrgDomain,
@@ -210,6 +223,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       requiresLoginToUpdate,
       rescheduledToUid,
       isLoggedInUserHost,
+      internalNotePresets: eventType?.team?.id ? await getInternalNotePresets(eventType.team.id) : [],
     },
   };
 }

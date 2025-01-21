@@ -175,6 +175,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
 
   const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
 
+  console.log(restEventType.teamId);
+
   return {
     ...restEventType,
     hosts: hostsWithSelectedCalendars,
