@@ -126,7 +126,8 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
         onScroll={onScroll}
         className={classNames(
-          "scrollbar-thin overflow-auto [&>div]:h-[80dvh]", // Set a fixed height for the container
+          "relative w-full",
+          "scrollbar-thin h-[80dvh] overflow-auto", // Set a fixed height for the container
           "bg-background border-subtle rounded-lg border",
           containerClassName
         )}
@@ -306,7 +307,16 @@ function DataTableBody<TData>({
               key={row.id}
               data-index={virtualRow.index} //needed for dynamic row height measurement
               data-state={row.getIsSelected() && "selected"}
-              className="has-[[data-state=selected]]:bg-muted/50"
+              style={{
+                display: "flex",
+                position: "absolute",
+                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+                width: "100%",
+              }}
+              className={classNames(
+                onRowMouseclick && "hover:cursor-pointer",
+                "has-[[data-state=selected]]:bg-muted/50 group"
+              )}
               onClick={() => onRowMouseclick && onRowMouseclick(row)}>
               {row.getVisibleCells().map((cell) => {
                 const column = table.getColumn(cell.column.id);
