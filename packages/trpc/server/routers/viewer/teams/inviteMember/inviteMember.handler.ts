@@ -8,6 +8,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -188,6 +189,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
       isOrg: isTeamAnOrg,
       inviter,
       autoAcceptEmailDomain: orgState.autoAcceptEmailDomain,
+      creationSource: CreationSource.WEBAPP,
     });
   }
 
