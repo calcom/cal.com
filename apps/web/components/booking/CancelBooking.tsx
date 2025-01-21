@@ -9,7 +9,12 @@ import { Button, Icon, Label, TextArea, Select } from "@calcom/ui";
 
 interface InternalNotePresetsSelectProps {
   internalNotePresets: { id: number; name: string }[];
-  onPresetSelect: (value: string) => void;
+  onPresetSelect: (
+    option: {
+      value: number | string;
+      label: string;
+    } | null
+  ) => void;
 }
 
 const InternalNotePresetsSelect = ({
@@ -17,23 +22,44 @@ const InternalNotePresetsSelect = ({
   onPresetSelect,
 }: InternalNotePresetsSelectProps) => {
   const { t } = useLocale();
+  const [showOtherInput, setShowOtherInput] = useState(false);
 
   if (!internalNotePresets?.length) {
     return null;
   }
+
+  const handleSelectChange = (option: { value: number | string; label: string } | null) => {
+    if (option?.value === "other") {
+      setShowOtherInput(true);
+    } else {
+      setShowOtherInput(false);
+      onPresetSelect && onPresetSelect(option);
+    }
+  };
 
   return (
     <div className="mb-2 flex flex-col">
       <Label>{t("internal_booking_note")}</Label>
       <Select
         className="mb-2 mt-2"
-        options={internalNotePresets?.map((preset) => ({
-          label: preset.name,
-          value: preset.id,
-        }))}
-        onChange={onPresetSelect}
+        options={[
+          ...internalNotePresets?.map((preset) => ({
+            label: preset.name,
+            value: preset.id,
+          })),
+          { label: t("other"), value: "other" },
+        ]}
+        onChange={handleSelectChange}
         placeholder={t("select_preset_note")}
       />
+      {showOtherInput && (
+        <textarea
+          className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          rows={3}
+          placeholder={t("custom_note_placeholder")}
+          onChange={(e) => onPresetSelect?.({ value: "other", label: e.target.value })}
+        />
+      )}
     </div>
   );
 };
@@ -114,12 +140,18 @@ export default function CancelBooking(props: Props) {
             <>
               <InternalNotePresetsSelect
                 internalNotePresets={props.internalNotePresets}
-                onPresetSelect={(value) => {
-                  const foundInternalNote = props.internalNotePresets.find(
-                    (preset) => preset.id === Number(value)
-                  );
-                  if (foundInternalNote) {
-                    setInternalNote(foundInternalNote);
+                onPresetSelect={(option) => {
+                  if (!option) return;
+
+                  if (option.value === "other") {
+                    setInternalNote({ id: -1, name: option.label });
+                  } else {
+                    const foundInternalNote = props.internalNotePresets.find(
+                      (preset) => preset.id === Number(option.value)
+                    );
+                    if (foundInternalNote) {
+                      setInternalNote(foundInternalNote);
+                    }
                   }
                 }}
               />
