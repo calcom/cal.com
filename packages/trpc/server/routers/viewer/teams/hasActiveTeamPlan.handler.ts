@@ -3,39 +3,37 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { THasActiveTeamPlanSchema } from "./hasActiveTeamPlan.schema";
-
 type HasActiveTeamPlanOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: THasActiveTeamPlanSchema;
 };
 
-export const hasActiveTeamPlanHandler = async ({ input, ctx }: HasActiveTeamPlanOptions) => {
+export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions) => {
   if (IS_SELF_HOSTED) return true;
-
-  if (!input.teamId) return false;
-
-  const userId = ctx.user.id;
-
-  //   Check if the user is a member of the requested team
-  const team = await prisma.team.findFirst({
+  const teams = await prisma.team.findMany({
     where: {
-      id: input.teamId,
       members: {
         some: {
-          userId: userId,
+          userId: ctx.user.id,
           accepted: true,
         },
       },
     },
   });
-  if (!team) return false;
 
-  // Get the current team's subscription
-  const teamBillingService = new InternalTeamBilling(team);
-  return await teamBillingService.checkIfTeamHasActivePlan();
+  if (!teams.length) return false;
+
+  // check if user as at least on membership with an active plan
+  for (const team of teams) {
+    const teamBillingService = new InternalTeamBilling(team);
+    const isPlanActive = await teamBillingService.checkIfTeamHasActivePlan();
+    if (isPlanActive) {
+      return true;
+    }
+  }
+
+  return false;
 };
 
 export default hasActiveTeamPlanHandler;
