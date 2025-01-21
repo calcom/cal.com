@@ -136,25 +136,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
-  const firstDomainInPathname = `/${url.pathname.split("/")[1]}`;
+  const csrfResponse = await handleCsrfProtect(req, res);
+  if (csrfResponse) return csrfResponse;
 
-  if (
-    // either /team/** pages, or /org/** pages, or /[user]/** pages
-    !NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname)
-  ) {
-    const csrfToken = requestHeaders.get("x-csrf-token") || "missing";
-    res.cookies.set("x-csrf-token", `${csrfToken}`, {
-      httpOnly: true,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-  }
-
-  if (url.pathname.startsWith("/api/book")) {
-    const csrfResponse = await handleCsrfProtect(req, res);
-    if (csrfResponse) return csrfResponse;
-  }
   return responseWithHeaders({ url, res, req });
 };
 
@@ -166,13 +150,25 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   // NextAuth handles CSRF protection for itself
   if (url.pathname.startsWith("/api/auth/")) return;
   if (url.pathname.startsWith("/_next")) return;
-  if (req.method === "GET") return;
+  if (req.method === "GET" && NON_BOOKING_ROUTES_IN_APP_ROUTER.some((path) => url.pathname.startsWith(path)))
+    return;
   try {
     // So we don't have to attach the token to each POST request (for now)
     const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
     const csrfTokenFromHeader = req.headers.get("x-csrf-token");
     if (csrfTokenFromCookie && !csrfTokenFromHeader) req.headers.set("x-csrf-token", csrfTokenFromCookie);
+    // csrfProtect will fail if the token is missing for POST requests
+    // but for GET will create a new token
     await csrfProtect(req, res);
+    // For GET requests, we need to set the cookie again
+    if (req.method !== "GET") return;
+    const csrfToken = req.headers.get("x-csrf-token") || "missing";
+    res.cookies.set("x-csrf-token", `${csrfToken}`, {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
   } catch (err) {
     if (err instanceof CsrfError) return new NextResponse("invalid csrf token", { status: 403 });
     throw err;
