@@ -20,6 +20,18 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
     this.t = this.calEvent.organizer.language.translate;
   }
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const attachments = await Promise.all(
+      this.transcriptDownloadLinks.map(async (url, index) => {
+        const response = await fetch(url);
+        const buffer = await response.arrayBuffer();
+        return {
+          filename: `transcript-${index + 1}.vtt`,
+          content: Buffer.from(buffer),
+          contentType: "text/vtt",
+        };
+      })
+    );
+
     return {
       to: `${this.calEvent.organizer.email}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
@@ -35,6 +47,7 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
         language: this.t,
         name: this.calEvent.organizer.name,
       }),
+      attachments,
     };
   }
 
