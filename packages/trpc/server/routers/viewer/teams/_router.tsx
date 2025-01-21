@@ -29,6 +29,7 @@ import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinMan
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
 const NAMESPACE = "teams";
@@ -223,11 +224,22 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
-  getInternalNotesPresets: authedProcedure.input(ZGetInternalNotesPresetsInputSchema).query(async (opts) => {
-    const handler = await importHandler(
-      namespaced("getInternalNotesPresets"),
-      () => import("./getInternalNotesPresets.handler")
-    );
-    return handler(opts);
-  }),
+  getInternalNotesPresets: authedProcedure
+    .input(ZGetInternalNotesPresetsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("getInternalNotesPresets"),
+        () => import("./getInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
+    }),
+  updateInternalNotesPresets: authedProcedure
+    .input(ZUpdateInternalNotesPresetsInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("updateInternalNotesPresets"),
+        () => import("./updateInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
+    }),
 });
