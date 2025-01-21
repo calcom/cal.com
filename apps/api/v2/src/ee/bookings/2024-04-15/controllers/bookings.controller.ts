@@ -59,6 +59,7 @@ import {
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = Request & {
   userId?: number;
@@ -415,6 +416,7 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
     });
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
