@@ -2927,5 +2927,6 @@
   "managed_users_description": "查看由您的 OAuth 用戶端建立的所有受管理使用者",
   "select_oAuth_client": "選擇 OAuth 用戶端",
   "on_every_instance": "在每個執行個體上",
+  "next": "下一步",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
