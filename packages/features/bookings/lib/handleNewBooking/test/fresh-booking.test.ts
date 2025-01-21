@@ -1577,7 +1577,7 @@ describe("handleNewBooking", () => {
                   email: booker.email,
                   name: booker.name,
                 },
-                creationSource: "CreationSource.WEBAPP",
+                creationSource: CreationSource.WEBAPP,
               },
             }),
           });
@@ -1621,7 +1621,7 @@ describe("handleNewBooking", () => {
           const createdBooking = await handleNewBooking(req);
           expect(createdBooking).toEqual(
             expect.objectContaining({
-              creationSource: "CreationSource.WEBAPP",
+              creationSource: CreationSource.WEBAPP,
             })
           );
         },
