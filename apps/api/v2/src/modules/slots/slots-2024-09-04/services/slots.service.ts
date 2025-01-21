@@ -1,5 +1,6 @@
 import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slot-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
@@ -32,7 +33,7 @@ export class SlotsService_2024_09_04 {
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     const queryTransformed = await this.slotsInputService.transformGetSlotsQuery(query);
 
-    const availableSlots: { slots: { [key: string]: { time: string }[] } } = await getAvailableSlots({
+    const availableSlots: TimeSlots = await getAvailableSlots({
       input: {
         ...queryTransformed,
       },
@@ -190,21 +191,7 @@ export class SlotsService_2024_09_04 {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    if (eventType.userId) {
-      const slot = await this.slotsRepository.updateSlot(
-        eventType.userId,
-        eventType.id,
-        startDate.toISO(),
-        endDate.toISO(),
-        dbSlot.id,
-        input.reservationDuration
-      );
-      return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
-    }
-
-    const host = eventType.hosts[0];
     const slot = await this.slotsRepository.updateSlot(
-      host.userId,
       eventType.id,
       startDate.toISO(),
       endDate.toISO(),

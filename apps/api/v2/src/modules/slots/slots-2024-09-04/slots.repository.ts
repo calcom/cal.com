@@ -44,7 +44,6 @@ export class SlotsRepository_2024_09_04 {
   }
 
   async updateSlot(
-    userId: number,
     eventTypeId: number,
     slotUtcStartDate: string,
     slotUtcEndDate: string,

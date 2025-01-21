@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-type TimeSlots = { slots: Record<string, { time: string }[]> };
+export type TimeSlots = { slots: Record<string, { time: string }[]> };
 type RangeSlots = { slots: Record<string, { startTime: string; endTime: string }[]> };
 
 @Injectable()
