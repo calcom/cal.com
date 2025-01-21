@@ -47,10 +47,10 @@ export const BookerI18nextProvider = ({
     };
 
     initializeI18n();
-  }, [data, locale]); // Trigger whenever `data` or `locale` changes
+  }, [data, locale]);
 
   if (!contextValue || !contextValue.isLocaleReady) {
-    return null; // Render fallback or loading state until ready
+    return null;
   }
 
   return (
