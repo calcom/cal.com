@@ -1,13 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Client, AssociationTypes } from "@hubspot/api-client";
-import type { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
-import { FilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import { FilterOperatorEnum as CompanyFilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/companies";
+import type {
+  PublicObjectSearchRequest as ContactSearchInput,
+  SimplePublicObjectInputForCreate as HubspotContactCreateInput,
+  PublicObjectSearchRequest as CompanySearchInput,
+} from "@hubspot/api-client/lib/codegen/crm/contacts";
+import { FilterOperatorEnum as ContactFilterOperatorEnum } from "@hubspot/api-client/lib/codegen/crm/contacts";
+import { AssociationSpecAssociationCategoryEnum as ContactAssociationCategoryEnum } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import type {
   SimplePublicObjectInput,
-  SimplePublicObjectInputForCreate,
+  SimplePublicObjectInputForCreate as MeetingCreateInput,
   PublicAssociationsForObject,
 } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
-import { AssociationSpecAssociationCategoryEnum } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import { AssociationSpecAssociationCategoryEnum as MeetingAssociationCategoryEnum } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
+import type z from "zod";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -21,6 +28,7 @@ import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/C
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
 import type { HubspotToken } from "../api/callback";
+import type { appDataSchema } from "../zod";
 
 const hubspotClient = new Client();
 
@@ -30,13 +38,15 @@ export default class HubspotCalendarService implements CRM {
   private log: typeof logger;
   private client_id = "";
   private client_secret = "";
+  private appOptions: z.infer<typeof appDataSchema>;
 
-  constructor(credential: CredentialPayload) {
+  constructor(credential: CredentialPayload, appOptions: any) {
     this.integrationName = "hubspot_other_calendar";
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.appOptions = appOptions;
   }
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
@@ -49,7 +59,7 @@ export default class HubspotCalendarService implements CRM {
 
   private hubspotCreateMeeting = async (event: CalendarEvent, contacts: Contact[]) => {
     try {
-      const simplePublicObjectInput: SimplePublicObjectInputForCreate = {
+      const simplePublicObjectInput: MeetingCreateInput = {
         properties: {
           hs_timestamp: Date.now().toString(),
           hs_meeting_title: event.title,
@@ -67,7 +77,7 @@ export default class HubspotCalendarService implements CRM {
               },
               types: [
                 {
-                  associationCategory: AssociationSpecAssociationCategoryEnum.HubspotDefined,
+                  associationCategory: MeetingAssociationCategoryEnum.HubspotDefined,
                   associationTypeId: AssociationTypes.meetingToContact,
                 },
               ],
@@ -201,13 +211,13 @@ export default class HubspotCalendarService implements CRM {
 
     const emailArray = Array.isArray(emails) ? emails : [emails];
 
-    const publicObjectSearchRequest: PublicObjectSearchRequest = {
+    const publicObjectSearchRequest: ContactSearchInput = {
       filterGroups: emailArray.map((attendeeEmail) => ({
         filters: [
           {
             value: attendeeEmail,
             propertyName: "email",
-            operator: FilterOperatorEnum.Eq,
+            operator: ContactFilterOperatorEnum.Eq,
           },
         ],
       })),
@@ -232,7 +242,39 @@ export default class HubspotCalendarService implements CRM {
     const auth = await this.auth;
     await auth.getToken();
 
-    const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
+    const appOptions = this.getAppOptions();
+    let companyId: string;
+
+    // Check for a company to associate the contact with
+    if (appOptions?.createContactUnderCompany) {
+      const emailDomain = contactsToCreate[0].email.split("@")[1];
+
+      const companySearchInput: CompanySearchInput = {
+        filterGroups: [
+          {
+            filters: [
+              {
+                propertyName: "website",
+                operator: CompanyFilterOperatorEnum.ContainsToken,
+                value: emailDomain,
+              },
+            ],
+          },
+        ],
+        properties: ["id"],
+        limit: 1,
+      };
+
+      const companyQuery = await hubspotClient.crm.companies.searchApi
+        .doSearch(companySearchInput)
+        .then((apiResponse) => apiResponse.results);
+      if (companyQuery.length > 0) {
+        const company = companyQuery[0];
+        companyId = company.id;
+      }
+    }
+
+    const simplePublicObjectInputs: HubspotContactCreateInput[] = contactsToCreate.map((attendee) => {
       const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
       return {
         properties: {
@@ -240,6 +282,21 @@ export default class HubspotCalendarService implements CRM {
           lastname,
           email: attendee.email,
         },
+        ...(companyId && {
+          associations: [
+            {
+              to: {
+                id: companyId,
+              },
+              types: [
+                {
+                  associationCategory: ContactAssociationCategoryEnum.HubspotDefined,
+                  associationTypeId: AssociationTypes.contactToCompany,
+                },
+              ],
+            },
+          ],
+        }),
       };
     });
     const createdContacts = await Promise.all(
@@ -267,6 +324,6 @@ export default class HubspotCalendarService implements CRM {
   }
 
   getAppOptions() {
-    console.log("No options implemented");
+    return this.appOptions;
   }
 }
