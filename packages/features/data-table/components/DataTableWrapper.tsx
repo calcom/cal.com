@@ -23,6 +23,8 @@ export type DataTableWrapperProps<TData, TValue> = {
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
+  className?: string;
+  containerClassName?: string;
   children?: React.ReactNode;
 };
 
@@ -39,6 +41,8 @@ export function DataTableWrapper<TData, TValue>({
   hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  className,
+  containerClassName,
   children,
 }: DataTableWrapperProps<TData, TValue>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -59,17 +63,21 @@ export function DataTableWrapper<TData, TValue>({
       enableColumnResizing={true}
       hideHeader={hideHeader}
       variant={variant}
+      className={className}
+      containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-      <DataTableToolbar.Root>
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex w-full flex-wrap justify-between gap-2">
-            <div className="flex flex-wrap gap-2 items-center">{ToolbarLeft}</div>
-            <div className="flex flex-wrap gap-2 items-center">{ToolbarRight}</div>
+      {(ToolbarLeft || ToolbarRight) && (
+        <DataTableToolbar.Root>
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-wrap justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarRight}</div>
+            </div>
           </div>
-        </div>
 
-        {children}
-      </DataTableToolbar.Root>
+          {children}
+        </DataTableToolbar.Root>
+      )}
 
       {totalDBRowCount && (
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
