@@ -214,7 +214,10 @@ import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
  */
 async function handler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
-  req.creationSource = CreationSource.API_V1;
+  req.body = {
+    ...req.body,
+    creationSource: CreationSource.API_V1,
+  };
   if (isSystemWideAdmin) req.userId = req.body.userId || userId;
 
   if (isOrganizationOwnerOrAdmin) {
