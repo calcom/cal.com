@@ -140,9 +140,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   if (
     // either /team/** pages, or /org/** pages, or /[user]/** pages
-    !NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname) ||
-    // or /api/book/** endpoints
-    url.pathname.startsWith("/api/book")
+    !NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname)
   ) {
     const csrfToken = requestHeaders.get("x-csrf-token") || "missing";
     res.cookies.set("x-csrf-token", `${csrfToken}`, {
@@ -151,11 +149,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
+  }
 
+  if (url.pathname.startsWith("/api/book")) {
     const csrfResponse = await handleCsrfProtect(req, res);
     if (csrfResponse) return csrfResponse;
   }
-
   return responseWithHeaders({ url, res, req });
 };
 
