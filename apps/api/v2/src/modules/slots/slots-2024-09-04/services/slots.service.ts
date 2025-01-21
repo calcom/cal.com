@@ -1,10 +1,8 @@
-import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slot-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
-import { UsersRepository } from "@/modules/users/users.repository";
 import {
   BadRequestException,
   Injectable,
@@ -14,7 +12,7 @@ import {
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getAvailableSlots, dynamicEvent } from "@calcom/platform-libraries";
+import { getAvailableSlots } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
 
 const eventTypeMetadataSchema = z.object({
