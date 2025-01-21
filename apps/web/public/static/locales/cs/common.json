@@ -1544,6 +1544,7 @@
   "download_transcript": "Stáhnout přepis",
   "recording_from_your_recent_call": "Nahrávka z vašeho nedávného hovoru v {{appName}} je připravena ke stažení",
   "transcript_from_previous_call": "Přepis z vašeho nedávného hovoru na {{appName}} je připraven ke stažení. Odkazy jsou platné pouze 1 hodinu",
+  "you_can_download_transcript_from_attachments": "Přepis si můžete také stáhnout z příloh",
   "link_valid_for_12_hrs": "Poznámka: Odkaz ke stažení je platný pouze 12 hodin. Nový odkaz ke stažení můžete vygenerovat podle pokynů <1>zde</1>.",
   "create_your_first_form": "Vytvořte svůj první formulář",
   "create_your_first_form_description": "Pomocí adresných formulářů můžete klást kvalifikační otázky a adresovat je správné osobě nebo typu události.",
@@ -2927,6 +2928,7 @@
   "managed_users_description": "Zobrazit všechny spravované uživatele vytvořené vaším OAuth klientem",
   "select_oAuth_client": "Vybrat OAuth klienta",
   "on_every_instance": "Na každé instanci",
+  "authorize": "Autorizovat",
   "next": "Další",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
