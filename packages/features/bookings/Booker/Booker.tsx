@@ -152,14 +152,14 @@ const BookerComponent = ({
     }
   };
 
-  const skipEventBooker = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
+  const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot || skipEventBooker) return setBookerState("selecting_time");
+    if (!selectedTimeslot || skipConfirmStep) return setBookerState("selecting_time");
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState, skipEventBooker]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {
@@ -254,7 +254,6 @@ const BookerComponent = ({
     verifyCode?.verifyCodeWithSessionNotRequired,
     verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
-    onSubmit,
   ]);
 
   /**
@@ -451,7 +450,7 @@ const BookerComponent = ({
                 renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
                 isVerificationCodeSending={isVerificationCodeSending}
                 onSubmit={onSubmit}
-                skipEventBooker={skipEventBooker}
+                skipConfirmStep={skipConfirmStep}
               />
             </BookerSection>
           </AnimatePresence>

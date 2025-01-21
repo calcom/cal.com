@@ -34,7 +34,7 @@ type AvailableTimeSlotsProps = {
   isVerificationCodeSending: boolean;
   renderConfirmNotVerifyEmailButtonCond: boolean;
   onSubmit: (timeSlot?: string) => void;
-  skipEventBooker: boolean;
+  skipConfirmStep: boolean;
 };
 
 /**
@@ -48,13 +48,11 @@ type AvailableTimeSlotsProps = {
 export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
-  seatsPerTimeSlot,
   showAvailableSeatsCount,
   schedule,
   isLoading,
-  event,
   customClassNames,
-  skipEventBooker,
+  skipConfirmStep,
   onSubmit,
   ...props
 }: AvailableTimeSlotsProps) => {
@@ -81,7 +79,7 @@ export const AvailableTimeSlots = ({
         showAvailableSeatsCount,
       });
     }
-    if (skipEventBooker) {
+    if (skipConfirmStep) {
       onSubmit(time);
     }
     return;
@@ -148,10 +146,8 @@ export const AvailableTimeSlots = ({
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}
-                seatsPerTimeSlot={seatsPerTimeSlot}
                 showAvailableSeatsCount={showAvailableSeatsCount}
-                event={event}
-                skipEventBooker={skipEventBooker}
+                skipConfirmStep={skipConfirmStep}
                 {...props}
               />
             </div>

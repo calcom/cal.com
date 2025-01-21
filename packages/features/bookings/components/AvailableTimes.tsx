@@ -49,7 +49,7 @@ type SlotItemProps = {
   loadingStates: IUseBookingLoadingStates;
   isVerificationCodeSending: boolean;
   renderConfirmNotVerifyEmailButtonCond: boolean;
-  skipEventBooker: boolean;
+  skipConfirmStep: boolean;
 };
 
 const SlotItem = ({
@@ -63,7 +63,7 @@ const SlotItem = ({
   loadingStates,
   renderConfirmNotVerifyEmailButtonCond,
   isVerificationCodeSending,
-  skipEventBooker,
+  skipConfirmStep,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -102,7 +102,7 @@ const SlotItem = ({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
-    if (!showConfirm && (isOverlapping || skipEventBooker)) {
+    if (!showConfirm && (isOverlapping || skipConfirmStep)) {
       setShowConfirm(true);
       return;
     }
@@ -117,7 +117,7 @@ const SlotItem = ({
     slot?.attendees,
     slot.bookingUid,
     seatsPerTimeSlot,
-    skipEventBooker,
+    skipConfirmStep,
   ]);
 
   return (
@@ -166,7 +166,7 @@ const SlotItem = ({
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
               <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
-                {skipEventBooker ? (
+                {skipConfirmStep ? (
                   <Button
                     type="button"
                     onClick={() =>

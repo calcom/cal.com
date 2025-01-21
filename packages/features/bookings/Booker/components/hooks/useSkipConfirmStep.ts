@@ -35,7 +35,7 @@ const useSkipConfirmStep = (
     };
 
     checkSkipStep();
-  }, [bookingFormValues, bookingFields]);
+  }, [bookingFormValues, bookingFields, rescheduleUid]);
 
   return canSkip;
 };
