@@ -6,8 +6,8 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
-import { CreationSource } from "@calcom/prisma/enums";
 import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
+import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
