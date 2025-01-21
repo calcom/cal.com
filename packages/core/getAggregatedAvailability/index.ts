@@ -4,14 +4,20 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
 
-function uniqueDateRanges(ranges: DateRange[]): DateRange[] {
-  const seen = new Set<string>();
-  return ranges.filter((range) => {
-    const key = `${range.start.valueOf()}-${range.end.valueOf()}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
+  const seen = new Set<number>();
+
+  return ranges
+    .sort((a, b) => {
+      const startDiff = a.start.valueOf() - b.start.valueOf();
+      return startDiff !== 0 ? startDiff : a.end.valueOf() - b.end.valueOf();
+    })
+    .filter((range) => {
+      const key = range.start.valueOf() * 1e12 + range.end.valueOf();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export const getAggregatedAvailability = (
@@ -43,5 +49,5 @@ export const getAggregatedAvailability = (
   }
   const availability = intersect(dateRangesToIntersect);
   // we no longer merge overlapping date ranges, rr-hosts need to be individually available here.
-  return uniqueDateRanges(availability);
+  return uniqueAndSortedDateRanges(availability);
 };
