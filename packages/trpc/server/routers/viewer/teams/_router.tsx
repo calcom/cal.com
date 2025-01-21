@@ -9,6 +9,7 @@ import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetSchema } from "./get.schema";
+import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
@@ -219,6 +220,13 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("removeHostsFromEventTypes"),
       () => import("./removeHostsFromEventTypes.handler")
+    );
+    return handler(opts);
+  }),
+  getInternalNotesPresets: authedProcedure.input(ZGetInternalNotesPresetsInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getInternalNotesPresets"),
+      () => import("./getInternalNotesPresets.handler")
     );
     return handler(opts);
   }),

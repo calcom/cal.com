@@ -1,7 +1,8 @@
 "use client";
 
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 
 import { AppearanceSkeletonLoader } from "@calcom/features/ee/components/CommonSkeletonLoaders";
@@ -138,16 +139,21 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
 
 const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
+  const { data: _loadedPresets, isLoading } = trpc.viewer.teams.getInternalNotesPresets.useQuery({
+    teamId: team?.id as number,
+  });
+
+  const loadedPresets = useMemo(() => {
+    return _loadedPresets ?? [];
+  }, [_loadedPresets]);
 
   type FormValues = {
-    presets: { id: string; name: string }[];
+    presets: { id?: number; name: string }[];
   };
-
-  const generateId = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
 
   const form = useForm<FormValues>({
     defaultValues: {
-      presets: [{ id: generateId(), name: "" }],
+      presets: loadedPresets ?? [{ id: -1, name: "" }],
     },
   });
 
@@ -157,7 +163,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   });
 
   const addNewPreset = () => {
-    append({ id: generateId(), name: "" });
+    append({ id: -1, name: "" });
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -165,13 +171,15 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
     showToast("Changes saved", "success");
   };
 
+  const [animateRef] = useAutoAnimate<HTMLDivElement>();
+
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   return (
     <>
       {isAdmin ? (
-        <Form form={form} handleSubmit={console.log}>
+        <Form form={form} handleSubmit={(e) => onSubmit(e)}>
           <Controller
             name="presets"
             render={({ field: { value } }) => {
@@ -186,7 +194,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                   childrenClassName="lg:ml-0"
                   onCheckedChange={(active) => {
                     if (active) {
-                      append({ id: generateId(), name: "" });
+                      append({ id: -1, name: "" });
                     } else {
                       replace([]);
                     }
@@ -195,46 +203,47 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                     "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
                     isChecked && "rounded-b-none"
                   )}>
-                  {isChecked && (
-                    <div className="border-subtle border border-y-0 p-6">
-                      <div className="flex flex-col space-y-4">
-                        {fields.map((field, index) => (
-                          <div key={field.id} className="flex items-center space-x-2">
-                            <Controller
-                              name={`presets.${index}.name`}
-                              control={form.control}
-                              render={({ field }) => (
-                                <input
-                                  type="text"
-                                  {...field}
-                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
-                                  placeholder={t("note_preset_name")}
-                                />
-                              )}
-                            />
-                            <Button
-                              type="button"
-                              color="destructive"
-                              variant="icon"
-                              onClick={() => remove(index)}
-                              disabled={fields.length === 1}>
-                              <Icon name="trash" className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                      <Button type="button" color="secondary" StartIcon="plus" onClick={addNewPreset}>
-                        {t("add_preset")}
-                      </Button>
-                      <div className="mt-4 flex justify-between">
-                        <SectionBottomActions align="end">
-                          <Button type="submit" color="primary">
-                            {t("save")}
+                  <div className="border-subtle border border-y-0 p-6">
+                    <div className="flex flex-col space-y-4" ref={animateRef}>
+                      {fields.map((field, index) => (
+                        <div key={field.id} className="flex items-center space-x-2">
+                          <Controller
+                            name={`presets.${index}.name`}
+                            control={form.control}
+                            render={({ field }) => (
+                              <input
+                                type="text"
+                                {...field}
+                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                placeholder={t("note_preset_name")}
+                              />
+                            )}
+                          />
+                          <Button
+                            type="button"
+                            color="destructive"
+                            variant="icon"
+                            onClick={() => remove(index)}
+                            disabled={fields.length === 1}>
+                            <Icon name="trash" className="h-4 w-4" />
                           </Button>
-                        </SectionBottomActions>
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                    <Button
+                      type="button"
+                      color="minimal"
+                      StartIcon="plus"
+                      onClick={addNewPreset}
+                      className="mt-4">
+                      {t("add_preset")}
+                    </Button>
+                  </div>
+                  <SectionBottomActions align="end">
+                    <Button type="submit" color="primary">
+                      {t("update")}
+                    </Button>
+                  </SectionBottomActions>
                 </SettingsToggle>
               );
             }}
