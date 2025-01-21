@@ -27,32 +27,48 @@ const csrfProtect = createCsrfProtect({
 });
 
 const NON_BOOKING_ROUTES_IN_APP_ROUTER = [
-  "/",
-  "/api",
   "/403",
   "/500",
+  "/api/",
   "/apps",
-  "/auth",
+  "/auth/",
   "/availability",
-  "/booking",
+  "/booking/",
   "/bookings",
   "/connect-and-join",
-  "/d",
+  "/d/",
   "/enterprise",
   "/event-types",
-  "/future",
+  "/future/",
   "/getting-started",
-  "/icons",
+  "/icons/",
   "/insights",
   "/maintenance",
   "/more",
+  "/payment",
   "/reschedule",
+  "/router",
+  "/routing-forms",
   "/settings",
   "/signup",
   "/teams",
   "/upgrade",
-  "/video",
+  "/video/",
   "/workflows",
+];
+
+const PUBLIC_FILES_EXTENSIONS = [
+  ".ico",
+  ".jpg",
+  ".js",
+  ".json",
+  ".png",
+  ".svg",
+  ".ttf",
+  ".txt",
+  ".webmanifest",
+  ".woff2",
+  ".xml",
 ];
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
@@ -147,11 +163,13 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   // Skip CSRF protection for trpc requests for now. Prevents E2E tests from failing.
   // Most trcp endpoints are authenticated.
   if (url.pathname.startsWith("/api/trpc/")) return;
+  if (url.pathname.startsWith("/api/plain-hash")) return;
   // NextAuth handles CSRF protection for itself
   if (url.pathname.startsWith("/api/auth/")) return;
   if (url.pathname.startsWith("/_next")) return;
   if (req.method === "GET" && NON_BOOKING_ROUTES_IN_APP_ROUTER.some((path) => url.pathname.startsWith(path)))
     return;
+  if (PUBLIC_FILES_EXTENSIONS.some((ext) => url.pathname.endsWith(ext))) return;
   try {
     // So we don't have to attach the token to each POST request (for now)
     const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
@@ -162,7 +180,8 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
     await csrfProtect(req, res);
     // For GET requests, we need to set the cookie again
     if (req.method !== "GET") return;
-    const csrfToken = req.headers.get("x-csrf-token") || "missing";
+    const csrfToken = res.headers.get("x-csrf-token");
+    if (!csrfToken) return;
     res.cookies.set("x-csrf-token", `${csrfToken}`, {
       httpOnly: true,
       path: "/",

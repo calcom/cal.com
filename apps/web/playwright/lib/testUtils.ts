@@ -159,7 +159,9 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await page.press('[name="email"]', "Enter");
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
+  });
 };
 
 // Provide an standalone localize utility not managed by next-i18n
@@ -496,6 +498,11 @@ export async function submitAndWaitForJsonResponse(
 export async function confirmReschedule(page: Page, url = "/api/book/event") {
   await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
+  });
+}
+export async function confirmBooking(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
   });
 }
 

@@ -11,6 +11,7 @@ import {
   bookFirstEvent,
   bookOptinEvent,
   bookTimeSlot,
+  confirmBooking,
   confirmReschedule,
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
@@ -274,7 +275,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="add-another-guest"]').click();
     await page.locator('input[type="email"]').nth(2).fill(additionalGuests[1]);
 
-    await page.locator('[data-testid="confirm-book-button"]').click();
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -420,11 +421,7 @@ test.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -445,11 +442,7 @@ test.describe("Booking on different layouts", () => {
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
     await page.locator('[name="notes"]').fill("Test notes");
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     // expect page to be booking page
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -501,11 +494,7 @@ test.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
@@ -531,11 +520,7 @@ test.describe("Booking round robin event", () => {
     await page.locator('[name="name"]').fill("Test name");
     await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
 
-    await page.click('[data-testid="confirm-book-button"]');
-
-    await page.waitForURL((url) => {
-      return url.pathname.startsWith("/booking");
-    });
+    await confirmBooking(page);
 
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
 
