@@ -61,7 +61,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const onSubmit = async (data: FormValues) => {
     if (!team?.id) return;
 
-    await updatePresetsMutation.mutate({
+    updatePresetsMutation.mutate({
       teamId: team.id,
       presets: data.presets,
     });
