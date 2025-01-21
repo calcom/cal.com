@@ -7,6 +7,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   userId: true,
   metadata: true,
   description: true,
+  interfaceLanguage: true,
   hidden: true,
   slug: true,
   length: true,

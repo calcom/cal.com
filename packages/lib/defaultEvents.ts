@@ -1,6 +1,7 @@
 import type { Prisma, SelectedCalendar } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
+import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
@@ -122,6 +123,7 @@ const commons = {
   fieldTranslations: [],
   maxLeadThreshold: null,
   useEventLevelSelectedCalendars: false,
+  interfaceLanguage: VISITOR_BROWSER_LANGUAGE,
 };
 
 export const dynamicEvent = {

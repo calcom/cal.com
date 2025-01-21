@@ -2930,5 +2930,7 @@
   "on_every_instance": "On every instance",
   "authorize": "Authorize",
   "next": "Next",
+  "interface_language": "Interface Language",
+  "visitors_browser_language": "Visitor's browser language",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

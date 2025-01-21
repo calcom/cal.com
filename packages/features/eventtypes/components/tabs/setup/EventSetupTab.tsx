@@ -7,6 +7,7 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { LocationCustomClassNames } from "@calcom/features/eventtypes/components/Locations";
 import Locations from "@calcom/features/eventtypes/components/Locations";
+import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import type {
   EventTypeSetupProps,
   InputClassNames,
@@ -16,6 +17,7 @@ import type {
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localeOptions } from "@calcom/lib/i18n";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
@@ -58,6 +60,11 @@ export const EventSetupTab = (
   const isPlatform = useIsPlatform();
   const formMethods = useFormContext<FormValues>();
   const { eventType, team, urlPrefix, hasOrgBranding, customClassNames, orgId } = props;
+  const interfaceLanguageOptions = [
+    { label: t("visitors_browser_language"), value: VISITOR_BROWSER_LANGUAGE },
+    ...localeOptions,
+  ];
+
   const [multipleDuration, setMultipleDuration] = useState(
     formMethods.getValues("metadata")?.multipleDuration
   );
@@ -155,6 +162,30 @@ export const EventSetupTab = (
               />
             </div>
           )}
+          <div>
+            <Skeleton
+              as={Label}
+              loadingClassName="w-16"
+              htmlFor="interfaceLanguage"
+              className={customClassNames?.locationSection?.label}>
+              {t("interface_language")}
+              {shouldLockIndicator("interfaceLanguage")}
+            </Skeleton>
+            <Controller
+              name="interfaceLanguage"
+              control={formMethods.control}
+              defaultValue={eventType.interfaceLanguage ?? VISITOR_BROWSER_LANGUAGE}
+              render={({ field: { value, onChange } }) => (
+                <Select<{ label: string; value: string }>
+                  data-testid="event-interface-language"
+                  className="capitalize"
+                  options={interfaceLanguageOptions}
+                  onChange={(option) => onChange(option?.value)}
+                  value={interfaceLanguageOptions.find((option) => option.value === value)}
+                />
+              )}
+            />
+          </div>
           <TextField
             required
             label={isPlatform ? "Slug" : t("URL")}

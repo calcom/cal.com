@@ -54,6 +54,7 @@ export type BookerEvent = Pick<
   | "instantMeetingParameters"
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
+  | "interfaceLanguage"
 > & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
