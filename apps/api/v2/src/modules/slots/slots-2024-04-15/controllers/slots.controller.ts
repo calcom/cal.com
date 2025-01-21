@@ -1,7 +1,7 @@
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { SlotsOutputService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsService_2024_04_15 } from "@/modules/slots/slots-2024-04-15/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
+import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
@@ -20,7 +20,7 @@ import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform
   path: "/v2/slots",
   version: [VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14],
 })
-@DocsTags("Slots")
+@DocsExcludeController(true)
 export class SlotsController_2024_04_15 {
   constructor(
     private readonly slotsService: SlotsService_2024_04_15,

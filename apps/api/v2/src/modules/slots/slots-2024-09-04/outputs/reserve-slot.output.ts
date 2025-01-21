@@ -1,5 +1,6 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { ValidateNested } from "class-validator";
+import { IsNotEmptyObject, ValidateNested } from "class-validator";
 
 import {
   ApiResponseWithoutData,
@@ -7,6 +8,10 @@ import {
 } from "@calcom/platform-types";
 
 export class ReserveSlotOutput_2024_09_04 extends ApiResponseWithoutData {
+  @ApiProperty({
+    type: ReserveSlotOutputType_2024_09_04,
+  })
+  @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => ReserveSlotOutputType_2024_09_04)
   data!: ReserveSlotOutputType_2024_09_04;

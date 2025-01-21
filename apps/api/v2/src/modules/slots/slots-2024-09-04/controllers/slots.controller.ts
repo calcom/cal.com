@@ -39,26 +39,6 @@ export class SlotsController_2024_09_04 {
     summary: "Reserve a slot",
     description: "Prevent double booking by reserving a slot.",
   })
-  @ApiHeader({
-    name: "cookie",
-    description:
-      "Contains the `uid` cookie representing the user's existing slot reservation. This cookie is optional and may not be present if the user hasn't reserved a slot yet.",
-    required: false,
-    example: "uid=12345-abcde-67890-fghij",
-  })
-  @DocsResponse({
-    status: 201,
-    description:
-      "Slot reservation was successful. A new `uid` cookie representing the reservation will be included in the response in addition to response body containing the uid.",
-    schema: {
-      example: {
-        status: "success",
-        data: {
-          uid: "98765-zyxwv-43210-qwerty",
-        },
-      },
-    },
-  })
   async reserveSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
     @Cookies("uid") uidCookie: string | undefined,
