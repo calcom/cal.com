@@ -138,8 +138,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
 
   const firstDomainInPathname = `/${url.pathname.split("/")[1]}`;
 
-  if (!NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname)) {
+  if (
     // either /team/** pages, or /org/** pages, or /[user]/** pages
+    !NON_BOOKING_ROUTES_IN_APP_ROUTER.includes(firstDomainInPathname) ||
+    // or /api/book/** endpoints
+    url.pathname.startsWith("/api/book")
+  ) {
     const csrfToken = requestHeaders.get("x-csrf-token") || "missing";
     res.cookies.set("x-csrf-token", `${csrfToken}`, {
       httpOnly: true,
