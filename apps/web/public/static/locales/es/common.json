@@ -1544,6 +1544,7 @@
   "download_transcript": "Descargar transcripción",
   "recording_from_your_recent_call": "Una grabación de su llamada reciente en {{appName}} está lista para descargar",
   "transcript_from_previous_call": "La transcripción de su llamada reciente en {{appName}} está lista para descargar. Los enlaces son válidos solo por 1 hora.",
+  "you_can_download_transcript_from_attachments": "También puedes descargar la transcripción desde los archivos adjuntos",
   "link_valid_for_12_hrs": "Nota: El enlace de descarga es válido solo por 12 horas. Puede generar un nuevo enlace de descarga siguiendo las instrucciones <1>aquí</1>.",
   "create_your_first_form": "Crea tu primer formulario",
   "create_your_first_form_description": "Con los formularios de orientación puedes hacer preguntas calificadoras y encaminarte hacia la persona o tipo de evento correctos.",
@@ -2927,6 +2928,7 @@
   "managed_users_description": "Ver todos los usuarios gestionados creados por tu cliente OAuth",
   "select_oAuth_client": "Seleccionar cliente OAuth",
   "on_every_instance": "En cada instancia",
+  "authorize": "Autorizar",
   "next": "Siguiente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

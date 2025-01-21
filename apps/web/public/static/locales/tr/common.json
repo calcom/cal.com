@@ -1544,6 +1544,7 @@
   "download_transcript": "Transkripti İndir",
   "recording_from_your_recent_call": "{{appName}} uygulamasındaki son aramanızın kaydı indirilmeye hazır",
   "transcript_from_previous_call": "{{appName}} üzerindeki son görüşmenizin transkripti indirilmeye hazır. Bağlantılar sadece 1 saat geçerlidir.",
+  "you_can_download_transcript_from_attachments": "Dökümü eklerden de indirebilirsiniz",
   "link_valid_for_12_hrs": "Not: İndirme bağlantısı sadece 12 saat geçerlidir. Yeni bir indirme bağlantısı oluşturmak için <1>buradaki</1> talimatları izleyebilirsiniz.",
   "create_your_first_form": "İlk formunuzu oluşturun",
   "create_your_first_form_description": "Yönlendirme Formları ile yeterlik soruları sorabilir ve bunları doğru kişiye veya etkinlik türüne yönlendirebilirsiniz.",
@@ -2927,6 +2928,7 @@
   "managed_users_description": "OAuth istemciniz tarafından oluşturulan tüm yönetilen kullanıcıları görün",
   "select_oAuth_client": "OAuth istemcisi seçin",
   "on_every_instance": "Her örnekte",
+  "authorize": "Yetkilendir",
   "next": "İleri",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

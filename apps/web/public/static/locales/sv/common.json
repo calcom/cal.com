@@ -1544,6 +1544,7 @@
   "download_transcript": "Ladda ner transkript",
   "recording_from_your_recent_call": "En inspelning från ditt senaste samtal om {{appName}} kan laddas ned",
   "transcript_from_previous_call": "Transkript från ditt senaste samtal på {{appName}} är redo att laddas ner. Länkar är endast giltiga i 1 timme",
+  "you_can_download_transcript_from_attachments": "Du kan också ladda ner transkriptet från bilagorna",
   "link_valid_for_12_hrs": "Obs: Nedladdningslänken är endast giltig i 12 timmar. Du kan generera en ny nedladdningslänk genom att följa instruktionerna <1>här</1>.",
   "create_your_first_form": "Skapa ditt första formulär",
   "create_your_first_form_description": "Med omdirigeringsformulär kan du ställa kvalificerade frågor och dirigera till rätt person eller händelsetyp.",
@@ -2927,6 +2928,7 @@
   "managed_users_description": "Se alla hanterade användare som skapats av din OAuth-klient",
   "select_oAuth_client": "Välj OAuth-klient",
   "on_every_instance": "På varje instans",
+  "authorize": "Godkänn",
   "next": "Nästa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
