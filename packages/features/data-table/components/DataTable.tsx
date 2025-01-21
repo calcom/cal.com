@@ -10,10 +10,33 @@ import { usePathname } from "next/navigation";
 import { useEffect, memo } from "react";
 
 import classNames from "@calcom/lib/classNames";
-import { Icon, TableNew, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 import { useColumnSizingVars } from "../hooks";
 import { usePersistentColumnResizing } from "../lib/resizing";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "./Table";
+
+const getPinningStyles = (column: Column<Item>, isHeader: boolean): CSSProperties => {
+  const isPinned = column.getIsPinned();
+  let zIndex = 0;
+  if (isHeader && isPinned) {
+    zIndex = 20;
+  } else if (isHeader && !isPinned) {
+    zIndex = 10;
+  } else if (!isHeader && isPinned) {
+    zIndex = 1;
+  } else {
+    zIndex = 0;
+  }
+
+  return {
+    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
+    right: isPinned === "right" ? `${column.getAfter("right")}px` : undefined,
+    position: isPinned ? "sticky" : "relative",
+    width: column.getSize(),
+    zIndex,
+  };
+};
 
 export type DataTableProps<TData, TValue> = {
   table: ReactTableType<TData>;
@@ -103,64 +126,105 @@ export function DataTable<TData, TValue>({
         ref={tableContainerRef}
         onScroll={onScroll}
         className={classNames(
-          "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
-          "scrollbar-thin border-subtle relative rounded-md border",
+          "scrollbar-thin overflow-auto [&>div]:h-[80dvh]", // Set a fixed height for the container
+          "bg-background border-subtle rounded-lg border",
           containerClassName
         )}
         style={{ gridArea: "body" }}>
-        <TableNew
-          className="grid border-0"
+        <Table
+          className={classNames(
+            "[&_td]:border-subtle [&_th]:border-subtle border-separate border-spacing-0 [&_tfoot_td]:border-t [&_th]:border-b [&_tr:not(:last-child)_td]:border-b [&_tr]:border-none",
+            Boolean(enableColumnResizing) && "table-fixed"
+          )}
           style={{
             ...columnSizingVars,
-            ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
+            ...(Boolean(enableColumnResizing) && { width: table.getCenterTotalSize() }),
           }}>
           {!hideHeader && (
             <TableHeader className="sticky top-0 z-10">
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
                   {headerGroup.headers.map((header) => {
                     const meta = header.column.columnDef.meta;
+                    const { column } = header;
+                    const isPinned = column.getIsPinned();
+                    const isLastLeftPinned = isPinned === "left" && column.getIsLastColumn("left");
+                    const isFirstRightPinned = isPinned === "right" && column.getIsFirstColumn("right");
+
                     return (
                       <TableHead
                         key={header.id}
+                        className="bg-muted relative h-10 select-none [&>.cursor-col-resize]:last:opacity-0"
+                        aria-sort={
+                          header.column.getIsSorted() === "asc"
+                            ? "ascending"
+                            : header.column.getIsSorted() === "desc"
+                            ? "descending"
+                            : "none"
+                        }
+                        data-pinned={isPinned || undefined}
+                        data-last-col={isLastLeftPinned ? "left" : isFirstRightPinned ? "right" : undefined}
                         style={{
-                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                          ...getPinningStyles(column, true),
                           width: `var(--header-${kebabCase(header?.id)}-size)`,
-                        }}
-                        className={classNames(
-                          "relative flex shrink-0 items-center",
-                          header.column.getCanSort()
-                            ? "bg-subtle hover:bg-muted cursor-pointer select-none"
-                            : "",
-                          meta?.sticky && "top-0 z-20 sm:sticky"
-                        )}>
-                        <div
-                          className="flex h-full w-full items-center overflow-hidden"
-                          onClick={header.column.getToggleSortingHandler()}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                          {header.column.getIsSorted() && (
-                            <Icon
-                              name="arrow-up"
-                              className="ml-2 h-4 w-4"
-                              style={{
-                                transform:
-                                  header.column.getIsSorted() === "asc" ? "rotate(0deg)" : "rotate(180deg)",
-                                transition: "transform 0.2s ease-in-out",
+                        }}>
+                        <div>
+                          {header.isPlaceholder ? null : (
+                            <div
+                              className={classNames(
+                                header.column.getCanSort() &&
+                                  "flex h-full cursor-pointer select-none items-center justify-between gap-2"
+                              )}
+                              onClick={header.column.getToggleSortingHandler()}
+                              onKeyDown={(e) => {
+                                // Enhanced keyboard handling for sorting
+                                if (header.column.getCanSort() && (e.key === "Enter" || e.key === " ")) {
+                                  e.preventDefault();
+                                  header.column.getToggleSortingHandler()?.(e);
+                                }
                               }}
-                            />
+                              tabIndex={header.column.getCanSort() ? 0 : undefined}>
+                              <span className="truncate">
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                              </span>
+                              {{
+                                asc: (
+                                  <Icon
+                                    name="chevron-up"
+                                    size={16}
+                                    className="mr-2 shrink-0 opacity-60"
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                  />
+                                ),
+                                desc: (
+                                  <Icon
+                                    name="chevron-down"
+                                    size={16}
+                                    className="mr-2 shrink-0 opacity-60"
+                                    strokeWidth={2}
+                                    aria-hidden="true"
+                                  />
+                                ),
+                              }[header.column.getIsSorted() as string] ?? null}
+                            </div>
+                          )}
+                          {Boolean(enableColumnResizing) && header.column.getCanResize() && (
+                            <div
+                              onMouseDown={header.getResizeHandler()}
+                              onTouchStart={header.getResizeHandler()}
+                              className={classNames(
+                                "group absolute right-0 top-0 h-full cursor-col-resize touch-none select-none px-2"
+                              )}>
+                              <div className="bg-subtle group-hover:bg-inverted h-full w-[1px]" />
+                            </div>
                           )}
                         </div>
                         {Boolean(enableColumnResizing) && header.column.getCanResize() && (
                           <div
                             onMouseDown={header.getResizeHandler()}
                             onTouchStart={header.getResizeHandler()}
-                            className={classNames(
-                              "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
-                              header.column.getIsResizing() && "!opacity-75"
-                            )}
+                            className={classNames(header.column.getIsResizing() && "!opacity-75")}
                           />
                         )}
                       </TableHead>
@@ -192,7 +256,7 @@ export function DataTable<TData, TValue>({
               onRowMouseclick={onRowMouseclick}
             />
           )}
-        </TableNew>
+        </Table>
       </div>
       {children}
     </div>
@@ -232,10 +296,7 @@ function DataTableBody<TData>({
 }: DataTableBodyProps<TData>) {
   const virtualRows = rowVirtualizer.getVirtualItems();
   return (
-    <TableBody
-      className="relative grid"
-      data-testid={testId}
-      style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+    <TableBody data-testid={testId} style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
       {virtualRows && !isPending ? (
         virtualRows.map((virtualRow) => {
           const row = rows[virtualRow.index] as Row<TData>;
@@ -245,31 +306,25 @@ function DataTableBody<TData>({
               key={row.id}
               data-index={virtualRow.index} //needed for dynamic row height measurement
               data-state={row.getIsSelected() && "selected"}
-              onClick={() => onRowMouseclick && onRowMouseclick(row)}
-              style={{
-                display: "flex",
-                position: "absolute",
-                transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                width: "100%",
-              }}
-              className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
+              className="has-[[data-state=selected]]:bg-muted/50"
+              onClick={() => onRowMouseclick && onRowMouseclick(row)}>
               {row.getVisibleCells().map((cell) => {
                 const column = table.getColumn(cell.column.id);
                 const meta = column?.columnDef.meta;
+                const isPinned = column.getIsPinned();
+                const isLastLeftPinned = isPinned === "left" && column.getIsLastColumn("left");
+                const isFirstRightPinned = isPinned === "right" && column.getIsFirstColumn("right");
+
                 return (
                   <TableCell
                     key={cell.id}
+                    className="[&[data-pinned]]:bg-default truncate [&[data-pinned]]:backdrop-blur-sm"
+                    data-pinned={isPinned || undefined}
+                    data-last-col={isLastLeftPinned ? "left" : isFirstRightPinned ? "right" : undefined}
                     style={{
-                      ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                      ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                      ...getPinningStyles(column, false),
                       width: `var(--col-${kebabCase(cell.column.id)}-size)`,
-                    }}
-                    className={classNames(
-                      "flex shrink-0 items-center overflow-hidden",
-                      variant === "compact" && "p-0",
-                      meta?.sticky &&
-                        "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
-                    )}>
+                    }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 );
