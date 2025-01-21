@@ -35,9 +35,6 @@ export const BookerI18nextProvider = ({
           fallbackLng: "en",
           ns: ["common"],
         });
-
-        console.log("BookerI18nextProvider-i18nInstance-t", i18nInstance.t("common:untitled"));
-
         setContextValue({
           i18n: i18nInstance,
           t: i18nInstance.t,
