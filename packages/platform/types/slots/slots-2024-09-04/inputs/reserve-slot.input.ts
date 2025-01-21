@@ -3,7 +3,7 @@ import { IsInt, IsDateString, IsOptional } from "class-validator";
 
 export class ReserveSlotInput_2024_09_04 {
   @IsInt()
-  @ApiProperty({ example: 1, description: "The ID of the event type for which booking should be reserved." })
+  @ApiProperty({ example: 1, description: "The ID of the event type for which slot should be reserved." })
   eventTypeId!: number;
 
   @IsDateString()

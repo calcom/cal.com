@@ -13,6 +13,7 @@ export class GetReservedSlotOutput_2024_09_04 {
 
   @IsInt()
   @ApiProperty({ example: 1, description: "The ID of the event type for which booking should be reserved." })
+  @Expose()
   eventTypeId!: number;
 
   @IsDateString()
@@ -20,6 +21,7 @@ export class GetReservedSlotOutput_2024_09_04 {
     example: "2024-09-04T09:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing available slot.",
   })
+  @Expose()
   slotStart!: string;
 
   @IsDateString()
@@ -27,6 +29,7 @@ export class GetReservedSlotOutput_2024_09_04 {
     example: "2024-09-04T10:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing slot end.",
   })
+  @Expose()
   slotEnd!: string;
 
   @IsInt()
@@ -34,6 +37,7 @@ export class GetReservedSlotOutput_2024_09_04 {
     example: "30",
     description: "Difference in minutes between slotStart and slotEnd.",
   })
+  @Expose()
   slotDuration!: number;
 
   @IsDateString()
@@ -41,5 +45,6 @@ export class GetReservedSlotOutput_2024_09_04 {
     example: "2023-09-04T10:00:00Z",
     description: "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved.",
   })
+  @Expose()
   reservationUntil!: string;
 }

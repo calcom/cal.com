@@ -23,12 +23,15 @@ import {
   ApiResponse as DocsResponse,
   ApiQuery,
 } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GetSlotsInput_2024_09_04,
   GetSlotsInputPipe,
   ReserveSlotInput_2024_09_04,
+  ReserveSlotOutput_2024_09_04 as ReserveSlotOutputType_2024_09_04,
+  GetReservedSlotOutput_2024_09_04 as GetReservedSlotOutputType_2024_09_04,
 } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 
@@ -185,7 +188,9 @@ export class SlotsController_2024_09_04 {
 
     return {
       status: SUCCESS_STATUS,
-      data: reservedSlot,
+      data: plainToClass(ReserveSlotOutputType_2024_09_04, reservedSlot, {
+        strategy: "excludeAll",
+      }),
     };
   }
 
@@ -198,7 +203,9 @@ export class SlotsController_2024_09_04 {
 
     return {
       status: SUCCESS_STATUS,
-      data: reservedSlot,
+      data: plainToClass(GetReservedSlotOutputType_2024_09_04, reservedSlot, {
+        strategy: "excludeAll",
+      }),
     };
   }
 
@@ -215,7 +222,9 @@ export class SlotsController_2024_09_04 {
 
     return {
       status: SUCCESS_STATUS,
-      data: reservedSlot,
+      data: plainToClass(ReserveSlotOutputType_2024_09_04, reservedSlot, {
+        strategy: "excludeAll",
+      }),
     };
   }
 
