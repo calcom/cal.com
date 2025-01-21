@@ -1544,6 +1544,7 @@
   "download_transcript": "Lataa litterointi",
   "recording_from_your_recent_call": "Tallenne viimeisimmästä {{appName}}-puhelustasi on valmis ladattavaksi",
   "transcript_from_previous_call": "Litterointi viimeisimmästä {{appName}}-puhelustasi on valmis ladattavaksi. Linkit ovat voimassa vain tunnin",
+  "you_can_download_transcript_from_attachments": "Voit myös ladata muistion liitteistä",
   "link_valid_for_12_hrs": "Huom: Latauslinkki on voimassa vain 12 tuntia. Voit luoda uuden latauslinkin seuraamalla ohjeita <1>täältä</1>.",
   "create_your_first_form": "Luo ensimmäinen lomakkeesi",
   "create_your_first_form_description": "Reitityslomakkeiden avulla voit esittää tarkentavia kysymyksiä ja ohjata oikealle henkilölle tai tapahtumatyyppiin",

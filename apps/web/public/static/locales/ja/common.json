@@ -1544,6 +1544,7 @@
   "download_transcript": "トランスクリプトをダウンロード",
   "recording_from_your_recent_call": "{{appName}} での最近の通話のレコーディングがダウンロードできます",
   "transcript_from_previous_call": "{{appName}}での最近の通話のトランスクリプトがダウンロード可能です。リンクは1時間のみ有効です。",
+  "you_can_download_transcript_from_attachments": "添付ファイルから議事録をダウンロードすることもできます",
   "link_valid_for_12_hrs": "注意: ダウンロードリンクは12時間のみ有効です。新しいダウンロードリンクを生成するには、<1>こちら</1>の指示に従ってください。",
   "create_your_first_form": "最初のフォームを作成",
   "create_your_first_form_description": "ルーティングフォームを使用すれば、絞り込みの質問を通して適切な人物やイベントの種類へとルーティングを行うことができます。",

@@ -1544,6 +1544,7 @@
   "download_transcript": "下載轉錄",
   "recording_from_your_recent_call": "您最近在 {{appName}} 的通話錄製內容已可供下載",
   "transcript_from_previous_call": "您最近在 {{appName}} 上的通話轉錄已準備好下載。鏈接僅有效 1 小時",
+  "you_can_download_transcript_from_attachments": "您也可以從附件下載會議記錄",
   "link_valid_for_12_hrs": "注意：下載鏈接僅有效 12 小時。您可以按照 <1>此處</1> 的說明生成新的下載鏈接。",
   "create_your_first_form": "建立您的第一份表單",
   "create_your_first_form_description": "您可使用引導表單提出符合條件的問題，並引導至適當的人員或活動類型。",

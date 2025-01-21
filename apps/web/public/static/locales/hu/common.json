@@ -1544,6 +1544,7 @@
   "download_transcript": "Átirat letöltése",
   "recording_from_your_recent_call": "A legutóbbi {{appName}} hívásáról készült felvétel letölthető",
   "transcript_from_previous_call": "A(z) {{appName}} nevű legutóbbi hívásának átirata letölthető. A linkek csak 1 óráig érvényesek",
+  "you_can_download_transcript_from_attachments": "A jegyzőkönyvet letöltheted a csatolmányok közül",
   "link_valid_for_12_hrs": "Megjegyzés: A letöltési link csak 12 óráig érvényes. Az <1>utasításokat</1> követve hozhat létre új letöltési linket.",
   "create_your_first_form": "Hozza létre az első űrlapot",
   "create_your_first_form_description": "A Routing Forms segítségével minősítő kérdéseket tehet fel, és a megfelelő személyhez vagy eseménytípushoz irányíthat.",

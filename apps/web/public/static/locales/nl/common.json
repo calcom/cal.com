@@ -1544,6 +1544,7 @@
   "download_transcript": "Transcriptie downloaden",
   "recording_from_your_recent_call": "Een opname van uw recente gesprek op {{appName}} is klaar om te downloaden",
   "transcript_from_previous_call": "Transcriptie van uw recente gesprek op {{appName}} is klaar om te downloaden. Links zijn slechts 1 uur geldig",
+  "you_can_download_transcript_from_attachments": "Je kunt het transcript ook downloaden via de bijlagen",
   "link_valid_for_12_hrs": "Opmerking: De downloadlink is slechts 12 uur geldig. U kunt een nieuwe downloadlink genereren door de instructies <1>hier</1> te volgen.",
   "create_your_first_form": "Maak uw eerste formulier",
   "create_your_first_form_description": "Met routeringsformulieren kunt u kwalificerende vragen stellen en doorverwijzen naar de juiste persoon of het juiste type gebeurtenis.",

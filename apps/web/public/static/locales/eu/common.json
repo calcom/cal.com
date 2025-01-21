@@ -1544,6 +1544,7 @@
   "download_transcript": "Deskargatu transkripzioa",
   "recording_from_your_recent_call": "{{appName}}-en egin berri duzun deiaren grabaketa deskargatzeko prest dago",
   "transcript_from_previous_call": "{{appName}}-en egin berri duzun deiaren transkripzioa deskargatzeko prest dago. Estekak ordubetez bakarrik dira baliozkoak",
+  "you_can_download_transcript_from_attachments": "Transkripzioa eranskinetan ere deskarga dezakezu",
   "link_valid_for_12_hrs": "Oharra: Deskarga esteka 12 orduz bakarrik da baliozkoa. Deskarga esteka berria sortu dezakezu <1>hemen</1> dauden argibideak jarraituz.",
   "create_your_first_form": "Sortu zure lehen galdetegia",
   "create_your_first_form_description": "Bideratze-formularioekin galdera kalifikatzaileak egin eta pertsona edo ekitaldi mota egokira bideratu dezakezu.",

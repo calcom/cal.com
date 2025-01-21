@@ -1544,6 +1544,7 @@
   "download_transcript": "Scarica trascrizione",
   "recording_from_your_recent_call": "La registrazione della tua recente chiamata su {{appName}} è pronta per il download",
   "transcript_from_previous_call": "La trascrizione dalla tua recente chiamata su {{appName}} è pronta per essere scaricata. I link sono validi solo per 1 ora",
+  "you_can_download_transcript_from_attachments": "Puoi anche scaricare la trascrizione dagli allegati",
   "link_valid_for_12_hrs": "Nota: Il link per il download è valido solo per 12 ore. Puoi generare un nuovo link di download seguendo le istruzioni <1>qui</1>.",
   "create_your_first_form": "Crea il tuo primo modulo",
   "create_your_first_form_description": "I Moduli di instradamento consentono di porre domande qualificanti agli utenti per indirizzarli a persone o eventi pertinenti.",

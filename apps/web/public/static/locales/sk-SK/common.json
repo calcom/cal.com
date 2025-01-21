@@ -1544,6 +1544,7 @@
   "download_transcript": "Stiahnuť prepis",
   "recording_from_your_recent_call": "Nahrávka z vášho nedávneho hovoru v {{appName}} je pripravená na stiahnutie",
   "transcript_from_previous_call": "Prepis z vášho nedávneho hovoru v {{appName}} je pripravený na stiahnutie. Odkazy sú platné len 1 hodinu",
+  "you_can_download_transcript_from_attachments": "Prepis si môžete stiahnuť aj z príloh",
   "link_valid_for_12_hrs": "Poznámka: Odkaz na stiahnutie je platný len 12 hodín. Nový odkaz na stiahnutie môžete vygenerovať podľa pokynov <1>tu</1>.",
   "create_your_first_form": "Vytvorte svoj prvý formulár",
   "create_your_first_form_description": "S Routing Forms môžete klásť kvalifikačné otázky a smerovať na správnu osobu alebo typ udalosti.",

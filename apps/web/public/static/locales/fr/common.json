@@ -1544,6 +1544,7 @@
   "download_transcript": "Télécharger la transcription",
   "recording_from_your_recent_call": "Un enregistrement de votre appel récent sur {{appName}} est prêt à être téléchargé",
   "transcript_from_previous_call": "La transcription de votre récent appel sur {{appName}} est prête à être téléchargée. Les liens ne sont valides que pendant 1 heure",
+  "you_can_download_transcript_from_attachments": "Vous pouvez également télécharger la transcription depuis les pièces jointes",
   "link_valid_for_12_hrs": "Remarque : le lien de téléchargement n'est valide que pendant 12 heures. Vous pouvez générer un nouveau lien de téléchargement en suivant les instructions <1>ici</1>.",
   "create_your_first_form": "Créez votre premier formulaire",
   "create_your_first_form_description": "Avec les formulaires de routage, vous pouvez poser des questions de qualification et rediriger vers la bonne personne ou le bon type d'événement.",

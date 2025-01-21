@@ -1544,6 +1544,7 @@
   "download_transcript": "Descargar transcripción",
   "recording_from_your_recent_call": "Una grabación de tu llamada reciente en {{appName}} está lista para descargar",
   "transcript_from_previous_call": "La transcripción de tu llamada reciente en {{appName}} está lista para descargar. Los enlaces son válidos solo por 1 hora",
+  "you_can_download_transcript_from_attachments": "También puedes descargar la transcripción desde los archivos adjuntos",
   "link_valid_for_12_hrs": "Nota: El enlace de descarga es válido solo por 12 horas. Puedes generar un nuevo enlace de descarga siguiendo las instrucciones <1>aquí</1>.",
   "create_your_first_form": "Crea tu primer formulario",
   "create_your_first_form_description": "Con los Formularios de Enrutamiento puedes hacer preguntas de calificación y dirigir a la persona o tipo de evento correcto.",

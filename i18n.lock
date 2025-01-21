@@ -1546,6 +1546,7 @@ checksums:
     download_transcript: e6200f050dd5d0277c0dbad0cfe3b41a
     recording_from_your_recent_call: b668afa4ace7a561853eff98d583532e
     transcript_from_previous_call: 7485bc94e7ca0e7b2f9cefa8f5b12168
+    you_can_download_transcript_from_attachments: bd1f8b66fa7a44eeed9c113112a042e5
     link_valid_for_12_hrs: 7701a0f7bdc1ca82a14e6fa28583ac74
     create_your_first_form: 5d33316ece53f9ffddba51418869d7aa
     create_your_first_form_description: deafa03d444fc9af9c16f48408d8048c

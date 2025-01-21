@@ -1544,6 +1544,7 @@
   "download_transcript": "הורדת תמלול",
   "recording_from_your_recent_call": "הקלטה של שיחה שערכת לאחרונה ב-{{appName}} מוכנה להורדה",
   "transcript_from_previous_call": "תמלול השיחה האחרונה שלך ב־{{appName}} זמין להורדה. קישורים תקפים למשך שעה בלבד",
+  "you_can_download_transcript_from_attachments": "ניתן גם להוריד את התמליל מהקבצים המצורפים",
   "link_valid_for_12_hrs": "לתשומת ליבך: קישור ההורדה תקף רק למשך 12 שעות. אפשר לייצר קישור הורדה חדש על ידי מעקב אחר ההוראות <1>שכאן</1>.",
   "create_your_first_form": "צור/צרי את הטופס הראשון שלך",
   "create_your_first_form_description": "באמצעות טפסי ניתוב ניתן לשאול שאלות סיווג ולנתב אל האדם או אל סוג האירוע המתאימים.",

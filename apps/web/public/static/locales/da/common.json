@@ -1544,6 +1544,7 @@
   "download_transcript": "Download transskription",
   "recording_from_your_recent_call": "En optagelse fra dit seneste opkald på {{appName}} er klar til download",
   "transcript_from_previous_call": "Udskrift fra dit seneste opkald på {{appName}} er klar til download. Links er kun gyldige i 1 time",
+  "you_can_download_transcript_from_attachments": "Du kan også downloade udskriften fra vedhæftede filer",
   "link_valid_for_12_hrs": "Bemærk: Downloadlinket er kun gyldigt i 12 timer. Du kan generere et nyt downloadlink ved at følge instruktionerne <1>her</1>.",
   "create_your_first_form": "Opret din første formular",
   "create_your_first_form_description": "Med Routing Forms kan du stille kvalificerende spørgsmål og rute til den korrekte person eller begivenhedstype.",

@@ -1544,6 +1544,7 @@
   "download_transcript": "Laadi alla transkript",
   "recording_from_your_recent_call": "Teie hiljutise kõne salvestis rakenduses {{appName}} on allalaadimiseks valmis",
   "transcript_from_previous_call": "Teie hiljutise kõne transkriptsioon rakenduses {{appName}} on allalaadimiseks valmis. Lingid kehtivad ainult 1 tund",
+  "you_can_download_transcript_from_attachments": "Transkriptsiooni saad alla laadida ka manustest",
   "link_valid_for_12_hrs": "Märkus. Allalaadimislink kehtib ainult 12 tundi. Uue allalaadimislingi saate luua, järgides <1>siin</1> juhiseid.",
   "create_your_first_form": "Loo oma esimene vorm",
   "create_your_first_form_description": "Marsruutimisvormide abil saate esitada kvalifitseeruvaid küsimusi ja suunata õige inimese või sündmuse tüübi.",

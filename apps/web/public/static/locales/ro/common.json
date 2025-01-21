@@ -1544,6 +1544,7 @@
   "download_transcript": "Descarcă transcrierea",
   "recording_from_your_recent_call": "O înregistrare a apelului dvs. recent de pe {{appName}} poate fi acum descărcată",
   "transcript_from_previous_call": "Transcrierea de la apelul recent pe {{appName}} este gata pentru descărcare. Linkurile sunt valabile doar pentru 1 oră",
+  "you_can_download_transcript_from_attachments": "De asemenea, poți descărca transcriptul din atașamente",
   "link_valid_for_12_hrs": "Notă: Linkul de descărcare este valabil doar 12 ore. Puteți genera un nou link de descărcare urmând instrucțiunile <1>aici</1>.",
   "create_your_first_form": "Creați primul dvs. formular",
   "create_your_first_form_description": "Cu ajutorul formularelor de direcționare, puteți adresa întrebări de calificare și le puteți redirecționa persoanei sau tipului de eveniment potrivit.",
