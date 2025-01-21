@@ -147,10 +147,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
-  }
 
-  const csrfResponse = await handleCsrfProtect(req, res);
-  if (csrfResponse) return csrfResponse;
+    const csrfResponse = await handleCsrfProtect(req, res);
+    if (csrfResponse) return csrfResponse;
+  }
 
   return responseWithHeaders({ url, res, req });
 };
@@ -162,6 +162,8 @@ async function handleCsrfProtect(req: NextRequest, res: NextResponse) {
   if (url.pathname.startsWith("/api/trpc/")) return;
   // NextAuth handles CSRF protection for itself
   if (url.pathname.startsWith("/api/auth/")) return;
+  if (url.pathname.startsWith("/_next")) return;
+  if (req.method === "GET") return;
   try {
     // So we don't have to attach the token to each POST request (for now)
     const csrfTokenFromCookie = req.cookies.get("x-csrf-token")?.value;
