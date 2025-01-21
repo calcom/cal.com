@@ -982,7 +982,7 @@ export default class EventManager {
 
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
-      if (credential?.user.email && credential.user.email !== event?.organizer?.email) {
+      if (credential?.user?.email && credential.user.email !== event?.organizer?.email) {
         log.error(
           `CRM credential ${credential.id} does not match the organizer ${event?.organizer?.email} for event type ${event?.eventTypeId}`
         );
