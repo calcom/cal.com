@@ -12,6 +12,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
@@ -33,7 +34,6 @@ import {
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
-import { CreationSource } from "@calcom/prisma/enums";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 

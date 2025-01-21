@@ -3,8 +3,7 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/upda
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
-
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
