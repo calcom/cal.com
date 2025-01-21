@@ -163,10 +163,24 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const userId = session?.user?.id;
-  const isLoggedInUserHost =
-    userId &&
-    (eventType.users.some((user) => user.id === userId) ||
-      eventType.hosts.some(({ user }) => user.id === userId));
+
+  const checkIfUserIsHost = (userId?: number | null) => {
+    if (!userId) return false;
+
+    return (
+      bookingInfo?.user?.id === userId ||
+      eventType.users.some(
+        (user) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      ) ||
+      eventType.hosts.some(
+        ({ user }) =>
+          user.id === userId && bookingInfo.attendees.some((attendee) => attendee.email === user.email)
+      )
+    );
+  };
+
+  const isLoggedInUserHost = checkIfUserIsHost(userId);
 
   if (!isLoggedInUserHost) {
     // Removing hidden fields from responses
@@ -195,6 +209,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
+      isLoggedInUserHost,
     },
   };
 }

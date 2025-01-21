@@ -232,6 +232,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       isPlatform={false}
       areInstantMeetingParametersSet={areInstantMeetingParametersSet}
       userLocale={session?.user.locale}
+      renderCaptcha
     />
   );
 };

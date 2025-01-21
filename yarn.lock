@@ -3498,7 +3498,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.85"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.86"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -4231,6 +4231,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/hitpay@workspace:packages/app-store/hitpay":
+  version: 0.0.0-use.local
+  resolution: "@calcom/hitpay@workspace:packages/app-store/hitpay"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/prisma": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms":
   version: 0.0.0-use.local
   resolution: "@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms"
@@ -4514,14 +4524,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.85":
-  version: 0.0.85
-  resolution: "@calcom/platform-libraries@npm:0.0.85"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.86":
+  version: 0.0.86
+  resolution: "@calcom/platform-libraries@npm:0.0.86"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 19e00a1de600805d800fc7027c246164f1c1ce58b837ca934313fe31c0c77e6338179e72b8045ceabcc9d754ddc3600028b8676dcf2b456696a443a3aed186ea
+  checksum: f2c3041d627555f5d99ba996354cf09f0f6be6df6a54034ded0a5cb63e10dfce5c2bdc7861e9ee121901e3ca63c486ec3cbbbce96c10a6ec60969c935d69fedf
   languageName: node
   linkType: hard
 

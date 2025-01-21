@@ -36,6 +36,7 @@ import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metad
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
 import gtm_config_json from "./gtm/config.json";
+import hitpay_config_json from "./hitpay/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
@@ -138,6 +139,7 @@ export const appStoreMetadata = {
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
   gtm: gtm_config_json,
+  hitpay: hitpay_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,

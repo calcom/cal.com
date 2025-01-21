@@ -12,6 +12,7 @@ import { ZGetSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
+import { ZHasActiveTeamPlanSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
@@ -219,6 +220,13 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("removeHostsFromEventTypes"),
       () => import("./removeHostsFromEventTypes.handler")
+    );
+    return handler(opts);
+  }),
+  hasActiveTeamPlan: authedProcedure.input(ZHasActiveTeamPlanSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("hasActiveTeamPlan"),
+      () => import("./hasActiveTeamPlan.handler")
     );
     return handler(opts);
   }),

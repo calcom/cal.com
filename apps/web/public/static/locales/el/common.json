@@ -2927,5 +2927,6 @@
   "managed_users_description": "Δείτε όλους τους διαχειριζόμενους χρήστες που δημιουργήθηκαν από το OAuth client σας",
   "select_oAuth_client": "Επιλέξτε OAuth Client",
   "on_every_instance": "Σε κάθε περίπτωση",
+  "next": "Επόμενο",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

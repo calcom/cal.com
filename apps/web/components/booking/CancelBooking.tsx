@@ -5,7 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRefreshData } from "@calcom/lib/hooks/useRefreshData";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Button, Icon, TextArea } from "@calcom/ui";
+import { Button, Icon, Label, TextArea } from "@calcom/ui";
 
 type Props = {
   booking: {
@@ -33,6 +33,7 @@ type Props = {
     };
     eventType: unknown;
   };
+  isHost: boolean;
 };
 
 export default function CancelBooking(props: Props) {
@@ -70,7 +71,7 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          <label className="text-default font-medium">{t("cancellation_reason")}</label>
+          <Label>{props.isHost ? t("cancellation_reason_host") : t("cancellation_reason")}</Label>
           <TextArea
             data-testid="cancel_reason"
             ref={cancelBookingRef}
@@ -80,6 +81,14 @@ export default function CancelBooking(props: Props) {
             className="mb-4 mt-2 w-full "
             rows={3}
           />
+          {props.isHost ? (
+            <div className="-mt-2 mb-4 flex items-center gap-2">
+              <Icon name="info" className="text-subtle h-4 w-4" />
+              <p className="text-default text-subtle text-sm leading-none">
+                {t("notify_attendee_cancellation_reason_warning")}
+              </p>
+            </div>
+          ) : null}
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
             <div className="ml-auto flex w-full space-x-4 ">
               <Button
@@ -90,6 +99,7 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
+                disabled={props.isHost && !cancellationReason}
                 onClick={async () => {
                   setLoading(true);
 
