@@ -148,7 +148,7 @@ export default function Success(props: PageProps) {
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
   );
   const { data: session } = useSession();
-  const isHost = bookingInfo?.user?.id === session?.user?.id;
+  const isHost = props.isLoggedInUserHost;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
 

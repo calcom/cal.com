@@ -209,6 +209,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       userTimeFormat,
       requiresLoginToUpdate,
       rescheduledToUid,
+      isLoggedInUserHost,
     },
   };
 }
