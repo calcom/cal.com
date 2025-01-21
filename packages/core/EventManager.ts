@@ -982,6 +982,20 @@ export default class EventManager {
 
     const uid = getUid(event);
     for (const credential of this.crmCredentials) {
+      if (credential?.userId && credential.userId !== credential.user?.id) {
+        log.error(
+          `CRM credential ${credential.id} does not match the user ${credential.userId} for event type ${event?.eventTypeId}`
+        );
+        continue;
+      }
+
+      if (credential?.teamId && credential.teamId !== event?.team?.id) {
+        log.error(
+          `CRM credential ${credential.id} does not match the team ${credential.teamId} for event type ${event?.eventTypeId}`
+        );
+        continue;
+      }
+
       if (isTaskerEnabledForSalesforceCrm) {
         if (!event.uid) {
           console.error(
