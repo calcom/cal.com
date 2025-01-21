@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Du kan se bookingdetaljene fra denne URL-en {{url}} og legge til hendelsen i kalenderen din",
   "no_options_available": "Ingen alternativer tilgjengelige",
   "cancellation_reason": "Årsak til kansellering (valgfritt)",
+  "cancellation_reason_host": "Grunn for avbestilling",
   "cancellation_reason_placeholder": "Hvorfor kansellerer du?",
+  "notify_attendee_cancellation_reason_warning": "Vær oppmerksom på at avbestillingsgrunnen vil være synlig for deltakeren.",
   "rejection_reason_placeholder": "Hvorfor avviser du?",
   "rejection_reason": "Grunn for avslag",
   "rejection_reason_title": "Avvise bestillingsforespørselen?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Last ned transkripsjon",
   "recording_from_your_recent_call": "Et opptak fra din nylige samtale på {{appName}} er klart for nedlasting",
   "transcript_from_previous_call": "Transkripsjon fra din nylige samtale på {{appName}} er klar for nedlasting. Lenker er kun gyldige i 1 time",
+  "you_can_download_transcript_from_attachments": "Du kan også laste ned transkripsjonen fra vedleggene",
   "link_valid_for_12_hrs": "Merk: Nedlastingslenken er kun gyldig i 12 timer. Du kan generere en ny nedlastingslenke ved å følge instruksjonene <1>her</1>.",
   "create_your_first_form": "Lag ditt første skjema",
   "create_your_first_form_description": "Med Viderekoblings-skjema kan du stille kvalifiserende spørsmål og videresende til riktig person eller hendelsestype.",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "Se alle administrerte brukere opprettet av OAuth-klienten din",
   "select_oAuth_client": "Velg OAuth-klient",
   "on_every_instance": "På hver instans",
+  "authorize": "Autoriser",
   "next": "Neste",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
