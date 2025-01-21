@@ -175,6 +175,8 @@ test.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -205,6 +207,7 @@ test.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking/");
     });
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
