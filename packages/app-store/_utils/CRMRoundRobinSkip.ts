@@ -49,7 +49,6 @@ async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMeta
     include: {
       user: {
         select: {
-          id: true,
           email: true,
         },
       },

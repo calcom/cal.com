@@ -100,7 +100,6 @@ export async function createCRMEvent(payload: string): Promise<void> {
           include: {
             user: {
               select: {
-                id: true,
                 email: true,
               },
             },
