@@ -35,6 +35,7 @@ import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -164,6 +165,7 @@ async function handler(req: CustomRequest) {
     seatReferenceUid,
     cancelledBy,
     cancelSubsequentBookings,
+    internalNote,
   } = bookingCancelInput.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -559,6 +561,15 @@ async function handler(req: CustomRequest) {
   await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
     log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
+
+  if (internalNote) {
+    await handleInternalNote({
+      internalNote,
+      booking: bookingToDelete,
+      userId,
+      teamId: teamId,
+    });
+  }
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 

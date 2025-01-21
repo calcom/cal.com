@@ -201,6 +201,7 @@ export default function CancelBooking(props: Props) {
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
                       cancelledBy: currentUserEmail,
+                      internalNote: internalNote,
                     }),
                     headers: {
                       "Content-Type": "application/json",
