@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Ви можете переглянути деталі бронювання за цим посиланням {{url}} і додати подію до свого календаря",
   "no_options_available": "Немає доступних варіантів",
   "cancellation_reason": "Причина скасування",
+  "cancellation_reason_host": "Причина скасування",
   "cancellation_reason_placeholder": "Укажіть причину скасування (необов’язково)",
+  "notify_attendee_cancellation_reason_warning": "Зверніть увагу, що причина скасування буде видима для учасника.",
   "rejection_reason_placeholder": "Чому ви відмовляєтеся?",
   "rejection_reason": "Причина відмови",
   "rejection_reason_title": "Відхилити запит на бронювання?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Завантажити транскрипт",
   "recording_from_your_recent_call": "Запис вашого останнього дзвінка в застосунку {{appName}} готовий до завантаження",
   "transcript_from_previous_call": "Транскрипт вашого недавнього дзвінка на {{appName}} готовий до завантаження. Посилання дійсні лише протягом 1 години",
+  "you_can_download_transcript_from_attachments": "Ви також можете завантажити розшифровку з вкладень",
   "link_valid_for_12_hrs": "Примітка: Посилання для завантаження дійсне лише протягом 12 годин. Ви можете створити нове посилання для завантаження, дотримуючись інструкцій <1>тут</1>.",
   "create_your_first_form": "Створіть свою першу форму",
   "create_your_first_form_description": "Форми переспрямування дають змогу надавати уточнювальні запитання та переходити до відповідної особи або типу заходу.",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "Переглянути всіх керованих користувачів, створених вашим OAuth-клієнтом",
   "select_oAuth_client": "Оберіть OAuth-клієнта",
   "on_every_instance": "На кожному екземплярі",
+  "authorize": "Авторизувати",
   "next": "Далі",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
