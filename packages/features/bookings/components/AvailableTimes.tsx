@@ -102,11 +102,10 @@ const SlotItem = ({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
-    if (!showConfirm && (isOverlapping || skipConfirmStep)) {
+    if (!showConfirm && ((overlayCalendarToggled && isOverlapping) || skipConfirmStep)) {
       setShowConfirm(true);
       return;
     }
-    setShowConfirm(false);
     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
   }, [
     overlayCalendarToggled,
@@ -125,7 +124,14 @@ const SlotItem = ({
       <div className="flex gap-2">
         <Button
           key={slot.time}
-          disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === bookingData?.uid)}
+          disabled={
+            bookingFull ||
+            !!(slot.bookingUid && slot.bookingUid === bookingData?.uid) ||
+            loadingStates.creatingBooking ||
+            loadingStates.creatingRecurringBooking ||
+            isVerificationCodeSending ||
+            loadingStates.creatingInstantBooking
+          }
           data-testid="time"
           data-disabled={bookingFull}
           data-time={slot.time}
