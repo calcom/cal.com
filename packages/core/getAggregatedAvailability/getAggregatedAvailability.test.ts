@@ -81,6 +81,7 @@ describe("getAggregatedAvailability", () => {
     expect(result[0].start.format()).toEqual(dayjs("2025-01-23T11:15:00.000Z").format());
     expect(result[0].end.format()).toEqual(dayjs("2025-01-23T11:20:00.000Z").format());
   });
+
   // Combines rr hosts and fixed hosts, both fixed and one of the rr hosts has to be available for the whole period
   // All fixed user ranges are merged with each rr-host
   it("Fixed hosts and at least one rr host available between 11:00-11:30 & 12:30-13:00 on January 23, 2025", () => {
@@ -136,5 +137,43 @@ describe("getAggregatedAvailability", () => {
     expect(result[0].end.format()).toEqual(dayjs("2025-01-23T11:30:00.000Z").format());
     expect(result[1].start.format()).toEqual(dayjs("2025-01-23T12:30:00.000Z").format());
     expect(result[1].end.format()).toEqual(dayjs("2025-01-23T13:00:00.000Z").format());
+  });
+
+  it("does not duplicate slots when multiple rr-hosts offer the same availability", () => {
+    const userAvailability = [
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+          { start: dayjs("2025-01-23T12:30:00.000Z"), end: dayjs("2025-01-23T13:00:00.000Z") },
+          { start: dayjs("2025-01-23T13:15:00.000Z"), end: dayjs("2025-01-23T13:30:00.000Z") },
+          { start: dayjs("2025-01-23T16:10:00.000Z"), end: dayjs("2025-01-23T16:30:00.000Z") },
+        ],
+        user: { isFixed: true },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-23T11:00:00.000Z"), end: dayjs("2025-01-23T11:30:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+    const timeRangeToCheckAvailable = {
+      start: dayjs("2025-01-23T11:00:00.000Z"),
+      end: dayjs("2025-01-23T11:30:00.000Z"),
+    };
+
+    expect(isAvailable(result, timeRangeToCheckAvailable)).toBe(true);
+    expect(result.length).toBe(1);
   });
 });
