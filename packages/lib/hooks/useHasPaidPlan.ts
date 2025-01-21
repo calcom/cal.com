@@ -39,4 +39,12 @@ export function useHasEnterprisePlan() {
   return { isPending, hasTeamPlan: hasTeamPlan?.hasTeamPlan };
 }
 
+export function useHasActiveTeamPlan(teamId?: number) {
+  if (IS_SELF_HOSTED) return { isPending: false, hasActiveTeamPlan: true };
+
+  const { data, isPending } = trpc.viewer.teams.hasActiveTeamPlan.useQuery({ teamId });
+
+  return { isPending, hasActiveTeamPlan: !!data };
+}
+
 export default useHasPaidPlan;

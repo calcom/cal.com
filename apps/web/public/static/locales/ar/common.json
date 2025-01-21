@@ -2927,5 +2927,6 @@
   "managed_users_description": "عرض جميع المستخدمين المُدارين الذين تم إنشاؤهم بواسطة عميل OAuth الخاص بك",
   "select_oAuth_client": "اختر عميل OAuth",
   "on_every_instance": "في كل مثيل",
+  "next": "التالي",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
