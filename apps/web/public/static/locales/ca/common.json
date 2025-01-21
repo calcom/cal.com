@@ -2927,5 +2927,6 @@
   "managed_users_description": "Veure tots els usuaris gestionats creats pel teu client OAuth",
   "select_oAuth_client": "Selecciona el client OAuth",
   "on_every_instance": "A cada instància",
+  "next": "Següent",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
