@@ -24,7 +24,7 @@ export const hasActiveTeamPlanHandler = async ({ ctx }: HasActiveTeamPlanOptions
 
   if (!teams.length) return false;
 
-  // check if user as at least on membership with an active plan
+  // check if user has at least on membership with an active plan
   for (const team of teams) {
     const teamBillingService = new InternalTeamBilling(team);
     const isPlanActive = await teamBillingService.checkIfTeamHasActivePlan();
