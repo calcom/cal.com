@@ -136,10 +136,8 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
-const InternalNotePresetsView = () => {
+const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
-  const params = useParamsWithFallback();
-  const utils = trpc.useContext();
 
   type FormValues = {
     presets: { id: string; name: string }[];
@@ -147,14 +145,14 @@ const InternalNotePresetsView = () => {
 
   const generateId = () => Math.random().toString(36).substring(2) + Date.now().toString(36);
 
-  const { control, handleSubmit } = useForm<FormValues>({
+  const form = useForm<FormValues>({
     defaultValues: {
       presets: [{ id: generateId(), name: "" }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
+  const { fields, append, remove, replace } = useFieldArray({
+    control: form.control,
     name: "presets",
   });
 
@@ -167,47 +165,87 @@ const InternalNotePresetsView = () => {
     showToast("Changes saved", "success");
   };
 
+  const isAdmin =
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+
   return (
-    <div className="mt-8">
-      <Form form={{ handleSubmit: handleSubmit(onSubmit), control }} handleSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col space-y-4">
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex items-center space-x-2">
-              <Controller
-                name={`presets.${index}.name`}
-                control={control}
-                render={({ field }) => (
-                  <input
-                    type="text"
-                    {...field}
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
-                    placeholder={t("note_preset_name")}
-                  />
-                )}
-              />
-              <Button
-                type="button"
-                color="destructive"
-                variant="icon"
-                onClick={() => remove(index)}
-                disabled={fields.length === 1}>
-                <Icon name="trash" className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
+    <>
+      {isAdmin ? (
+        <Form form={form} handleSubmit={console.log}>
+          <Controller
+            name="presets"
+            render={({ field: { value } }) => {
+              const isChecked = value && value.length > 0;
+              return (
+                <SettingsToggle
+                  toggleSwitchAtTheEnd={true}
+                  labelClassName="text-sm"
+                  title={t("internal_note_presets")}
+                  description={t("internal_note_presets_description")}
+                  checked={isChecked}
+                  childrenClassName="lg:ml-0"
+                  onCheckedChange={(active) => {
+                    if (active) {
+                      append({ id: generateId(), name: "" });
+                    } else {
+                      replace([]);
+                    }
+                  }}
+                  switchContainerClassName={classNames(
+                    "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                    isChecked && "rounded-b-none"
+                  )}>
+                  {isChecked && (
+                    <div className="border-subtle border border-y-0 p-6">
+                      <div className="flex flex-col space-y-4">
+                        {fields.map((field, index) => (
+                          <div key={field.id} className="flex items-center space-x-2">
+                            <Controller
+                              name={`presets.${index}.name`}
+                              control={form.control}
+                              render={({ field }) => (
+                                <input
+                                  type="text"
+                                  {...field}
+                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                  placeholder={t("note_preset_name")}
+                                />
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              color="destructive"
+                              variant="icon"
+                              onClick={() => remove(index)}
+                              disabled={fields.length === 1}>
+                              <Icon name="trash" className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <Button type="button" color="secondary" StartIcon="plus" onClick={addNewPreset}>
+                        {t("add_preset")}
+                      </Button>
+                      <div className="mt-4 flex justify-between">
+                        <SectionBottomActions align="end">
+                          <Button type="submit" color="primary">
+                            {t("save")}
+                          </Button>
+                        </SectionBottomActions>
+                      </div>
+                    </div>
+                  )}
+                </SettingsToggle>
+              );
+            }}
+          />
+        </Form>
+      ) : (
+        <div className="border-subtle rounded-md border p-5">
+          <span className="text-default text-sm">{t("only_owner_change")}</span>
         </div>
-        <div className="mt-4 flex justify-between">
-          <Button type="button" color="secondary" StartIcon="plus" onClick={addNewPreset}>
-            {t("add_preset")}
-          </Button>
-          <SectionBottomActions align="end">
-            <Button type="submit" color="primary">
-              {t("save")}
-            </Button>
-          </SectionBottomActions>
-        </div>
-      </Form>
-    </div>
+      )}
+    </>
   );
 };
 
@@ -242,7 +280,7 @@ const TeamSettingsViewWrapper = () => {
   return (
     <>
       <BookingLimitsView team={team} />
-      <InternalNotePresetsView />
+      <InternalNotePresetsView team={team} />
     </>
   );
 };
