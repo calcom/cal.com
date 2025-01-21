@@ -2927,5 +2927,9 @@
   "managed_users_description": "See all the managed users created by your OAuth client",
   "select_oAuth_client": "Select Oauth Client",
   "on_every_instance": "On every instance",
+  "internal_note_presets":"Internal Cancelation Notes Presets",
+  "internal_note_presets_description" : "Create presets for internal notes that can be applied to bookings",
+  "internal_note_presets_updated_successfully" : "Internal note presets updated successfully",
+  "add_preset" : "Add Preset",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -117,7 +117,6 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                                 type="text"
                                 {...field}
                                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
-                                placeholder={t("note_preset_name")}
                               />
                             )}
                           />
