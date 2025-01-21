@@ -10,7 +10,6 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { DateTime } from "luxon";
-import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
 import { getAvailableSlots, dynamicEvent } from "@calcom/platform-libraries";
@@ -28,6 +27,14 @@ export class SlotsService_2024_09_04 {
     private readonly usersRepository: UsersRepository,
     private readonly slotsOutputService: SlotsOutputService_2024_09_04
   ) {}
+
+  async getReservedSlot(uid: string) {
+    const slot = await this.slotsRepository.getByUid(uid);
+    if (!slot) {
+      return null;
+    }
+    return this.slotsOutputService.getOutputSlot(slot);
+  }
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
     const eventType = await this.getEventType(query);
@@ -78,7 +85,7 @@ export class SlotsService_2024_09_04 {
     return dateTime.toISO();
   }
 
-  async reserveSlot(input: ReserveSlotInput_2024_09_04, existingUid?: string) {
+  async reserveSlot(input: ReserveSlotInput_2024_09_04) {
     const eventType = await this.eventTypeRepository.getEventTypeWithHosts(input.eventTypeId);
     if (!eventType) {
       throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
@@ -129,61 +136,114 @@ export class SlotsService_2024_09_04 {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
-    const uid = existingUid || uuid();
     if (eventType.userId) {
-      const slot = await this.slotsRepository.upsertSlot(
+      const slot = await this.slotsRepository.createSlot(
         eventType.userId,
         eventType.id,
         startDate.toISO(),
         endDate.toISO(),
-        uid,
         eventType.seatsPerTimeSlot !== null,
         input.reservationDuration
       );
-      return {
-        eventTypeId: eventType.id,
-        slotStart:
-          DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
-        slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
-        slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
-          DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
-          "minutes"
-        ).minutes,
-        reservationDuration: input.reservationDuration,
-        reservationUid: slot.uid,
-        reservationUntil:
-          DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
-      };
+      return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
     }
 
     const host = eventType.hosts[0];
-    const slot = await this.slotsRepository.upsertSlot(
+    const slot = await this.slotsRepository.createSlot(
       host.userId,
       eventType.id,
       startDate.toISO(),
       endDate.toISO(),
-      uid,
       eventType.seatsPerTimeSlot !== null,
       input.reservationDuration
     );
 
-    return {
-      eventTypeId: eventType.id,
-      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
-      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
-      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
-        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
-        "minutes"
-      ).minutes,
-      reservationDuration: input.reservationDuration,
-      reservationUid: slot.uid,
-      reservationUntil:
-        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
-    };
+    return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
   }
 
-  async deleteSelectedSlot(uid: string) {
-    return this.slotsRepository.deleteSelectedSlots(uid);
+  async updateReservedSlot(input: ReserveSlotInput_2024_09_04, uid: string) {
+    const dbSlot = await this.slotsRepository.getByUid(uid);
+    if (!dbSlot) {
+      throw new NotFoundException(`Slot with uid=${uid} not found`);
+    }
+
+    const eventType = await this.eventTypeRepository.getEventTypeWithHosts(input.eventTypeId);
+    if (!eventType) {
+      throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
+    }
+
+    const startDate = DateTime.fromISO(input.slotStart, { zone: "utc" });
+    if (!startDate.isValid) {
+      throw new BadRequestException("Invalid start date");
+    }
+
+    const metadata = eventTypeMetadataSchema.parse(eventType);
+    if (
+      input.slotDuration &&
+      metadata.multipleDuration &&
+      !metadata.multipleDuration.includes(input.slotDuration)
+    ) {
+      throw new BadRequestException(
+        `Provided 'slotDuration' is not one of the possible lengths for the event type. The possible lengths for this variable length event type are: ${metadata.multipleDuration.join(
+          ", "
+        )}`
+      );
+    }
+
+    const endDate = startDate.plus({ minutes: input.slotDuration ?? eventType.length });
+    if (!endDate.isValid) {
+      throw new BadRequestException("Invalid end date");
+    }
+
+    const booking = await this.slotsRepository.getBookingWithAttendeesByEventTypeIdAndStart(
+      input.eventTypeId,
+      startDate.toJSDate()
+    );
+
+    if (eventType.seatsPerTimeSlot) {
+      const attendeesCount = booking?.attendees?.length;
+      if (attendeesCount) {
+        const seatsLeft = eventType.seatsPerTimeSlot - attendeesCount;
+        if (seatsLeft < 1) {
+          throw new UnprocessableEntityException(
+            `Booking with id=${input.eventTypeId} at ${input.slotStart} has no more seats left.`
+          );
+        }
+      }
+    }
+
+    const nonSeatedEventAlreadyBooked = !eventType.seatsPerTimeSlot && booking;
+    if (nonSeatedEventAlreadyBooked) {
+      throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
+    }
+
+    if (eventType.userId) {
+      const slot = await this.slotsRepository.updateSlot(
+        eventType.userId,
+        eventType.id,
+        startDate.toISO(),
+        endDate.toISO(),
+        dbSlot.id,
+        input.reservationDuration
+      );
+      return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
+    }
+
+    const host = eventType.hosts[0];
+    const slot = await this.slotsRepository.updateSlot(
+      host.userId,
+      eventType.id,
+      startDate.toISO(),
+      endDate.toISO(),
+      dbSlot.id,
+      input.reservationDuration
+    );
+
+    return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
+  }
+
+  async deleteReservedSlot(uid: string) {
+    return this.slotsRepository.deleteSlot(uid);
   }
 
   async getEventType(input: GetSlotsInput_2024_09_04) {

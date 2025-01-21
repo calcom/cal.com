@@ -5268,53 +5268,10 @@
       }
     },
     "/v2/slots": {
-      "post": {
-        "operationId": "SlotsController_2024_09_04_reserveSlot",
-        "summary": "Reserve a slot",
-        "description": "Prevent double booking by reserving a slot.",
-        "parameters": [
-          {
-            "name": "cal-api-version",
-            "in": "header",
-            "description": "Must be set to `2024-09-04`",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Slots"
-        ]
-      }
-    },
-    "/v2/slots/available": {
       "get": {
         "operationId": "SlotsController_2024_09_04_getAvailableSlots",
-        "summary": "Get available slots",
-        "description": "\n      There are 3 ways to get available slots:\n      \n      1. By event type id: schema ById_2024_09_04. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug: schema BySlug_2024_09_04. Example '/api/v2/slots/available?eventTypeSlug=intro&start=2050-09-05&end=2050-09-06'\n\n      3. By usernames: schema ByUsernames_2024_09_04. Example '/api/v2/slots/available?usernames=alice,bob&start=2050-09-05&end=2050-09-06&duration=60'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked,\n      and \"eventTypeId\", \"eventTypeSlug\" or \"usernames\" query parameters to specify the event type or users for which available slots should be checked.\n      ",
+        "summary": "Find out when is an event type ready to be booked.",
+        "description": "\n      There are 3 ways to get available slots:\n      \n      1. By event type id. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/api/v2/slots/available?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By usernames (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/api/v2/slots/available?usernames=alice,bob&username=bob&start=2050-09-05&end=2050-09-06&duration=60'\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -5436,9 +5393,138 @@
         ]
       }
     },
-    "/v2/slots/{uid}": {
+    "/v2/slots/reservations": {
+      "post": {
+        "operationId": "SlotsController_2024_09_04_reserveSlot",
+        "summary": "Reserve a slot",
+        "description": "Make a slot not available for others to book for a certain period of time.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/v2/slots/reservations/{uid}": {
+      "get": {
+        "operationId": "SlotsController_2024_09_04_getReservedSlot",
+        "summary": "Get reserved slot",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      },
+      "patch": {
+        "operationId": "SlotsController_2024_09_04_updateReservedSlot",
+        "summary": "Updated reserved a slot",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      },
       "delete": {
-        "operationId": "SlotsController_2024_09_04_deleteSelectedSlot",
+        "operationId": "SlotsController_2024_09_04_deleteReservedSlot",
         "parameters": [
           {
             "name": "cal-api-version",
@@ -16468,6 +16554,31 @@
           },
           "data": {
             "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetReservedSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
+              }
+            ]
           }
         },
         "required": [

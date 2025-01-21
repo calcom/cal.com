@@ -1,9 +1,21 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
-import { Cookies } from "@/lib/decorators/cookies.decorator";
+import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Param, Res, HttpCode, HttpStatus } from "@nestjs/common";
+import {
+  Query,
+  Body,
+  Controller,
+  Get,
+  Delete,
+  Post,
+  Param,
+  Res,
+  HttpCode,
+  HttpStatus,
+  Patch,
+} from "@nestjs/common";
 import {
   ApiOperation,
   ApiTags as DocsTags,
@@ -11,7 +23,6 @@ import {
   ApiResponse as DocsResponse,
   ApiQuery,
 } from "@nestjs/swagger";
-import { Response as ExpressResponse } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -34,40 +45,23 @@ import { ApiResponse } from "@calcom/platform-types";
 export class SlotsController_2024_09_04 {
   constructor(private readonly slotsService: SlotsService_2024_09_04) {}
 
-  @Post("/")
+  @Get("/")
   @ApiOperation({
-    summary: "Reserve a slot",
-    description: "Prevent double booking by reserving a slot.",
-  })
-  async reserveSlot(
-    @Body() body: ReserveSlotInput_2024_09_04,
-    @Cookies("uid") uidCookie: string | undefined,
-    @Res({ passthrough: true }) response: ExpressResponse
-  ): Promise<ReserveSlotOutput_2024_09_04> {
-    const reservedSlot = await this.slotsService.reserveSlot(body, uidCookie);
-
-    response.cookie("uid", reservedSlot.reservationUid);
-
-    return {
-      status: SUCCESS_STATUS,
-      data: reservedSlot,
-    };
-  }
-
-  @Get("/available")
-  @ApiOperation({
-    summary: "Get available slots",
+    summary: "Find out when is an event type ready to be booked.",
     description: `
       There are 3 ways to get available slots:
       
-      1. By event type id: schema ById_2024_09_04. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
+      1. By event type id. Example '/api/v2/slots/available?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'
 
-      2. By event type slug: schema BySlug_2024_09_04. Example '/api/v2/slots/available?eventTypeSlug=intro&start=2050-09-05&end=2050-09-06'
+      2. By event type slug + username. Example '/api/v2/slots/available?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
-      3. By usernames: schema ByUsernames_2024_09_04. Example '/api/v2/slots/available?usernames=alice,bob&start=2050-09-05&end=2050-09-06&duration=60'
+      3. By usernames (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/api/v2/slots/available?usernames=alice,bob&username=bob&start=2050-09-05&end=2050-09-06&duration=60'
 
-      All of them require "start" and "end" query parameters which define the time range for which available slots should be checked,
-      and "eventTypeId", "eventTypeSlug" or "usernames" query parameters to specify the event type or users for which available slots should be checked.
+      All of them require "start" and "end" query parameters which define the time range for which available slots should be checked.
+      Optional parameters are:
+      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.
+      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.
+      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use "range" as value.
       `,
   })
   @ApiQuery({
@@ -181,7 +175,51 @@ export class SlotsController_2024_09_04 {
     };
   }
 
-  @Delete("/:uid")
+  @Post("/reservations")
+  @ApiOperation({
+    summary: "Reserve a slot",
+    description: "Make a slot not available for others to book for a certain period of time.",
+  })
+  async reserveSlot(@Body() body: ReserveSlotInput_2024_09_04): Promise<ReserveSlotOutput_2024_09_04> {
+    const reservedSlot = await this.slotsService.reserveSlot(body);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: reservedSlot,
+    };
+  }
+
+  @Get("/reservations/:uid")
+  @ApiOperation({
+    summary: "Get reserved slot",
+  })
+  async getReservedSlot(@Param("uid") uid: string): Promise<GetReservedSlotOutput_2024_09_04> {
+    const reservedSlot = await this.slotsService.getReservedSlot(uid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: reservedSlot,
+    };
+  }
+
+  @Patch("/reservations/:uid")
+  @ApiOperation({
+    summary: "Updated reserved a slot",
+  })
+  @HttpCode(HttpStatus.OK)
+  async updateReservedSlot(
+    @Body() body: ReserveSlotInput_2024_09_04,
+    @Param("uid") uid: string
+  ): Promise<ReserveSlotOutput_2024_09_04> {
+    const reservedSlot = await this.slotsService.updateReservedSlot(body, uid);
+
+    return {
+      status: SUCCESS_STATUS,
+      data: reservedSlot,
+    };
+  }
+
+  @Delete("/reservations/:uid")
   @HttpCode(HttpStatus.OK)
   @DocsResponse({
     status: 200,
@@ -192,8 +230,8 @@ export class SlotsController_2024_09_04 {
       },
     },
   })
-  async deleteSelectedSlot(@Param("uid") uid: string): Promise<ApiResponse> {
-    await this.slotsService.deleteSelectedSlot(uid);
+  async deleteReservedSlot(@Param("uid") uid: string): Promise<ApiResponse> {
+    await this.slotsService.deleteReservedSlot(uid);
 
     return {
       status: SUCCESS_STATUS,

@@ -3,13 +3,50 @@ import { Injectable, BadRequestException } from "@nestjs/common";
 import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
-import { RangeSlotsOutput_2024_09_04, SlotsOutput_2024_09_04 } from "@calcom/platform-types";
+import {
+  GetReservedSlotOutput_2024_09_04,
+  RangeSlotsOutput_2024_09_04,
+  ReserveSlotOutput_2024_09_04,
+  SlotsOutput_2024_09_04,
+} from "@calcom/platform-types";
+import { SelectedSlots } from "@calcom/prisma/client";
 
 type GetAvailableSlots = { slots: Record<string, { time: string }[]> };
 
 @Injectable()
 export class SlotsOutputService_2024_09_04 {
   constructor(private readonly eventTypesRepository: EventTypesRepository_2024_06_14) {}
+
+  getOutputSlot(slot: SelectedSlots): GetReservedSlotOutput_2024_09_04 {
+    return {
+      eventTypeId: slot.eventTypeId,
+      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+        "minutes"
+      ).minutes,
+      reservationUid: slot.uid,
+      reservationUntil:
+        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+    };
+  }
+
+  getOutputReservedSlot(slot: SelectedSlots, reservationDuration: number): ReserveSlotOutput_2024_09_04 {
+    return {
+      eventTypeId: slot.eventTypeId,
+      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+        "minutes"
+      ).minutes,
+      reservationDuration,
+      reservationUid: slot.uid,
+      reservationUntil:
+        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+    };
+  }
 
   async getOutputSlots(
     availableSlots: GetAvailableSlots,

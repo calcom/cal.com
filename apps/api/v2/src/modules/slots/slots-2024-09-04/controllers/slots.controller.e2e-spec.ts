@@ -4,6 +4,7 @@ import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
 import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
@@ -261,7 +262,8 @@ describe("Slots Endpoints", () => {
     let eventTypeId: number;
     let eventTypeSlug: string;
     let eventTypeLength: number;
-    let reservedSlotUid: string;
+
+    let reservedSlot: ReserveSlotOutputData_2024_09_04;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -320,7 +322,7 @@ describe("Slots Endpoints", () => {
 
     it("should get slots in UTC by event type id", async () => {
       return request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -337,9 +339,7 @@ describe("Slots Endpoints", () => {
 
     it("should get slots in specified time zone by event type id", async () => {
       return request(app.getHttpServer())
-        .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`
-        )
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -357,7 +357,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in UTC by event type slug", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -376,7 +376,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified time zone by event type slug", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -395,9 +395,7 @@ describe("Slots Endpoints", () => {
 
     it("should get slots by event type id and with start hours specified", async () => {
       return request(app.getHttpServer())
-        .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09`
-        )
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -416,9 +414,7 @@ describe("Slots Endpoints", () => {
 
     it("should get slots by event type id and with end hours specified", async () => {
       return request(app.getHttpServer())
-        .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z`
-        )
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -438,7 +434,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified time zone by event type id and with start hours specified", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05T09:00:00.000Z&end=2050-09-09&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -459,7 +455,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified time zone by event type id and with end hours specified", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z&timeZone=Europe/Rome`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09T12:00:00.000Z&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -479,9 +475,7 @@ describe("Slots Endpoints", () => {
 
     it("should get slots in UTC by event type id in range format", async () => {
       return request(app.getHttpServer())
-        .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&format=range`
-        )
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&format=range`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .expect((res) => {
@@ -495,7 +489,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified time zone by event type id in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&timeZone=Europe/Rome&format=range`
+          `/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-10&timeZone=Europe/Rome&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -510,7 +504,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in UTC by event type slug in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&format=range`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -529,7 +523,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified time zone by event type slug in range format", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome&format=range`
+          `/v2/slots?eventTypeSlug=${eventTypeSlug}&username=${user.username}&start=2050-09-05&end=2050-09-09&timeZone=Europe/Rome&format=range`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -553,7 +547,7 @@ describe("Slots Endpoints", () => {
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
-        .post(`/api/v2/slots`)
+        .post(`/v2/slots/reservations`)
         .send({
           eventTypeId,
           slotStart: slotStartTime,
@@ -563,23 +557,24 @@ describe("Slots Endpoints", () => {
 
       const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
-      expect(reservedSlot.reservationUid).toBeDefined();
-      expect(reservedSlot.eventTypeId).toEqual(eventTypeId);
-      expect(reservedSlot.slotStart).toEqual(slotStartTime);
-      expect(reservedSlot.slotDuration).toEqual(eventTypeLength);
-      expect(reservedSlot.slotEnd).toEqual(
+      const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(responseReservedSlot.reservationUid).toBeDefined();
+      expect(responseReservedSlot.eventTypeId).toEqual(eventTypeId);
+      expect(responseReservedSlot.slotStart).toEqual(slotStartTime);
+      expect(responseReservedSlot.slotDuration).toEqual(eventTypeLength);
+      expect(responseReservedSlot.slotEnd).toEqual(
         DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
       );
-      expect(reservedSlot.reservationDuration).toEqual(5);
+      expect(responseReservedSlot.reservationDuration).toEqual(5);
 
-      if (!reservedSlot.reservationUid) {
+      if (!responseReservedSlot.reservationUid) {
         throw new Error("Reserved slot uid is undefined");
       }
-      reservedSlotUid = reservedSlot.reservationUid;
+
+      reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -596,22 +591,111 @@ describe("Slots Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlotUid);
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
-        expect(reservedSlot.reservationUntil).toEqual(expectedReleaseAt);
+        expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
       }
       clear();
     });
 
-    it("should delete reserved slot", async () => {
-      await request(app.getHttpServer())
-        .delete(`/api/v2/slots/${reservedSlotUid}`)
+    it("should get reserved slot", async () => {
+      const reserveResponse = await request(app.getHttpServer())
+        .get(`/v2/slots/reservations/${reservedSlot.reservationUid}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
+
+      const reserveResponseBody: GetReservedSlotOutput_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const { reservationDuration, ...rest } = reservedSlot;
+      expect(reserveResponseBody.data).toEqual(rest);
+    });
+
+    it("should update a reserved slot and it should not appear in available slots", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T14:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T13:00:00.000Z";
+      const reserveResponse = await request(app.getHttpServer())
+        .patch(`/v2/slots/reservations/${reservedSlot.reservationUid}`)
+        .send({
+          eventTypeId,
+          slotStart: slotStartTime,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(responseReservedSlot.reservationUid).toBeDefined();
+      expect(responseReservedSlot.eventTypeId).toEqual(eventTypeId);
+      expect(responseReservedSlot.slotStart).toEqual(slotStartTime);
+      expect(responseReservedSlot.slotDuration).toEqual(eventTypeLength);
+      expect(responseReservedSlot.slotEnd).toEqual(
+        DateTime.fromISO(slotStartTime, { zone: "UTC" }).plus({ minutes: eventTypeLength }).toISO()
+      );
+      expect(responseReservedSlot.reservationDuration).toEqual(5);
+
+      if (!responseReservedSlot.reservationUid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+
+      reservedSlot = responseReservedSlot;
+
+      const response = await request(app.getHttpServer())
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot !== slotStartTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      expect(dbSlot).toBeDefined();
+      if (dbSlot) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 5 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+        expect(responseReservedSlot.reservationUntil).toEqual(expectedReleaseAt);
+      }
+      clear();
+    });
+
+    it("should delete reserved slot and it should not appear in available slots", async () => {
+      await request(app.getHttpServer())
+        .delete(`/v2/slots/reservations/${reservedSlot.reservationUid}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+      expect(slots).toEqual({ ...expectedSlotsUTC });
     });
 
     it("should reserve a slot with custom duration and it should not appear in available slots", async () => {
@@ -622,7 +706,7 @@ describe("Slots Endpoints", () => {
 
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
-        .post(`/api/v2/slots`)
+        .post(`/v2/slots/reservations`)
         .send({
           eventTypeId,
           slotStart: slotStartTime,
@@ -633,15 +717,15 @@ describe("Slots Endpoints", () => {
 
       const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
-      const reservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
-      expect(reservedSlot.reservationUid).toBeDefined();
-      if (!reservedSlot.reservationUid) {
+      const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(responseReservedSlot.reservationUid).toBeDefined();
+      if (!responseReservedSlot.reservationUid) {
         throw new Error("Reserved slot uid is undefined");
       }
-      reservedSlotUid = reservedSlot.reservationUid;
+      reservedSlot = responseReservedSlot;
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -658,14 +742,14 @@ describe("Slots Endpoints", () => {
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
 
-      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlotUid);
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
       expect(dbSlot).toBeDefined();
       if (dbSlot) {
         const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
         const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
         expect(dbReleaseAt).toEqual(expectedReleaseAt);
       }
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       clear();
     });
 
@@ -695,7 +779,7 @@ describe("Slots Endpoints", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -713,7 +797,7 @@ describe("Slots Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
-      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlotUid);
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
       clear();
 
@@ -879,7 +963,7 @@ describe("Slots Endpoints", () => {
 
     it("should get collective team event slots in UTC", async () => {
       return request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -896,7 +980,7 @@ describe("Slots Endpoints", () => {
 
     it("should get round robin team event slots in UTC", async () => {
       return request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
         .then(async (response) => {
@@ -938,7 +1022,7 @@ describe("Slots Endpoints", () => {
       collectiveBookingId = booking.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -982,7 +1066,7 @@ describe("Slots Endpoints", () => {
       roundRobinBookingId = booking.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -1049,7 +1133,7 @@ describe("Slots Endpoints", () => {
       fullyBookedRoundRobinBookingIdTwo = bookingTwo.id;
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots/available?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .get(`/v2/slots?eventTypeId=${roundRobinEventTypeId}&start=2050-09-05&end=2050-09-09`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -1145,7 +1229,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in UTC by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60`
+          `/v2/slots?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -1164,7 +1248,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/api/v2/slots/available?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
+          `/v2/slots?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
