@@ -1,7 +1,7 @@
 import { VERSION_2024_09_04 } from "@/lib/api-versions";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
-import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
+import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots.service";
 import {
   Query,
@@ -143,28 +143,60 @@ export class SlotsController_2024_09_04 {
   @DocsResponse({
     status: 200,
     description:
-      "A map of available slots indexed by date, where each date is associated with an array of time slots. If you pass query parameter `format=range` then each slot will be an object with `start` and `end` properties denoting start and end of the slot.",
+      "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.",
     schema: {
-      type: "object",
-      additionalProperties: {
-        type: "array",
-        items: { type: "string" },
-      },
-      example: {
-        status: "success",
-        data: {
-          "2050-09-05": [
-            "2050-09-05T09:00:00.000+02:00",
-            "2050-09-05T10:00:00.000+02:00",
-            "2050-09-05T11:00:00.000+02:00",
-          ],
-          "2050-09-06": [
-            "2050-09-06T09:00:00.000+02:00",
-            "2050-09-06T10:00:00.000+02:00",
-            "2050-09-06T11:00:00.000+02:00",
-          ],
+      oneOf: [
+        {
+          type: "object",
+          title: "Default format (or with format=time)",
+          additionalProperties: {
+            type: "array",
+            items: { type: "string" },
+          },
+          example: {
+            status: "success",
+            data: {
+              "2050-09-05": [
+                "2050-09-05T09:00:00.000+02:00",
+                "2050-09-05T10:00:00.000+02:00",
+                "2050-09-05T11:00:00.000+02:00",
+              ],
+              "2050-09-06": [
+                "2050-09-06T09:00:00.000+02:00",
+                "2050-09-06T10:00:00.000+02:00",
+                "2050-09-06T11:00:00.000+02:00",
+              ],
+            },
+          },
         },
-      },
+        {
+          type: "object",
+          title: "Range format (when format=range)",
+          additionalProperties: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                start: { type: "string" },
+                end: { type: "string" },
+              },
+            },
+          },
+          example: {
+            status: "success",
+            data: {
+              "2050-09-05": [
+                { start: "2050-09-05T09:00:00.000+02:00", end: "2050-09-05T10:00:00.000+02:00" },
+                { start: "2050-09-05T10:00:00.000+02:00", end: "2050-09-05T11:00:00.000+02:00" },
+              ],
+              "2050-09-06": [
+                { start: "2050-09-06T09:00:00.000+02:00", end: "2050-09-06T10:00:00.000+02:00" },
+                { start: "2050-09-06T10:00:00.000+02:00", end: "2050-09-06T11:00:00.000+02:00" },
+              ],
+            },
+          },
+        },
+      ],
     },
   })
   async getAvailableSlots(
@@ -183,7 +215,9 @@ export class SlotsController_2024_09_04 {
     summary: "Reserve a slot",
     description: "Make a slot not available for others to book for a certain period of time.",
   })
-  async reserveSlot(@Body() body: ReserveSlotInput_2024_09_04): Promise<ReserveSlotOutput_2024_09_04> {
+  async reserveSlot(
+    @Body() body: ReserveSlotInput_2024_09_04
+  ): Promise<ReserveSlotOutputResponse_2024_09_04> {
     const reservedSlot = await this.slotsService.reserveSlot(body);
 
     return {
@@ -217,7 +251,7 @@ export class SlotsController_2024_09_04 {
   async updateReservedSlot(
     @Body() body: ReserveSlotInput_2024_09_04,
     @Param("uid") uid: string
-  ): Promise<ReserveSlotOutput_2024_09_04> {
+  ): Promise<ReserveSlotOutputResponse_2024_09_04> {
     const reservedSlot = await this.slotsService.updateReservedSlot(body, uid);
 
     return {

@@ -2,9 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsDateString, IsInt, IsString } from "class-validator";
 
-import { ReserveSlotInput_2024_09_04 } from "../inputs";
-
-export class ReserveSlotOutput_2024_09_04 extends ReserveSlotInput_2024_09_04 {
+export class ReserveSlotOutput_2024_09_04 {
   @IsInt()
   @ApiProperty({ example: 1, description: "The ID of the event type for which slot was reserved." })
   @Expose()

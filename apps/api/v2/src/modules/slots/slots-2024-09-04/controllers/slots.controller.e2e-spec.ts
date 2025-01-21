@@ -6,7 +6,7 @@ import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { GetReservedSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-reserved-slot.output";
 import { GetSlotsOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/get-slots.output";
-import { ReserveSlotOutput_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
+import { ReserveSlotOutputResponse_2024_09_04 } from "@/modules/slots/slots-2024-09-04/outputs/reserve-slot.output";
 import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -555,7 +555,7 @@ describe("Slots Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(201);
 
-      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
       expect(responseReservedSlot.reservationUid).toBeDefined();
@@ -630,7 +630,7 @@ describe("Slots Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
-      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
       expect(responseReservedSlot.reservationUid).toBeDefined();
@@ -715,7 +715,7 @@ describe("Slots Endpoints", () => {
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(201);
 
-      const reserveResponseBody: ReserveSlotOutput_2024_09_04 = reserveResponse.body;
+      const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
       expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
       const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
       expect(responseReservedSlot.reservationUid).toBeDefined();

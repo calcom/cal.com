@@ -5357,32 +5357,80 @@
         ],
         "responses": {
           "200": {
-            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If you pass query parameter `format=range` then each slot will be an object with `start` and `end` properties denoting start and end of the slot.",
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "Default format (or with format=time)",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "example": {
+                        "status": "success",
+                        "data": {
+                          "2050-09-05": [
+                            "2050-09-05T09:00:00.000+02:00",
+                            "2050-09-05T10:00:00.000+02:00",
+                            "2050-09-05T11:00:00.000+02:00"
+                          ],
+                          "2050-09-06": [
+                            "2050-09-06T09:00:00.000+02:00",
+                            "2050-09-06T10:00:00.000+02:00",
+                            "2050-09-06T11:00:00.000+02:00"
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "Range format (when format=range)",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "start": {
+                              "type": "string"
+                            },
+                            "end": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "status": "success",
+                        "data": {
+                          "2050-09-05": [
+                            {
+                              "start": "2050-09-05T09:00:00.000+02:00",
+                              "end": "2050-09-05T10:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-05T10:00:00.000+02:00",
+                              "end": "2050-09-05T11:00:00.000+02:00"
+                            }
+                          ],
+                          "2050-09-06": [
+                            {
+                              "start": "2050-09-06T09:00:00.000+02:00",
+                              "end": "2050-09-06T10:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-06T10:00:00.000+02:00",
+                              "end": "2050-09-06T11:00:00.000+02:00"
+                            }
+                          ]
+                        }
+                      }
                     }
-                  },
-                  "example": {
-                    "status": "success",
-                    "data": {
-                      "2050-09-05": [
-                        "2050-09-05T09:00:00.000+02:00",
-                        "2050-09-05T10:00:00.000+02:00",
-                        "2050-09-05T11:00:00.000+02:00"
-                      ],
-                      "2050-09-06": [
-                        "2050-09-06T09:00:00.000+02:00",
-                        "2050-09-06T10:00:00.000+02:00",
-                        "2050-09-06T11:00:00.000+02:00"
-                      ]
-                    }
-                  }
+                  ]
                 }
               }
             }
@@ -5425,7 +5473,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                  "$ref": "#/components/schemas/ReserveSlotOutputResponse_2024_09_04"
                 }
               }
             }
@@ -5513,7 +5561,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+                  "$ref": "#/components/schemas/ReserveSlotOutputResponse_2024_09_04"
                 }
               }
             }
@@ -16517,7 +16565,7 @@
           "eventTypeId": {
             "type": "number",
             "example": 1,
-            "description": "The ID of the event type for which booking should be reserved."
+            "description": "The ID of the event type for which slot should be reserved."
           },
           "slotStart": {
             "type": "string",
@@ -16527,7 +16575,7 @@
           "slotDuration": {
             "type": "number",
             "example": "30",
-            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
           },
           "reservationDuration": {
             "type": "object",
@@ -16537,11 +16585,59 @@
         },
         "required": [
           "eventTypeId",
-          "slotStart",
-          "slotDuration"
+          "slotStart"
         ]
       },
       "ReserveSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot was reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotEnd": {
+            "type": "string",
+            "example": "2024-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing slot end."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationUid": {
+            "type": "string",
+            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
+            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
+          },
+          "reservationUntil": {
+            "type": "string",
+            "example": "2023-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotStart",
+          "slotEnd",
+          "slotDuration",
+          "reservationUid",
+          "reservationDuration",
+          "reservationUntil"
+        ]
+      },
+      "ReserveSlotOutputResponse_2024_09_04": {
         "type": "object",
         "properties": {
           "status": {
