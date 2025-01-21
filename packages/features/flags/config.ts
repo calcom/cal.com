@@ -17,4 +17,5 @@ export type AppFlags = {
   attributes: boolean;
   "organizer-request-email-v2": boolean;
   "domain-wide-delegation": boolean;
+  "salesforce-crm-tasker": boolean;
 };

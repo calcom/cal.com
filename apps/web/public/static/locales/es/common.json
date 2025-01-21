@@ -2926,5 +2926,7 @@
   "managed_users": "Usuarios gestionados",
   "managed_users_description": "Ver todos los usuarios gestionados creados por tu cliente OAuth",
   "select_oAuth_client": "Seleccionar cliente OAuth",
+  "on_every_instance": "En cada instancia",
+  "next": "Siguiente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2926,5 +2926,7 @@
   "managed_users": "托管用户",
   "managed_users_description": "查看由您的 OAuth 客户端创建的所有托管用户",
   "select_oAuth_client": "选择 OAuth 客户端",
+  "on_every_instance": "在每个实例上",
+  "next": "下一步",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

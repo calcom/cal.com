@@ -2928,4 +2928,6 @@ checksums:
     managed_users: c6db1c3bb5c9b451471ca9b8d7dc8366
     managed_users_description: 45fea5321847b0c8ee72ce33684c1283
     select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
+    on_every_instance: db0e9e92055a38572fffa40f44440035
+    next: 89ddbcf710eba274963494f312bdc8a9
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

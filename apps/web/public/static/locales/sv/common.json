@@ -2926,5 +2926,7 @@
   "managed_users": "Hanterade användare",
   "managed_users_description": "Se alla hanterade användare som skapats av din OAuth-klient",
   "select_oAuth_client": "Välj OAuth-klient",
+  "on_every_instance": "På varje instans",
+  "next": "Nästa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

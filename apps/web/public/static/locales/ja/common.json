@@ -2926,5 +2926,7 @@
   "managed_users": "管理対象ユーザー",
   "managed_users_description": "OAuthクライアントによって作成された管理対象ユーザーをすべて表示",
   "select_oAuth_client": "OAuthクライアントを選択",
+  "on_every_instance": "すべてのインスタンスで",
+  "next": "次へ",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

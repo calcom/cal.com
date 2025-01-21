@@ -2926,5 +2926,7 @@
   "managed_users": "Utilizatori administrați",
   "managed_users_description": "Vezi toți utilizatorii administrați creați de clientul tău OAuth",
   "select_oAuth_client": "Selectează clientul OAuth",
+  "on_every_instance": "La fiecare instanță",
+  "next": "Următorul",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

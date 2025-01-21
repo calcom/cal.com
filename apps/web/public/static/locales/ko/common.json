@@ -2926,5 +2926,7 @@
   "managed_users": "관리 대상 사용자",
   "managed_users_description": "OAuth 클라이언트가 생성한 모든 관리 대상 사용자 보기",
   "select_oAuth_client": "OAuth 클라이언트 선택",
+  "on_every_instance": "모든 인스턴스에서",
+  "next": "다음",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

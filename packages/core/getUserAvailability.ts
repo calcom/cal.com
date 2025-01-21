@@ -285,6 +285,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     shouldServeCache,
   } = availabilitySchema.parse(query);
 
+  log.debug(
+    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify(
+      {
+        query,
+        initialData,
+      }
+    )}`
+  );
+
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
   }
@@ -295,11 +304,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const user = initialData?.user || (await getUser(where));
 
-  if (!user) throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
-  log.debug(
-    "getUserAvailability for user",
-    safeStringify({ user: { id: user.id }, slot: { dateFrom, dateTo } })
-  );
+  if (!user) {
+    throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
+  }
 
   let eventType: EventType | null = initialData?.eventType || null;
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
@@ -419,13 +426,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
-    "Using schedule:",
-    safeStringify({
-      chosenSchedule: schedule,
-      eventTypeSchedule: eventType?.schedule,
-      userSchedule: userSchedule,
-      hostSchedule: hostSchedule,
-    })
+    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify(
+      {
+        chosenSchedule: schedule,
+        eventTypeSchedule: eventType?.schedule,
+        userSchedule: userSchedule,
+        hostSchedule: hostSchedule,
+      }
+    )}`
   );
 
   if (
@@ -565,7 +573,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
-  return {
+  const result = {
     busy: detailedBusyTimes,
     timeZone,
     dateRanges: dateRangesInWhichUserIsAvailable,
@@ -575,6 +583,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentSeats,
     datesOutOfOffice,
   };
+
+  log.debug(
+    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(
+      result
+    )}`
+  );
+
+  return result;
 };
 
 export const getPeriodStartDatesBetween = (

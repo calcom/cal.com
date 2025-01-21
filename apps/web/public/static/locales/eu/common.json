@@ -2926,5 +2926,7 @@
   "managed_users": "Kudeatutako erabiltzaileak",
   "managed_users_description": "Ikusi zure OAuth bezeroak sortutako kudeatutako erabiltzaile guztiak",
   "select_oAuth_client": "Hautatu OAuth bezeroa",
+  "on_every_instance": "Instantzia bakoitzean",
+  "next": "Hurrengoa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
