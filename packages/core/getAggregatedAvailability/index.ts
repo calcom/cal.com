@@ -16,22 +16,22 @@ export const getAggregatedAvailability = (
     schedulingType === SchedulingType.COLLECTIVE ||
     schedulingType === SchedulingType.ROUND_ROBIN ||
     userAvailability.length > 1;
+
   const fixedHosts = userAvailability.filter(
     ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
   );
 
-  const dateRangesToIntersect = fixedHosts.map((s) =>
-    !isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges
+  const fixedDateRanges = mergeOverlappingDateRanges(
+    intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
   );
-
-  const unfixedHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
-  if (unfixedHosts.length) {
+  const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
+  const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
+  if (roundRobinHosts.length) {
     dateRangesToIntersect.push(
-      unfixedHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
+      roundRobinHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
     );
   }
-
   const availability = intersect(dateRangesToIntersect);
-
-  return mergeOverlappingDateRanges(availability);
+  // we no longer merge overlapping date ranges, rr-hosts need to be individually available here.
+  return availability;
 };

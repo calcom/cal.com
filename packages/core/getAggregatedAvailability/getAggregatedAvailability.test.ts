@@ -7,7 +7,7 @@ import { getAggregatedAvailability } from ".";
 
 describe("getAggregatedAvailability", () => {
   // This test shouldn't pass; but highlights the issue.
-  it("should ensure either host is available between 11:00 and 11:30 on January 23, 2025", () => {
+  it("should have no host available between 11:00 and 11:30 on January 23, 2025", () => {
     const userAvailability = [
       {
         dateRanges: [],
@@ -38,9 +38,9 @@ describe("getAggregatedAvailability", () => {
       range: { start: Dayjs; end: Dayjs }
     ) => {
       return availability.some(({ start, end }) => {
-        return start <= range.end && end >= range.start;
+        return start <= range.start && end >= range.end;
       });
     };
-    expect(isAvailable(result, timeRangeToCheck)).toBe(true);
+    expect(isAvailable(result, timeRangeToCheck)).toBe(false);
   });
 });
