@@ -1,6 +1,7 @@
 import { getDate } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import type { SchedulingType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 
 export const DEFAULT_TIMEZONE_BOOKER = "Asia/Kolkata";
 export function getBasicMockRequestDataForBooking() {
@@ -55,6 +56,7 @@ export function getMockRequestDataForDynamicGroupBooking({
     eventTypeId: 0;
     eventTypeSlug: string;
     user: string;
+    creationSource?: CreationSource;
   } & CommonPropsMockRequestData;
 }) {
   return {
