@@ -352,7 +352,6 @@ async function handler(
   req: NextApiRequest &
     PlatformClientParams & {
       userId?: number | undefined;
-      creationSource?: CreationSource;
     },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
@@ -1198,7 +1197,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
-        creationSource: req.creationSource,
+        creationSource: req.body.creationSource,
       });
 
       if (booking?.userId) {

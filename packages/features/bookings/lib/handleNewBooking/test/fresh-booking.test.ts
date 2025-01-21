@@ -1549,6 +1549,86 @@ describe("handleNewBooking", () => {
       );
     });
 
+    describe("Creation source tests", () => {
+      test(
+        `should create a booking with creation source as WEBAPP`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getZoomAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                },
+                creationSource: "CreationSource.WEBAPP",
+              },
+            }),
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: BookingLocations.ZoomVideo,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["zoomvideo"]],
+          });
+
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "zoomvideo",
+          });
+          await createBookingScenario(scenarioData);
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking).toEqual(
+            expect.objectContaining({
+              creationSource: "CreationSource.WEBAPP",
+            })
+          );
+        },
+        timeout
+      );
+    });
+
     describe(
       "Availability Check during booking",
       () => {
