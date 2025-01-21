@@ -132,11 +132,6 @@ export default class HubspotCalendarService implements CRM {
           "hubspot",
           credential.userId
         );
-        console.log(
-          "🚀 ~ HubspotCalendarService ~ refreshAccessToken ~ hubspotRefreshToken:",
-          hubspotRefreshToken
-        );
-
         // set expiry date as offset from current time.
         hubspotRefreshToken.expiryDate = Math.round(Date.now() + hubspotRefreshToken.expiresIn * 1000);
         await prisma.credential.update({
