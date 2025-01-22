@@ -38,10 +38,10 @@ const InternalNotePresetsSelect = ({
   };
 
   return (
-    <div className="mb-2 flex flex-col">
+    <div className="mb-4 flex flex-col">
       <Label>{t("internal_booking_note")}</Label>
       <Select
-        className="mb-2 mt-2"
+        className="mb-2"
         options={[
           ...internalNotePresets?.map((preset) => ({
             label: preset.name,
