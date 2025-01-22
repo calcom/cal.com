@@ -164,15 +164,19 @@ function buildSlotsWithDateRanges({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
-  const slots: {
-    time: Dayjs;
-    userIds?: number[];
-    away?: boolean;
-    fromUser?: IFromUser;
-    toUser?: IToUser;
-    reason?: string;
-    emoji?: string;
-  }[] = [];
+  // there can only ever be one slot at a given start time, and based on duration also only a single length.
+  const slots = new Map<
+    string,
+    {
+      time: Dayjs;
+      userIds?: number[];
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
+    }
+  >();
 
   let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
   const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
@@ -233,12 +237,12 @@ function buildSlotsWithDateRanges({
         };
       }
 
-      slots.push(slotData);
+      slots.set(slotData.time.toISOString(), slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
   });
 
-  return slots;
+  return Array.from(slots.values());
 }
 
 function fromIndex<T>(cb: (val: T, i: number, a: T[]) => boolean, index: number) {
