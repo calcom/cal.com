@@ -28,6 +28,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       query: {},
+      userId: testUserId,
     });
 
     await rateLimitApiKey(req, res, vi.fn() as any);
@@ -93,6 +94,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     (checkRateLimitAndThrowError as any).mockRejectedValue(new Error("Rate limit exceeded"));
