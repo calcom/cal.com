@@ -918,7 +918,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
-          className="border-subtle rounded-md border bg-[#292929] p-1 shadow-md"
+          className="border-subtle bg-default rounded-md border p-1 shadow-md"
           sideOffset={5}>
           {!isSmsCalEmail(email) && (
             <DropdownMenuItem className="focus:outline-none">
