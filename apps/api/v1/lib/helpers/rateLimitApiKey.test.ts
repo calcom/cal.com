@@ -13,6 +13,8 @@ import { rateLimitApiKey } from "~/lib/helpers/rateLimitApiKey";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
+const testUserId = 123;
+
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
@@ -38,6 +40,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     (checkRateLimitAndThrowError as any).mockResolvedValueOnce({
@@ -50,7 +53,7 @@ describe("rateLimitApiKey middleware", () => {
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(checkRateLimitAndThrowError).toHaveBeenCalledWith({
-      identifier: "test-key",
+      identifier: testUserId.toString(),
       rateLimitingType: "api",
       onRateLimiterResponse: expect.any(Function),
     });
@@ -60,6 +63,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     const rateLimiterResponse: RatelimitResponse = {
@@ -104,6 +108,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     const rateLimiterResponse: RatelimitResponse = {
@@ -127,8 +132,8 @@ describe("rateLimitApiKey middleware", () => {
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(handleAutoLock).toHaveBeenCalledWith({
-      identifier: "test-key",
-      identifierType: "apiKey",
+      identifier: testUserId.toString(),
+      identifierType: "userId",
       rateLimitResponse: rateLimiterResponse,
     });
 
@@ -140,6 +145,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     const rateLimiterResponse: RatelimitResponse = {
@@ -163,8 +169,8 @@ describe("rateLimitApiKey middleware", () => {
     await rateLimitApiKey(req, res, vi.fn() as any);
 
     expect(handleAutoLock).toHaveBeenCalledWith({
-      identifier: "test-key",
-      identifierType: "apiKey",
+      identifier: testUserId.toString(),
+      identifierType: "userId",
       rateLimitResponse: rateLimiterResponse,
     });
 
@@ -176,6 +182,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     const rateLimiterResponse: RatelimitResponse = {
@@ -200,8 +207,8 @@ describe("rateLimitApiKey middleware", () => {
     await rateLimitApiKey(req, res, next);
 
     expect(handleAutoLock).toHaveBeenCalledWith({
-      identifier: "test-key",
-      identifierType: "apiKey",
+      identifier: testUserId.toString(),
+      identifierType: "userId",
       rateLimitResponse: rateLimiterResponse,
     });
 
@@ -214,6 +221,7 @@ describe("rateLimitApiKey middleware", () => {
     const { req, res } = createMocks({
       method: "GET",
       query: { apiKey: "test-key" },
+      userId: testUserId,
     });
 
     // Mock checkRateLimitAndThrowError to throw HttpError
