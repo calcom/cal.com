@@ -2,7 +2,7 @@
 CREATE TABLE "InternalNotePreset" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT,
+    "cancellationReason" TEXT,
     "teamId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 

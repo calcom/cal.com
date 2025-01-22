@@ -1832,11 +1832,11 @@ model App_RoutingForms_IncompleteBookingActions {
 }
 
 model InternalNotePreset {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-  team        Team    @relation(fields: [teamId], references: [id])
-  teamId      Int
+  id                 Int     @id @default(autoincrement())
+  name               String
+  cancellationReason String?
+  team               Team    @relation(fields: [teamId], references: [id])
+  teamId             Int
 
   createdAt           DateTime              @default(now())
   BookingInternalNote BookingInternalNote[]

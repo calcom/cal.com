@@ -29,6 +29,7 @@ export const getInternalNotesPresetsHandler = async ({ ctx, input }: UpdateMembe
     select: {
       id: true,
       name: true,
+      cancellationReason: true,
     },
   });
 };

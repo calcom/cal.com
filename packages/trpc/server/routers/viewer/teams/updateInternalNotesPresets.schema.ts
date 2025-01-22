@@ -4,8 +4,9 @@ export const ZUpdateInternalNotesPresetsInputSchema = z.object({
   teamId: z.number(),
   presets: z.array(
     z.object({
-      id: z.number().optional(),
+      id: z.number(),
       name: z.string(),
+      cancellationReason: z.string().optional(),
     })
   ),
 });

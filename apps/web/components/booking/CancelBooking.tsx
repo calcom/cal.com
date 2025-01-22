@@ -56,7 +56,7 @@ const InternalNotePresetsSelect = ({
         <textarea
           className="mt-2 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           rows={3}
-          placeholder={t("custom_note_placeholder")}
+          placeholder={t("internal_booking_note_description")}
           onChange={(e) => onPresetSelect?.({ value: "other", label: e.target.value })}
         />
       )}
@@ -151,6 +151,8 @@ export default function CancelBooking(props: Props) {
                     );
                     if (foundInternalNote) {
                       setInternalNote(foundInternalNote);
+                      console.log(foundInternalNote);
+                      setCancellationReason(foundInternalNote.cancellationReason);
                     }
                   }
                 }}

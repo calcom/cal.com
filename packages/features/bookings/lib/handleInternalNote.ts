@@ -49,9 +49,17 @@ export async function handleInternalNote({
   if (internalNote.id === -1) {
     return prisma.bookingInternalNote.create({
       data: {
-        bookingId: booking.id,
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
         text: internalNote.value,
-        createdBy: userId,
+        createdBy: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }
@@ -59,16 +67,28 @@ export async function handleInternalNote({
   // "Preset"
   await prisma.internalNotePreset.findFirstOrThrow({
     where: {
-      teamid: teamId,
+      teamId: teamId,
       id: internalNote.id,
     },
   });
 
   return prisma.bookingInternalNote.create({
     data: {
-      bookingId: booking.id,
-      notePresetId: internalNote.id,
-      createdBy: userId,
+      notePreset: {
+        connect: {
+          id: internalNote.id,
+        },
+      },
+      createdBy: {
+        connect: {
+          id: userId,
+        },
+      },
+      booking: {
+        connect: {
+          id: booking.id,
+        },
+      },
     },
   });
 }

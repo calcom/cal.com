@@ -54,7 +54,7 @@
   "cancellation_reason": "Reason for cancellation (optional)",
   "cancellation_reason_host": "Reason for cancellation",
   "cancellation_reason_placeholder": "Why are you cancelling?",
-  "notify_attendee_cancellation_reason_warning":"Please note that the cancellation reason will be visible to the attendee.",
+  "notify_attendee_cancellation_reason_warning":"Cancellation reason will be shared with guests",
   "rejection_reason_placeholder": "Why are you rejecting?",
   "rejection_reason": "Reason for rejecting",
   "rejection_reason_title": "Reject the booking request?",
