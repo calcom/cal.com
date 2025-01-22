@@ -66,16 +66,18 @@ export function DataTableWrapper<TData, TValue>({
       className={className}
       containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-      <DataTableToolbar.Root>
-        <div className="flex w-full flex-col gap-2">
-          <div className="flex w-full flex-wrap justify-between gap-2">
-            <div className="flex flex-wrap gap-2">{ToolbarLeft}</div>
-            <div className="flex flex-wrap gap-2">{ToolbarRight}</div>
+      {(ToolbarLeft || ToolbarRight) && (
+        <DataTableToolbar.Root>
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-wrap justify-between gap-2">
+              <div className="flex flex-wrap gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap gap-2">{ToolbarRight}</div>
+            </div>
           </div>
-        </div>
 
-        {children}
-      </DataTableToolbar.Root>
+          {children}
+        </DataTableToolbar.Root>
+      )}
 
       {totalDBRowCount && (
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>

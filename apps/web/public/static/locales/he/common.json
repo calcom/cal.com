@@ -2927,5 +2927,6 @@
   "managed_users_description": "צפה בכל המשתמשים המנוהלים שנוצרו על ידי לקוח OAuth שלך",
   "select_oAuth_client": "בחר לקוח OAuth",
   "on_every_instance": "בכל מופע",
+  "next": "הבא",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
