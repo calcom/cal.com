@@ -1,3 +1,6 @@
+/* @import rules must precede all rules aside from @charset and @layer statements. */
+@import "./raqb.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -483,6 +486,3 @@ select:focus {
 .intercom-lightweight-app  {
   @apply z-40 !important;
 }
-
-
-@import "./raqb.css";

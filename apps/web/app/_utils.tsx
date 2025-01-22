@@ -55,7 +55,7 @@ const _generateMetadataWithoutImage = async (
   hideBranding?: boolean,
   origin?: string
 ) => {
-  const h = headers();
+  const h = await headers();
   const pathname = h.get("x-pathname") ?? "";
   const canonical = buildCanonical({ path: pathname, origin: origin ?? CAL_URL });
   const locale = h.get("x-locale") ?? "en";

@@ -45,7 +45,7 @@ const getFallbackProps = () => ({
 });
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const h = headers();
+  const h = await headers();
 
   const fullUrl = h.get("x-url") ?? "";
   const nonce = h.get("x-csp") ?? "";

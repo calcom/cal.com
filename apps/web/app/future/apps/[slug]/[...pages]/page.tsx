@@ -24,7 +24,7 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     return notFound();
   }
 
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyContext = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
   const formName = form?.name;

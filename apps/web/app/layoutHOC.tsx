@@ -27,7 +27,7 @@ export function WithLayout<T extends Record<string, any>>({
 }: WithLayoutParams<T>) {
   // eslint-disable-next-line react/display-name
   return async <P extends "P" | "L">(p: P extends "P" ? PageProps : LayoutProps) => {
-    const h = headers();
+    const h = await headers();
     const nonce = h.get("x-nonce") ?? undefined;
     let props = {} as T;
 

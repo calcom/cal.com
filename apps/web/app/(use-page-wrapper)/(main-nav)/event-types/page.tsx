@@ -19,7 +19,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const session = await getServerSession({ req: context.req });
 
   if (!session?.user?.id) {

@@ -10,7 +10,7 @@ import { type PageProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 import Type from "~/d/[link]/d-type-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const pageProps = await getData(legacyCtx);
 
   const { booking, eventData, isBrandingHidden } = pageProps;

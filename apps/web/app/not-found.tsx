@@ -48,7 +48,7 @@ function getPageInfo(pathname: string, host: string) {
 
 async function NotFound() {
   const t = await getTranslate();
-  const headersList = headers();
+  const headersList = await headers();
   const host = headersList.get("x-forwarded-host") ?? "";
   const pathname = headersList.get("x-pathname") ?? "";
 
@@ -221,7 +221,7 @@ async function NotFound() {
 }
 
 export const generateMetadata = async () => {
-  const headersList = headers();
+  const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? "";
   const isInsights = pathname?.startsWith("/insights");
 

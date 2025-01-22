@@ -11,9 +11,10 @@ import { EventType as EventTypeComponent } from "@calcom/features/eventtypes/com
 import type { EventTypeSetupProps } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTelemetry } from "@calcom/lib/hooks/useTelemetry";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes } from "@calcom/lib/telemetry";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
