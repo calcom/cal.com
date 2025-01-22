@@ -58,7 +58,7 @@ export class SlotsController_2024_09_04 {
 
       2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'
 
-      3. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&start=2050-09-05&end=2050-09-06&duration=60'
+      3. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.
 
       All of them require "start" and "end" query parameters which define the time range for which available slots should be checked.
       Optional parameters are:
