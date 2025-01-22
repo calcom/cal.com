@@ -146,6 +146,35 @@ describe("Tests the date-range slot logic", () => {
 
     expect(result).toHaveLength(5);
   });
+
+  // for now, stay consistent with current behaviour and enable the slot 11:00, 11:45
+  // however, optimal slot allocation is 11:15-12:00,12:00-12:45 (as both hosts can be routed to at this time)
+  it("finds correct slots when two unequal date ranges are given", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      // 11:00-13:00
+      {
+        start: nextDay.hour(11),
+        end: nextDay.hour(13),
+      },
+      // 11:15-13:00
+      {
+        start: nextDay.hour(11).minute(15),
+        end: nextDay.hour(13),
+      },
+    ];
+    const result = getSlots({
+      inviteeDate: nextDay,
+      frequency: 45,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 45,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
+
+    expect(result).toHaveLength(2);
+  });
 });
 
 describe("Tests the slot logic", () => {

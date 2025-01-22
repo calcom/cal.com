@@ -141,6 +141,22 @@ function buildSlots({
   return slots;
 }
 
+const adjustDateRanges = (dateRanges: DateRange[], frequency: number) => {
+  if (dateRanges.length === 0) return;
+
+  const baseStart = dateRanges[0].start.clone(); // Reference start time
+
+  for (let i = 1; i < dateRanges.length; i++) {
+    const timeSinceBase = dateRanges[i].start.diff(baseStart, "minutes");
+    const adjustedStart = baseStart.clone().add(Math.ceil(timeSinceBase / frequency) * frequency, "minutes");
+
+    // Modify the start time directly in the original array
+    dateRanges[i].start = adjustedStart;
+  }
+
+  return dateRanges;
+};
+
 function buildSlotsWithDateRanges({
   dateRanges,
   frequency,
@@ -188,9 +204,14 @@ function buildSlotsWithDateRanges({
     }
   }
 
+  const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+
+  // to stay consistent with past behaviour we need to adjust the dateRanges according to frequency.
+  // this prevents slots appearing as 11:00, 11:15, 11:45, 12:00, .. etc.
+  adjustDateRanges(dateRanges, frequency);
+
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
