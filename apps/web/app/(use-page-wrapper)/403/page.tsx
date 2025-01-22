@@ -1,5 +1,4 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
@@ -27,4 +26,4 @@ async function Error403() {
   );
 }
 
-export default WithLayout({ ServerPage: Error403 });
+export default Error403;
