@@ -220,6 +220,7 @@ describe("OAuth Client Users Endpoints", () => {
       await userConnectedToOAuth(responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -258,6 +259,11 @@ describe("OAuth Client Users Endpoints", () => {
 
       const schedule = scheduleId ? await schedulesRepositoryFixture.getById(scheduleId) : null;
       expect(schedule?.userId).toEqual(userId);
+    }
+
+    async function userHasOnlyOneSchedule(userId: number) {
+      const schedules = await schedulesRepositoryFixture.getByUserId(userId);
+      expect(schedules?.length).toEqual(1);
     }
 
     it(`should fail /POST using already used managed user email`, async () => {
