@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import { sendDeclinedEmailsAndSMS } from "@calcom/emails";
+import { getAllCredentials } from "@calcom/features/bookings/lib/getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -15,6 +16,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getTranslation } from "@calcom/lib/server";
+import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -23,7 +25,6 @@ import {
   WebhookTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -258,34 +259,24 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     // count changed, parsing again to get the new value in
     evt.recurringEvent = parseRecurringEvent(recurringEvent);
   }
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: booking.eventType?.teamId ?? null },
-      parentId: booking?.eventType?.parentId ?? null,
-    },
-  });
 
   if (confirmed) {
-    const credentials = await prisma.credential.findMany({
-      where: {
-        ...(teamId ? { teamId } : { userId: user.id }),
-      },
-      select: credentialForCalendarServiceSelect,
-      orderBy: {
-        id: "asc",
-      },
-    });
+    const credentials = await getUsersCredentials(user);
     const userWithCredentials = {
       ...user,
       credentials,
     };
+    const allCredentials = await getAllCredentials(userWithCredentials, {
+      ...booking.eventType,
+      metadata: booking.eventType?.metadata as EventTypeMetadata,
+    });
     const conferenceCredentialId = getLocationValueForDB(
       booking.location ?? "",
       (booking.eventType?.locations as LocationObject[]) || []
     );
     evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
     await handleConfirmation({
-      user: userWithCredentials,
+      user: { ...user, credentials: allCredentials },
       evt,
       recurringEventId,
       prisma,
@@ -333,6 +324,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     if (emailsEnabled) {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
     }
+
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: booking.eventType?.teamId ?? null },
+        parentId: booking?.eventType?.parentId ?? null,
+      },
+    });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
