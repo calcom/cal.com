@@ -9,6 +9,7 @@ import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { Profile } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -164,6 +165,7 @@ describe("inviteMemberHandler", () => {
         };
 
         expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
+          creationSource: CreationSource.WEBAPP,
           invitationsForNewUsers: allExpectedInvitations,
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
@@ -276,6 +278,7 @@ describe("inviteMemberHandler", () => {
         };
 
         expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
+          creationSource: CreationSource.WEBAPP,
           invitationsForNewUsers: allExpectedInvitations.slice(1),
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
