@@ -270,6 +270,10 @@ export const BookerPlatformWrapper = (
   }>({});
 
   useEffect(() => {
+    console.log(
+      "SEARCH PARAMS FROM PROP: routingFormSearchParams in useEffect Booker Platform Wrapper",
+      routingFormSearchParams
+    );
     const searchParams = routingFormSearchParams
       ? new URLSearchParams(routingFormSearchParams)
       : new URLSearchParams(window.location.search);
