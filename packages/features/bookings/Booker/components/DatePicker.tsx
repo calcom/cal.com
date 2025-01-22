@@ -3,7 +3,6 @@ import { shallow } from "zustand/shallow";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
-import { VISITOR_BROWSER_LANGUAGE } from "@calcom/features/eventtypes/lib/constants";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +18,7 @@ export const DatePicker = ({
   scrollToTimeSlots,
 }: {
   event: {
-    data?: { users: Pick<User, "weekStart">[]; interfaceLanguage: string | null } | null;
+    data?: { users: Pick<User, "weekStart">[] } | null;
   };
   schedule: useScheduleForEventReturnType;
   classNames?: {
@@ -33,10 +32,6 @@ export const DatePicker = ({
   scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
-  const interfaceLanguage =
-    !event.data?.interfaceLanguage || event.data.interfaceLanguage === VISITOR_BROWSER_LANGUAGE
-      ? i18n.language
-      : event.data.interfaceLanguage;
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
   const [setSelectedDate, setMonth, setDayCount] = useBookerStore(
     (state) => [state.setSelectedDate, state.setMonth, state.setDayCount],
@@ -87,7 +82,7 @@ export const DatePicker = ({
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
-      locale={interfaceLanguage}
+      locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
