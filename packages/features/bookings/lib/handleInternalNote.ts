@@ -20,11 +20,11 @@ export async function handleInternalNote({
   userId: number;
   teamId: number;
 }) {
-  const userIsHost = booking.eventType.hosts.find((host) => {
+  const userIsHost = booking?.eventType.hosts.find((host) => {
     if (host.user.id === userId) return true;
   });
 
-  const userIsOwnerOfEventType = booking.eventType.owner?.id === userId;
+  const userIsOwnerOfEventType = booking?.eventType.owner?.id === userId;
 
   if (!userIsHost && !userIsOwnerOfEventType) {
     throw new HttpError({
