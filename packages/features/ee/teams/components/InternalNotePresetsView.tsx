@@ -140,7 +140,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                                 <input
                                   type="text"
                                   {...field}
-                                  placeholder={t("cancellation_reason")}
+                                  placeholder={t("internal_note_cancellation_reason")}
                                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
                                 />
                               )}
