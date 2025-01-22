@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Erreserbatzaileei bilerak erreserbatzeko aukera ematen die ostalari bat erabilgarri dagoenean. Erabili hau bilera potentzialen kopurua maximizatzeko eta ostalarien arteko banaketa orekatua hain garrantzitsua ez denean",
   "rr_distribution_method_balanced_title": "Karga orekatzea",
   "rr_distribution_method_balanced_description": "Ostalari bakoitzarekin egin diren erreserben kopurua monitorizatu eta besteekin konparatuko dugu, aurreregi doazen ostalari batzuk desgaituz erreserbak modu orekatuan banatzeko",
+  "edit_team_member_weights": "Pisuak editatu",
+  "weights_updated_successfully": "Pisuak behar bezala eguneratu dira",
   "require_confirmation_for_free_email": "Baieztapena eskatu soilik doako posta elektronikoko hornitzaileentzat (Adib. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Baztertu hau duten emailak...",
   "require_emails_that_contain": "Helbide elektronikoak hau eduki behar du ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Proba-erreserba bat egiten ari zara.",
   "icon_showcase": "Ikonoen erakusleihoa",
   "icons_showcase": "Ikonoen erakusleihoa",
+  "feature_currently_disabled": "Eginbidea desgaituta dago",
   "choose_an_option": "Aukeratu aukera bat",
   "enter_option_value": "Sartu aukeraren balioa",
   "remove_option": "Kendu aukera",
+  "managed_users": "Kudeatutako erabiltzaileak",
+  "managed_users_description": "Ikusi zure OAuth bezeroak sortutako kudeatutako erabiltzaile guztiak",
+  "select_oAuth_client": "Hautatu OAuth bezeroa",
+  "on_every_instance": "Instantzia bakoitzean",
+  "next": "Hurrengoa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

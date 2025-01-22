@@ -174,10 +174,23 @@ const userBelongsToTeamProcedure = authedProcedure.use(async ({ ctx, next, getRa
   });
 
   let isOwnerAdminOfParentTeam = false;
+
   // Probably we couldn't find a membership because the user is not a direct member of the team
   // So that would mean ctx.user.organization is present
   if ((parse.data.isAll && ctx.user.organizationId) || (!membership && ctx.user.organizationId)) {
     //Look for membership type in organizationId
+    if (!membership && ctx.user.organizationId && parse.data.teamId) {
+      const isChildTeamOfOrg = await ctx.insightsDb.team.findFirst({
+        where: {
+          id: parse.data.teamId,
+          parentId: ctx.user.organizationId,
+        },
+      });
+      if (!isChildTeamOfOrg) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+    }
+
     const membershipOrg = await ctx.insightsDb.membership.findFirst({
       where: {
         userId: ctx.user.id,
@@ -989,7 +1002,7 @@ export const insightsRouter = router({
 
     return result;
   }),
-  userList: userBelongsToTeamProcedure
+  userList: authedProcedure
     .input(
       z.object({
         teamId: z.coerce.number().nullable(),
@@ -1004,7 +1017,7 @@ export const insightsRouter = router({
         return [];
       }
 
-      if (isAll && user.organizationId && user.isOwnerAdminOfParentTeam) {
+      if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: {
             team: {

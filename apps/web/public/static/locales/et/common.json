@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Võimaldab broneerijatel broneerida kohtumisi alati, kui võõrustaja on saadaval. Kasutage seda, et maksimeerida potentsiaalsete broneeritud kohtumiste arvu, kui kohtumiste ühtlane jaotamine võõrustajate vahel on vähem oluline.",
   "rr_distribution_method_balanced_title": "Koormuse tasakaalustamine",
   "rr_distribution_method_balanced_description": "Jälgime, kui palju broneeringuid on tehtud iga võõrustajaga ja võrdleme seda teistega, keelates mõned võõrustajad, kes on liiga kaugel ees, et broneeringud oleksid ühtlaselt jaotatud.",
+  "edit_team_member_weights": "Muuda kaale",
+  "weights_updated_successfully": "Kaalud edukalt uuendatud",
   "require_confirmation_for_free_email": "Nõua kinnitust ainult tasuta e-posti teenusepakkujate puhul (nt @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Välista e-kirjad, mis sisaldavad ...",
   "require_emails_that_contain": "Nõutud on e-mailid, mis sisaldavad ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Teed proovibroneeringut.",
   "icon_showcase": "Ikoonide ülevaade",
   "icons_showcase": "Ikoonide ülevaade",
+  "feature_currently_disabled": "Funktsioon on praegu välja lülitatud",
   "choose_an_option": "Vali valik",
   "enter_option_value": "Sisesta valiku väärtus",
   "remove_option": "Eemalda valik",
+  "managed_users": "Hallatavad kasutajad",
+  "managed_users_description": "Vaata kõiki hallatavaid kasutajaid, mis on loodud sinu OAuth kliendi poolt",
+  "select_oAuth_client": "Vali OAuth klient",
+  "on_every_instance": "Igal korral",
+  "next": "Edasi",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

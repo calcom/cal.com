@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Lehetővé teszi a foglalóknak, hogy találkozókat foglaljanak, amikor a házigazda elérhető. Használja ezt a lehetőséget a potenciális találkozók számának maximalizálására, amikor a találkozók egyenletes elosztása a házigazdák között kevésbé fontos.",
   "rr_distribution_method_balanced_title": "Terheléselosztás",
   "rr_distribution_method_balanced_description": "Figyelemmel kísérjük, hogy hány foglalás történt az egyes házigazdákkal, és összehasonlítjuk másokkal, letiltva azokat a házigazdákat, akik túl sok foglalással rendelkeznek, így a foglalások egyenletesen oszlanak el.",
+  "edit_team_member_weights": "Súlyok szerkesztése",
+  "weights_updated_successfully": "A súlyok sikeresen frissítve",
   "require_confirmation_for_free_email": "Csak ingyenes e-mail szolgáltatók esetén kérjen megerősítést (Pl. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Zárja ki azokat az e-maileket, amelyek tartalmazzák ...",
   "require_emails_that_contain": "E-mail címek szükségesek, amelyek tartalmazzák ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Tesztfoglalást végzel.",
   "icon_showcase": "Ikon bemutató",
   "icons_showcase": "Ikonok bemutatója",
+  "feature_currently_disabled": "A funkció jelenleg ki van kapcsolva",
   "choose_an_option": "Válassz egy opciót",
   "enter_option_value": "Add meg az opció értékét",
   "remove_option": "Opció eltávolítása",
+  "managed_users": "Kezelt felhasználók",
+  "managed_users_description": "Az OAuth kliense által létrehozott összes kezelt felhasználó megtekintése",
+  "select_oAuth_client": "OAuth kliens kiválasztása",
+  "on_every_instance": "Minden példányon",
+  "next": "Következő",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

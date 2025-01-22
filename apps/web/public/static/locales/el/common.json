@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Επιτρέπει στους χρήστες να κάνουν κρατήσεις όποτε είναι διαθέσιμος ένας διοργανωτής. Χρησιμοποιήστε το για να μεγιστοποιήσετε τον αριθμό των πιθανών συναντήσεων και όταν η ομοιόμορφη κατανομή των συναντήσεων μεταξύ των διοργανωτών είναι λιγότερο σημαντική.",
   "rr_distribution_method_balanced_title": "Εξισορρόπηση φόρτου",
   "rr_distribution_method_balanced_description": "Θα παρακολουθούμε πόσες κρατήσεις έχουν γίνει με κάθε διοργανωτή και θα τις συγκρίνουμε με άλλους, απενεργοποιώντας κάποιους διοργανωτές που έχουν προχωρήσει πολύ μπροστά ώστε οι κρατήσεις να κατανέμονται ομοιόμορφα.",
+  "edit_team_member_weights": "Επεξεργασία βαρών",
+  "weights_updated_successfully": "Τα βάρη ενημερώθηκαν με επιτυχία",
   "require_confirmation_for_free_email": "Απαίτηση επιβεβαίωσης μόνο για παρόχους δωρεάν email (π.χ. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Εξαίρεση email που περιέχουν ...",
   "require_emails_that_contain": "Απαιτούνται emails που περιέχουν ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Κάνετε μια δοκιμαστική κράτηση.",
   "icon_showcase": "Παρουσίαση εικονιδίων",
   "icons_showcase": "Παρουσίαση εικονιδίων",
+  "feature_currently_disabled": "Η λειτουργία είναι απενεργοποιημένη",
   "choose_an_option": "Επιλέξτε μια επιλογή",
   "enter_option_value": "Εισαγάγετε την τιμή της επιλογής",
   "remove_option": "Αφαίρεση επιλογής",
+  "managed_users": "Διαχειριζόμενοι χρήστες",
+  "managed_users_description": "Δείτε όλους τους διαχειριζόμενους χρήστες που δημιουργήθηκαν από το OAuth client σας",
+  "select_oAuth_client": "Επιλέξτε OAuth Client",
+  "on_every_instance": "Σε κάθε περίπτωση",
+  "next": "Επόμενο",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

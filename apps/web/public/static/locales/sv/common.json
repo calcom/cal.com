@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Låter bokare boka möten när en värd är tillgänglig. Använd detta för att maximera antalet potentiella möten som kan bokas och när jämn fördelning av möten mellan värdar är mindre viktigt.",
   "rr_distribution_method_balanced_title": "Lastbalansering",
   "rr_distribution_method_balanced_description": "Vi övervakar hur många bokningar som har gjorts med varje värd och jämför detta med andra, och inaktiverar vissa värdar som ligger för långt före så att bokningarna fördelas jämnt.",
+  "edit_team_member_weights": "Redigera vikter",
+  "weights_updated_successfully": "Vikterna har uppdaterats",
   "require_confirmation_for_free_email": "Kräv endast bekräftelse för leverantörer av gratise-post (t.ex. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Uteslut e-postmeddelanden som innehåller ...",
   "require_emails_that_contain": "Kräv e-postadresser som innehåller ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Du gör en testbokning.",
   "icon_showcase": "Ikonvisning",
   "icons_showcase": "Ikonvisning",
+  "feature_currently_disabled": "Funktionen är för närvarande inaktiverad",
   "choose_an_option": "Välj ett alternativ",
   "enter_option_value": "Ange alternativets värde",
   "remove_option": "Ta bort alternativ",
+  "managed_users": "Hanterade användare",
+  "managed_users_description": "Se alla hanterade användare som skapats av din OAuth-klient",
+  "select_oAuth_client": "Välj OAuth-klient",
+  "on_every_instance": "På varje instans",
+  "next": "Nästa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

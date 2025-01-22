@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Permite a los usuarios reservar reuniones cuando un anfitrión esté disponible. Utiliza esta opción para maximizar el número de reuniones potenciales y cuando la distribución equitativa entre anfitriones sea menos importante.",
   "rr_distribution_method_balanced_title": "Equilibrio de carga",
   "rr_distribution_method_balanced_description": "Monitorizaremos cuántas reservas se han realizado con cada anfitrión y las compararemos con otros, deshabilitando algunos anfitriones que estén muy por delante para que las reservas se distribuyan uniformemente.",
+  "edit_team_member_weights": "Editar pesos",
+  "weights_updated_successfully": "Pesos actualizados correctamente",
   "require_confirmation_for_free_email": "Solo requerir confirmación para proveedores de correo gratuito (Ej. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Excluir correos que contengan...",
   "require_emails_that_contain": "Requerir correos que contengan...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Estás haciendo una reserva de prueba.",
   "icon_showcase": "Muestra de iconos",
   "icons_showcase": "Muestra de iconos",
+  "feature_currently_disabled": "La función está actualmente desactivada",
   "choose_an_option": "Elige una opción",
   "enter_option_value": "Ingresa el valor de la opción",
   "remove_option": "Eliminar opción",
+  "managed_users": "Usuarios gestionados",
+  "managed_users_description": "Ver todos los usuarios gestionados creados por tu cliente OAuth",
+  "select_oAuth_client": "Seleccionar cliente OAuth",
+  "on_every_instance": "En cada instancia",
+  "next": "Siguiente",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

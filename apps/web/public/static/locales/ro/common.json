@@ -2874,6 +2874,8 @@
   "rr_distribution_method_availability_description": "Permite programatorilor să rezerve întâlniri oricând un host este disponibil. Folosește această opțiune pentru a maximiza numărul potențial de întâlniri programate și când distribuția uniformă a întâlnirilor între hosți este mai puțin importantă.",
   "rr_distribution_method_balanced_title": "Echilibrarea încărcării",
   "rr_distribution_method_balanced_description": "Vom monitoriza câte rezervări au fost făcute cu fiecare host și vom compara acest lucru cu ceilalți, dezactivând temporar hosții care au prea multe programări, astfel încât rezervările să fie distribuite uniform.",
+  "edit_team_member_weights": "Editare ponderi",
+  "weights_updated_successfully": "Ponderile au fost actualizate cu succes",
   "require_confirmation_for_free_email": "Solicită confirmare doar pentru furnizorii de email gratuit (Ex. @gmail.com, @outlook.com)",
   "exclude_emails_that_contain": "Excludează emailurile care conțin ...",
   "require_emails_that_contain": "Necesită adrese de email care conțin ...",
@@ -2917,8 +2919,14 @@
   "dry_run_mode_active": "Efectuați o rezervare de test.",
   "icon_showcase": "Prezentare pictograme",
   "icons_showcase": "Prezentare pictograme",
+  "feature_currently_disabled": "Funcționalitatea este momentan dezactivată",
   "choose_an_option": "Alege o opțiune",
   "enter_option_value": "Introdu valoarea opțiunii",
   "remove_option": "Elimină opțiunea",
+  "managed_users": "Utilizatori administrați",
+  "managed_users_description": "Vezi toți utilizatorii administrați creați de clientul tău OAuth",
+  "select_oAuth_client": "Selectează clientul OAuth",
+  "on_every_instance": "La fiecare instanță",
+  "next": "Următorul",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
