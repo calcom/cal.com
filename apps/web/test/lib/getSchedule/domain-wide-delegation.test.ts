@@ -21,7 +21,7 @@ import { setupAndTeardown } from "./setupAndTeardown";
 describe("getSchedule", () => {
   setupAndTeardown();
   describe("Domain Wide Delegation", () => {
-    test("correctly identifies unavailable slots using DWD credentials", async () => {
+    test("correctly identifies unavailable slots using DWD credentials even without no selected-calendars", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
@@ -49,7 +49,7 @@ describe("getSchedule", () => {
         email: "organizer@example.com",
         id: 101,
         schedules: [TestData.schedules.IstWorkHours],
-        selectedCalendars: [TestData.selectedCalendars.google],
+        selectedCalendars: [],
         // User must be part of organization to be able to use that organization's DWD credential
         teams: payloadToMakePartOfOrganization,
         // No regular credentials provided

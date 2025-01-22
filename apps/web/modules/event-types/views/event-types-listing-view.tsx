@@ -944,7 +944,6 @@ const InfiniteScrollMain = ({
 
 const EventTypesPage: React.FC = () => {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);

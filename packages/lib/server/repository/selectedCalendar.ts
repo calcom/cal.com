@@ -4,36 +4,14 @@ import { prisma } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { SelectedCalendarEventTypeIds } from "@calcom/types/Calendar";
 
+import { buildNonDwdCredential } from "../../domainWideDelegation/clientAndServer";
 import { buildCredentialPayloadForPrisma } from "../buildCredentialPayloadForCalendar";
 
 export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
 };
-export type FindManyArgs = {
-  // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
-  where?: {
-    userId?:
-      | number
-      | {
-          in: number[];
-        };
-    credentialId?: number | null;
-    integration?: string;
-    externalId?: string;
-    eventTypeId?: number | null;
-    googleChannelId?:
-      | string
-      | null
-      | {
-          not: null;
-        };
-  };
-  orderBy?: {
-    userId?: "asc" | "desc";
-  };
-  select?: Prisma.SelectedCalendarSelect;
-};
+export type FindManyArgs = any;
 
 const ensureUserLevelWhere = {
   eventTypeId: null,
@@ -213,11 +191,12 @@ export class SelectedCalendarRepository {
   }
 
   static async findFirstByGoogleChannelId(googleChannelId: string) {
-    return await prisma.selectedCalendar.findFirst({
+    const selectedCalendar = await prisma.selectedCalendar.findFirst({
       where: {
         googleChannelId,
       },
       select: {
+        userId: true,
         credential: {
           select: {
             ...credentialForCalendarServiceSelect,
@@ -228,8 +207,23 @@ export class SelectedCalendarRepository {
             },
           },
         },
+        domainWideDelegationCredential: {
+          select: {
+            id: true,
+            selectedCalendars: {
+              orderBy: {
+                externalId: "asc",
+              },
+            },
+          },
+        },
       },
     });
+    if (!selectedCalendar) {
+      return null;
+    }
+    const { credential, ...rest } = selectedCalendar;
+    return { credential: buildNonDwdCredential(credential), ...rest };
   }
 
   static async findFirst({ where }: { where: Prisma.SelectedCalendarWhereInput }) {

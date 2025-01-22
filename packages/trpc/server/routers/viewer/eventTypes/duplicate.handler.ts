@@ -156,8 +156,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
         data: customInputsData,
       });
     }
-
-    if (hashedLink) {
+    if (hashedLink.length > 0) {
       await prisma.hashedLink.create({
         data: {
           link: generateHashedLink(users[0]?.id ?? newEventType.teamId),

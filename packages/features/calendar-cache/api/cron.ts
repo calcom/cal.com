@@ -21,7 +21,14 @@ function logRejected(result: PromiseSettledResult<unknown>) {
 }
 
 function getUniqueCalendarsByExternalId<
-  T extends { externalId: string; eventTypeId: number | null; credentialId: number | null; id: string }
+  T extends {
+    externalId: string;
+    eventTypeId: number | null;
+    credentialId: number | null;
+    userId: number;
+    id: string;
+    domainWideDelegationCredentialId: string | null;
+  }
 >(calendars: T[]) {
   type ExternalId = string;
   return calendars.reduce(
@@ -30,7 +37,9 @@ function getUniqueCalendarsByExternalId<
         acc[sc.externalId] = {
           eventTypeIds: [sc.eventTypeId],
           credentialId: sc.credentialId,
+          userId: sc.userId,
           id: sc.id,
+          domainWideDelegationCredentialId: sc.domainWideDelegationCredentialId,
         };
       } else {
         acc[sc.externalId].eventTypeIds.push(sc.eventTypeId);
@@ -43,6 +52,8 @@ function getUniqueCalendarsByExternalId<
         eventTypeIds: SelectedCalendarEventTypeIds;
         credentialId: number | null;
         id: string;
+        userId: number;
+        domainWideDelegationCredentialId: string | null;
       }
     >
   );
@@ -53,14 +64,20 @@ const handleCalendarsToUnwatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToUnwatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { eventTypeIds, credentialId, id }]) => {
-        if (!credentialId) {
+      async ([externalId, { eventTypeIds, credentialId, userId, domainWideDelegationCredentialId, id }]) => {
+        if (!credentialId && !domainWideDelegationCredentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+          await SelectedCalendarRepository.updateById(id, {
+            error: "Missing credentialId and domainWideDelegationCredentialId",
+          });
+          console.log("no credentialId and domainWideDelegationCredentialId for SelecedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
+        const cc = await CalendarCache.initFromDwdOrRegularCredential({
+          credentialId,
+          dwdId: domainWideDelegationCredentialId,
+          userId,
+        });
         await cc.unwatchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )
@@ -75,14 +92,20 @@ const handleCalendarsToWatch = async () => {
   const calendarsWithEventTypeIdsGroupedTogether = getUniqueCalendarsByExternalId(calendarsToWatch);
   const result = await Promise.allSettled(
     Object.entries(calendarsWithEventTypeIdsGroupedTogether).map(
-      async ([externalId, { credentialId, eventTypeIds, id }]) => {
-        if (!credentialId) {
+      async ([externalId, { credentialId, domainWideDelegationCredentialId, eventTypeIds, id, userId }]) => {
+        if (!credentialId && !domainWideDelegationCredentialId) {
           // So we don't retry on next cron run
-          await SelectedCalendarRepository.updateById(id, { error: "Missing credentialId" });
-          console.log("no credentialId for SelecedCalendar: ", id);
+          await SelectedCalendarRepository.updateById(id, {
+            error: "Missing credentialId and domainWideDelegationCredentialId",
+          });
+          console.log("no credentialId and domainWideDelegationCredentialId for SelecedCalendar: ", id);
           return;
         }
-        const cc = await CalendarCache.initFromCredentialId(credentialId);
+        const cc = await CalendarCache.initFromDwdOrRegularCredential({
+          credentialId,
+          dwdId: domainWideDelegationCredentialId,
+          userId,
+        });
         await cc.watchCalendar({ calendarId: externalId, eventTypeIds });
       }
     )

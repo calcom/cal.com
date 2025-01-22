@@ -244,17 +244,20 @@ function BookingsContent({ status }: BookingsProps) {
                 </div>
               )}
 
-              <DataTableWrapper
-                table={table}
-                testId={`${status}-bookings`}
-                bodyTestId="bookings"
-                hideHeader={true}
-                isPending={query.isFetching && !flatData}
-                hasNextPage={query.hasNextPage}
-                fetchNextPage={query.fetchNextPage}
-                isFetching={query.isFetching}
-                variant="compact"
-              />
+              {flatData.length > 0 && (
+                <DataTableWrapper
+                  table={table}
+                  testId={`${status}-bookings`}
+                  bodyTestId="bookings"
+                  hideHeader={true}
+                  isPending={query.isFetching && !flatData}
+                  hasNextPage={query.hasNextPage}
+                  fetchNextPage={query.fetchNextPage}
+                  isFetching={query.isFetching}
+                  variant="compact"
+                  containerClassName="!h-[inherit] max-h-[80dvh]"
+                />
+              )}
             </>
           )}
           {query.status === "success" && isEmpty && (

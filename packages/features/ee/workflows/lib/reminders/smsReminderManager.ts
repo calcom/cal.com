@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { getShortenLink } from "@calcom/ee/workflows/lib/reminders/utils";
+import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
@@ -153,26 +153,8 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
     };
 
-    const [meetingUrl, cancelLink, rescheduleLink] = await Promise.allSettled([
-      getShortenLink(urls.meetingUrl),
-      getShortenLink(urls.cancelLink),
-      getShortenLink(urls.rescheduleLink),
-    ]).then((results) => {
-      return results.map((result) => {
-        let finalResult = "";
-
-        if (result.status === "fulfilled") {
-          const v = result.value;
-          if (typeof v === "string") {
-            finalResult = v;
-          } else {
-            finalResult = v.shortLink;
-          }
-        }
-
-        return finalResult;
-      });
-    });
+    const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
+      await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
 
     const variables: VariablesType = {
       eventName: evt.title,

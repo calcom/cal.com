@@ -167,7 +167,7 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
+    "/auth/error",
     /**
      * Paths required by routingForms.handle
      */

@@ -24,6 +24,7 @@ export async function checkRateLimitAndThrowError({
       message: `Rate limit exceeded. Try again in ${secondsToWait} seconds.`,
     });
   }
+  return response;
 }
 
 export async function checkSMSRateLimit({

@@ -1,5 +1,6 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { FeaturesRepository } from "@calcom/features/flags/features.repository";
+import { findDwdCalendarCredential } from "@calcom/lib/domainWideDelegation/server";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import type { Calendar } from "@calcom/types/Calendar";
 
@@ -15,6 +16,36 @@ export class CalendarCache {
     const calendar = await getCalendar(credential);
     return await CalendarCache.init(calendar);
   }
+
+  static async initFromDwdId({
+    dwdId,
+    userId,
+  }: {
+    dwdId: string;
+    userId: number;
+  }): Promise<ICalendarCacheRepository> {
+    const dwdCredential = await findDwdCalendarCredential({ dwdId, userId });
+    const calendar = await getCalendar(dwdCredential);
+    return await CalendarCache.init(calendar);
+  }
+
+  static async initFromDwdOrRegularCredential({
+    credentialId,
+    dwdId,
+    userId,
+  }: {
+    credentialId: number | null;
+    dwdId: string | null;
+    userId: number;
+  }): Promise<ICalendarCacheRepository> {
+    if (dwdId) {
+      return await CalendarCache.initFromDwdId({ dwdId, userId });
+    } else if (credentialId) {
+      return await CalendarCache.initFromCredentialId(credentialId);
+    }
+    throw new Error("No credential or DWD ID provided");
+  }
+
   static async init(calendar: Calendar | null): Promise<ICalendarCacheRepository> {
     const featureRepo = new FeaturesRepository();
     const isCalendarCacheEnabledGlobally = await featureRepo.checkIfFeatureIsEnabledGlobally(

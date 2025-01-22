@@ -29,6 +29,8 @@ export type DataTableProps<TData, TValue> = {
   children?: React.ReactNode;
   identifier?: string;
   enableColumnResizing?: boolean;
+  className?: string;
+  containerClassName?: string;
 };
 
 export function DataTable<TData, TValue>({
@@ -44,6 +46,8 @@ export function DataTable<TData, TValue>({
   enableColumnResizing,
   testId,
   bodyTestId,
+  className,
+  containerClassName,
   ...rest
 }: DataTableProps<TData, TValue> & React.ComponentPropsWithoutRef<"div">) {
   const pathname = usePathname() as string | null;
@@ -88,7 +92,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div
-      className={classNames("grid", rest.className)}
+      className={classNames("grid", className)}
       style={{
         gridTemplateRows: "auto 1fr auto",
         gridTemplateAreas: "'header' 'body' 'footer'",
@@ -100,7 +104,8 @@ export function DataTable<TData, TValue>({
         onScroll={onScroll}
         className={classNames(
           "relative h-[80dvh] overflow-auto", // Set a fixed height for the container
-          "scrollbar-thin border-subtle relative rounded-md border"
+          "scrollbar-thin border-subtle relative rounded-md border",
+          containerClassName
         )}
         style={{ gridArea: "body" }}>
         <TableNew

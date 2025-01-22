@@ -13,6 +13,7 @@ export enum SalesforceFieldType {
   DATE = "date",
   TEXT = "string",
   PHONE = "phone",
+  CUSTOM = "custom",
 }
 
 export enum DateFieldTypeData {
