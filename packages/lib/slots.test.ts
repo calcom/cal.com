@@ -92,6 +92,60 @@ describe("Tests the date-range slot logic", () => {
     });
     expect(result).toHaveLength(72);
   });
+
+  it("can create multiple time slot groups when multiple date ranges are given", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      // 11:00-11:20,11:20-11:40,11:40-12:00
+      {
+        start: nextDay.hour(11),
+        end: nextDay.hour(12),
+      },
+      // 14:00-14:20,14:20-14:40,14:40-15:00
+      {
+        start: nextDay.hour(14),
+        end: nextDay.hour(15),
+      },
+    ];
+    const result = getSlots({
+      inviteeDate: nextDay,
+      frequency: 20,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 20,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
+
+    expect(result).toHaveLength(6);
+  });
+
+  it("can merge multiple time slot groups when multiple date ranges are given that overlap", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
+    const dateRanges = [
+      // 11:00-11:20,11:20-11:40,11:40-12:00
+      {
+        start: nextDay.hour(11),
+        end: nextDay.hour(12),
+      },
+      // 12:00-12:20,12:20-12:40
+      {
+        start: nextDay.hour(11).minute(20),
+        end: nextDay.hour(12).minute(40),
+      },
+    ];
+    const result = getSlots({
+      inviteeDate: nextDay,
+      frequency: 20,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 20,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
+
+    expect(result).toHaveLength(5);
+  });
 });
 
 describe("Tests the slot logic", () => {
