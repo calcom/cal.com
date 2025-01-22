@@ -334,6 +334,31 @@ export const createUserWithLimits = ({
   });
 };
 
+export const createUserWithEnforcedUILang = ({
+  users,
+  slug,
+  UILanguage,
+  title,
+  length,
+}: {
+  users: Fixtures["users"];
+  slug: string;
+  UILanguage: string | null;
+  title?: string;
+  length?: number;
+}) => {
+  return users.create({
+    eventTypes: [
+      {
+        title: title ?? slug,
+        length: length ?? 30,
+        slug,
+        userInterfaceLanguage: UILanguage,
+      },
+    ],
+  });
+};
+
 // this method is not used anywhere else
 // but I'm keeping it here in case we need in the future
 async function createUserWithSeatedEvent(users: Fixtures["users"]) {

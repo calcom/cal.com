@@ -8,6 +8,7 @@ import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
   createNewEventType,
+  createUserWithEnforcedUILang,
   gotoBookingPage,
   gotoFirstEventType,
   saveEventType,
@@ -377,6 +378,50 @@ test.describe("Event Types tests", () => {
         await checkDisplayLocation(page);
         await unCheckDisplayLocation(page);
       });
+    });
+  });
+
+  test.describe("Enforcing event UI language", () => {
+    test.use({
+      locale: "de",
+    });
+
+    test("Browser default", async ({ page, users }) => {
+      const SLUG = "default";
+      const UILanguage = null;
+
+      const user = await createUserWithEnforcedUILang({
+        slug: SLUG,
+        UILanguage,
+        users,
+      });
+
+      await page.goto(`/${user.username}/${SLUG}`);
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      const locator = page.getByTestId("confirm-book-button");
+
+      await expect(locator).toHaveText("Bestätigen");
+    });
+
+    test("Overridden", async ({ page, users }) => {
+      const SLUG = "ar-lng";
+      const UILanguage = "ar";
+
+      const user = await createUserWithEnforcedUILang({
+        slug: SLUG,
+        UILanguage,
+        users,
+      });
+
+      await page.goto(`/${user.username}/${SLUG}`);
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      const locator = page.getByTestId("confirm-book-button");
+
+      await expect(locator).toHaveText("تأكيد");
     });
   });
 });
