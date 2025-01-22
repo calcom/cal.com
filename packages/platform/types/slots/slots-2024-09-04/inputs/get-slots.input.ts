@@ -130,4 +130,12 @@ export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
     example: ["username1", "username2"],
   })
   usernames!: string[];
+
+  @IsString()
+  @ApiProperty({
+    type: String,
+    description: "Slug of the organization to which each user in the `usernames` array belongs.",
+    example: "org-slug",
+  })
+  organizationSlug!: string;
 }

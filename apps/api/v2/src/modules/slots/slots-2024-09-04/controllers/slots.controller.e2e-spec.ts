@@ -13,7 +13,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { Profile, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -1169,12 +1169,17 @@ describe("Slots Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let schedulesService: SchedulesService_2024_06_11;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const userEmailOne = "slot-owner-one-e2e@api.com";
     const userEmailTwo = "slot-owner-two-e2e@api.com";
 
+    let organization: Team;
     let userOne: User;
     let userTwo: User;
+    let orgProfileOne: Profile;
+    let orgProfileTwo: Profile;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -1198,6 +1203,14 @@ describe("Slots Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      organization = await organizationsRepositoryFixture.create({
+        name: "Testy Organization",
+        isOrganization: true,
+        slug: "testy-org",
+      });
 
       userOne = await userRepositoryFixture.create({
         email: userEmailOne,
@@ -1209,6 +1222,36 @@ describe("Slots Endpoints", () => {
         email: userEmailTwo,
         name: "slots owner two",
         username: "slots-owner-two",
+      });
+
+      orgProfileOne = await profileRepositoryFixture.create({
+        uid: `usr-${userOne.id}`,
+        username: "teammate-one",
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: userOne.id,
+          },
+        },
+      });
+
+      orgProfileTwo = await profileRepositoryFixture.create({
+        uid: `usr-${userTwo.id}`,
+        username: "teammate-two",
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: userTwo.id,
+          },
+        },
       });
 
       const userSchedule: CreateScheduleInput_2024_06_11 = {
@@ -1229,7 +1272,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in UTC by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)
@@ -1248,7 +1291,7 @@ describe("Slots Endpoints", () => {
     it("should get slots in specified timezone and in specified duration by usernames", async () => {
       return request(app.getHttpServer())
         .get(
-          `/v2/slots?usernames=${userOne.username},${userTwo.username}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
+          `/v2/slots?usernames=${orgProfileOne.username},${orgProfileTwo.username}&organizationSlug=${organization.slug}&start=2050-09-05&end=2050-09-09&duration=60&timeZone=Europe/Rome`
         )
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200)

@@ -27,6 +27,7 @@ export class SlotsInputService_2024_09_04 {
     const eventTypeSlug = eventType.slug;
     const usernameList = "usernames" in query ? query.usernames : [];
     const timeZone = query.timeZone;
+    const orgSlug = "organizationSlug" in query ? query.organizationSlug : null;
 
     return {
       isTeamEvent,
@@ -37,6 +38,7 @@ export class SlotsInputService_2024_09_04 {
       eventTypeSlug,
       usernameList,
       timeZone,
+      orgSlug,
     };
   }
 
