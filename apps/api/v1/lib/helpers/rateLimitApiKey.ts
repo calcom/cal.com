@@ -5,7 +5,7 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { HttpError } from "@calcom/lib/http-error";
 
 export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
-  if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
+  if (!req.userId) return res.status(401).json({ message: "No userId provided" });
 
   // TODO: Add a way to add trusted api keys
   try {
