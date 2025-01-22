@@ -44,6 +44,7 @@ import {
   TableActions,
   TextAreaField,
   Tooltip,
+  DropdownMenuPortal,
 } from "@calcom/ui";
 
 import assignmentReasonBadgeTitleMap from "@lib/booking/assignmentReasonBadgeTitleMap";
@@ -915,63 +916,67 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {!isSmsCalEmail(email) && (
+      <DropdownMenuPortal>
+        <DropdownMenuContent
+          className="border-subtle rounded-md border bg-[#292929] p-1 shadow-md"
+          sideOffset={5}>
+          {!isSmsCalEmail(email) && (
+            <DropdownMenuItem className="focus:outline-none">
+              <DropdownItem
+                StartIcon="mail"
+                href={`mailto:${email}`}
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  e.stopPropagation();
+                }}>
+                <a href={`mailto:${email}`}>{t("email")}</a>
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
+
           <DropdownMenuItem className="focus:outline-none">
             <DropdownItem
-              StartIcon="mail"
-              href={`mailto:${email}`}
+              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
               onClick={(e) => {
+                e.preventDefault();
+                const isEmailCopied = isSmsCalEmail(email);
+                copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
                 setOpenDropdown(false);
-                e.stopPropagation();
+                showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
               }}>
-              <a href={`mailto:${email}`}>{t("email")}</a>
+              {!isCopied ? t("copy") : t("copied")}
             </DropdownItem>
           </DropdownMenuItem>
-        )}
 
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-            onClick={(e) => {
-              e.preventDefault();
-              const isEmailCopied = isSmsCalEmail(email);
-              copyToClipboard(isEmailCopied ? email : phoneNumber ?? "");
-              setOpenDropdown(false);
-              showToast(isEmailCopied ? t("email_copied") : t("phone_number_copied"), "success");
-            }}>
-            {!isCopied ? t("copy") : t("copied")}
-          </DropdownItem>
-        </DropdownMenuItem>
-
-        {isBookingInPast && (
-          <DropdownMenuItem className="focus:outline-none">
-            {noShow ? (
-              <DropdownItem
-                data-testid="unmark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                }}
-                StartIcon="eye">
-                {t("unmark_as_no_show")}
-              </DropdownItem>
-            ) : (
-              <DropdownItem
-                data-testid="mark-no-show"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setOpenDropdown(false);
-                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                }}
-                StartIcon="eye-off">
-                {t("mark_as_no_show")}
-              </DropdownItem>
-            )}
-          </DropdownMenuItem>
-        )}
-      </DropdownMenuContent>
+          {isBookingInPast && (
+            <DropdownMenuItem className="focus:outline-none">
+              {noShow ? (
+                <DropdownItem
+                  data-testid="unmark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  }}
+                  StartIcon="eye">
+                  {t("unmark_as_no_show")}
+                </DropdownItem>
+              ) : (
+                <DropdownItem
+                  data-testid="mark-no-show"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setOpenDropdown(false);
+                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  }}
+                  StartIcon="eye-off">
+                  {t("mark_as_no_show")}
+                </DropdownItem>
+              )}
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
@@ -1032,44 +1037,46 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel className="text-xs font-medium uppercase">
-          {t("mark_as_no_show_title")}
-        </DropdownMenuLabel>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {fields.slice(1).map((field, index) => (
-            <Controller
-              key={field.id}
-              name={`attendees.${index + 1}.noShow`}
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <DropdownMenuCheckboxItem
-                  checked={value || false}
-                  onCheckedChange={onChange}
-                  className="pr-8 focus:outline-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onChange(!value);
-                  }}>
-                  <span className={value ? "line-through" : ""}>{field.email}</span>
-                </DropdownMenuCheckboxItem>
-              )}
-            />
-          ))}
-          <DropdownMenuSeparator />
-          <div className="flex justify-end p-2 ">
-            <Button
-              data-testid="update-no-show"
-              color="secondary"
-              onClick={(e) => {
-                e.preventDefault();
-                handleSubmit(onSubmit)();
-              }}>
-              {t("mark_as_no_show_title")}
-            </Button>
-          </div>
-        </form>
-      </DropdownMenuContent>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          <DropdownMenuLabel className="text-xs font-medium uppercase">
+            {t("mark_as_no_show_title")}
+          </DropdownMenuLabel>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            {fields.slice(1).map((field, index) => (
+              <Controller
+                key={field.id}
+                name={`attendees.${index + 1}.noShow`}
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <DropdownMenuCheckboxItem
+                    checked={value || false}
+                    onCheckedChange={onChange}
+                    className="pr-8 focus:outline-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onChange(!value);
+                    }}>
+                    <span className={value ? "line-through" : ""}>{field.email}</span>
+                  </DropdownMenuCheckboxItem>
+                )}
+              />
+            ))}
+            <DropdownMenuSeparator />
+            <div className="flex justify-end p-2 ">
+              <Button
+                data-testid="update-no-show"
+                color="secondary"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(onSubmit)();
+                }}>
+                {t("mark_as_no_show_title")}
+              </Button>
+            </div>
+          </form>
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
@@ -1162,46 +1169,48 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
-        {guests.slice(1).map((guest) => (
-          <DropdownMenuItem key={guest.id}>
-            <DropdownItem
-              className="pr-6 focus:outline-none"
-              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
-              onClick={(e) => {
-                e.preventDefault();
-                setSelectedEmail(guest.email);
-              }}>
-              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
-            </DropdownItem>
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <div className="flex justify-end space-x-2 p-2 ">
-          <Link href={`mailto:${selectedEmail}`}>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
+          {guests.slice(1).map((guest) => (
+            <DropdownMenuItem key={guest.id}>
+              <DropdownItem
+                className="pr-6 focus:outline-none"
+                StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSelectedEmail(guest.email);
+                }}>
+                <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
+              </DropdownItem>
+            </DropdownMenuItem>
+          ))}
+          <DropdownMenuSeparator />
+          <div className="flex justify-end space-x-2 p-2 ">
+            <Link href={`mailto:${selectedEmail}`}>
+              <Button
+                color="secondary"
+                disabled={selectedEmail.length === 0}
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  e.stopPropagation();
+                }}>
+                {t("email")}
+              </Button>
+            </Link>
             <Button
               color="secondary"
               disabled={selectedEmail.length === 0}
               onClick={(e) => {
-                setOpenDropdown(false);
-                e.stopPropagation();
+                e.preventDefault();
+                copyToClipboard(selectedEmail);
+                showToast(t("email_copied"), "success");
               }}>
-              {t("email")}
+              {!isCopied ? t("copy") : t("copied")}
             </Button>
-          </Link>
-          <Button
-            color="secondary"
-            disabled={selectedEmail.length === 0}
-            onClick={(e) => {
-              e.preventDefault();
-              copyToClipboard(selectedEmail);
-              showToast(t("email_copied"), "success");
-            }}>
-            {!isCopied ? t("copy") : t("copied")}
-          </Button>
-        </div>
-      </DropdownMenuContent>
+          </div>
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
