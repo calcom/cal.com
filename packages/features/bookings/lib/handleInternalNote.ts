@@ -1,24 +1,12 @@
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
+import { type BookingToDelete } from "./handleCancelBooking";
+
 type InternalNote = {
   id: number;
   name: string;
   value?: string;
-};
-
-type BookingWithEventType = {
-  id: number;
-  eventType: {
-    hosts: {
-      user: {
-        id: number;
-      };
-    }[];
-    owner?: {
-      id: number | null;
-    } | null;
-  };
 };
 
 export async function handleInternalNote({
@@ -28,9 +16,9 @@ export async function handleInternalNote({
   teamId,
 }: {
   internalNote: InternalNote;
-  booking: BookingWithEventType;
+  booking: BookingToDelete;
   userId: number;
-  teamId?: number | null;
+  teamId: number;
 }) {
   const userIsHost = booking.eventType.hosts.find((host) => {
     if (host.user.id === userId) return true;

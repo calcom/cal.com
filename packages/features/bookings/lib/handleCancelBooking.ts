@@ -138,9 +138,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
   });
 }
 
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+
 export type CustomRequest = NextApiRequest & {
   userId?: number;
-  bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+  bookingToDelete?: BookingToDelete;
   platformClientId?: string;
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
@@ -562,7 +564,7 @@ async function handler(req: CustomRequest) {
     log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
 
-  if (internalNote) {
+  if (internalNote && teamId) {
     await handleInternalNote({
       internalNote,
       booking: bookingToDelete,
