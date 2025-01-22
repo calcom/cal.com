@@ -5,6 +5,7 @@ import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/l
 import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "./useCreateBooking";
@@ -23,6 +24,7 @@ type UseHandleBookingProps = {
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
   locationUrl?: string;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const useHandleBookEvent = ({
@@ -34,6 +36,7 @@ export const useHandleBookEvent = ({
   handleInstantBooking,
   handleRecBooking,
   locationUrl,
+  routingFormSearchParams,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
   const timeslot = useBookerStore((state) => state.selectedTimeslot);
@@ -93,6 +96,7 @@ export const useHandleBookEvent = ({
         crmOwnerRecordType,
         crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
+        routingFormSearchParams,
       };
 
       if (isInstantMeeting) {

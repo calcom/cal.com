@@ -105,8 +105,8 @@ export function getUrlSearchParamsToForward({
   }
 
   const allQueryParams: Params = {
-    ...(teamId && { teamId: `${teamId}` }),
-    ...(orgId && { orgId: `${orgId}` }),
+    ...(teamId && { ["cal.teamId"]: `${teamId}` }),
+    ...(orgId && { ["cal.orgId"]: `${orgId}` }),
     ...paramsFromCurrentUrl,
     // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
     ...paramsFromResponse,

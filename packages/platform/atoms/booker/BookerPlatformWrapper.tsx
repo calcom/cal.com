@@ -21,6 +21,7 @@ import type {
   ApiSuccessResponse,
   ApiSuccessResponseWithoutData,
 } from "@calcom/platform-types";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import {
@@ -86,18 +87,20 @@ type VIEW_TYPE = keyof typeof BookerLayouts;
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW", bannerUrl } = props;
+  const { view = "MONTH_VIEW", bannerUrl, routingFormSearchParams } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -267,7 +270,9 @@ export const BookerPlatformWrapper = (
   }>({});
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(window.location.search);
+    const searchParams = routingFormSearchParams
+      ? new URLSearchParams(routingFormSearchParams)
+      : new URLSearchParams(window.location.search);
 
     const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
     const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
@@ -399,6 +404,7 @@ export const BookerPlatformWrapper = (
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
+    routingFormSearchParams,
   });
 
   const onOverlaySwitchStateChange = useCallback(
