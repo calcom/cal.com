@@ -9,8 +9,9 @@ export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
 
   // TODO: Add a way to add trusted api keys
   try {
+    const identifier = req.userId.toString();
     await checkRateLimitAndThrowError({
-      identifier: req.query.apiKey as string,
+      identifier,
       rateLimitingType: "api",
       onRateLimiterResponse: async (response) => {
         res.setHeader("X-RateLimit-Limit", response.limit);
@@ -19,8 +20,8 @@ export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
 
         try {
           const didLock = await handleAutoLock({
-            identifier: req.query.apiKey as string, // Casting as this is verified in another middleware
-            identifierType: "apiKey",
+            identifier,
+            identifierType: "userId",
             rateLimitResponse: response,
           });
 
