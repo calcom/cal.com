@@ -148,7 +148,13 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (
   page: Page,
-  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+  opts?: {
+    name?: string;
+    email?: string;
+    title?: string;
+    attendeePhoneNumber?: string;
+    expectedStatusCode?: number;
+  }
 ) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
@@ -161,6 +167,7 @@ export const bookTimeSlot = async (
   }
   await submitAndWaitForResponse(page, "/api/book/event", {
     action: () => page.locator('[name="email"]').press("Enter"),
+    expectedStatusCode: opts?.expectedStatusCode,
   });
 };
 
