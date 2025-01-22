@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 
 import { APP_NAME } from "@calcom/lib/constants";
 
@@ -12,4 +11,4 @@ export const generateMetadata = async () => {
   );
 };
 
-export default WithLayout({ getLayout: null, Page: LegacyPage })<"P">;
+export default LegacyPage;
