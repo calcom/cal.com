@@ -19,7 +19,7 @@ interface ProfileViewProps {
 const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const { data: _loadedPresets, isLoading } = trpc.viewer.teams.getInternalNotesPresets.useQuery({
+  const { data: _loadedPresets } = trpc.viewer.teams.getInternalNotesPresets.useQuery({
     teamId: team?.id as number,
   });
 
