@@ -160,7 +160,7 @@ export const EventSetupTab = (
             name="userInterfaceLanguage"
             render={({ field: { value, onChange } }) => {
               return (
-                <>
+                <div>
                   <Label className="text-emphasis">{t("interface_language")}</Label>
                   <Select<{ label: string; value: string }>
                     className="capitalize"
@@ -171,7 +171,7 @@ export const EventSetupTab = (
                     value={value}
                     onChange={onChange}
                   />
-                </>
+                </div>
               );
             }}
           />
