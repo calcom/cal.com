@@ -1,4 +1,3 @@
-import { wrapApiHandlerWithSentry } from "@sentry/nextjs";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -34,4 +33,4 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   return booking;
 }
 
-export default defaultResponder(wrapApiHandlerWithSentry(handler, "/api/book/event"));
+export default defaultResponder(handler, "/api/book/event");
