@@ -50,7 +50,7 @@ const InternalNotePresetsSelect = ({
           { label: t("other"), value: "other" },
         ]}
         onChange={handleSelectChange}
-        placeholder={t("select")}
+        placeholder={t("internal_booking_note")}
       />
       {showOtherInput && (
         <textarea

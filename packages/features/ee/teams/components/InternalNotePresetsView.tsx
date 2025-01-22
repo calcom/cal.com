@@ -117,7 +117,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                                 <input
                                   type="text"
                                   {...field}
-                                  placeholder={t("preset_name")}
+                                  placeholder={t("internal_booking_note")}
                                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
                                 />
                               )}

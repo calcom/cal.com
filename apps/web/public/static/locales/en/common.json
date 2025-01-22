@@ -2666,6 +2666,7 @@
   "x_marked_as_no_show": "{{x}} marked as no-show",
   "x_unmarked_as_no_show": "{{x}} unmarked as no-show",
   "team_select_info": "triggers for all team event types and all team members' personal event types",
+  "team_settings_description":"Manage settings for you team",
   "no_show_updated": "No-show status updated for attendees",
   "email_copied": "Email copied",
   "phone_number_copied": "Phone Number Copied",
