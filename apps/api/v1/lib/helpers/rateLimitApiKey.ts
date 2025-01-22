@@ -6,6 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 
 export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
   if (!req.userId) return res.status(401).json({ message: "No userId provided" });
+  if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
 
   // TODO: Add a way to add trusted api keys
   try {
