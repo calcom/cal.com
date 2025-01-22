@@ -30,7 +30,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const hasExistingPresets = loadedPresets.length > 0;
 
   type FormValues = {
-    presets: { id?: number; name: string }[];
+    presets: { id?: number; name: string; cancellationReason?: string }[];
   };
 
   const form = useForm<FormValues>({
@@ -108,26 +108,44 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                   <div className="border-subtle border border-y-0 p-6">
                     <div className="flex flex-col space-y-4" ref={animateRef}>
                       {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-center space-x-2">
-                          <Controller
-                            name={`presets.${index}.name`}
-                            control={form.control}
-                            render={({ field }) => (
-                              <input
-                                type="text"
-                                {...field}
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
-                              />
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            color="destructive"
-                            variant="icon"
-                            onClick={() => remove(index)}
-                            disabled={fields.length === 1}>
-                            <Icon name="trash" className="h-4 w-4" />
-                          </Button>
+                        <div key={field.id} className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Controller
+                              name={`presets.${index}.name`}
+                              control={form.control}
+                              render={({ field }) => (
+                                <input
+                                  type="text"
+                                  {...field}
+                                  placeholder={t("preset_name")}
+                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                />
+                              )}
+                            />
+                            <Button
+                              type="button"
+                              color="destructive"
+                              variant="icon"
+                              onClick={() => remove(index)}
+                              disabled={fields.length === 1}>
+                              <Icon name="trash" className="h-4 w-5" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Icon name="corner-down-right" className="h-4 w-4" />
+                            <Controller
+                              name={`presets.${index}.cancellationReason`}
+                              control={form.control}
+                              render={({ field }) => (
+                                <input
+                                  type="text"
+                                  {...field}
+                                  placeholder={t("cancellation_reason")}
+                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                />
+                              )}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
