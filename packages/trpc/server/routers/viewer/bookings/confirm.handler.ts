@@ -15,7 +15,6 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { getTranslation } from "@calcom/lib/server";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import {
@@ -24,6 +23,7 @@ import {
   WebhookTriggerEvents,
   UserPermissionRole,
 } from "@calcom/prisma/enums";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -258,9 +258,23 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     // count changed, parsing again to get the new value in
     evt.recurringEvent = parseRecurringEvent(recurringEvent);
   }
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: booking.eventType?.teamId ?? null },
+      parentId: booking?.eventType?.parentId ?? null,
+    },
+  });
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user);
+    const credentials = await prisma.credential.findMany({
+      where: {
+        ...(teamId ? { teamId } : { userId: user.id }),
+      },
+      select: credentialForCalendarServiceSelect,
+      orderBy: {
+        id: "asc",
+      },
+    });
     const userWithCredentials = {
       ...user,
       credentials,
@@ -319,13 +333,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     if (emailsEnabled) {
       await sendDeclinedEmailsAndSMS(evt, booking.eventType?.metadata as EventTypeMetadata);
     }
-
-    const teamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: booking.eventType?.teamId ?? null },
-        parentId: booking?.eventType?.parentId ?? null,
-      },
-    });
 
     const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
 
