@@ -119,21 +119,21 @@ export function DataTable<TData, TValue>({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
                   {headerGroup.headers.map((header) => {
-                    const meta = header.column.columnDef.meta;
+                    const { column } = header;
+                    const meta = column.columnDef.meta;
                     return (
                       <TableHead
                         key={header.id}
                         style={{
-                          ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                          ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                          ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                          ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
                           width: `var(--header-${kebabCase(header?.id)}-size)`,
                         }}
                         className={classNames(
                           "relative flex shrink-0 items-center",
-                          header.column.getCanSort()
-                            ? "bg-subtle hover:bg-muted cursor-pointer select-none"
-                            : "",
-                          meta?.sticky && "top-0 z-20 sm:sticky"
+                          "bg-subtle",
+                          header.column.getCanSort() ? "hover:bg-muted cursor-pointer select-none" : "",
+                          column.getIsPinned() && "top-0 z-20 sm:sticky"
                         )}>
                         <div
                           className="flex h-full w-full items-center overflow-hidden"
@@ -254,20 +254,20 @@ function DataTableBody<TData>({
               }}
               className={classNames(onRowMouseclick && "hover:cursor-pointer", "group")}>
               {row.getVisibleCells().map((cell) => {
-                const column = table.getColumn(cell.column.id);
+                const column = cell.column;
                 const meta = column?.columnDef.meta;
                 return (
                   <TableCell
                     key={cell.id}
                     style={{
-                      ...(meta?.sticky?.position === "left" && { left: `${meta.sticky.gap || 0}px` }),
-                      ...(meta?.sticky?.position === "right" && { right: `${meta.sticky.gap || 0}px` }),
+                      ...(column.getIsPinned() === "left" && { left: `${column.getStart("left")}px` }),
+                      ...(column.getIsPinned() === "right" && { right: `${column.getAfter("right")}px` }),
                       width: `var(--col-${kebabCase(cell.column.id)}-size)`,
                     }}
                     className={classNames(
                       "flex shrink-0 items-center overflow-hidden",
                       variant === "compact" && "p-0",
-                      meta?.sticky &&
+                      column.getIsPinned() &&
                         "bg-default group-hover:!bg-muted group-data-[state=selected]:bg-subtle sm:sticky"
                     )}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
