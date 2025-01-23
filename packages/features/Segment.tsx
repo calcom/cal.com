@@ -114,7 +114,9 @@ function MatchingTeamMembers({
 
   if (isPending) {
     return (
-      <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+      <div
+        className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4"
+        data-testid="segment_loading_state">
         <div className="text-emphasis flex items-center text-sm font-medium">
           <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
         </div>
