@@ -49,19 +49,20 @@ const AddCertificate = () => {
       body: formData,
     })
       .then((response) => {
-        response.json().then((result) => {
-          console.log(result);
+        response.json().then(({ errors }) => {
+          if (errors && errors.length === 0)
+            switch (errors[0].message) {
+              case CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED:
+                setCertificateRegistrationStatus(
+                  CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED
+                );
+                break;
+              case CertificateRegistrationStatus.PASSWORD_ERROR:
+                setCertificateRegistrationStatus(CertificateRegistrationStatus.PASSWORD_ERROR);
+                break;
+            }
+          else console.log("Deu certo");
         });
-      })
-      .catch(({ errors }) => {
-        switch (errors[0].message) {
-          case CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED:
-            setCertificateRegistrationStatus(CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED);
-            break;
-          case CertificateRegistrationStatus.PASSWORD_ERROR:
-            setCertificateRegistrationStatus(CertificateRegistrationStatus.PASSWORD_ERROR);
-            break;
-        }
       })
       .finally(() => {
         setIsLoading(false);
