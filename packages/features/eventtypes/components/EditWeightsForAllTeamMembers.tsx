@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import "@calcom/ui";
+import { trpc } from "@calcom/trpc";
 import {
   Avatar,
   Button,
@@ -22,6 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   showToast,
+  Skeleton,
 } from "@calcom/ui";
 
 type TeamMemberItemProps = {
@@ -92,29 +93,92 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
   );
 };
 
+interface UseTeamMembersWithSegmentProps {
+  initialTeamMembers: TeamMember[];
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
+  value: Host[];
+}
+
+const useTeamMembersWithSegment = ({
+  initialTeamMembers,
+  assignRRMembersUsingSegment,
+  teamId,
+  queryValue,
+  value,
+}: UseTeamMembersWithSegmentProps) => {
+  const { data: matchingTeamMembersWithResult, isPending } =
+    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+      {
+        teamId: teamId || 0,
+        attributesQueryValue: queryValue,
+        _enablePerf: true,
+      },
+      {
+        enabled: assignRRMembersUsingSegment && !!teamId,
+      }
+    );
+
+  const teamMembers = useMemo(() => {
+    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
+      return matchingTeamMembersWithResult.result.map((member) => ({
+        value: member.id.toString(),
+        label: member.name || member.email,
+        email: member.email,
+      }));
+    }
+    return initialTeamMembers;
+  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
+
+  const localWeightsInitialValues = useMemo(
+    () =>
+      teamMembers.reduce<Record<string, number>>((acc, member) => {
+        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
+        acc[member.value] = memberInValue?.weight ?? 100;
+        return acc;
+      }, {}),
+    [teamMembers, value]
+  );
+
+  return {
+    teamMembers,
+    localWeightsInitialValues,
+    isPending,
+  };
+};
+
 interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
 }
 
 export const EditWeightsForAllTeamMembers = ({
-  teamMembers,
+  teamMembers: initialTeamMembers,
   value,
   onChange,
   assignAllTeamMembers,
+  assignRRMembersUsingSegment,
+  teamId,
+  queryValue,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
-  const localWeightsInitialValues = teamMembers.reduce<Record<string, number>>((acc, member) => {
-    // When assignAllTeamMembers is false, only include members that exist in value array
-    // Find the member in the value array and use its weight if it exists
-    const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-    acc[member.value] = memberInValue?.weight ?? 100;
-    return acc;
-  }, {});
+
+  const { teamMembers, localWeightsInitialValues, isPending } = useTeamMembersWithSegment({
+    initialTeamMembers,
+    assignRRMembersUsingSegment,
+    teamId,
+    queryValue,
+    value,
+  });
+
   const [localWeights, setLocalWeights] = useState<Record<string, number>>(localWeightsInitialValues);
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
@@ -259,10 +323,24 @@ export const EditWeightsForAllTeamMembers = ({
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">
-                {filteredMembers.map((member) => (
-                  <TeamMemberItem key={member.value} member={member} onWeightChange={handleWeightChange} />
-                ))}
-                {filteredMembers.length === 0 && (
+                {isPending ? (
+                  <div className="flex flex-col space-y-4 p-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="flex items-center space-x-4">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-1/4" />
+                          <Skeleton className="h-4 w-1/2" />
+                        </div>
+                        <Skeleton className="h-8 w-20" />
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => (
+                    <TeamMemberItem key={member.value} member={member} onWeightChange={handleWeightChange} />
+                  ))
+                ) : (
                   <div className="text-subtle py-4 text-center text-sm">{t("no_members_found")}</div>
                 )}
               </div>
