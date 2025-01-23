@@ -18,7 +18,6 @@ export type PageWrapperProps = Readonly<{
   nonce: string | undefined;
   themeBasis: string | null;
   dehydratedState?: DehydratedState;
-  isThemeSupported?: boolean;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;

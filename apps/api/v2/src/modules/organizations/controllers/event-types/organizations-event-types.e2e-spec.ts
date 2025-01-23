@@ -590,6 +590,7 @@ describe("Organizations Event Types Endpoints", () => {
             slug: "attendeePhoneNumber",
             required: true,
             label: "Phone number",
+            hidden: true,
           },
         ],
       };
@@ -623,7 +624,6 @@ describe("Organizations Event Types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
@@ -632,6 +632,8 @@ describe("Organizations Event Types Endpoints", () => {
               slug: "attendeePhoneNumber",
               required: true,
               hidden: true,
+              label: "Phone number",
+              disableOnPrefill: false,
             },
             {
               isDefault: true,
@@ -640,6 +642,14 @@ describe("Organizations Event Types Endpoints", () => {
               required: true,
               disableOnPrefill: false,
               hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
@@ -653,14 +663,6 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               type: "textarea",
               slug: "rescheduleReason",
-              required: false,
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
-              type: "textarea",
-              slug: "notes",
               required: false,
               disableOnPrefill: false,
               hidden: false,
@@ -771,13 +773,19 @@ describe("Organizations Event Types Endpoints", () => {
           expect(fetchedEventType.bookingFields).toEqual([
             { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
             { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
-            { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
+            {
+              disableOnPrefill: false,
+              isDefault: true,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: false,
+              hidden: true,
+            },
             {
               isDefault: true,
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
@@ -791,6 +799,14 @@ describe("Organizations Event Types Endpoints", () => {
             {
               isDefault: true,
               required: false,
+              slug: "notes",
+              type: "textarea",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              required: false,
               slug: "guests",
               type: "multiemail",
               disableOnPrefill: false,
@@ -800,14 +816,6 @@ describe("Organizations Event Types Endpoints", () => {
               isDefault: true,
               required: false,
               slug: "rescheduleReason",
-              type: "textarea",
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
-              required: false,
-              slug: "notes",
               type: "textarea",
               disableOnPrefill: false,
               hidden: false,

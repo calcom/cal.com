@@ -2,7 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
-import { getShortenLink } from "@calcom/ee/workflows/lib/reminders/utils";
+import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { defaultHandler } from "@calcom/lib/server";
@@ -127,26 +127,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           rescheduleLink: `${bookerUrl}/reschedule/${reminder.booking.uid}` || "",
         };
 
-        const [meetingUrl, cancelLink, rescheduleLink] = await Promise.allSettled([
-          getShortenLink(urls.meetingUrl),
-          getShortenLink(urls.cancelLink),
-          getShortenLink(urls.rescheduleLink),
-        ]).then((results) => {
-          return results.map((result) => {
-            let finalResult = "";
-
-            if (result.status === "fulfilled") {
-              const v = result.value;
-              if (typeof v === "string") {
-                finalResult = v;
-              } else {
-                finalResult = v.shortLink;
-              }
-            }
-
-            return finalResult;
-          });
-        });
+        const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
+          await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
 
         const variables: VariablesType = {
           eventName: reminder.booking?.eventType?.title,
