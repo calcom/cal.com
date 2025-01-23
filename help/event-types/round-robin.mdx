@@ -1,9 +1,19 @@
 ---
 title: Round Robin Scheduling
 ---
+
 Round robin event types allow you to distribute meetings amongst team members. At the moment, the distribution is based on availability, optimizing all options regardless of individual load. The booking will be assigned to an available host based on weights, priorties or the person least recently booked.
-<Frame>
-<iframe width="560" height="315" src="https://www.youtube.com/embed/93iOmzHieCU?si=cT8uKL8NcPr2e-Rg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<Frame className="aspect-video">
+  <iframe
+    width="100%"
+    height="100%"
+    src="https://www.youtube.com/embed/93iOmzHieCU?si=cT8uKL8NcPr2e-Rg"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen></iframe>
 </Frame>
 
 ## Underlying Mechanism
@@ -29,21 +39,24 @@ Weights are optional and must be enabled to use. They allow you to determine how
 For instance, Jane Doe has a weight of 100% and already has 8 bookings while John Doe has a weight of 200% and already has 12 bookings. Assuming both of them are available, the next bookings would go to John Doe until a total of 16 bookings is reached.
 
 **Weight Adjustment**: If new hosts are added to a round-robin event type that has weights enabled, their weights will be adjusted accordingly. New hosts will have their bookings adjusted proportionally to their weight, taking into account the bookings that existing hosts already have. This ensures a fair distribution of bookings when new hosts are added.
+
 ### Example:
+
 Existing host 1: 100% weight, 5 bookings
 Existing host 2: 200% weight, 9 bookings
 New host: 50% weight
 
-Weight Adjustment = (Bookings of existing hosts / Sum of weights of existing hosts) * New host weight
+Weight Adjustment = (Bookings of existing hosts / Sum of weights of existing hosts) \* New host weight
 
-Weight Adjustment = 14 / 300 * 50 = 2.33
+Weight Adjustment = 14 / 300 \* 50 = 2.33
 The new host will have a weight adjustment of 2 bookings.
 
 ## Least Recently Booked
+
 This is the fallback method where the available round robin host who was booked least recently is chosen. If more than one host meets this criteria, one of them is chosen at random.
 
-
 ## Fixed hosts
+
 If you wish to bring in Collective behavior into round-robin events, it is possible with Cal.com. You can now select which hosts you wish to always attend the meeting whilst the other selected team members who are booked on a round-robin basis.
 ![](https://downloads.intercomcdn.com/i/o/1198422485/886260ecd32e570bc1c17980/i1600x899-2GVNR4Q0fjRI_smxuoj.png?expires=1736325000&signature=6e43380ae8c709d632b0ffedb0428dc1cf4ed2d5a70610a9ff7aec707adb6f11&req=dSEuHs18n4VXXPMW1HO4zZ2W4m%2B6ATUGOvymCQKz%2FZsqVx%2BpyZc3vbeHQive%0AKT741HnunGcXiqG25Ow%3D%0A)
 **Fixed Hosts** are individuals who are consistently present at every meeting.

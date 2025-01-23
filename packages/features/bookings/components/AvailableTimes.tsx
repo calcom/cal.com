@@ -91,22 +91,17 @@ const SlotItem = ({
   const [overlapConfirm, setOverlapConfirm] = useState(false);
 
   const onButtonClick = useCallback(() => {
-    if (!overlayCalendarToggled) {
+    if (!overlayCalendarToggled || (isOverlapping && overlapConfirm)) {
       onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-      return;
-    }
-    if (isOverlapping && overlapConfirm) {
-      setOverlapConfirm(false);
       return;
     }
 
-    if (isOverlapping && !overlapConfirm) {
+    if (isOverlapping) {
       setOverlapConfirm(true);
       return;
     }
-    if (!overlapConfirm) {
-      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-    }
+
+    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
   }, [
     overlayCalendarToggled,
     isOverlapping,

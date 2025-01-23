@@ -6,7 +6,7 @@ import { createEvent } from "ics";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { RRule } from "rrule";
 import { z } from "zod";
@@ -19,7 +19,6 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -61,7 +60,6 @@ import {
   showToast,
   EmptyScreen,
   Icon,
-  HeadSeo,
 } from "@calcom/ui";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
@@ -109,7 +107,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
@@ -134,7 +132,6 @@ export default function Success(props: PageProps) {
   ) {
     rescheduleLocation = bookingInfo.responses.location.optionValue;
   }
-
   const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
     bookingInfo?.metadata || {}
   )?.videoCallUrl;
@@ -151,6 +148,7 @@ export default function Success(props: PageProps) {
     props?.userTimeFormat ? props.userTimeFormat === 24 : isBrowserLocale24h()
   );
   const { data: session } = useSession();
+  const isHost = props.isLoggedInUserHost;
 
   const [date, setDate] = useState(dayjs.utc(bookingInfo.startTime));
 
@@ -319,7 +317,6 @@ export default function Success(props: PageProps) {
       return t(`needs_to_be_confirmed_or_rejected${titleSuffix}`);
     }
     if (bookingInfo.user) {
-      const isHost = bookingInfo.user.id === session?.user?.id;
       const isAttendee = bookingInfo.attendees.find((attendee) => attendee.email === session?.user?.email);
       const attendee = bookingInfo.attendees[0]?.name || bookingInfo.attendees[0]?.email || "Nameless";
       const host = bookingInfo.user.name || bookingInfo.user.email;
@@ -348,10 +345,6 @@ export default function Success(props: PageProps) {
     brandColor: props.profile.brandColor,
     darkBrandColor: props.profile.darkBrandColor,
   });
-  const title = t(
-    `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
-  );
-
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
     t,
@@ -440,7 +433,6 @@ export default function Success(props: PageProps) {
           </Link>
         </div>
       )}
-      <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
       <BookingPageTagManager
         eventType={{ ...eventType, metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata) }}
       />
@@ -680,7 +672,7 @@ export default function Success(props: PageProps) {
                           const label = field.label || t(field.defaultLabel);
 
                           return (
-                            <>
+                            <Fragment key={field.name}>
                               <div
                                 className="text-emphasis mt-4 font-medium"
                                 // eslint-disable-next-line react/no-danger
@@ -698,7 +690,7 @@ export default function Success(props: PageProps) {
                                     : t("no")
                                   : response.toString()}
                               </p>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>
@@ -785,6 +777,7 @@ export default function Success(props: PageProps) {
                             seatReferenceUid={seatReferenceUid}
                             bookingCancelledEventProps={bookingCancelledEventProps}
                             currentUserEmail={currentUserEmail}
+                            isHost={isHost}
                           />
                         </>
                       ))}
