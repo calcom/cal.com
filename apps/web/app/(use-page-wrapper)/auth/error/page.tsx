@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -44,4 +43,4 @@ const ServerPage = async ({ searchParams }: PageProps) => {
   );
 };
 
-export default WithLayout({ ServerPage })<"P">;
+export default ServerPage;
