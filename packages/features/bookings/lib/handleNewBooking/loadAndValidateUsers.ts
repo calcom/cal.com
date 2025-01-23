@@ -106,7 +106,7 @@ export async function loadAndValidateUsers({
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
-  const { qualifiedHosts, fallbackHosts } = await findQualifiedHosts({
+  const { qualifiedHosts } = await findQualifiedHosts({
     eventType: {
       ...eventType,
       rescheduleWithSameRoundRobinHost: isSameHostReschedule,
