@@ -97,26 +97,6 @@ export const findQualifiedHosts = async <
   const fixedHosts = normalizedHosts.filter((host) => host.isFixed);
   const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
 
-  const hostsAfterContactOwnerMatching = applyFilterWithFallback(
-    roundRobinHosts,
-    roundRobinHosts.filter((host) => host.user.email === contactOwnerEmail)
-  );
-
-  if (hostsAfterContactOwnerMatching.length === 1) {
-    // push all disqualified hosts into fallback, contact owner is recoverable
-    const fallbackHosts = getFallbackHosts(
-      fixedHosts,
-      roundRobinHosts,
-      hostsAfterContactOwnerMatching,
-      "NotContactOwner"
-    );
-
-    return {
-      qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
-      fallbackHosts,
-    };
-  }
-
   // If it is rerouting, we should not force reschedule with same host.
   const hostsAfterRescheduleWithSameRoundRobinHost = applyFilterWithFallback(
     roundRobinHosts,
@@ -142,6 +122,11 @@ export const findQualifiedHosts = async <
     };
   }
 
+  const hostsAfterContactOwnerMatching = applyFilterWithFallback(
+    roundRobinHosts,
+    roundRobinHosts.filter((host) => host.user.email === contactOwnerEmail)
+  );
+
   const hostsAfterSegmentMatching = applyFilterWithFallback(
     hostsAfterRescheduleWithSameRoundRobinHost,
     (await findMatchingHostsWithEventSegment({
@@ -151,6 +136,20 @@ export const findQualifiedHosts = async <
   );
 
   if (hostsAfterSegmentMatching.length === 1) {
+    if (hostsAfterContactOwnerMatching.length === 1) {
+      // push all disqualified hosts into fallback, contact owner is recoverable
+      const fallbackHosts = getFallbackHosts(
+        fixedHosts,
+        hostsAfterSegmentMatching,
+        hostsAfterContactOwnerMatching,
+        "NotContactOwner"
+      );
+
+      return {
+        qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
+        fallbackHosts,
+      };
+    }
     return {
       qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
     };
@@ -162,6 +161,20 @@ export const findQualifiedHosts = async <
   );
 
   if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
+    if (hostsAfterContactOwnerMatching.length === 1) {
+      // push all disqualified hosts into fallback, contact owner is recoverable
+      const fallbackHosts = getFallbackHosts(
+        fixedHosts,
+        hostsAfterRoutedTeamMemberIdsMatching,
+        hostsAfterContactOwnerMatching,
+        "NotContactOwner"
+      );
+
+      return {
+        qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
+        fallbackHosts,
+      };
+    }
     return {
       qualifiedHosts: [...fixedHosts, ...hostsAfterRoutedTeamMemberIdsMatching],
     };
@@ -191,6 +204,21 @@ export const findQualifiedHosts = async <
   );
   if (fallbackHosts.length > 0) {
     fallbackHosts.unshift(...fixedHosts);
+  }
+
+  if (hostsAfterContactOwnerMatching.length === 1) {
+    // push all disqualified hosts into fallback, contact owner is recoverable
+    const fallbackHosts = getFallbackHosts(
+      fixedHosts,
+      hostsAfterFairnessMatching,
+      hostsAfterContactOwnerMatching,
+      "NotContactOwner"
+    );
+
+    return {
+      qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
+      fallbackHosts,
+    };
   }
 
   // finally, return all qualified hosts.
