@@ -16,6 +16,8 @@ interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];
 }
 
+const OTHER_FIELD_ID = -1;
+
 const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -24,17 +26,16 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   });
 
   const loadedPresets = useMemo(() => {
-    return _loadedPresets ?? [];
+    return (_loadedPresets ?? []).map((preset) => ({
+      ...preset,
+      cancellationReason: preset.cancellationReason ?? undefined,
+    }));
   }, [_loadedPresets]);
 
   const hasExistingPresets = loadedPresets.length > 0;
 
   type FormValues = {
-    presets: {
-      id: number;
-      name: string;
-      cancellationReason: string | null;
-    }[];
+    presets: { id: number; name: string; cancellationReason?: string | undefined }[];
   };
 
   const form = useForm<FormValues>({
@@ -49,7 +50,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   });
 
   const addNewPreset = () => {
-    append({ id: -1, name: "" });
+    append({ id: OTHER_FIELD_ID, name: "" });
   };
 
   const updatePresetsMutation = trpc.viewer.teams.updateInternalNotesPresets.useMutation({
@@ -100,7 +101,7 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
               childrenClassName="lg:ml-0"
               onCheckedChange={async (active) => {
                 if (active && !value?.length) {
-                  append({ id: -1, name: "" });
+                  append({ id: OTHER_FIELD_ID, name: "" });
                 } else {
                   replace([]);
                   if (!active && team?.id && hasExistingPresets) {
