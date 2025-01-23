@@ -108,6 +108,16 @@ export class BySlug_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
     example: "bob",
   })
   username!: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    description:
+      "Organzation slug in which the slots of event type belonging to the specified username should be checked.",
+    example: "org-slug",
+  })
+  organizationSlug?: string;
 }
 
 export class ByUsernames_2024_09_04 extends GetAvailableSlotsInput_2024_09_04 {
