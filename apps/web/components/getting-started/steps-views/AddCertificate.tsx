@@ -50,7 +50,7 @@ const AddCertificate = () => {
     })
       .then((response) => {
         response.json().then(({ errors }) => {
-          if (errors && errors.length === 0)
+          if (errors && errors.length > 0)
             switch (errors[0].message) {
               case CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED:
                 setCertificateRegistrationStatus(
