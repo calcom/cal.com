@@ -3,9 +3,13 @@ import { useMemo, useRef, useState } from "react";
 
 import { Button, Input } from "@calcom/ui";
 
+enum CertificateRegistrationStatus {
+  PASSWORD_ERROR = "Senha do certificado inválida.",
+  CERTIFICATE_ALREADY_REGISTERED = "Esse certificado já está cadastrado.",
+}
+
 const SPEDY_BASE_URL = "https://api.spedy.com.br/v1";
-const SPEDY_API_KEY = process.env.NEXT_PUBLIC_SPEDY_API_KEY;
-const PASSWORD_ERROR = "Senha do certificado inválida.";
+const SPEDY_API_KEY = process.env.NEXT_PUBLIC_SPEDY_API_KEY || "";
 
 const AddCertificate = () => {
   const pickerRef = useRef<HTMLInputElement>(null);
@@ -13,7 +17,8 @@ const AddCertificate = () => {
   const [a1Src, setA1Src] = useState<File | null>(null);
   const [a1Password, setA1Password] = useState<string>("");
   const [retypeA1Password, setretypeA1Password] = useState<string>("");
-  const [incorrectPassword, setIncorrectPassword] = useState(false);
+  const [certificateRegistrationStatus, setCertificateRegistrationStatus] =
+    useState<CertificateRegistrationStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const disabledButton = useMemo(() => {
@@ -29,14 +34,14 @@ const AddCertificate = () => {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (!a1Src) return;
-    setIncorrectPassword(false);
+    setCertificateRegistrationStatus(null);
     setIsLoading(true);
 
     const formData = new FormData();
     formData.append("certificateFile", a1Src);
     formData.append("password", a1Password);
 
-    fetch(`${SPEDY_BASE_URL}/companies/04a39244-f0c9-49f5-8ca6-b2600147636f/certificates`, {
+    fetch(`${SPEDY_BASE_URL}/companies/36ba1633-a2b0-421d-8ab4-b26d017b842c/certificates`, {
       method: "POST",
       headers: {
         "X-Api-Key": SPEDY_API_KEY,
@@ -49,7 +54,14 @@ const AddCertificate = () => {
         });
       })
       .catch(({ errors }) => {
-        if (errors[0].message === PASSWORD_ERROR) setIncorrectPassword(true);
+        switch (errors[0].message) {
+          case CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED:
+            setCertificateRegistrationStatus(CertificateRegistrationStatus.CERTIFICATE_ALREADY_REGISTERED);
+            break;
+          case CertificateRegistrationStatus.PASSWORD_ERROR:
+            setCertificateRegistrationStatus(CertificateRegistrationStatus.PASSWORD_ERROR);
+            break;
+        }
       })
       .finally(() => {
         setIsLoading(false);
@@ -133,9 +145,9 @@ const AddCertificate = () => {
               As senhas precisam ser iguais.
             </p>
           )}
-          {incorrectPassword && (
+          {certificateRegistrationStatus && (
             <p data-testid="required" className="py-2 text-xs text-red-500">
-              Senha do certificado inválida.
+              {certificateRegistrationStatus}
             </p>
           )}
         </div>
