@@ -16,7 +16,7 @@ const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
 
 export async function scanWorkflowBody(payload: string) {
   if (!process.env.AKISMET_API_KEY) {
-    log.warn("AKISMET_API_KEY not set, skipping scan");
+    log.info("AKISMET_API_KEY not set, skipping scan");
     return;
   }
 
@@ -40,14 +40,8 @@ export async function scanWorkflowBody(payload: string) {
   const isSpam = await client.checkSpam(comment);
 
   if (isSpam) {
+    // We won't delete the workflow step incase it is flagged as a false positive
     log.warn(`Workflow step ${workflowStepId} is spam with body ${workflowStep.reminderBody}`);
-
-    await prisma.workflowStep.delete({
-      where: {
-        id: workflowStepId,
-      },
-    });
-
     await lockUser("userId", userId.toString());
   } else {
     await prisma.workflowStep.update({
