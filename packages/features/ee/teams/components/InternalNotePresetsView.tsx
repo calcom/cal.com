@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, SettingsToggle, showToast, Icon } from "@calcom/ui";
+import { Button, Form, SettingsToggle, showToast, Icon, Input } from "@calcom/ui";
 
 interface ProfileViewProps {
   team: RouterOutputs["viewer"]["teams"]["get"];
@@ -114,11 +114,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                               name={`presets.${index}.name`}
                               control={form.control}
                               render={({ field }) => (
-                                <input
+                                <Input
                                   type="text"
                                   {...field}
                                   placeholder={t("internal_booking_note")}
-                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                  className="!mb-0"
                                 />
                               )}
                             />
@@ -137,11 +137,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
                               name={`presets.${index}.cancellationReason`}
                               control={form.control}
                               render={({ field }) => (
-                                <input
+                                <Input
                                   type="text"
                                   {...field}
                                   placeholder={t("internal_note_cancellation_reason")}
-                                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-neutral-900 focus:ring-neutral-900 sm:text-sm"
+                                  className="!mb-0"
                                 />
                               )}
                             />
