@@ -73,7 +73,6 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   if (cause instanceof Error) {
     const statusCode = getStatusCode(cause);
-    console.dir(cause.name);
     return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
