@@ -504,7 +504,7 @@ const BookerComponent = ({
         {shouldRenderCaptcha && (
           <div className="mb-6 mt-auto pt-6">
             <TurnstileCaptcha
-              appearance="always"
+              appearance="interaction-only"
               onVerify={(token) => {
                 bookingForm.setValue("cfToken", token);
               }}
