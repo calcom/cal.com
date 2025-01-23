@@ -136,7 +136,7 @@ describe("findQualifiedHosts", async () => {
   });
 
   // TODO: Find out why this fails.
-  it.skip("should return only the crm contact owner match & other users as fallback", async () => {
+  it("should return only the crm contact owner match & other users as fallback", async () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
@@ -178,6 +178,8 @@ describe("findQualifiedHosts", async () => {
         },
       },
     ];
+
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(hosts);
 
     // Define the input for the test
     const eventType = {
@@ -261,6 +263,8 @@ describe("findQualifiedHosts", async () => {
         },
       },
     ];
+
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue([hosts[0], hosts[1]]);
 
     // Define the input for the test
     const eventType = {
