@@ -2,13 +2,23 @@ import { AkismetClient } from "akismet-api";
 import type { Comment } from "akismet-api";
 import z from "zod";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 export const scanWorkflowBodySchema = z.object({
+  userId: z.number(),
   workflowStepId: z.number(),
 });
 
+const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
+
 export async function scanWorkflowBody(payload: string) {
+  if (!process.env.AKISMET_API_KEY) {
+    log.warn("AKISMET_API_KEY not set, skipping scan");
+    return;
+  }
+
   const { workflowStepId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
 
   const workflowStep = await prisma.workflowStep.findUnique({
@@ -19,11 +29,7 @@ export async function scanWorkflowBody(payload: string) {
 
   if (!workflowStep?.reminderBody) return;
 
-  const key = "6451247bcfcd";
-  const blog = "https://myblog.com";
-  const client = new AkismetClient({ key, blog });
-
-  const isValid = await client.verifyKey();
+  const client = new AkismetClient({ key: process.env.AKISMET_API_KEY, blog: WEBAPP_URL });
 
   const comment: Comment = {
     user_ip: "127.0.0.1",
