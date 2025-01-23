@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Bu URL-dən {{url}} rezervasiya təfərrüatlarını görə və tədbiri təqviminizə əlavə edə bilərsiniz",
   "no_options_available": "Mövcud seçimlər yoxdur",
   "cancellation_reason": "Ləğv səbəbi (isteğe bağlı)",
+  "cancellation_reason_host": "Ləğv etmə səbəbi",
   "cancellation_reason_placeholder": "Niyə ləğv edirsiniz?",
+  "notify_attendee_cancellation_reason_warning": "Nəzərə alın ki, ləğv etmə səbəbi iştirakçı üçün görünən olacaq.",
   "rejection_reason_placeholder": "Niyə rədd edirsiniz?",
   "rejection_reason": "Rədd etmə səbəbi",
   "rejection_reason_title": "Rezervasiya sorğusunu rədd edirsiniz?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Transkripti yüklə",
   "recording_from_your_recent_call": "{{appName}} üzərindən son zənginizin qeydi yükləməyə hazırdır",
   "transcript_from_previous_call": "{{appName}} üzərindən son zənginizin transkripti yükləməyə hazırdır. Link yalnız 1 saat etibarlıdır",
+  "you_can_download_transcript_from_attachments": "Siz həmçinin transkripti əlavələrdən yükləyə bilərsiniz",
   "link_valid_for_12_hrs": "Qeyd: Yükləmə linki yalnız 12 saat etibarlıdır. Yeni yükləmə linki yaratmaq üçün təlimatları izləyərək <1>buradan</1> əldə edə bilərsiniz.",
   "create_your_first_form": "İlk formanızı yaradın",
   "create_your_first_form_description": "Yönləndirmə formaları ilə uyğun suallar verə və doğru şəxsə və ya tədbir növünə yönləndirə bilərsiniz.",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "OAuth müştəriniz tərəfindən yaradılmış bütün idarə edilən istifadəçiləri görün",
   "select_oAuth_client": "OAuth müştərisini seçin",
   "on_every_instance": "Hər nümunədə",
+  "authorize": "İcazə ver",
   "next": "Növbəti",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
