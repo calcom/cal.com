@@ -69,7 +69,7 @@ export async function handleAutoLock({
   return false;
 }
 
-async function lockUser(identifierType: string, identifier: string) {
+export async function lockUser(identifierType: string, identifier: string) {
   if (!identifier) {
     return;
   }

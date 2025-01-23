@@ -880,15 +880,17 @@ export function getEmailTemplateText(
 
 export async function scheduleWorkflowBodyScan({
   workflowStepId,
+  userId,
   newStepBody,
   oldStepBody,
 }: {
   workflowStepId: number;
+  userId: number;
   newStepBody?: string | null;
   oldStepBody?: string | null;
 }) {
   // Don't scan workflows for self hosters
-  if (IS_SELF_HOSTED) return;
+  if (IS_SELF_HOSTED || !process.env.AKISMET_API_KEY) return;
 
   // If there is no body to scan then return
   if (!newStepBody) return;
@@ -896,5 +898,5 @@ export async function scheduleWorkflowBodyScan({
   // If there is no change in body then return
   if (newStepBody === oldStepBody) return;
 
-  await tasker.create("scanWorkflowBody", { workflowStepId });
+  await tasker.create("scanWorkflowBody", { workflowStepId, userId });
 }

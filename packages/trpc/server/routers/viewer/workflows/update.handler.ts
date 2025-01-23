@@ -401,6 +401,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       await scheduleWorkflowBodyScan({
         workflowStepId: oldStep.id,
+        userId: ctx.user.id,
         newStepBody: newStep?.reminderBody,
         oldStepBody: oldStep?.reminderBody,
       });
@@ -475,7 +476,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     await Promise.all(
       createdSteps.map((step) =>
-        scheduleWorkflowBodyScan({ workflowStepId: step.id, newStepBody: step.reminderBody })
+        scheduleWorkflowBodyScan({
+          workflowStepId: step.id,
+          userId: ctx.user.id,
+          newStepBody: step.reminderBody,
+        })
       )
     );
 

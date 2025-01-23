@@ -2,6 +2,7 @@ import { AkismetClient } from "akismet-api";
 import type { Comment } from "akismet-api";
 import z from "zod";
 
+import { lockUser } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -19,7 +20,7 @@ export async function scanWorkflowBody(payload: string) {
     return;
   }
 
-  const { workflowStepId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+  const { workflowStepId, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
 
   const workflowStep = await prisma.workflowStep.findUnique({
     where: {
@@ -38,5 +39,15 @@ export async function scanWorkflowBody(payload: string) {
 
   const isSpam = await client.checkSpam(comment);
 
-  return;
+  if (isSpam) {
+    log.warn(`Workflow step ${workflowStepId} is spam with body ${workflowStep.reminderBody}`);
+
+    await prisma.workflowStep.delete({
+      where: {
+        id: workflowStepId,
+      },
+    });
+
+    await lockUser("userId", userId.toString());
+  }
 }
