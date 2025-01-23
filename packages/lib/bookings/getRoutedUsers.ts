@@ -92,7 +92,6 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
     return {
       hosts: eventType.hosts.map((host) => ({
         isFixed: host.isFixed,
-        email: host.user.email,
         user: host.user,
         priority: host.priority,
         weight: host.weight,
