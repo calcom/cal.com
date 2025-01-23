@@ -116,7 +116,7 @@ describe("Segment", () => {
     await waitFor(() => {
       // Query builder container should be present
       expect(screen.getByTestId("query-builder-container")).toBeInTheDocument();
-      expect(screen.getByTestId("segment_loading_state")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("segment_loading_state")).not.toBeInTheDocument();
     });
   });
 
