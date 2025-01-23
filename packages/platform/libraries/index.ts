@@ -30,6 +30,20 @@ import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleI
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
+import {
+  getFirstDwdConferencingCredentialAppLocation,
+  getFirstDwdConferencingCredential,
+  getDwdOrRegularCredential,
+  getDwdOrFindRegularCredential,
+  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
+  enrichUserWithDwdCredentialsWithoutOrgId,
+  enrichHostsWithDwdCredentials,
+  enrichUsersWithDwdCredentials,
+  buildAllCredentials,
+  getAllDwdCredentialsForUserByAppSlug,
+  getAllDwdCredentialsForUserByAppType,
+  checkIfSuccessfullyConfiguredInWorkspace,
+} from "@calcom/lib/domainWideDelegation/server";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -44,6 +58,21 @@ import {
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export {
+  getFirstDwdConferencingCredentialAppLocation,
+  getFirstDwdConferencingCredential,
+  getDwdOrRegularCredential,
+  getDwdOrFindRegularCredential,
+  enrichUserWithDwdConferencingCredentialsWithoutOrgId,
+  enrichUserWithDwdCredentialsWithoutOrgId,
+  enrichHostsWithDwdCredentials,
+  enrichUsersWithDwdCredentials,
+  buildAllCredentials,
+  getAllDwdCredentialsForUserByAppSlug,
+  getAllDwdCredentialsForUserByAppType,
+  checkIfSuccessfullyConfiguredInWorkspace,
+};
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
