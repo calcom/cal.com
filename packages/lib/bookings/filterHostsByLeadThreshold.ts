@@ -40,14 +40,10 @@ function filterHostsByLeadThresholdWithWeights(perUserData: WeightedPerUserData,
 
   for (const userIdStr in perUserData.bookingsCount) {
     const shortfall = perUserData.bookingShortfalls[userIdStr];
-    const weight = perUserData.weights[userIdStr];
-    const weightPercentage = weight / totalWeight;
-    const allowedLead = maxLeadThreshold * weightPercentage;
-
     // negative shortfall means the host should receive negative bookings
     // this means they are overbooked and should be filtered out if
     // if they exceed the allowed lead
-    if (-shortfall > allowedLead) {
+    if (-shortfall > maxLeadThreshold) {
       log.debug(
         `Host ${userIdStr} has been filtered out because the amount of bookings made him exceed the thresholds. Shortfall: ${shortfall}, AllowedLead: ${allowedLead}, Weight: ${weight}`
       );
