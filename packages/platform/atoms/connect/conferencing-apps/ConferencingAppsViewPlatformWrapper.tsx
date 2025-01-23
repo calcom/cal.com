@@ -26,7 +26,7 @@ import {
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import type {
-  BulkUpdatParams,
+  BulkUpdateParams,
   UpdateUsersDefaultConferencingAppParams,
 } from "./ConferencingAppsViewWebWrapper";
 import { useAtomBulkUpdateEventTypesToDefaultLocation } from "./hooks/useAtomBulkUpdateEventTypesToDefaultLocation";
@@ -149,7 +149,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
     });
   };
 
-  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdateParams) => {
     bulkUpdateEventTypesToDefaultLocation.mutate(eventTypeIds, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: [defaultConferencingAppQueryKey] });

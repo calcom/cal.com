@@ -8,7 +8,7 @@ import AppListCard from "@calcom/features/apps/components/AppListCard";
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import type {
-  BulkUpdatParams,
+  BulkUpdateParams,
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -37,7 +37,7 @@ interface AppListProps {
   listClassName?: string;
   defaultConferencingApp: RouterOutputs["viewer"]["getUsersDefaultConferencingApp"];
   handleUpdateUserDefaultConferencingApp: (params: UpdateUsersDefaultConferencingAppParams) => void;
-  handleBulkUpdateDefaultLocation: (params: BulkUpdatParams) => void;
+  handleBulkUpdateDefaultLocation: (params: BulkUpdateParams) => void;
   isBulkUpdateDefaultLocationPending: boolean;
   eventTypes?: EventTypes;
   isEventTypesFetching?: boolean;

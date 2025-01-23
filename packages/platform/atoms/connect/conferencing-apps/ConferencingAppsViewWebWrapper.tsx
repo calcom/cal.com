@@ -23,7 +23,7 @@ export type UpdateUsersDefaultConferencingAppParams = {
   onErrorCallback: () => void;
 };
 
-export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type BulkUpdateParams = { eventTypeIds: number[]; callback: () => void };
 type RemoveAppParams = { credentialId: number; teamId?: number; callback: () => void };
 
 const SkeletonLoader = () => {
@@ -130,7 +130,7 @@ export const ConferencingAppsViewWebWrapper = ({
     );
   };
 
-  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdateParams) => {
     updateLocationsMutation.mutate(
       {
         eventTypeIds,

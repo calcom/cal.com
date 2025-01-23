@@ -9,7 +9,7 @@ export const BulkUpdateEventSchema = z.object({
   eventTypeIds: z.array(z.number()),
 });
 
-export type BulkUpdatParams = { eventTypeIds: number[]; callback: () => void };
+export type BulkUpdateParams = { eventTypeIds: number[]; callback: () => void };
 export type EventTypes = Array<{ id: number; title: string }>;
 
 export function BulkEditDefaultForEventsModal({
@@ -19,7 +19,7 @@ export function BulkEditDefaultForEventsModal({
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
-  bulkUpdateFunction: (params: BulkUpdatParams) => void;
+  bulkUpdateFunction: (params: BulkUpdateParams) => void;
   isPending: boolean;
   description: string;
   isEventTypesFetching?: boolean;

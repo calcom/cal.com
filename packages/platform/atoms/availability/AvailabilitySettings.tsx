@@ -6,7 +6,7 @@ import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "re
 
 import dayjs from "@calcom/dayjs";
 import type {
-  BulkUpdatParams,
+  BulkUpdateParams,
   EventTypes,
 } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
@@ -110,7 +110,7 @@ type AvailabilitySettingsProps = {
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
-    save: (params: BulkUpdatParams) => void;
+    save: (params: BulkUpdateParams) => void;
     isSaving: boolean;
     eventTypes?: EventTypes;
     isEventTypesFetching?: boolean;

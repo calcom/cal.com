@@ -7,7 +7,7 @@ import { AppList, type HandleDisconnect } from "@calcom/features/apps/components
 import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
-import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdateParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
@@ -78,7 +78,7 @@ const IntegrationsContainer = ({
     );
   };
 
-  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdatParams) => {
+  const handleBulkUpdateDefaultLocation = ({ eventTypeIds, callback }: BulkUpdateParams) => {
     updateLocationsMutation.mutate(
       {
         eventTypeIds,

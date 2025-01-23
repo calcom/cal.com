@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AvailabilitySettings } from "@calcom/atoms/monorepo";
-import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
+import type { BulkUpdateParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { withErrorFromUnknown } from "@calcom/lib/getClientErrorFromUnknown";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,19 +53,9 @@ export const AvailabilitySettingsWebWrapper = ({
   const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
     trpc.viewer.eventTypes.bulkEventFetch.useQuery();
 
-  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdatParams) => {
-    bulkUpdateDefaultAvailabilityMutation.mutate(
-      {
-        eventTypeIds,
-      },
-      {
-        onSuccess: () => {
-          utils.viewer.availability.list.invalidate();
-          callback();
-          showToast(t("success"), "success");
-        },
-      }
-    );
+  const bulkUpdateFunction = ({ eventTypeIds, callback }: BulkUpdateParams) => {
+    setBulkUpdateEventTypeIds(eventTypeIds);
+    callback();
   };
 
   const handleBulkEditDialogToggle = () => {
@@ -114,6 +104,8 @@ export const AvailabilitySettingsWebWrapper = ({
     },
   });
 
+  const [bulkUpdateEventTypeIds, setBulkUpdateEventTypeIds] = useState<BulkUpdateParams["eventTypeIds"]>([]);
+
   // TODO: reimplement Skeletons for this page in here
   if (isPending) return null;
 
@@ -137,18 +129,31 @@ export const AvailabilitySettingsWebWrapper = ({
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
       handleSubmit={async ({ dateOverrides, ...values }) => {
-        scheduleId &&
-          updateMutation.mutate({
+        if (scheduleId) {
+          await updateMutation.mutateAsync({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
             ...values,
           });
+
+          if (!values.isDefault || !bulkUpdateEventTypeIds.length) return;
+
+          bulkUpdateDefaultAvailabilityMutation.mutate(
+            { eventTypeIds: bulkUpdateEventTypeIds },
+            {
+              onSuccess: () => {
+                utils.viewer.availability.list.invalidate();
+                showToast(t("success"), "success");
+              },
+            }
+          );
+        }
       }}
       bulkUpdateModalProps={{
         isOpen: isBulkUpdateModalOpen,
         setIsOpen: setIsBulkUpdateModalOpen,
         save: bulkUpdateFunction,
-        isSaving: bulkUpdateDefaultAvailabilityMutation.isPending,
+        isSaving: false,
         eventTypes: eventTypesQueryData?.eventTypes,
         isEventTypesFetching,
         handleBulkEditDialogToggle: handleBulkEditDialogToggle,
