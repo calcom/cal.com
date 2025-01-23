@@ -20,6 +20,7 @@ const tasks: Record<TaskTypes, () => Promise<TaskHandler>> = {
   translateEventTypeData: () =>
     import("./translateEventTypeData").then((module) => module.translateEventTypeData),
   createCRMEvent: () => import("./crm/createCRMEvent").then((module) => module.createCRMEvent),
+  scanWorkflowBody: () => import("./scanWorkflowBody").then((module) => module.scanWorkflowBody),
 };
 
 export default tasks;
