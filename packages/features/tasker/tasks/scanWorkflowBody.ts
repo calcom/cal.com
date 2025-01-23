@@ -49,5 +49,14 @@ export async function scanWorkflowBody(payload: string) {
     });
 
     await lockUser("userId", userId.toString());
+  } else {
+    await prisma.workflowStep.update({
+      where: {
+        id: workflowStepId,
+      },
+      data: {
+        safe: true,
+      },
+    });
   }
 }

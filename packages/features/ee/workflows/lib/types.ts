@@ -27,4 +27,5 @@ export type WorkflowStep = {
   includeCalendarEvent: boolean;
   numberVerificationPending: boolean;
   numberRequired: boolean | null;
+  safe: boolean;
 };

@@ -22,6 +22,7 @@ export const workflowSelect = {
       sender: true,
       includeCalendarEvent: true,
       numberRequired: true,
+      safe: true,
     },
   },
 };
