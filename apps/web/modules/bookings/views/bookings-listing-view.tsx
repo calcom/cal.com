@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -83,10 +83,16 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-type RowData = {
-  booking: BookingOutput;
-  recurringInfo?: RecurringInfo;
-};
+type RowData =
+  | {
+      type: "data";
+      booking: BookingOutput;
+      isToday: boolean;
+      recurringInfo?: RecurringInfo;
+    }
+  | {
+      type: "today" | "next";
+    };
 
 function BookingsContent({ status }: BookingsProps) {
   const { data: filterQuery } = useFilterQuery();
@@ -116,87 +122,123 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.display({
         id: "custom-view",
         cell: (props) => {
-          const { booking, recurringInfo } = props.row.original;
-          return (
-            <BookingListItem
-              key={booking.id}
-              loggedInUser={{
-                userId: user?.id,
-                userTimeZone: user?.timeZone,
-                userTimeFormat: user?.timeFormat,
-                userEmail: user?.email,
-              }}
-              listingStatus={status}
-              recurringInfo={recurringInfo}
-              {...booking}
-            />
-          );
+          if (props.row.original.type === "data") {
+            const { booking, recurringInfo, isToday } = props.row.original;
+            return (
+              <BookingListItem
+                key={booking.id}
+                isToday={isToday}
+                loggedInUser={{
+                  userId: user?.id,
+                  userTimeZone: user?.timeZone,
+                  userTimeFormat: user?.timeFormat,
+                  userEmail: user?.email,
+                }}
+                listingStatus={status}
+                recurringInfo={recurringInfo}
+                {...booking}
+              />
+            );
+          } else if (props.row.original.type === "today") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("today")}
+              </p>
+            );
+          } else if (props.row.original.type === "next") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("next")}
+              </p>
+            );
+          }
         },
       }),
     ];
   }, [user, status]);
 
-  const isEmpty = !query.data?.pages[0]?.bookings.length;
+  const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
-  const shownBookings: Record<string, BookingOutput[]> = {};
-  const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
-      if (!booking.recurringEventId) {
-        return true;
+  const flatData = useMemo<RowData[]>(() => {
+    const shownBookings: Record<string, BookingOutput[]> = {};
+    const filterBookings = (booking: BookingOutput) => {
+      if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
+        if (!booking.recurringEventId) {
+          return true;
+        }
+        if (
+          shownBookings[booking.recurringEventId] !== undefined &&
+          shownBookings[booking.recurringEventId].length > 0
+        ) {
+          shownBookings[booking.recurringEventId].push(booking);
+          return false;
+        }
+        shownBookings[booking.recurringEventId] = [booking];
+      } else if (status === "upcoming") {
+        return (
+          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
+          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+        );
       }
-      if (
-        shownBookings[booking.recurringEventId] !== undefined &&
-        shownBookings[booking.recurringEventId].length > 0
-      ) {
-        shownBookings[booking.recurringEventId].push(booking);
-        return false;
-      }
-      shownBookings[booking.recurringEventId] = [booking];
-    } else if (status === "upcoming") {
-      return (
-        dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") !==
-        dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-      );
-    }
-    return true;
-  };
+      return true;
+    };
 
-  const flatData = useMemo(() => {
     return (
       query.data?.pages.flatMap((page) =>
         page.bookings.filter(filterBookings).map((booking) => ({
+          type: "data",
           booking,
           recurringInfo: page.recurringInfo.find(
             (info) => info.recurringEventId === booking.recurringEventId
           ),
+          isToday: false,
         }))
       ) || []
     );
   }, [query.data]);
 
+  const bookingsToday = useMemo<RowData[]>(() => {
+    return (
+      query.data?.pages.map((page) =>
+        page.bookings
+          .filter(
+            (booking: BookingOutput) =>
+              dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+              dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+          )
+          .map((booking) => ({
+            type: "data" as const,
+            booking,
+            recurringInfo: page.recurringInfo.find(
+              (info) => info.recurringEventId === booking.recurringEventId
+            ),
+            isToday: true,
+          }))
+      )[0] || []
+    );
+  }, [query.data]);
+
+  const finalData = useMemo<RowData[]>(() => {
+    if (bookingsToday.length > 0 && status === "upcoming") {
+      const merged: RowData[] = [
+        { type: "today" as const },
+        ...bookingsToday,
+        { type: "next" as const },
+        ...flatData,
+      ];
+      return merged;
+    } else {
+      return flatData;
+    }
+  }, [bookingsToday, flatData, status]);
+
   const table = useReactTable<RowData>({
-    data: flatData,
+    data: finalData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  let recurringInfoToday: RecurringInfo | undefined;
-
-  const bookingsToday =
-    query.data?.pages.map((page) =>
-      page.bookings.filter((booking: BookingOutput) => {
-        recurringInfoToday = page.recurringInfo.find(
-          (info) => info.recurringEventId === booking.recurringEventId
-        );
-
-        return (
-          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        );
-      })
-    )[0] || [];
 
   return (
     <div className="flex flex-col">
@@ -214,48 +256,19 @@ function BookingsContent({ status }: BookingsProps) {
           {query.status === "success" && !isEmpty && (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
-                <div className="mb-6 pt-2 xl:pt-0">
-                  <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-                  <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
-                  <div className="border-subtle overflow-hidden rounded-md border">
-                    <div
-                      className="bg-default divide-subtle w-full max-w-full divide-y"
-                      data-testid="today-bookings">
-                      <Fragment>
-                        {bookingsToday.map((booking: BookingOutput) => (
-                          <BookingListItem
-                            key={booking.id}
-                            loggedInUser={{
-                              userId: user?.id,
-                              userTimeZone: user?.timeZone,
-                              userTimeFormat: user?.timeFormat,
-                              userEmail: user?.email,
-                            }}
-                            listingStatus={status}
-                            recurringInfo={recurringInfoToday}
-                            {...booking}
-                          />
-                        ))}
-                      </Fragment>
-                    </div>
-                  </div>
-                </div>
+                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
-
-              {flatData.length > 0 && (
-                <DataTableWrapper
-                  table={table}
-                  testId={`${status}-bookings`}
-                  bodyTestId="bookings"
-                  hideHeader={true}
-                  isPending={query.isFetching && !flatData}
-                  hasNextPage={query.hasNextPage}
-                  fetchNextPage={query.fetchNextPage}
-                  isFetching={query.isFetching}
-                  variant="compact"
-                  containerClassName="!h-[inherit] max-h-[80dvh]"
-                />
-              )}
+              <DataTableWrapper
+                table={table}
+                testId={`${status}-bookings`}
+                bodyTestId="bookings"
+                hideHeader={true}
+                isPending={query.isFetching && !flatData}
+                hasNextPage={query.hasNextPage}
+                fetchNextPage={query.fetchNextPage}
+                isFetching={query.isFetching}
+                variant="compact"
+              />
             </>
           )}
           {query.status === "success" && isEmpty && (
