@@ -277,7 +277,7 @@ const buildDryRunBooking = ({
     ratingFeedback: null,
     noShowHost: null,
     cancelledBy: null,
-  } as CreatedBooking;
+  } as unknown as CreatedBooking;
 
   /**
    * Troubleshooting data

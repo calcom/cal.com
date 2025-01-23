@@ -118,6 +118,7 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  isBookingDryRun?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

@@ -72,6 +72,7 @@ const BookerComponent = ({
   areInstantMeetingParametersSet = false,
   userLocale,
   hasValidLicense,
+  isBookingDryRun: isBookingDryRunProp,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -271,7 +272,7 @@ const BookerComponent = ({
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
-      {isBookingDryRun(searchParams) && <DryRunMessage isEmbed={isEmbed} />}
+      {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
 
       <div
         className={classNames(

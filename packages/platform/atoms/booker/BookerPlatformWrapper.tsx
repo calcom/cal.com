@@ -80,6 +80,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
   bannerUrl?: string;
+  onDryRunSuccess?: () => void;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -267,13 +268,10 @@ export const BookerPlatformWrapper = (
     routedTeamMemberIds?: number[];
     shouldServeCache?: boolean;
     skipContactOwner?: boolean;
+    isBookingDryRun?: boolean;
   }>({});
 
   useEffect(() => {
-    console.log(
-      "SEARCH PARAMS FROM PROP: routingFormSearchParams in useEffect Booker Platform Wrapper",
-      routingFormSearchParams
-    );
     const searchParams = routingFormSearchParams
       ? new URLSearchParams(routingFormSearchParams)
       : new URLSearchParams(window.location.search);
@@ -283,13 +281,14 @@ export const BookerPlatformWrapper = (
 
     const _cacheParam = searchParams?.get("cal.cache");
     const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
-
+    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
     setRoutingParams({
       ...(skipContactOwner ? { skipContactOwner } : {}),
       ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
       ...(shouldServeCache ? { shouldServeCache } : {}),
+      ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
-  }, []);
+  }, [routingFormSearchParams]);
 
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
@@ -335,6 +334,11 @@ export const BookerPlatformWrapper = (
     isError: isCreateBookingError,
   } = useCreateBooking({
     onSuccess: (data) => {
+      console.log(data);
+
+      if (data?.data?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
     },
@@ -348,6 +352,9 @@ export const BookerPlatformWrapper = (
     isError: isCreateRecBookingError,
   } = useCreateRecurringBooking({
     onSuccess: (data) => {
+      if (data?.data?.[0]?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
     },
@@ -540,6 +547,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
+        isBookingDryRun={routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );

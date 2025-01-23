@@ -100,6 +100,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/embed" && (
         <div>
           <BookerEmbed
+            routingFormUrl="http://localhost:3000/free/30min?date=2025-01-24&month=2025-01&cal.skipContactOwner=true&cal.cache=true&cal.isBookingDryRun=true"
             customClassNames={{
               bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {

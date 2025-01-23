@@ -13,7 +13,13 @@ export const BookerEmbed = (
 ) => {
   const routingFormUrlProps = useGetRoutingFormUrlProps(props);
   if (routingFormUrlProps) {
-    const { organizationId, teamId: routingTeamId, ...routingFormSearchParams } = routingFormUrlProps;
+    const {
+      organizationId,
+      teamId: routingTeamId,
+      eventTypeSlug,
+      username,
+      ...routingFormSearchParams
+    } = routingFormUrlProps;
     return (
       <CalProvider
         clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
@@ -23,8 +29,14 @@ export const BookerEmbed = (
           apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
         }}>
         <BookerPlatformWrapper
-          {...(Boolean(routingTeamId) ? { ...props, isTeamEvent: true, teamId: routingTeamId || 0 } : props)}
+          {...(Boolean(routingTeamId)
+            ? { eventSlug: eventTypeSlug, isTeamEvent: true, teamId: routingTeamId || 0, username: "" }
+            : { eventSlug: eventTypeSlug, username: username ?? "", isTeamEvent: false })}
           routingFormSearchParams={routingFormSearchParams}
+          bannerUrl={props.bannerUrl}
+          onDryRunSuccess={() => {
+            window.location.href = `https://app.cal.com/booking/dry-run-successful`;
+          }}
         />
       </CalProvider>
     );
