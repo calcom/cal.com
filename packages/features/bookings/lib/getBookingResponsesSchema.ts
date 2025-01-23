@@ -157,14 +157,11 @@ function preprocess<T extends z.ZodType>({
         if (bookingField.hideWhenJustOneOption) {
           hidden = hidden || numOptions <= 1;
         }
+        let isRequired = false;
         // If the field is hidden, then it can never be required
-        const isRequired = hidden
-          ? false
-          : isFieldApplicableToCurrentView
-          ? checkOptional
-            ? true
-            : bookingField.required
-          : false;
+        if (!hidden && isFieldApplicableToCurrentView) {
+          isRequired = checkOptional || !!bookingField.required;
+        }
 
         if ((isPartialSchema || !isRequired) && value === undefined) {
           continue;
