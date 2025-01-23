@@ -98,7 +98,7 @@ interface EventType {
 interface BookingInfo {
   cancelledBy: string;
   createdAt: string;
-  noShowHost: boolean;
+  absentHost: boolean;
   title: string;
   uid: string;
 }
@@ -168,7 +168,7 @@ export default function Success(props: PageProps) {
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
   const [purchaseDate, setPurchaseDate] = useState<dayjs.Dayjs | null>(null);
-  const [noShowHost, setNoShowHost] = useState<boolean>(false);
+  const [absentHost, setAbsentHost] = useState<boolean>(false);
   const [eventTypes, setEventTypes] = useState<EventType | null>(null);
   const [appointmentType, setAppointmentType] = useState<BookingTypes | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -338,8 +338,6 @@ export default function Success(props: PageProps) {
           const eventSlugs = response.reduce((acc, { id, slug }) => {
             return { ...acc, [id]: slug };
           }, eventTypes);
-
-          console.log(response, eventSlugs);
           setEventTypes(eventSlugs);
         });
       });
@@ -352,7 +350,7 @@ export default function Success(props: PageProps) {
         data.json().then((response: BookingInfo[]) => {
           const findedBooking = response[0];
           setPurchaseDate(dayjs(findedBooking?.createdAt));
-          setNoShowHost(!!findedBooking?.noShowHost && !!findedBooking?.cancelledBy);
+          setAbsentHost(!!findedBooking?.absentHost && !!findedBooking?.cancelledBy);
           setAppointmentType((_prev) => {
             switch (true) {
               case findedBooking?.title.includes(BookingTypes.URGENT_APPOINTMENT):
@@ -494,17 +492,17 @@ export default function Success(props: PageProps) {
     const cognitiveBehavioralTherapy = appointmentType === BookingTypes.COGNTIVE_BEHAVIORAL_THERAPY;
 
     switch (true) {
-      case noShowHost && medicalAppointments:
+      case absentHost && medicalAppointments:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
           rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
         };
-      case noShowHost && occupationalTherapy:
+      case absentHost && occupationalTherapy:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
           rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
         };
-      case noShowHost && cognitiveBehavioralTherapy:
+      case absentHost && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
           rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
@@ -611,7 +609,7 @@ export default function Success(props: PageProps) {
     currentUserEmail,
     eventTypes,
     isPastBooking,
-    noShowHost,
+    absentHost,
     props.profile.slug,
     purchaseDate,
     seatReferenceUid,
