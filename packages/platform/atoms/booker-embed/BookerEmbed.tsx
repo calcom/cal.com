@@ -1,11 +1,10 @@
-import { useGetRoutingFormUrlProps } from "booker-embed/useGetRoutingFormUrlProps";
-
 import type {
   BookerPlatformWrapperAtomPropsForIndividual,
   BookerPlatformWrapperAtomPropsForTeam,
 } from "../booker/BookerPlatformWrapper";
 import { BookerPlatformWrapper } from "../booker/BookerPlatformWrapper";
 import { CalProvider } from "../cal-provider/CalProvider";
+import { useGetRoutingFormUrlProps } from "./useGetRoutingFormUrlProps";
 
 export const BookerEmbed = (
   props:
