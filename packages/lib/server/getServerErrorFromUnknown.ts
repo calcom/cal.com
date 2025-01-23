@@ -3,6 +3,9 @@ import Stripe from "stripe";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
+import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";
 
@@ -31,6 +34,10 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
 }
 
 export function getServerErrorFromUnknown(cause: unknown): HttpError {
+  if (cause instanceof TRPCError) {
+    const statusCode = getHTTPStatusCodeFromError(cause);
+    return new HttpError({ statusCode, message: cause.message });
+  }
   if (isZodError(cause)) {
     return new HttpError({
       statusCode: 400,
