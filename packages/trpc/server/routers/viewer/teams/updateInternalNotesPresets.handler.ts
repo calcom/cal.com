@@ -56,7 +56,6 @@ export const updateInternalNotesPresetsHandler = async ({
   // Update or create presets
   const updatedPresets = await Promise.all(
     input.presets.map((preset) => {
-      console.log(preset);
       if (preset.id && preset.id !== -1) {
         // Update existing preset
         return prisma.internalNotePreset.update({
