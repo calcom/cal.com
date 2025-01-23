@@ -33,6 +33,7 @@ type EventType = Pick<
   | "assignAllTeamMembers"
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
+  | "isRRWeightsEnabled"
 >;
 
 type InputProps = {

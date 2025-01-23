@@ -1,6 +1,8 @@
 import { findMatchingHostsWithEventSegment, getNormalizedHosts } from "@calcom/lib/bookings/getRoutedUsers";
 import type { EventType } from "@calcom/lib/bookings/getRoutedUsers";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
@@ -45,7 +47,14 @@ const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & 
   return host.isFixed === false;
 };
 
-export const findQualifiedHosts = async <T extends { email: string; id: number } & Record<string, unknown>>({
+export const findQualifiedHosts = async <
+  T extends {
+    email: string;
+    id: number;
+    credentials: CredentialPayload[];
+    userLevelSelectedCalendars: SelectedCalendar[];
+  } & Record<string, unknown>
+>({
   eventType,
   rescheduleUid,
   routedTeamMemberIds,
@@ -57,6 +66,7 @@ export const findQualifiedHosts = async <T extends { email: string; id: number }
     hosts?: Host<T>[];
     users: T[];
     schedulingType: SchedulingType | null;
+    isRRWeightsEnabled: boolean;
     rescheduleWithSameRoundRobinHost: boolean;
   } & EventType;
   rescheduleUid: string | null;
@@ -160,7 +170,7 @@ export const findQualifiedHosts = async <T extends { email: string; id: number }
   const hostsAfterFairnessMatching = applyFilterWithFallback(
     hostsAfterRoutedTeamMemberIdsMatching,
     await filterHostsByLeadThreshold({
-      eventTypeId: eventType.id,
+      eventType,
       hosts: hostsAfterRoutedTeamMemberIdsMatching,
       maxLeadThreshold: eventType.maxLeadThreshold,
     })
