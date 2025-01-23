@@ -46,10 +46,10 @@ type SlotItemProps = {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
-  loadingStates: IUseBookingLoadingStates;
-  isVerificationCodeSending: boolean;
-  renderConfirmNotVerifyEmailButtonCond: boolean;
-  skipConfirmStep: boolean;
+  loadingStates?: IUseBookingLoadingStates;
+  isVerificationCodeSending?: boolean;
+  renderConfirmNotVerifyEmailButtonCond?: boolean;
+  skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
 };
@@ -134,10 +134,10 @@ const SlotItem = ({
           disabled={
             bookingFull ||
             !!(slot.bookingUid && slot.bookingUid === bookingData?.uid) ||
-            loadingStates.creatingBooking ||
-            loadingStates.creatingRecurringBooking ||
+            loadingStates?.creatingBooking ||
+            loadingStates?.creatingRecurringBooking ||
             isVerificationCodeSending ||
-            loadingStates.creatingInstantBooking ||
+            loadingStates?.creatingInstantBooking ||
             (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
           }
           data-testid="time"
@@ -188,17 +188,17 @@ const SlotItem = ({
                     }
                     disabled={
                       (!!shouldRenderCaptcha && !watchedCfToken) ||
-                      loadingStates.creatingBooking ||
-                      loadingStates.creatingRecurringBooking ||
+                      loadingStates?.creatingBooking ||
+                      loadingStates?.creatingRecurringBooking ||
                       isVerificationCodeSending ||
-                      loadingStates.creatingInstantBooking
+                      loadingStates?.creatingInstantBooking
                     }
                     color="primary"
                     loading={
-                      (selectedTimeslot === slot.time && loadingStates.creatingBooking) ||
-                      loadingStates.creatingRecurringBooking ||
+                      (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
+                      loadingStates?.creatingRecurringBooking ||
                       isVerificationCodeSending ||
-                      loadingStates.creatingInstantBooking
+                      loadingStates?.creatingInstantBooking
                     }>
                     {renderConfirmNotVerifyEmailButtonCond
                       ? isPaidEvent
