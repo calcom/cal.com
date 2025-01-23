@@ -12,6 +12,7 @@ import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hook
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -33,6 +34,8 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+
+const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy").then((mod) => mod.default));
@@ -78,6 +81,7 @@ const BookerComponent = ({
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
+
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
     shouldShowFormInDialog,
@@ -128,6 +132,8 @@ const BookerComponent = ({
 
   const { handleBookEvent, errors, loadingStates, expiryTime, instantVideoMeetingUrl } = bookings;
 
+  const watchedCfToken = bookingForm.watch("cfToken");
+
   const {
     isEmailVerificationModalVisible,
     setEmailVerificationModalVisible,
@@ -155,6 +161,14 @@ const BookerComponent = ({
 
   const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
 
+  // Cloudflare Turnstile Captcha
+  const shouldRenderCaptcha = !!(
+    renderCaptcha &&
+    CLOUDFLARE_SITE_ID &&
+    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1" &&
+    (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
+  );
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -175,7 +189,7 @@ const BookerComponent = ({
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
-        renderCaptcha={renderCaptcha}
+        shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
           if (seatedEventData.bookingUid) {
@@ -256,6 +270,7 @@ const BookerComponent = ({
     verifyCode?.verifyCodeWithSessionNotRequired,
     verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
+    shouldRenderCaptcha,
   ]);
 
   /**
@@ -453,6 +468,8 @@ const BookerComponent = ({
                 isVerificationCodeSending={isVerificationCodeSending}
                 onSubmit={onSubmit}
                 skipConfirmStep={skipConfirmStep}
+                shouldRenderCaptcha={shouldRenderCaptcha}
+                watchedCfToken={watchedCfToken}
               />
             </BookerSection>
           </AnimatePresence>
@@ -483,7 +500,19 @@ const BookerComponent = ({
               />
             </div>
           )}
-        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && (
+
+        {shouldRenderCaptcha && (
+          <div className="mb-6 mt-auto pt-6">
+            <TurnstileCaptcha
+              appearance="always"
+              onVerify={(token) => {
+                bookingForm.setValue("cfToken", token);
+              }}
+            />
+          </div>
+        )}
+
+        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && !shouldRenderCaptcha && (
           <m.span
             key="logo"
             className={classNames(

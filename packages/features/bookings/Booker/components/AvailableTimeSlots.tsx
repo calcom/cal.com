@@ -35,6 +35,7 @@ type AvailableTimeSlotsProps = {
   renderConfirmNotVerifyEmailButtonCond: boolean;
   onSubmit: (timeSlot?: string) => void;
   skipConfirmStep: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 /**

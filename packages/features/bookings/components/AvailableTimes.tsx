@@ -50,6 +50,8 @@ type SlotItemProps = {
   isVerificationCodeSending: boolean;
   renderConfirmNotVerifyEmailButtonCond: boolean;
   skipConfirmStep: boolean;
+  shouldRenderCaptcha?: boolean;
+  watchedCfToken?: string;
 };
 
 const SlotItem = ({
@@ -64,6 +66,8 @@ const SlotItem = ({
   renderConfirmNotVerifyEmailButtonCond,
   isVerificationCodeSending,
   skipConfirmStep,
+  shouldRenderCaptcha,
+  watchedCfToken,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -77,6 +81,7 @@ const SlotItem = ({
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+
   const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
@@ -92,6 +97,8 @@ const SlotItem = ({
   const usersTimezoneDate = nowDate.tz(timezone);
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
+
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
 
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
@@ -130,7 +137,8 @@ const SlotItem = ({
             loadingStates.creatingBooking ||
             loadingStates.creatingRecurringBooking ||
             isVerificationCodeSending ||
-            loadingStates.creatingInstantBooking
+            loadingStates.creatingInstantBooking ||
+            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
           }
           data-testid="time"
           data-disabled={bookingFull}
@@ -178,9 +186,16 @@ const SlotItem = ({
                     onClick={() =>
                       onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
                     }
+                    disabled={
+                      (!!shouldRenderCaptcha && !watchedCfToken) ||
+                      loadingStates.creatingBooking ||
+                      loadingStates.creatingRecurringBooking ||
+                      isVerificationCodeSending ||
+                      loadingStates.creatingInstantBooking
+                    }
                     color="primary"
                     loading={
-                      loadingStates.creatingBooking ||
+                      (selectedTimeslot === slot.time && loadingStates.creatingBooking) ||
                       loadingStates.creatingRecurringBooking ||
                       isVerificationCodeSending ||
                       loadingStates.creatingInstantBooking
