@@ -22,7 +22,6 @@ import {
   SheetHeader,
   SheetTitle,
   showToast,
-  Skeleton,
 } from "@calcom/ui";
 
 type TeamMemberItemProps = {
@@ -323,24 +322,10 @@ export const EditWeightsForAllTeamMembers = ({
               />
 
               <div className="flex max-h-[80dvh] flex-col overflow-y-auto rounded-md border">
-                {isPending ? (
-                  <div className="flex flex-col space-y-4 p-4">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <div key={i} className="flex items-center space-x-4">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-1/4" />
-                          <Skeleton className="h-4 w-1/2" />
-                        </div>
-                        <Skeleton className="h-8 w-20" />
-                      </div>
-                    ))}
-                  </div>
-                ) : filteredMembers.length > 0 ? (
-                  filteredMembers.map((member) => (
-                    <TeamMemberItem key={member.value} member={member} onWeightChange={handleWeightChange} />
-                  ))
-                ) : (
+                {filteredMembers.map((member) => (
+                  <TeamMemberItem key={member.value} member={member} onWeightChange={handleWeightChange} />
+                ))}
+                {filteredMembers.length === 0 && (
                   <div className="text-subtle py-4 text-center text-sm">{t("no_members_found")}</div>
                 )}
               </div>
