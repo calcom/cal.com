@@ -24,6 +24,7 @@ import {
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,
+  scheduleWorkflowBodyScan,
 } from "./util";
 
 type UpdateOptions = {
@@ -398,6 +399,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
+      await scheduleWorkflowBodyScan({
+        workflowStepId: oldStep.id,
+        newStepBody: newStep?.reminderBody,
+        oldStepBody: oldStep?.reminderBody,
+      });
+
       // cancel all notifications of edited step
       await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
 
@@ -463,6 +470,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         ctx.prisma.workflowStep.create({
           data: { ...step, numberVerificationPending: false },
         })
+      )
+    );
+
+    await Promise.all(
+      createdSteps.map((step) =>
+        scheduleWorkflowBodyScan({ workflowStepId: step.id, newStepBody: step.reminderBody })
       )
     );
 
