@@ -216,6 +216,10 @@ describe("findQualifiedHosts", async () => {
       ],
       fallbackHosts: [
         {
+          ...hosts[0],
+          disqualifyReason: "NotContactOwner",
+        },
+        {
           ...hosts[1],
           disqualifyReason: "NotContactOwner",
         },
