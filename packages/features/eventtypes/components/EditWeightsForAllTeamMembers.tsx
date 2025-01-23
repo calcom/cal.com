@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import { trpc } from "@calcom/trpc";
 import {
   Avatar,
@@ -111,11 +112,11 @@ const useTeamMembersWithSegment = ({
     trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
       {
         teamId: teamId || 0,
-        attributesQueryValue: queryValue,
+        attributesQueryValue: queryValue as AttributesQueryValue,
         _enablePerf: true,
       },
       {
-        enabled: assignRRMembersUsingSegment && !!teamId,
+        enabled: assignRRMembersUsingSegment && queryValue && !!teamId,
       }
     );
 
@@ -125,6 +126,7 @@ const useTeamMembersWithSegment = ({
         value: member.id.toString(),
         label: member.name || member.email,
         email: member.email,
+        avatar: "", // Add avatar with fallback to empty string
       }));
     }
     return initialTeamMembers;
@@ -170,7 +172,7 @@ export const EditWeightsForAllTeamMembers = ({
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { teamMembers, localWeightsInitialValues, isPending } = useTeamMembersWithSegment({
+  const { teamMembers, localWeightsInitialValues } = useTeamMembersWithSegment({
     initialTeamMembers,
     assignRRMembersUsingSegment,
     teamId,
@@ -187,10 +189,21 @@ export const EditWeightsForAllTeamMembers = ({
   };
 
   const handleSave = () => {
-    const updatedValue = value.map((host) => ({
-      ...host,
-      weight: localWeights[host.userId.toString()] ?? host.weight ?? 100,
-    }));
+    // Create a map of existing hosts for easy lookup
+    const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+
+    // Create the updated value by processing all team members
+    const updatedValue = teamMembers.map((member) => {
+      const existingHost = existingHostsMap.get(member.value);
+      return {
+        ...existingHost,
+        userId: parseInt(member.value, 10),
+        isFixed: existingHost?.isFixed ?? false,
+        priority: existingHost?.priority ?? 0,
+        weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+      };
+    });
+
     onChange(updatedValue);
     setIsOpen(false);
   };
