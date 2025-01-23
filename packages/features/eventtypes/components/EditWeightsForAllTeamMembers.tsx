@@ -26,7 +26,7 @@ import {
 } from "@calcom/ui";
 
 type TeamMemberItemProps = {
-  member: TeamMember & { weight?: number };
+  member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
   onWeightChange: (memberId: string, weight: number) => void;
 };
 
@@ -116,7 +116,7 @@ const useTeamMembersWithSegment = ({
         _enablePerf: true,
       },
       {
-        enabled: assignRRMembersUsingSegment && queryValue && !!teamId,
+        enabled: assignRRMembersUsingSegment && !!queryValue && !!teamId,
       }
     );
 
