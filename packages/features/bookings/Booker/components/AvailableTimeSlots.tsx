@@ -36,6 +36,7 @@ type AvailableTimeSlotsProps = {
   onSubmit: (timeSlot?: string) => void;
   skipConfirmStep: boolean;
   shouldRenderCaptcha?: boolean;
+  watchedCfToken?: string;
 };
 
 /**
