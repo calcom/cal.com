@@ -5,7 +5,7 @@ import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
-import { serviceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   DropdownActions,
@@ -147,20 +147,33 @@ type EditDelegationData = {
 function CreateDelegationDialog({
   isOpen,
   onClose,
-  onSubmit,
   workspacePlatforms,
+  handleCreate,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateDelegationData) => void;
   workspacePlatforms: WorkspacePlatform[];
+  handleCreate: (data: CreateDelegationData) => void;
 }) {
   const { t } = useLocale();
 
   const form = useForm<CreateDelegationData>();
 
   const handleSubmit = (values: CreateDelegationData) => {
-    onSubmit(values);
+    try {
+      const validatedKey = serviceAccountKeySchema.safeParse(values.serviceAccountKey);
+
+      if (!validatedKey.success) {
+        form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
+        return;
+      }
+
+      values.serviceAccountKey = validatedKey.data;
+    } catch (e) {
+      form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
+      return;
+    }
+    handleCreate(values);
   };
 
   return (
@@ -184,14 +197,14 @@ function EditDelegationDialog({
   isOpen,
   onClose,
   delegation,
-  onSubmit,
   workspacePlatforms,
+  handleEdit,
 }: {
   isOpen: boolean;
   onClose: () => void;
   delegation: DelegationItemProps["delegation"];
-  onSubmit: (data: EditDelegationData) => void;
   workspacePlatforms: WorkspacePlatform[];
+  handleEdit: (data: EditDelegationData) => void;
 }) {
   const { t } = useLocale();
 
@@ -206,7 +219,7 @@ function EditDelegationDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent title={t("edit_domain_wide_delegation")}>
-        <Form form={form} handleSubmit={onSubmit}>
+        <Form form={form} handleSubmit={handleEdit}>
           <DelegationFormFields workspacePlatforms={workspacePlatforms} isCreate={false} />
           <DialogFooter>
             <Button type="button" color="secondary" onClick={onClose}>
@@ -335,24 +348,12 @@ function DomainWideDelegationList() {
   const onCreateClick = () => setCreateEditDialog({ isOpen: true, delegation: null });
 
   const handleCreate = (data: CreateDelegationData) => {
-    try {
-      const parsedKey = JSON.parse(data.serviceAccountKey);
-      const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
-      
-      if (!validatedKey.success) {
-        form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
-        return;
-      }
-
-      createMutation.mutate({
-        domain: data.domain,
-        workspacePlatformSlug: data.workspacePlatformSlug,
-        serviceAccountKey: parsedKey,
-      });
-      setCreateEditDialog({ isOpen: false, delegation: null });
-    } catch (e) {
-      form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
-    }
+    createMutation.mutate({
+      domain: data.domain,
+      workspacePlatformSlug: data.workspacePlatformSlug,
+      serviceAccountKey: data.serviceAccountKey,
+    });
+    setCreateEditDialog({ isOpen: false, delegation: null });
   };
 
   const handleEdit = (data: EditDelegationData) => {
@@ -422,15 +423,15 @@ function DomainWideDelegationList() {
           isOpen={createEditDialog.isOpen}
           onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
           delegation={createEditDialog.delegation}
-          onSubmit={handleEdit}
           workspacePlatforms={enabledWorkspacePlatforms}
+          handleEdit={handleEdit}
         />
       ) : (
         <CreateDelegationDialog
           isOpen={createEditDialog.isOpen}
           onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
-          onSubmit={handleCreate}
           workspacePlatforms={enabledWorkspacePlatforms}
+          handleCreate={handleCreate}
         />
       )}
     </div>

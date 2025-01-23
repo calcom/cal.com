@@ -2,9 +2,11 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { describe, expect, it, beforeEach, vi } from "vitest";
 
+import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
+
 import { DomainWideDelegationRepository } from "../domainWideDelegation";
 import { OrganizationRepository } from "../organization";
-import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
+
 vi.mock("../organization", () => ({
   OrganizationRepository: {
     findByMemberEmail: vi.fn(),
@@ -13,7 +15,9 @@ vi.mock("../organization", () => ({
 
 // Mock service account key functions
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
-  const actual = await importOriginal();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const actual = await importOriginal<any>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => {
@@ -36,7 +40,7 @@ const buildMockServiceAccountKey = () => ({
 const buildMockEncryptedServiceAccountKey = () => ({
   client_email: "test@example.com",
   client_id: "client-id",
-  encrypted_credentials: "encrypted({\"private_key\":\"private-key\"})",
+  encrypted_credentials: 'encrypted({"private_key":"private-key"})',
   additional_field: "value",
 });
 
@@ -148,8 +152,6 @@ describe("DomainWideDelegationRepository", () => {
           expect(result).toHaveProperty("serviceAccountKey");
           expect(result?.serviceAccountKey).toEqual(buildMockServiceAccountKey());
         });
-
-       
       });
 
       describe("findByOrgIdIncludeSensitiveServiceAccountKey", () => {

@@ -44,7 +44,9 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
 }));
 
 vi.mock("@calcom/lib/crypto", async (importOriginal) => {
-  const actual = await importOriginal();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const actual = await importOriginal<any>();
   return {
     ...actual,
     symmetricEncrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
@@ -2167,7 +2169,7 @@ export const getDefaultBookingFields = ({
 };
 
 export const createDwdCredential = async (orgId: number) => {
-  const encryptedServiceAccountKey =  {
+  const encryptedServiceAccountKey = {
     type: "service_account",
     auth_uri: "https://accounts.google.com/o/oauth2/auth",
     client_id: "CLIENT_ID",
@@ -2190,7 +2192,6 @@ export const createDwdCredential = async (orgId: number) => {
       enabled: true,
     },
   });
-
 
   const decryptedServiceAccountKey = {
     type: "service_account",

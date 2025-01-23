@@ -3,18 +3,10 @@ import { z } from "zod";
 
 import { SERVICE_ACCOUNT_ENCRYPTION_KEY } from "@calcom/lib/constants";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
-
-// Schema for decrypted service account key
-export const serviceAccountKeySchema = z
-  .object({
-    private_key: z.string(),
-    client_email: z.string(),
-    client_id: z.string(),
-  })
-  .passthrough();
+import { serviceAccountKeySchema } from "@calcom/prisma/zod-utils";
 
 export type ServiceAccountKey = z.infer<typeof serviceAccountKeySchema>;
-
+export { serviceAccountKeySchema };
 // Schema for encrypted service account key (our storage format)
 export const encryptedServiceAccountKeySchema = z
   .object({
