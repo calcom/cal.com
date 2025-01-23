@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
