@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "You can view the booking details from this url {{url}} and add the event to your calendar",
   "no_options_available": "No options available",
   "cancellation_reason": "Reason for cancellation (optional)",
+  "cancellation_reason_host": "Reason for cancellation",
   "cancellation_reason_placeholder": "Why are you cancelling?",
+  "notify_attendee_cancellation_reason_warning":"Please note that the cancellation reason will be visible to the attendee.",
   "rejection_reason_placeholder": "Why are you rejecting?",
   "rejection_reason": "Reason for rejecting",
   "rejection_reason_title": "Reject the booking request?",
@@ -2949,6 +2951,7 @@
   "select_oAuth_client": "Select Oauth Client",
   "on_every_instance": "On every instance",
   "domain_wide_delegation_feature_not_enabled": "Domain-wide delegation feature is not enabled for your organization",
+  "authorize": "Authorize",
   "next": "Next",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

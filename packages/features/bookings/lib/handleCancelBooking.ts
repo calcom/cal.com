@@ -181,6 +181,13 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
+  if (!cancellationReason && req.bookingToDelete.userId == userId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cancellation reason is required when you are the host",
+    });
+  }
+
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
   if (bookingToDelete.eventType?.seatsPerTimeSlot && !seatReferenceUid) {
     const userIsHost = bookingToDelete.eventType.hosts.find((host) => {

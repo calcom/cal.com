@@ -287,12 +287,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   } = availabilitySchema.parse(query);
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify(
-      {
-        query,
-        initialData,
-      }
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify({
+      query,
+    })}`
   );
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -427,14 +424,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify(
-      {
-        chosenSchedule: schedule,
-        eventTypeSchedule: eventType?.schedule,
-        userSchedule: userSchedule,
-        hostSchedule: hostSchedule,
-      }
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
+      chosenSchedule: schedule,
+      eventTypeSchedule: eventType?.schedule,
+      userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
+    })}`
   );
 
   if (
@@ -586,9 +581,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   };
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(
-      result
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(result)}`
   );
 
   return result;
