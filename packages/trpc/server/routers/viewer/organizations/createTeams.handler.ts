@@ -233,6 +233,7 @@ async function moveTeam({
   }));
 
   if (invitableMembers.length) {
+    console.log("invitableMembers", invitableMembers, "inside createTeamsHandler");
     // Invite team members to the new org. They are already members of the team.
     await inviteMemberHandler({
       ctx,

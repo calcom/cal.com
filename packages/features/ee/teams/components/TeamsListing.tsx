@@ -95,7 +95,7 @@ export function TeamsListing() {
 
   useEffect(() => {
     if (!router) return;
-    if (token) inviteMemberByToken({ token });
+    if (token) inviteMemberByToken({ token, creationSource: CreationSource.WEBAPP });
     else setInviteTokenChecked(true);
   }, [router, inviteMemberByToken, setInviteTokenChecked, token]);
 
