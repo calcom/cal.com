@@ -346,20 +346,24 @@ export async function createNewUsersConnectToOrgIfExists({
                 accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
               },
             },
-            schedules: {
-              create: {
-                name: t("default_schedule_name"),
-                availability: {
-                  createMany: {
-                    data: defaultAvailability.map((schedule) => ({
-                      days: schedule.days,
-                      startTime: schedule.startTime,
-                      endTime: schedule.endTime,
-                    })),
+            ...(!isPlatformManaged
+              ? {
+                  schedules: {
+                    create: {
+                      name: t("default_schedule_name"),
+                      availability: {
+                        createMany: {
+                          data: defaultAvailability.map((schedule) => ({
+                            days: schedule.days,
+                            startTime: schedule.startTime,
+                            endTime: schedule.endTime,
+                          })),
+                        },
+                      },
+                    },
                   },
-                },
-              },
-            },
+                }
+              : {}),
           },
         });
 

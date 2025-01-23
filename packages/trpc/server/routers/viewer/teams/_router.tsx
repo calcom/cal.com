@@ -222,4 +222,11 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
+  hasActiveTeamPlan: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("hasActiveTeamPlan"),
+      () => import("./hasActiveTeamPlan.handler")
+    );
+    return handler(opts);
+  }),
 });

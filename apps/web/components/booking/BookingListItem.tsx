@@ -68,6 +68,7 @@ type BookingItemProps = BookingItem & {
     userTimeFormat: number | null | undefined;
     userEmail: string | undefined;
   };
+  isToday: boolean;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -511,7 +512,10 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div data-testid="booking-item" className="hover:bg-muted group w-full">
+      <div
+        data-testid="booking-item"
+        data-today={String(booking.isToday)}
+        className="hover:bg-muted group w-full">
         <div className="flex flex-col sm:flex-row">
           <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
             <div className="flex h-full items-center">

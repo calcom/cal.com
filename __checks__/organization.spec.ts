@@ -75,7 +75,8 @@ test.describe("Org", () => {
 
   test.describe("Browse the Engineering Team", async () => {
     test("By User Navigation", async ({ page }) => {
-      await page.goto("https://i.cal.com");
+      const response = await page.goto("https://i.cal.com");
+      expect(response?.status()).toBe(200);
       await page.click('text="Engineering"');
       await expect(page.locator("text=Cal.com Engineering")).toBeVisible();
     });
