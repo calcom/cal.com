@@ -35,9 +35,6 @@ const log = logger.getSubLogger({ name: "filterHostsByLeadThreshold" });
 
 function filterHostsByLeadThresholdWithWeights(perUserData: WeightedPerUserData, maxLeadThreshold: number) {
   const filteredUserIds: number[] = [];
-  // Calculate the total weight of all hosts
-  const totalWeight = Object.values(perUserData.weights).reduce((sum, weight) => sum + weight, 0);
-
   const maxShortfall = Math.max(...Object.values(perUserData.bookingShortfalls));
 
   for (const userIdStr in perUserData.bookingsCount) {
@@ -105,6 +102,9 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     } | null;
   };
 }) => {
+  if (maxLeadThreshold === 0) {
+    throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
+  }
   if (maxLeadThreshold === null) {
     return hosts; // don't apply filter.
   }
