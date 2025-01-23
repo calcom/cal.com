@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Podrobnosti rezervace si můžete prohlédnout na této adrese URL {{url}} a přidat událost do svého kalendáře",
   "no_options_available": "Nejsou k dispozici žádné možnosti",
   "cancellation_reason": "Důvod zrušení",
+  "cancellation_reason_host": "Důvod zrušení",
   "cancellation_reason_placeholder": "Proč rušíte?\n",
+  "notify_attendee_cancellation_reason_warning": "Vezměte prosím na vědomí, že důvod zrušení bude viditelný pro účastníka.",
   "rejection_reason_placeholder": "Proč odmítáte?",
   "rejection_reason": "Důvod odmítnutí",
   "rejection_reason_title": "Odmítnout žádost o rezervaci?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Stáhnout přepis",
   "recording_from_your_recent_call": "Nahrávka z vašeho nedávného hovoru v {{appName}} je připravena ke stažení",
   "transcript_from_previous_call": "Přepis z vašeho nedávného hovoru na {{appName}} je připraven ke stažení. Odkazy jsou platné pouze 1 hodinu",
+  "you_can_download_transcript_from_attachments": "Přepis si můžete také stáhnout z příloh",
   "link_valid_for_12_hrs": "Poznámka: Odkaz ke stažení je platný pouze 12 hodin. Nový odkaz ke stažení můžete vygenerovat podle pokynů <1>zde</1>.",
   "create_your_first_form": "Vytvořte svůj první formulář",
   "create_your_first_form_description": "Pomocí adresných formulářů můžete klást kvalifikační otázky a adresovat je správné osobě nebo typu události.",
@@ -2927,5 +2930,7 @@
   "managed_users_description": "Zobrazit všechny spravované uživatele vytvořené vaším OAuth klientem",
   "select_oAuth_client": "Vybrat OAuth klienta",
   "on_every_instance": "Na každé instanci",
+  "authorize": "Autorizovat",
+  "next": "Další",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -54,7 +54,9 @@ checksums:
     you_can_view_booking_details_with_this_url: 64f9ae32d2162ea4afab41fb8ac07fb1
     no_options_available: 1578bfcdda54521607e7695776832765
     cancellation_reason: 8e73160be8cdaed6e71565a4ec49e0e0
+    cancellation_reason_host: b9eb5a356b3a6220ca4d67e0f094555c
     cancellation_reason_placeholder: f4eac23857afdc8b674ba077e25e8799
+    notify_attendee_cancellation_reason_warning: 015b00e45e62e9bcc02b85fde2169740
     rejection_reason_placeholder: 7323623572496dbb1a170f7f6818e3fb
     rejection_reason: 548de89f2233af9e74699412356fbda8
     rejection_reason_title: 8eb009c9ce928946ba27b0d8f92396d8
@@ -1546,6 +1548,7 @@ checksums:
     download_transcript: e6200f050dd5d0277c0dbad0cfe3b41a
     recording_from_your_recent_call: b668afa4ace7a561853eff98d583532e
     transcript_from_previous_call: 7485bc94e7ca0e7b2f9cefa8f5b12168
+    you_can_download_transcript_from_attachments: bd1f8b66fa7a44eeed9c113112a042e5
     link_valid_for_12_hrs: 7701a0f7bdc1ca82a14e6fa28583ac74
     create_your_first_form: 5d33316ece53f9ffddba51418869d7aa
     create_your_first_form_description: deafa03d444fc9af9c16f48408d8048c
@@ -2929,4 +2932,6 @@ checksums:
     managed_users_description: 45fea5321847b0c8ee72ce33684c1283
     select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
     on_every_instance: db0e9e92055a38572fffa40f44440035
+    authorize: 79bc0c78ff5b369613c023b08e7236dd
+    next: 89ddbcf710eba274963494f312bdc8a9
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

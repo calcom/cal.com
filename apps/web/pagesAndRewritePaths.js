@@ -3,10 +3,10 @@ const { nextJsOrgRewriteConfig } = require("./getNextjsOrgRewriteConfig");
 /** Needed to rewrite public booking page, gets all static pages but [user] */
 // Pages found here are excluded from redirects in beforeFiles in next.config.js
 let pages = (exports.pages = glob
-  .sync("{pages,app}/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
+  .sync("{pages,app,app/(use-page-wrapper)}/**/[^_]*.{tsx,js,ts}", { cwd: __dirname })
   .map((filename) =>
     filename
-      .replace(/^(pages|app)\//, "")
+      .replace(/^(app\/\(use-page-wrapper\)|pages|app)\//, "")
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )

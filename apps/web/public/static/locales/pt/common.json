@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Pode ver os detalhes da reserva através deste URL {{url}} e adicionar o evento ao seu calendário",
   "no_options_available": "Não existem opções disponíveis",
   "cancellation_reason": "Motivo do cancelamento",
+  "cancellation_reason_host": "Motivo do cancelamento",
   "cancellation_reason_placeholder": "Porque está a cancelar? (opcional)",
+  "notify_attendee_cancellation_reason_warning": "Observe que o motivo do cancelamento ficará visível para o participante.",
   "rejection_reason_placeholder": "Por que está a rejeitar?",
   "rejection_reason": "Motivo da rejeição",
   "rejection_reason_title": "Rejeitar o pedido de reserva?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Transferir transcrição",
   "recording_from_your_recent_call": "A gravação da sua chamada recente em {{appName}} está pronta para descarregar",
   "transcript_from_previous_call": "A transcrição da sua chamada recente em {{appName}} está pronta ser transferida. As ligações são válidas apenas durante 1 hora",
+  "you_can_download_transcript_from_attachments": "Você também pode baixar a transcrição dos anexos",
   "link_valid_for_12_hrs": "Nota: A ligação de transferência é válida apenas durante 12 horas. Pode gerar uma nova ligação de transferência seguindo as instruções <1>aqui</1>.",
   "create_your_first_form": "Crie o seu primeiro formulário",
   "create_your_first_form_description": "Com os Formulários de encaminhamento, pode fazer questões qualitativas e encaminhar para a pessoa ou o tipo de evento correto.",
@@ -2927,5 +2930,7 @@
   "managed_users_description": "Veja todos os usuários gerenciados criados pelo seu cliente OAuth",
   "select_oAuth_client": "Selecionar cliente OAuth",
   "on_every_instance": "Em cada instância",
+  "authorize": "Autorizar",
+  "next": "Próximo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

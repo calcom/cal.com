@@ -168,6 +168,9 @@ export const config = {
     "/login",
     "/auth/login",
     "/auth/error",
+    "/auth/signin",
+    "/auth/oauth2/authorize",
+    "/auth/platform/authorize",
     /**
      * Paths required by routingForms.handle
      */
@@ -197,10 +200,7 @@ export const config = {
     "/booking/:path*",
     "/routing-forms/:path*",
     "/team/:path*",
-    "/org/[orgSlug]/[user]/[type]",
-    "/org/[orgSlug]/team/[slug]/[type]",
-    "/org/[orgSlug]/team/[slug]",
-    "/org/[orgSlug]",
+    "/org/:path*",
   ],
 };
 

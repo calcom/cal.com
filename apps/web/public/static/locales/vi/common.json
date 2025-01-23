@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Bạn có thể xem chi tiết đặt chỗ từ đường dẫn này {{url}} và thêm sự kiện vào lịch của bạn",
   "no_options_available": "Không tùy chọn nào khả dụng",
   "cancellation_reason": "Lý do hủy",
+  "cancellation_reason_host": "Lý do hủy cuộc hẹn",
   "cancellation_reason_placeholder": "Lý do bạn muốn hủy?",
+  "notify_attendee_cancellation_reason_warning": "Xin lưu ý rằng người tham gia sẽ nhìn thấy lý do hủy cuộc hẹn.",
   "rejection_reason_placeholder": "Tại sao bạn từ chối?",
   "rejection_reason": "Lý do từ chối",
   "rejection_reason_title": "Từ chối lịch hẹn?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Tải xuống bản chép lời",
   "recording_from_your_recent_call": "Một bản ghi từ cuộc gọi gần đây trên {{appName}} đã sẵn sàng để tải xuống",
   "transcript_from_previous_call": "Bản chép lời từ cuộc gọi gần đây của bạn trên {{appName}} đã sẵn sàng để tải xuống. Liên kết chỉ có hiệu lực trong 1 giờ",
+  "you_can_download_transcript_from_attachments": "Bạn cũng có thể tải bản ghi từ phần đính kèm",
   "link_valid_for_12_hrs": "Lưu ý: Liên kết tải xuống chỉ có hiệu lực trong 12 giờ. Bạn có thể tạo liên kết tải xuống mới bằng cách làm theo hướng dẫn <1>tại đây</1>.",
   "create_your_first_form": "Tạo biểu mẫu đầu tiên",
   "create_your_first_form_description": "Với Biểu mẫu định hướng, bạn có thể hỏi một số câu sơ tuyển và định hướng đến đúng người hay đúng loại sự kiện.",
@@ -2927,5 +2930,7 @@
   "managed_users_description": "Xem tất cả người dùng được quản lý được tạo bởi OAuth client của bạn",
   "select_oAuth_client": "Chọn OAuth Client",
   "on_every_instance": "Trên mỗi phiên bản",
+  "authorize": "Cấp quyền",
+  "next": "Tiếp theo",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
