@@ -3,6 +3,8 @@ import Stripe from "stripe";
 import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
+import { ErrorCode } from "@calcom/lib/errorCodes";
+
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
@@ -70,7 +72,9 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     };
   }
   if (cause instanceof Error) {
-    return getHttpError({ statusCode: 500, cause });
+    const statusCode = getStatusCode(cause);
+    console.dir(cause.name);
+    return getHttpError({ statusCode, cause });
   }
   if (typeof cause === "string") {
     // @ts-expect-error https://github.com/tc39/proposal-error-cause
@@ -81,6 +85,34 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     statusCode: 500,
     message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
   });
+}
+
+function getStatusCode(cause: Error): number {
+  switch (cause.message) {
+    case ErrorCode.RequestBodyWithouEnd:
+    case ErrorCode.MissingPaymentCredential:
+    case ErrorCode.MissingPaymentAppId:
+    case ErrorCode.AvailabilityNotFoundInSchedule:
+      return 400;
+    case ErrorCode.CancelledBookingsCannotBeRescheduled:
+      return 403;
+    case ErrorCode.NoAvailableUsersFound:
+    case ErrorCode.HostsUnavailableForBooking:
+    case ErrorCode.PaymentCreationFailure:
+    case ErrorCode.ChargeCardFailure:
+    case ErrorCode.AlreadySignedUpForBooking:
+    case ErrorCode.BookingSeatsFull:
+    case ErrorCode.NotEnoughAvailableSeats:
+      return 409;
+    case ErrorCode.EventTypeNotFound:
+    case ErrorCode.BookingNotFound:
+      return 404;
+    case ErrorCode.UnableToSubscribeToThePlatform:
+    case ErrorCode.UpdatingOauthClientError:
+    case ErrorCode.CreatingOauthClientError:
+    default:
+      return 500;
+  }
 }
 
 function getHttpError<T extends Error>({ statusCode, cause }: { statusCode: number; cause: T }) {
