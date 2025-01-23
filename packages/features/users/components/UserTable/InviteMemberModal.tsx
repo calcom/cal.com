@@ -71,9 +71,7 @@ export function InviteMemberModal(props: Props) {
           role: values.role,
           usernameOrEmail: values.emailOrUsername,
           isPlatform: platformUser?.organization.isPlatform,
-          creationSource: platformUser?.organization.isPlatform
-            ? CreationSource.API_V2
-            : CreationSource.WEBAPP,
+          creationSource: CreationSource.WEBAPP,
         });
       }}
     />
