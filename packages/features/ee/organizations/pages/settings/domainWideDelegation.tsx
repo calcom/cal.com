@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { ServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
+import { serviceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
 import { trpc } from "@calcom/trpc/react";
 import {
   DropdownActions,
@@ -13,6 +15,7 @@ import {
   DialogFooter,
   Form,
   TextField,
+  TextAreaField,
   SelectField,
   showToast,
   Badge,
@@ -127,6 +130,20 @@ function DelegationListItem({ delegation, toggleDelegation, onEdit, onDelete }: 
   );
 }
 
+type CreateDelegationData = {
+  domain: string;
+  workspacePlatformSlug: string;
+  enabled: boolean;
+  serviceAccountKey: ServiceAccountKey;
+};
+
+type EditDelegationData = {
+  id: string;
+  domain: string;
+  workspacePlatformSlug: string;
+  enabled: boolean;
+};
+
 function CreateDelegationDialog({
   isOpen,
   onClose,
@@ -135,23 +152,22 @@ function CreateDelegationDialog({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
+  onSubmit: (data: CreateDelegationData) => void;
   workspacePlatforms: WorkspacePlatform[];
 }) {
   const { t } = useLocale();
 
-  const form = useForm<{ domain: string; workspacePlatformSlug: string; enabled: boolean }>({
-    defaultValues: {
-      domain: "",
-      workspacePlatformSlug: "",
-    },
-  });
+  const form = useForm<CreateDelegationData>();
+
+  const handleSubmit = (values: CreateDelegationData) => {
+    onSubmit(values);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent enableOverflow title={t("add_domain_wide_delegation")}>
-        <Form form={form} handleSubmit={onSubmit}>
-          <DelegationFormFields workspacePlatforms={workspacePlatforms} />
+        <Form form={form} handleSubmit={handleSubmit}>
+          <DelegationFormFields workspacePlatforms={workspacePlatforms} isCreate={true} />
           <DialogFooter>
             <Button type="button" color="secondary" onClick={onClose}>
               {t("cancel")}
@@ -174,13 +190,14 @@ function EditDelegationDialog({
   isOpen: boolean;
   onClose: () => void;
   delegation: DelegationItemProps["delegation"];
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
+  onSubmit: (data: EditDelegationData) => void;
   workspacePlatforms: WorkspacePlatform[];
 }) {
   const { t } = useLocale();
 
-  const form = useForm<{ domain: string; workspacePlatformSlug: string; enabled: boolean }>({
+  const form = useForm<EditDelegationData>({
     defaultValues: {
+      id: delegation.id,
       domain: delegation.domain,
       workspacePlatformSlug: delegation.workspacePlatform.slug,
     },
@@ -190,7 +207,7 @@ function EditDelegationDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent title={t("edit_domain_wide_delegation")}>
         <Form form={form} handleSubmit={onSubmit}>
-          <DelegationFormFields workspacePlatforms={workspacePlatforms} />
+          <DelegationFormFields workspacePlatforms={workspacePlatforms} isCreate={false} />
           <DialogFooter>
             <Button type="button" color="secondary" onClick={onClose}>
               {t("cancel")}
@@ -203,7 +220,13 @@ function EditDelegationDialog({
   );
 }
 
-function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: WorkspacePlatform[] }) {
+function DelegationFormFields({
+  workspacePlatforms,
+  isCreate,
+}: {
+  workspacePlatforms: WorkspacePlatform[];
+  isCreate: boolean;
+}) {
   const { t } = useLocale();
   const form = useFormContext();
   return (
@@ -226,41 +249,15 @@ function DelegationFormFields({ workspacePlatforms }: { workspacePlatforms: Work
           );
         }}
       />
+      {isCreate && (
+        <TextAreaField
+          required
+          label={t("service_account_key")}
+          placeholder="{...}"
+          {...form.register("serviceAccountKey")}
+        />
+      )}
     </div>
-  );
-}
-
-function CreateEditDelegationDialog({
-  isOpen,
-  onClose,
-  delegation,
-  onSubmit,
-  workspacePlatforms,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  delegation: DelegationItemProps["delegation"] | null;
-  onSubmit: (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => void;
-  workspacePlatforms: WorkspacePlatform[];
-}) {
-  if (delegation) {
-    return (
-      <EditDelegationDialog
-        isOpen={isOpen}
-        onClose={onClose}
-        delegation={delegation}
-        onSubmit={onSubmit}
-        workspacePlatforms={workspacePlatforms}
-      />
-    );
-  }
-  return (
-    <CreateDelegationDialog
-      isOpen={isOpen}
-      onClose={onClose}
-      onSubmit={onSubmit}
-      workspacePlatforms={workspacePlatforms}
-    />
   );
 }
 
@@ -337,15 +334,36 @@ function DomainWideDelegationList() {
 
   const onCreateClick = () => setCreateEditDialog({ isOpen: true, delegation: null });
 
-  const handleSubmit = (data: { domain: string; workspacePlatformSlug: string; enabled: boolean }) => {
-    if (createEditDialog.delegation) {
-      updateMutation.mutate({
-        id: createEditDialog.delegation.id,
-        ...data,
+  const handleCreate = (data: CreateDelegationData) => {
+    try {
+      const parsedKey = JSON.parse(data.serviceAccountKey);
+      const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
+      
+      if (!validatedKey.success) {
+        form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
+        return;
+      }
+
+      createMutation.mutate({
+        domain: data.domain,
+        workspacePlatformSlug: data.workspacePlatformSlug,
+        serviceAccountKey: parsedKey,
       });
-    } else {
-      createMutation.mutate(data);
+      setCreateEditDialog({ isOpen: false, delegation: null });
+    } catch (e) {
+      form.setError("serviceAccountKey", { message: t("invalid_service_account_key") });
     }
+  };
+
+  const handleEdit = (data: EditDelegationData) => {
+    if (!createEditDialog.delegation) {
+      return;
+    }
+    updateMutation.mutate({
+      id: createEditDialog.delegation.id,
+      domain: data.domain,
+      workspacePlatformSlug: data.workspacePlatformSlug,
+    });
     setCreateEditDialog({ isOpen: false, delegation: null });
   };
 
@@ -399,13 +417,22 @@ function DomainWideDelegationList() {
         />
       )}
 
-      <CreateEditDelegationDialog
-        isOpen={createEditDialog.isOpen}
-        onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
-        delegation={createEditDialog.delegation}
-        onSubmit={handleSubmit}
-        workspacePlatforms={enabledWorkspacePlatforms}
-      />
+      {createEditDialog.delegation ? (
+        <EditDelegationDialog
+          isOpen={createEditDialog.isOpen}
+          onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
+          delegation={createEditDialog.delegation}
+          onSubmit={handleEdit}
+          workspacePlatforms={enabledWorkspacePlatforms}
+        />
+      ) : (
+        <CreateDelegationDialog
+          isOpen={createEditDialog.isOpen}
+          onClose={() => setCreateEditDialog({ isOpen: false, delegation: null })}
+          onSubmit={handleCreate}
+          workspacePlatforms={enabledWorkspacePlatforms}
+        />
+      )}
     </div>
   );
 }

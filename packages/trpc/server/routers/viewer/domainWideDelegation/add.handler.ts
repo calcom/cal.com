@@ -19,7 +19,7 @@ export default async function handler({
   input: z.infer<typeof DomainWideDelegationCreateSchema>;
   ctx: { user: { id: number; organizationId: number | null } };
 }) {
-  const { workspacePlatformSlug, domain } = input;
+  const { workspacePlatformSlug, domain, serviceAccountKey } = input;
   const { user } = ctx;
   const { organizationId } = user;
 
@@ -31,7 +31,7 @@ export default async function handler({
   }
 
   try {
-    const workspacePlatform = await WorkspacePlatformRepository.findBySlugIncludeSensitiveServiceAccountKey({
+    const workspacePlatform = await WorkspacePlatformRepository.findBySlug({
       slug: workspacePlatformSlug,
     });
 
@@ -54,7 +54,7 @@ export default async function handler({
       // We don't want to enable by default because enabling requires some checks to be completed and it has a separate flow.
       enabled: false,
       organizationId,
-      serviceAccountKey: workspacePlatform.defaultServiceAccountKey,
+      serviceAccountKey,
     });
 
     return ensureNoServiceAccountKey(createdDelegation);

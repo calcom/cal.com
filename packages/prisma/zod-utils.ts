@@ -21,6 +21,7 @@ import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-b
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
 import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import { zodAttributesQueryValue } from "@calcom/lib/raqb/zod";
+import { serviceAccountKeySchema } from "@calcom/lib/server/serviceAccountKey";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -799,16 +800,7 @@ export const bookingSeatDataSchema = z.object({
   responses: bookingResponses,
 });
 
-export const serviceAccountKeySchema = z
-  .object({
-    type: z.string(),
-    client_id: z.string(),
-    client_email: z.string(),
-    private_key: z.string(),
-  })
-  // There could be more properties available here by the Workspace platform(e.g. Google), we don't want to loose them but don't need them also at the moment
-  .passthrough();
-
+export { serviceAccountKeySchema };
 export type TServiceAccountKeySchema = z.infer<typeof serviceAccountKeySchema>;
 
 export const rrSegmentQueryValueSchema = zodAttributesQueryValue.nullish();

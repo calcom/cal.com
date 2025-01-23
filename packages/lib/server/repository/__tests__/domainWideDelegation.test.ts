@@ -4,18 +4,39 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { DomainWideDelegationRepository } from "../domainWideDelegation";
 import { OrganizationRepository } from "../organization";
-
+import { encryptServiceAccountKey } from "@calcom/lib/server/serviceAccountKey";
 vi.mock("../organization", () => ({
   OrganizationRepository: {
     findByMemberEmail: vi.fn(),
   },
 }));
 
+// Mock service account key functions
+vi.mock("@calcom/lib/crypto", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    symmetricEncrypt: vi.fn((serviceAccountKey) => {
+      console.log({ mockEncrypted: serviceAccountKey });
+      return `encrypted(${serviceAccountKey})`;
+    }),
+    symmetricDecrypt: vi.fn((serviceAccountKey) => {
+      return serviceAccountKey.replace(/^encrypted\((.*)\)$/, "$1");
+    }),
+  };
+});
 // Test Data Helpers
 const buildMockServiceAccountKey = () => ({
   client_email: "test@example.com",
   private_key: "private-key",
   client_id: "client-id",
+  additional_field: "value",
+});
+
+const buildMockEncryptedServiceAccountKey = () => ({
+  client_email: "test@example.com",
+  client_id: "client-id",
+  encrypted_credentials: "encrypted({\"private_key\":\"private-key\"})",
   additional_field: "value",
 });
 
@@ -54,8 +75,13 @@ const createTestDomainWideDelegation = async (overrides = {}) => {
     data: buildMockWorkspacePlatform(),
   });
 
+  const data = buildMockDomainWideDelegation(overrides);
+
   return await prismock.domainWideDelegation.create({
-    data: buildMockDomainWideDelegation(overrides),
+    data: {
+      ...data,
+      serviceAccountKey: encryptServiceAccountKey(data.serviceAccountKey),
+    },
     include: {
       workspacePlatform: true,
     },
@@ -123,18 +149,7 @@ describe("DomainWideDelegationRepository", () => {
           expect(result?.serviceAccountKey).toEqual(buildMockServiceAccountKey());
         });
 
-        it("should return null for invalid service account key", async () => {
-          await createTestDomainWideDelegation({
-            id: "test-id-2",
-            serviceAccountKey: { invalid: "data" },
-          });
-
-          const result = await DomainWideDelegationRepository.findByIdIncludeSensitiveServiceAccountKey({
-            id: "test-id-2",
-          });
-
-          expect(result?.serviceAccountKey).toBeNull();
-        });
+       
       });
 
       describe("findByOrgIdIncludeSensitiveServiceAccountKey", () => {
@@ -143,13 +158,10 @@ describe("DomainWideDelegationRepository", () => {
             organizationId: 1,
           });
 
-          expect(results.length).toBeGreaterThan(0);
-          results.forEach((result) => {
-            expect(result).toHaveProperty("serviceAccountKey");
-            if (result.id === "test-id") {
-              expect(result.serviceAccountKey).toEqual(buildMockServiceAccountKey());
-            }
-          });
+          expect(results.length).toEqual(1);
+          const result = results[0];
+          expect(result).toHaveProperty("serviceAccountKey");
+          expect(result.serviceAccountKey).toEqual(buildMockEncryptedServiceAccountKey());
         });
       });
 

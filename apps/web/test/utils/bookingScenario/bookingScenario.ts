@@ -43,6 +43,15 @@ vi.mock("@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic", () => ({
   default: {},
 }));
 
+vi.mock("@calcom/lib/crypto", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    symmetricEncrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+    symmetricDecrypt: vi.fn((serviceAccountKey) => serviceAccountKey),
+  };
+});
+
 type Fields = z.infer<typeof eventTypeBookingFields>;
 
 logger.settings.minLevel = 1;
@@ -2158,29 +2167,44 @@ export const getDefaultBookingFields = ({
 };
 
 export const createDwdCredential = async (orgId: number) => {
+  const encryptedServiceAccountKey =  {
+    type: "service_account",
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    client_id: "CLIENT_ID",
+    token_uri: "https://oauth2.googleapis.com/token",
+    project_id: "PROJECT_ID",
+    encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+    client_email: "CLIENT_EMAIL",
+    private_key_id: "PRIVATE_KEY_ID",
+    universe_domain: "googleapis.com",
+    client_x509_cert_url: "CLIENT_X509_CERT_URL",
+    auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+  };
+
   const workspace = await prismock.workspacePlatform.create({
     data: {
       name: "Test Workspace",
       slug: "google",
       description: "Test Workspace",
-      defaultServiceAccountKey: {
-        type: "service_account",
-        auth_uri: "https://accounts.google.com/o/oauth2/auth",
-        client_id: "CLIENT_ID",
-        token_uri: "https://oauth2.googleapis.com/token",
-        project_id: "PROJECT_ID",
-        private_key: "PRIVATE_KEY",
-        client_email: "CLIENT_EMAIL",
-        private_key_id: "PRIVATE_KEY_ID",
-        universe_domain: "googleapis.com",
-        client_x509_cert_url: "CLIENT_X509_CERT_URL",
-        auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
+      defaultServiceAccountKey: encryptedServiceAccountKey,
       enabled: true,
     },
   });
+
+
+  const decryptedServiceAccountKey = {
+    type: "service_account",
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    client_id: "CLIENT_ID",
+    token_uri: "https://oauth2.googleapis.com/token",
+    project_id: "PROJECT_ID",
+    private_key: "PRIVATE_KEY",
+    client_email: "CLIENT_EMAIL",
+    private_key_id: "PRIVATE_KEY_ID",
+    universe_domain: "googleapis.com",
+    client_x509_cert_url: "CLIENT_X509_CERT_URL",
+    auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+  };
 
   const dwd = await prismock.domainWideDelegation.create({
     data: {
@@ -2201,7 +2225,7 @@ export const createDwdCredential = async (orgId: number) => {
     },
   });
 
-  return dwd;
+  return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

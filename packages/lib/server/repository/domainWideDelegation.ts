@@ -1,21 +1,18 @@
 import type { Prisma } from "@prisma/client";
-import z from "zod";
 
 import logger from "@calcom/lib/logger";
+import {
+  serviceAccountKeySchema,
+  type ServiceAccountKey,
+  type EncryptedServiceAccountKey,
+  encryptServiceAccountKey,
+  decryptServiceAccountKey,
+} from "@calcom/lib/server/serviceAccountKey";
 import { prisma } from "@calcom/prisma";
 
 import { OrganizationRepository } from "./organization";
 
-const serviceAccountKeySchema = z
-  .object({
-    client_email: z.string(),
-    private_key: z.string(),
-    client_id: z.string(),
-  })
-  .passthrough();
-
-export type ServiceAccountKey = z.infer<typeof serviceAccountKeySchema>;
-
+export type { ServiceAccountKey };
 const repositoryLogger = logger.getSubLogger({ prefix: ["DomainWideDelegationRepository"] });
 const domainWideDelegationSafeSelect = {
   id: true,
@@ -38,6 +35,14 @@ const domainWideDelegationSelectIncludesServiceAccountKey = {
 };
 
 export class DomainWideDelegationRepository {
+  private static encryptServiceAccountKey(serviceAccountKey: ServiceAccountKey): EncryptedServiceAccountKey {
+    return encryptServiceAccountKey(serviceAccountKey);
+  }
+
+  private static decryptServiceAccountKey(encryptedServiceAccountKey: Prisma.JsonValue): ServiceAccountKey {
+    return decryptServiceAccountKey(encryptedServiceAccountKey);
+  }
+
   private static withParsedServiceAccountKey<T extends { serviceAccountKey: Prisma.JsonValue } | null>(
     domainWideDelegation: T
   ) {
@@ -45,7 +50,11 @@ export class DomainWideDelegationRepository {
       return null;
     }
     const { serviceAccountKey, ...rest } = domainWideDelegation;
-    const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(serviceAccountKey);
+
+    // Decrypt the service account key if it exists
+    const decryptedKey = this.decryptServiceAccountKey(serviceAccountKey);
+    const parsedServiceAccountKey = serviceAccountKeySchema.safeParse(decryptedKey);
+
     return {
       ...rest,
       serviceAccountKey: parsedServiceAccountKey.success ? parsedServiceAccountKey.data : null,
@@ -57,8 +66,9 @@ export class DomainWideDelegationRepository {
     enabled: boolean;
     organizationId: number;
     workspacePlatformId: number;
-    serviceAccountKey: Exclude<Prisma.JsonValue, null>;
+    serviceAccountKey: ServiceAccountKey;
   }) {
+    const encryptedKey = this.encryptServiceAccountKey(data.serviceAccountKey);
     return await prisma.domainWideDelegation.create({
       data: {
         workspacePlatform: {
@@ -73,7 +83,7 @@ export class DomainWideDelegationRepository {
             id: data.organizationId,
           },
         },
-        serviceAccountKey: data.serviceAccountKey,
+        serviceAccountKey: encryptedKey,
       },
       select: domainWideDelegationSafeSelect,
     });
