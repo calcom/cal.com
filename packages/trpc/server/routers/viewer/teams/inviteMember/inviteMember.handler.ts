@@ -143,7 +143,6 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     creationSource: CreationSource;
   } & TargetTeam
 ) => {
-  console.log("inside inviteMembersWithNoInviterPermissionCheck");
   const { inviterName, orgSlug, invitations, language, creationSource } = data;
   const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
   const translation = await getTranslation(language ?? "en", "common");
@@ -238,7 +237,6 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 };
 
 const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
-  console.log("inside inviteMembers", { input });
   const { user: inviter } = ctx;
   const { usernameOrEmail, role, isPlatform, creationSource } = input;
 
@@ -272,7 +270,6 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
     teamId: inviterOrgId && isInviterOrgAdmin ? inviterOrgId : input.teamId,
     isOrg: isTeamAnOrg,
   });
-  console.log("creationSource", creationSource, "-- Here we are");
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
     team,
@@ -290,7 +287,6 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
 };
 
 export default async function inviteMemberHandler({ ctx, input }: InviteMemberOptions) {
-  console.log("inside inviteMemberHandler", { input });
   const { user: inviter } = ctx;
   await checkRateLimitAndThrowError({
     identifier: `invitedBy:${inviter.id}`,

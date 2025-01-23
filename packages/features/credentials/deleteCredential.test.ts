@@ -40,7 +40,6 @@ describe("deleteCredential", () => {
 
       const user = await UserRepository.create({
         ...testUser,
-        creationSource: CreationSource.WEBAPP,
       });
 
       await addEventTypesToDb([
@@ -77,7 +76,6 @@ describe("deleteCredential", () => {
 
       const user = await UserRepository.create({
         ...testUser,
-        creationSource: CreationSource.WEBAPP,
       });
 
       const eventTypes = await addEventTypesToDb([
