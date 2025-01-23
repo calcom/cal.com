@@ -30,7 +30,11 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const hasExistingPresets = loadedPresets.length > 0;
 
   type FormValues = {
-    presets: { id?: number; name: string; cancellationReason?: string }[];
+    presets: {
+      id: number;
+      name: string;
+      cancellationReason: string | null;
+    }[];
   };
 
   const form = useForm<FormValues>({
@@ -72,108 +76,108 @@ const InternalNotePresetsView = ({ team }: ProfileViewProps) => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
+  if (!isAdmin) {
+    return (
+      <div className="border-subtle rounded-md border p-5">
+        <span className="text-default text-sm">{t("only_owner_change")}</span>
+      </div>
+    );
+  }
+
   return (
-    <>
-      {isAdmin ? (
-        <Form form={form} handleSubmit={(e) => onSubmit(e)}>
-          <Controller
-            name="presets"
-            render={({ field: { value } }) => {
-              const isChecked = hasExistingPresets || (value && value.length > 0);
-              return (
-                <SettingsToggle
-                  toggleSwitchAtTheEnd={true}
-                  labelClassName="text-sm"
-                  title={t("internal_note_presets")}
-                  description={t("internal_note_presets_description")}
-                  checked={isChecked}
-                  childrenClassName="lg:ml-0"
-                  onCheckedChange={async (active) => {
-                    if (active && !value?.length) {
-                      append({ id: -1, name: "" });
-                    } else {
-                      replace([]);
-                      if (!active && team?.id && hasExistingPresets) {
-                        updatePresetsMutation.mutate({
-                          teamId: team.id,
-                          presets: [],
-                        });
-                      }
-                    }
-                  }}
-                  switchContainerClassName={classNames(
-                    "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
-                    isChecked && "rounded-b-none"
-                  )}>
-                  <div className="border-subtle border border-y-0 p-6">
-                    <div className="flex flex-col space-y-4" ref={animateRef}>
-                      {fields.map((field, index) => (
-                        <div key={field.id} className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Controller
-                              name={`presets.${index}.name`}
-                              control={form.control}
-                              render={({ field }) => (
-                                <Input
-                                  type="text"
-                                  {...field}
-                                  placeholder={t("internal_booking_note")}
-                                  className="!mb-0"
-                                />
-                              )}
+    <Form form={form} handleSubmit={(e) => onSubmit(e)}>
+      <Controller
+        name="presets"
+        render={({ field: { value } }) => {
+          const isChecked = hasExistingPresets || (value && value.length > 0);
+          return (
+            <SettingsToggle
+              toggleSwitchAtTheEnd={true}
+              labelClassName="text-sm"
+              title={t("internal_note_presets")}
+              description={t("internal_note_presets_description")}
+              checked={isChecked}
+              childrenClassName="lg:ml-0"
+              onCheckedChange={async (active) => {
+                if (active && !value?.length) {
+                  append({ id: -1, name: "" });
+                } else {
+                  replace([]);
+                  if (!active && team?.id && hasExistingPresets) {
+                    updatePresetsMutation.mutate({
+                      teamId: team.id,
+                      presets: [],
+                    });
+                  }
+                }
+              }}
+              switchContainerClassName={classNames(
+                "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+                isChecked && "rounded-b-none"
+              )}>
+              <div className="border-subtle border border-y-0 p-6">
+                <div className="flex flex-col space-y-4" ref={animateRef}>
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Controller
+                          name={`presets.${index}.name`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <Input
+                              type="text"
+                              {...field}
+                              placeholder={t("internal_booking_note")}
+                              className="!mb-0"
                             />
-                            <Button
-                              type="button"
-                              color="destructive"
-                              variant="icon"
-                              onClick={() => remove(index)}
-                              disabled={fields.length === 1}>
-                              <Icon name="trash" className="h-4 w-5" />
-                            </Button>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Icon name="corner-down-right" className="h-4 w-4" />
-                            <Controller
-                              name={`presets.${index}.cancellationReason`}
-                              control={form.control}
-                              render={({ field }) => (
-                                <Input
-                                  type="text"
-                                  {...field}
-                                  placeholder={t("internal_note_cancellation_reason")}
-                                  className="!mb-0"
-                                />
-                              )}
+                          )}
+                        />
+                        <Button
+                          type="button"
+                          color="destructive"
+                          variant="icon"
+                          onClick={() => remove(index)}
+                          disabled={fields.length === 1}>
+                          <Icon name="trash" className="h-4 w-5" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Icon name="corner-down-right" className="h-4 w-4" />
+                        <Controller
+                          name={`presets.${index}.cancellationReason`}
+                          control={form.control}
+                          render={({ field }) => (
+                            <Input
+                              type="text"
+                              {...field}
+                              placeholder={t("internal_note_cancellation_reason")}
+                              className="!mb-0"
                             />
-                          </div>
-                        </div>
-                      ))}
+                          )}
+                        />
+                      </div>
                     </div>
-                    <Button
-                      type="button"
-                      color="minimal"
-                      StartIcon="plus"
-                      onClick={addNewPreset}
-                      className="mt-4">
-                      {t("add_preset")}
-                    </Button>
-                  </div>
-                  <SectionBottomActions align="end">
-                    <Button type="submit" color="primary" loading={updatePresetsMutation.isPending}>
-                      {t("update")}
-                    </Button>
-                  </SectionBottomActions>
-                </SettingsToggle>
-              );
-            }}
-          />
-        </Form>
-      ) : (
-        <div className="border-subtle rounded-md border p-5">
-          <span className="text-default text-sm">{t("only_owner_change")}</span>
-        </div>
-      )}
-    </>
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  color="minimal"
+                  StartIcon="plus"
+                  onClick={addNewPreset}
+                  className="mt-4">
+                  {t("add_preset")}
+                </Button>
+              </div>
+              <SectionBottomActions align="end">
+                <Button type="submit" color="primary" loading={updatePresetsMutation.isPending}>
+                  {t("update")}
+                </Button>
+              </SectionBottomActions>
+            </SettingsToggle>
+          );
+        }}
+      />
+    </Form>
   );
 };
 
