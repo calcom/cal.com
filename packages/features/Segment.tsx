@@ -112,7 +112,25 @@ function MatchingTeamMembers({
       _enablePerf: true,
     });
 
-  if (isPending) return <span>{t("loading")}</span>;
+  if (isPending) {
+    return (
+      <div className="border-subtle bg-muted mt-4 space-y-3 rounded-md border p-4">
+        <div className="text-emphasis flex items-center text-sm font-medium">
+          <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
+        </div>
+        <ul className="divide-subtle divide-y">
+          {[...Array(3)].map((_, index) => (
+            <li key={index} className="flex items-center py-2">
+              <div className="flex flex-1 items-center space-x-2 text-sm">
+                <div className="bg-subtle h-4 w-24 animate-pulse rounded" />
+                <div className="bg-subtle h-4 w-32 animate-pulse rounded" />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
   if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
   const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
   if (!matchingTeamMembers || !queryValue) {
