@@ -271,6 +271,7 @@ const BookerComponent = ({
     verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
     shouldRenderCaptcha,
+    isVerificationCodeSending,
   ]);
 
   /**
