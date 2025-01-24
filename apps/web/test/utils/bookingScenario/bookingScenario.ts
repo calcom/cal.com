@@ -72,6 +72,7 @@ type InputWorkflow = {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   sendTo?: string;
+  safe?: boolean;
 };
 
 type InputPayment = {
@@ -607,6 +608,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
               id: createdWorkflow.id,
             },
           },
+          safe: workflow?.safe ?? true,
         },
       });
 
