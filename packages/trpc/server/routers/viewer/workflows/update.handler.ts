@@ -398,7 +398,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
-          ...(SCANNING_WORKFLOW_STEPS && didBodyChange ? { safe: true } : {}),
+          ...(SCANNING_WORKFLOW_STEPS && didBodyChange ? { safe: false } : {}),
         },
       });
 
