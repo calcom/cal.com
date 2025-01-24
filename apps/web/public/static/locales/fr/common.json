@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Vous pouvez consulter les détails de la réservation à partir de cette URL {{url}} et ajouter l'événement à votre calendrier",
   "no_options_available": "Aucune option disponible",
   "cancellation_reason": "Motif de l'annulation (facultatif)",
+  "cancellation_reason_host": "Motif d'annulation",
   "cancellation_reason_placeholder": "Pourquoi annulez-vous ?",
+  "notify_attendee_cancellation_reason_warning": "Veuillez noter que le motif d'annulation sera visible par le participant.",
   "rejection_reason_placeholder": "Pourquoi refusez-vous ?",
   "rejection_reason": "Motif de refus",
   "rejection_reason_title": "Refuser la demande de réservation ?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Télécharger la transcription",
   "recording_from_your_recent_call": "Un enregistrement de votre appel récent sur {{appName}} est prêt à être téléchargé",
   "transcript_from_previous_call": "La transcription de votre récent appel sur {{appName}} est prête à être téléchargée. Les liens ne sont valides que pendant 1 heure",
+  "you_can_download_transcript_from_attachments": "Vous pouvez également télécharger la transcription depuis les pièces jointes",
   "link_valid_for_12_hrs": "Remarque : le lien de téléchargement n'est valide que pendant 12 heures. Vous pouvez générer un nouveau lien de téléchargement en suivant les instructions <1>ici</1>.",
   "create_your_first_form": "Créez votre premier formulaire",
   "create_your_first_form_description": "Avec les formulaires de routage, vous pouvez poser des questions de qualification et rediriger vers la bonne personne ou le bon type d'événement.",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "Voir tous les utilisateurs gérés créés par votre client OAuth",
   "select_oAuth_client": "Sélectionner le client OAuth",
   "on_every_instance": "Sur chaque instance",
+  "authorize": "Autoriser",
   "next": "Suivant",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
