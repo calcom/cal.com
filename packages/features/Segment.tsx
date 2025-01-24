@@ -105,12 +105,27 @@ function MatchingTeamMembers({
   queryValue: AttributesQueryValue | null;
 }) {
   const { t } = useLocale();
+
+  // Check if queryValue has valid children properties value
+  const hasValidValue = queryValue?.children1
+    ? Object.values(queryValue.children1).some(
+        (child) => child.properties?.value?.[0] !== undefined && child.properties?.value?.[0] !== null
+      )
+    : false;
+
   const { data: matchingTeamMembersWithResult, isPending } =
-    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery({
-      teamId,
-      attributesQueryValue: queryValue,
-      _enablePerf: true,
-    });
+    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+      {
+        teamId,
+        attributesQueryValue: queryValue,
+        _enablePerf: true,
+      },
+      {
+        enabled: hasValidValue,
+      }
+    );
+
+  console.log(queryValue);
 
   if (isPending) {
     return (
@@ -133,6 +148,7 @@ function MatchingTeamMembers({
       </div>
     );
   }
+
   if (!matchingTeamMembersWithResult) return <span>{t("something_went_wrong")}</span>;
   const { result: matchingTeamMembers } = matchingTeamMembersWithResult;
   if (!matchingTeamMembers || !queryValue) {
