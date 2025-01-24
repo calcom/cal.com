@@ -4,15 +4,12 @@ export const generateSummary = async (transcriptUrl: string) => {
     const transcriptResponse = await fetch(transcriptUrl);
     const vttContent = await transcriptResponse.text();
 
-    console.log("vttContent", vttContent);
     // Clean up VTT content by removing timestamps and metadata
     const cleanTranscript = vttContent
       .split("\n")
       .filter((line) => !line.match(/^\d{2}:|^WEBVTT|^\s*$/))
       .join(" ")
       .replace(/<[^>]*>/g, "");
-
-    console.log("cleanTranscript", cleanTranscript);
 
     const prompt = `Please analyze this meeting transcript and create a well-structured summary with the following format:
 
@@ -52,7 +49,6 @@ ${cleanTranscript}`;
     }
 
     const data = await response.json();
-    console.log("data", data);
     return data.choices[0].message.content;
   } catch (error) {
     console.error("Error generating summary:", error);

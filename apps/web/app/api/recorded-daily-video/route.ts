@@ -170,7 +170,6 @@ export async function POST(request: NextRequest) {
 
       const evt = await getCalendarEvent(booking);
       const summaries = await Promise.all(transcripts.map(async (transcript) => generateSummary(transcript)));
-      console.log("summaries", summaries);
 
       await sendDailyVideoTranscriptEmails(evt, transcripts, summaries);
 
