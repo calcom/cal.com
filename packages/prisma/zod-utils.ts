@@ -374,8 +374,10 @@ export const bookingCancelSchema = z.object({
     .object({
       id: z.number(),
       name: z.string(),
+      cancellationReason: z.string().optional(),
     })
-    .optional(),
+    .optional()
+    .nullable(),
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({
