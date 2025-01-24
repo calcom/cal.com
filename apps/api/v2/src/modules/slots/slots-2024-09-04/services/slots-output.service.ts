@@ -5,8 +5,10 @@ import { DateTime } from "luxon";
 import { SlotFormat } from "@calcom/platform-enums";
 import {
   GetReservedSlotOutput_2024_09_04,
+  RangeSlot_2024_09_04,
   RangeSlotsOutput_2024_09_04,
   ReserveSlotOutput_2024_09_04,
+  Slot_2024_09_04,
   SlotsOutput_2024_09_04,
 } from "@calcom/platform-types";
 import { SelectedSlots } from "@calcom/prisma/client";
@@ -66,11 +68,11 @@ export class SlotsOutputService_2024_09_04 {
     availableSlots: GetAvailableSlots,
     timeZone: string | undefined
   ): SlotsOutput_2024_09_04 {
-    const slots: { [key: string]: string[] } = {};
+    const slots: { [key: string]: Slot_2024_09_04[] } = {};
     for (const date in availableSlots.slots) {
       slots[date] = availableSlots.slots[date].map((slot) => {
         if (!timeZone) {
-          return slot.time;
+          return { start: slot.time };
         }
         const slotTimezoneAdjusted = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
         if (!slotTimezoneAdjusted) {
@@ -78,7 +80,7 @@ export class SlotsOutputService_2024_09_04 {
             `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
           );
         }
-        return slotTimezoneAdjusted;
+        return { start: slotTimezoneAdjusted };
       });
     }
 
@@ -93,49 +95,50 @@ export class SlotsOutputService_2024_09_04 {
   ): Promise<RangeSlotsOutput_2024_09_04> {
     const slotDuration = await this.getDuration(duration, eventTypeId);
 
-    const slots = Object.entries(availableSlots.slots).reduce<
-      Record<string, { start: string; end: string }[]>
-    >((acc, [date, slots]) => {
-      acc[date] = (slots as { time: string }[]).map((slot) => {
-        if (timeZone) {
-          const start = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
-          if (!start) {
-            throw new BadRequestException(
-              `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
-            );
+    const slots = Object.entries(availableSlots.slots).reduce<Record<string, RangeSlot_2024_09_04[]>>(
+      (acc, [date, slots]) => {
+        acc[date] = slots.map((slot) => {
+          if (timeZone) {
+            const start = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
+            if (!start) {
+              throw new BadRequestException(
+                `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
+              );
+            }
+
+            const end = DateTime.fromISO(slot.time, { zone: "utc" })
+              .plus({ minutes: slotDuration })
+              .setZone(timeZone)
+              .toISO();
+
+            if (!end) {
+              throw new BadRequestException(
+                `Could not adjust timezone for slot end time ${slot.time} with timezone ${timeZone}`
+              );
+            }
+
+            return {
+              start,
+              end,
+            };
+          } else {
+            const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
+            const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
+
+            if (!start || !end) {
+              throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
+            }
+
+            return {
+              start,
+              end,
+            };
           }
-
-          const end = DateTime.fromISO(slot.time, { zone: "utc" })
-            .plus({ minutes: slotDuration })
-            .setZone(timeZone)
-            .toISO();
-
-          if (!end) {
-            throw new BadRequestException(
-              `Could not adjust timezone for slot end time ${slot.time} with timezone ${timeZone}`
-            );
-          }
-
-          return {
-            start,
-            end,
-          };
-        } else {
-          const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
-          const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
-
-          if (!start || !end) {
-            throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
-          }
-
-          return {
-            start,
-            end,
-          };
-        }
-      });
-      return acc;
-    }, {});
+        });
+        return acc;
+      },
+      {}
+    );
 
     return slots;
   }
