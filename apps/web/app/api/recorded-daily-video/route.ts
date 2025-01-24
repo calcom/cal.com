@@ -31,6 +31,8 @@ import {
   triggerTranscriptionGeneratedWebhook,
 } from "@calcom/web/lib/daily-webhook/triggerWebhooks";
 
+import { generateSummary } from "@lib/daily-webhook/generateSummary";
+
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
 const computeSignature = (hmacSecret: string, reqBody: any, webhookTimestampHeader: string | null) => {
@@ -167,7 +169,10 @@ export async function POST(request: NextRequest) {
         });
 
       const evt = await getCalendarEvent(booking);
-      await sendDailyVideoTranscriptEmails(evt, transcripts);
+      const summaries = await Promise.all(transcripts.map(async (transcript) => generateSummary(transcript)));
+      console.log("summaries", summaries);
+
+      await sendDailyVideoTranscriptEmails(evt, transcripts, summaries);
 
       return NextResponse.json({ message: "Success" });
     } else if (body?.type === "batch-processor.job-finished") {
