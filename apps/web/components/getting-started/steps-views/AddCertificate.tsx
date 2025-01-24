@@ -3,7 +3,7 @@ import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import { Button, Input } from "@calcom/ui";
+import { Button, Input, showToast } from "@calcom/ui";
 
 enum CertificateRegistrationStatus {
   PASSWORD_ERROR = "Senha do certificado inválida.",
@@ -19,6 +19,15 @@ const AddCertificate = () => {
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const pickerRef = useRef<HTMLInputElement>(null);
+
+  const mutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: async () => {
+      router.replace("/event-types");
+    },
+    onError: () => {
+      showToast("Erro ao atualizar seu usuário.", "error");
+    },
+  });
 
   const [a1Src, setA1Src] = useState<File | null>(null);
   const [spedyCompanyID, setSpedyCompanyID] = useState<string>("");
@@ -68,7 +77,7 @@ const AddCertificate = () => {
                 setCertificateRegistrationStatus(CertificateRegistrationStatus.PASSWORD_ERROR);
                 break;
             }
-          else router.replace("/event-types");
+          else mutation.mutate({ completedOnboarding: true });
         });
       })
       .finally(() => {
