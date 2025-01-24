@@ -73,6 +73,7 @@ export const ConferencingAppsViewPlatformWrapper = ({
   disableToasts = false,
   returnTo,
   onErrorReturnTo,
+  onConnectError,
 }: ConferencingAppsViewPlatformWrapperProps) => {
   const { t } = useLocale();
   const queryClient = useQueryClient();
