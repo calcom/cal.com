@@ -116,6 +116,8 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let teamId = null;
+  let orgId = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -131,6 +133,8 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       ...timeTaken,
       ...result.timeTaken,
     };
+    teamId = result.teamId;
+    orgId = result.orgId;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -175,6 +179,8 @@ export const getServerSideProps = async function getServerSideProps(context: Get
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
+            teamId,
+            orgId,
           }),
           isEmbed: pageProps.isEmbed,
         }),
@@ -184,7 +190,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}`,
+        destination: `${decidedAction.value}?${stringify(context.query)}&action=externalRedirectUrl`,
         permanent: false,
       },
     };

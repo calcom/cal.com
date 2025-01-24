@@ -8,11 +8,20 @@ import { useGetRoutingFormUrlProps } from "./useGetRoutingFormUrlProps";
 
 export const BookerEmbed = (
   props:
-    | (BookerPlatformWrapperAtomPropsForIndividual & { organizationId?: undefined; routingFormUrl?: string })
-    | (BookerPlatformWrapperAtomPropsForTeam & { organizationId?: number; routingFormUrl?: string })
+    | {
+        routingFormUrl: string;
+        bannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
+        customClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
+      }
+    | (BookerPlatformWrapperAtomPropsForIndividual & {
+        organizationId?: undefined;
+        routingFormUrl?: undefined;
+      })
+    | (BookerPlatformWrapperAtomPropsForTeam & { organizationId?: number; routingFormUrl?: undefined })
 ) => {
+  // Use Routing Form Url To Display Correct Booker
   const routingFormUrlProps = useGetRoutingFormUrlProps(props);
-  if (routingFormUrlProps) {
+  if (props?.routingFormUrl && routingFormUrlProps) {
     const {
       organizationId,
       teamId: routingTeamId,
@@ -30,8 +39,19 @@ export const BookerEmbed = (
         }}>
         <BookerPlatformWrapper
           {...(Boolean(routingTeamId)
-            ? { eventSlug: eventTypeSlug, isTeamEvent: true, teamId: routingTeamId || 0, username: "" }
-            : { eventSlug: eventTypeSlug, username: username ?? "", isTeamEvent: false })}
+            ? {
+                eventSlug: eventTypeSlug,
+                isTeamEvent: true,
+                teamId: routingTeamId || 0,
+                username: "",
+                customClassNames: props?.customClassNames,
+              }
+            : {
+                eventSlug: eventTypeSlug,
+                username: username ?? "",
+                isTeamEvent: false,
+                customClassNames: props?.customClassNames,
+              })}
           routingFormSearchParams={routingFormSearchParams}
           bannerUrl={props.bannerUrl}
           onDryRunSuccess={() => {
@@ -42,15 +62,20 @@ export const BookerEmbed = (
     );
   }
 
-  return (
-    <CalProvider
-      clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
-      isEmbed={true}
-      organizationId={props?.organizationId}
-      options={{
-        apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
-      }}>
-      <BookerPlatformWrapper {...props} />
-    </CalProvider>
-  );
+  // If Not For From Routing Form, Use Props
+  if (props?.routingFormUrl === undefined) {
+    return (
+      <CalProvider
+        clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
+        isEmbed={true}
+        organizationId={props?.organizationId}
+        options={{
+          apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
+        }}>
+        <BookerPlatformWrapper {...props} />
+      </CalProvider>
+    );
+  }
+
+  return <></>;
 };

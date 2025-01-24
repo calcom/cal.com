@@ -27,7 +27,7 @@ export const useGetRoutingFormUrlProps = ({ routingFormUrl }: { routingFormUrl?:
           ? Number(routingSearchParams.get("cal.orgId"))
           : undefined,
         teamId: routingSearchParams.get("cal.teamId")
-          ? Number(routingSearchParams.get("cal.orgId"))
+          ? Number(routingSearchParams.get("cal.teamId"))
           : undefined,
         username,
         eventTypeSlug,

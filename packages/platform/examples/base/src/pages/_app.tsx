@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Select from "react-select";
 
-import { CalProvider, BookerEmbed } from "@calcom/atoms";
+import { CalProvider, BookerEmbed, Router } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
@@ -100,7 +100,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/embed" && (
         <div>
           <BookerEmbed
-            routingFormUrl="http://localhost:3000/free/30min?date=2025-01-24&month=2025-01&cal.skipContactOwner=true&cal.cache=true&cal.isBookingDryRun=true"
+            routingFormUrl="http://localhost:3000/team/seeded-team/collective-seeded-team-event?cal.teamId=2&Territory=EUROPE&cal.routingFormResponseId=2"
             customClassNames={{
               bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {
@@ -120,6 +120,12 @@ export default function App({ Component, pageProps }: AppProps) {
               router.push(`/${data.data.uid}`);
             }}
           />
+        </div>
+      )}
+      {pathname === "/router" && (
+        <div>
+          HELLO
+          <Router url="http://localhost:3000/router/embed?form=b877ef5f-7027-498d-bc5c-62745225ed2a&Territory=europe" />
         </div>
       )}
     </div>

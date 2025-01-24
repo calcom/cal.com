@@ -74,23 +74,23 @@ export function getAbsoluteEventTypeRedirectUrl({
     throw new Error("eventTypeRedirectUrl must have username or teamSlug");
   }
 
+  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
+
+  let url = `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      url = `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
-  }
-
-  if (usernameInRedirectUrl && form.nonOrgUsername) {
+  } else if (usernameInRedirectUrl && form.nonOrgUsername) {
     const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
     if (isEventTypeRedirectToOldUser) {
-      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      url = `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
-  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
-
-  return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+  return `${url}&action=externalRedirectUrl`;
 }
 
 export function getAbsoluteEventTypeRedirectUrlWithEmbedSupport(
