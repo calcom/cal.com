@@ -93,10 +93,7 @@ test.describe("free user", () => {
     await page.goto(bookingUrl);
 
     // book same time spot again
-    await bookTimeSlot(page, {
-      /** FIXME: this should be a 409 conflict */
-      expectedStatusCode: 500,
-    });
+    await bookTimeSlot(page, { expectedStatusCode: 409 });
 
     await page.locator("[data-testid=booking-fail]").waitFor({ state: "visible" });
   });

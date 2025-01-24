@@ -73,7 +73,10 @@ export const BookEventForm = ({
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha =
-    renderCaptcha && CLOUDFLARE_SITE_ID && CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
+    !process.env.NEXT_PUBLIC_IS_E2E &&
+    renderCaptcha &&
+    CLOUDFLARE_SITE_ID &&
+    CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1";
 
   const [responseVercelIdHeader] = useState<string | null>(null);
   const { t } = useLocale();

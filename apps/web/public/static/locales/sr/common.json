@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Možete pogledati detalje rezervacije na ovom linku {{url}} i dodati događaj u svoj kalendar",
   "no_options_available": "Nema raspoloživih opcija",
   "cancellation_reason": "Razlog otkazivanja (opciono)",
+  "cancellation_reason_host": "Razlog otkazivanja",
   "cancellation_reason_placeholder": "Zašto otkazujete?",
+  "notify_attendee_cancellation_reason_warning": "Imajte u vidu da će razlog otkazivanja biti vidljiv učesniku.",
   "rejection_reason_placeholder": "Zašto odbijate?",
   "rejection_reason": "Razlog odbijanja",
   "rejection_reason_title": "Odbij zahtev za rezervaciju?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Preuzmi transkript",
   "recording_from_your_recent_call": "Snimak vašeg nedavnog poziva na {{appName}} je spreman za preuzimanje",
   "transcript_from_previous_call": "Transkript sa vašeg nedavnog poziva na {{appName}} je spreman za preuzimanje. Linkovi su važeći samo 1 sat",
+  "you_can_download_transcript_from_attachments": "Takođe možete preuzeti transkript iz priloga",
   "link_valid_for_12_hrs": "Napomena: Link za preuzimanje važi samo 12 sati. Možete generisati novi link za preuzimanje prateći uputstva <1>ovde</1>.",
   "create_your_first_form": "Kreirajte vaš prvi formular",
   "create_your_first_form_description": "Sa formularima za rutiranje možete postavljati kvalifikaciona pitanja i usmeravati ih do prave osobe ili tipa događaja.",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "Pogledajte sve upravljane korisnike koje je kreirao vaš OAuth klijent",
   "select_oAuth_client": "Izaberite OAuth klijenta",
   "on_every_instance": "Na svakoj instanci",
+  "authorize": "Autorizuj",
   "next": "Dalje",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
