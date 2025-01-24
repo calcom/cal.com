@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
-import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
@@ -89,6 +89,7 @@ export default function WorkflowDetailsPage(props: Props) {
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
       includeCalendarEvent: false,
+      safe: SCANNING_WORKFLOW_STEPS ? false : true,
     };
     steps?.push(step);
     form.setValue("steps", steps);
