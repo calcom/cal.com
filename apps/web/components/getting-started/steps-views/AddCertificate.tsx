@@ -1,6 +1,7 @@
 import type { ChangeEvent, FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { trpc } from "@calcom/trpc/react";
 import { Button, Input } from "@calcom/ui";
 
 enum CertificateRegistrationStatus {
@@ -10,8 +11,11 @@ enum CertificateRegistrationStatus {
 
 const SPEDY_BASE_URL = "https://api.spedy.com.br/v1";
 const SPEDY_API_KEY = process.env.NEXT_PUBLIC_SPEDY_API_KEY || "";
+const DIRECTUS_BASE_URL = "https://painel.yinflow.life/items";
+const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN || "";
 
 const AddCertificate = () => {
+  const [user] = trpc.viewer.me.useSuspenseQuery();
   const pickerRef = useRef<HTMLInputElement>(null);
 
   const [a1Src, setA1Src] = useState<File | null>(null);
@@ -70,6 +74,40 @@ const AddCertificate = () => {
 
     event.preventDefault();
   };
+
+  useEffect(() => {
+    setIsLoading(true);
+    console.log(user);
+    fetch(`${SPEDY_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${user.id}`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+      },
+    })
+      .then((response) => {
+        response.json().then((data) => {
+          console.log(data);
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    // fetch(`${DIRECTUS_BASE_URL}/pro_professional_companies?filter[pro_professional_id][_eq]=5`, {
+    //   method: "GET",
+    //   headers: {
+    //     Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+    //   },
+    // })
+    //   .then((response) => {
+    //     response.json().then((data) => {
+    //       console.log(data);
+    //     });
+    //   })
+    //   .finally(() => {
+    //     setIsLoading(false);
+    //   });
+  }, []);
 
   return (
     <form onSubmit={onSubmit}>
