@@ -125,8 +125,6 @@ function MatchingTeamMembers({
       }
     );
 
-  console.log(queryValue);
-
   if (isPending) {
     return (
       <div
