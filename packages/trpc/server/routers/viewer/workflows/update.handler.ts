@@ -270,29 +270,29 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       isOrg,
     });
 
-    await scheduleWorkflowNotifications(
+    await scheduleWorkflowNotifications({
       activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
       isOrg,
-      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
       timeUnit,
       trigger,
-      user.id,
-      userWorkflow.teamId
-    );
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+    });
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
-    await scheduleWorkflowNotifications(
-      newActiveOn,
+    await scheduleWorkflowNotifications({
+      activeOn: newActiveOn,
       isOrg,
-      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      workflowSteps: userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
       timeUnit,
       trigger,
-      user.id,
-      userWorkflow.teamId,
-      activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)) // alreadyScheduledActiveOnIds
-    );
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+      alreadyScheduledActiveOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)), // alreadyScheduledActiveOnIds
+    });
   }
 
   // handle deleted and edited workflow steps
@@ -410,16 +410,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
 
       // schedule notifications for edited steps
-      await scheduleWorkflowNotifications(
+      await scheduleWorkflowNotifications({
         activeOn,
         isOrg,
-        [newStep],
+        workflowSteps: [newStep],
         time,
         timeUnit,
         trigger,
-        user.id,
-        userWorkflow.teamId
-      );
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
     }
   });
 
@@ -485,16 +485,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     // schedule notification for new step
-    await scheduleWorkflowNotifications(
+    await scheduleWorkflowNotifications({
       activeOn,
       isOrg,
-      createdSteps,
+      workflowSteps: createdSteps,
       time,
       timeUnit,
       trigger,
-      user.id,
-      userWorkflow.teamId
-    );
+      userId: user.id,
+      teamId: userWorkflow.teamId,
+    });
   }
 
   //update trigger, name, time, timeUnit
