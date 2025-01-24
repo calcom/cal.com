@@ -142,8 +142,8 @@ export class SlotsController_2024_09_04 {
   })
   @DocsResponse({
     status: 200,
-    description:
-      "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.",
+    description: `A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.
+      For seated slots each object will have attendeesCount and bookingUid properties.`,
     schema: {
       oneOf: [
         {
@@ -157,14 +157,12 @@ export class SlotsController_2024_09_04 {
             status: "success",
             data: {
               "2050-09-05": [
-                "2050-09-05T09:00:00.000+02:00",
-                "2050-09-05T10:00:00.000+02:00",
-                "2050-09-05T11:00:00.000+02:00",
+                { start: "2050-09-05T09:00:00.000+02:00" },
+                { start: "2050-09-05T10:00:00.000+02:00" },
               ],
               "2050-09-06": [
-                "2050-09-06T09:00:00.000+02:00",
-                "2050-09-06T10:00:00.000+02:00",
-                "2050-09-06T11:00:00.000+02:00",
+                { start: "2050-09-06T09:00:00.000+02:00" },
+                { start: "2050-09-06T10:00:00.000+02:00" },
               ],
             },
           },

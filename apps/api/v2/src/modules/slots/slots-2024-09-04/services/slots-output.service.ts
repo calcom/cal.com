@@ -76,11 +76,7 @@ export class SlotsOutputService_2024_09_04 {
     for (const date in availableSlots.slots) {
       slots[date] = availableSlots.slots[date].map((slot) => {
         if (!timeZone) {
-          return {
-            start: slot.time,
-            ...(slot.attendees ? { attendeesCount: slot.attendees } : {}),
-            ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
-          };
+          return this.getTimeSlot(slot.time, slot.attendees, slot.bookingUid);
         }
         const slotTimezoneAdjusted = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
         if (!slotTimezoneAdjusted) {
@@ -88,15 +84,23 @@ export class SlotsOutputService_2024_09_04 {
             `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
           );
         }
-        return {
-          start: slotTimezoneAdjusted,
-          ...(slot.attendees ? { attendeesCount: slot.attendees } : {}),
-          ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
-        };
+        return this.getTimeSlot(slotTimezoneAdjusted, slot.attendees, slot.bookingUid);
       });
     }
 
     return slots;
+  }
+
+  private getTimeSlot(
+    start: string,
+    attendees?: number,
+    bookingUid?: string
+  ): Slot_2024_09_04 | SeatedSlot_2024_09_04 {
+    return {
+      start,
+      ...(attendees ? { attendeesCount: attendees } : {}),
+      ...(bookingUid ? { bookingUid } : {}),
+    };
   }
 
   private async getRangeSlots(
@@ -130,12 +134,7 @@ export class SlotsOutputService_2024_09_04 {
             );
           }
 
-          return {
-            start,
-            end,
-            ...(slot.attendees ? { attendeesCount: slot.attendees } : {}),
-            ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
-          };
+          return this.getRangeSlot(start, end, slot.attendees, slot.bookingUid);
         } else {
           const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
           const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
@@ -144,18 +143,27 @@ export class SlotsOutputService_2024_09_04 {
             throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
           }
 
-          return {
-            start,
-            end,
-            ...(slot.attendees ? { attendeesCount: slot.attendees } : {}),
-            ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
-          };
+          return this.getRangeSlot(start, end, slot.attendees, slot.bookingUid);
         }
       });
       return acc;
     }, {});
 
     return slots;
+  }
+
+  private getRangeSlot(
+    start: string,
+    end: string,
+    attendees?: number,
+    bookingUid?: string
+  ): RangeSlot_2024_09_04 | SeatedRangeSlot_2024_09_04 {
+    return {
+      start,
+      end,
+      ...(attendees ? { attendeesCount: attendees } : {}),
+      ...(bookingUid ? { bookingUid } : {}),
+    };
   }
 
   private async getDuration(duration?: number, eventTypeId?: number): Promise<number> {
