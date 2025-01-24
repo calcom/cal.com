@@ -73,6 +73,7 @@ const BookerComponent = ({
   userLocale,
   hasValidLicense,
   isBookingDryRun: isBookingDryRunProp,
+  renderCaptcha,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -167,6 +168,7 @@ const BookerComponent = ({
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
+        renderCaptcha={renderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
           if (seatedEventData.bookingUid) {

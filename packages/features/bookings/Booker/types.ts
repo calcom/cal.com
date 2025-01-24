@@ -119,6 +119,7 @@ export type WrappedBookerPropsMain = {
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
   isBookingDryRun?: boolean;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

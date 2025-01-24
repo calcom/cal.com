@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Можете да видите детайлите за резервацията от този URL {{url}} и да добавите събитието във вашия календар",
   "no_options_available": "Няма налични опции",
   "cancellation_reason": "Причина за отказ (по избор)",
+  "cancellation_reason_host": "Причина за отмяна",
   "cancellation_reason_placeholder": "Защо отказвате?",
+  "notify_attendee_cancellation_reason_warning": "Моля, имайте предвид, че причината за отмяната ще бъде видима за участника.",
   "rejection_reason_placeholder": "Защо отхвърляте?",
   "rejection_reason": "Причина за отхвърляне",
   "rejection_reason_title": "Отхвърляне на заявката за резервация?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Изтегли транскрипт",
   "recording_from_your_recent_call": "Записът от последния ви разговор в {{appName}} е готов за изтегляне",
   "transcript_from_previous_call": "Транскриптът от последния ви разговор в {{appName}} е готов за изтегляне. Линковете са валидни само за 1 час",
+  "you_can_download_transcript_from_attachments": "Можете също да изтеглите транскрипта от прикачените файлове",
   "link_valid_for_12_hrs": "Забележка: Линкът за изтегляне е валиден само за 12 часа. Можете да генерирате нов линк за изтегляне, като следвате инструкциите <1>тук</1>.",
   "create_your_first_form": "Създайте първия си формуляр",
   "create_your_first_form_description": "С формулярите за маршрутизиране можете да задавате квалификационни въпроси и да пренасочвате към правилния човек или тип събитие.",
@@ -2927,5 +2930,7 @@
   "managed_users_description": "Вижте всички управлявани потребители, създадени от вашия OAuth клиент",
   "select_oAuth_client": "Изберете OAuth клиент",
   "on_every_instance": "При всяко изпълнение",
+  "authorize": "Упълномощаване",
+  "next": "Напред",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

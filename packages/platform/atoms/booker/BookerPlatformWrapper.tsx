@@ -341,6 +341,10 @@ export const BookerPlatformWrapper = (
       }
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
+
+      if (!!event.data?.successRedirectUrl) {
+        window.location.href = event.data.successRedirectUrl;
+      }
     },
     onError: props.onCreateBookingError,
   });
@@ -357,6 +361,10 @@ export const BookerPlatformWrapper = (
       }
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
+
+      if (!!event.data?.successRedirectUrl) {
+        window.location.href = event.data.successRedirectUrl;
+      }
     },
     onError: props.onCreateRecurringBookingError,
   });

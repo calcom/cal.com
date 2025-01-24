@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "Podrobnosti o rezervácii si môžete pozrieť na tejto url {{url}} a pridať udalosť do svojho kalendára",
   "no_options_available": "Žiadne možnosti nie sú k dispozícii",
   "cancellation_reason": "Dôvod zrušenia (nepovinné)",
+  "cancellation_reason_host": "Dôvod zrušenia",
   "cancellation_reason_placeholder": "Prečo rušíte?",
+  "notify_attendee_cancellation_reason_warning": "Upozorňujeme, že dôvod zrušenia bude viditeľný pre účastníka.",
   "rejection_reason_placeholder": "Prečo odmietate?",
   "rejection_reason": "Dôvod odmietnutia",
   "rejection_reason_title": "Odmietnuť žiadosť o rezerváciu?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "Stiahnuť prepis",
   "recording_from_your_recent_call": "Nahrávka z vášho nedávneho hovoru v {{appName}} je pripravená na stiahnutie",
   "transcript_from_previous_call": "Prepis z vášho nedávneho hovoru v {{appName}} je pripravený na stiahnutie. Odkazy sú platné len 1 hodinu",
+  "you_can_download_transcript_from_attachments": "Prepis si môžete stiahnuť aj z príloh",
   "link_valid_for_12_hrs": "Poznámka: Odkaz na stiahnutie je platný len 12 hodín. Nový odkaz na stiahnutie môžete vygenerovať podľa pokynov <1>tu</1>.",
   "create_your_first_form": "Vytvorte svoj prvý formulár",
   "create_your_first_form_description": "S Routing Forms môžete klásť kvalifikačné otázky a smerovať na správnu osobu alebo typ udalosti.",
@@ -2927,5 +2930,7 @@
   "managed_users_description": "Zobraziť všetkých spravovaných používateľov vytvorených vaším OAuth klientom",
   "select_oAuth_client": "Vyberte OAuth klienta",
   "on_every_instance": "Pri každej inštancii",
+  "authorize": "Autorizovať",
+  "next": "Ďalej",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
