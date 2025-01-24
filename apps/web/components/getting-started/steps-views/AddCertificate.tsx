@@ -77,42 +77,43 @@ const AddCertificate = () => {
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    fetch(`${DIRECTUS_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${42}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${DIRECTUS_TOKEN}`,
-      },
-    })
-      .then((response) => {
-        response.json().then((response) => {
-          console.log(response);
-          const proProfessionalId = response.data.id;
-          fetch(
-            `${DIRECTUS_BASE_URL}/pro_professional_companies?filter[pro_professional_id][_eq]=${proProfessionalId}`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${DIRECTUS_TOKEN}`,
-              },
-            }
-          )
-            .then((response) => {
-              response.json().then((response) => {
-                const spedyId = response.data.spedy_id;
-
-                console.log(response);
-                setSpedyCompanyID(spedyId);
-              });
-            })
-            .finally(() => {
-              setIsLoading(false);
-            });
-        });
+    if (user) {
+      setIsLoading(true);
+      fetch(`${DIRECTUS_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${42}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+        },
       })
-      .catch(() => {
-        setIsLoading(false);
-      });
+        .then((response) => {
+          response.json().then((response) => {
+            const proProfessionalId = response.data[0].id;
+            fetch(
+              `${DIRECTUS_BASE_URL}/pro_professional_companies?filter[pro_professional_id][_eq]=${proProfessionalId}`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+                },
+              }
+            )
+              .then((response) => {
+                response.json().then((response) => {
+                  const spedyId = response.data[0].spedy_id;
+
+                  console.log(response.data);
+                  setSpedyCompanyID(spedyId);
+                });
+              })
+              .finally(() => {
+                setIsLoading(false);
+              });
+          });
+        })
+        .catch(() => {
+          setIsLoading(false);
+        });
+    }
   }, [user]);
 
   return (
