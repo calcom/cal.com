@@ -91,7 +91,7 @@ type Props = {
     eventType: unknown;
   };
   isHost: boolean;
-  internalNotePresets: { id: number; name: string }[];
+  internalNotePresets: { id: number; name: string; cancellationReason: string | null }[];
 };
 
 export default function CancelBooking(props: Props) {
@@ -151,8 +151,7 @@ export default function CancelBooking(props: Props) {
                     );
                     if (foundInternalNote) {
                       setInternalNote(foundInternalNote);
-                      console.log(foundInternalNote);
-                      setCancellationReason(foundInternalNote.cancellationReason);
+                      setCancellationReason(foundInternalNote.cancellationReason || "");
                     }
                   }
                 }}
