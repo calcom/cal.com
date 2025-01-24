@@ -1,6 +1,7 @@
 "use client";
 
 import type { FilterableColumn } from "../../lib/types";
+import { DateRangeFilter } from "./DateRangeFilter";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { NumberFilterOptions } from "./NumberFilterOptions";
 import { SingleSelectFilterOptions } from "./SingleSelectFilterOptions";
@@ -19,6 +20,8 @@ export function FilterOptions({ column }: FilterOptionsProps) {
     return <SingleSelectFilterOptions column={column} />;
   } else if (column.type === "number") {
     return <NumberFilterOptions column={column} />;
+  } else if (column.type === "date_range") {
+    return <DateRangeFilter column={column} />;
   } else {
     return null;
   }
