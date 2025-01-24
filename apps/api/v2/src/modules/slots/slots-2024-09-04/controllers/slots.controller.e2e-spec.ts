@@ -17,6 +17,8 @@ import { Profile, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
+import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
+import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
@@ -256,12 +258,17 @@ describe("Slots Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
+    let attendeesRepositoryFixture: AttendeeRepositoryFixture;
 
     const userEmail = "slotss-controller-e2e@api.com";
     let user: User;
     let eventTypeId: number;
     let eventTypeSlug: string;
     let eventTypeLength: number;
+
+    const seatedEventTypeSlug = "peer-coding-seated";
+    let seatedEventTypeId: number;
 
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
 
@@ -290,6 +297,8 @@ describe("Slots Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
+      attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
 
       const id = randomNumber();
       user = await userRepositoryFixture.create({
@@ -313,6 +322,20 @@ describe("Slots Endpoints", () => {
       eventTypeId = event.id;
       eventTypeSlug = event.slug;
       eventTypeLength = event.length;
+
+      const seatedEvent = await eventTypesRepositoryFixture.create(
+        {
+          title: "peer coding",
+          slug: seatedEventTypeSlug,
+          length: 60,
+          seatsPerTimeSlot: 5,
+          seatsShowAttendees: true,
+          seatsShowAvailabilityCount: true,
+          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
+        },
+        user.id
+      );
+      seatedEventTypeId = seatedEvent.id;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -755,7 +778,7 @@ describe("Slots Endpoints", () => {
 
     it("should do a booking and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
-      await bookingsRepositoryFixture.create({
+      const booking = await bookingsRepositoryFixture.create({
         uid: `booking-uid-${eventTypeId}`,
         title: "booking title",
         startTime,
@@ -795,6 +818,88 @@ describe("Slots Endpoints", () => {
         (slot) => slot.start !== startTime
       );
       expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+      await bookingsRepositoryFixture.deleteById(booking.id);
+    });
+
+    it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
+      const startTime = "2050-09-05T11:00:00.000Z";
+      const booking = await bookingsRepositoryFixture.create({
+        uid: `booking-uid-${seatedEventTypeId}`,
+        title: "booking title",
+        startTime,
+        endTime: "2050-09-05T12:00:00.000Z",
+        eventType: {
+          connect: {
+            id: seatedEventTypeId,
+          },
+        },
+        metadata: {},
+        responses: {
+          name: "tester",
+          email: "tester@example.com",
+          guests: [],
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      const attendee = await attendeesRepositoryFixture.create({
+        name: "tester",
+        email: "tester@example.com",
+        timeZone: "Europe/London",
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
+      });
+
+      bookingSeatsRepositoryFixture.create({
+        referenceUid: "100",
+        data: {},
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
+        attendee: {
+          connect: {
+            id: attendee.id,
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/slots?eventTypeId=${seatedEventTypeId}&start=2050-09-05&end=2050-09-10`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      expect(slots).toEqual({
+        ...expectedSlotsUTC,
+        "2050-09-05": [
+          { start: "2050-09-05T07:00:00.000Z" },
+          { start: "2050-09-05T08:00:00.000Z" },
+          { start: "2050-09-05T09:00:00.000Z" },
+          { start: "2050-09-05T10:00:00.000Z" },
+          { start: "2050-09-05T11:00:00.000Z", attendeesCount: 1, bookingUid: booking.uid },
+          { start: "2050-09-05T12:00:00.000Z" },
+          { start: "2050-09-05T13:00:00.000Z" },
+          { start: "2050-09-05T14:00:00.000Z" },
+        ],
+      });
+
+      await bookingsRepositoryFixture.deleteById(booking.id);
     });
 
     afterAll(async () => {
@@ -1215,7 +1320,7 @@ describe("Slots Endpoints", () => {
       organization = await organizationsRepositoryFixture.create({
         name: "Testy Organization",
         isOrganization: true,
-        slug: "testy-org-012012",
+        slug: "testy-org-0120122",
       });
 
       userOne = await userRepositoryFixture.create({
@@ -1316,6 +1421,7 @@ describe("Slots Endpoints", () => {
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(userOne.email);
       await userRepositoryFixture.deleteByEmail(userTwo.email);
+      await organizationsRepositoryFixture.delete(organization.id);
       await app.close();
     });
   });
