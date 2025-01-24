@@ -3,8 +3,10 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
-import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
+import {
+  rawDataInputSchema,
+  routingFormResponsesInputSchema,
+} from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -1588,53 +1590,36 @@ export const insightsRouter = router({
       return stats;
     }),
   routingFormResponses: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        cursor: z.number().optional(),
-        limit: z.number().optional(),
-        columnFilters: z.array(ZColumnFilter),
-        sorting: z.array(ZSorting),
-      })
-    )
+    .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate } = input;
       return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
-        teamId: input.teamId ?? null,
-        startDate,
-        endDate,
-        isAll: input.isAll ?? false,
+        teamId: input.teamId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
+        routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
+        userId: input.userId,
+        memberUserIds: input.memberUserIds,
         limit: input.limit,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });
     }),
   routingFormResponsesForDownload: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        cursor: z.number().optional(),
-        limit: z.number().optional(),
-        columnFilters: z.array(ZColumnFilter),
-        sorting: z.array(ZSorting),
-      })
-    )
+    .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
-        teamId: input.teamId ?? null,
+        teamId: input.teamId,
         startDate: input.startDate,
         endDate: input.endDate,
-        isAll: input.isAll ?? false,
+        isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
+        routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
+        userId: input.userId,
+        memberUserIds: input.memberUserIds,
         limit: input.limit ?? BATCH_SIZE,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
