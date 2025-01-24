@@ -6,10 +6,12 @@ import { lockUser } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 export const scanWorkflowBodySchema = z.object({
   userId: z.number(),
-  workflowStepId: z.number(),
+  workflowStepIds: z.array(z.number()),
 });
 
 const log = logger.getSubLogger({ prefix: ["[tasker] scanWorkflowBody"] });
@@ -20,37 +22,83 @@ export async function scanWorkflowBody(payload: string) {
     return;
   }
 
-  const { workflowStepId, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
+  const { workflowStepIds, userId } = scanWorkflowBodySchema.parse(JSON.parse(payload));
 
-  const workflowStep = await prisma.workflowStep.findUnique({
+  const workflowSteps = await prisma.workflowStep.findMany({
     where: {
-      id: workflowStepId,
+      id: {
+        in: workflowStepIds,
+      },
     },
   });
 
-  if (!workflowStep?.reminderBody) return;
-
   const client = new AkismetClient({ key: process.env.AKISMET_API_KEY, blog: WEBAPP_URL });
 
-  const comment: Comment = {
-    user_ip: "127.0.0.1",
-    content: workflowStep.reminderBody,
-  };
+  for (const workflowStep of workflowSteps) {
+    if (!workflowStep.reminderBody) {
+      await prisma.workflowStep.update({
+        where: {
+          id: workflowStep.id,
+        },
+        data: {
+          safe: true,
+        },
+      });
+      continue;
+    }
 
-  const isSpam = await client.checkSpam(comment);
+    const comment: Comment = {
+      user_ip: "127.0.0.1",
+      content: workflowStep.reminderBody,
+    };
 
-  if (isSpam) {
-    // We won't delete the workflow step incase it is flagged as a false positive
-    log.warn(`Workflow step ${workflowStepId} is spam with body ${workflowStep.reminderBody}`);
-    await lockUser("userId", userId.toString());
-  } else {
-    await prisma.workflowStep.update({
-      where: {
-        id: workflowStepId,
-      },
-      data: {
-        safe: true,
-      },
-    });
+    const isSpam = await client.checkSpam(comment);
+
+    if (isSpam) {
+      // We won't delete the workflow step incase it is flagged as a false positive
+      log.warn(`Workflow step ${workflowStep.id} is spam with body ${workflowStep.reminderBody}`);
+      await lockUser("userId", userId.toString());
+
+      // Return early if spam is detected
+      return;
+    } else {
+      await prisma.workflowStep.update({
+        where: {
+          id: workflowStep.id,
+        },
+        data: {
+          safe: true,
+        },
+      });
+    }
   }
+
+  const workflow = await prisma.workflow.findFirst({
+    where: {
+      steps: {
+        some: {
+          id: {
+            in: workflowStepIds,
+          },
+        },
+      },
+    },
+    include: {
+      activeOn: true,
+      team: true,
+    },
+  });
+
+  const isOrg = !!workflow?.team?.isOrganization;
+
+  await scheduleWorkflowNotifications({
+    activeOn: workflow?.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
+    isOrg,
+    workflowSteps,
+    time: workflow?.time || null,
+    timeUnit: workflow?.timeUnit || null,
+    trigger: WorkflowTriggerEvents.AFTER_EVENT,
+    userId,
+    teamId: workflow?.team?.id || null,
+  });
 }
