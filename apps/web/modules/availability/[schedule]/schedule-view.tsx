@@ -136,7 +136,7 @@ export const AvailabilitySettingsWebWrapper = ({
             ...values,
           });
 
-          if (!values.isDefault || !bulkUpdateEventTypeIds.length) return;
+          if (!values.isDefault || !bulkUpdateEventTypeIds.length || updateMutation.isError) return;
 
           bulkUpdateDefaultAvailabilityMutation.mutate(
             { eventTypeIds: bulkUpdateEventTypeIds },
@@ -144,6 +144,12 @@ export const AvailabilitySettingsWebWrapper = ({
               onSuccess: () => {
                 utils.viewer.availability.list.invalidate();
                 showToast(t("success"), "success");
+              },
+              onError: (err) => {
+                if (err instanceof HttpError) {
+                  const message = `${err.statusCode}: ${err.message}`;
+                  showToast(message, "error");
+                }
               },
             }
           );
