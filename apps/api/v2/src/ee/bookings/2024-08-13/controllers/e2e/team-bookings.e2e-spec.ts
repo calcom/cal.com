@@ -554,6 +554,43 @@ describe("Bookings Endpoints 2024-08-13", () => {
           });
       });
 
+      it("should get bookings by teamId and eventTypeId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?teamId=${team2.id}&eventTypeId=${team2EventTypeId}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(1);
+            expect(data[0].eventTypeId).toEqual(team2EventTypeId);
+          });
+      });
+
+      it("should not get bookings by teamId and non existing eventTypeId", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?teamId=${team2.id}&eventTypeId=90909`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(0);
+          });
+      });
+
       it("should should get bookings by teamIds", async () => {
         return request(app.getHttpServer())
           .get(`/v2/bookings?teamIds=${team1.id},${team2.id}`)
