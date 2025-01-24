@@ -338,7 +338,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, { ...newStep, safe: false })) {
+    } else if (isStepEdited(oldStep, { ...newStep, safe: oldStep.safe })) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan) {
         const isChangingToSMSOrWhatsapp =
@@ -380,6 +380,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
       }
 
+      const didBodyChange = newStep.reminderBody !== oldStep.reminderBody;
+
       await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
@@ -396,10 +398,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
+          ...(SCANNING_WORKFLOW_STEPS && didBodyChange ? { safe: true } : {}),
         },
       });
 
-      if (SCANNING_WORKFLOW_STEPS && newStep.reminderBody !== oldStep.reminderBody) {
+      if (SCANNING_WORKFLOW_STEPS && didBodyChange) {
         await tasker.create("scanWorkflowBody", { workflowStepIds: [oldStep.id], userId: ctx.user.id });
       } else {
         // schedule notifications for edited steps
