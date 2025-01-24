@@ -19,6 +19,7 @@ const AddCertificate = () => {
   const pickerRef = useRef<HTMLInputElement>(null);
 
   const [a1Src, setA1Src] = useState<File | null>(null);
+  const [spedyCompanyID, setSpedyCompanyID] = useState<string>("");
   const [a1Password, setA1Password] = useState<string>("");
   const [retypeA1Password, setretypeA1Password] = useState<string>("");
   const [certificateRegistrationStatus, setCertificateRegistrationStatus] =
@@ -45,7 +46,7 @@ const AddCertificate = () => {
     formData.append("certificateFile", a1Src);
     formData.append("password", a1Password);
 
-    fetch(`${SPEDY_BASE_URL}/companies/36ba1633-a2b0-421d-8ab4-b26d017b842c/certificates`, {
+    fetch(`${SPEDY_BASE_URL}/companies/${spedyCompanyID}/certificates`, {
       method: "POST",
       headers: {
         "X-Api-Key": SPEDY_API_KEY,
@@ -77,37 +78,42 @@ const AddCertificate = () => {
 
   useEffect(() => {
     setIsLoading(true);
-    console.log(user);
-    fetch(`${SPEDY_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${user.id}`, {
+    fetch(`${DIRECTUS_BASE_URL}/pro_professionals?filter[cal_user_id][_eq]=${42}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${DIRECTUS_TOKEN}`,
       },
     })
       .then((response) => {
-        response.json().then((data) => {
-          console.log(data);
+        response.json().then((response) => {
+          console.log(response);
+          const proProfessionalId = response.data.id;
+          fetch(
+            `${DIRECTUS_BASE_URL}/pro_professional_companies?filter[pro_professional_id][_eq]=${proProfessionalId}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${DIRECTUS_TOKEN}`,
+              },
+            }
+          )
+            .then((response) => {
+              response.json().then((response) => {
+                const spedyId = response.data.spedy_id;
+
+                console.log(response);
+                setSpedyCompanyID(spedyId);
+              });
+            })
+            .finally(() => {
+              setIsLoading(false);
+            });
         });
       })
-      .finally(() => {
+      .catch(() => {
         setIsLoading(false);
       });
-
-    // fetch(`${DIRECTUS_BASE_URL}/pro_professional_companies?filter[pro_professional_id][_eq]=5`, {
-    //   method: "GET",
-    //   headers: {
-    //     Authorization: `Bearer ${DIRECTUS_TOKEN}`,
-    //   },
-    // })
-    //   .then((response) => {
-    //     response.json().then((data) => {
-    //       console.log(data);
-    //     });
-    //   })
-    //   .finally(() => {
-    //     setIsLoading(false);
-    //   });
-  }, []);
+  }, [user]);
 
   return (
     <form onSubmit={onSubmit}>
