@@ -16,6 +16,8 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 import { Button, CheckboxField, Form, SettingsToggle, showToast } from "@calcom/ui";
 
+import { default as InternalNotePresetsView } from "../components/InternalNotePresetsView";
+
 type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const BookingLimitsView = ({ team }: ProfileViewProps) => {
@@ -136,7 +138,7 @@ const BookingLimitsView = ({ team }: ProfileViewProps) => {
   );
 };
 
-const BookingLimitsViewWrapper = () => {
+const TeamSettingsViewWrapper = () => {
   const router = useRouter();
   const params = useParamsWithFallback();
 
@@ -164,7 +166,12 @@ const BookingLimitsViewWrapper = () => {
 
   if (!team) return null;
 
-  return <BookingLimitsView team={team} />;
+  return (
+    <>
+      <BookingLimitsView team={team} />
+      <InternalNotePresetsView team={team} />
+    </>
+  );
 };
 
-export default BookingLimitsViewWrapper;
+export default TeamSettingsViewWrapper;
