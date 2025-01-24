@@ -186,6 +186,7 @@ const SlotItem = ({
                     onClick={() =>
                       onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
                     }
+                    data-testid="skip-confirm-book-button"
                     disabled={
                       (!!shouldRenderCaptcha && !watchedCfToken) ||
                       loadingStates?.creatingBooking ||
