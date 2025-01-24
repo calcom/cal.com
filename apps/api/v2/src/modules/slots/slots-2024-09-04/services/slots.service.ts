@@ -40,8 +40,8 @@ export class SlotsService_2024_09_04 {
 
     const formatted = await this.slotsOutputService.getAvailableSlots(
       availableSlots,
-      queryTransformed.duration,
       queryTransformed.eventTypeId,
+      queryTransformed.duration,
       query.format,
       queryTransformed.timeZone
     );

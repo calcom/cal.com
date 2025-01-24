@@ -13,7 +13,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { Profile, User } from "@prisma/client";
+import { EventType, Profile, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
@@ -268,7 +268,7 @@ describe("Slots Endpoints", () => {
     let eventTypeLength: number;
 
     const seatedEventTypeSlug = "peer-coding-seated";
-    let seatedEventTypeId: number;
+    let seatedEventType: EventType;
 
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
 
@@ -335,7 +335,7 @@ describe("Slots Endpoints", () => {
         },
         user.id
       );
-      seatedEventTypeId = seatedEvent.id;
+      seatedEventType = seatedEvent;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -824,13 +824,13 @@ describe("Slots Endpoints", () => {
     it("should do a booking for seated event and slot should show attendees count and bookingUid", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
-        uid: `booking-uid-${seatedEventTypeId}`,
+        uid: `booking-uid-${seatedEventType.id}`,
         title: "booking title",
         startTime,
         endTime: "2050-09-05T12:00:00.000Z",
         eventType: {
           connect: {
-            id: seatedEventTypeId,
+            id: seatedEventType.id,
           },
         },
         metadata: {},
@@ -873,7 +873,7 @@ describe("Slots Endpoints", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get(`/api/v2/slots?eventTypeId=${seatedEventTypeId}&start=2050-09-05&end=2050-09-10`)
+        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2050-09-05&end=2050-09-10`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(200);
 
@@ -885,19 +885,431 @@ describe("Slots Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      expect(slots).toEqual({
-        ...expectedSlotsUTC,
+      const expectedSlotsUTC = {
         "2050-09-05": [
-          { start: "2050-09-05T07:00:00.000Z" },
-          { start: "2050-09-05T08:00:00.000Z" },
-          { start: "2050-09-05T09:00:00.000Z" },
-          { start: "2050-09-05T10:00:00.000Z" },
-          { start: "2050-09-05T11:00:00.000Z", attendeesCount: 1, bookingUid: booking.uid },
-          { start: "2050-09-05T12:00:00.000Z" },
-          { start: "2050-09-05T13:00:00.000Z" },
-          { start: "2050-09-05T14:00:00.000Z" },
+          { start: "2050-09-05T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-05T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-05T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-05T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          // note(Lauris): this is when booking was made
+          {
+            start: "2050-09-05T11:00:00.000Z",
+            seatsBooked: 1,
+            seatsRemaining: 4,
+            seatsTotal: 5,
+            bookingUid: booking.uid,
+          },
+          { start: "2050-09-05T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-05T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-05T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
         ],
+        "2050-09-06": [
+          { start: "2050-09-06T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-06T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        ],
+        "2050-09-07": [
+          { start: "2050-09-07T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-07T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        ],
+        "2050-09-08": [
+          { start: "2050-09-08T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-08T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        ],
+        "2050-09-09": [
+          { start: "2050-09-09T07:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T08:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T09:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T10:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T11:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T12:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T13:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+          { start: "2050-09-09T14:00:00.000Z", seatsBooked: 0, seatsRemaining: 5, seatsTotal: 5 },
+        ],
+      };
+
+      expect(slots).toEqual(expectedSlotsUTC);
+
+      await bookingsRepositoryFixture.deleteById(booking.id);
+    });
+
+    it("should do a booking for seated event and slot should show attendees count and bookingUid and return range format", async () => {
+      const startTime = "2050-09-05T11:00:00.000Z";
+      const booking = await bookingsRepositoryFixture.create({
+        uid: `booking-uid-${seatedEventType.id}`,
+        title: "booking title",
+        startTime,
+        endTime: "2050-09-05T12:00:00.000Z",
+        eventType: {
+          connect: {
+            id: seatedEventType.id,
+          },
+        },
+        metadata: {},
+        responses: {
+          name: "tester",
+          email: "tester@example.com",
+          guests: [],
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
       });
+
+      const attendee = await attendeesRepositoryFixture.create({
+        name: "tester",
+        email: "tester@example.com",
+        timeZone: "Europe/London",
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
+      });
+
+      bookingSeatsRepositoryFixture.create({
+        referenceUid: "100",
+        data: {},
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
+        attendee: {
+          connect: {
+            id: attendee.id,
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/slots?eventTypeId=${seatedEventType.id}&start=2050-09-05&end=2050-09-10&format=range`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC = {
+        "2050-09-05": [
+          {
+            start: "2050-09-05T07:00:00.000Z",
+            end: "2050-09-05T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-05T08:00:00.000Z",
+            end: "2050-09-05T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-05T09:00:00.000Z",
+            end: "2050-09-05T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-05T10:00:00.000Z",
+            end: "2050-09-05T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          // note(Lauris): this is when booking was made
+          {
+            start: "2050-09-05T11:00:00.000Z",
+            end: "2050-09-05T12:00:00.000Z",
+            seatsBooked: 1,
+            seatsRemaining: 4,
+            seatsTotal: 5,
+            bookingUid: booking.uid,
+          },
+          {
+            start: "2050-09-05T12:00:00.000Z",
+            end: "2050-09-05T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-05T13:00:00.000Z",
+            end: "2050-09-05T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-05T14:00:00.000Z",
+            end: "2050-09-05T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2050-09-06": [
+          {
+            start: "2050-09-06T07:00:00.000Z",
+            end: "2050-09-06T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T08:00:00.000Z",
+            end: "2050-09-06T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T09:00:00.000Z",
+            end: "2050-09-06T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T10:00:00.000Z",
+            end: "2050-09-06T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T11:00:00.000Z",
+            end: "2050-09-06T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T12:00:00.000Z",
+            end: "2050-09-06T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T13:00:00.000Z",
+            end: "2050-09-06T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-06T14:00:00.000Z",
+            end: "2050-09-06T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2050-09-07": [
+          {
+            start: "2050-09-07T07:00:00.000Z",
+            end: "2050-09-07T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T08:00:00.000Z",
+            end: "2050-09-07T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T09:00:00.000Z",
+            end: "2050-09-07T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T10:00:00.000Z",
+            end: "2050-09-07T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T11:00:00.000Z",
+            end: "2050-09-07T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T12:00:00.000Z",
+            end: "2050-09-07T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T13:00:00.000Z",
+            end: "2050-09-07T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-07T14:00:00.000Z",
+            end: "2050-09-07T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2050-09-08": [
+          {
+            start: "2050-09-08T07:00:00.000Z",
+            end: "2050-09-08T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T08:00:00.000Z",
+            end: "2050-09-08T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T09:00:00.000Z",
+            end: "2050-09-08T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T10:00:00.000Z",
+            end: "2050-09-08T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T11:00:00.000Z",
+            end: "2050-09-08T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T12:00:00.000Z",
+            end: "2050-09-08T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T13:00:00.000Z",
+            end: "2050-09-08T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-08T14:00:00.000Z",
+            end: "2050-09-08T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+        "2050-09-09": [
+          {
+            start: "2050-09-09T07:00:00.000Z",
+            end: "2050-09-09T08:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T08:00:00.000Z",
+            end: "2050-09-09T09:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T09:00:00.000Z",
+            end: "2050-09-09T10:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T10:00:00.000Z",
+            end: "2050-09-09T11:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T11:00:00.000Z",
+            end: "2050-09-09T12:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T12:00:00.000Z",
+            end: "2050-09-09T13:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T13:00:00.000Z",
+            end: "2050-09-09T14:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+          {
+            start: "2050-09-09T14:00:00.000Z",
+            end: "2050-09-09T15:00:00.000Z",
+            seatsBooked: 0,
+            seatsRemaining: 5,
+            seatsTotal: 5,
+          },
+        ],
+      };
+
+      expect(slots).toEqual(expectedSlotsUTC);
 
       await bookingsRepositoryFixture.deleteById(booking.id);
     });
