@@ -29,7 +29,15 @@ export function createWorkflowPageFixture(page: Page) {
       page.getByText(trigger);
       await selectEventType("30 min");
     }
-    await saveWorkflow();
+    const workflow = await saveWorkflow();
+
+    for (const step of workflow.steps) {
+      await prisma.workflowStep.update({
+        where: { id: step.id },
+        data: { safe: true },
+      });
+    }
+
     await page.getByTestId("go-back-button").click();
   };
 
@@ -38,6 +46,8 @@ export function createWorkflowPageFixture(page: Page) {
     await page.getByTestId("save-workflow").click();
     const response = await submitPromise;
     expect(response.status()).toBe(200);
+    const responseData = await response.json();
+    return responseData[0].result.data.json.workflow;
   };
 
   const assertListCount = async (count: number) => {
