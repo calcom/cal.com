@@ -49,6 +49,39 @@ describe("getAggregatedAvailability", () => {
 
     expect(isAvailable(result, timeRangeToCheckAvailable)).toBe(true);
   });
+
+  it("it returns the right amount of date ranges even if the end time is before the start time", () => {
+    const userAvailability = [
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-27T14:00:00.000Z"), end: dayjs("2025-01-27T04:30-05:00") },
+        ],
+        user: { isFixed: false },
+      },
+      {
+        dateRanges: [],
+        oooExcludedDateRanges: [
+          { start: dayjs("2025-01-27T14:00:00.000Z"), end: dayjs("2025-01-27T14:45:00.000Z") },
+        ],
+        user: { isFixed: false },
+      },
+    ];
+
+    const result = getAggregatedAvailability(userAvailability, "ROUND_ROBIN");
+
+    expect(result).toEqual([
+      {
+        start: dayjs("2025-01-27T14:00:00.000Z"),
+        end: dayjs("2025-01-27T09:30:00.000Z"),
+      },
+      {
+        start: dayjs("2025-01-27T14:00:00.000Z"),
+        end: dayjs("2025-01-27T14:45:00.000Z"),
+      },
+    ]);
+  });
+
   // validates fixed host behaviour, they all have to be available
   it("should only have all fixed hosts available between 11:15 and 11:20 on January 23, 2025", () => {
     const userAvailability = [
