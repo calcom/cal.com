@@ -4,7 +4,7 @@ import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo } from "react";
 
-import type { FilterableColumn } from "../../lib/types";
+import type { FilterableColumn } from "../lib/types";
 
 export function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(
