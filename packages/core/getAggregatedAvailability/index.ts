@@ -5,7 +5,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
 
 function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
-  const seen = new Set<number>();
+  const seen = new Set<string>();
 
   return ranges
     .sort((a, b) => {
@@ -13,7 +13,7 @@ function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
       return startDiff !== 0 ? startDiff : a.end.valueOf() - b.end.valueOf();
     })
     .filter((range) => {
-      const key = range.start.valueOf() * 1e12 + range.end.valueOf();
+      const key = `${range.start.valueOf()}-${range.end.valueOf()}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
