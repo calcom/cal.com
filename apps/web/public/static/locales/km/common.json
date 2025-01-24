@@ -52,7 +52,9 @@
   "you_can_view_booking_details_with_this_url": "អ្នកអាចមើលព័ត៌មានលម្អិតនៃការកក់តាមរយៈ URL នេះ {{url}} ហើយបន្ថែមព្រឹត្តិការណ៍ទៅកាន់ប្រតិទិនរបស់អ្នក",
   "no_options_available": "មិនមានជម្រើសទេ។",
   "cancellation_reason": "ហេតុផលសម្រាប់ការលុបចោល (មិនចាំបាច់)",
+  "cancellation_reason_host": "មូលហេតុនៃការលុបចោល",
   "cancellation_reason_placeholder": "ហេតុអ្វីបានជាអ្នកលុបចោល?",
+  "notify_attendee_cancellation_reason_warning": "សូមកត់សម្គាល់ថា មូលហេតុនៃការលុបចោលនេះនឹងអាចមើលឃើញដោយអ្នកចូលរួម។",
   "rejection_reason_placeholder": "ហេតុអ្វីបានជាអ្នកបដិសេធ?",
   "rejection_reason": "ហេតុផលសម្រាប់ការបដិសេធ",
   "rejection_reason_title": "បដិសេធសំណើកក់?",
@@ -1544,6 +1546,7 @@
   "download_transcript": "ទាញយកការបកប្រែ",
   "recording_from_your_recent_call": "ការថតពីការហៅថ្មីៗរបស់អ្នកនៅលើ {{appName}} ត្រូវបានត្រៀមរួចរាល់សម្រាប់ទាញយក",
   "transcript_from_previous_call": "ការបកប្រែពីការហៅថ្មីៗរបស់អ្នកនៅលើ {{appName}} ត្រូវបានត្រៀមរួចរាល់សម្រាប់ទាញយក។ តំណភ្ជាប់មានសុពលភាពតែ 1 ម៉ោងប៉ុណ្ណោះ",
+  "you_can_download_transcript_from_attachments": "អ្នកក៏អាចទាញយកកំណត់ត្រាពីឯកសារភ្ជាប់បានដែរ",
   "link_valid_for_12_hrs": "ចំណាំ៖ តំណភ្ជាប់ទាញយកមានសុពលភាពតែ 12 ម៉ោងប៉ុណ្ណោះ។ អ្នកអាចបង្កើតតំណភ្ជាប់ទាញយកថ្មីដោយអនុវត្តតាមសេចក្តីណែនាំ <1>នៅទីនេះ</1>.",
   "create_your_first_form": "បង្កើតទម្រង់ដំបូងរបស់អ្នក",
   "create_your_first_form_description": "ជាមួយនឹងទម្រង់ Routing អ្នកអាចសួរចម្លើយសមរម្យ និងបញ្ជូនទៅកាន់មនុស្សឬប្រភេទព្រឹត្តិការណ៍ត្រឹមត្រូវ។",
@@ -2927,6 +2930,7 @@
   "managed_users_description": "មើលអ្នកប្រើប្រាស់ដែលគ្រប់គ្រងទាំងអស់ដែលបានបង្កើតដោយ OAuth client របស់អ្នក",
   "select_oAuth_client": "ជ្រើសរើស OAuth Client",
   "on_every_instance": "នៅលើគ្រប់ករណី",
+  "authorize": "អនុញ្ញាត",
   "next": "បន្ទាប់",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
