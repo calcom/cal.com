@@ -15,8 +15,7 @@ import {
   getSmsReminderNumberSource,
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
-import tasker from "@calcom/features/tasker";
-import { IS_SELF_HOSTED, SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -886,27 +885,4 @@ export function getEmailTemplateText(
   }
 
   return { emailBody, emailSubject };
-}
-
-export async function scheduleWorkflowBodyScan({
-  workflowStepId,
-  userId,
-  newStepBody,
-  oldStepBody,
-}: {
-  workflowStepId: number;
-  userId: number;
-  newStepBody?: string | null;
-  oldStepBody?: string | null;
-}) {
-  // Don't scan workflows for self hosters
-  if (IS_SELF_HOSTED || !process.env.AKISMET_API_KEY) return;
-
-  // If there is no body to scan then return
-  if (!newStepBody) return;
-
-  // If there is no change in body then return
-  if (newStepBody === oldStepBody) return;
-
-  await tasker.create("scanWorkflowBody", { workflowStepId, userId });
 }
