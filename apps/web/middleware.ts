@@ -171,6 +171,7 @@ export const config = {
     "/auth/signin",
     "/auth/oauth2/authorize",
     "/auth/platform/authorize",
+    "/auth/verify-email",
     /**
      * Paths required by routingForms.handle
      */
