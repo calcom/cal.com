@@ -11,39 +11,15 @@ import {
   rrSegmentQueryValueSchema,
 } from "@calcom/prisma/zod-utils";
 
-export const getEventTypesFromDB = async (eventTypeId: number) => {
-  const eventType = await prisma.eventType.findUniqueOrThrow({
-    where: {
-      id: eventTypeId,
-    },
+const getBaseEventType = async (eventTypeId: number) => {
+  return prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
     select: {
       id: true,
       customInputs: true,
       disableGuests: true,
-      users: {
-        select: {
-          credentials: {
-            select: credentialForCalendarServiceSelect,
-          },
-          ...userSelect.select,
-        },
-      },
       slug: true,
-      profile: {
-        select: {
-          organizationId: true,
-        },
-      },
       teamId: true,
-      team: {
-        select: {
-          id: true,
-          name: true,
-          parentId: true,
-          bookingLimits: true,
-          includeManagedEventsInLimits: true,
-        },
-      },
       bookingFields: true,
       title: true,
       length: true,
@@ -80,40 +56,37 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       beforeEventBuffer: true,
       afterEventBuffer: true,
       parentId: true,
-      parent: {
-        select: {
-          teamId: true,
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-              includeManagedEventsInLimits: true,
-            },
-          },
-        },
-      },
       useEventTypeDestinationCalendarEmail: true,
-      owner: {
-        select: {
-          hideBranding: true,
-        },
-      },
-      workflows: {
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-        },
-      },
       locations: true,
       timeZone: true,
-      schedule: {
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
+      useEventLevelSelectedCalendars: true,
+    },
+  });
+};
+
+const getEventTypeUsers = async (eventTypeId: number) => {
+  const result = await prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+    select: {
+      users: {
         select: {
-          id: true,
-          availability: true,
-          timeZone: true,
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          },
+          ...userSelect.select,
         },
       },
+    },
+  });
+  return result.users;
+};
+
+const getEventTypeHosts = async (eventTypeId: number) => {
+  const result = await prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+    select: {
       hosts: {
         select: {
           isFixed: true,
@@ -144,29 +117,69 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           },
         },
       },
-      availability: {
-        select: {
-          date: true,
-          startTime: true,
-          endTime: true,
-          days: true,
-        },
-      },
-      secondaryEmailId: true,
-      secondaryEmail: {
-        select: {
-          id: true,
-          email: true,
-        },
-      },
-      assignRRMembersUsingSegment: true,
-      rrSegmentQueryValue: true,
-      useEventLevelSelectedCalendars: true,
     },
   });
+  return result.hosts;
+};
 
-  const { profile, hosts, users, ...restEventType } = eventType;
-  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+const getEventTypeTeamAndProfile = async (eventTypeId: number) => {
+  return prisma.eventType.findUniqueOrThrow({
+    where: { id: eventTypeId },
+    select: {
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
+      team: {
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+          bookingLimits: true,
+          includeManagedEventsInLimits: true,
+        },
+      },
+      parent: {
+        select: {
+          teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+// Add this new function after the other query functions
+const getEventTypeWorkflows = async (eventTypeId: number) => {
+  const result = await prisma.eventType.findMany({
+    where: { id: eventTypeId },
+    select: {
+      workflow: {
+        select: workflowSelect,
+      },
+    },
+  });
+  return result;
+};
+
+// Update the main function to include workflows
+export const getEventTypesFromDB = async (eventTypeId: number) => {
+  const [baseEventType, users, hosts, teamData, workflows] = await Promise.all([
+    getBaseEventType(eventTypeId),
+    getEventTypeUsers(eventTypeId),
+    getEventTypeHosts(eventTypeId),
+    getEventTypeTeamAndProfile(eventTypeId),
+    getEventTypeWorkflows(eventTypeId),
+  ]);
+
+  const isOrgTeamEvent = !!teamData.team && !!teamData.profile?.organizationId;
 
   const hostsWithSelectedCalendars = hosts.map((host) => ({
     ...host,
@@ -176,15 +189,17 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
   const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
 
   return {
-    ...restEventType,
+    ...baseEventType,
+    ...teamData,
     hosts: hostsWithSelectedCalendars,
     users: usersWithSelectedCalendars,
-    metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
-    recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
-    customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
-    locations: (eventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
-    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
+    workflows,
+    metadata: EventTypeMetaDataSchema.parse(baseEventType?.metadata || {}),
+    recurringEvent: parseRecurringEvent(baseEventType?.recurringEvent),
+    customInputs: customInputSchema.array().parse(baseEventType?.customInputs || []),
+    locations: (baseEventType?.locations ?? []) as LocationObject[],
+    bookingFields: getBookingFieldsWithSystemFields({ ...baseEventType, isOrgTeamEvent } || {}),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(baseEventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };
