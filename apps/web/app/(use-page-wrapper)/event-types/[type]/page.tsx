@@ -18,9 +18,12 @@ import { ssrInit } from "@server/lib/ssr";
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
   const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const eventType = await getEventTypeById(parseInt(asStringOrThrow(legacyCtx.query.type)), legacyCtx);
+  if (!eventType) {
+    redirect("/event-types");
+  }
 
   return await _generateMetadata(
-    (t) => `${eventType?.title ?? "Not found"} | ${t("event_type")}`,
+    (t) => `${eventType.title} | ${t("event_type")}`,
     () => ""
   );
 };
