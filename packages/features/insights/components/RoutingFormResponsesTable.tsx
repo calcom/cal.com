@@ -28,6 +28,7 @@ import {
   dataTableFilter,
   useDataTable,
   ZDateRangeFilterValue,
+  ZMultiSelectFilterValue,
   ZSingleSelectFilterValue,
   DateRangeFilter,
   type FilterableColumn,
@@ -280,7 +281,9 @@ export function RoutingFormResponsesTableContent() {
   const teamId = orgTeamsType === "team" ? selectedTeamId : undefined;
   const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
 
-  const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
+  const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
+    | number[]
+    | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   const startDate = createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString();
@@ -317,7 +320,7 @@ export function RoutingFormResponsesTableContent() {
         startDate,
         endDate,
         userId,
-        memberUserId,
+        memberUserIds,
         isAll,
         routingFormId,
         columnFilters,
@@ -361,7 +364,7 @@ export function RoutingFormResponsesTableContent() {
         enableColumnFilter: true,
         enableSorting: false,
         meta: {
-          filter: { type: "single_select" },
+          filter: { type: "multi_select" },
         },
         cell: () => null,
       }),
@@ -619,8 +622,8 @@ export function RoutingFormResponsesTableContent() {
               endDate={endDate}
               teamId={teamId}
               userId={userId}
-              isAll={isAll ?? false}
-              memberUserId={memberUserId}
+              isAll={isAll}
+              memberUserIds={memberUserIds}
               routingFormId={routingFormId}
               columnFilters={columnFilters}
               sorting={sorting}
