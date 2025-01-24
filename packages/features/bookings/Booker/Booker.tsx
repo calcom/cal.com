@@ -178,6 +178,7 @@ const BookerComponent = ({
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
   const slot = getQueryParam("slot");
+
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
@@ -197,7 +198,7 @@ const BookerComponent = ({
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
           }
         }}
-        onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
+        onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
         loadingStates={loadingStates}
