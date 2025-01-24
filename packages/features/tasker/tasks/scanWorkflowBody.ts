@@ -6,7 +6,6 @@ import { lockUser } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 export const scanWorkflowBodySchema = z.object({
@@ -89,16 +88,21 @@ export async function scanWorkflowBody(payload: string) {
     },
   });
 
+  if (!workflow) {
+    log.warn(`Workflow with steps ${workflowStepIds} not found`);
+    return;
+  }
+
   const isOrg = !!workflow?.team?.isOrganization;
 
   await scheduleWorkflowNotifications({
-    activeOn: workflow?.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
+    activeOn: workflow.activeOn.map((activeOn) => activeOn.eventTypeId) ?? [],
     isOrg,
     workflowSteps,
-    time: workflow?.time || null,
-    timeUnit: workflow?.timeUnit || null,
-    trigger: WorkflowTriggerEvents.AFTER_EVENT,
+    time: workflow.time,
+    timeUnit: workflow.timeUnit,
+    trigger: workflow.trigger,
     userId,
-    teamId: workflow?.team?.id || null,
+    teamId: workflow.team?.id || null,
   });
 }
