@@ -326,7 +326,7 @@ export default function Success(props: PageProps) {
       const bookingUID = pathname.split("/booking/")[1].split("?")[0];
 
       const getEventTypeSlugUrl =
-        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1515,1375,1379,1383,1389,1523,1518)";
+        "https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/EventType?id=in.(1196,1550,1374,1145,1545,1378,1146)";
       const getBookedTimeUrl = `https://ogbfbwkftgpdiejqafdq.supabase.co/rest/v1/Booking?uid=eq.${bookingUID}`;
 
       fetch(getEventTypeSlugUrl, {
@@ -495,17 +495,17 @@ export default function Success(props: PageProps) {
       case absentHost && medicalAppointments:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1145"],
         };
       case absentHost && occupationalTherapy:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1545"],
         };
       case absentHost && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.NO_SHOW_PROFESSIONAL,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1378"],
         };
       case urgentMedicalAppointments:
         return {
@@ -517,17 +517,17 @@ export default function Success(props: PageProps) {
       case pastAppointment && medicalAppointments:
         return {
           description: VariantDescription.PAST_APPOINTMENT,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1196"],
         };
       case pastAppointment && occupationalTherapy:
         return {
           description: VariantDescription.PAST_APPOINTMENT,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1550"],
         };
       case pastAppointment && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.PAST_APPOINTMENT,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1374"],
         };
       case pastAppointment && urgentMedicalAppointments:
         return {
@@ -537,17 +537,17 @@ export default function Success(props: PageProps) {
       case hasStarted && medicalAppointments:
         return {
           description: VariantDescription.HAS_STARTED,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1196"],
         };
       case hasStarted && occupationalTherapy:
         return {
           description: VariantDescription.HAS_STARTED,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1550"],
         };
       case hasStarted && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.HAS_STARTED,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1374"],
         };
       case hasStarted && urgentMedicalAppointments:
         return {
@@ -557,47 +557,47 @@ export default function Success(props: PageProps) {
       case lessThan12HoursInAdvance && medicalAppointments:
         return {
           description: VariantDescription.LESS_THAN_12_HOURS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1246"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1196"],
         };
       case lessThan12HoursInAdvance && occupationalTherapy:
         return {
           description: VariantDescription.LESS_THAN_12_HOURS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1389"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1550"],
         };
       case lessThan12HoursInAdvance && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.LESS_THAN_12_HOURS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1375"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1374"],
         };
       case moreOrEqualThan7DaysFromPurchase && medicalAppointments:
         return {
           description: VariantDescription.MORE_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1145"],
         };
       case moreOrEqualThan7DaysFromPurchase && occupationalTherapy:
         return {
           description: VariantDescription.MORE_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1545"],
         };
       case moreOrEqualThan7DaysFromPurchase && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.MORE_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1378"],
         };
       case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && medicalAppointments:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1515"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1145"],
         };
       case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && occupationalTherapy:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1383"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1545"],
         };
       case moreOrEqualThan12HoursInAdvance && lessThan7DaysFromPurchase && cognitiveBehavioralTherapy:
         return {
           description: VariantDescription.MORE_THAN_12_HOURS_LESS_THAN_7_DAYS,
-          rescheduleRoute: baseRescheduleRoute + eventTypes["1379"],
+          rescheduleRoute: baseRescheduleRoute + eventTypes["1378"],
         };
       default:
         return { description: "", rescheduleRoute: "" };
