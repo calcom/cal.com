@@ -2,7 +2,8 @@ import {
   isEmailAction,
   isSMSOrWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import tasker from "@calcom/features/tasker";
+import { IS_SELF_HOSTED, SCANNING_WORKFLOW_STEPS } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { PrismaClient } from "@calcom/prisma";
@@ -24,7 +25,6 @@ import {
   removeSmsReminderFieldForEventTypes,
   isStepEdited,
   getEmailTemplateText,
-  scheduleWorkflowBodyScan,
 } from "./util";
 
 type UpdateOptions = {
@@ -338,7 +338,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, newStep)) {
+    } else if (isStepEdited(oldStep, { ...newStep, safe: false })) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan) {
         const isChangingToSMSOrWhatsapp =
@@ -399,27 +399,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      await scheduleWorkflowBodyScan({
-        workflowStepId: oldStep.id,
-        userId: ctx.user.id,
-        newStepBody: newStep?.reminderBody,
-        oldStepBody: oldStep?.reminderBody,
-      });
+      if (SCANNING_WORKFLOW_STEPS && newStep.reminderBody !== oldStep.reminderBody) {
+        await tasker.create("scanWorkflowBody", { workflowStepIds: [oldStep.id], userId: ctx.user.id });
+      } else {
+        // schedule notifications for edited steps
+        await scheduleWorkflowNotifications({
+          activeOn,
+          isOrg,
+          workflowSteps: [newStep],
+          time,
+          timeUnit,
+          trigger,
+          userId: user.id,
+          teamId: userWorkflow.teamId,
+        });
+      }
 
       // cancel all notifications of edited step
       await WorkflowRepository.deleteAllWorkflowReminders(remindersFromStep);
-
-      // schedule notifications for edited steps
-      await scheduleWorkflowNotifications({
-        activeOn,
-        isOrg,
-        workflowSteps: [newStep],
-        time,
-        timeUnit,
-        trigger,
-        userId: user.id,
-        teamId: userWorkflow.teamId,
-      });
     }
   });
 
@@ -469,32 +466,34 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const createdSteps = await Promise.all(
       addedSteps.map((step) =>
         ctx.prisma.workflowStep.create({
-          data: { ...step, numberVerificationPending: false },
+          data: {
+            ...step,
+            numberVerificationPending: false,
+            ...(!SCANNING_WORKFLOW_STEPS ? { safe: true } : {}),
+          },
         })
       )
     );
 
-    await Promise.all(
-      createdSteps.map((step) =>
-        scheduleWorkflowBodyScan({
-          workflowStepId: step.id,
-          userId: ctx.user.id,
-          newStepBody: step.reminderBody,
-        })
-      )
-    );
-
-    // schedule notification for new step
-    await scheduleWorkflowNotifications({
-      activeOn,
-      isOrg,
-      workflowSteps: createdSteps,
-      time,
-      timeUnit,
-      trigger,
-      userId: user.id,
-      teamId: userWorkflow.teamId,
-    });
+    if (SCANNING_WORKFLOW_STEPS) {
+      // workflows are scanned then scheduled in the task
+      await tasker.create("scanWorkflowBody", {
+        workflowStepIds: createdSteps.map((step) => step.id),
+        userId: ctx.user.id,
+      });
+    } else {
+      // schedule notification for new step
+      await scheduleWorkflowNotifications({
+        activeOn,
+        isOrg,
+        workflowSteps: createdSteps,
+        time,
+        timeUnit,
+        trigger,
+        userId: user.id,
+        teamId: userWorkflow.teamId,
+      });
+    }
   }
 
   //update trigger, name, time, timeUnit
