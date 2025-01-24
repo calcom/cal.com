@@ -161,7 +161,7 @@ const getEventTypeWorkflows = async (eventTypeId: number) => {
   const result = await prisma.eventType.findMany({
     where: { id: eventTypeId },
     select: {
-      workflow: {
+      workflows: {
         select: workflowSelect,
       },
     },
