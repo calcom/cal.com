@@ -23,38 +23,7 @@ type GetAvailableSlots = {
 export class SlotsOutputService_2024_09_04 {
   constructor(private readonly eventTypesRepository: EventTypesRepository_2024_06_14) {}
 
-  getOutputSlot(slot: SelectedSlots): GetReservedSlotOutput_2024_09_04 {
-    return {
-      eventTypeId: slot.eventTypeId,
-      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
-      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
-      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
-        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
-        "minutes"
-      ).minutes,
-      reservationUid: slot.uid,
-      reservationUntil:
-        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
-    };
-  }
-
-  getOutputReservedSlot(slot: SelectedSlots, reservationDuration: number): ReserveSlotOutput_2024_09_04 {
-    return {
-      eventTypeId: slot.eventTypeId,
-      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
-      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
-      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
-        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
-        "minutes"
-      ).minutes,
-      reservationDuration,
-      reservationUid: slot.uid,
-      reservationUntil:
-        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
-    };
-  }
-
-  async getOutputSlots(
+  async getAvailableSlots(
     availableSlots: GetAvailableSlots,
     duration?: number,
     eventTypeId?: number,
@@ -62,13 +31,13 @@ export class SlotsOutputService_2024_09_04 {
     timeZone?: string
   ): Promise<SlotsOutput_2024_09_04 | RangeSlotsOutput_2024_09_04> {
     if (!format || format === SlotFormat.Time) {
-      return this.getTimeSlots(availableSlots, timeZone);
+      return this.getAvailableTimeSlots(availableSlots, timeZone);
     }
 
-    return this.getRangeSlots(availableSlots, duration, eventTypeId, timeZone);
+    return this.getAvailableRangeSlots(availableSlots, duration, eventTypeId, timeZone);
   }
 
-  private getTimeSlots(
+  private getAvailableTimeSlots(
     availableSlots: GetAvailableSlots,
     timeZone: string | undefined
   ): SlotsOutput_2024_09_04 {
@@ -76,7 +45,7 @@ export class SlotsOutputService_2024_09_04 {
     for (const date in availableSlots.slots) {
       slots[date] = availableSlots.slots[date].map((slot) => {
         if (!timeZone) {
-          return this.getTimeSlot(slot.time, slot.attendees, slot.bookingUid);
+          return this.getAvailableTimeSlot(slot.time, slot.attendees, slot.bookingUid);
         }
         const slotTimezoneAdjusted = DateTime.fromISO(slot.time, { zone: "utc" }).setZone(timeZone).toISO();
         if (!slotTimezoneAdjusted) {
@@ -84,14 +53,14 @@ export class SlotsOutputService_2024_09_04 {
             `Could not adjust timezone for slot ${slot.time} with timezone ${timeZone}`
           );
         }
-        return this.getTimeSlot(slotTimezoneAdjusted, slot.attendees, slot.bookingUid);
+        return this.getAvailableTimeSlot(slotTimezoneAdjusted, slot.attendees, slot.bookingUid);
       });
     }
 
     return slots;
   }
 
-  private getTimeSlot(
+  private getAvailableTimeSlot(
     start: string,
     attendees?: number,
     bookingUid?: string
@@ -103,13 +72,13 @@ export class SlotsOutputService_2024_09_04 {
     };
   }
 
-  private async getRangeSlots(
+  private async getAvailableRangeSlots(
     availableSlots: GetAvailableSlots,
     duration?: number,
     eventTypeId?: number,
     timeZone?: string
   ): Promise<RangeSlotsOutput_2024_09_04> {
-    const slotDuration = await this.getDuration(duration, eventTypeId);
+    const slotDuration = await this.getEventTypeDuration(duration, eventTypeId);
 
     const slots = Object.entries(availableSlots.slots).reduce<
       Record<string, (RangeSlot_2024_09_04 | SeatedRangeSlot_2024_09_04)[]>
@@ -134,7 +103,7 @@ export class SlotsOutputService_2024_09_04 {
             );
           }
 
-          return this.getRangeSlot(start, end, slot.attendees, slot.bookingUid);
+          return this.getAvailableRangeSlot(start, end, slot.attendees, slot.bookingUid);
         } else {
           const start = DateTime.fromISO(slot.time, { zone: "utc" }).toISO();
           const end = DateTime.fromISO(slot.time, { zone: "utc" }).plus({ minutes: slotDuration }).toISO();
@@ -143,7 +112,7 @@ export class SlotsOutputService_2024_09_04 {
             throw new BadRequestException(`Could not create UTC time for slot ${slot.time}`);
           }
 
-          return this.getRangeSlot(start, end, slot.attendees, slot.bookingUid);
+          return this.getAvailableRangeSlot(start, end, slot.attendees, slot.bookingUid);
         }
       });
       return acc;
@@ -152,7 +121,7 @@ export class SlotsOutputService_2024_09_04 {
     return slots;
   }
 
-  private getRangeSlot(
+  private getAvailableRangeSlot(
     start: string,
     end: string,
     attendees?: number,
@@ -166,7 +135,7 @@ export class SlotsOutputService_2024_09_04 {
     };
   }
 
-  private async getDuration(duration?: number, eventTypeId?: number): Promise<number> {
+  private async getEventTypeDuration(duration?: number, eventTypeId?: number): Promise<number> {
     if (duration) {
       return duration;
     }
@@ -180,5 +149,36 @@ export class SlotsOutputService_2024_09_04 {
     }
 
     throw new Error("duration or eventTypeId is required");
+  }
+
+  getReservationSlot(slot: SelectedSlots): GetReservedSlotOutput_2024_09_04 {
+    return {
+      eventTypeId: slot.eventTypeId,
+      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+        "minutes"
+      ).minutes,
+      reservationUid: slot.uid,
+      reservationUntil:
+        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+    };
+  }
+
+  getReservationSlotCreated(slot: SelectedSlots, reservationDuration: number): ReserveSlotOutput_2024_09_04 {
+    return {
+      eventTypeId: slot.eventTypeId,
+      slotStart: DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }).toISO() || "unknown-slot-start",
+      slotEnd: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).toISO() || "unknown-slot-end",
+      slotDuration: DateTime.fromJSDate(slot.slotUtcEndDate, { zone: "utc" }).diff(
+        DateTime.fromJSDate(slot.slotUtcStartDate, { zone: "utc" }),
+        "minutes"
+      ).minutes,
+      reservationDuration,
+      reservationUid: slot.uid,
+      reservationUntil:
+        DateTime.fromJSDate(slot.releaseAt, { zone: "utc" }).toISO() || "unknown-reserved-until",
+    };
   }
 }

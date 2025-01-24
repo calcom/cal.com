@@ -38,7 +38,7 @@ export class SlotsService_2024_09_04 {
       ctx: {},
     });
 
-    const formatted = await this.slotsOutputService.getOutputSlots(
+    const formatted = await this.slotsOutputService.getAvailableSlots(
       availableSlots,
       queryTransformed.duration,
       queryTransformed.eventTypeId,
@@ -109,7 +109,7 @@ export class SlotsService_2024_09_04 {
         eventType.seatsPerTimeSlot !== null,
         input.reservationDuration
       );
-      return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
+      return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
     }
 
     const host = eventType.hosts[0];
@@ -122,7 +122,7 @@ export class SlotsService_2024_09_04 {
       input.reservationDuration
     );
 
-    return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
+    return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
   }
 
   async getReservedSlot(uid: string) {
@@ -130,7 +130,7 @@ export class SlotsService_2024_09_04 {
     if (!slot) {
       return null;
     }
-    return this.slotsOutputService.getOutputSlot(slot);
+    return this.slotsOutputService.getReservationSlot(slot);
   }
 
   async updateReservedSlot(input: ReserveSlotInput_2024_09_04, uid: string) {
@@ -197,7 +197,7 @@ export class SlotsService_2024_09_04 {
       input.reservationDuration
     );
 
-    return this.slotsOutputService.getOutputReservedSlot(slot, input.reservationDuration);
+    return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
   }
 
   async deleteReservedSlot(uid: string) {
