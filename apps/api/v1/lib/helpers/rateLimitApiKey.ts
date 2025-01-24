@@ -5,12 +5,14 @@ import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowE
 import { HttpError } from "@calcom/lib/http-error";
 
 export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
+  if (!req.userId) return res.status(401).json({ message: "No userId provided" });
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
 
   // TODO: Add a way to add trusted api keys
   try {
+    const identifier = req.userId.toString();
     await checkRateLimitAndThrowError({
-      identifier: req.query.apiKey as string,
+      identifier,
       rateLimitingType: "api",
       onRateLimiterResponse: async (response) => {
         res.setHeader("X-RateLimit-Limit", response.limit);
@@ -19,8 +21,8 @@ export const rateLimitApiKey: NextMiddleware = async (req, res, next) => {
 
         try {
           const didLock = await handleAutoLock({
-            identifier: req.query.apiKey as string, // Casting as this is verified in another middleware
-            identifierType: "apiKey",
+            identifier,
+            identifierType: "userId",
             rateLimitResponse: response,
           });
 

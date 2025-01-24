@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
