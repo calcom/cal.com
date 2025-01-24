@@ -912,27 +912,11 @@ export const insightsRouter = router({
       return [];
     }
 
-    const membershipConditional: Prisma.MembershipWhereInput = {
-      team: {
-        slug: { not: null },
-      },
-      accepted: true,
-      userId: user.id,
-      OR: [
-        {
-          role: "ADMIN",
-        },
-        {
-          role: "OWNER",
-        },
-      ],
-    };
-
     // Validate if user belongs to org as admin/owner
     if (user.organizationId && user.organization.isOrgAdmin) {
-      const teamsFromOrg = await ctx.insightsDb.team.findMany({
+      const teamsAndOrg = await ctx.insightsDb.team.findMany({
         where: {
-          parentId: user.organizationId,
+          OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
         },
         select: {
           id: true,
@@ -941,36 +925,18 @@ export const insightsRouter = router({
           logoUrl: true,
         },
       });
-      const orgTeam = await ctx.insightsDb.team.findUnique({
-        where: {
-          id: user.organizationId,
-        },
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          logoUrl: true,
-        },
-      });
+      const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
+      const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
       if (!orgTeam) {
         return [];
       }
 
       const result: IResultTeamList[] = [
         {
-          id: orgTeam.id,
-          slug: orgTeam.slug,
-          name: orgTeam.name,
-          logoUrl: orgTeam.logoUrl,
+          ...orgTeam,
           isOrg: true,
         },
-        ...teamsFromOrg.map(
-          (team: Prisma.TeamGetPayload<{ select: { id: true; slug: true; name: true; logoUrl: true } }>) => {
-            return {
-              ...team,
-            };
-          }
-        ),
+        ...teamsFromOrg,
       ];
 
       return result;
@@ -978,7 +944,21 @@ export const insightsRouter = router({
 
     // Look if user it's admin/owner in multiple teams
     const belongsToTeams = await ctx.insightsDb.membership.findMany({
-      where: membershipConditional,
+      where: {
+        team: {
+          slug: { not: null },
+        },
+        accepted: true,
+        userId: user.id,
+        OR: [
+          {
+            role: "ADMIN",
+          },
+          {
+            role: "OWNER",
+          },
+        ],
+      },
       include: {
         team: {
           select: {
