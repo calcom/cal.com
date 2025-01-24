@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -15,6 +16,7 @@ const DIRECTUS_BASE_URL = "https://painel.yinflow.life/items";
 const DIRECTUS_TOKEN = process.env.NEXT_PUBLIC_DIRECTUS_TOKEN || "";
 
 const AddCertificate = () => {
+  const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const pickerRef = useRef<HTMLInputElement>(null);
 
@@ -66,7 +68,7 @@ const AddCertificate = () => {
                 setCertificateRegistrationStatus(CertificateRegistrationStatus.PASSWORD_ERROR);
                 break;
             }
-          else console.log("Deu certo");
+          else router.replace("/event-types");
         });
       })
       .finally(() => {
@@ -100,8 +102,6 @@ const AddCertificate = () => {
               .then((response) => {
                 response.json().then((response) => {
                   const spedyId = response.data[0].spedy_id;
-
-                  console.log(response.data);
                   setSpedyCompanyID(spedyId);
                 });
               })
