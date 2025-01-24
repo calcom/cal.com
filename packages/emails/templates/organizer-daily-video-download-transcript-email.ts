@@ -45,7 +45,8 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
       html: await renderEmail("DailyVideoDownloadTranscriptEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
-        transcriptDownloadLinks: this.transcriptDownloadLinks,
+        downloadLinks: this.transcriptDownloadLinks,
+        summaries: this.summaries,
         language: this.t,
         name: this.calEvent.organizer.name,
       }),
