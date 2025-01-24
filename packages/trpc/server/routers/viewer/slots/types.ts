@@ -54,6 +54,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    _isDryRun: z.boolean().optional(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
