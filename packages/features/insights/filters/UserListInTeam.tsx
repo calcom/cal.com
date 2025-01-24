@@ -13,13 +13,7 @@ const mapUserToOption = (user: User) => ({
   icon: <Avatar alt={`${user.name} avatar`} imageSrc={user.avatarUrl} size="sm" className="mr-2" />,
 });
 
-export const UserListInTeam = ({
-  showOnlyWhenSelectedInContext = true,
-  onClear,
-}: {
-  showOnlyWhenSelectedInContext?: boolean;
-  onClear?: () => void;
-}) => {
+export const UserListInTeam = ({ onClear }: { onClear?: () => void }) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
@@ -29,7 +23,7 @@ export const UserListInTeam = ({
     isAll: !!isAll,
   });
 
-  if (showOnlyWhenSelectedInContext && !selectedFilter?.includes("user")) {
+  if (!selectedFilter?.includes("user")) {
     return null;
   }
 
