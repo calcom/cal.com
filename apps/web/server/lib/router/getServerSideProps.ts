@@ -1,7 +1,6 @@
-import type { GetServerSidePropsContext } from "next";
 import { stringify } from "querystring";
 import z from "zod";
-
+import { GetServerSidePropsContext } from "next";
 import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
 import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
 import getFieldIdentifier from "@calcom/app-store/routing-forms/lib/getFieldIdentifier";
@@ -20,7 +19,6 @@ import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm
 import { TRPCError } from "@calcom/trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
-
 const querySchema = z
   .object({
     form: z.string(),
@@ -46,8 +44,16 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   }
 
-  // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
-  const { form: formId, ...fieldsResponses } = queryParsed.data;
+  // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
+  // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
+  const { form: formId, "cal.isBookingDryRun": isBookingDryRunParam, ...fieldsResponses } = queryParsed.data;
+  const isBookingDryRun = isBookingDryRunParam === "true";
+  const paramsToBeForwardedAsIs = {
+    ...fieldsResponses,
+    // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
+    ...(isBookingDryRunParam ? { "cal.isBookingDryRun": isBookingDryRunParam } : null),
+  };
+
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   let timeTaken: Record<string, number | null> = {};
@@ -115,6 +121,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       formFillerId: uuidv4(),
       response: response,
       chosenRouteId: matchingRoute.id,
+      isPreview: isBookingDryRun,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
@@ -162,7 +169,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
-            searchParams: new URLSearchParams(stringify(fieldsResponses)),
+            searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
