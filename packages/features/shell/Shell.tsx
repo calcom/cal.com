@@ -14,7 +14,6 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useFormbricks } from "@calcom/lib/formbricks-client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications } from "@calcom/lib/hooks/useNotifications";
 import { Button, ErrorBoundary, HeadSeo, SkeletonText } from "@calcom/ui";
 
 import { SideBarContainer } from "./SideBar";
@@ -138,8 +137,6 @@ export function ShellMain(props: LayoutProps) {
   const router = useRouter();
   const { isLocaleReady, t } = useLocale();
 
-  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
-
   return (
     <>
       {(props.heading || !!props.backPath) && (
@@ -198,23 +195,6 @@ export function ShellMain(props: LayoutProps) {
                 </div>
               )}
               {props.actions && props.actions}
-              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
-                <Button
-                  color="primary"
-                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
-                  loading={isLoading}
-                  disabled={buttonToShow === ButtonState.DENIED}
-                  tooltipSide="bottom"
-                  tooltip={
-                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
-                  }>
-                  {t(
-                    buttonToShow === ButtonState.DISABLE
-                      ? "disable_browser_notifications"
-                      : "allow_browser_notifications"
-                  )}
-                </Button>
-              )} */}
             </header>
           )}
         </div>

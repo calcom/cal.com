@@ -6,6 +6,7 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
+import { NotificationSoundHandler } from "@calcom/web/components/notification-sound-handler";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
@@ -160,6 +161,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           ]}
         />
         <Providers>{children}</Providers>
+        {!isEmbed && <NotificationSoundHandler />}
       </body>
     </html>
   );
