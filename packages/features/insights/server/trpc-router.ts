@@ -1547,6 +1547,30 @@ export const insightsRouter = router({
     return { data: "", filename: "" };
   }),
 
+  getInsightTableData: userBelongsToTeamProcedure.input(rawDataInputSchema).query(async ({ ctx, input }) => {
+    const { startDate, endDate, teamId, userId, memberUserId, isAll, eventTypeId } = input;
+
+    const isOrgAdminOrOwner = ctx.user.isOwnerAdminOfParentTeam;
+    try {
+      // Get the data
+      const insightData = await EventsInsights.getCsvData({
+        startDate,
+        endDate,
+        teamId,
+        userId,
+        memberUserId,
+        isAll,
+        isOrgAdminOrOwner,
+        eventTypeId,
+        organizationId: ctx.user.organizationId || null,
+      });
+
+      return insightData;
+    } catch (e) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+  }),
+
   getRoutingFormsForFilters: userBelongsToTeamProcedure
     .input(z.object({ userId: z.number().optional(), teamId: z.number().optional(), isAll: z.boolean() }))
     .query(async ({ ctx, input }) => {
