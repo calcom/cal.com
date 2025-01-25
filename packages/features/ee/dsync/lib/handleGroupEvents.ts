@@ -12,7 +12,7 @@ import {
   sendExistingUserTeamInviteEmails,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
-import { createUsersAndConnectToOrgWithOrgParam } from "./users/createUsersAndConnectToOrg";
+import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
 const log = logger.getSubLogger({ prefix: ["dsync/handleGroupEvents"] });
 
@@ -100,11 +100,10 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
     if (newUserEmails.length) {
       const createUsersAndConnectToOrgProps = {
         emailsToCreate: newUserEmails,
-        organizationId: org.id,
         identityProvider: IdentityProvider.CAL,
         identityProviderId: null,
       };
-      const newUsers = await createUsersAndConnectToOrgWithOrgParam({
+      const newUsers = await createUsersAndConnectToOrg({
         createUsersAndConnectToOrgProps,
         org,
       });

@@ -13,7 +13,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
-import { createUsersAndConnectToOrgWithOrgParam } from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
+import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -360,11 +360,10 @@ if (isSAMLLoginEnabled) {
             if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
-                organizationId: org.id,
                 identityProvider: IdentityProvider.SAML,
                 identityProviderId: email,
               };
-              await createUsersAndConnectToOrgWithOrgParam({
+              await createUsersAndConnectToOrg({
                 createUsersAndConnectToOrgProps,
                 org,
               });

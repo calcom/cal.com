@@ -43,15 +43,16 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
         message: "no_account_exists",
       });
 
-    const organizationId = organization.id;
     const createUsersAndConnectToOrgProps = {
       emailsToCreate: [email],
-      organizationId,
       identityProvider: IdentityProvider.SAML,
       identityProviderId: email,
     };
 
-    await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+    await createUsersAndConnectToOrg({
+      createUsersAndConnectToOrgProps,
+      org: organization,
+    });
     memberships = await getAllAcceptedMemberships({ prisma, email });
 
     if (!memberships || memberships.length === 0)

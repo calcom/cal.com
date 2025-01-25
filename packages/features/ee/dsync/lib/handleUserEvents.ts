@@ -14,7 +14,7 @@ import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/vi
 import { sendSignupToOrganizationEmail } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import getAttributesFromScimPayload from "./getAttributesFromScimPayload";
-import { createUsersAndConnectToOrgWithOrgParam } from "./users/createUsersAndConnectToOrg";
+import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 import dSyncUserSelect from "./users/dSyncUserSelect";
 import inviteExistingUserToOrg from "./users/inviteExistingUserToOrg";
 
@@ -121,11 +121,10 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
   } else {
     const createUsersAndConnectToOrgProps = {
       emailsToCreate: [userEmail],
-      organizationId: org.id,
       identityProvider: IdentityProvider.CAL,
       identityProviderId: null,
     };
-    await createUsersAndConnectToOrgWithOrgParam({
+    await createUsersAndConnectToOrg({
       createUsersAndConnectToOrgProps,
       org,
     });
