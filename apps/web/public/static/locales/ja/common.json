@@ -2078,6 +2078,7 @@
   "looking_for_more_analytics": "詳しい分析情報をお探しですか？",
   "looking_for_more_insights": "Insights をさらにお探しですか？",
   "filters": "フィルター",
+  "filter": "フィルター",
   "add_filter": "フィルターを追加",
   "add_rule": "ルールを追加",
   "add_rule_group": "ルールグループを追加",
@@ -2742,9 +2743,9 @@
   "hide_calendar_event_details": "共有カレンダーのイベント詳細を非表示にする",
   "description_hide_calendar_event_details": "カレンダーが共有されると、イベントは閲覧者に表示されますが、書き込み権限のない人には詳細が非表示になります。",
   "last_number_of_days": "過去{{count}}日間",
-  "month_to_date": "月初から今日まで",
-  "year_to_date": "年初から今日まで",
-  "custom_range": "カスタム範囲",
+  "month_to_date": "今月",
+  "year_to_date": "今年",
+  "custom_range": "カスタム期間",
   "refund_policy": "返金ポリシー",
   "always": "常に",
   "never": "なし",
@@ -2940,5 +2941,6 @@
   "add_preset": "プリセットを追加",
   "authorize": "認証する",
   "next": "次へ",
+  "verify_email": "メールアドレスを確認",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
