@@ -908,9 +908,9 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
-            <s>
+            <>
               {name || email} <Icon name="eye-off" className="inline h-4" />
-            </s>
+            </>
           ) : (
             <>{name || email}</>
           )}
@@ -951,27 +951,27 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           {isBookingInPast && (
             <DropdownMenuItem className="focus:outline-none">
               {noShow ? (
-                <DropdownItem
+                <button
                   data-testid="unmark-no-show"
+                  className="w-full"
                   onClick={(e) => {
                     e.preventDefault();
                     setOpenDropdown(false);
                     toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  }}
-                  StartIcon="eye">
-                  {t("unmark_as_no_show")}
-                </DropdownItem>
+                  }}>
+                  <DropdownItem StartIcon="eye">{t("unmark_as_no_show")}</DropdownItem>
+                </button>
               ) : (
-                <DropdownItem
+                <button
                   data-testid="mark-no-show"
+                  className="w-full"
                   onClick={(e) => {
                     e.preventDefault();
                     setOpenDropdown(false);
                     toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  }}
-                  StartIcon="eye-off">
-                  {t("mark_as_no_show")}
-                </DropdownItem>
+                  }}>
+                  <DropdownItem StartIcon="eye-off">{t("mark_as_no_show")}</DropdownItem>
+                </button>
               )}
             </DropdownMenuItem>
           )}
