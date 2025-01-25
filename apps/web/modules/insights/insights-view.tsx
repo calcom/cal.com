@@ -11,6 +11,7 @@ import {
   RecentFeedbackTable,
   HighestRatedMembersTable,
   LowestRatedMembersTable,
+  MostCancelledBookingsTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
@@ -43,6 +44,7 @@ export default function InsightsPage() {
           <HighestRatedMembersTable />
           <LowestRatedMembersTable />
         </div>
+        <MostCancelledBookingsTable />
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}
           <a
