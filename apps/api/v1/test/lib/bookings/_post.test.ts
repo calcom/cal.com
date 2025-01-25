@@ -11,7 +11,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
-import type { Booking } from "@calcom/prisma";
+import type { Booking } from "@calcom/prisma/client";
 
 import handler from "../../../pages/api/bookings/_post";
 

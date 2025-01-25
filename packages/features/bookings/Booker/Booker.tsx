@@ -6,17 +6,19 @@ import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
+import { DryRunMessage } from "./components/DryRunMessage";
 import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
@@ -29,9 +31,10 @@ import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
+import { isBookingDryRun } from "./utils/isBookingDryRun";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
-const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
+const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy").then((mod) => mod.default));
 const UnpublishedEntity = dynamic(() =>
   import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
 );
@@ -68,9 +71,11 @@ const BookerComponent = ({
   customClassNames,
   areInstantMeetingParametersSet = false,
   userLocale,
+  hasValidLicense,
+  renderCaptcha,
 }: BookerProps & WrappedBookerProps) => {
-  const { t } = useLocale();
-
+  const searchParams = useCompatSearchParams();
+  const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const {
@@ -162,6 +167,7 @@ const BookerComponent = ({
     return bookerState === "booking" ? (
       <BookEventForm
         key={key}
+        renderCaptcha={renderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
           if (seatedEventData.bookingUid) {
@@ -266,6 +272,8 @@ const BookerComponent = ({
   return (
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
+
+      {isBookingDryRun(searchParams) && <DryRunMessage isEmbed={isEmbed} />}
 
       <div
         className={classNames(
@@ -462,7 +470,7 @@ const BookerComponent = ({
               />
             </div>
           )}
-        {!hideBranding && !isPlatform && (
+        {!hideBranding && (!isPlatform || isPlatformBookerEmbed) && (
           <m.span
             key="logo"
             className={classNames(
@@ -470,7 +478,7 @@ const BookerComponent = ({
               hasDarkBackground ? "dark" : "",
               layout === BookerLayouts.MONTH_VIEW ? "block" : "hidden"
             )}>
-            <PoweredBy logoOnly />
+            <PoweredBy logoOnly hasValidLicense={hasValidLicense} />
           </m.span>
         )}
       </div>

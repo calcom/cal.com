@@ -14,9 +14,9 @@ import {
   Icon,
 } from "@calcom/ui";
 
+import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZSingleSelectFilterValue } from "../../lib/types";
-import { useDataTable, useFilterValue } from "../../lib/utils";
 
 export type SingleSelectFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: "single_select" }>;
@@ -29,10 +29,10 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
 
   return (
     <Command>
-      <CommandInput placeholder={t("search_options")} />
+      <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
-        {Array.from(column.options.keys()).map((option) => {
+        {column.options.map((option) => {
           if (!option) return null;
           const { label: optionLabel, value: optionValue } =
             typeof option === "string" ? { label: option, value: option } : option;

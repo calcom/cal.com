@@ -15,7 +15,6 @@ import { middleware } from "../trpc";
 type Maybe<T> = T | null | undefined;
 
 export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<Session>) {
-  const { prisma } = ctx;
   if (!session) {
     return null;
   }
@@ -24,56 +23,7 @@ export async function getUserFromSession(ctx: TRPCContextInner, session: Maybe<S
     return null;
   }
 
-  const userFromDb = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-      // Locked users can't login
-      locked: false,
-    },
-    select: {
-      id: true,
-      username: true,
-      name: true,
-      email: true,
-      emailVerified: true,
-      bio: true,
-      avatarUrl: true,
-      timeZone: true,
-      weekStart: true,
-      startTime: true,
-      endTime: true,
-      defaultScheduleId: true,
-      bufferTime: true,
-      theme: true,
-      appTheme: true,
-      createdDate: true,
-      hideBranding: true,
-      twoFactorEnabled: true,
-      disableImpersonation: true,
-      identityProvider: true,
-      identityProviderId: true,
-      brandColor: true,
-      darkBrandColor: true,
-      movedToProfileId: true,
-      selectedCalendars: {
-        select: {
-          externalId: true,
-          integration: true,
-        },
-      },
-      completedOnboarding: true,
-      destinationCalendar: true,
-      locale: true,
-      timeFormat: true,
-      trialEndsAt: true,
-      metadata: true,
-      role: true,
-      allowDynamicBooking: true,
-      allowSEOIndexing: true,
-      receiveMonthlyDigestEmail: true,
-      profiles: true,
-    },
-  });
+  const userFromDb = await UserRepository.findUnlockedUserForSession({ userId: session.user.id });
 
   // some hacks to make sure `username` and `email` are never inferred as `null`
   if (!userFromDb) {

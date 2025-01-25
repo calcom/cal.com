@@ -121,18 +121,20 @@ const WebhookForm = (props: {
     },
   });
 
-  const [useCustomTemplate, setUseCustomTemplate] = useState(false);
+  const showTimeSection = formMethods
+    .watch("eventTriggers")
+    ?.find(
+      (trigger) =>
+        trigger === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
+        trigger === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
+    );
+
+  const [useCustomTemplate, setUseCustomTemplate] = useState(
+    props?.webhook?.payloadTemplate !== undefined && props?.webhook?.payloadTemplate !== null
+  );
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
-
-  const [showTimeSection, setShowTimeSection] = useState(
-    !!triggerOptions.find(
-      (trigger) =>
-        trigger.value === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ||
-        trigger.value === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
-    )
-  );
 
   useEffect(() => {
     if (changeSecret) {
@@ -217,8 +219,6 @@ const WebhookForm = (props: {
                       formMethods.setValue("time", undefined, { shouldDirty: true });
                       formMethods.setValue("timeUnit", undefined, { shouldDirty: true });
                     }
-
-                    setShowTimeSection(noShowWebhookTriggerExists);
                   }}
                 />
               </div>

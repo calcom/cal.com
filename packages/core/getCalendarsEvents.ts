@@ -7,6 +7,44 @@ import type { EventBusyDate, SelectedCalendar } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 const log = logger.getSubLogger({ prefix: ["getCalendarsEvents"] });
+
+// only for Google Calendar for now
+export const getCalendarsEventsWithTimezones = async (
+  withCredentials: CredentialPayload[],
+  dateFrom: string,
+  dateTo: string,
+  selectedCalendars: SelectedCalendar[]
+): Promise<(EventBusyDate & { timeZone: string })[][]> => {
+  const calendarCredentials = withCredentials
+    .filter((credential) => credential.type === "google_calendar")
+    // filter out invalid credentials - these won't work.
+    .filter((credential) => !credential.invalid);
+
+  const calendars = await Promise.all(calendarCredentials.map((credential) => getCalendar(credential)));
+
+  const results = calendars.map(async (c, i) => {
+    /** Filter out nulls */
+    if (!c) return [];
+    /** We rely on the index so we can match credentials with calendars */
+    const { type } = calendarCredentials[i];
+    /** We just pass the calendars that matched the credential type,
+     * TODO: Migrate credential type or appId
+     */
+    const passedSelectedCalendars = selectedCalendars
+      .filter((sc) => sc.integration === type)
+      // Needed to ensure cache keys are consistent
+      .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
+    if (!passedSelectedCalendars.length) return [];
+    /** We extract external Ids so we don't cache too much */
+    const eventBusyDates =
+      (await c.getAvailabilityWithTimeZones?.(dateFrom, dateTo, passedSelectedCalendars)) || [];
+
+    return eventBusyDates;
+  });
+  const awaitedResults = await Promise.all(results);
+  return awaitedResults;
+};
+
 const getCalendarsEvents = async (
   withCredentials: CredentialPayload[],
   dateFrom: string,
@@ -29,10 +67,12 @@ const getCalendarsEvents = async (
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
+    // Important to have them unique so that
     const passedSelectedCalendars = selectedCalendars
       .filter((sc) => sc.integration === type)
       // Needed to ensure cache keys are consistent
       .sort((a, b) => (a.externalId < b.externalId ? -1 : a.externalId > b.externalId ? 1 : 0));
+
     if (!passedSelectedCalendars.length) return [];
     /** We extract external Ids so we don't cache too much */
 

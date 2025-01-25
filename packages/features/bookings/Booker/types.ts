@@ -92,6 +92,7 @@ export interface BookerProps {
   crmAppSlug?: string | null;
   areInstantMeetingParametersSet?: boolean | null;
   userLocale?: string | null;
+  hasValidLicense?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
@@ -117,6 +118,7 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {

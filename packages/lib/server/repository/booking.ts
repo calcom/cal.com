@@ -44,10 +44,8 @@ const buildWhereClauseForActiveBookings = ({
 }): Prisma.BookingWhereInput => ({
   OR: [
     {
-      user: {
-        id: {
-          in: users.map((user) => user.id),
-        },
+      userId: {
+        in: users.map((user) => user.id),
       },
       OR: [
         {

@@ -248,6 +248,11 @@ export interface IntegrationCalendar extends Ensure<Partial<_SelectedCalendar>, 
   integrationTitle?: string;
 }
 
+/**
+ * null is to refer to user-level SelectedCalendar
+ */
+export type SelectedCalendarEventTypeIds = (number | null)[];
+
 export interface Calendar {
   createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType>;
 
@@ -266,13 +271,25 @@ export interface Calendar {
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[]>;
 
+  // for OOO calibration (only google calendar for now)
+  getAvailabilityWithTimeZones?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<{ start: Date | string; end: Date | string; timeZone: string }[]>;
+
   fetchAvailabilityAndSetCache?(selectedCalendars: IntegrationCalendar[]): Promise<unknown>;
 
   listCalendars(event?: CalendarEvent): Promise<IntegrationCalendar[]>;
 
-  watchCalendar?(options: { calendarId: string }): Promise<unknown>;
-
-  unwatchCalendar?(options: { calendarId: string }): Promise<void>;
+  watchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<unknown>;
+  unwatchCalendar?(options: {
+    calendarId: string;
+    eventTypeIds: SelectedCalendarEventTypeIds;
+  }): Promise<void>;
 }
 
 /**

@@ -113,6 +113,8 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     // also this improves performance for most of the happy-paths.
     try {
       await gCalService.upsertSelectedCalendar({
+        // First install should add a user-level selectedCalendar only.
+        eventTypeId: null,
         externalId: selectedCalendarWhereUnique.externalId,
       });
     } catch (error) {

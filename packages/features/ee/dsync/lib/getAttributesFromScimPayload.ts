@@ -8,7 +8,7 @@ const log = logger.getSubLogger({ prefix: ["getAttributesFromScimPayload"] });
 
 type ScimUserAttributeName = string;
 type ScimUserAttributeValue = string | string[];
-
+const coreSchemaUrn = "urn:ietf:params:scim:schemas:core:2.0:User";
 //It avoids unnecessary warnings about attributes not defined in cal.com
 const coreUserAttributesToIgnore = [
   "userName",
@@ -88,7 +88,7 @@ function getAttributesFromScimPayload({
 
   const raw = event.data.raw;
   raw.schemas.forEach((schema: unknown) => {
-    if (schema === "urn:ietf:params:scim:schemas:core:2.0:User") {
+    if (schema === coreSchemaUrn) {
       // Core schema has payload in the root
       const { schemas: _schemas, ...namespaceData } = raw;
 

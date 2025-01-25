@@ -1,14 +1,5 @@
 import type { Metadata } from "next";
 
-type RootMetadataRecipe = Readonly<{
-  twitterCreator: string;
-  twitterSite: string;
-  robots: {
-    index: boolean;
-    follow: boolean;
-  };
-}>;
-
 export type PageMetadataRecipe = Readonly<{
   title: string;
   canonical: string;
@@ -18,7 +9,7 @@ export type PageMetadataRecipe = Readonly<{
   metadataBase: URL;
 }>;
 
-export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
+export const prepareRootMetadata = (): Metadata => ({
   icons: {
     icon: "/favicon.ico",
     apple: "/api/logo?type=apple-touch-icon",
@@ -48,7 +39,6 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     userScalable: false,
     viewportFit: "cover",
   },
-  robots: recipe.robots,
   other: {
     "application-TileColor": "#ff0000",
   },
@@ -63,8 +53,12 @@ export const prepareRootMetadata = (recipe: RootMetadataRecipe): Metadata => ({
     },
   ],
   twitter: {
-    site: recipe.twitterSite,
-    creator: recipe.twitterCreator,
+    site: "@calcom",
+    creator: "@calcom",
     card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 });

@@ -4,7 +4,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
-import { getLayout } from "@calcom/features/MainLayoutAppDir";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventRepository } from "@calcom/lib/server/repository/event";
 
@@ -39,4 +38,4 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 };
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
-export default WithLayout({ getLayout, getData, Page })<"P">;
+export default WithLayout({ getData, Page })<"P">;

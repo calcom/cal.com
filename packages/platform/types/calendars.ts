@@ -1,9 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { Transform } from "class-transformer";
-import { IsNumber, IsString, IsOptional, IsArray, ValidateNested, Validate } from "class-validator";
-
-import { IsYearMonthDays } from "./validators/isYearMonthDays";
+import { IsNumber, IsString, IsArray, ValidateNested, IsDateString } from "class-validator";
 
 export class Calendar {
   @Transform(({ value }: { value: string }) => value && parseInt(value))
@@ -29,23 +27,19 @@ export class CalendarBusyTimesInput {
     required: false,
     description: "The starting date for the busy times query",
     example: "2023-10-01",
-    nullable: true,
   })
   @IsString()
-  @IsOptional()
-  @Validate(IsYearMonthDays)
-  dateFrom?: string | null;
+  @IsDateString()
+  dateFrom!: string;
 
   @ApiProperty({
     required: false,
     description: "The ending date for the busy times query",
     example: "2023-10-31",
-    nullable: true,
   })
   @IsString()
-  @IsOptional()
-  @Validate(IsYearMonthDays)
-  dateTo?: string | null;
+  @IsDateString()
+  dateTo!: string;
 
   @ApiProperty({
     type: [Calendar],

@@ -14,7 +14,6 @@ import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateP
 import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import { createUsersAndConnectToOrgWithOrgParam } from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
-import postHogClient from "@calcom/features/ee/event-tracking/lib/posthog/postHogClient";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
@@ -1032,12 +1031,6 @@ export const getOptions = ({
             );
           }
         }
-
-        postHogClient().capture(user.id.toString(), "Sign Up", {
-          email: user.email,
-          name: user.name,
-          username: user.username,
-        });
       }
     },
   },
