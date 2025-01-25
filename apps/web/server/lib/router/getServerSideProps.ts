@@ -20,7 +20,6 @@ import { RoutingFormRepository } from "@calcom/lib/server/repository/routingForm
 import { TRPCError } from "@calcom/trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
-
 const querySchema = z
   .object({
     form: z.string(),
@@ -46,9 +45,16 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   }
 
-  // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
-  const { form: formId, ...fieldsResponses } = queryParsed.data;
-  // already in platform libraries
+  // TODO: Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
+  // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
+  const { form: formId, "cal.isBookingDryRun": isBookingDryRunParam, ...fieldsResponses } = queryParsed.data;
+  const isBookingDryRun = isBookingDryRunParam === "true";
+  const paramsToBeForwardedAsIs = {
+    ...fieldsResponses,
+    // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
+    ...(isBookingDryRunParam ? { "cal.isBookingDryRun": isBookingDryRunParam } : null),
+  };
+
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   let timeTaken: Record<string, number | null> = {};
@@ -63,7 +69,6 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   }
 
-  // already in platform libraries
   const { UserRepository } = await import("@calcom/lib/server/repository/user");
   const profileEnrichmentStart = performance.now();
   const formWithUserProfile = {
@@ -72,7 +77,6 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   };
   timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
-  // already in platform libraries
   if (
     !isAuthorizedToViewFormOnOrgDomain({ user: formWithUserProfile.user, currentOrgDomain, team: form.team })
   ) {
@@ -82,7 +86,6 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   }
 
   const getSerializableFormStart = performance.now();
-  // already in platform libraries
   const serializableForm = await getSerializableForm({
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
@@ -92,7 +95,6 @@ export const getServerSideProps = async function getServerSideProps(context: Get
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }
-  // already in platform libraries
   serializableForm.fields.forEach((field) => {
     const fieldResponse = fieldsResponses[getFieldIdentifier(field)] || "";
 
@@ -102,14 +104,11 @@ export const getServerSideProps = async function getServerSideProps(context: Get
     };
   });
 
-  // already in platform libraries
   const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
   if (!matchingRoute) {
     throw new Error("No matching route could be found");
   }
-
-  // done until here
 
   const decidedAction = matchingRoute.action;
 
@@ -123,6 +122,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       formFillerId: uuidv4(),
       response: response,
       chosenRouteId: matchingRoute.id,
+      isPreview: isBookingDryRun,
     });
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
@@ -170,7 +170,7 @@ export const getServerSideProps = async function getServerSideProps(context: Get
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
-            searchParams: new URLSearchParams(stringify(fieldsResponses)),
+            searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
@@ -182,7 +182,6 @@ export const getServerSideProps = async function getServerSideProps(context: Get
       },
     };
   } else if (decidedAction.type === "externalRedirectUrl") {
-    // this should be a redirect action
     return {
       redirect: {
         destination: `${decidedAction.value}?${stringify(context.query)}`,
