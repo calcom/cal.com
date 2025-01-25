@@ -1,4 +1,4 @@
-import type { Frame, Locator, Page, Request as PlaywrightRequest } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -45,9 +45,11 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) => {
+    let resolved = false;
+    return new Promise<void>((resolve, reject) => {
       if (requestList.length === count) {
+        resolved = true;
         resolve();
         return;
       }
@@ -57,11 +59,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
           return;
         }
         eventEmitter.off("push", pushHandler);
+        resolved = true;
         resolve();
       };
 
       eventEmitter.on("push", pushHandler);
+      setTimeout(() => {
+        if (resolved) return;
+        // Timeout after 5 seconds
+        reject(new Error("Timeout waiting for webhook"));
+      }, 5000);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
@@ -139,7 +148,13 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (
   page: Page,
-  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+  opts?: {
+    name?: string;
+    email?: string;
+    title?: string;
+    attendeePhoneNumber?: string;
+    expectedStatusCode?: number;
+  }
 ) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
@@ -150,7 +165,10 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await page.press('[name="email"]', "Enter");
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
+    expectedStatusCode: opts?.expectedStatusCode,
+  });
 };
 
 // Provide an standalone localize utility not managed by next-i18n
@@ -489,6 +507,11 @@ export async function confirmReschedule(page: Page, url = "/api/book/event") {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
   });
 }
+export async function confirmBooking(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
+  });
+}
 
 export async function bookTeamEvent({
   page,
@@ -537,21 +560,4 @@ export async function bookTeamEvent({
 export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.getByTestId(`404-page`)).toBeVisible();
-}
-
-export async function clickUntilDialogVisible(
-  dialogOpenButton: Locator,
-  visibleLocatorOnDialog: Locator,
-  retries = 3,
-  delay = 500
-) {
-  for (let i = 0; i < retries; i++) {
-    await dialogOpenButton.click();
-    try {
-      await visibleLocatorOnDialog.waitFor({ state: "visible", timeout: delay });
-      return;
-    } catch {
-      if (i === retries - 1) throw new Error("Dialog did not appear after multiple attempts.");
-    }
-  }
 }

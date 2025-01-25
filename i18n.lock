@@ -54,7 +54,9 @@ checksums:
     you_can_view_booking_details_with_this_url: 64f9ae32d2162ea4afab41fb8ac07fb1
     no_options_available: 1578bfcdda54521607e7695776832765
     cancellation_reason: 8e73160be8cdaed6e71565a4ec49e0e0
+    cancellation_reason_host: b9eb5a356b3a6220ca4d67e0f094555c
     cancellation_reason_placeholder: f4eac23857afdc8b674ba077e25e8799
+    notify_attendee_cancellation_reason_warning: 7138f65a5fd90697e7535c9c2c1d3990
     rejection_reason_placeholder: 7323623572496dbb1a170f7f6818e3fb
     rejection_reason: 548de89f2233af9e74699412356fbda8
     rejection_reason_title: 8eb009c9ce928946ba27b0d8f92396d8
@@ -1546,6 +1548,7 @@ checksums:
     download_transcript: e6200f050dd5d0277c0dbad0cfe3b41a
     recording_from_your_recent_call: b668afa4ace7a561853eff98d583532e
     transcript_from_previous_call: 7485bc94e7ca0e7b2f9cefa8f5b12168
+    you_can_download_transcript_from_attachments: bd1f8b66fa7a44eeed9c113112a042e5
     link_valid_for_12_hrs: 7701a0f7bdc1ca82a14e6fa28583ac74
     create_your_first_form: 5d33316ece53f9ffddba51418869d7aa
     create_your_first_form_description: deafa03d444fc9af9c16f48408d8048c
@@ -2033,8 +2036,12 @@ checksums:
     event_end_time_info: dff59c43944ee9ec4f0b14788f916ead
     cancel_url_variable: 07203aef11c344e47a12a8dc3434a914
     cancel_url_info: 3e8674a30d8f4f5d59cb0023a1af3c56
+    cancel_reason_variable: c4fcfdbbd2cd497885d0fe1f776a4ae0
+    cancel_reason_info: a9605eb91c41ba58cdb5eb2070a050c6
     reschedule_url_variable: 07bbd334e84c8b81712a1fddceef7349
     reschedule_url_info: 1f9481606ab3e2a958add0a670ccd43e
+    reschedule_reason_variable: 609311e1419bff44a9d3cfddf07947e6
+    reschedule_reason_info: c6ccdfc397ec76ddfe934fe46f016727
     invalid_event_name_variables: 04afea2e1a0eb553e9debf310ed0aa13
     select_all: ef9e1f8aaf1fbbdf868934209c85aea2
     default_conferencing_bulk_title: c5df8bbc4168913fc4772a695933c226
@@ -2218,8 +2225,8 @@ checksums:
     org_no_teams_yet: 12e194480db8d89f2d1d49849e006d0f
     org_no_teams_yet_description: a33626f45a1e7a480855e2d58557899b
     set_up: b9fd81483112f7f0f8ca6c8193560618
-    my_profile: 0b50373a58d99e69ccabd0a73872bbb7
-    my_settings: 4ddfdf2f93534c797b7671e2f2f7ea10
+    my_profile: 3400964aa3443f81aa521c664c21aeaf
+    my_settings: 5a5728b1f142aaf81af5b56dda752ada
     crm: 441decfd55814370f4ef962cb9faaf4b
     messaging: 84ef090280dd156c702e414598704083
     sender_id_info: a9932f818e07563027b457f42746f6b0
@@ -2661,6 +2668,7 @@ checksums:
     x_marked_as_no_show: 572ed988bb428955ea77c0ffe9accb5f
     x_unmarked_as_no_show: e4a1e9ecb9da5dc33fbd54c4e8f3d09a
     team_select_info: 67576cede7244533acb9c4e3b31a6c52
+    team_settings_description: b36b74cf24c27e4020ca31c5fdbf2fd3
     no_show_updated: ab2125e3ec6df87572ef5e0b76d26970
     email_copied: f8145a83c29485da2cf7bb36ff920470
     phone_number_copied: b91f492fa4f5be4edda64b9e48a11690
@@ -2739,6 +2747,12 @@ checksums:
     month_to_date: 7f7e4653c67cdaab178faa332007b1a0
     year_to_date: 1de1bfcb57fc841987305d851383042a
     custom_range: c489facbacd8b2b232c9ea6aae568ae3
+    refund_policy: 74aa4e6958ec93a15d82c0229b986b3e
+    always: 1e1afee98f88029400e67f97a036f17f
+    never: 975007d8aae7e3af47897721a6961be8
+    payment_option: d2973c3836b23b23c12d1e2fd4471fa4
+    if_cancelled: 614c9a53dc3d57dea571359e7d87f5d4
+    before: e98ce9421a140ee7ea8ee67daec9a855
     show_all_columns: f8c81014fa436fa5baf3d0be325e2988
     toggle_columns: 33ea1f6185497c358ae57e79e327c266
     no_columns_found: c73ee3c789abf7838f3c39c661d74db0
@@ -2813,6 +2827,7 @@ checksums:
     salesforce_owner_name_to_change: 000522ab557b02cfe4a5d49787259ef9
     no_filter_set: 5167f195fa1a278506d613d550b578f0
     booking_dry_run_successful: 9f3d6faa29b1a777f3f2610367da5586
+    booking_dry_run_successful_description: 0e0a875cc67bef047bfd0033b1ac4498
     dont_have_access_this_page: c2341fe363c89498d3d0deb64f3977b1
     you_need_admin_or_owner_privileges_to_access: 7f032471f243015def700f16681274b2
     field_type: 7444da76fa3572d47ea5b5d86c50f11f
@@ -2865,6 +2880,8 @@ checksums:
     rr_distribution_method_availability_description: 0fc05c527e1307e0c20165f0cefe2ed4
     rr_distribution_method_balanced_title: f13fe5c1c5e35ad5b2e0139df5c3e62f
     rr_distribution_method_balanced_description: 23fd5a95ac9d9f6283883180ba30db32
+    edit_team_member_weights: 66ba6fc048187689fc71b00be1d1ca0f
+    weights_updated_successfully: e5ad5ff71665572c8512f1cb4112359c
     require_confirmation_for_free_email: 669a3c050cc065e85df79e0e7f12bbfd
     exclude_emails_that_contain: d43255c873c75c8fe1adcb8f8b7af914
     require_emails_that_contain: 54623674a8bf704fd44299c59eb31363
@@ -2900,4 +2917,29 @@ checksums:
     calibration: f51287d6811bf1ecf8138969d922265c
     shortfall: 6a20a35f6f5512e1cee011f1b62698b6
     routing_form: 0f5f1272e5305e7adcd77dc8d819e9a4
+    go_back_and_save: a58f72fee6d86bd03a381e9561419099
+    leave_without_saving: 53e8ecb02f457fccabc96da70ac3e7b8
+    leave_without_saving_description: 5ac465b85a0bd32094ed978fcdd89773
+    something_unexpected_occurred: 560f72eb138fa6adc640e75c1641f5b2
+    500_error_message: e0d87346445004cdf52bb9ceb24ffe5e
+    dry_run_mode_active: 921ba1004a593504ba9719886864d90e
+    icon_showcase: 0879657c77461a19cafbdaa1e168b95e
+    icons_showcase: 8771aa0011d8ffefbe9370312152ef6a
+    feature_currently_disabled: 3d4991fb6097adb96e8e2afca1e44b7e
+    choose_an_option: 1c57b133afef47a60666d5d37b9b321e
+    enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
+    remove_option: 42e52c46cc51e56ebb5540bfb6f19b95
+    managed_users: c6db1c3bb5c9b451471ca9b8d7dc8366
+    managed_users_description: 45fea5321847b0c8ee72ce33684c1283
+    select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
+    on_every_instance: db0e9e92055a38572fffa40f44440035
+    internal_booking_note: 74561f367c27064cb1b54710fc6c3679
+    internal_note_cancellation_reason: e70f8e60bfae11a6f6281ab518b8a579
+    internal_booking_note_description: dff77f447985998404a20df4a47ba547
+    internal_note_presets: 1d5ba76d5f86d658f4953a6a3d873645
+    internal_note_presets_description: 66e661776c2e28a694c9413c5aa68607
+    internal_note_presets_updated_successfully: 83e21904ece2a19dc8377c5364c178a4
+    add_preset: 7f145e5e96a41152ee86675c9589909a
+    authorize: 79bc0c78ff5b369613c023b08e7236dd
+    next: 89ddbcf710eba274963494f312bdc8a9
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

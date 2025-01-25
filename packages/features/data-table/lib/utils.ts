@@ -1,78 +1,23 @@
 "use client";
 
-import { useMemo, useContext } from "react";
-import type { z } from "zod";
-
-import { DataTableContext } from "./context";
 import type {
   SingleSelectFilterValue,
   MultiSelectFilterValue,
   TextFilterValue,
   FilterValue,
   NumberFilterValue,
-  ColumnFilter,
+  DateRangeFilterValue,
 } from "./types";
 import {
-  ZFilterValue,
   ZNumberFilterValue,
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
   ZTextFilterValue,
+  ZDateRangeFilterValue,
 } from "./types";
 
-export function useDataTable() {
-  const context = useContext(DataTableContext);
-  if (!context) {
-    throw new Error("useDataTable must be used within a DataTableProvider");
-  }
-  return context;
-}
-
-export function useFilterValue<T>(columnId: string, schema: z.ZodType<T>) {
-  const { activeFilters } = useDataTable();
-  return useMemo(() => {
-    const value = activeFilters.find((filter) => filter.f === columnId)?.v;
-    if (schema && value) {
-      const result = schema.safeParse(value);
-      if (result.success) {
-        return result.data;
-      }
-    }
-    return undefined;
-  }, [activeFilters, columnId, schema]);
-}
-
-export function useColumnFilters(): ColumnFilter[] {
-  const { activeFilters } = useDataTable();
-  return useMemo(() => {
-    return (activeFilters || [])
-      .filter(
-        (filter) =>
-          typeof filter === "object" && filter && "f" in filter && "v" in filter && filter.v !== undefined
-      )
-      .map((filter) => {
-        const parsedValue = ZFilterValue.safeParse(filter.v);
-        if (!parsedValue.success) return null;
-        return {
-          id: filter.f,
-          value: parsedValue.data,
-        };
-      })
-      .filter((filter): filter is ColumnFilter => filter !== null)
-      .filter((filter) => {
-        // The empty arrays in `filtersSearchState` keep the filter UI component,
-        // but we do not send them to the actual query.
-        // Otherwise, `{ my_column_name: { in: []} }` would result in nothing being returned.
-        if (isMultiSelectFilterValue(filter.value) && filter.value.data.length === 0) {
-          return false;
-        }
-        return true;
-      });
-  }, [activeFilters]);
-}
-
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
-  if (filterValue.data.operator === "isEmpty" && cellValue === undefined) {
+  if (filterValue.data.operator === "isEmpty" && !cellValue) {
     return true;
   }
 
@@ -106,13 +51,29 @@ export const isTextFilterValue = (filterValue: unknown): filterValue is TextFilt
   return ZTextFilterValue.safeParse(filterValue).success;
 };
 
+const isAllString = (array: (string | number)[]): array is string[] => {
+  return array.every((value) => typeof value === "string");
+};
+
+const isAllNumber = (array: (string | number)[]): array is number[] => {
+  return array.every((value) => typeof value === "number");
+};
+
 export const multiSelectFilter = (cellValue: unknown | undefined, filterValue: MultiSelectFilterValue) => {
   const cellValueArray = Array.isArray(cellValue) ? cellValue : [cellValue];
-  if (!cellValueArray.every((value) => typeof value === "string")) {
-    return false;
+
+  const filterValueArray = filterValue.data;
+  if (!filterValueArray || filterValueArray.length === 0) {
+    return true;
   }
 
-  return filterValue.data.length === 0 ? true : cellValueArray.some((v) => filterValue.data.includes(v));
+  if (isAllString(filterValueArray) && isAllString(cellValueArray)) {
+    return cellValueArray.some((v) => filterValueArray.includes(v));
+  } else if (isAllNumber(filterValueArray) && isAllNumber(cellValueArray)) {
+    return cellValueArray.some((v) => filterValueArray.includes(v));
+  }
+
+  return false;
 };
 
 export const isMultiSelectFilterValue = (filterValue: unknown): filterValue is MultiSelectFilterValue => {
@@ -154,6 +115,10 @@ export const isNumberFilterValue = (filterValue: unknown): filterValue is Number
   return ZNumberFilterValue.safeParse(filterValue).success;
 };
 
+export const isDateRangeFilterValue = (filterValue: unknown): filterValue is DateRangeFilterValue => {
+  return ZDateRangeFilterValue.safeParse(filterValue).success;
+};
+
 export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
   if (isSingleSelectFilterValue(filterValue)) {
     return singleSelectFilter(cellValue, filterValue);
@@ -165,8 +130,4 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
     return numberFilter(cellValue, filterValue);
   }
   return false;
-};
-
-export const convertToTitleCase = (str: string) => {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
 };

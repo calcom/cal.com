@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
@@ -6,7 +8,6 @@ import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import classNames from "@calcom/lib/classNames";
@@ -29,7 +30,7 @@ const Layout = (props: LayoutProps) => {
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
-  useBootIntercom();
+
   useFormbricks();
 
   return (

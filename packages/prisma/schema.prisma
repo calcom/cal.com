@@ -366,6 +366,7 @@ model User {
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
+  BookingInternalNote        BookingInternalNote[]
 
   @@unique([email])
   @@unique([email, username])
@@ -473,7 +474,8 @@ model Team {
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean @default(false)
+  includeManagedEventsInLimits Boolean              @default(false)
+  internalNotePresets          InternalNotePreset[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -668,6 +670,7 @@ model Booking {
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
   assignmentReason             AssignmentReason[]
+  internalNote                 BookingInternalNote[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -870,6 +873,9 @@ model Impersonations {
   impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
+
+  @@index([impersonatedUserId])
+  @@index([impersonatedById])
 }
 
 model ApiKey {
@@ -979,24 +985,25 @@ model App {
 }
 
 model App_RoutingForms_Form {
-  id          String                          @id @default(cuid())
-  description String?
-  position    Int                             @default(0)
-  routes      Json?
-  createdAt   DateTime                        @default(now())
-  updatedAt   DateTime                        @updatedAt
-  name        String
-  fields      Json?
-  user        User                            @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  id                       String                                      @id @default(cuid())
+  description              String?
+  position                 Int                                         @default(0)
+  routes                   Json?
+  createdAt                DateTime                                    @default(now())
+  updatedAt                DateTime                                    @updatedAt
+  name                     String
+  fields                   Json?
+  user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
-  userId      Int
-  team        Team?                           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId      Int?
-  responses   App_RoutingForms_FormResponse[]
-  disabled    Boolean                         @default(false)
+  userId                   Int
+  team                     Team?                                       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                   Int?
+  responses                App_RoutingForms_FormResponse[]
+  disabled                 Boolean                                     @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
-  settings    Json?
+  settings                 Json?
+  incompleteBookingActions App_RoutingForms_IncompleteBookingActions[]
 
   @@index([userId])
   @@index([disabled])
@@ -1017,6 +1024,30 @@ model App_RoutingForms_FormResponse {
   @@unique([formFillerId, formId])
   @@index([formFillerId])
   @@index([formId])
+}
+
+view RoutingFormResponse {
+  id                               Int            @unique
+  response                         Json
+  responseLowercase                Json
+  formId                           String
+  formName                         String
+  formTeamId                       Int?
+  formUserId                       Int?
+  bookingUid                       String?
+  bookingStatus                    BookingStatus?
+  bookingStatusOrder               Int?
+  bookingCreatedAt                 DateTime?
+  bookingAttendees                 Json? // Array of {timeZone: string, email: string}
+  bookingUserId                    Int?
+  bookingUserName                  String?
+  bookingUserEmail                 String?
+  bookingUserAvatarUrl             String?
+  bookingAssignmentReason          String?
+  bookingAssignmentReasonLowercase String?
+  bookingStartTime                 DateTime?
+  bookingEndTime                   DateTime?
+  createdAt                        DateTime
 }
 
 model Feedback {
@@ -1618,7 +1649,10 @@ model AttributeOption {
 model Attribute {
   id String @id @default(uuid())
 
-  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // This is organization
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  // This is organizationId
   teamId Int
 
   type AttributeType
@@ -1635,12 +1669,17 @@ model Attribute {
   options          AttributeOption[]
   isWeightsEnabled Boolean           @default(false)
   isLocked         Boolean           @default(false)
+
+  @@index([teamId])
 }
 
 model AttributeToUser {
   id String @id @default(uuid())
 
-  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  // This is the membership of the organization
+  member Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // This is the membership id of the organization
   memberId Int
 
   attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
@@ -1679,6 +1718,8 @@ model AssignmentReason {
   booking      Booking              @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   reasonEnum   AssignmentReasonEnum
   reasonString String
+
+  @@index([bookingId])
 }
 
 enum EventTypeAutoTranslatedField {
@@ -1774,4 +1815,51 @@ model Watchlist {
 
   @@unique([type, value])
   @@index([type, value])
+}
+
+enum IncompleteBookingActionType {
+  SALESFORCE
+}
+
+model App_RoutingForms_IncompleteBookingActions {
+  id           Int                         @id @default(autoincrement())
+  form         App_RoutingForms_Form       @relation(fields: [formId], references: [id], onDelete: Cascade)
+  formId       String
+  actionType   IncompleteBookingActionType
+  data         Json
+  enabled      Boolean                     @default(true)
+  credentialId Int?
+}
+
+model InternalNotePreset {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  cancellationReason String?
+  team               Team    @relation(fields: [teamId], references: [id])
+  teamId             Int
+
+  createdAt           DateTime              @default(now())
+  BookingInternalNote BookingInternalNote[]
+
+  @@unique([teamId, name])
+  @@index([teamId])
+}
+
+model BookingInternalNote {
+  id Int @id @default(autoincrement())
+
+  notePreset   InternalNotePreset? @relation(fields: [notePresetId], references: [id], onDelete: Cascade)
+  notePresetId Int?
+  text         String?
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId Int
+
+  createdBy   User @relation(fields: [createdById], references: [id])
+  createdById Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookingId, notePresetId])
+  @@index([bookingId])
 }

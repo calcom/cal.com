@@ -1,28 +1,28 @@
 "use client";
 
+import type { SortingState, OnChangeFn } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
-import { createContext, useCallback, useState, type Dispatch, type SetStateAction } from "react";
+import { createContext, useCallback } from "react";
 import { z } from "zod";
 
-import { type FilterValue, ZFilterValue } from "./types";
+import { type FilterValue, ZFilterValue, ZSorting } from "./types";
 
-const dataTableFiltersSchema = z.object({
+const ZActiveFilter = z.object({
   f: z.string(),
   v: ZFilterValue.optional(),
 });
 
-type ActiveFilter = z.infer<typeof dataTableFiltersSchema>;
+type ActiveFilter = z.infer<typeof ZActiveFilter>;
 
 export type DataTableContextType = {
   activeFilters: ActiveFilter[];
   setActiveFilters: (filters: ActiveFilter[]) => void;
-  clearAll: () => void;
+  clearAll: (exclude?: string[]) => void;
   updateFilter: (columnId: string, value: FilterValue) => void;
   removeFilter: (columnId: string) => void;
 
-  displayedExternalFilters: string[];
-  setDisplayedExternalFilters: Dispatch<SetStateAction<string[]>>;
-  removeDisplayedExternalFilter: (key: string) => void;
+  sorting: SortingState;
+  setSorting: OnChangeFn<SortingState>;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -30,26 +30,35 @@ export const DataTableContext = createContext<DataTableContextType | null>(null)
 export function DataTableProvider({ children }: { children: React.ReactNode }) {
   const [activeFilters, setActiveFilters] = useQueryState(
     "activeFilters",
-    parseAsArrayOf(parseAsJson(dataTableFiltersSchema.parse)).withDefault([])
+    parseAsArrayOf(parseAsJson(ZActiveFilter.parse)).withDefault([])
+  );
+  const [sorting, setSorting] = useQueryState(
+    "sorting",
+    parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
   );
 
-  const [displayedExternalFilters, setDisplayedExternalFilters] = useState<string[]>([]);
-
-  const removeDisplayedExternalFilter = useCallback(
-    (key: string) => {
-      setDisplayedExternalFilters((prev) => prev.filter((f) => f !== key));
+  const clearAll = useCallback(
+    (exclude?: string[]) => {
+      setActiveFilters((prev) => prev.filter((filter) => exclude?.includes(filter.f)));
     },
-    [setDisplayedExternalFilters]
+    [setActiveFilters]
   );
-
-  const clearAll = useCallback(() => {
-    setActiveFilters([]);
-  }, [setActiveFilters]);
 
   const updateFilter = useCallback(
     (columnId: string, value: FilterValue) => {
       setActiveFilters((prev) => {
-        return prev.map((item) => (item.f === columnId ? { ...item, v: value } : item));
+        let added = false;
+        const newFilters = prev.map((item) => {
+          if (item.f === columnId) {
+            added = true;
+            return { ...item, v: value };
+          }
+          return item;
+        });
+        if (!added) {
+          newFilters.push({ f: columnId, v: value });
+        }
+        return newFilters;
       });
     },
     [setActiveFilters]
@@ -70,9 +79,8 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
         clearAll,
         updateFilter,
         removeFilter,
-        displayedExternalFilters,
-        setDisplayedExternalFilters,
-        removeDisplayedExternalFilter,
+        sorting,
+        setSorting,
       }}>
       {children}
     </DataTableContext.Provider>

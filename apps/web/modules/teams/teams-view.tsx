@@ -18,6 +18,7 @@ function Teams(props: PageProps) {
   return (
     <Shell
       withoutMain={false}
+      withoutSeo={true}
       heading={t("teams")}
       subtitle={t("create_manage_teams_collaborative")}
       title={t("teams")}
