@@ -27,6 +27,7 @@ import {
   findMatchingRoute,
   handleResponse,
   getServerTimingHeader,
+  substituteVariables,
 } from "@calcom/platform-libraries-1.2.3";
 import type { FormResponse } from "@calcom/platform-libraries-1.2.3";
 import { ApiResponse } from "@calcom/platform-types";
@@ -160,11 +161,11 @@ export class RouterController {
         },
       };
     } else if (decidedAction.type === "eventTypeRedirectUrl") {
-      // const eventTypeUrlWithResolvedVariables = substituteVariables(
-      //   decidedAction.value,
-      //   response,
-      //   serializableForm.fields
-      // );
+      const eventTypeUrlWithResolvedVariables = substituteVariables(
+        decidedAction.value,
+        response,
+        serializableForm.fields
+      );
 
       return {
         status: "success",

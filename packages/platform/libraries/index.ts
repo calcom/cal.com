@@ -8,6 +8,7 @@ import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSeri
 import { getServerTimingHeader } from "@calcom/app-store/routing-forms/lib/getServerTimingHeader";
 import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
 import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
 import type { CredentialOwner } from "@calcom/app-store/types";
@@ -256,3 +257,4 @@ export { getFieldResponseForJsonLogic };
 export { findMatchingRoute };
 export { handleResponse };
 export { getServerTimingHeader };
+export { substituteVariables };
