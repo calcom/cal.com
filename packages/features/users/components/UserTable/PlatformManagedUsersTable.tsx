@@ -104,11 +104,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -133,9 +128,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
         size: 200,
         header: () => {
           return `Managed Users`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
         },
         cell: ({ row }) => {
           if (isPending) {
@@ -259,6 +251,9 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+      },
     },
     defaultColumn: {
       size: 150,
