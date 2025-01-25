@@ -208,7 +208,7 @@ export default function AvailabilityPage({ currentOrg }: PageProps) {
   // searchParams with a provided key/value pair
   const createQueryString = useCallback(
     (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString() ?? undefined);
+      const params = new URLSearchParams(searchParams ?? undefined);
       params.set(name, value);
 
       return params.toString();
