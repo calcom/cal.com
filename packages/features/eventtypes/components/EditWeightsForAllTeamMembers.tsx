@@ -7,7 +7,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import type { Host, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import "@calcom/ui";
+import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
+import { trpc } from "@calcom/trpc";
 import {
   Avatar,
   Button,
@@ -25,7 +26,7 @@ import {
 } from "@calcom/ui";
 
 type TeamMemberItemProps = {
-  member: TeamMember & { weight?: number };
+  member: Omit<TeamMember, "defaultScheduleId"> & { weight?: number };
   onWeightChange: (memberId: string, weight: number) => void;
 };
 
@@ -92,29 +93,93 @@ const TeamMemberItem = ({ member, onWeightChange }: TeamMemberItemProps) => {
   );
 };
 
+interface UseTeamMembersWithSegmentProps {
+  initialTeamMembers: TeamMember[];
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
+  value: Host[];
+}
+
+const useTeamMembersWithSegment = ({
+  initialTeamMembers,
+  assignRRMembersUsingSegment,
+  teamId,
+  queryValue,
+  value,
+}: UseTeamMembersWithSegmentProps) => {
+  const { data: matchingTeamMembersWithResult, isPending } =
+    trpc.viewer.attributes.findTeamMembersMatchingAttributeLogic.useQuery(
+      {
+        teamId: teamId || 0,
+        attributesQueryValue: queryValue as AttributesQueryValue,
+        _enablePerf: true,
+      },
+      {
+        enabled: assignRRMembersUsingSegment && !!queryValue && !!teamId,
+      }
+    );
+
+  const teamMembers = useMemo(() => {
+    if (assignRRMembersUsingSegment && matchingTeamMembersWithResult?.result) {
+      return matchingTeamMembersWithResult.result.map((member) => ({
+        value: member.id.toString(),
+        label: member.name || member.email,
+        email: member.email,
+        avatar: "", // Add avatar with fallback to empty string
+      }));
+    }
+    return initialTeamMembers;
+  }, [assignRRMembersUsingSegment, matchingTeamMembersWithResult, initialTeamMembers]);
+
+  const localWeightsInitialValues = useMemo(
+    () =>
+      teamMembers.reduce<Record<string, number>>((acc, member) => {
+        const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
+        acc[member.value] = memberInValue?.weight ?? 100;
+        return acc;
+      }, {}),
+    [teamMembers, value]
+  );
+
+  return {
+    teamMembers,
+    localWeightsInitialValues,
+    isPending,
+  };
+};
+
 interface Props {
   teamMembers: TeamMember[];
   value: Host[];
   onChange: (hosts: Host[]) => void;
   assignAllTeamMembers: boolean;
+  assignRRMembersUsingSegment: boolean;
+  teamId?: number;
+  queryValue?: AttributesQueryValue | null;
 }
 
 export const EditWeightsForAllTeamMembers = ({
-  teamMembers,
+  teamMembers: initialTeamMembers,
   value,
   onChange,
   assignAllTeamMembers,
+  assignRRMembersUsingSegment,
+  teamId,
+  queryValue,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState("");
-  const localWeightsInitialValues = teamMembers.reduce<Record<string, number>>((acc, member) => {
-    // When assignAllTeamMembers is false, only include members that exist in value array
-    // Find the member in the value array and use its weight if it exists
-    const memberInValue = value.find((host) => host.userId === parseInt(member.value, 10));
-    acc[member.value] = memberInValue?.weight ?? 100;
-    return acc;
-  }, {});
+
+  const { teamMembers, localWeightsInitialValues } = useTeamMembersWithSegment({
+    initialTeamMembers,
+    assignRRMembersUsingSegment,
+    teamId,
+    queryValue,
+    value,
+  });
+
   const [localWeights, setLocalWeights] = useState<Record<string, number>>(localWeightsInitialValues);
   const [uploadErrors, setUploadErrors] = useState<Array<{ email: string; error: string }>>([]);
   const [isErrorsExpanded, setIsErrorsExpanded] = useState(true);
@@ -124,10 +189,21 @@ export const EditWeightsForAllTeamMembers = ({
   };
 
   const handleSave = () => {
-    const updatedValue = value.map((host) => ({
-      ...host,
-      weight: localWeights[host.userId.toString()] ?? host.weight ?? 100,
-    }));
+    // Create a map of existing hosts for easy lookup
+    const existingHostsMap = new Map(value.map((host) => [host.userId.toString(), host]));
+
+    // Create the updated value by processing all team members
+    const updatedValue = teamMembers.map((member) => {
+      const existingHost = existingHostsMap.get(member.value);
+      return {
+        ...existingHost,
+        userId: parseInt(member.value, 10),
+        isFixed: existingHost?.isFixed ?? false,
+        priority: existingHost?.priority ?? 0,
+        weight: localWeights[member.value] ?? existingHost?.weight ?? 100,
+      };
+    });
+
     onChange(updatedValue);
     setIsOpen(false);
   };

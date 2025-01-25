@@ -12,27 +12,37 @@ import {
 
 export type DataTableWrapperProps<TData, TValue> = {
   testId?: string;
+  bodyTestId?: string;
   table: ReactTableType<TData>;
   isPending: boolean;
   hasNextPage: boolean;
   fetchNextPage: () => void;
   isFetching: boolean;
+  hideHeader?: boolean;
+  variant?: "default" | "compact";
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
-  children: React.ReactNode;
+  className?: string;
+  containerClassName?: string;
+  children?: React.ReactNode;
 };
 
 export function DataTableWrapper<TData, TValue>({
   testId,
+  bodyTestId,
   table,
   isPending,
   hasNextPage,
   fetchNextPage,
   isFetching,
   totalDBRowCount,
+  variant,
+  hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  className,
+  containerClassName,
   children,
 }: DataTableWrapperProps<TData, TValue>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -45,23 +55,29 @@ export function DataTableWrapper<TData, TValue>({
 
   return (
     <DataTable
-      data-testid={testId}
+      testId={testId}
+      bodyTestId={bodyTestId}
       table={table}
       tableContainerRef={tableContainerRef}
       isPending={isPending}
       enableColumnResizing={true}
+      hideHeader={hideHeader}
+      variant={variant}
+      className={className}
+      containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-      <DataTableToolbar.Root>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <div className="flex justify-start gap-2">{ToolbarLeft}</div>
-            <div className="grow" />
-            <div className="flex justify-end gap-2">{ToolbarRight}</div>
+      {(ToolbarLeft || ToolbarRight) && (
+        <DataTableToolbar.Root>
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-wrap justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarRight}</div>
+            </div>
           </div>
-        </div>
 
-        {children}
-      </DataTableToolbar.Root>
+          {children}
+        </DataTableToolbar.Root>
+      )}
 
       {totalDBRowCount && (
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>

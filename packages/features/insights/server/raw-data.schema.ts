@@ -1,6 +1,8 @@
 import z from "zod";
 
-const rawDataInputSchema = z.object({
+import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
+
+export const rawDataInputSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   teamId: z.coerce.number().optional().nullable(),
@@ -12,4 +14,18 @@ const rawDataInputSchema = z.object({
 
 export type RawDataInput = z.infer<typeof rawDataInputSchema>;
 
-export { rawDataInputSchema };
+export const routingFormResponsesInputSchema = z.object({
+  startDate: z.string(),
+  endDate: z.string(),
+  teamId: z.coerce.number().optional(),
+  userId: z.coerce.number().optional(),
+  memberUserIds: z.number().array().optional(),
+  isAll: z.coerce.boolean(),
+  routingFormId: z.string().optional(),
+  cursor: z.number().optional(),
+  limit: z.number().optional(),
+  columnFilters: z.array(ZColumnFilter),
+  sorting: z.array(ZSorting),
+});
+
+export type RoutingFormResponsesInput = z.infer<typeof routingFormResponsesInputSchema>;

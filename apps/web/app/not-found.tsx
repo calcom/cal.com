@@ -2,7 +2,6 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import {
   getOrgDomainConfigFromHostname,
@@ -21,7 +20,22 @@ enum PageType {
 function getPageInfo(pathname: string, host: string) {
   const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: host });
   const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
-  if (!routerUsername || (isValidOrgDomain && currentOrgDomain)) {
+  if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
+    const splitPath = routerUsername.split("/");
+    if (splitPath[1] === "team" && splitPath.length === 3) {
+      return {
+        username: splitPath[2],
+        pageType: PageType.TEAM,
+        url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
+      };
+    } else {
+      return {
+        username: routerUsername,
+        pageType: PageType.USER,
+        url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
+      };
+    }
+  } else {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
@@ -30,21 +44,6 @@ function getPageInfo(pathname: string, host: string) {
       }`,
     };
   }
-
-  const splitPath = routerUsername.split("/");
-  if (splitPath[1] === "team" && splitPath.length === 3) {
-    return {
-      username: splitPath[2],
-      pageType: PageType.TEAM,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
-    };
-  }
-
-  return {
-    username: routerUsername,
-    pageType: PageType.USER,
-    url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
-  };
 }
 
 async function NotFound() {
@@ -53,9 +52,10 @@ async function NotFound() {
   const host = headersList.get("x-forwarded-host") ?? "";
   const pathname = headersList.get("x-pathname") ?? "";
 
-  if (!pathname) {
-    redirect("/500");
-  }
+  // This makes more sense after full migration to App Router
+  // if (!pathname) {
+  //   redirect("/500");
+  // }
 
   const { username, pageType, url } = getPageInfo(pathname, host);
   const isBookingSuccessPage = pathname?.startsWith("/booking");
@@ -126,7 +126,8 @@ async function NotFound() {
 
               {username ? (
                 <>
-                  <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                  <strong className="text-blue-500">{username}</strong>
+                  {` ${t("is_still_available")} `}
                   <span className="text-blue-500">{t("register_now")}</span>.
                 </>
               ) : null}
