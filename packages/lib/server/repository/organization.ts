@@ -369,5 +369,4 @@ export class OrganizationRepository {
       },
     });
   }
-
 }
