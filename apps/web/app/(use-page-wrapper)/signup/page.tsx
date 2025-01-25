@@ -1,7 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
-import { PageProps } from "app/_types";
+import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
