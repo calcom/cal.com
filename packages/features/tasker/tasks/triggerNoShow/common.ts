@@ -2,6 +2,7 @@ import dayjs from "@calcom/dayjs";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 
@@ -9,6 +10,13 @@ import { getBooking } from "./getBooking";
 import { getMeetingSessionsFromRoomName } from "./getMeetingSessionsFromRoomName";
 import type { TWebhook, TTriggerNoShowPayloadSchema } from "./schema";
 import { ZSendNoShowWebhookPayloadSchema } from "./schema";
+
+type OriginalRescheduledBooking =
+  | {
+      rescheduledBy?: string | null;
+    }
+  | null
+  | undefined;
 
 export type Host = {
   id: number;
@@ -50,6 +58,8 @@ export function sendWebhookPayload(
   triggerEvent: WebhookTriggerEvents,
   booking: Booking,
   maxStartTime: number,
+  participants: ParticipantsWithEmail,
+  originalRescheduledBooking?: OriginalRescheduledBooking,
   hostEmail?: string
 ): Promise<any> {
   const maxStartTimeHumanReadable = dayjs.unix(maxStartTime).format("YYYY-MM-DD HH:mm:ss Z");
@@ -60,14 +70,24 @@ export function sendWebhookPayload(
     createdAt: new Date().toISOString(),
     webhook,
     data: {
+      title: booking.title,
       bookingId: booking.id,
       bookingUid: booking.uid,
       startTime: booking.startTime,
+      attendees: booking.attendees,
       endTime: booking.endTime,
-      ...(triggerEvent === WebhookTriggerEvents.AFTER_HOSTS_CAL_VIDEO_NO_SHOW ? { email: hostEmail } : {}),
+      participants,
+      ...(!!hostEmail ? { hostEmail } : {}),
+      ...(originalRescheduledBooking ? { rescheduledBy: originalRescheduledBooking.rescheduledBy } : {}),
       eventType: {
         ...booking.eventType,
         id: booking.eventTypeId,
+        hosts: undefined,
+        users: undefined,
+      },
+      webhook: {
+        ...webhook,
+        secret: undefined,
       },
       message:
         triggerEvent === WebhookTriggerEvents.AFTER_GUESTS_CAL_VIDEO_NO_SHOW
@@ -95,6 +115,29 @@ export function checkIfUserJoinedTheCall(userId: number, allParticipants: Partic
   );
 }
 
+const getUserById = async (userId: number) => {
+  return prisma.user.findUnique({
+    where: { id: userId },
+  });
+};
+
+type ParticipantsWithEmail = (Participants[number] & { email?: string })[];
+
+export async function getParticipantsWithEmail(
+  allParticipants: Participants
+): Promise<ParticipantsWithEmail> {
+  const participantsWithEmail = await Promise.all(
+    allParticipants.map(async (participant) => {
+      if (!participant.user_id) return participant;
+
+      const user = await getUserById(parseInt(participant.user_id));
+      return { ...participant, email: user?.email };
+    })
+  );
+
+  return participantsWithEmail;
+}
+
 export const log = logger.getSubLogger({ prefix: ["triggerNoShowTask"] });
 
 export const prepareNoShowTrigger = async (
@@ -103,12 +146,30 @@ export const prepareNoShowTrigger = async (
   booking: Booking;
   webhook: TWebhook;
   hostsThatDidntJoinTheCall: Host[];
+  hostsThatJoinedTheCall: Host[];
   numberOfHostsThatJoined: number;
   didGuestJoinTheCall: boolean;
+  originalRescheduledBooking?: OriginalRescheduledBooking;
+  participants: ParticipantsWithEmail;
 } | void> => {
   const { bookingId, webhook } = ZSendNoShowWebhookPayloadSchema.parse(JSON.parse(payload));
 
   const booking = await getBooking(bookingId);
+  let originalRescheduledBooking = null;
+
+  if (booking.fromReschedule) {
+    originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: booking.fromReschedule,
+        status: {
+          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
+        },
+      },
+      select: {
+        rescheduledBy: true,
+      },
+    });
+  }
 
   if (booking.status !== BookingStatus.ACCEPTED) {
     log.debug(
@@ -122,7 +183,8 @@ export const prepareNoShowTrigger = async (
     return;
   }
 
-  const dailyVideoReference = booking.references.find((reference) => reference.type === "daily_video");
+  const dailyVideoReference =
+    booking.references?.filter((reference) => reference.type === "daily_video")?.pop() ?? null;
 
   if (!dailyVideoReference) {
     log.error(
@@ -139,15 +201,33 @@ export const prepareNoShowTrigger = async (
   const hosts = getHosts(booking);
   const allParticipants = meetingDetails.data.flatMap((meeting) => meeting.participants);
 
-  const hostsThatDidntJoinTheCall = hosts.filter(
-    (host) => !checkIfUserJoinedTheCall(host.id, allParticipants)
-  );
+  const hostsThatJoinedTheCall: Host[] = [];
+  const hostsThatDidntJoinTheCall: Host[] = [];
+
+  for (const host of hosts) {
+    if (checkIfUserJoinedTheCall(host.id, allParticipants)) {
+      hostsThatJoinedTheCall.push(host);
+    } else {
+      hostsThatDidntJoinTheCall.push(host);
+    }
+  }
 
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
   const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants < numberOfHostsThatJoined
+    (meeting) => meeting.max_participants > numberOfHostsThatJoined
   );
 
-  return { hostsThatDidntJoinTheCall, booking, numberOfHostsThatJoined, webhook, didGuestJoinTheCall };
+  const participantsWithEmail = await getParticipantsWithEmail(allParticipants);
+
+  return {
+    hostsThatDidntJoinTheCall,
+    hostsThatJoinedTheCall,
+    booking,
+    numberOfHostsThatJoined,
+    webhook,
+    didGuestJoinTheCall,
+    originalRescheduledBooking,
+    participants: participantsWithEmail,
+  };
 };

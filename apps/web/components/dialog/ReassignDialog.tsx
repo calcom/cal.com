@@ -106,10 +106,10 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   });
 
   const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast(t("booking_reassigned"), "success");
+      showToast(t("booking_reassigned_to_host", { host: data?.reassignedTo.name }), "success");
     },
     onError: async (error) => {
       if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {

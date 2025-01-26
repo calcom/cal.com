@@ -126,13 +126,14 @@ export const OutOfOfficeEntriesList = () => {
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
                       onClick={() => {
+                        const offset = dayjs().utcOffset();
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
-                            startDate: item.start,
-                            endDate: dayjs(item.end).subtract(1, "d").toDate(),
+                            startDate: dayjs(item.start).subtract(offset, "minute").toDate(),
+                            endDate: dayjs(item.end).subtract(offset, "minute").startOf("d").toDate(),
                           },
-                          offset: dayjs().utcOffset(),
+                          offset,
                           toTeamUserId: item.toUserId,
                           reasonId: item.reason?.id ?? 1,
                           notes: item.notes ?? undefined,

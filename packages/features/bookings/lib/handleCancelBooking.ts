@@ -20,6 +20,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { processPaymentRefund } from "@calcom/lib/payment/processPaymentRefund";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
@@ -34,6 +35,7 @@ import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { handleInternalNote } from "./handleInternalNote";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
@@ -136,9 +138,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
   });
 }
 
+export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
+
 export type CustomRequest = NextApiRequest & {
   userId?: number;
-  bookingToDelete?: Awaited<ReturnType<typeof getBookingToDelete>>;
+  bookingToDelete?: BookingToDelete;
   platformClientId?: string;
   platformRescheduleUrl?: string;
   platformCancelUrl?: string;
@@ -155,8 +159,16 @@ export type HandleCancelBookingResponse = {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } =
-    bookingCancelInput.parse(req.body);
+  const {
+    id,
+    uid,
+    allRemainingBookings,
+    cancellationReason,
+    seatReferenceUid,
+    cancelledBy,
+    cancelSubsequentBookings,
+    internalNote,
+  } = bookingCancelInput.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
     bookingToDelete,
@@ -170,6 +182,13 @@ async function handler(req: CustomRequest) {
 
   if (!bookingToDelete.userId || !bookingToDelete.user) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
+  }
+
+  if (!cancellationReason && req.bookingToDelete.userId == userId) {
+    throw new HttpError({
+      statusCode: 400,
+      message: "Cancellation reason is required when you are the host",
+    });
   }
 
   // If the booking is a seated event and there is no seatReferenceUid we should validate that logged in user is host
@@ -406,14 +425,19 @@ async function handler(req: CustomRequest) {
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
   // action always succeeds even if subsequent integrations fail cancellation.
-  if (bookingToDelete.eventType?.recurringEvent && bookingToDelete.recurringEventId && allRemainingBookings) {
+  if (
+    bookingToDelete.eventType?.recurringEvent &&
+    bookingToDelete.recurringEventId &&
+    (allRemainingBookings || cancelSubsequentBookings)
+  ) {
     const recurringEventId = bookingToDelete.recurringEventId;
+    const gte = cancelSubsequentBookings ? bookingToDelete.startTime : new Date();
     // Proceed to mark as cancelled all remaining recurring events instances (greater than or equal to right now)
     await prisma.booking.updateMany({
       where: {
         recurringEventId,
         startTime: {
-          gte: new Date(),
+          gte,
         },
       },
       data: {
@@ -483,6 +507,13 @@ async function handler(req: CustomRequest) {
       },
     });
     updatedBookings.push(updatedBooking);
+
+    if (!!bookingToDelete.payment.length) {
+      await processPaymentRefund({
+        booking: bookingToDelete,
+        teamId,
+      });
+    }
   }
 
   /** TODO: Remove this without breaking functionality */
@@ -532,6 +563,15 @@ async function handler(req: CustomRequest) {
   await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
     log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
+
+  if (internalNote && teamId) {
+    await handleInternalNote({
+      internalNote,
+      booking: bookingToDelete,
+      userId,
+      teamId: teamId,
+    });
+  }
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];
 

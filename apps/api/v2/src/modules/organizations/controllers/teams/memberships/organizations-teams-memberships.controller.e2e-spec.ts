@@ -9,8 +9,9 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { EventType, User } from "@prisma/client";
 import * as request from "supertest";
+import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
@@ -26,6 +27,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
     let app: INestApplication;
 
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
@@ -36,6 +38,8 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let org: Team;
     let orgTeam: Team;
     let nonOrgTeam: Team;
+    let teamEventType: EventType;
+    let managedEventType: EventType;
     let membership: Membership;
     let membership2: Membership;
     let membershipCreatedViaApi: OrgTeamMembershipOutputDto;
@@ -66,6 +70,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -95,6 +100,32 @@ describe("Organizations Teams Memberships Endpoints", () => {
         name: "Org Team",
         isOrganization: false,
         parent: { connect: { id: org.id } },
+      });
+
+      teamEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: orgTeam.id },
+        },
+        title: "Collective Event Type",
+        slug: "collective-event-type",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: orgTeam.id },
+        },
+        title: "Managed Event Type",
+        slug: "managed-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
       });
 
       nonOrgTeam = await teamsRepositoryFixture.create({
@@ -264,7 +295,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
         .expect(404);
     });
 
-    it("should create the membership of the org's team", async () => {
+    it("should have created the membership of the org's team and assigned team wide events", async () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${orgTeam.id}/memberships`)
         .send({
@@ -281,8 +312,21 @@ describe("Organizations Teams Memberships Endpoints", () => {
           expect(membershipCreatedViaApi.role).toEqual("MEMBER");
           expect(membershipCreatedViaApi.userId).toEqual(userToInviteViaApi.id);
           expect(membershipCreatedViaApi.user.email).toEqual(userToInviteViaApi.email);
+          userHasCorrectEventTypes(membershipCreatedViaApi.userId);
         });
     });
+
+    async function userHasCorrectEventTypes(userId: number) {
+      const managedEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+      const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(orgTeam.id);
+      expect(managedEventTypes?.length).toEqual(1);
+      expect(teamEventTypes?.length).toEqual(2);
+      const collectiveEvenType = teamEventTypes?.find((eventType) => eventType.slug === teamEventType.slug);
+      expect(collectiveEvenType).toBeTruthy();
+      const userHost = collectiveEvenType?.hosts.find((host) => host.userId === userId);
+      expect(userHost).toBeTruthy();
+      expect(managedEventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+    }
 
     it("should fail to create the membership of the org's team for a non org user", async () => {
       return request(app.getHttpServer())

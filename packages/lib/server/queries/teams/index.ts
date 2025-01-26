@@ -101,6 +101,13 @@ export async function getTeamWithMembers(args: {
           isOrganization: true,
           logoUrl: true,
           metadata: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+              orgProfileRedirectsToVerifiedDomain: true,
+              orgAutoAcceptEmail: true,
+            },
+          },
         },
       },
       parentId: true,
@@ -156,6 +163,13 @@ export async function getTeamWithMembers(args: {
           expires: true,
           expiresInDays: true,
           identifier: true,
+        },
+      },
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+          orgProfileRedirectsToVerifiedDomain: true,
+          orgAutoAcceptEmail: true,
         },
       },
     },
@@ -419,7 +433,9 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
     },
   });
 
-  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps);
+  const allManagedEventTypePropsZod = _EventTypeModel.pick(allManagedEventTypeProps).extend({
+    bookingFields: _EventTypeModel.shape.bookingFields.nullish(),
+  });
 
   eventTypesToAdd.length > 0 &&
     (await prisma.$transaction(
@@ -449,12 +465,14 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
               eventTypeColor: (managedEventTypeValues.eventTypeColor as Prisma.InputJsonValue) ?? undefined,
+              rrSegmentQueryValue:
+                (managedEventTypeValues.rrSegmentQueryValue as Prisma.InputJsonValue) ?? undefined,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {
                 connect: [{ id: userId }],
               },
-              parentId: eventType.parentId,
+              parentId: eventType.id,
               hidden: false,
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),

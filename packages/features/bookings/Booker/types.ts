@@ -88,6 +88,11 @@ export interface BookerProps {
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
   teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
+  areInstantMeetingParametersSet?: boolean | null;
+  userLocale?: string | null;
+  hasValidLicense?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
@@ -113,6 +118,7 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
@@ -153,5 +159,5 @@ export type CustomClassNames = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
-  atomsWrapper: string;
+  atomsWrapper?: string;
 };

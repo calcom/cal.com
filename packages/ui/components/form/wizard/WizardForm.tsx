@@ -60,7 +60,7 @@ function WizardForm<T extends DefaultStep>(props: {
             <Steps
               maxSteps={steps.length}
               currentStep={step}
-              navigateToStep={noop}
+              nextStep={noop}
               stepLabel={stepLabel}
               data-testid="wizard-step-component"
             />

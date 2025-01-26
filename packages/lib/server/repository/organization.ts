@@ -215,6 +215,9 @@ export class OrganizationRepository {
         lockEventTypeCreationForUsers: true,
         adminGetsNoSlotsNotification: true,
         isAdminReviewed: true,
+        allowSEOIndexing: true,
+        orgProfileRedirectsToVerifiedDomain: true,
+        orgAutoAcceptEmail: true,
       },
     });
 
@@ -229,6 +232,9 @@ export class OrganizationRepository {
       organizationSettings: {
         lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
         adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+        allowSEOIndexing: organizationSettings?.allowSEOIndexing,
+        orgProfileRedirectsToVerifiedDomain: organizationSettings?.orgProfileRedirectsToVerifiedDomain,
+        orgAutoAcceptEmail: organizationSettings?.orgAutoAcceptEmail,
       },
       user: {
         role: membership?.role,
@@ -297,5 +303,51 @@ export class OrganizationRepository {
       throw new Error("Organization not found");
     }
     return { ...org, metadata: parsedMetadata };
+  }
+
+  static async findByMemberEmail({ email }: { email: string }) {
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: { email },
+          },
+        },
+      },
+    });
+    return organization ?? null;
+  }
+
+  static async findByMemberEmailId({ email }: { email: string }) {
+    const log = logger.getSubLogger({ prefix: ["findByMemberEmailId"] });
+    log.debug("called with", { email });
+    const organization = await prisma.team.findFirst({
+      where: {
+        isOrganization: true,
+        members: {
+          some: {
+            user: {
+              email,
+            },
+          },
+        },
+      },
+    });
+
+    return organization;
+  }
+
+  static async findCalVideoLogoByOrgId({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        calVideoLogo: true,
+      },
+    });
+
+    return org?.calVideoLogo;
   }
 }

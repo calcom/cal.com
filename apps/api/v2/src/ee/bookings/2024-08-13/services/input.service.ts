@@ -1,7 +1,7 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import {
   bookingResponsesSchema,
-  seatedBookingResponsesSchema,
+  seatedBookingDataSchema,
 } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
@@ -18,7 +18,7 @@ import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { EventTypeMetaDataSchema } from "@calcom/platform-libraries";
 import {
   CancelBookingInput,
   CancelBookingInput_2024_08_13,
@@ -32,17 +32,9 @@ import {
   RescheduleBookingInput_2024_08_13,
   RescheduleSeatedBookingInput_2024_08_13,
 } from "@calcom/platform-types";
+import { EventType, PlatformOAuthClient } from "@calcom/prisma/client";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
-
-const DEFAULT_PLATFORM_PARAMS = {
-  platformClientId: "",
-  platformCancelUrl: "",
-  platformRescheduleUrl: "",
-  platformBookingUrl: "",
-  arePlatformEmailsEnabled: false,
-  platformBookingLocation: undefined,
-};
 
 type OAuthRequestParams = {
   platformClientId: string;
@@ -90,28 +82,51 @@ export class InputBookingsService_2024_08_13 {
     body: CreateBookingInput_2024_08_13 | CreateInstantBookingInput_2024_08_13
   ): Promise<BookingRequest> {
     const bodyTransformed = await this.transformInputCreateBooking(body);
-    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
-    const requestId = request.get("X-Request-Id");
+    const oAuthClientParams = await this.getOAuthClientParams(body.eventTypeId);
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
-    const oAuthParams = oAuthClientId
-      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
-      : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.location || request.body.meetingUrl;
     this.logger.log(`createBookingRequest_2024_04_15`, {
-      requestId,
+      requestId: request.get("X-Request-Id"),
       ownerId: userId,
       location,
-      oAuthClientId,
-      ...oAuthParams,
+      oAuthClientParams,
     });
-    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
 
-    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    if (oAuthClientParams) {
+      Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
+      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+    } else {
+      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      newRequest.body = { ...bodyTransformed, noEmail: false };
+    }
 
     return newRequest as unknown as BookingRequest;
+  }
+
+  async getOAuthClientParams(eventTypeId: number) {
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeId);
+
+    let oAuthClient: PlatformOAuthClient | null = null;
+    if (eventType?.userId) {
+      oAuthClient = await this.oAuthClientRepository.getByUserId(eventType.userId);
+    } else if (eventType?.teamId) {
+      oAuthClient = await this.oAuthClientRepository.getByTeamId(eventType.teamId);
+    }
+
+    if (oAuthClient) {
+      return {
+        platformClientId: oAuthClient.id,
+        platformCancelUrl: oAuthClient.bookingCancelRedirectUri,
+        platformRescheduleUrl: oAuthClient.bookingRescheduleRedirectUri,
+        platformBookingUrl: oAuthClient.bookingRedirectUri,
+        arePlatformEmailsEnabled: oAuthClient.areEmailsEnabled,
+      };
+    }
+
+    return undefined;
   }
 
   async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
@@ -123,10 +138,15 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
 
+    this.validateBookingLengthInMinutes(inputBooking, eventType);
+
+    const lengthInMinutes = inputBooking.lengthInMinutes ?? eventType.length;
     const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
       inputBooking.attendee.timeZone
     );
-    const endTime = startTime.plus({ minutes: eventType.length });
+    const endTime = startTime.plus({ minutes: lengthInMinutes });
+
+    const guests = inputBooking.guests;
 
     return {
       start: startTime.toISO(),
@@ -134,20 +154,44 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: inputBooking.eventTypeId,
       timeZone: inputBooking.attendee.timeZone,
       language: inputBooking.attendee.language || "en",
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: inputBooking.metadata || {},
-      metadata: {},
+      metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
-      guests: inputBooking.guests,
+      guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
+          },
     };
+  }
+
+  validateBookingLengthInMinutes(inputBooking: CreateBookingInput_2024_08_13, eventType: EventType) {
+    const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+    if (inputBooking.lengthInMinutes && !eventTypeMetadata?.multipleDuration) {
+      throw new BadRequestException(
+        "Can't specify 'lengthInMinutes' because event type does not have multiple possible lengths. Please, remove the 'lengthInMinutes' field from the request."
+      );
+    }
+    if (
+      inputBooking.lengthInMinutes &&
+      !eventTypeMetadata?.multipleDuration?.includes(inputBooking.lengthInMinutes)
+    ) {
+      throw new BadRequestException(
+        `Provided 'lengthInMinutes' is not one of the possible lengths for the event type. The possible lengths are: ${eventTypeMetadata?.multipleDuration?.join(
+          ", "
+        )}`
+      );
+    }
   }
 
   async createRecurringBookingRequest(
@@ -156,21 +200,23 @@ export class InputBookingsService_2024_08_13 {
   ): Promise<BookingRequest> {
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreateRecurringBooking(body);
-    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+    const oAuthClientParams = await this.getOAuthClientParams(body.eventTypeId);
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
-    const oAuthParams = oAuthClientId
-      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
-      : DEFAULT_PLATFORM_PARAMS;
 
     const location = request.body.location || request.body.meetingUrl;
-    Object.assign(newRequest, {
-      userId,
-      ...oAuthParams,
-      platformBookingLocation: location,
-      noEmail: !oAuthParams.arePlatformEmailsEnabled,
-    });
+
+    if (oAuthClientParams) {
+      Object.assign(newRequest, {
+        userId,
+        ...oAuthClientParams,
+        platformBookingLocation: location,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+      });
+    } else {
+      Object.assign(newRequest, { userId, platformBookingLocation: location });
+    }
 
     newRequest.body = bodyTransformed.map((event) => ({
       ...event,
@@ -209,6 +255,8 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    const guests = inputBooking.guests;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -219,19 +267,18 @@ export class InputBookingsService_2024_08_13 {
         recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
-        // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-        // metadata: inputBooking.metadata || {},
-        metadata: {},
+        metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
-        guests: inputBooking.guests,
+        guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
               name: inputBooking.attendee.name,
               email: inputBooking.attendee.email,
+              guests,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
         schedulingType: eventType.schedulingType,
       });
 
@@ -261,18 +308,20 @@ export class InputBookingsService_2024_08_13 {
     const bodyTransformed = this.isRescheduleSeatedBody(body)
       ? await this.transformInputRescheduleSeatedBooking(bookingUid, body)
       : await this.transformInputRescheduleBooking(bookingUid, body);
-    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+
+    const oAuthClientParams = await this.getOAuthClientParams(bodyTransformed.eventTypeId);
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
-    const oAuthParams = oAuthClientId
-      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
-      : DEFAULT_PLATFORM_PARAMS;
 
     const location = await this.getRescheduleBookingLocation(bookingUid);
-    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
-
-    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    if (oAuthClientParams) {
+      Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
+      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+    } else {
+      Object.assign(newRequest, { userId, platformBookingLocation: location });
+      newRequest.body = { ...bodyTransformed, noEmail: false };
+    }
 
     return newRequest as unknown as BookingRequest;
   }
@@ -303,7 +352,7 @@ export class InputBookingsService_2024_08_13 {
       throw new NotFoundException(`Seat with uid=${inputBooking.seatUid} does not exist.`);
     }
 
-    const { responses: bookingResponses } = seatedBookingResponsesSchema.parse(seat.data);
+    const { responses: bookingResponses } = seatedBookingDataSchema.parse(seat.data);
     const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
 
     if (!attendee) {
@@ -321,9 +370,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: seat.metadata || {},
       hasHashedBookingLink: false,
       guests: [],
       responses: { ...bookingResponses },
@@ -362,9 +409,7 @@ export class InputBookingsService_2024_08_13 {
       eventTypeId: eventType.id,
       timeZone: attendee.timeZone,
       language: attendee.locale,
-      // todo(Lauris): expose after refactoring metadata https://app.campsite.co/cal/posts/zysq8w9rwm9c
-      // metadata: booking.metadata || {},
-      metadata: {},
+      metadata: booking.metadata || {},
       hasHashedBookingLink: false,
       guests: bookingResponses.guests,
       responses: { ...bookingResponses, rescheduledReason: inputBooking.reschedulingReason },
@@ -396,24 +441,6 @@ export class InputBookingsService_2024_08_13 {
       }
     } catch (err) {
       this.logger.error(err);
-    }
-  }
-
-  private async createBookingRequestOAuthClientParams(clientId: string) {
-    const params = DEFAULT_PLATFORM_PARAMS;
-    try {
-      const client = await this.oAuthClientRepository.getOAuthClient(clientId);
-      if (client) {
-        params.platformClientId = clientId;
-        params.platformCancelUrl = client.bookingCancelRedirectUri ?? "";
-        params.platformRescheduleUrl = client.bookingRescheduleRedirectUri ?? "";
-        params.platformBookingUrl = client.bookingRedirectUri ?? "";
-        params.arePlatformEmailsEnabled = client.areEmailsEnabled ?? false;
-      }
-      return params;
-    } catch (err) {
-      this.logger.error(err);
-      return params;
     }
   }
 
@@ -449,17 +476,26 @@ export class InputBookingsService_2024_08_13 {
     const bodyTransformed = this.isCancelSeatedBody(body)
       ? await this.transformInputCancelSeatedBooking(bookingUid, body)
       : await this.transformInputCancelBooking(bookingUid, body);
-    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+
+    const booking = await this.bookingsRepository.getByUid(bodyTransformed.uid);
+    if (!booking) {
+      throw new NotFoundException(`Booking with uid=${bookingUid} not found`);
+    }
+
+    const oAuthClientParams = booking.eventTypeId
+      ? await this.getOAuthClientParams(booking.eventTypeId)
+      : undefined;
 
     const newRequest = { ...request };
     const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
-    const oAuthParams = oAuthClientId
-      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
-      : DEFAULT_PLATFORM_PARAMS;
 
-    Object.assign(newRequest, { userId, ...oAuthParams });
-
-    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    if (oAuthClientParams) {
+      Object.assign(newRequest, { userId, ...oAuthClientParams });
+      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+    } else {
+      Object.assign(newRequest, { userId });
+      newRequest.body = { ...bodyTransformed, noEmail: false };
+    }
 
     return newRequest as unknown as BookingRequest;
   }
@@ -469,23 +505,38 @@ export class InputBookingsService_2024_08_13 {
   }
 
   async transformInputCancelBooking(bookingUid: string, inputBooking: CancelBookingInput_2024_08_13) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
+    const recurringBooking = await this.bookingsRepository.getRecurringByUid(bookingUid);
+    // note(Lauris): isRecurring means that recurringEventId was passed as uid. isRecurring does not refer to the uid of 1 individual booking within a recurring booking consisting of many bookings.
+    // That is what recurringEventId refers to.
+    const isRecurringUid = !!recurringBooking.length;
 
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
+    if (isRecurringUid && inputBooking.cancelSubsequentBookings) {
+      throw new BadRequestException(
+        "Cannot cancel subsequent bookings for recurring event - you have to provide uid of one of the individual bookings of a recurring booking."
+      );
+    }
+
+    if (isRecurringUid) {
+      return {
+        // note(Lauris): set uid as one of the oldest individual recurring ids
+        uid: recurringBooking[0].uid,
+        cancellationReason: inputBooking.cancellationReason,
+        allRemainingBookings: true,
+      };
+    }
+
+    if (inputBooking.cancelSubsequentBookings) {
+      return {
+        uid: bookingUid,
+        cancellationReason: inputBooking.cancellationReason,
+        cancelSubsequentBookings: true,
+      };
     }
 
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: inputBooking.cancellationReason,
-      allRemainingBookings,
+      allRemainingBookings: false,
     };
   }
 
@@ -493,23 +544,12 @@ export class InputBookingsService_2024_08_13 {
     bookingUid: string,
     inputBooking: CancelSeatedBookingInput_2024_08_13
   ) {
-    let allRemainingBookings = false;
-    let uid = bookingUid;
-    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendeesAndUserAndEvent(
-      bookingUid
-    );
-
-    if (recurringBooking.length) {
-      // note(Lauirs): this means that bookingUid is equal to recurringEventId on individual bookings of recurring one aka main recurring event
-      allRemainingBookings = true;
-      // note(Lauirs): we need to set uid as one of the individual recurring ids, not the main recurring event id
-      uid = recurringBooking[0].uid;
-    }
-
+    // note(Lauris): for recurring seated booking it is not possible to cancel all remaining bookings
+    // for an individual person, so api users need to call booking by booking using uid + seatUid to cancel it.
     return {
-      uid,
+      uid: bookingUid,
       cancellationReason: "",
-      allRemainingBookings,
+      allRemainingBookings: false,
       seatReferenceUid: inputBooking.seatUid,
     };
   }

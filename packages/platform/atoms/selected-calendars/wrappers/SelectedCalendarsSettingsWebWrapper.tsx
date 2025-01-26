@@ -1,55 +1,87 @@
 import Link from "next/link";
 import React from "react";
 
+import AppListCard from "@calcom/features/apps/components/AppListCard";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui";
-import { List } from "@calcom/ui";
-import AppListCard from "@calcom/web/components/AppListCard";
+import { Alert, Select, List } from "@calcom/ui";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
+export enum SelectedCalendarSettingsScope {
+  User = "user",
+  EventType = "eventType",
+}
+
 type SelectedCalendarsSettingsWebWrapperProps = {
-  onChanged: () => unknown | Promise<unknown>;
+  onChanged?: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
   isPending?: boolean;
   classNames?: string;
+  eventTypeId?: number;
+  disabledScope?: SelectedCalendarSettingsScope;
+  scope?: SelectedCalendarSettingsScope;
+  setScope?: (scope: SelectedCalendarSettingsScope) => void;
+  disableConnectionModification?: boolean;
 };
 
 export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSettingsWebWrapperProps) => {
   const { t } = useLocale();
-  const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    suspense: true,
-    refetchOnWindowFocus: false,
-  });
-  const { fromOnboarding, isPending } = props;
+  const {
+    scope = SelectedCalendarSettingsScope.User,
+    setScope = () => {
+      return;
+    },
+    disabledScope,
+    disableConnectionModification,
+    eventTypeId = null,
+  } = props;
 
+  const query = trpc.viewer.connectedCalendars.useQuery(
+    {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      eventTypeId: scope === SelectedCalendarSettingsScope.EventType ? eventTypeId! : null,
+    },
+    {
+      suspense: true,
+      refetchOnWindowFocus: false,
+    }
+  );
+  const { fromOnboarding, isPending } = props;
+  const showScopeSelector = !!props.eventTypeId;
+  const shouldUseEventTypeScope = scope === SelectedCalendarSettingsScope.EventType;
+  const isDisabled = disabledScope ? disabledScope === scope : false;
+  const shouldDisableConnectionModification = isDisabled || disableConnectionModification;
   return (
     <div>
-      <QueryCell
-        query={query}
-        success={({ data }) => {
-          if (!data.connectedCalendars.length) {
-            return null;
-          }
+      <SelectedCalendarsSettings classNames={props.classNames}>
+        <SelectedCalendarsSettingsHeading
+          isConnectedCalendarsPresent={!!query.data?.connectedCalendars.length}
+          isPending={isPending}
+          showScopeSelector={showScopeSelector}
+          setScope={setScope}
+          scope={scope}
+          shouldDisableConnectionModification={shouldDisableConnectionModification}
+        />
+        <QueryCell
+          query={query}
+          success={({ data }) => {
+            if (!data.connectedCalendars.length) {
+              return null;
+            }
 
-          return (
-            <SelectedCalendarsSettings classNames={props.classNames}>
-              <SelectedCalendarsSettingsHeading
-                isConnectedCalendarsPresent={!!data.connectedCalendars.length}
-                isPending={isPending}
-              />
+            return (
               <List noBorderTreatment className="p-6 pt-2">
                 {data.connectedCalendars.map((connectedCalendar) => {
                   if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                     return (
                       <AppListCard
-                        key={`list-${connectedCalendar.credentialId}`}
+                        key={`list-${connectedCalendar.credentialId}-${scope}`}
                         shouldHighlight
                         slug={connectedCalendar.integration.slug}
                         title={connectedCalendar.integration.name}
@@ -59,14 +91,16 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         }
                         className="border-subtle mt-4 rounded-lg border"
                         actions={
-                          <div className="flex w-32 justify-end">
-                            <DisconnectIntegration
-                              credentialId={connectedCalendar.credentialId}
-                              trashIcon
-                              onSuccess={props.onChanged}
-                              buttonProps={{ className: "border border-default" }}
-                            />
-                          </div>
+                          !disableConnectionModification && (
+                            <div className="flex w-32 justify-end">
+                              <DisconnectIntegration
+                                credentialId={connectedCalendar.credentialId}
+                                trashIcon
+                                onSuccess={props.onChanged}
+                                buttonProps={{ className: "border border-default" }}
+                              />
+                            </div>
+                          )
                         }>
                         <div className="border-subtle border-t">
                           {!fromOnboarding && (
@@ -77,6 +111,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                               <ul className="space-y-4 px-5 py-4">
                                 {connectedCalendar.calendars?.map((cal) => (
                                   <CalendarSwitch
+                                    disabled={isDisabled}
                                     key={cal.externalId}
                                     externalId={cal.externalId}
                                     title={cal.name || "Nameless calendar"}
@@ -85,6 +120,7 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === props.destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
                                   />
                                 ))}
                               </ul>
@@ -122,10 +158,48 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                   );
                 })}
               </List>
-            </SelectedCalendarsSettings>
-          );
-        }}
-      />
+            );
+          }}
+        />
+      </SelectedCalendarsSettings>
+    </div>
+  );
+};
+
+export const SelectedCalendarsSettingsWebWrapperSkeleton = () => {
+  return (
+    <div className="border-subtle mt-6 rounded-lg border">
+      <div className="border-subtle border-b p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
+            <div className="mt-2 h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+          </div>
+          <div className="h-8 w-32 animate-pulse rounded-md bg-gray-200" />
+        </div>
+      </div>
+      <div className="p-6 pt-2">
+        <div className="border-subtle mt-4 rounded-lg border p-4">
+          <div className="flex items-center">
+            <div className="h-10 w-10 animate-pulse rounded-md bg-gray-200" />
+            <div className="ml-4 space-y-2">
+              <div className="h-4 w-32 animate-pulse rounded-md bg-gray-200" />
+              <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+            </div>
+          </div>
+          <div className="border-subtle mt-4 space-y-4 border-t pt-4">
+            <div className="h-4 w-64 animate-pulse rounded-md bg-gray-200" />
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="h-4 w-48 animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-6 w-10 animate-pulse rounded-md bg-gray-200" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -133,9 +207,17 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
 const SelectedCalendarsSettingsHeading = (props: {
   isConnectedCalendarsPresent: boolean;
   isPending?: boolean;
+  showScopeSelector: boolean;
+  setScope: (scope: SelectedCalendarSettingsScope) => void;
+  scope: SelectedCalendarSettingsScope;
+  shouldDisableConnectionModification?: boolean;
 }) => {
   const { t } = useLocale();
-
+  const optionsToSwitchScope = [
+    { label: "User", value: SelectedCalendarSettingsScope.User },
+    { label: "Event Type", value: SelectedCalendarSettingsScope.EventType },
+  ];
+  const switchScopeSelectValue = optionsToSwitchScope.find((option) => option.value === props.scope);
   return (
     <div className="border-subtle border-b p-6">
       <div className="flex items-center justify-between">
@@ -143,14 +225,31 @@ const SelectedCalendarsSettingsHeading = (props: {
           <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
           <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
         </div>
-        <div className="flex flex-col xl:flex-row xl:space-x-5">
-          {props.isConnectedCalendarsPresent && (
-            <div className="flex items-center">
-              <AdditionalCalendarSelector isPending={props.isPending} />
-            </div>
-          )}
-        </div>
+
+        {!props.shouldDisableConnectionModification && (
+          <div className="flex flex-col xl:flex-row xl:space-x-5">
+            {props.isConnectedCalendarsPresent && (
+              <div className="flex items-center">
+                <AdditionalCalendarSelector isPending={props.isPending} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      {props.showScopeSelector && (
+        <div className="mt-2 flex flex-row items-center space-x-2">
+          <span className="text-default text-sm">Using</span>
+          <Select
+            onChange={(option) => {
+              if (!option) return;
+              props.setScope(option.value);
+            }}
+            value={switchScopeSelectValue}
+            options={optionsToSwitchScope}
+          />
+          <span className="text-default text-sm">settings</span>
+        </div>
+      )}
     </div>
   );
 };

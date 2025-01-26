@@ -5,9 +5,17 @@ import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
+import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
+
+  if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
+    await checkCfTurnstileToken({
+      token: req.body["cfToken"] as string,
+      remoteIp: userIp,
+    });
+  }
 
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
@@ -21,4 +29,4 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   return booking;
 }
 
-export default defaultResponder(handler);
+export default defaultResponder(handler, "/api/book/event");

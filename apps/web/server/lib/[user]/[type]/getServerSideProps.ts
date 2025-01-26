@@ -17,10 +17,24 @@ import { RedirectType } from "@calcom/prisma/client";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 type Props = {
-  eventData: Pick<
-    NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-    "id" | "length" | "metadata" | "entity"
-  >;
+  eventData: Omit<
+    Pick<
+      NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
+    >,
+    "profile" | "users"
+  > & {
+    profile: {
+      image: string | undefined;
+      name: string | null;
+      username: string | null;
+    };
+    users: {
+      username: string;
+      name: string;
+    }[];
+  };
+
   booking?: GetBookingType;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -143,6 +157,14 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         ...eventData.metadata,
         multipleDuration: [15, 30, 45, 60, 90],
       },
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
+      title: eventData.title,
+      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      hidden: eventData.hidden,
     },
     user: usernames.join("+"),
     slug,
@@ -219,18 +241,32 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  const allowSEOIndexing = org
+    ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
+      ? user?.allowSEOIndexing
+      : false
+    : user?.allowSEOIndexing;
+
   const props: Props = {
     eventData: {
       id: eventData.id,
       entity: eventData.entity,
       length: eventData.length,
       metadata: eventData.metadata,
+      profile: {
+        image: eventData.profile.image,
+        name: eventData.profile.name ?? null,
+        username: eventData.profile.username ?? null,
+      },
+      title: eventData.title,
+      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      hidden: eventData.hidden,
     },
     user: username,
     slug,
     trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
-    isSEOIndexable: user?.allowSEOIndexing,
+    isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,

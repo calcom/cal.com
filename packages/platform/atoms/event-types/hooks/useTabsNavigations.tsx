@@ -1,7 +1,6 @@
 "use client";
 
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import type { TFunction } from "next-i18next";
 import { useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
@@ -14,8 +13,9 @@ import type {
   FormValues,
   EventTypeApps,
 } from "@calcom/features/eventtypes/lib/types";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { VerticalTabItemProps } from "@calcom/ui";
 
 type Props = {
@@ -56,7 +56,10 @@ export const useTabsNavigations = ({
         eventTypeApps?.items.find((app) => app.slug === appId)?.isInstalled && appData.enabled
     ).length;
   }
-  const paymentAppData = getPaymentAppData(eventType);
+  const paymentAppData = getPaymentAppData({
+    ...eventType,
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+  });
 
   const requirePayment = paymentAppData.price > 0;
 
@@ -114,8 +117,8 @@ export const useTabsNavigations = ({
         }`,
       });
     }
-    const showWebhooks = !(isManagedEventType || isChildrenManagedEventType);
-    if (showWebhooks) {
+    const showInstant = !(isManagedEventType || isChildrenManagedEventType);
+    if (showInstant) {
       if (team) {
         navigation.push({
           name: "instant_tab_title",
@@ -124,13 +127,13 @@ export const useTabsNavigations = ({
           info: `instant_event_tab_description`,
         });
       }
-      navigation.push({
-        name: "webhooks",
-        href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
-        icon: "webhook",
-        info: `${activeWebhooksNumber} ${t("active")}`,
-      });
     }
+    navigation.push({
+      name: "webhooks",
+      href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
+      icon: "webhook",
+      info: `${activeWebhooksNumber} ${t("active")}`,
+    });
     const hidden = true; // hidden while in alpha trial. you can access it with tabName=ai
     if (team && hidden) {
       navigation.push({

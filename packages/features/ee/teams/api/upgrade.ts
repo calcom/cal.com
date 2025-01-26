@@ -8,7 +8,6 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -66,9 +65,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(statusCode).json({ message });
       }
     }
-
-    // Sync Services: Close.com
-    closeComUpdateTeam(prevTeam, team);
   }
 
   if (!metadata) {

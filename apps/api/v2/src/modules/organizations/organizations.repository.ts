@@ -33,7 +33,7 @@ export class OrganizationsRepository {
   }
 
   async createNewBillingRelation(orgId: number, plan?: PlatformPlan) {
-    const { id } = await this.stripeService.stripe.customers.create({
+    const { id } = await this.stripeService.getStripe().customers.create({
       metadata: {
         createdBy: "oauth_client_no_csid", // mark in case this is needed in the future.
       },

@@ -209,20 +209,24 @@ test.describe("Insights", async () => {
 
     await page.getByRole("button", { name: "User" }).click();
     // <div class="flex select-none truncate font-medium" data-state="closed">People</div>
-    await page.locator('div[class="flex select-none truncate font-medium"]').getByText("People").click();
+    // await page.locator('div[class="flex select-none truncate font-medium"]').getByText("People").click();
+    await page.waitForSelector('[data-testid="people-filter-button"]');
+    await page.click('[data-testid="people-filter-button"]');
 
     await page
-      .locator(
-        'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
-      )
-      .nth(0)
+      // .locator(
+      //   'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
+      // )
+      .locator('[data-testid="people-filter-group-option-0"]')
+      // .nth(0)
       .click();
 
     await page
-      .locator(
-        'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
-      )
-      .nth(1)
+      // .locator(
+      //   'div[class="hover:bg-muted flex items-center py-2 pl-3 pr-2.5 transition hover:cursor-pointer"]'
+      // )
+      .locator('[data-testid="people-filter-group-option-1"]')
+      // .nth(1)
       .click();
     // press escape button to close the filter
     await page.keyboard.press("Escape");

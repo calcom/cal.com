@@ -66,9 +66,11 @@ export class OAuthClientUsersService {
       const updatedUser = await this.userRepository.update(user.id, {
         name: body.name,
         locale: body.locale,
+        avatarUrl: body.avatarUrl,
       });
       user.locale = updatedUser.locale;
       user.name = updatedUser.name;
+      user.avatarUrl = updatedUser.avatarUrl;
     }
 
     const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
@@ -82,8 +84,6 @@ export class OAuthClientUsersService {
       const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
       user.defaultScheduleId = defaultSchedule.id;
     }
-
-    await this.organizationsTeamsService.addUserToPlatformTeamEvents(user.id, organizationId, oAuthClientId);
 
     return {
       user,

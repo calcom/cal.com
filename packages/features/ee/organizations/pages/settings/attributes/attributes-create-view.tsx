@@ -1,12 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import React from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, useMeta, showToast } from "@calcom/ui";
@@ -33,7 +31,6 @@ function CreateAttributesPage() {
       showToast(err.message, "error");
     },
   });
-  const { t } = useLocale();
 
   return (
     <>
@@ -41,12 +38,10 @@ function CreateAttributesPage() {
         <AttributeForm
           header={<CreateAttributeHeader isPending={mutation.isPending} />}
           onSubmit={(values) => {
-            // Create set of attributes to get unique values
-            const uniqueAttributes = new Set(values.options.map((option) => option.value));
+            const { attrName, ...rest } = values;
             mutation.mutate({
-              name: values.attrName,
-              type: values.type,
-              options: Array.from(uniqueAttributes).map((value) => ({ value })),
+              ...rest,
+              name: attrName,
             });
           }}
         />
@@ -74,7 +69,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
-            <h1 className="text-emphasis">{meta.title || "Attribute"}</h1>
+            <h1 className="text-emphasis">{meta.title || t("attribute")}</h1>
             {watchedTitle && (
               <>
                 <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
@@ -88,9 +83,6 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
       </div>
     </>
   );
-}
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default CreateAttributesPage;

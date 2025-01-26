@@ -5,11 +5,13 @@ import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
+import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 
 import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
 import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -23,16 +25,21 @@ import {
   TextField,
   Badge,
   Divider,
-  Switch,
 } from "@calcom/ui";
 
+import { routingFormAppComponents } from "../../appComponents";
+import DynamicAppComponent from "../../components/DynamicAppComponent";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import "../../components/react-awesome-query-builder/styles.css";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "../../components/react-awesome-query-builder/config/uiConfig";
 import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
+import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
 import {
   getQueryBuilderConfigForFormFields,
   getQueryBuilderConfigForAttributes,
@@ -41,62 +48,24 @@ import {
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
-import type { GlobalRoute, LocalRoute, SerializableRoute, Attribute } from "../../types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  SerializableRoute,
+  Attribute,
+  EditFormRoute,
+  AttributeRoutingConfig,
+} from "../../types/types";
 import { RouteActionType } from "../../zod";
-
-type FormFieldsQueryBuilderState = {
-  tree: ImmutableTree;
-  config: FormFieldsQueryBuilderConfigWithRaqbFields;
-};
-
-type AttributesQueryBuilderState = {
-  tree: ImmutableTree;
-  config: AttributesQueryBuilderConfigWithRaqbFields;
-};
-
-type LocalRouteWithRaqbStates = LocalRoute & {
-  formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
-  attributesQueryBuilderState: AttributesQueryBuilderState | null;
-  fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
-};
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
 
 type Form = inferSSRProps<typeof getServerSideProps>["form"];
 
-type Route = LocalRouteWithRaqbStates | GlobalRoute;
-type SetRoute = (id: string, route: Partial<Route>) => void;
-
-const RoundRobinContactOwnerOverrideSwitch = ({
-  route,
-  setAttributeRoutingConfig,
-}: {
-  route: LocalRouteWithRaqbStates;
-  setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
-}) => {
-  return (
-    <div className="mt-4 flex flex-col">
-      <Switch
-        label={
-          route.attributeRoutingConfig?.skipContactOwner
-            ? "Contact owner will not be forced (can still be host if it matches the attributes and Round Robin criteria)"
-            : "Contact owner will be the Round Robin host if available"
-        }
-        tooltip="Contact owner can only be used if the routed event has it enabled through Salesforce app"
-        checked={route.attributeRoutingConfig?.skipContactOwner ?? false}
-        onCheckedChange={(skipContactOwner) => {
-          setAttributeRoutingConfig(route.id, {
-            skipContactOwner,
-          });
-        }}
-      />
-    </div>
-  );
-};
+type SetRoute = (id: string, route: Partial<EditFormRoute>) => void;
 
 type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 type FormFieldsQueryValue = LocalRoute["queryValue"];
-type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
 
 /**
  * We need eventTypeId in every redirect url action now for Rerouting to work smoothly.
@@ -107,7 +76,7 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   eventOptions,
   setRoute,
 }: {
-  route: Route;
+  route: EditFormRoute;
   eventOptions: { label: string; value: string; eventTypeId: number }[];
   setRoute: SetRoute;
 }) {
@@ -134,13 +103,13 @@ function useEnsureEventTypeIdInRedirectUrlAction({
   }, [eventOptions, setRoute, route.id, (route as unknown as any).action?.value]);
 }
 
-const hasRules = (route: Route) => {
+const hasRules = (route: EditFormRoute) => {
   if (isRouter(route)) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 
 function getEmptyQueryValue() {
-  return { id: QbUtils.uuid(), type: "group" };
+  return buildEmptyQueryValue();
 }
 
 const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
@@ -169,13 +138,19 @@ const buildEventsData = ({
 }: {
   eventTypesByGroup: EventTypesByGroup | undefined;
   form: Form;
-  route: Route;
+  route: EditFormRoute;
 }) => {
-  const eventOptions: { label: string; value: string; eventTypeId: number }[] = [];
+  const eventOptions: {
+    label: string;
+    value: string;
+    eventTypeId: number;
+    eventTypeAppMetadata?: Record<string, any>;
+  }[] = [];
   const eventTypesMap = new Map<
     number,
     {
       schedulingType: SchedulingType | null;
+      eventTypeAppMetadata?: Record<string, any>;
     }
   >();
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
@@ -192,6 +167,9 @@ const buildEventsData = ({
     });
 
     group.eventTypes.forEach((eventType) => {
+      if (eventType.teamId && eventType.schedulingType === SchedulingType.MANAGED) {
+        return;
+      }
       const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
       const isRouteAlreadyInUse = isRouter(route) ? false : uniqueSlug === route.action.value;
 
@@ -199,13 +177,19 @@ const buildEventsData = ({
       if (!isRouteAlreadyInUse && !eventTypeValidInContext) {
         return;
       }
+
+      // Pass app data that works with routing forms
+      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata);
+
       eventTypesMap.set(eventType.id, {
+        eventTypeAppMetadata,
         schedulingType: eventType.schedulingType,
       });
       eventOptions.push({
         label: uniqueSlug,
         value: uniqueSlug,
         eventTypeId: eventType.id,
+        eventTypeAppMetadata,
       });
     });
   });
@@ -230,13 +214,13 @@ const Route = ({
   eventTypesByGroup,
 }: {
   form: Form;
-  route: Route;
-  routes: Route[];
+  route: EditFormRoute;
+  routes: EditFormRoute[];
   setRoute: SetRoute;
   setAttributeRoutingConfig: (id: string, attributeRoutingConfig: Partial<AttributeRoutingConfig>) => void;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
-  setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
+  setRoutes: React.Dispatch<React.SetStateAction<EditFormRoute[]>>;
   fieldIdentifiers: string[];
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
@@ -271,7 +255,7 @@ const Route = ({
   });
 
   const onChangeFormFieldsQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: FormFieldsQueryBuilderConfigWithRaqbFields
   ) => {
@@ -283,7 +267,7 @@ const Route = ({
   };
 
   const onChangeTeamMembersQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
@@ -295,7 +279,7 @@ const Route = ({
   };
 
   const onChangeFallbackTeamMembersQuery = (
-    route: Route,
+    route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
@@ -330,11 +314,8 @@ const Route = ({
               setRoutes(newRoutes);
             },
           }}
-          label={
-            <div>
-              <span className="mr-2">{`Route ${index + 1}`}</span>
-            </div>
-          }
+          isLabelEditable={false}
+          label={route.name ?? `Route ${index + 1}`}
           className="mb-6">
           <div className="-mt-3">
             <Link href={`${appUrl}/route-builder/${route.id}`}>
@@ -368,20 +349,16 @@ const Route = ({
         }
       : undefined;
 
-  const chosenEventTypeForRedirect = eventTypeRedirectUrlSelectedOption?.eventTypeId
-    ? eventTypesMap.get(eventTypeRedirectUrlSelectedOption.eventTypeId)
-    : null;
-
-  const isRoundRobinEventSelectedForRedirect =
-    chosenEventTypeForRedirect?.schedulingType === SchedulingType.ROUND_ROBIN;
-
   const formFieldsQueryBuilder = shouldShowFormFieldsQueryBuilder ? (
     <div>
       <span className="text-emphasis flex w-full items-center text-sm">
         For responses matching the following criteria (matches all by default)
       </span>
       <Query
-        {...(formFieldsQueryBuilderConfig as unknown as Config)}
+        {...withRaqbSettingsAndWidgets({
+          config: formFieldsQueryBuilderConfig,
+          configFor: ConfigFor.FormFields,
+        })}
         value={route.formFieldsQueryBuilderState.tree}
         onChange={(immutableTree, formFieldsQueryBuilderConfig) => {
           onChangeFormFieldsQuery(
@@ -397,6 +374,13 @@ const Route = ({
     </div>
   ) : null;
 
+  const attributesQueryBuilderConfigWithRaqbSettingsAndWidgets = attributesQueryBuilderConfig
+    ? withRaqbSettingsAndWidgets({
+        config: attributesQueryBuilderConfig,
+        configFor: ConfigFor.Attributes,
+      })
+    : null;
+
   const attributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
       <div className="mt-4">
@@ -404,17 +388,23 @@ const Route = ({
           and use only the Team Members that match the following criteria (matches all by default)
         </span>
 
-        {isRoundRobinEventSelectedForRedirect ? (
-          <RoundRobinContactOwnerOverrideSwitch
-            route={route}
-            setAttributeRoutingConfig={setAttributeRoutingConfig}
-          />
+        {eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata &&
+        "salesforce" in eventTypeRedirectUrlSelectedOption.eventTypeAppMetadata ? (
+          <div className="mt-4 px-2.5">
+            <DynamicAppComponent
+              componentMap={routingFormAppComponents}
+              slug="salesforce"
+              appData={eventTypeRedirectUrlSelectedOption?.eventTypeAppMetadata["salesforce"]}
+              route={route}
+              setAttributeRoutingConfig={setAttributeRoutingConfig}
+            />
+          </div>
         ) : null}
 
         <div className="mt-2">
-          {route.attributesQueryBuilderState && attributesQueryBuilderConfig && (
+          {route.attributesQueryBuilderState && attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
             <Query
-              {...(attributesQueryBuilderConfig as unknown as Config)}
+              {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
               value={route.attributesQueryBuilderState.tree}
               onChange={(immutableTree, attributesQueryBuilderConfig) => {
                 onChangeTeamMembersQuery(
@@ -437,20 +427,21 @@ const Route = ({
           {t("fallback_attribute_logic_description")}
         </span>
         <div className="mt-2">
-          {route.fallbackAttributesQueryBuilderState && attributesQueryBuilderConfig && (
-            <Query
-              {...(attributesQueryBuilderConfig as unknown as Config)}
-              value={route.fallbackAttributesQueryBuilderState.tree}
-              onChange={(immutableTree, attributesQueryBuilderConfig) => {
-                onChangeFallbackTeamMembersQuery(
-                  route,
-                  immutableTree,
-                  attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
-                );
-              }}
-              renderBuilder={renderBuilder}
-            />
-          )}
+          {route.fallbackAttributesQueryBuilderState &&
+            attributesQueryBuilderConfigWithRaqbSettingsAndWidgets && (
+              <Query
+                {...attributesQueryBuilderConfigWithRaqbSettingsAndWidgets}
+                value={route.fallbackAttributesQueryBuilderState.tree}
+                onChange={(immutableTree, attributesQueryBuilderConfig) => {
+                  onChangeFallbackTeamMembersQuery(
+                    route,
+                    immutableTree,
+                    attributesQueryBuilderConfig as unknown as AttributesQueryBuilderConfigWithRaqbFields
+                  );
+                }}
+                renderBuilder={renderBuilder}
+              />
+            )}
         </div>
       </div>
     ) : null;
@@ -460,7 +451,11 @@ const Route = ({
       className="mb-6"
       moveUp={moveUp}
       moveDown={moveDown}
-      label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
+      label={route.name ?? (route.isFallback ? "Fallback Route" : `Route ${index + 1}`)}
+      isLabelEditable={!route.isFallback}
+      onLabelChange={(label) => {
+        setRoute(route.id, { name: label });
+      }}
       deleteField={{
         check: () => routes.length !== 1 && !route.isFallback,
         fn: () => {
@@ -468,45 +463,47 @@ const Route = ({
           setRoutes(newRoutes);
         },
       }}>
-      <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
+      <div className="mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
           {formFieldsQueryBuilder}
           <div>
-            <div className="text-emphasis flex w-full items-center text-sm">
-              <div className="flex flex-grow-0 whitespace-nowrap">
-                <span>{t("send_booker_to")}</span>
+            <div className="flex w-full flex-col gap-2 text-sm lg:flex-row">
+              <div className="flex flex-grow items-center gap-2">
+                <div className="flex flex-grow-0 whitespace-nowrap">
+                  <span>{t("send_booker_to")}</span>
+                </div>
+                <Select
+                  isDisabled={disabled}
+                  className="data-testid-select-routing-action block w-full flex-grow"
+                  required
+                  value={RoutingPages.find((page) => page.value === route.action?.type)}
+                  onChange={(item) => {
+                    if (!item) {
+                      return;
+                    }
+                    const action: LocalRoute["action"] = {
+                      type: item.value,
+                      value: "",
+                    };
+
+                    if (action.type === "customPageMessage") {
+                      action.value = "We are not ready for you yet :(";
+                    } else {
+                      action.value = "";
+                    }
+
+                    setRoute(route.id, { action });
+                  }}
+                  options={RoutingPages}
+                />
               </div>
-              <Select
-                isDisabled={disabled}
-                className="data-testid-select-routing-action block w-full flex-grow px-2"
-                required
-                value={RoutingPages.find((page) => page.value === route.action?.type)}
-                onChange={(item) => {
-                  if (!item) {
-                    return;
-                  }
-                  const action: LocalRoute["action"] = {
-                    type: item.value,
-                    value: "",
-                  };
-
-                  if (action.type === "customPageMessage") {
-                    action.value = "We are not ready for you yet :(";
-                  } else {
-                    action.value = "";
-                  }
-
-                  setRoute(route.id, { action });
-                }}
-                options={RoutingPages}
-              />
               {route.action?.type ? (
                 route.action?.type === "customPageMessage" ? (
                   <TextArea
                     required
                     disabled={disabled}
                     name="customPageMessage"
-                    className="border-default flex w-full flex-grow"
+                    className="border-default flex flex-grow lg:w-fit"
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
@@ -516,8 +513,8 @@ const Route = ({
                   <TextField
                     disabled={disabled}
                     name="externalRedirectUrl"
-                    className="border-default flex w-full flex-grow text-sm"
-                    containerClassName="w-full mt-2"
+                    className="border-default flex flex-grow text-sm"
+                    containerClassName="flex-grow"
                     type="url"
                     required
                     labelSrOnly
@@ -528,7 +525,7 @@ const Route = ({
                     placeholder="https://example.com"
                   />
                 ) : (
-                  <div className="block w-full">
+                  <div className="flex-grow">
                     <Select
                       required
                       className="data-testid-eventTypeRedirectUrl-select"
@@ -541,11 +538,13 @@ const Route = ({
                         if (option.value !== "custom") {
                           setRoute(route.id, {
                             action: { ...route.action, value: option.value, eventTypeId: option.eventTypeId },
+                            attributeRoutingConfig: {},
                           });
                           setCustomEventTypeSlug("");
                         } else {
                           setRoute(route.id, {
                             action: { ...route.action, value: "custom", eventTypeId: 0 },
+                            attributeRoutingConfig: {},
                           });
                           setCustomEventTypeSlug("");
                         }
@@ -560,7 +559,7 @@ const Route = ({
                         <TextField
                           disabled={disabled}
                           className="border-default flex w-full flex-grow text-sm"
-                          containerClassName="w-full mt-2"
+                          containerClassName="flex-grow mt-2"
                           addOnLeading={eventTypePrefix}
                           required
                           value={customEventTypeSlug}
@@ -613,7 +612,7 @@ const buildState = <
   queryValue,
   config,
 }: T) => ({
-  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue), config as unknown as Config),
+  tree: QbUtils.checkTree(QbUtils.loadTree(queryValue as JsonTree), config as unknown as Config),
   config,
 });
 
@@ -625,7 +624,7 @@ const deserializeRoute = ({
   route: Exclude<SerializableRoute, GlobalRoute>;
   formFieldsQueryBuilderConfig: FormFieldsQueryBuilderConfigWithRaqbFields;
   attributesQueryBuilderConfig: AttributesQueryBuilderConfigWithRaqbFields | null;
-}): Route => {
+}): EditFormRoute => {
   const attributesQueryBuilderState =
     route.attributesQueryValue && attributesQueryBuilderConfig
       ? buildState({
@@ -707,13 +706,14 @@ function useRoutes({
       return newRoutes;
     });
 
-    function getRoutesToSave(routes: Route[]) {
+    function getRoutesToSave(routes: EditFormRoute[]) {
       return routes.map((route) => {
         if (isRouter(route)) {
           return route;
         }
         return {
           id: route.id,
+          name: route.name,
           attributeRoutingConfig: route.attributeRoutingConfig,
           action: route.action,
           isFallback: route.isFallback,
@@ -748,7 +748,7 @@ const Routes = ({
   const attributesQueryBuilderConfig = attributes
     ? getQueryBuilderConfigForAttributes({
         attributes: attributes,
-        form: hookForm.getValues(),
+        dynamicOperandFields: hookForm.getValues().fields,
       })
     : null;
 
@@ -868,7 +868,7 @@ const Routes = ({
     });
   }
 
-  const setRoute = (id: string, route: Partial<Route>) => {
+  const setRoute = (id: string, route: Partial<EditFormRoute>) => {
     const index = routes.findIndex((route) => route.id === id);
     const existingRoute = routes[index];
     const newRoutes = [...routes];
@@ -990,7 +990,7 @@ const Routes = ({
                   id: routerId,
                   name: option.name,
                   description: option.description,
-                } as Route,
+                } as EditFormRoute,
               ]);
             }
           }}

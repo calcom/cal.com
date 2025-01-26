@@ -1,3 +1,5 @@
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
 import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
@@ -11,13 +13,17 @@ export default class AttendeeDeclinedEmail extends AttendeeScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("AttendeeDeclinedEmail", {
-        calEvent: this.calEvent,
-        attendee: this.attendee,
-      }),
+      html: await this.getHtml(this.calEvent, this.attendee),
       text: this.getTextBody(
         this.calEvent.recurringEvent?.count ? "event_request_declined_recurring" : "event_request_declined"
       ),
     };
+  }
+
+  async getHtml(calEvent: CalendarEvent, attendee: Person) {
+    return await renderEmail("AttendeeDeclinedEmail", {
+      calEvent,
+      attendee,
+    });
   }
 }

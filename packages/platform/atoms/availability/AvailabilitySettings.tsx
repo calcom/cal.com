@@ -2,9 +2,13 @@
 
 import type { SetStateAction, Dispatch } from "react";
 import { useMemo, useState } from "react";
-import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
+import type {
+  BulkUpdatParams,
+  EventTypes,
+} from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import WebSchedule, {
@@ -106,8 +110,11 @@ type AvailabilitySettingsProps = {
   bulkUpdateModalProps?: {
     isOpen: boolean;
     setIsOpen: Dispatch<SetStateAction<boolean>>;
-    save: ({ eventTypeIds }: { eventTypeIds: number[] }) => void;
+    save: (params: BulkUpdatParams) => void;
     isSaving: boolean;
+    eventTypes?: EventTypes;
+    isEventTypesFetching?: boolean;
+    handleBulkEditDialogToggle: () => void;
   };
 };
 
@@ -137,6 +144,7 @@ const DeleteDialogButton = ({
           className={buttonClassName}
           disabled={disabled}
           tooltip={disabled ? t("requires_at_least_one_schedule") : t("delete")}
+          tooltipSide="bottom"
         />
       </DialogTrigger>
 
@@ -171,18 +179,27 @@ const DateOverride = ({
   travelSchedules,
   weekStart,
   overridesModalClassNames,
+  handleSubmit,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   overridesModalClassNames?: string;
+  handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
+  const { getValues } = useFormContext();
   const excludedDates = useExcludedDates();
   const { t } = useLocale();
+
+  const handleAvailabilityUpdate = () => {
+    const updatedValues = getValues() as AvailabilityFormValues;
+    handleSubmit(updatedValues);
+  };
+
   return (
     <div className="p-6">
       <h3 className="text-emphasis font-medium leading-6">
@@ -204,12 +221,16 @@ const DateOverride = ({
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
           travelSchedules={travelSchedules}
+          handleAvailabilityUpdate={handleAvailabilityUpdate}
         />
         <DateOverrideInputDialog
           className={overridesModalClassNames}
           workingHours={workingHours}
           excludedDates={excludedDates}
-          onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
+          onChange={(ranges) => {
+            ranges.forEach((range) => append({ ranges: [range] }));
+            handleAvailabilityUpdate();
+          }}
           userTimeFormat={userTimeFormat}
           weekStart={weekStart}
           Trigger={
@@ -364,6 +385,9 @@ export function AvailabilitySettings({
               setOpen={bulkUpdateModalProps.setIsOpen}
               bulkUpdateFunction={bulkUpdateModalProps?.save}
               description={t("default_schedules_bulk_description")}
+              eventTypes={bulkUpdateModalProps?.eventTypes}
+              isEventTypesFetching={bulkUpdateModalProps?.isEventTypesFetching}
+              handleBulkEditDialogToggle={bulkUpdateModalProps.handleBulkEditDialogToggle}
             />
           )}
 
@@ -559,6 +583,7 @@ export function AvailabilitySettings({
               <DateOverride
                 workingHours={schedule.workingHours}
                 userTimeFormat={timeFormat}
+                handleSubmit={handleSubmit}
                 travelSchedules={travelSchedules}
                 weekStart={
                   ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(

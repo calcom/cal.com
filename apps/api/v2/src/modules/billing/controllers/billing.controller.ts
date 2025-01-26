@@ -102,13 +102,26 @@ export class BillingController {
     @Req() request: Request,
     @Headers("stripe-signature") stripeSignature: string
   ): Promise<ApiResponse> {
-    const event = await this.billingService.stripeService.stripe.webhooks.constructEventAsync(
-      request.body,
-      stripeSignature,
-      this.stripeWhSecret
-    );
+    const event = await this.billingService.stripeService
+      .getStripe()
+      .webhooks.constructEventAsync(request.body, stripeSignature, this.stripeWhSecret);
 
-    await this.billingService.createOrUpdateStripeSubscription(event);
+    switch (event.type) {
+      case "checkout.session.completed":
+        await this.billingService.handleStripeCheckoutEvents(event);
+        break;
+      case "customer.subscription.deleted":
+        await this.billingService.handleStripeSubscriptionDeleted(event);
+        break;
+      case "invoice.payment_failed":
+        await this.billingService.handleStripePaymentFailed(event);
+        break;
+      case "invoice.payment_succeeded":
+        await this.billingService.handleStripePaymentSuccess(event);
+        break;
+      default:
+        break;
+    }
 
     return {
       status: "success",

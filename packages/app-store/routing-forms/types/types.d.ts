@@ -1,10 +1,15 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
+import type { ImmutableTree, Config } from "react-awesome-query-builder";
 import type z from "zod";
 
 import type { AttributeType } from "@calcom/prisma/client";
 import type { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
+import type {
+  FormFieldsQueryBuilderConfigWithRaqbFields,
+  AttributesQueryBuilderConfigWithRaqbFields,
+} from "../lib/getQueryBuilderConfig";
 import type { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
@@ -17,6 +22,7 @@ export type FormResponse = Record<
   {
     value: number | string | string[];
     label: string;
+    identifier?: string;
   }
 >;
 
@@ -74,3 +80,23 @@ export type Attribute = {
 export type AttributesQueryValue = NonNullable<LocalRoute["attributesQueryValue"]>;
 export type FormFieldsQueryValue = LocalRoute["queryValue"];
 export type SerializableField = NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+
+export type AttributeRoutingConfig = NonNullable<LocalRoute["attributeRoutingConfig"]>;
+
+export type FormFieldsQueryBuilderState = {
+  tree: ImmutableTree;
+  config: FormFieldsQueryBuilderConfigWithRaqbFields;
+};
+
+export type AttributesQueryBuilderState = {
+  tree: ImmutableTree;
+  config: AttributesQueryBuilderConfigWithRaqbFields;
+};
+
+export type LocalRouteWithRaqbStates = LocalRoute & {
+  formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
+  attributesQueryBuilderState: AttributesQueryBuilderState | null;
+  fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
+};
+
+export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;

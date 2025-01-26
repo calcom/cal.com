@@ -48,6 +48,8 @@ export const useSchedule = ({
   const searchParams = useSearchParams();
   const routedTeamMemberIds = searchParams ? getRoutedTeamMemberIdsFromSearchParams(searchParams) : null;
   const skipContactOwner = searchParams ? searchParams.get("cal.skipContactOwner") === "true" : false;
+  const _cacheParam = searchParams?.get("cal.cache");
+  const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
 
   const input = {
     isTeamEvent,
@@ -68,6 +70,7 @@ export const useSchedule = ({
     teamMemberEmail,
     routedTeamMemberIds,
     skipContactOwner,
+    shouldServeCache,
   };
 
   const options = {

@@ -20,7 +20,7 @@ import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
-  EventTypeMetaDataSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
   bookerLayoutOptions,
   bookerLayouts as bookerLayoutsSchema,
   customInputSchema,
@@ -44,7 +44,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
       id: true,
       name: true,
       slug: true,
-      calVideoLogo: true,
       bannerUrl: true,
     },
   },
@@ -58,6 +57,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  instantMeetingParameters: true,
   aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
@@ -67,6 +67,14 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   metadata: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
+  autoTranslateDescriptionEnabled: true,
+  fieldTranslations: {
+    select: {
+      translatedText: true,
+      targetLocale: true,
+      field: true,
+    },
+  },
   requiresBookerEmailVerification: true,
   recurringEvent: true,
   price: true,
@@ -74,6 +82,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   seatsPerTimeSlot: true,
   seatsShowAvailabilityCount: true,
   bookingFields: true,
+  teamId: true,
   team: {
     select: {
       parentId: true,
@@ -92,6 +101,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           logoUrl: true,
         },
       },
+      isPrivate: true,
     },
   },
   successRedirectUrl: true,
@@ -206,7 +216,8 @@ export const getPublicEvent = async (
   isTeamEvent: boolean | undefined,
   org: string | null,
   prisma: PrismaClient,
-  fromRedirectOfNonOrgLink: boolean
+  fromRedirectOfNonOrgLink: boolean,
+  currentUserId?: number
 ) => {
   const usernameList = getUsernameList(username);
   const orgQuery = org ? getSlugOrRequestedSlug(org) : null;
@@ -290,7 +301,10 @@ export const getPublicEvent = async (
         logoUrl: null,
       },
       isInstantEvent: false,
+      instantMeetingParameters: [],
       showInstantEventConnectNowModal: false,
+      autoTranslateDescriptionEnabled: false,
+      fieldTranslations: [],
     };
   }
 
@@ -354,7 +368,7 @@ export const getPublicEvent = async (
 
   if (!event) return null;
 
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const teamMetadata = teamMetadataSchema.parse(event.team?.metadata || {});
   const usersAsHosts = event.hosts.map((host) => host.user);
 
@@ -377,7 +391,7 @@ export const getPublicEvent = async (
     hosts: hosts,
   };
 
-  const users =
+  let users =
     (await getUsersFromEvent(eventWithUserProfiles, prisma)) ||
     (await getOwnerFromUsersArray(prisma, event.id));
 
@@ -423,7 +437,27 @@ export const getPublicEvent = async (
       length: eventWithUserProfiles.length,
     });
   }
+  const isTeamAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.teamId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
 
+  const isOrgAdminOrOwner = await prisma.membership.findFirst({
+    where: {
+      userId: currentUserId ?? -1,
+      teamId: event.team?.parentId ?? -1,
+      accepted: true,
+      role: { in: ["ADMIN", "OWNER"] },
+    },
+  });
+
+  if (event.team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+    users = [];
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -463,6 +497,7 @@ export const getPublicEvent = async (
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     showInstantEventConnectNowModal,
+    instantMeetingParameters: eventWithUserProfiles.instantMeetingParameters,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
@@ -482,7 +517,7 @@ function getProfileFromEvent(event: Event) {
 
   const username = "username" in profile ? profile.username : team?.slug;
   const weekStart = hosts?.[0]?.user?.weekStart || owner?.weekStart || "Monday";
-  const eventMetaData = EventTypeMetaDataSchema.parse(event.metadata || {});
+  const eventMetaData = eventTypeMetaDataSchemaWithTypedApps.parse(event.metadata || {});
   const userMetaData = userMetadataSchema.parse(profile.metadata || {});
 
   return {
