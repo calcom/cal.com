@@ -3,8 +3,10 @@ import md5 from "md5";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { ZColumnFilter, ZSorting } from "@calcom/features/data-table";
-import { rawDataInputSchema } from "@calcom/features/insights/server/raw-data.schema";
+import {
+  rawDataInputSchema,
+  routingFormResponsesInputSchema,
+} from "@calcom/features/insights/server/raw-data.schema";
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -912,27 +914,11 @@ export const insightsRouter = router({
       return [];
     }
 
-    const membershipConditional: Prisma.MembershipWhereInput = {
-      team: {
-        slug: { not: null },
-      },
-      accepted: true,
-      userId: user.id,
-      OR: [
-        {
-          role: "ADMIN",
-        },
-        {
-          role: "OWNER",
-        },
-      ],
-    };
-
     // Validate if user belongs to org as admin/owner
     if (user.organizationId && user.organization.isOrgAdmin) {
-      const teamsFromOrg = await ctx.insightsDb.team.findMany({
+      const teamsAndOrg = await ctx.insightsDb.team.findMany({
         where: {
-          parentId: user.organizationId,
+          OR: [{ parentId: user.organizationId }, { id: user.organizationId }],
         },
         select: {
           id: true,
@@ -941,36 +927,18 @@ export const insightsRouter = router({
           logoUrl: true,
         },
       });
-      const orgTeam = await ctx.insightsDb.team.findUnique({
-        where: {
-          id: user.organizationId,
-        },
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-          logoUrl: true,
-        },
-      });
+      const teamsFromOrg = teamsAndOrg.filter((team) => team.id !== user.organizationId);
+      const orgTeam = teamsAndOrg.find((team) => team.id === user.organizationId);
       if (!orgTeam) {
         return [];
       }
 
       const result: IResultTeamList[] = [
         {
-          id: orgTeam.id,
-          slug: orgTeam.slug,
-          name: orgTeam.name,
-          logoUrl: orgTeam.logoUrl,
+          ...orgTeam,
           isOrg: true,
         },
-        ...teamsFromOrg.map(
-          (team: Prisma.TeamGetPayload<{ select: { id: true; slug: true; name: true; logoUrl: true } }>) => {
-            return {
-              ...team,
-            };
-          }
-        ),
+        ...teamsFromOrg,
       ];
 
       return result;
@@ -978,7 +946,21 @@ export const insightsRouter = router({
 
     // Look if user it's admin/owner in multiple teams
     const belongsToTeams = await ctx.insightsDb.membership.findMany({
-      where: membershipConditional,
+      where: {
+        team: {
+          slug: { not: null },
+        },
+        accepted: true,
+        userId: user.id,
+        OR: [
+          {
+            role: "ADMIN",
+          },
+          {
+            role: "OWNER",
+          },
+        ],
+      },
       include: {
         team: {
           select: {
@@ -1608,53 +1590,36 @@ export const insightsRouter = router({
       return stats;
     }),
   routingFormResponses: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        cursor: z.number().optional(),
-        limit: z.number().optional(),
-        columnFilters: z.array(ZColumnFilter),
-        sorting: z.array(ZSorting),
-      })
-    )
+    .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
-      const { startDate, endDate } = input;
       return await RoutingEventsInsights.getRoutingFormPaginatedResponses({
-        teamId: input.teamId ?? null,
-        startDate,
-        endDate,
-        isAll: input.isAll ?? false,
+        teamId: input.teamId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
+        routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
+        userId: input.userId,
+        memberUserIds: input.memberUserIds,
         limit: input.limit,
         columnFilters: input.columnFilters,
         sorting: input.sorting,
       });
     }),
   routingFormResponsesForDownload: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        cursor: z.number().optional(),
-        limit: z.number().optional(),
-        columnFilters: z.array(ZColumnFilter),
-        sorting: z.array(ZSorting),
-      })
-    )
+    .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getRoutingFormPaginatedResponsesForDownload({
-        teamId: input.teamId ?? null,
+        teamId: input.teamId,
         startDate: input.startDate,
         endDate: input.endDate,
-        isAll: input.isAll ?? false,
+        isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
+        routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
+        userId: input.userId,
+        memberUserIds: input.memberUserIds,
         limit: input.limit ?? BATCH_SIZE,
         columnFilters: input.columnFilters,
         sorting: input.sorting,

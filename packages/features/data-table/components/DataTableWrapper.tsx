@@ -70,8 +70,8 @@ export function DataTableWrapper<TData, TValue>({
         <DataTableToolbar.Root>
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
-              <div className="flex flex-wrap gap-2">{ToolbarLeft}</div>
-              <div className="flex flex-wrap gap-2">{ToolbarRight}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarRight}</div>
             </div>
           </div>
 
