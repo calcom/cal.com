@@ -146,6 +146,8 @@ export class InputBookingsService_2024_08_13 {
     );
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
+    const guests = inputBooking.guests;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -154,7 +156,7 @@ export class InputBookingsService_2024_08_13 {
       language: inputBooking.attendee.language || "en",
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
-      guests: inputBooking.guests,
+      guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
@@ -162,11 +164,13 @@ export class InputBookingsService_2024_08_13 {
             name: inputBooking.attendee.name,
             email: inputBooking.attendee.email ?? "",
             attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           }
         : {
             name: inputBooking.attendee.name,
             email: inputBooking.attendee.email ?? "",
             attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           },
     };
   }
@@ -251,6 +255,8 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    const guests = inputBooking.guests;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -263,15 +269,16 @@ export class InputBookingsService_2024_08_13 {
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
-        guests: inputBooking.guests,
+        guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
               name: inputBooking.attendee.name,
               email: inputBooking.attendee.email,
+              guests,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
         schedulingType: eventType.schedulingType,
       });
 

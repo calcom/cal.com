@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -64,21 +63,13 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
-    const returnTo = req.cookies.get("return-to")?.value;
-    if (returnTo !== undefined) {
-      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+  if (url.pathname.startsWith("/apps/installed")) {
+    const returnTo = req.cookies.get("return-to");
 
-      let validPathname = returnTo;
-
-      try {
-        validPathname = new URL(returnTo).pathname;
-      } catch (e) {}
-
-      const nextUrl = url.clone();
-      nextUrl.pathname = validPathname;
-      // TODO: Consider using responseWithHeaders here
-      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+    if (returnTo?.value) {
+      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      response.cookies.delete("return-to");
+      return response;
     }
   }
 
@@ -155,6 +146,7 @@ export const config = {
   matcher: [
     "/403",
     "/500",
+    "/icons",
     "/d/:path*",
     "/more/:path*",
     "/maintenance/:path*",
@@ -167,7 +159,11 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
-    "/future/auth/login",
+    "/auth/error",
+    "/auth/signin",
+    "/auth/oauth2/authorize",
+    "/auth/platform/authorize",
+    "/auth/verify-email",
     /**
      * Paths required by routingForms.handle
      */
@@ -181,20 +177,22 @@ export const config = {
     "/apps/:slug/setup/",
     "/future/apps/:slug/setup/",
     "/apps/categories/",
-    "/future/apps/categories/",
     "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
-    "/bookings/:status/",
+    "/bookings/:path*",
     "/video/:path*",
-    "/teams",
-    "/future/teams/",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
+    "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/:path*",
   ],
 };
 

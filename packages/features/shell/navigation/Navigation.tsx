@@ -167,6 +167,12 @@ const platformNavigationItems: NavigationItemType[] = [
     icon: "users",
     moreOnMobile: true,
   },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
+    icon: "users",
+    moreOnMobile: true,
+  },
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {

@@ -3,11 +3,20 @@ import { z } from "zod";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 import { SalesforceRecordEnum, WhenToWriteToRecord, SalesforceFieldType } from "./lib/enums";
 
-const writeToRecordEntry = z.object({
+const writeToBookingEntry = z.object({
   value: z.string(),
   fieldType: z.nativeEnum(SalesforceFieldType),
   whenToWrite: z.nativeEnum(WhenToWriteToRecord),
 });
+
+export const writeToRecordEntrySchema = z.object({
+  field: z.string(),
+  fieldType: z.nativeEnum(SalesforceFieldType),
+  value: z.string(),
+  whenToWrite: z.nativeEnum(WhenToWriteToRecord),
+});
+
+export const writeToRecordDataSchema = z.record(z.string(), writeToBookingEntry);
 
 export const routingFormOptions = z
   .object({
@@ -15,6 +24,10 @@ export const routingFormOptions = z
     rrSKipToAccountLookupFieldName: z.string().optional(),
   })
   .optional();
+
+export const routingFormIncompleteBookingDataSchema = z.object({
+  writeToRecordObject: writeToRecordDataSchema.optional(),
+});
 
 const optionalBooleanOnlyRunTimeValidation = z
   .any()
@@ -40,7 +53,7 @@ export const appDataSchema = eventTypeAppCardZod.extend({
   sendNoShowAttendeeData: z.boolean().optional(),
   sendNoShowAttendeeDataField: z.string().optional(),
   onBookingWriteToRecord: z.boolean().optional(),
-  onBookingWriteToRecordFields: z.record(z.string(), writeToRecordEntry).optional(),
+  onBookingWriteToRecordFields: z.record(z.string(), writeToBookingEntry).optional(),
   ignoreGuests: z.boolean().optional(),
 });
 

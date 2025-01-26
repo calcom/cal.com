@@ -9,13 +9,9 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type {
-  ColumnFilter,
-  TypedColumnFilter,
-  ColumnFilterType,
-  SortingState,
-} from "@calcom/features/data-table";
+import type { ColumnFilter, TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
+import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
@@ -40,6 +36,10 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
     optionId: string;
   } | null;
   columnFilters: ColumnFilter[];
+};
+
+type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
+  organizationId: number | null;
 };
 
 type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
@@ -222,14 +222,10 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    memberUserId,
+    memberUserIds,
     columnFilters,
     sorting,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
-    sorting: SortingState;
-    cursor?: number;
-    limit?: number;
-  }) {
+  }: RoutingFormResponsesFilter) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,
@@ -286,7 +282,7 @@ class RoutingEventsInsights {
         })),
 
       // memberUserId
-      ...(memberUserId && { bookingUserId: memberUserId }),
+      ...(memberUserIds && memberUserIds.length > 0 && { bookingUserId: { in: memberUserIds } }),
 
       // createdAt
       ...(startDate &&
@@ -369,14 +365,10 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    memberUserId,
+    memberUserIds,
     columnFilters,
     sorting,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
-    sorting: SortingState;
-    cursor?: number;
-    limit?: number;
-  }) {
+  }: RoutingFormResponsesFilter) {
     const headersPromise = this.getRoutingFormHeaders({
       userId,
       teamId,
@@ -393,7 +385,7 @@ class RoutingEventsInsights {
       routingFormId,
       cursor,
       userId,
-      memberUserId,
+      memberUserIds,
       limit,
       columnFilters,
       sorting,

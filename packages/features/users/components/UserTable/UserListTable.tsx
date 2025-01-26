@@ -265,11 +265,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -295,9 +290,6 @@ function UserListTableContent() {
         size: 200,
         header: () => {
           return `Members`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
         },
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
@@ -411,9 +403,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -452,6 +441,10 @@ function UserListTableContent() {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+        right: ["actions"],
+      },
     },
     defaultColumn: {
       size: 150,
@@ -533,7 +526,7 @@ function UserListTableContent() {
     }
   };
 
-  if (!isSuccessAttributes) {
+  if (!isPlatformUser && !isSuccessAttributes) {
     // do not render the table until the attributes are fetched
     return null;
   }
