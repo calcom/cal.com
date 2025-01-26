@@ -10,6 +10,7 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
@@ -145,6 +146,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

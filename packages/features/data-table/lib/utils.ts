@@ -6,12 +6,14 @@ import type {
   TextFilterValue,
   FilterValue,
   NumberFilterValue,
+  DateRangeFilterValue,
 } from "./types";
 import {
   ZNumberFilterValue,
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
   ZTextFilterValue,
+  ZDateRangeFilterValue,
 } from "./types";
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
@@ -111,6 +113,10 @@ export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue)
 
 export const isNumberFilterValue = (filterValue: unknown): filterValue is NumberFilterValue => {
   return ZNumberFilterValue.safeParse(filterValue).success;
+};
+
+export const isDateRangeFilterValue = (filterValue: unknown): filterValue is DateRangeFilterValue => {
+  return ZDateRangeFilterValue.safeParse(filterValue).success;
 };
 
 export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {

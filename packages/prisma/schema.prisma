@@ -366,6 +366,7 @@ model User {
   updatedTranslations        EventTypeTranslation[]       @relation("UpdatedEventTypeTranslations")
   createdWatchlists          Watchlist[]                  @relation("CreatedWatchlists")
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
+  BookingInternalNote        BookingInternalNote[]
 
   @@unique([email])
   @@unique([email, username])
@@ -473,7 +474,8 @@ model Team {
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean @default(false)
+  includeManagedEventsInLimits Boolean              @default(false)
+  internalNotePresets          InternalNotePreset[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -668,6 +670,7 @@ model Booking {
   // Ah, made a typo here. Should have been routedFromRoutingFormRe"s"ponse. Live with it :(
   routedFromRoutingFormReponse App_RoutingForms_FormResponse?
   assignmentReason             AssignmentReason[]
+  internalNote                 BookingInternalNote[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -870,6 +873,9 @@ model Impersonations {
   impersonatedBy     User     @relation("impersonated_by_user", fields: [impersonatedById], references: [id], onDelete: Cascade)
   impersonatedUserId Int
   impersonatedById   Int
+
+  @@index([impersonatedUserId])
+  @@index([impersonatedById])
 }
 
 model ApiKey {
@@ -1823,4 +1829,37 @@ model App_RoutingForms_IncompleteBookingActions {
   data         Json
   enabled      Boolean                     @default(true)
   credentialId Int?
+}
+
+model InternalNotePreset {
+  id                 Int     @id @default(autoincrement())
+  name               String
+  cancellationReason String?
+  team               Team    @relation(fields: [teamId], references: [id])
+  teamId             Int
+
+  createdAt           DateTime              @default(now())
+  BookingInternalNote BookingInternalNote[]
+
+  @@unique([teamId, name])
+  @@index([teamId])
+}
+
+model BookingInternalNote {
+  id Int @id @default(autoincrement())
+
+  notePreset   InternalNotePreset? @relation(fields: [notePresetId], references: [id], onDelete: Cascade)
+  notePresetId Int?
+  text         String?
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId Int
+
+  createdBy   User @relation(fields: [createdById], references: [id])
+  createdById Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([bookingId, notePresetId])
+  @@index([bookingId])
 }
