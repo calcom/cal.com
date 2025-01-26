@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
@@ -25,7 +27,7 @@ import { useAppTheme } from "./useAppTheme";
 const Layout = (props: LayoutProps) => {
   const { banners, bannersHeight } = useBanners();
   const pathname = usePathname();
-  const isFullPageWithoutSidebar = pathname?.startsWith("/routing/reporting/");
+  const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
 
@@ -138,26 +140,23 @@ export function ShellMain(props: LayoutProps) {
 
   const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
 
-  const backPath = props.backPath;
-  // Replace multiple leading slashes with a single slash
-  // e.g., `//routing/forms` -> `/routing/forms`
-  const validBackPath = typeof backPath === "string" ? backPath.replace(/^\/+/, "/") : null;
-
   return (
     <>
-      {(props.heading || !!backPath) && (
+      {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
             "flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8",
             props.hideHeadingOnMobile ? "mb-0" : "mb-6"
           )}>
-          {!!backPath && (
+          {!!props.backPath && (
             <Button
               variant="icon"
               size="sm"
               color="minimal"
-              onClick={() => (validBackPath ? router.push(validBackPath) : router.back())}
+              onClick={() =>
+                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+              }
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"

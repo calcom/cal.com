@@ -22,7 +22,6 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
-
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
@@ -65,23 +64,11 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/apps/installed")) {
-    const returnTo = req.cookies.get("return-to")?.value;
-    if (returnTo !== undefined) {
-      let validPathname = returnTo;
+    const returnTo = req.cookies.get("return-to");
 
-      try {
-        validPathname = new URL(returnTo).pathname;
-      } catch (e) {}
-
-      const nextUrl = url.clone();
-      nextUrl.pathname = validPathname;
-
-      const response = NextResponse.redirect(nextUrl);
-      response.cookies.set("return-to", "", {
-        expires: new Date(0),
-        path: "/",
-      });
-
+    if (returnTo?.value) {
+      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      response.cookies.delete("return-to");
       return response;
     }
   }
@@ -112,10 +99,9 @@ const routingForms = {
   handleRewrite: (url: URL) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
       return NextResponse.rewrite(url);
     }
-    return null;
   },
 };
 
@@ -172,33 +158,41 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/:path*",
-    "/apps/:path*",
-    "/event-types/:path*",
-    "/workflows/:path*",
-    "/getting-started/:path*",
     "/auth/login",
-    "/future/auth/login",
+    "/auth/error",
+    "/auth/signin",
+    "/auth/oauth2/authorize",
+    "/auth/platform/authorize",
+    "/auth/verify-email",
+    /**
+     * Paths required by routingForms.handle
+     */
+    "/apps/routing_forms/:path*",
+
+    "/event-types/:path*",
+    "/apps/installed/:category/",
+    "/future/apps/installed/:category/",
+    "/apps/:slug/",
+    "/future/apps/:slug/",
+    "/apps/:slug/setup/",
+    "/future/apps/:slug/setup/",
+    "/apps/categories/",
+    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/event-types/:path*",
-    "/apps/:path*",
-    "/routing/:path*",
-    "/bookings/:status/",
+    "/apps",
+    "/bookings/:path*",
     "/video/:path*",
-    "/teams",
-    "/signup",
+    "/teams/:path*",
+    "/signup/:path*",
     "/settings/:path*",
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
     "/payment/:path*",
-    "/router/:path*",
     "/routing-forms/:path*",
-    "/org/:path*",
     "/team/:path*",
-    "/:user/:type/",
-    "/:user/",
+    "/org/:path*",
   ],
 };
 
