@@ -171,11 +171,9 @@ export const config = {
 
     "/event-types/:path*",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
+    "/apps/installation/:path*",
     "/apps/:slug/",
-    "/future/apps/:slug/",
     "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
     "/apps/categories/",
     "/apps/categories/:category/",
     "/workflows/:path*",
