@@ -2,7 +2,7 @@ import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiResponseToInternal,
+  transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
@@ -16,10 +16,10 @@ import {
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
-  CustomFieldOutput_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
   InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
@@ -29,6 +29,7 @@ import {
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
+  EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
@@ -68,6 +69,7 @@ export function transformApiEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   return {
     ...rest,
@@ -129,6 +131,7 @@ export function transformApiEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
@@ -170,6 +173,8 @@ export function transformApiTeamEventTypeForAtom(
     bookingWindow,
     ...rest
   } = eventType;
+
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   const isDefault = isDefaultEvent(rest.title);
 
@@ -257,6 +262,7 @@ export function transformApiTeamEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
@@ -329,7 +335,9 @@ function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const transformedBookingFields = transformBookingFieldsApiResponseToInternal(bookingFields);
+  const transformedBookingFields = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isKnownField(field))
+  );
 
   const hasNameField = transformedBookingFields.some((field) => field.name === "name");
   const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
@@ -352,24 +360,27 @@ function getBookingFields(
   if (!hasRescheduleReasonField) {
     systemAfterFields.push(systemAfterFieldRescheduleReason);
   }
+
+  const fieldsWithSystem = [...systemBeforeFields, ...transformedBookingFields, ...systemAfterFields];
+
   // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
   // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
   const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
   if (defaultFormValuesKeys.length) {
-    for (const field of transformedBookingFields) {
+    for (const field of fieldsWithSystem) {
       if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
         field.editable = "user-readonly";
       }
     }
   }
 
-  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(fieldsWithSystem);
 }
 
-function isCustomField(
+function isKnownField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
-): field is CustomFieldOutput_2024_06_14 {
-  return field.type !== "unknown" && !field.isDefault;
+): field is KnownBookingField_2024_06_14 {
+  return field.type !== "unknown";
 }
 
 function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {

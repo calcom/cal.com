@@ -33,10 +33,17 @@ import {
   ApiSuccessResponse,
   CreateEventTypeInput_2024_06_14,
   EventTypeOutput_2024_06_14,
-  NameFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
+
+const orderBySlug = (a: { slug: string }, b: { slug: string }) => {
+  if (a.slug < b.slug) return -1;
+  if (a.slug > b.slug) return 1;
+  return 0;
+};
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -93,6 +100,67 @@ describe("Event types Endpoints", () => {
     let orgUserEventType1: EventType;
     let orgUserEventType2: EventType;
     let orgUserEventType3: EventType;
+
+    const defaultResponseBookingFieldName = {
+      isDefault: true,
+      type: "name",
+      slug: "name",
+      required: true,
+      disableOnPrefill: false,
+    };
+
+    const defaultResponseBookingFieldEmail = {
+      isDefault: true,
+      type: "email",
+      slug: "email",
+      required: true,
+      disableOnPrefill: false,
+    };
+
+    const defaultResponseBookingFieldLocation = {
+      isDefault: true,
+      type: "radioInput",
+      slug: "location",
+      required: false,
+      hidden: false,
+    };
+
+    const defaultResponseBookingFieldTitle = {
+      isDefault: true,
+      type: "text",
+      slug: "title",
+      required: true,
+      hidden: true,
+      disableOnPrefill: false,
+    };
+
+    const defaultResponseBookingFieldNotes = {
+      isDefault: true,
+      type: "textarea",
+      slug: "notes",
+      required: false,
+      hidden: false,
+      disableOnPrefill: false,
+    };
+
+    const defaultResponseBookingFieldGuests = {
+      isDefault: true,
+      type: "multiemail",
+      slug: "guests",
+      required: false,
+      hidden: false,
+      disableOnPrefill: false,
+    };
+
+    const defaultResponseBookingFieldRescheduleReason = {
+      isDefault: true,
+      type: "textarea",
+      slug: "rescheduleReason",
+      required: false,
+      hidden: false,
+      disableOnPrefill: false,
+    };
+
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
         userEmail,
@@ -253,7 +321,7 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
-      const nameBookingField: NameFieldInput_2024_06_14 = {
+      const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
         label: "Your name sir / madam",
         placeholder: "john doe",
@@ -379,30 +447,25 @@ describe("Event types Endpoints", () => {
           );
           expect(createdEventType.color).toEqual(body.color);
 
-          const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", ...nameBookingField },
-            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
-            // note(Lauris): location booking field is added if multiple locations are passed
+            { ...defaultResponseBookingFieldName, ...nameBookingField },
+            { ...defaultResponseBookingFieldEmail },
+            { ...defaultResponseBookingFieldLocation },
             {
-              isDefault: true,
-              required: false,
-              slug: "location",
-              type: "radioInput",
-              disableOnPrefill: false,
+              type: "select",
+              label: "select which language you want to learn",
+              slug: "select-language",
+              required: true,
+              placeholder: "select language",
+              options: ["javascript", "python", "cobol"],
+              disableOnPrefill: true,
               hidden: false,
+              isDefault: false,
             },
-            {
-              isDefault: true,
-              required: false,
-              slug: "rescheduleReason",
-              type: "textarea",
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            ...requestBookingFields
-              .filter((field) => field.type !== "name" && field.type !== "email")
-              .map((field) => ({ isDefault: false, ...field })),
+            { ...defaultResponseBookingFieldTitle },
+            { ...defaultResponseBookingFieldNotes },
+            { ...defaultResponseBookingFieldGuests },
+            { ...defaultResponseBookingFieldRescheduleReason },
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -432,7 +495,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
       expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
-      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
+      expect(fetchedEventType?.bookingFields.sort(orderBySlug)).toEqual(
+        eventType.bookingFields.sort(orderBySlug).filter((f) => ("hidden" in f ? !f?.hidden : true))
+      );
       expect(fetchedEventType?.ownerId).toEqual(user.id);
       expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
@@ -455,7 +520,6 @@ describe("Event types Endpoints", () => {
     });
 
     it(`/GET/event-types by username and orgSlug`, async () => {
-      console.log(organization);
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types?username=${orgUser.username}&orgSlug=${organization.slug}`)
         .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
@@ -636,7 +700,6 @@ describe("Event types Endpoints", () => {
         .expect(201);
 
       const createdEventType = createResponse.body.data;
-      console.log("createdEventType: ", createdEventType);
 
       expect(createdEventType).toMatchObject({
         id: expect.any(Number),
@@ -779,11 +842,18 @@ describe("Event types Endpoints", () => {
     });
 
     it("should update event type", async () => {
-      const nameBookingField: NameFieldInput_2024_06_14 = {
+      const nameBookingField: NameDefaultFieldInput_2024_06_14 = {
         type: "name",
         label: "Your name sir / madam",
         placeholder: "john doe",
         disableOnPrefill: true,
+      };
+
+      const notesBookingField: NotesDefaultFieldInput_2024_06_14 = {
+        slug: "notes",
+        label: "lemme take some notes",
+        placeholder: "write your notes here",
+        required: true,
       };
 
       const newTitle = "Coding class in Italian!";
@@ -804,6 +874,7 @@ describe("Event types Endpoints", () => {
             disableOnPrefill: false,
             hidden: false,
           },
+          notesBookingField,
         ],
         bookingLimitsCount: {
           day: 4,
@@ -866,21 +937,25 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.lengthInMinutes).toEqual(eventType.lengthInMinutes);
           expect(updatedEventType.locations).toEqual(eventType.locations);
 
-          const requestBookingFields = body.bookingFields || [];
           const expectedBookingFields = [
-            { isDefault: true, required: true, slug: "name", ...nameBookingField },
-            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
+            { ...defaultResponseBookingFieldName, ...nameBookingField },
+            { ...defaultResponseBookingFieldEmail },
+            { ...defaultResponseBookingFieldLocation },
             {
-              isDefault: true,
-              required: false,
-              slug: "rescheduleReason",
-              type: "textarea",
+              type: "select",
+              label: "select which language you want to learn",
+              slug: "select-language",
+              required: true,
+              placeholder: "select language",
+              options: ["javascript", "python", "cobol"],
               disableOnPrefill: false,
               hidden: false,
+              isDefault: false,
             },
-            ...requestBookingFields
-              .filter((field) => field.type !== "name" && field.type !== "email")
-              .map((field) => ({ isDefault: false, ...field })),
+            { ...defaultResponseBookingFieldTitle },
+            { ...defaultResponseBookingFieldNotes, ...notesBookingField },
+            { ...defaultResponseBookingFieldGuests },
+            { ...defaultResponseBookingFieldRescheduleReason },
           ];
 
           expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
@@ -997,7 +1072,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.lengthInMinutes).toEqual(eventType.lengthInMinutes);
       expect(fetchedEventType?.lengthInMinutesOptions).toEqual(eventType.lengthInMinutesOptions);
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
-      expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
+      expect(fetchedEventType?.bookingFields.sort(orderBySlug)).toEqual(
+        eventType.bookingFields.sort(orderBySlug).filter((f) => ("hidden" in f ? !f?.hidden : true))
+      );
       expect(fetchedEventType?.ownerId).toEqual(user.id);
       expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
@@ -1085,20 +1162,9 @@ describe("Event types Endpoints", () => {
         type: "radioInput",
         slug: "location",
         required: false,
-        disableOnPrefill: false,
         hidden: false,
-        label: "",
-        placeholder: "",
       },
       { isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
-      {
-        isDefault: true,
-        required: false,
-        slug: "notes",
-        type: "textarea",
-        disableOnPrefill: false,
-        hidden: false,
-      },
       {
         isDefault: true,
         required: false,
@@ -1115,7 +1181,22 @@ describe("Event types Endpoints", () => {
         disableOnPrefill: false,
         hidden: false,
       },
-      { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
+      {
+        disableOnPrefill: false,
+        isDefault: true,
+        type: "phone",
+        slug: "attendeePhoneNumber",
+        required: false,
+        hidden: true,
+      },
+      {
+        isDefault: true,
+        required: false,
+        slug: "notes",
+        type: "textarea",
+        disableOnPrefill: false,
+        hidden: false,
+      },
     ];
 
     beforeAll(async () => {
@@ -1240,15 +1321,6 @@ describe("Event types Endpoints", () => {
             defaultPlaceholder: "",
           },
           {
-            name: "notes",
-            type: "textarea",
-            sources: [{ id: "default", type: "default", label: "Default" }],
-            editable: "system-but-optional",
-            required: false,
-            defaultLabel: "additional_notes",
-            defaultPlaceholder: "share_additional_notes",
-          },
-          {
             name: "guests",
             type: "multiemail",
             hidden: false,
@@ -1282,6 +1354,15 @@ describe("Event types Endpoints", () => {
             editable: "system-but-optional",
             required: false,
             defaultLabel: "phone_number",
+          },
+          {
+            name: "notes",
+            type: "textarea",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "additional_notes",
+            defaultPlaceholder: "share_additional_notes",
           },
         ],
       };
@@ -1370,15 +1451,6 @@ describe("Event types Endpoints", () => {
             defaultPlaceholder: "",
           },
           {
-            name: "notes",
-            type: "textarea",
-            sources: [{ id: "default", type: "default", label: "Default" }],
-            editable: "system-but-optional",
-            required: false,
-            defaultLabel: "additional_notes",
-            defaultPlaceholder: "share_additional_notes",
-          },
-          {
             name: "guests",
             type: "multiemail",
             hidden: false,
@@ -1413,6 +1485,15 @@ describe("Event types Endpoints", () => {
             required: false,
             defaultLabel: "phone_number",
           },
+          {
+            name: "notes",
+            type: "textarea",
+            sources: [{ id: "default", type: "default", label: "Default" }],
+            editable: "system-but-optional",
+            required: false,
+            defaultLabel: "additional_notes",
+            defaultPlaceholder: "share_additional_notes",
+          },
         ],
       };
       const legacyEventType = await eventTypesRepositoryFixture.create(legacyEventTypeInput, user.id);
@@ -1426,19 +1507,21 @@ describe("Event types Endpoints", () => {
           const responseBody: ApiSuccessResponse<EventTypeOutput_2024_06_14> = response.body;
           const fetchedEventType = responseBody.data;
 
-          expect(fetchedEventType.bookingFields).toEqual([
-            ...expectedReturnSystemFields,
-            {
-              isDefault: false,
-              type: userDefinedBookingField.type,
-              slug: userDefinedBookingField.name,
-              label: userDefinedBookingField.label,
-              required: userDefinedBookingField.required,
-              placeholder: userDefinedBookingField.placeholder,
-              disableOnPrefill: false,
-              hidden: false,
-            },
-          ]);
+          expect(fetchedEventType.bookingFields.sort(orderBySlug)).toEqual(
+            [
+              {
+                isDefault: false,
+                type: userDefinedBookingField.type,
+                slug: userDefinedBookingField.name,
+                label: userDefinedBookingField.label,
+                required: userDefinedBookingField.required,
+                placeholder: userDefinedBookingField.placeholder,
+                disableOnPrefill: false,
+                hidden: false,
+              },
+              ...expectedReturnSystemFields,
+            ].sort(orderBySlug)
+          );
         });
     });
 
@@ -1530,7 +1613,6 @@ describe("Event types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {

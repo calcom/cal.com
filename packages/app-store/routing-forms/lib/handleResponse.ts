@@ -35,11 +35,13 @@ export const handleResponse = async ({
   // Unused but probably should be used
   // formFillerId,
   chosenRouteId,
+  isPreview,
 }: {
   response: z.infer<typeof ZResponseInputSchema>["response"];
   form: Form;
   formFillerId: string;
   chosenRouteId: string | null;
+  isPreview: boolean;
 }) => {
   try {
     if (!form.fields) {
@@ -161,25 +163,39 @@ export const handleResponse = async ({
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
 
-    const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
-      data: {
-        // TODO: Why do we not save formFillerId available in the input?
-        // formFillerId,
-        formId: form.id,
-        response: response,
-        chosenRouteId,
-      },
-    });
+    let dbFormResponse;
+    if (!isPreview) {
+      dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
+        data: {
+          // TODO: Why do we not save formFillerId available in the input?
+          // formFillerId,
+          formId: form.id,
+          response: response,
+          chosenRouteId,
+        },
+      });
 
-    await onFormSubmission(
-      { ...serializableFormWithFields, userWithEmails },
-      dbFormResponse.response as FormResponse,
-      dbFormResponse.id,
-      chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
-    );
+      await onFormSubmission(
+        { ...serializableFormWithFields, userWithEmails },
+        dbFormResponse.response as FormResponse,
+        dbFormResponse.id,
+        chosenRoute ? ("action" in chosenRoute ? chosenRoute.action : undefined) : undefined
+      );
+    } else {
+      moduleLogger.debug("Dry run mode - Form response not stored and also webhooks and emails not sent");
+      // Create a mock response for dry run
+      dbFormResponse = {
+        id: 0,
+        formId: form.id,
+        response,
+        chosenRouteId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    }
 
     return {
-      isPreview: false,
+      isPreview: !!isPreview,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
       attributeRoutingConfig: chosenRoute

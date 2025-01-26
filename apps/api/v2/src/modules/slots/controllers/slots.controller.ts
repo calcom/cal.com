@@ -1,11 +1,11 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { SlotsOutputService } from "@/modules/slots/services/slots-output.service";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SlotFormat } from "@calcom/platform-enums";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
 import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
@@ -17,7 +17,10 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 })
 @DocsTags("Slots")
 export class SlotsController {
-  constructor(private readonly slotsService: SlotsService) {}
+  constructor(
+    private readonly slotsService: SlotsService,
+    private readonly slotsOutputService: SlotsOutputService
+  ) {}
 
   @Post("/reserve")
   @ApiCreatedResponse({
@@ -159,19 +162,17 @@ export class SlotsController {
       },
     });
 
-    const transformedSlots =
-      query.slotFormat === SlotFormat.Range
-        ? await this.slotsService.formatSlots(
-            availableSlots,
-            query.duration,
-            query.eventTypeId,
-            query.slotFormat
-          )
-        : availableSlots.slots;
+    const { slots } = await this.slotsOutputService.getOutputSlots(
+      availableSlots,
+      query.duration,
+      query.eventTypeId,
+      query.slotFormat,
+      query.timeZone
+    );
 
     return {
       data: {
-        slots: transformedSlots,
+        slots,
       },
       status: SUCCESS_STATUS,
     };

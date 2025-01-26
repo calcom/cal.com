@@ -44,6 +44,7 @@ import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -682,6 +683,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -945,7 +947,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   )}
                 </div>
                 <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <RoutingNavBar
+                    appUrl={appUrl}
+                    form={form}
+                    hookForm={hookForm}
+                    setShowInfoLostDialog={setShowInfoLostDialog}
+                  />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               </div>
@@ -953,6 +960,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
       <TestFormDialog
         form={uptoDateForm}
         isTestPreviewOpen={isTestPreviewOpen}
