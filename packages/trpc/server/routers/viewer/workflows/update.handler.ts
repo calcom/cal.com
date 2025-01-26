@@ -12,6 +12,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import hasActiveTeamPlanHandler from "../teams/hasActiveTeamPlan.handler";
+import { hasTeamPlanHandler } from "../teams/hasTeamPlan.handler";
 import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
@@ -80,13 +81,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isCurrentUsernamePremium = hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
 
+  let isActiveTeamsPlan = false;
   let isTeamsPlan = false;
   if (!isCurrentUsernamePremium) {
-    isTeamsPlan = await hasActiveTeamPlanHandler({
+    isActiveTeamsPlan = await hasActiveTeamPlanHandler({
       ctx,
     });
+
+    const { hasTeamPlan } = await hasTeamPlanHandler({ ctx });
+    isTeamsPlan = !!hasTeamPlan;
   }
-  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
+  const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isActiveTeamsPlan;
 
   let newActiveOn: number[] = [];
 
@@ -344,7 +349,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         const isChangingToCustomTemplate =
           newStep.template === WorkflowTemplates.CUSTOM && oldStep.template !== WorkflowTemplates.CUSTOM;
 
-        if (isChangingToSMSOrWhatsapp || isChangingToCustomTemplate) {
+        if ((isChangingToSMSOrWhatsapp && !isTeamsPlan) || isChangingToCustomTemplate) {
           throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
         }
 
@@ -420,7 +425,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .filter((step) => step.id <= 0)
       .map(async (newStep) => {
         if (!hasPaidPlan) {
-          if (isSMSOrWhatsappAction(newStep.action) || newStep.template === WorkflowTemplates.CUSTOM) {
+          if (
+            (isSMSOrWhatsappAction(newStep.action) && !isTeamsPlan) ||
+            newStep.template === WorkflowTemplates.CUSTOM
+          ) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
           }
 
