@@ -183,6 +183,7 @@
     "detect-port": "^1.3.0",
     "env-cmd": "^10.1.0",
     "google-auth-library": "^9.15.0",
+    "languine": "^1.0.2",
     "module-alias": "^2.2.2",
     "msw": "^0.42.3",
     "node-html-parser": "^6.1.10",
