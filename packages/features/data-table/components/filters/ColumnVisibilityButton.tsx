@@ -23,7 +23,7 @@ import {
   Icon,
 } from "@calcom/ui";
 
-interface ColumnVisiblityProps<TData> {
+export interface ColumnVisiblityProps<TData> {
   table: Table<TData>;
 }
 

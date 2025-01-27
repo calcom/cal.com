@@ -21,7 +21,7 @@ import {
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
 
-interface AddFilterButtonProps<TData> {
+export interface AddFilterButtonProps<TData> {
   table: Table<TData>;
 }
 
