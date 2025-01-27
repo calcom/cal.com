@@ -7,6 +7,8 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking";
 import createNewSeat from "./create/createNewSeat";
@@ -30,9 +32,9 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     subscriberOptions,
     eventTrigger,
     evt,
-    workflows,
     rescheduledBy,
     rescheduleReason,
+    organizerUser,
     isDryRun = false,
   } = newSeatedBookingObject;
   // TODO: We could allow doing more things to support good dry run for seats
@@ -88,6 +90,14 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     throw new HttpError({ statusCode: 409, message: ErrorCode.AlreadySignedUpForBooking });
   }
 
+  const workflows = await getAllWorkflowsFromEventType(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    organizerUser.id
+  );
+
   // There are two paths here, reschedule a booking with seats and booking seats without reschedule
   if (rescheduleUid) {
     resultBooking = await rescheduleSeatedBooking(
@@ -98,7 +108,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails
     );
   } else {
-    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, reqBodyMetadata);
+    resultBooking = await createNewSeat(newSeatedBookingObject, seatedBooking, workflows, reqBodyMetadata);
   }
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking

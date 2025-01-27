@@ -82,6 +82,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       parentId: true,
       parent: {
         select: {
+          id: true,
           teamId: true,
           team: {
             select: {

@@ -18,6 +18,7 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
   const { eventType } = input;
   const workflows = await getEventTypeWorkflows(ctx.user.id, eventType.id);
   const completeEventType = {
+    id: eventType.id,
     workflows,
     teamId: eventType.teamId,
     userId: eventType.userId,

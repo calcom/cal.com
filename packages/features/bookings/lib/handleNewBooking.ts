@@ -26,27 +26,18 @@ import {
   sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinRescheduledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
-  sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import BookingCreatedService from "@calcom/features/bookings/postBookingServices/bookingCreatedService";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import {
-  deleteWebhookScheduledTriggers,
-  scheduleTrigger,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -1107,7 +1098,6 @@ async function handler(
       subscriberOptions,
       eventTrigger,
       responses,
-      workflows,
       rescheduledBy: reqBody.rescheduledBy,
       isDryRun,
     });
@@ -1175,7 +1165,6 @@ async function handler(
         reroutingFormResponses: reroutingFormResponses ?? null,
         reqBody: {
           user: reqBody.user,
-          metadata: reqBody.metadata,
           recurringEventId: reqBody.recurringEventId,
         },
         eventType: {
@@ -1195,6 +1184,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
+        metadata: { ...reqBody.metadata, noEmail, reqAppsStatus },
       });
 
       if (booking?.userId) {
@@ -1540,146 +1530,34 @@ async function handler(
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
   } else if (isConfirmedByDefault) {
-    // Use EventManager to conditionally use all needed integrations.
-    const createManager = await eventManager.create(evt);
-    if (evt.location) {
-      booking.location = evt.location;
-    }
-    // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
-    // to the default description when we are sending the emails.
-    evt.description = eventType.description;
+    if (!isDryRun) {
+      await BookingCreatedService.create({
+        evt,
+        allCredentials,
+        organizerUser,
+        eventType,
+        tOrganizer,
+        booking,
+        eventNameObject,
+        bookerUrl,
+      });
 
-    results = createManager.results;
-    referencesToCreate = createManager.referencesToCreate;
-    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
-
-    if (results.length > 0 && results.every((res) => !res.success)) {
-      const error = {
-        errorCode: "BookingCreatingMeetingFailed",
-        message: "Booking failed",
+      req.statusCode = 201;
+      const bookingResponse = {
+        ...booking,
+        user: {
+          ...booking.user,
+          email: null,
+        },
+        paymentRequired: false,
       };
 
-      loggerWithEventDetails.error(
-        `EventManager.create failure in some of the integrations ${organizerUser.username}`,
-        safeStringify({ error, results })
-      );
-    } else {
-      const additionalInformation: AdditionalInformation = {};
-
-      if (results.length) {
-        // Handle Google Meet results
-        // We use the original booking location since the evt location changes to daily
-        if (bookingLocation === MeetLocationType) {
-          const googleMeetResult = {
-            appName: GoogleMeetMetadata.name,
-            type: "conferencing",
-            uid: results[0].uid,
-            originalEvent: results[0].originalEvent,
-          };
-
-          // Find index of google_calendar inside createManager.referencesToCreate
-          const googleCalIndex = createManager.referencesToCreate.findIndex(
-            (ref) => ref.type === "google_calendar"
-          );
-          const googleCalResult = results[googleCalIndex];
-
-          if (!googleCalResult) {
-            loggerWithEventDetails.warn("Google Calendar not installed but using Google Meet as location");
-            results.push({
-              ...googleMeetResult,
-              success: false,
-              calWarnings: [tOrganizer("google_meet_warning")],
-            });
-          }
-
-          if (googleCalResult?.createdEvent?.hangoutLink) {
-            results.push({
-              ...googleMeetResult,
-              success: true,
-            });
-
-            // Add google_meet to referencesToCreate in the same index as google_calendar
-            createManager.referencesToCreate[googleCalIndex] = {
-              ...createManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
-            };
-
-            // Also create a new referenceToCreate with type video for google_meet
-            createManager.referencesToCreate.push({
-              type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
-              uid: googleCalResult.uid,
-              credentialId: createManager.referencesToCreate[googleCalIndex].credentialId,
-            });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
-            results.push({
-              ...googleMeetResult,
-              success: false,
-            });
-          }
-        }
-        // TODO: Handle created event metadata more elegantly
-        additionalInformation.hangoutLink = results[0].createdEvent?.hangoutLink;
-        additionalInformation.conferenceData = results[0].createdEvent?.conferenceData;
-        additionalInformation.entryPoints = results[0].createdEvent?.entryPoints;
-        evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
-        videoCallUrl =
-          additionalInformation.hangoutLink ||
-          organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
-          videoCallUrl;
-
-        if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
-          // The eventManager could change the iCalUID. At this point we can update the DB record
-          await prisma.booking.update({
-            where: {
-              id: booking.id,
-            },
-            data: {
-              iCalUID: evt.iCalUID || booking.iCalUID,
-            },
-          });
-        }
-      }
-      if (noEmail !== true) {
-        let isHostConfirmationEmailsDisabled = false;
-        let isAttendeeConfirmationEmailDisabled = false;
-
-        isHostConfirmationEmailsDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-        isAttendeeConfirmationEmailDisabled =
-          eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
-
-        if (isHostConfirmationEmailsDisabled) {
-          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-        }
-
-        if (isAttendeeConfirmationEmailDisabled) {
-          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-        }
-
-        loggerWithEventDetails.debug(
-          "Emails: Sending scheduled emails for booking confirmation",
-          safeStringify({
-            calEvent: getPiiFreeCalendarEvent(evt),
-          })
-        );
-
-        if (!isDryRun) {
-          await monitorCallbackAsync(
-            sendScheduledEmailsAndSMS,
-            {
-              ...evt,
-              additionalInformation,
-              additionalNotes,
-              customInputs,
-            },
-            eventNameObject,
-            isHostConfirmationEmailsDisabled,
-            isAttendeeConfirmationEmailDisabled,
-            eventType.metadata
-          );
-        }
-      }
+      return {
+        ...bookingResponse,
+        ...luckyUserResponse,
+        isDryRun,
+        ...(isDryRun ? { troubleshooterData } : {}),
+      };
     }
   } else {
     // If isConfirmedByDefault is false, then booking can't be considered ACCEPTED and thus EventManager has no role to play. Booking is created as PENDING
@@ -1832,71 +1710,8 @@ async function handler(
 
   loggerWithEventDetails.debug(`Booking ${organizerUser.username} completed`);
 
-  // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
-  if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await monitorCallbackAsync(getWebhooks, subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await monitorCallbackAsync(
-      getWebhooks,
-      subscriberOptionsMeetingStarted
-    );
-
-    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
-    const scheduleTriggerPromises = [];
-
-    if (rescheduleUid && originalRescheduledBooking) {
-      //delete all scheduled triggers for meeting ended and meeting started of booking
-      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
-        booking: originalRescheduledBooking,
-        isDryRun,
-      });
-    }
-
-    if (booking && booking.status === BookingStatus.ACCEPTED) {
-      const bookingWithCalEventResponses = {
-        ...booking,
-        responses: reqBody.calEventResponses,
-      };
-      for (const subscriber of subscribersMeetingEnded) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-            isDryRun,
-          })
-        );
-      }
-
-      for (const subscriber of subscribersMeetingStarted) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-            isDryRun,
-          })
-        );
-      }
-    }
-
-    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
-      loggerWithEventDetails.error(
-        "Error while scheduling or canceling webhook triggers",
-        JSON.stringify({ error })
-      );
-    });
-
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await monitorCallbackAsync(handleWebhookTrigger, {
-      subscriberOptions,
-      eventTrigger,
-      webhookData,
-      isDryRun,
-    });
-  } else {
-    // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
+  // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
+  if (!isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";

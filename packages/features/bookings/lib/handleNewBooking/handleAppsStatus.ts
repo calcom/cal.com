@@ -1,12 +1,12 @@
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
-import type { ReqAppsStatus, Booking } from "./types";
+import type { ReqAppsStatus } from "./types";
 
 export function handleAppsStatus(
   results: EventResult<AdditionalInformation>[],
-  booking: (Booking & { appsStatus?: AppsStatus[] }) | null,
-  reqAppsStatus: ReqAppsStatus
+  booking: { appsStatus?: AppsStatus[] } | null,
+  reqAppsStatus?: ReqAppsStatus
 ): AppsStatus[] {
   const resultStatus = mapResultsToAppsStatus(results);
 
@@ -14,7 +14,11 @@ export function handleAppsStatus(
     return updateBookingWithStatus(booking, resultStatus);
   }
 
-  return calculateAggregatedAppsStatus(reqAppsStatus, resultStatus);
+  if (reqAppsStatus) {
+    return calculateAggregatedAppsStatus(reqAppsStatus, resultStatus);
+  }
+
+  return resultStatus;
 }
 
 function mapResultsToAppsStatus(results: EventResult<AdditionalInformation>[]): AppsStatus[] {
@@ -29,7 +33,7 @@ function mapResultsToAppsStatus(results: EventResult<AdditionalInformation>[]): 
 }
 
 function updateBookingWithStatus(
-  booking: (Booking & { appsStatus?: AppsStatus[] }) | null,
+  booking: { appsStatus?: AppsStatus[] } | null,
   resultStatus: AppsStatus[]
 ): AppsStatus[] {
   if (booking !== null) {

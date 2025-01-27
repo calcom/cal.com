@@ -76,6 +76,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       paid: true,
       eventType: {
         select: {
+          id: true,
           slug: true,
           owner: {
             select: {
