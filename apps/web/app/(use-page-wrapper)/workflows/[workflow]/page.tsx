@@ -37,8 +37,6 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   );
 };
 
-export const generateStaticParams = () => [];
-
 const Page = async ({ params }: PageProps) => {
   // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const user = session?.user;
