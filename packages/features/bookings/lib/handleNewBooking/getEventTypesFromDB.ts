@@ -262,7 +262,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...baseEventType,
-    ...teamData,
+    profile: teamData.profile,
+    team: teamData.team,
+    parent: teamData.parent,
     workflows,
     hosts: hostsWithSelectedCalendars,
     users: usersWithSelectedCalendars,
