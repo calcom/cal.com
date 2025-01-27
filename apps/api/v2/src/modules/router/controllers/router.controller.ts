@@ -58,12 +58,13 @@ export class RouterController {
     @Req() request: Request,
     @Res() res: Response,
     @Query() query: Record<string, string>
-  ): Promise<void | ApiResponse<{ message: string; form: Awaited<ReturnType<typeof getSerializableForm>> }>> {
+  ): Promise<void | ApiResponse<{
+    isEmbed: boolean;
+    message: string;
+    form: Awaited<ReturnType<typeof getSerializableForm>>;
+  }>> {
     const queryParsed = querySchema.safeParse(request.query);
     const isEmbed = this.routerService.hasEmbedPath(request.url || "");
-    const pageProps = {
-      isEmbed,
-    };
 
     if (!queryParsed.success) {
       this.logger.log("Error parsing query", queryParsed.error);
@@ -177,7 +178,7 @@ export class RouterController {
       return {
         status: "success",
         data: {
-          ...pageProps,
+          isEmbed,
           form: serializableForm,
           message: decidedAction.value,
         },
@@ -207,7 +208,7 @@ export class RouterController {
             teamId,
             orgId,
           }),
-          isEmbed: pageProps.isEmbed,
+          isEmbed,
         })
       );
     } else if (decidedAction.type === "externalRedirectUrl") {
@@ -220,6 +221,7 @@ export class RouterController {
       data: {
         form: serializableForm,
         message: "Unhandled type of action",
+        isEmbed,
       },
     };
   }
