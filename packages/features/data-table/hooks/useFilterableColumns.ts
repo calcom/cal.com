@@ -5,6 +5,7 @@ import { type Table } from "@tanstack/react-table";
 import { useMemo } from "react";
 
 import type { FilterableColumn } from "../lib/types";
+import { ColumnFilterType } from "../lib/types";
 
 export function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(
@@ -16,14 +17,14 @@ export function useFilterableColumns<TData>(table: Table<TData>) {
     () =>
       columns
         .map((column) => {
-          const type = column.columnDef.meta?.filter?.type || "multi_select";
+          const type = column.columnDef.meta?.filter?.type || ColumnFilterType.MULTI_SELECT;
           const base = {
             id: column.id,
             title: typeof column.columnDef.header === "string" ? column.columnDef.header : column.id,
             ...(column.columnDef.meta?.filter || {}),
             type,
           };
-          if (type === "multi_select" || type === "single_select") {
+          if (type === ColumnFilterType.MULTI_SELECT || type === ColumnFilterType.SINGLE_SELECT) {
             const values = column.getFacetedUniqueValues();
             const options = Array.from(values.keys()).map((option) => {
               if (typeof option === "string") {
