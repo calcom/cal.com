@@ -9,6 +9,7 @@ import prisma from "@calcom/prisma";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -584,11 +585,14 @@ export class UserRepository {
     email,
     username,
     organizationId,
+    creationSource,
   }: {
     email: string;
     username: string;
     organizationId: number | null;
+    creationSource: CreationSource;
   }) {
+    console.log("create user", { email, username, organizationId });
     const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
     const hashedPassword = await hashPassword(password);
     const t = await getTranslation("en", "common");
@@ -624,6 +628,7 @@ export class UserRepository {
               },
             }
           : undefined,
+        creationSource,
       },
     });
   }
