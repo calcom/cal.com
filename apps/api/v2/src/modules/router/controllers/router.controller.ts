@@ -1,11 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { RoutingRepository } from "@/modules/router/router.repository";
 import { RouterService } from "@/modules/router/services/router.service";
 import {
   Controller,
   Get,
-  UseGuards,
   Req,
   Logger,
   NotFoundException,
@@ -46,7 +44,7 @@ const querySchema = z
   path: "/v2/router",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Destination Calendars")
+@DocsTags("Routing forms")
 export class RouterController {
   private logger = new Logger("Routing Controller");
 
