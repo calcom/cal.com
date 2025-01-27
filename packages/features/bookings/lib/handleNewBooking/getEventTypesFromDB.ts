@@ -194,7 +194,7 @@ const getEventTypeWorkflows = async (eventTypeId: number) => {
 
 // Update the main function to include workflows
 export const getEventTypesFromDB = async (eventTypeId: number) => {
-  const [baseEventType, users, hosts, teamData, workflows] = await Promise.all([
+  const [baseEventType, users, hosts, teamData, _workflows] = await Promise.all([
     getBaseEventType(eventTypeId),
     getEventTypeUsers(eventTypeId),
     getEventTypeHosts(eventTypeId),
@@ -211,12 +211,15 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
 
   const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
 
+  // We need to match the return type that prisma returns for workflows when the query was merged
+  const workflows = _workflows.map((workflow) => ({ workflow }));
+
   return {
     ...baseEventType,
     ...teamData,
+    workflows,
     hosts: hostsWithSelectedCalendars,
     users: usersWithSelectedCalendars,
-    workflows,
     metadata: EventTypeMetaDataSchema.parse(baseEventType?.metadata || {}),
     recurringEvent: parseRecurringEvent(baseEventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(baseEventType?.customInputs || []),
@@ -224,7 +227,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     bookingFields: getBookingFieldsWithSystemFields({
       ...baseEventType,
       isOrgTeamEvent,
-      workflows: workflows.map((workflow) => ({ workflow })),
+      workflows,
     }),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(baseEventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
