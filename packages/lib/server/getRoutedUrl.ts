@@ -176,7 +176,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
-            teamId: form.teamId,
+            teamId: form?.teamId,
             orgId: form.team?.parentId,
           }),
           isEmbed: pageProps.isEmbed,

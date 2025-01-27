@@ -21,6 +21,7 @@ export const generateMetadata = async () =>
 const Page = async ({ params, searchParams }: PageProps) => {
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const session = await getServerSession({ req: context.req });
+
   if (!session?.user?.id) {
     redirect("/auth/login");
   }
