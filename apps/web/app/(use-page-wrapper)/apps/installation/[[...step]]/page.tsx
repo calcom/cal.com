@@ -1,7 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { getServerSideProps } from "@lib/apps/installation/[[...step]]/getServerSideProps";
@@ -22,4 +21,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
 const getData = withAppDirSsr<OnboardingPageProps>(getServerSideProps);
 
-export default WithLayout({ getLayout: null, getData, Page });
+const ServerPage = async ({ params, searchParams }: PageProps) => {
+  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  return <Page {...props} />;
+};
+export default ServerPage;
