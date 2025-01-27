@@ -13,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert, Form, TextField, Button } from "@calcom/ui";
@@ -91,6 +92,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
             createOrganizationMutation.mutate({
               ...v,
               slug: `${v.name.toLocaleLowerCase()}-platform-${uuid().substring(0, 20)}`,
+              creationSource: CreationSource.API_V2,
             });
           }
         }}>
