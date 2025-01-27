@@ -36,6 +36,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -979,6 +980,7 @@ export const getOptions = ({
                 create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
               },
             }),
+            creationSource: CreationSource.WEBAPP,
           },
         });
 
