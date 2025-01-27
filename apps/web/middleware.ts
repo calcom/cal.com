@@ -1,6 +1,5 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -73,13 +72,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
-  }
-
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
@@ -91,6 +83,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
 
   return responseWithHeaders({ url, res, req });
 };
@@ -159,6 +155,7 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
+    "/auth/logout",
     "/auth/error",
     "/auth/signin",
     "/auth/oauth2/authorize",
