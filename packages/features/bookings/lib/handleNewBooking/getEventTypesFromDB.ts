@@ -62,6 +62,46 @@ const getBaseEventType = async (eventTypeId: number) => {
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       useEventLevelSelectedCalendars: true,
+      // TODO: Remove and abstract queries below
+      parent: {
+        select: {
+          teamId: true,
+          team: {
+            select: {
+              id: true,
+              bookingLimits: true,
+              includeManagedEventsInLimits: true,
+            },
+          },
+        },
+      },
+      owner: {
+        select: {
+          hideBranding: true,
+        },
+      },
+      schedule: {
+        select: {
+          id: true,
+          availability: true,
+          timeZone: true,
+        },
+      },
+      availability: {
+        select: {
+          date: true,
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
+      secondaryEmailId: true,
+      secondaryEmail: {
+        select: {
+          id: true,
+          email: true,
+        },
+      },
     },
   });
 };
@@ -122,7 +162,7 @@ const getEventTypeHosts = async (eventTypeId: number) => {
 };
 
 const getEventTypeTeamAndProfile = async (eventTypeId: number) => {
-  // TODO: should we pass this info in from the baseEventType fetched or is this okay rehitting this table?
+  // TODO: should we pass this info in from the baseEventType fetched or is this okay rehitting this
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: {
