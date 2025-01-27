@@ -11,11 +11,18 @@ export const generateSummary = async (transcriptUrl: string) => {
       .join(" ")
       .replace(/<[^>]*>/g, "");
 
-    const prompt = `Please analyze this meeting transcript and create a well-structured summary with the following format:
+    const prompt = `Please create a factual summary of this meeting transcript using bullet points. Only include information that was explicitly mentioned in the transcript - do not make assumptions or add implied next steps. Always include a "Next Steps" section, but if no explicit next steps were mentioned, state "No specific next steps were mentioned in the transcript."
 
-1. First, provide a brief overview of the meeting (2-3 sentences)
-2. Then, create relevant section headlines and summarize key points under each
-3. Finally, under a section called "Action Items", list all action items, tasks, and follow-ups mentioned in the meeting
+If discussed, organize the content under these possible sections:
+- Key Discussion Points
+- Current Situation
+- Challenges
+- Solutions Discussed
+- Decisions Made
+
+Format each section with bullet points. Use sub-bullets for related details.
+
+For the given transcript, only include sections where there is explicit content to summarize. The "Next Steps" section is mandatory.
 
 Meeting Transcript:
 ${cleanTranscript}`;
