@@ -122,6 +122,7 @@ const getEventTypeHosts = async (eventTypeId: number) => {
 };
 
 const getEventTypeTeamAndProfile = async (eventTypeId: number) => {
+  // TODO: should we pass this info in from the baseEventType fetched or is this okay rehitting this table?
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: {
