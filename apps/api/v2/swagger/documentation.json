@@ -2214,7 +2214,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}/bookings": {
       "get": {
         "operationId": "OrganizationsTeamsBookingsController_getAllOrgTeamBookings",
-        "summary": "Get org team bookings",
+        "summary": "Get organization team bookings",
         "parameters": [
           {
             "name": "status",
