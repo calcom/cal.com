@@ -2941,6 +2941,9 @@
   "add_preset" : "Add Preset",
   "authorize": "Authorize",
   "next": "Next",
+  "hide": "Hide",
+  "asc": "Asc",
+  "desc": "Desc",
   "verify_email": "Verify email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

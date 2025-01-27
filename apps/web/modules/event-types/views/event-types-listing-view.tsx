@@ -15,7 +15,6 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell from "@calcom/features/shell/Shell";
 import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -942,8 +941,36 @@ const InfiniteScrollMain = ({
   );
 };
 
+export const EventTypesCTA = () => {
+  const { data: user } = useMeQuery();
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
+  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+    filters && { filters },
+    {
+      refetchOnWindowFocus: false,
+      gcTime: 1 * 60 * 60 * 1000,
+      staleTime: 1 * 60 * 60 * 1000,
+    }
+  );
+  const profileOptions =
+    getUserEventGroupsData?.profiles
+      ?.filter((profile) => !profile.readOnly)
+      ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.map((profile) => {
+        return {
+          teamId: profile.teamId,
+          label: profile.name || profile.slug,
+          image: profile.image,
+          membershipRole: profile.membershipRole,
+          slug: profile.slug,
+        };
+      }) ?? [];
+
+  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+};
+
 const EventTypesPage: React.FC = () => {
-  const { t } = useLocale();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
@@ -980,37 +1007,13 @@ const EventTypesPage: React.FC = () => {
     );
   }, [orgBranding, user]);
 
-  const profileOptions =
-    getUserEventGroupsData?.profiles
-      ?.filter((profile) => !profile.readOnly)
-      ?.filter((profile) => !profile.eventTypesLockedByOrg)
-      ?.map((profile) => {
-        return {
-          teamId: profile.teamId,
-          label: profile.name || profile.slug,
-          image: profile.image,
-          membershipRole: profile.membershipRole,
-          slug: profile.slug,
-        };
-      }) ?? [];
-
   return (
-    <Shell
-      withoutMain={false}
-      title={t("event_types_page_title")}
-      description={t("event_types_page_subtitle")}
-      withoutSeo
-      heading={t("event_types_page_title")}
-      hideHeadingOnMobile
-      subtitle={t("event_types_page_subtitle")}
-      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <InfiniteScrollMain
-        profiles={getUserEventGroupsData?.profiles}
-        eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-        status={getUserEventGroupsStatus}
-        errorMessage={getUserEventGroupsStatusError?.message}
-      />
-    </Shell>
+    <InfiniteScrollMain
+      profiles={getUserEventGroupsData?.profiles}
+      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
+      status={getUserEventGroupsStatus}
+      errorMessage={getUserEventGroupsStatusError?.message}
+    />
   );
 };
 
