@@ -10,6 +10,7 @@ import {
   BadRequestException,
   Res,
   Query,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request, Response } from "express";
@@ -26,7 +27,6 @@ import {
   getFieldResponseForJsonLogic,
   findMatchingRoute,
   handleResponse,
-  getServerTimingHeader,
   substituteVariables,
   getAbsoluteEventTypeRedirectUrlWithEmbedSupport,
   getUrlSearchParamsToForward,
@@ -68,7 +68,7 @@ export class RouterController {
 
     if (!queryParsed.success) {
       this.logger.log("Error parsing query", queryParsed.error);
-      throw new NotFoundException("Error parsing query");
+      throw new NotFoundException("Error parsing query parameters");
     }
 
     // TODO(hariom): Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
@@ -86,27 +86,18 @@ export class RouterController {
     };
 
     const { currentOrgDomain } = orgDomainConfig(request);
-
-    console.log({ currentOrgDomain });
-
-    let timeTaken: Record<string, number | null> = {};
-
-    const formQueryStart = performance.now();
     const form = await this.routerRepository.findFormByIdIncludeUserTeamAndOrg(formId);
     const teamId = form?.teamId;
     const orgId = form?.team?.parentId;
-    timeTaken.formQuery = performance.now() - formQueryStart;
 
     if (!form) {
-      throw new NotFoundException();
+      throw new NotFoundException("Could not find this form.");
     }
 
-    const profileEnrichmentStart = performance.now();
     const formWithUserProfile = {
       ...form,
       user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
     };
-    timeTaken.profileEnrichment = performance.now() - profileEnrichmentStart;
 
     if (
       !isAuthorizedToViewFormOnOrgDomain({
@@ -115,14 +106,12 @@ export class RouterController {
         team: form.team,
       })
     ) {
-      throw new NotFoundException();
+      throw new UnauthorizedException("Unauthorized Domain.");
     }
 
-    const getSerializableFormStart = performance.now();
     const serializableForm = await getSerializableForm({
       form: enrichFormWithMigrationData(formWithUserProfile),
     });
-    timeTaken.getSerializableForm = performance.now() - getSerializableFormStart;
 
     const response: FormResponse = {};
     if (!serializableForm.fields) {
@@ -141,7 +130,7 @@ export class RouterController {
     const matchingRoute = findMatchingRoute({ form: serializableForm, response });
 
     if (!matchingRoute) {
-      throw new NotFoundException("No matching route could be found");
+      throw new NotFoundException("No matching route configured for this form could be found.");
     }
 
     const decidedAction = matchingRoute.action;
@@ -161,19 +150,10 @@ export class RouterController {
       teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
       formResponseId = result.formResponse.id;
       attributeRoutingConfig = result.attributeRoutingConfig;
-      timeTaken = {
-        ...timeTaken,
-        ...result.timeTaken,
-      };
     } catch (error) {
-      this.logger.error(error);
-      // should we throw an error here or should we return object with error message just like how its done in getServerSideProps for webapp?
+      throw new BadRequestException("Could not process form response.");
     }
 
-    // TODO: To be done using sentry tracing
-    this.logger.log("Server-Timing", getServerTimingHeader(timeTaken));
-
-    // TODO: Maybe take action after successful mutation
     if (decidedAction.type === "customPageMessage") {
       return {
         status: "success",
@@ -183,7 +163,9 @@ export class RouterController {
           message: decidedAction.value,
         },
       };
-    } else if (decidedAction.type === "eventTypeRedirectUrl") {
+    }
+
+    if (decidedAction.type === "eventTypeRedirectUrl") {
       const eventTypeUrlWithResolvedVariables = substituteVariables(
         decidedAction.value,
         response,
@@ -195,14 +177,11 @@ export class RouterController {
         getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
           eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
           form: serializableForm,
-          // bit doubtful regardng this getUrlSearchParamsToForward
-          // might have to double check again
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
             teamMembersMatchingAttributeLogic,
-            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId,
@@ -211,11 +190,12 @@ export class RouterController {
           isEmbed,
         })
       );
-    } else if (decidedAction.type === "externalRedirectUrl") {
+    }
+
+    if (decidedAction.type === "externalRedirectUrl") {
       return res.redirect(307, `${decidedAction.value}?${stringify(query)}`);
     }
 
-    // TODO (hariom): Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
     return {
       status: "success",
       data: {
