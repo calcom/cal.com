@@ -338,7 +338,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-    } else if (isStepEdited(oldStep, { ...newStep, safe: oldStep.safe })) {
+    } else if (isStepEdited(oldStep, { ...newStep, verifiedAt: oldStep.verifiedAt })) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan) {
         const isChangingToSMSOrWhatsapp =
@@ -398,7 +398,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender,
           numberVerificationPending: false,
           includeCalendarEvent: newStep.includeCalendarEvent,
-          ...(SCANNING_WORKFLOW_STEPS && didBodyChange ? { safe: false } : {}),
+          ...(SCANNING_WORKFLOW_STEPS && didBodyChange ? { verifiedAt: null } : {}),
         },
       });
 
@@ -472,7 +472,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           data: {
             ...step,
             numberVerificationPending: false,
-            ...(!SCANNING_WORKFLOW_STEPS ? { safe: true } : {}),
+            ...(!SCANNING_WORKFLOW_STEPS ? { verifiedAt: new Date() } : {}),
           },
         })
       )

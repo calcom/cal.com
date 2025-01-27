@@ -34,7 +34,7 @@ export function createWorkflowPageFixture(page: Page) {
     for (const step of workflow.steps) {
       await prisma.workflowStep.update({
         where: { id: step.id },
-        data: { safe: true },
+        data: { verifiedAt: new Date() },
       });
     }
 

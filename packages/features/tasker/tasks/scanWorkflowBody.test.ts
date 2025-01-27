@@ -77,7 +77,7 @@ describe("scanWorkflowBody", () => {
 
     expect(prismaMock.workflowStep.update).toHaveBeenCalledWith({
       where: { id: 1 },
-      data: { safe: true },
+      data: { verifiedAt: expect.any(Date) },
     });
   });
 
@@ -99,7 +99,7 @@ describe("scanWorkflowBody", () => {
     });
     expect(prismaMock.workflowStep.update).toHaveBeenCalledWith({
       where: { id: 1 },
-      data: { safe: true },
+      data: { verifiedAt: expect.any(Date) },
     });
   });
 

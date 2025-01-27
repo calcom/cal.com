@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "WorkflowStep" ADD COLUMN     "safe" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "WorkflowStep" ADD COLUMN "verifiedAt" TIMESTAMP(3);
 
--- Update existing records to set safe to true
-UPDATE "WorkflowStep" SET "safe" = true;
+-- Update existing records to set verifiedAt to the current date
+UPDATE "WorkflowStep" SET "verifiedAt" = NOW();

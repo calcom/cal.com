@@ -89,7 +89,7 @@ export default function WorkflowDetailsPage(props: Props) {
       senderName: !isSMSAction(action) ? senderName || SENDER_NAME : SENDER_NAME,
       numberVerificationPending: false,
       includeCalendarEvent: false,
-      safe: SCANNING_WORKFLOW_STEPS ? false : true,
+      verifiedAt: SCANNING_WORKFLOW_STEPS ? null : new Date(),
     };
     steps?.push(step);
     form.setValue("steps", steps);

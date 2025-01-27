@@ -40,7 +40,7 @@ export async function scanWorkflowBody(payload: string) {
           id: workflowStep.id,
         },
         data: {
-          safe: true,
+          verifiedAt: new Date(),
         },
       });
       continue;
@@ -66,7 +66,7 @@ export async function scanWorkflowBody(payload: string) {
           id: workflowStep.id,
         },
         data: {
-          safe: true,
+          verifiedAt: new Date(),
         },
       });
     }

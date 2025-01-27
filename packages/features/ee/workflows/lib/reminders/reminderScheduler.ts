@@ -54,7 +54,7 @@ const processWorkflowStep = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
-  if (!step.safe) return;
+  if (!step?.verifiedAt) return;
 
   if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
