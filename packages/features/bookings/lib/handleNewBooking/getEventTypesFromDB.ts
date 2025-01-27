@@ -63,6 +63,11 @@ const getBaseEventType = async (eventTypeId: number) => {
       rrSegmentQueryValue: true,
       useEventLevelSelectedCalendars: true,
       // TODO: Remove and abstract queries below
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       parent: {
         select: {
           teamId: true,
