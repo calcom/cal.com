@@ -3,6 +3,7 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/upda
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import { CreationSource } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -70,7 +71,7 @@ export class OrganizationsUsersRepository {
 
   async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
     const createdUser = await this.dbWrite.prisma.user.create({
-      data: createUserBody,
+      data: { ...createUserBody, creationSource: CreationSource.API_V2 },
     });
 
     return createdUser;

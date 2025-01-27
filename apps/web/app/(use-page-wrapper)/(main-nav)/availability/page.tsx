@@ -1,7 +1,9 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
+// import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-// import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 // import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import AvailabilityPage, { AvailabilityCTA } from "~/availability/availability-view";
 
@@ -15,7 +17,7 @@ export const generateMetadata = async () => {
 };
 
 const Page = async () => {
-  // const session = await getServerSessionForAppDir();
+  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const userId = session?.user?.id;
   // const orgId = session?.user?.org?.id;
   // if (!userId || !orgId) {

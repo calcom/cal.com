@@ -38,6 +38,7 @@ export type IconName =
   | "chevrons-down-up"
   | "chevrons-left"
   | "chevrons-right"
+  | "chevrons-up-down"
   | "circle-alert"
   | "circle-arrow-up"
   | "circle-check-big"
