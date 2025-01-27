@@ -71,7 +71,3 @@ const Page = async ({ params }: PageProps) => {
 };
 
 export default Page;
-export const dynamic = "force-static";
-// generate segments on demand
-export const dynamicParams = true;
-export const revalidate = 10;
