@@ -63,7 +63,8 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <LegacyPage
-    //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
+      workflow={parsed.data.workflow}
+      //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
     />
   );
 };
