@@ -10,9 +10,11 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  Res,
+  Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { stringify } from "querystring";
 import z from "zod";
 
@@ -54,7 +56,11 @@ export class RouterController {
   ) {}
 
   @Get("/")
-  async getRouterResponse(@Req() request: Request): Promise<ApiResponse<unknown>> {
+  async getRouterResponse(
+    @Req() request: Request,
+    @Res() res: Response,
+    @Query() query: Record<string, string>
+  ): Promise<void | ApiResponse<{ message: string; form: Awaited<ReturnType<typeof getSerializableForm>> }>> {
     const queryParsed = querySchema.safeParse(request.query);
     const isEmbed = this.routerService.hasEmbedPath(request.url || "");
     const pageProps = {
@@ -82,10 +88,14 @@ export class RouterController {
 
     const { currentOrgDomain } = orgDomainConfig(request);
 
+    console.log({ currentOrgDomain });
+
     let timeTaken: Record<string, number | null> = {};
 
     const formQueryStart = performance.now();
     const form = await this.routerRepository.findFormByIdIncludeUserTeamAndOrg(formId);
+    const teamId = form?.teamId;
+    const orgId = form?.team?.parentId;
     timeTaken.formQuery = performance.now() - formQueryStart;
 
     if (!form) {
@@ -181,42 +191,35 @@ export class RouterController {
         serializableForm.fields
       );
 
-      return {
-        status: "success",
-        data: {
-          redirectDestination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
-            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
-            form: serializableForm,
-            // bit doubtful regardng this getUrlSearchParamsToForward
-            // might have to double check again
-            allURLSearchParams: getUrlSearchParamsToForward({
-              formResponse: response,
-              fields: serializableForm.fields,
-              searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
-              teamMembersMatchingAttributeLogic,
-              // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-              formResponseId: formResponseId!,
-              attributeRoutingConfig: attributeRoutingConfig ?? null,
-            }),
-            isEmbed: pageProps.isEmbed,
+      return res.redirect(
+        307,
+        getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+          eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+          form: serializableForm,
+          // bit doubtful regardng this getUrlSearchParamsToForward
+          // might have to double check again
+          allURLSearchParams: getUrlSearchParamsToForward({
+            formResponse: response,
+            fields: serializableForm.fields,
+            searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
+            teamMembersMatchingAttributeLogic,
+            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
+            formResponseId,
+            attributeRoutingConfig: attributeRoutingConfig ?? null,
+            teamId,
+            orgId,
           }),
           isEmbed: pageProps.isEmbed,
-        },
-      };
+        })
+      );
     } else if (decidedAction.type === "externalRedirectUrl") {
-      return {
-        status: "success",
-        data: {
-          redirectDestination: `${decidedAction.value}?${stringify(request.query)}`,
-        },
-      };
+      return res.redirect(307, `${decidedAction.value}?${stringify(query)}`);
     }
 
     // TODO (hariom): Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
     return {
       status: "success",
       data: {
-        ...pageProps,
         form: serializableForm,
         message: "Unhandled type of action",
       },
