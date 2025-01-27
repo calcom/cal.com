@@ -65,12 +65,36 @@ const getBaseEventType = async (eventTypeId: number) => {
     },
   });
 };
-
 const getEventTypeUsers = async (eventTypeId: number) => {
-  const result = await prisma.eventType.findUniqueOrThrow({
-    where: { id: eventTypeId },
+  const result = await prisma.user.findMany({
+    where: {
+      eventTypes: {
+        some: {
+          id: eventTypeId,
+        },
+      },
+    },
     select: {
-      users: {
+      credentials: {
+        select: credentialForCalendarServiceSelect,
+      },
+      ...userSelect.select,
+    },
+  });
+  return result;
+};
+
+const getEventTypeHosts = async (eventTypeId: number) => {
+  const result = await prisma.host.findMany({
+    where: {
+      eventTypeId: eventTypeId,
+    },
+    select: {
+      isFixed: true,
+      priority: true,
+      weight: true,
+      createdAt: true,
+      user: {
         select: {
           credentials: {
             select: credentialForCalendarServiceSelect,
@@ -78,93 +102,92 @@ const getEventTypeUsers = async (eventTypeId: number) => {
           ...userSelect.select,
         },
       },
-    },
-  });
-  return result.users;
-};
-
-const getEventTypeHosts = async (eventTypeId: number) => {
-  const result = await prisma.eventType.findUniqueOrThrow({
-    where: { id: eventTypeId },
-    select: {
-      hosts: {
+      schedule: {
         select: {
-          isFixed: true,
-          priority: true,
-          weight: true,
-          createdAt: true,
-          user: {
+          availability: {
             select: {
-              credentials: {
-                select: credentialForCalendarServiceSelect,
-              },
-              ...userSelect.select,
+              date: true,
+              startTime: true,
+              endTime: true,
+              days: true,
             },
           },
-          schedule: {
-            select: {
-              availability: {
-                select: {
-                  date: true,
-                  startTime: true,
-                  endTime: true,
-                  days: true,
-                },
-              },
-              timeZone: true,
-              id: true,
-            },
-          },
+          timeZone: true,
+          id: true,
         },
       },
     },
   });
-  return result.hosts;
+  return result;
 };
 
 const getEventTypeTeamAndProfile = async (eventTypeId: number) => {
-  return prisma.eventType.findUniqueOrThrow({
+  const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
     select: {
-      profile: {
-        select: {
-          organizationId: true,
-        },
-      },
-      team: {
-        select: {
-          id: true,
-          name: true,
-          parentId: true,
-          bookingLimits: true,
-          includeManagedEventsInLimits: true,
-        },
-      },
-      parent: {
-        select: {
-          teamId: true,
-          team: {
-            select: {
-              id: true,
-              bookingLimits: true,
-              includeManagedEventsInLimits: true,
-            },
-          },
-        },
-      },
+      profileId: true,
+      teamId: true,
+      parentId: true,
     },
   });
+
+  if (!eventType) throw new Error("Event type not found");
+
+  const [profile, team, parent] = await Promise.all([
+    eventType.profileId
+      ? prisma.profile.findUnique({
+          where: { id: eventType.profileId },
+          select: {
+            organizationId: true,
+          },
+        })
+      : null,
+    eventType.teamId
+      ? prisma.team.findUnique({
+          where: { id: eventType.teamId },
+          select: {
+            id: true,
+            name: true,
+            parentId: true,
+            bookingLimits: true,
+            includeManagedEventsInLimits: true,
+          },
+        })
+      : null,
+    eventType.parentId
+      ? prisma.eventType.findUnique({
+          where: { id: eventType.parentId },
+          select: {
+            teamId: true,
+            team: {
+              select: {
+                id: true,
+                bookingLimits: true,
+                includeManagedEventsInLimits: true,
+              },
+            },
+          },
+        })
+      : null,
+  ]);
+
+  return {
+    profile,
+    team,
+    parent,
+  };
 };
 
-// Add this new function after the other query functions
 const getEventTypeWorkflows = async (eventTypeId: number) => {
-  const result = await prisma.eventType.findMany({
-    where: { id: eventTypeId },
-    select: {
-      workflows: {
-        select: workflowSelect,
+  const result = await prisma.workflow.findMany({
+    where: {
+      activeOn: {
+        some: {
+          id: eventTypeId,
+        },
       },
     },
+    select: workflowSelect,
   });
   return result;
 };
