@@ -164,7 +164,7 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="items-center">
+        <Button color="secondary" className="items-center capitalize">
           {selectedPreset.value !== CUSTOM_PRESET_VALUE && (
             <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>
           )}
