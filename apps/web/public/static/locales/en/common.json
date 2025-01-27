@@ -2931,6 +2931,7 @@
   "managed_users": "Managed Users",
   "managed_users_description": "See all the managed users created by your OAuth client",
   "select_oAuth_client": "Select Oauth Client",
+  "hubspot_create_contact_under_company": "Create new contacts under a company where the website matches the contact email domain",
   "on_every_instance": "On every instance",
   "internal_booking_note": "Internal Note",
   "internal_note_cancellation_reason": "Reason shared with customer (optional)",
