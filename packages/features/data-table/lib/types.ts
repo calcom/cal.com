@@ -2,6 +2,14 @@ import { z } from "zod";
 
 import type { IconName } from "@calcom/ui";
 
+export enum ColumnFilterType {
+  SINGLE_SELECT = "ss",
+  MULTI_SELECT = "ms",
+  TEXT = "t",
+  NUMBER = "n",
+  DATE_RANGE = "dr",
+}
+
 export const ZTextFilterOperator = z.enum([
   "equals",
   "notEquals",
@@ -16,21 +24,21 @@ export const ZTextFilterOperator = z.enum([
 export type TextFilterOperator = z.infer<typeof ZTextFilterOperator>;
 
 export const ZSingleSelectFilterValue = z.object({
-  type: z.literal("single_select"),
-  data: z.string(),
+  type: z.literal(ColumnFilterType.SINGLE_SELECT),
+  data: z.union([z.string(), z.number()]),
 });
 
 export type SingleSelectFilterValue = z.infer<typeof ZSingleSelectFilterValue>;
 
 export const ZMultiSelectFilterValue = z.object({
-  type: z.literal("multi_select"),
+  type: z.literal(ColumnFilterType.MULTI_SELECT),
   data: z.union([z.string(), z.number()]).array(),
 });
 
 export type MultiSelectFilterValue = z.infer<typeof ZMultiSelectFilterValue>;
 
 export const ZTextFilterValue = z.object({
-  type: z.literal("text"),
+  type: z.literal(ColumnFilterType.TEXT),
   data: z.object({
     operator: ZTextFilterOperator,
     operand: z.string(),
@@ -51,7 +59,7 @@ export const ZNumberFilterOperator = z.enum([
 export type NumberFilterOperator = z.infer<typeof ZNumberFilterOperator>;
 
 export const ZNumberFilterValue = z.object({
-  type: z.literal("number"),
+  type: z.literal(ColumnFilterType.NUMBER),
   data: z.object({
     operator: ZNumberFilterOperator,
     operand: z.number(),
@@ -60,16 +68,26 @@ export const ZNumberFilterValue = z.object({
 
 export type NumberFilterValue = z.infer<typeof ZNumberFilterValue>;
 
+export const ZDateRangeFilterValue = z.object({
+  type: z.literal(ColumnFilterType.DATE_RANGE),
+  data: z.object({
+    startDate: z.string().nullable(),
+    endDate: z.string().nullable(),
+    preset: z.string(),
+  }),
+});
+
+export type DateRangeFilterValue = z.infer<typeof ZDateRangeFilterValue>;
+
 export const ZFilterValue = z.union([
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
   ZTextFilterValue,
   ZNumberFilterValue,
+  ZDateRangeFilterValue,
 ]);
 
 export type FilterValue = z.infer<typeof ZFilterValue>;
-
-export type ColumnFilterType = "single_select" | "multi_select" | "text" | "number";
 
 export type ColumnFilterMeta = {
   type?: ColumnFilterType;
@@ -79,24 +97,24 @@ export type ColumnFilterMeta = {
 export type FilterableColumn = {
   id: string;
   title: string;
+  icon?: IconName;
 } & (
   | {
-      type: "single_select";
-      icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
+      type: ColumnFilterType.SINGLE_SELECT;
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
-      type: "multi_select";
-      icon?: IconName;
-      options: Map<string | { label: string; value: string }, number>;
+      type: ColumnFilterType.MULTI_SELECT;
+      options: Array<{ label: string; value: string | number }>;
     }
   | {
-      type: "text";
-      icon?: IconName;
+      type: ColumnFilterType.TEXT;
     }
   | {
-      type: "number";
-      icon?: IconName;
+      type: ColumnFilterType.NUMBER;
+    }
+  | {
+      type: ColumnFilterType.DATE_RANGE;
     }
 );
 
@@ -109,21 +127,17 @@ export type ColumnFilter = z.infer<typeof ZColumnFilter>;
 
 export type TypedColumnFilter<T extends ColumnFilterType> = {
   id: string;
-  value: T extends "text"
+  value: T extends ColumnFilterType.TEXT
     ? TextFilterValue
-    : T extends "number"
+    : T extends ColumnFilterType.NUMBER
     ? NumberFilterValue
-    : T extends "single_select"
+    : T extends ColumnFilterType.SINGLE_SELECT
     ? SingleSelectFilterValue
-    : T extends "multi_select"
+    : T extends ColumnFilterType.MULTI_SELECT
     ? MultiSelectFilterValue
+    : T extends ColumnFilterType.DATE_RANGE
+    ? DateRangeFilterValue
     : never;
-};
-
-export type ExternalFilter = {
-  key: string;
-  titleKey: string;
-  component: () => React.ReactNode;
 };
 
 export const ZSorting = z.object({
