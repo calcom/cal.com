@@ -1,6 +1,5 @@
 import type { PageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -20,13 +19,9 @@ const Page = async ({ params, searchParams }: PageProps) => {
   // cookie will be cleared in `/apps/web/middleware.ts`
   const h = headers();
   const context = buildLegacyCtx(h, cookies(), params, searchParams);
-  const ssr = await ssrInit(context);
-  const props = {
-    trpcState: ssr.dehydrate(),
-    query: context.query,
-  };
+  await ssrInit(context);
 
-  return <Logout {...props} />;
+  return <Logout query={context.query} />;
 };
 
-export default WithLayout({ getLayout: null, ServerPage: Page })<"P">;
+export default Page;
