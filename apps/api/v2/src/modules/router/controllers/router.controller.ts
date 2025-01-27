@@ -54,7 +54,6 @@ export class RouterController {
   ) {}
 
   @Get("/")
-  @UseGuards(NextAuthGuard)
   async getRouterResponse(@Req() request: Request): Promise<ApiResponse<unknown>> {
     const queryParsed = querySchema.safeParse(request.query);
     const isEmbed = this.routerService.hasEmbedPath(request.url || "");
