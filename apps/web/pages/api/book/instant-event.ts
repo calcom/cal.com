@@ -5,6 +5,7 @@ import handleInstantMeeting from "@calcom/features/instant-meeting/handleInstant
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import getIP from "@calcom/lib/getIP";
 import { defaultResponder } from "@calcom/lib/server";
+import { CreationSource } from "@calcom/prisma/enums";
 
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
@@ -16,6 +17,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
 
   const session = await getServerSession({ req, res });
   req.userId = session?.user?.id || -1;
+  req.body.creationSource = CreationSource.WEBAPP;
   const booking = await handleInstantMeeting(req);
   return booking;
 }
