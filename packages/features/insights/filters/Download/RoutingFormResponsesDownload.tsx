@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { Dayjs } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import type { ColumnFilter, SortingState } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -14,11 +14,11 @@ type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForD
 type Props = {
   teamId: number | undefined;
   userId: number | undefined;
-  memberUserId: number | undefined;
+  memberUserIds: number[] | undefined;
   routingFormId: string | undefined;
   isAll: boolean;
-  startDate: Dayjs;
-  endDate: Dayjs;
+  startDate: string;
+  endDate: string;
   columnFilters: ColumnFilter[];
   sorting: SortingState;
 };
@@ -31,7 +31,7 @@ type Batch = {
 export const RoutingFormResponsesDownload = ({
   teamId,
   userId,
-  memberUserId,
+  memberUserIds,
   routingFormId,
   isAll,
   startDate,
@@ -52,11 +52,11 @@ export const RoutingFormResponsesDownload = ({
   }> => {
     const { data, nextCursor } = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
       teamId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       userId,
-      memberUserId,
-      isAll: isAll ?? false,
+      memberUserIds,
+      isAll: isAll,
       routingFormId,
       columnFilters,
       sorting,
@@ -84,9 +84,9 @@ export const RoutingFormResponsesDownload = ({
       }
 
       if (allData.length > 0) {
-        const filename = `RoutingFormResponses-${startDate.format("YYYY-MM-DD")}-${endDate.format(
-          "YYYY-MM-DD"
-        )}.csv`;
+        const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {

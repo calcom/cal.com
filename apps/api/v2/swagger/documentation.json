@@ -15277,6 +15277,10 @@
             "type": "string",
             "example": "Jane Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "jane100@example.com"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -15289,6 +15293,7 @@
         "required": [
           "id",
           "name",
+          "email",
           "username",
           "timeZone"
         ]
