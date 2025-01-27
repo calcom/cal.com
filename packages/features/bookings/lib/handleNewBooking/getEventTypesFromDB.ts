@@ -221,7 +221,11 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
     recurringEvent: parseRecurringEvent(baseEventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(baseEventType?.customInputs || []),
     locations: (baseEventType?.locations ?? []) as LocationObject[],
-    bookingFields: getBookingFieldsWithSystemFields({ ...baseEventType, isOrgTeamEvent } || {}),
+    bookingFields: getBookingFieldsWithSystemFields({
+      ...baseEventType,
+      isOrgTeamEvent,
+      workflows: workflows.map((workflow) => ({ workflow })),
+    }),
     rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(baseEventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
