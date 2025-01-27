@@ -28,6 +28,8 @@ import {
   handleResponse,
   getServerTimingHeader,
   substituteVariables,
+  getAbsoluteEventTypeRedirectUrlWithEmbedSupport,
+  getUrlSearchParamsToForward,
 } from "@calcom/platform-libraries-1.2.3";
 import type { FormResponse } from "@calcom/platform-libraries-1.2.3";
 import { ApiResponse } from "@calcom/platform-types";
@@ -65,8 +67,20 @@ export class RouterController {
       throw new NotFoundException("Error parsing query");
     }
 
-    // Known params reserved by Cal.com are form, embed, layout. We should exclude all of them.
-    const { form: formId, ...fieldsResponses } = queryParsed.data;
+    // TODO(hariom): Known params reserved by Cal.com are form, embed, layout and other cal. prefixed params. We should exclude all of them from fieldsResponses.
+    // But they must be present in `paramsToBeForwardedAsIs` as they could be needed by Booking Page as well.
+    const {
+      form: formId,
+      "cal.isBookingDryRun": isBookingDryRunParam,
+      ...fieldsResponses
+    } = queryParsed.data;
+    const isBookingDryRun = isBookingDryRunParam === "true";
+    const paramsToBeForwardedAsIs = {
+      ...fieldsResponses,
+      // Must be forwarded if present to Booking Page. Setting it explicitly here as it is critical to be present in the URL.
+      ...(isBookingDryRunParam ? { "cal.isBookingDryRun": isBookingDryRunParam } : null),
+    };
+
     const { currentOrgDomain } = orgDomainConfig(request);
 
     let timeTaken: Record<string, number | null> = {};
@@ -80,7 +94,6 @@ export class RouterController {
     }
 
     const profileEnrichmentStart = performance.now();
-    // maybe its better to import UserRepository from platform libraries instead of setting up one in v2
     const formWithUserProfile = {
       ...form,
       user: await UserRepository.enrichUserWithItsProfile({ user: form.user }),
@@ -135,6 +148,7 @@ export class RouterController {
         formFillerId: uuidv4(),
         response: response,
         chosenRouteId: matchingRoute.id,
+        isPreview: isBookingDryRun,
       });
       teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
       formResponseId = result.formResponse.id;
@@ -145,6 +159,7 @@ export class RouterController {
       };
     } catch (error) {
       this.logger.error(error);
+      // should we throw an error here or should we return object with error message just like how its done in getServerSideProps for webapp?
     }
 
     // TODO: To be done using sentry tracing
@@ -170,35 +185,35 @@ export class RouterController {
       return {
         status: "success",
         data: {
-          //   redirect: {
-          //     destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
-          //       eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
-          //       form: serializableForm,
-          //       allURLSearchParams: getUrlSearchParamsToForward({
-          //         formResponse: response,
-          //         fields: serializableForm.fields,
-          //         searchParams: new URLSearchParams(stringify(fieldsResponses)),
-          //         teamMembersMatchingAttributeLogic,
-          //         // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-          //         formResponseId: formResponseId!,
-          //         attributeRoutingConfig: attributeRoutingConfig ?? null,
-          //       }),
-          //       isEmbed: pageProps.isEmbed,
-          //     }),
-          //   },
+          redirectDestination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
+            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+            form: serializableForm,
+            // bit doubtful regardng this getUrlSearchParamsToForward
+            // might have to double check again
+            allURLSearchParams: getUrlSearchParamsToForward({
+              formResponse: response,
+              fields: serializableForm.fields,
+              searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
+              teamMembersMatchingAttributeLogic,
+              // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
+              formResponseId: formResponseId!,
+              attributeRoutingConfig: attributeRoutingConfig ?? null,
+            }),
+            isEmbed: pageProps.isEmbed,
+          }),
+          isEmbed: pageProps.isEmbed,
         },
       };
     } else if (decidedAction.type === "externalRedirectUrl") {
       return {
         status: "success",
         data: {
-          redirect: {
-            // destination: `${decidedAction.value}?${stringify(request.query)}`,
-          },
+          redirectDestination: `${decidedAction.value}?${stringify(request.query)}`,
         },
       };
     }
 
+    // TODO (hariom): Consider throwing error here as there is no value of decidedAction.type that would cause the flow to be here
     return {
       status: "success",
       data: {
