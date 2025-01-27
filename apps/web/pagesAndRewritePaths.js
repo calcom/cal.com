@@ -8,7 +8,7 @@ let pages = (exports.pages = glob
   })
   .map((filename) =>
     filename
-      .replace(/^(app\/\(use-page-wrapper\)|app\/\(use-page-wrapper\)\/\(main-nav\)|pages|app)\//, "")
+      .replace(/^(app\/\(use-page-wrapper\)\/\(main-nav\)|app\/\(use-page-wrapper\)|pages|app)\//, "")
       .replace(/(\.tsx|\.js|\.ts)/, "")
       .replace(/\/.*/, "")
   )
@@ -27,6 +27,8 @@ let pages = (exports.pages = glob
         "WithAppDirSsr",
         "WithEmbedSSR",
         "WithEmbedSSR.test",
+        "ShellMainAppDir",
+        "ShellMainAppDirBackButton",
       ].some((prefix) => v.startsWith(prefix))
   ));
 
