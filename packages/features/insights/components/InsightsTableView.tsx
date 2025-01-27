@@ -7,7 +7,18 @@ import { trpc } from "@calcom/trpc";
 import { CardInsights } from "./Card";
 import { LoadingInsight } from "./LoadingInsights";
 
-const InsightsTableView = () => {
+interface InsightData {
+  title: string;
+  createdAt?: Date;
+  timeStatus: string;
+  startTime?: Date;
+  endTime?: Date;
+  paid: boolean;
+  userEmail: string;
+  username: string;
+}
+
+const InsightsTableView: React.FC = () => {
   const { filter } = useFilterContext();
   const { t } = useLocale();
 
@@ -29,8 +40,26 @@ const InsightsTableView = () => {
   );
 
   if (isPending) return <LoadingInsight />;
-
   if (!isSuccess) return null;
+
+  const columns: {
+    key: keyof InsightData;
+    label: string;
+    format?: (value: any) => string;
+  }[] = [
+    { key: "title", label: t("title") },
+    {
+      key: "createdAt",
+      label: t("booking_created_date"),
+      format: (value: Date) => value?.toDateString() || "",
+    },
+    { key: "timeStatus", label: t("status") },
+    { key: "startTime", label: t("start_time"), format: (value: Date) => value?.toDateString() || "" },
+    { key: "endTime", label: t("end_time"), format: (value: Date) => value?.toDateString() || "" },
+    { key: "paid", label: t("booking_paid"), format: (value: boolean) => (value ? "Yes" : "No") },
+    { key: "userEmail", label: t("email_address") },
+    { key: "username", label: t("username_placeholder") },
+  ];
 
   return (
     <CardInsights>
@@ -43,43 +72,23 @@ const InsightsTableView = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell className="text-default text-left">{t("title")}</TableCell>
-              <TableCell className="text-default text-left">{t("booking_created_date")}</TableCell>
-              <TableCell className="text-default">{t("status")}</TableCell>
-              <TableCell className="text-default">{t("start_time")}</TableCell>
-              <TableCell className="text-default">{t("end_time")}</TableCell>
-              <TableCell className="text-default">{t("booking_paid")}</TableCell>
-              <TableCell className="text-default">{t("email_address")}</TableCell>
-              <TableCell className="text-default">{t("username_placeholder")}</TableCell>
+              {columns.map((column) => (
+                <TableCell key={column.key} className="text-default text-left">
+                  {column.label}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((item, index) => (
               <TableRow key={index}>
-                <TableCell>
-                  <span className="text-default">{item.title}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.createdAt?.toDateString()}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.timeStatus}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.startTime?.toDateString()}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.endTime?.toDateString()}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.paid ? "Yes" : "No"}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.userEmail}</span>
-                </TableCell>
-                <TableCell>
-                  <span className="text-default">{item.username}</span>
-                </TableCell>
+                {columns.map((column) => (
+                  <TableCell key={column.key}>
+                    <span className="text-default">
+                      {column.format ? column.format(item[column.key]) : (item[column.key] as string)}
+                    </span>
+                  </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>
