@@ -961,7 +961,7 @@ async function main() {
       password: "PLATFORMadmin2024!",
       username: "platform",
       name: "Platform Admin",
-      role: "USER",
+      role: "ADMIN",
     },
   });
 
