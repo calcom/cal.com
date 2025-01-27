@@ -1,6 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import React, { useCallback, useState, useEffect } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -179,7 +180,7 @@ const buildEventsData = ({
       }
 
       // Pass app data that works with routing forms
-      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata);
+      const eventTypeAppMetadata = getEventTypeAppMetadata(eventType.metadata as Prisma.JsonValue);
 
       eventTypesMap.set(eventType.id, {
         eventTypeAppMetadata,

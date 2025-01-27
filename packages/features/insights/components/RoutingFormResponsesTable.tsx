@@ -31,6 +31,7 @@ import {
   ZMultiSelectFilterValue,
   ZSingleSelectFilterValue,
   DateRangeFilter,
+  ColumnFilterType,
   type FilterableColumn,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
@@ -261,10 +262,10 @@ export function RoutingFormResponsesTable() {
   );
 }
 
-const createdAtColumn: Extract<FilterableColumn, { type: "date_range" }> = {
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
   id: "createdAt",
   title: "createdAt",
-  type: "date_range",
+  type: ColumnFilterType.DATE_RANGE,
 };
 
 export function RoutingFormResponsesTableContent() {
@@ -354,7 +355,7 @@ export function RoutingFormResponsesTableContent() {
         enableColumnFilter: true,
         enableSorting: false,
         meta: {
-          filter: { type: "single_select" },
+          filter: { type: ColumnFilterType.SINGLE_SELECT },
         },
         cell: () => null,
       }),
@@ -364,7 +365,7 @@ export function RoutingFormResponsesTableContent() {
         enableColumnFilter: true,
         enableSorting: false,
         meta: {
-          filter: { type: "multi_select" },
+          filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: () => null,
       }),
@@ -393,12 +394,12 @@ export function RoutingFormResponsesTableContent() {
         const isMultiSelect = fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
 
         const filterType = isSingleSelect
-          ? "single_select"
+          ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? "number"
+          ? ColumnFilterType.NUMBER
           : isText
-          ? "text"
-          : "multi_select";
+          ? ColumnFilterType.TEXT
+          : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
           fieldHeader.options?.reduce((acc, option) => {
@@ -457,7 +458,7 @@ export function RoutingFormResponsesTableContent() {
           </div>
         ),
         meta: {
-          filter: { type: "multi_select", icon: "circle" },
+          filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
         },
         filterFn: (row, id, filterValue) => {
           return multiSelectFilter(row.original.bookingStatusOrder, filterValue);
@@ -498,7 +499,7 @@ export function RoutingFormResponsesTableContent() {
         header: t("routing_form_insights_assignment_reason"),
         enableSorting: false,
         meta: {
-          filter: { type: "text" },
+          filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
           const assignmentReason = info.getValue();

@@ -165,6 +165,6 @@ export class InternalTeamBilling implements TeamBilling {
   async checkIfTeamHasActivePlan() {
     const { subscriptionId } = this.team.metadata;
     if (!subscriptionId) return false;
-    return billing.checkIfTeamHasActivePlan(subscriptionId);
+    return await billing.checkIfTeamHasActivePlan(subscriptionId);
   }
 }
