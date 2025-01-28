@@ -303,13 +303,24 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
         <button
           type="button"
           className={classNames(
-            "group -ml-2 flex items-center gap-2 rounded-md px-2 py-1",
+            "group -ml-2 flex w-full items-center gap-2 rounded-md px-2 py-1",
             open && "bg-muted"
           )}>
-          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+          <div
+            className="truncate"
+            title={
+              typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
+            }>
+            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+          </div>
+          {header.column.getIsSorted() === "asc" && <Icon name="arrow-up" className="h-4 w-4 shrink-0" />}
+          {header.column.getIsSorted() === "desc" && <Icon name="arrow-down" className="h-4 w-4 shrink-0" />}
           <Icon
             name="chevrons-up-down"
-            className={classNames("text-subtle h-4 w-4", !open && "opacity-0 group-hover:opacity-100")}
+            className={classNames(
+              "text-subtle h-4 w-4 shrink-0",
+              !open && "opacity-0 group-hover:opacity-100"
+            )}
           />
         </button>
       </PopoverTrigger>
