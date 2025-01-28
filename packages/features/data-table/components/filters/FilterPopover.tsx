@@ -54,11 +54,6 @@ export function FilterPopover({ column }: FilterPopoverProps) {
   const icon = column.icon || FILTER_ICONS[column.type];
   const filterValue = useFilterValue(column.id, ZFilterValue);
   const { text, moreCount } = useSelectedLabels({ column, filterValue });
-  console.log("💡 icon", {
-    icon: column.icon,
-    type: column.type,
-    FILTER_ICONS,
-  });
   return (
     <Popover>
       <PopoverTrigger asChild>
