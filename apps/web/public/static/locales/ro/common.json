@@ -2945,5 +2945,6 @@
   "asc": "Crescător",
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
+  "verify_email_change": "Verifică schimbarea adresei de email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

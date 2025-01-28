@@ -2945,5 +2945,6 @@
   "asc": "Stigande",
   "desc": "Fallande",
   "verify_email": "Verifiera e-post",
+  "verify_email_change": "Verifiera ändring av e-postadress",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

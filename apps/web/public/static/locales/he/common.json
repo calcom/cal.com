@@ -2945,5 +2945,6 @@
   "asc": "סדר עולה",
   "desc": "סדר יורד",
   "verify_email": "אימות אימייל",
+  "verify_email_change": "אימות שינוי כתובת דוא\"ל",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
