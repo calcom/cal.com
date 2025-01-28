@@ -36,7 +36,7 @@ export default function LayoutHandler(props: { [key: string]: unknown }) {
   );
 }
 
-LayoutHandler.getLayout = (page: React.ReactElement) => {
+LayoutHandler.getLayout = ({ children }: { children: React.ReactNode }) => {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const params = useParamsWithFallback();
   const pageKey = Array.isArray(params.pages)
@@ -44,10 +44,10 @@ LayoutHandler.getLayout = (page: React.ReactElement) => {
     : params.pages?.split("/")[0] ?? DEFAULT_ROUTE;
 
   const component = getComponent(pageKey).default;
-  if (component && "getLayout" in component) {
-    return component.getLayout?.(page);
+  if (component && "LayoutWrapper" in component) {
+    return component.getLayout?.({ children });
   } else {
-    return page;
+    return children;
   }
 };
 

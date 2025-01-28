@@ -1092,10 +1092,10 @@ export default function RouteBuilder({
   );
 }
 
-RouteBuilder.getLayout = (page: React.ReactElement) => {
+RouteBuilder.getLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
+      {children}
     </Shell>
   );
 };

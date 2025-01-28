@@ -292,10 +292,10 @@ export default function ReporterWrapper({
   );
 }
 
-ReporterWrapper.getLayout = (page: React.ReactElement) => {
+ReporterWrapper.getLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
+      {children}
     </Shell>
   );
 };

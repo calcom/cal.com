@@ -55,7 +55,7 @@ function getRoute(appName: string, pages: string[]) {
 }
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
-const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
+function AppPage(props: PageProps) {
   const appName = props.appName;
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
@@ -69,34 +69,11 @@ const AppPage: AppPageType["default"] = function AppPage(props: PageProps) {
   if (!route || route.notFound) {
     throw new Error("Route can't be undefined");
   }
-  return <route.Component {...componentProps} />;
-};
-
-AppPage.isBookingPage = ({ router }) => {
-  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
-  if (route.notFound) {
-    return false;
-  }
-  const isBookingPage = route.Component.isBookingPage;
-  if (typeof isBookingPage === "function") {
-    return isBookingPage({ router });
-  }
-
-  return !!isBookingPage;
-};
-
-export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { slug, pages } = useParamsWithFallback();
-  const route = getRoute(slug as string, pages as string[]);
-
-  if (route.notFound) {
-    return null;
-  }
+  const component = <route.Component {...componentProps} />;
   if (!route.Component.getLayout) {
-    return page;
+    return component;
   }
-  return route.Component.getLayout(page);
-};
+  return route.Component.getLayout({ children: component });
+}
 
 export default AppPage;

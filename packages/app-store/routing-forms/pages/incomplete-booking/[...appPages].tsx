@@ -320,10 +320,10 @@ export default function IncompleteBookingPage({
   );
 }
 
-IncompleteBookingPage.getLayout = (page: React.ReactElement) => {
+IncompleteBookingPage.getLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
+      {children}
     </Shell>
   );
 };

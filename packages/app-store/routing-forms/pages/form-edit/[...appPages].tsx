@@ -480,10 +480,10 @@ export default function FormEditPage({
   );
 }
 
-FormEditPage.getLayout = (page: React.ReactElement) => {
+FormEditPage.getLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
+      {children}
     </Shell>
   );
 };

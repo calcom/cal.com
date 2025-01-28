@@ -342,22 +342,12 @@ export default function RoutingForms({
   );
 }
 
-const ShellContainer = ({ page }: { page: React.ReactElement }) => {
-  const { t } = useLocale();
-
+RoutingForms.getLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <Shell
-      title={t("routing_forms")}
-      description={t("routing_forms_description")}
-      withoutMain={true}
-      hideHeadingOnMobile>
-      {page}
+    <Shell withoutSeo withoutMain={true} hideHeadingOnMobile>
+      {children}
     </Shell>
   );
-};
-
-RoutingForms.getLayout = (page: React.ReactElement) => {
-  return <ShellContainer page={page} />;
 };
 
 export { getServerSideProps };

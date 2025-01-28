@@ -164,21 +164,10 @@ export const config = {
     "/auth/verify-email",
     "/auth/verify",
     "/auth/setup",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
+    "/apps/:path*",
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/apps/installation/:path*",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
