@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Genom att aktivera vikter blir det möjligt att tilldela högre prioritet till vissa attribut per användare. Ju högre vikt, desto högre prioritet.",
   "routed": "Dirigerad",
   "reassigned": "Omtilldelad",
+  "allow_rescheduling_past_events": "Tillåt ombokning av tidigare händelser",
+  "allow_rescheduling_past_events_description": "Aktivering av detta alternativ tillåter ombokning av tidigare händelser",
   "rerouted": "Omdirigerad",
   "salesforce_assigned": "Salesforce-tilldelning",
   "router_position": "Routerposition",
@@ -2945,5 +2947,6 @@
   "asc": "Stigande",
   "desc": "Fallande",
   "verify_email": "Verifiera e-post",
+  "verify_email_change": "Verifiera ändring av e-postadress",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
