@@ -10,10 +10,29 @@ export const nameObjectSchema = z.object({
 });
 
 function parseName(name: z.infer<typeof nameObjectSchema> | string | undefined) {
-  if (typeof name === "string") return name;
-  else if (typeof name === "object" && nameObjectSchema.parse(name))
-    return `${name.firstName} ${name.lastName}`.trim();
-  else return "Nameless";
+  let firstName = "Nameless";
+  let lastName = "Nameless";
+  let fullName = "Nameless";
+
+  if (typeof name === "string") {
+    const trimmedName = name.trim();
+    fullName = trimmedName;
+
+    const splitPoint = trimmedName.indexOf(" ");
+    if (splitPoint < 0) {
+      firstName = trimmedName;
+      lastName = "";
+    } else {
+      firstName = trimmedName.slice(0, splitPoint);
+      lastName = name.slice(splitPoint + 1, name.length);
+    }
+  } else if (typeof name === "object" && nameObjectSchema.parse(name)) {
+    fullName = `${name.firstName} ${name.lastName}`.trim();
+    firstName = name.firstName;
+    lastName = name.lastName ?? "";
+  }
+
+  return { firstName, lastName, fullName };
 }
 
 export type EventNameObjectType = {
@@ -29,13 +48,17 @@ export type EventNameObjectType = {
 };
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
-  const attendeeName = parseName(eventNameObj.attendeeName);
+  const {
+    firstName: attendeeFirstName,
+    lastName: attendeeLastName,
+    fullName: attendeeFullName,
+  } = parseName(eventNameObj.attendeeName);
 
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
       eventName: eventNameObj.eventType,
       host: eventNameObj.teamName || eventNameObj.host,
-      attendeeName,
+      attendeeName: attendeeFullName,
       interpolation: {
         escapeValue: false,
       },
@@ -56,25 +79,23 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   let dynamicEventName = eventName
     // Need this for compatibility with older event names
     .replaceAll("{Event type title}", eventNameObj.eventType)
-    .replaceAll("{Scheduler}", attendeeName)
+    .replaceAll("{Scheduler}", attendeeFullName)
     .replaceAll("{Organiser}", eventNameObj.host)
     .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
-    .replaceAll("{USER}", attendeeName)
-    .replaceAll("{ATTENDEE}", attendeeName)
+    .replaceAll("{USER}", attendeeFullName)
+    .replaceAll("{ATTENDEE}", attendeeFullName)
     .replaceAll("{HOST}", eventNameObj.host)
-    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeFullName)
     .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
+    .replaceAll("{name}", attendeeFullName)
     .replaceAll(
       "{Scheduler first name}",
-      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+      attendeeFullName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeFirstName
+    )
+    .replaceAll(
+      "{Scheduler last name}",
+      attendeeFullName === eventNameObj.t("scheduler") ? "{Scheduler last name}" : attendeeLastName
     );
-
-  const { bookingFields } = eventNameObj || {};
-  const { name } = bookingFields || {};
-
-  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
-    dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
-  }
 
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
