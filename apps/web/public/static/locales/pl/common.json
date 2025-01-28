@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Po włączeniu wag możliwe będzie przypisanie wyższego priorytetu określonym atrybutom dla każdego użytkownika. Im wyższa waga, tym wyższy priorytet.",
   "routed": "Przekierowano",
   "reassigned": "Przypisano ponownie",
+  "allow_rescheduling_past_events": "Zezwól na zmianę terminu minionych wydarzeń",
+  "allow_rescheduling_past_events_description": "Włączenie tej opcji pozwala na zmianę terminu minionych wydarzeń",
   "rerouted": "Przekierowano ponownie",
   "salesforce_assigned": "Przypisanie Salesforce",
   "router_position": "Pozycja routera",
@@ -2945,5 +2947,6 @@
   "asc": "Rosnąco",
   "desc": "Malejąco",
   "verify_email": "Zweryfikuj email",
+  "verify_email_change": "Zweryfikuj zmianę adresu email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

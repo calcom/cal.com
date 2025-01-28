@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Abilitando i pesi, sarà possibile assegnare una priorità più alta a determinati attributi per utente. Maggiore è il peso, maggiore è la priorità.",
   "routed": "Instradato",
   "reassigned": "Riassegnato",
+  "allow_rescheduling_past_events": "Consenti la riprogrammazione di eventi passati",
+  "allow_rescheduling_past_events_description": "L'attivazione di questa opzione permette di riprogrammare eventi passati",
   "rerouted": "Reindirizzato",
   "salesforce_assigned": "Assegnazione Salesforce",
   "router_position": "Posizione del router",
@@ -2945,5 +2947,6 @@
   "asc": "Crescente",
   "desc": "Decrescente",
   "verify_email": "Verifica email",
+  "verify_email_change": "Verifica la modifica dell'email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

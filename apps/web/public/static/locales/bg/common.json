@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "При активиране на тежестите ще бъде възможно да се зададе по-висок приоритет на определени атрибути за всеки потребител. Колкото по-голяма е тежестта, толкова по-висок е приоритетът.",
   "routed": "Пренасочен",
   "reassigned": "Преразпределен",
+  "allow_rescheduling_past_events": "Разрешаване на пренасрочване на минали събития",
+  "allow_rescheduling_past_events_description": "Активирането на тази опция позволява пренасрочване на минали събития",
   "rerouted": "Пренасочен",
   "salesforce_assigned": "Възложен в Salesforce",
   "router_position": "Позиция на рутера",
@@ -2945,5 +2947,6 @@
   "asc": "Възх",
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
+  "verify_email_change": "Потвърждаване на промяната на имейл",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
