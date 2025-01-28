@@ -2945,5 +2945,6 @@
   "asc": "Crescente",
   "desc": "Decrescente",
   "verify_email": "Verificar e-mail",
+  "verify_email_change": "Verificar alteração de e-mail",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adicione suas novas strings aqui em cima ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

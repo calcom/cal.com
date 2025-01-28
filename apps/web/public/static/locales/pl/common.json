@@ -2945,5 +2945,6 @@
   "asc": "Rosnąco",
   "desc": "Malejąco",
   "verify_email": "Zweryfikuj email",
+  "verify_email_change": "Potwierdź zmianę adresu email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

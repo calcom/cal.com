@@ -2945,5 +2945,6 @@
   "asc": "Oplopend",
   "desc": "Aflopend",
   "verify_email": "E-mail verifiëren",
+  "verify_email_change": "E-mailadres wijziging verifiëren",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
