@@ -19,7 +19,7 @@ export class RouterController {
     @Res() res: Response,
     @Param("formId") formId: string,
     @Query() query: Record<string, string>
-  ): Promise<void | ApiResponse<unknown>> {
+  ): Promise<void | (ApiResponse<unknown> & { redirect?: string })> {
     const routedUrlData = await getRoutedUrl({ req: request, query: { ...query, form: formId } });
 
     if (routedUrlData?.notFound) {
@@ -27,7 +27,7 @@ export class RouterController {
     }
 
     if (routedUrlData?.redirect?.destination) {
-      return res.redirect(307, routedUrlData.redirect.destination);
+      return { status: "success", data: "redirect", redirect: routedUrlData?.redirect?.destination };
     }
 
     if (routedUrlData?.props) {

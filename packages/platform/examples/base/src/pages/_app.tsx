@@ -125,7 +125,10 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/router" && (
         <div>
           HELLO
-          <Router url="http://localhost:3000/router/embed?form=b877ef5f-7027-498d-bc5c-62745225ed2a&Territory=europe" />
+          <Router
+            formId="c6c039dc-1531-43cc-9e64-46f42f24b9a0"
+            searchParams={new URLSearchParams({ isBookingDryRun: "true" })}
+          />
         </div>
       )}
     </div>
