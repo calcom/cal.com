@@ -2945,5 +2945,6 @@
   "asc": "Възх",
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
+  "verify_email_change": "Потвърждаване на промяната на имейл",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

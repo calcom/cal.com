@@ -2945,5 +2945,6 @@
   "asc": "По возрастанию",
   "desc": "По убыванию",
   "verify_email": "Подтвердить email",
+  "verify_email_change": "Подтвердить изменение email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

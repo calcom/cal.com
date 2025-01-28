@@ -2945,5 +2945,6 @@
   "asc": "Kasvav",
   "desc": "Kahanev",
   "verify_email": "Kinnita e-post",
+  "verify_email_change": "Kinnita e-posti muudatus",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
