@@ -1,13 +1,15 @@
 "use client";
 
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import {
   DataTable,
   DataTableToolbar,
   DataTablePagination,
   useFetchMoreOnBottomReached,
+  useDataTable,
+  useColumnFilters,
 } from "@calcom/features/data-table";
 
 export type DataTableWrapperProps<TData, TValue> = {
@@ -52,6 +54,20 @@ export function DataTableWrapper<TData, TValue>({
     fetchNextPage,
     isFetching,
   });
+  const { sorting, setSorting } = useDataTable();
+  const columnFilters = useColumnFilters();
+
+  useEffect(() => {
+    table.setState((prev) => ({
+      ...prev,
+      sorting,
+      columnFilters,
+    }));
+    table.setOptions((prev) => ({
+      ...prev,
+      onSortingChange: setSorting,
+    }));
+  }, [table, sorting, columnFilters]);
 
   return (
     <DataTable
@@ -70,8 +86,8 @@ export function DataTableWrapper<TData, TValue>({
         <DataTableToolbar.Root>
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
-              <div className="flex flex-wrap gap-2">{ToolbarLeft}</div>
-              <div className="flex flex-wrap gap-2">{ToolbarRight}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarRight}</div>
             </div>
           </div>
 

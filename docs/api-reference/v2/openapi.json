@@ -13584,6 +13584,10 @@
             "type": "string",
             "example": "Jane Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "jane100@example.com"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -13593,7 +13597,7 @@
             "example": "America/Los_Angeles"
           }
         },
-        "required": ["id", "name", "username", "timeZone"]
+        "required": ["id", "name", "email", "username", "timeZone"]
       },
       "EventType": {
         "type": "object",

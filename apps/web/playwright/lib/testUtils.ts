@@ -148,7 +148,13 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (
   page: Page,
-  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+  opts?: {
+    name?: string;
+    email?: string;
+    title?: string;
+    attendeePhoneNumber?: string;
+    expectedStatusCode?: number;
+  }
 ) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
@@ -159,7 +165,10 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await page.press('[name="email"]', "Enter");
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
+    expectedStatusCode: opts?.expectedStatusCode,
+  });
 };
 
 // Provide an standalone localize utility not managed by next-i18n
@@ -496,6 +505,11 @@ export async function submitAndWaitForJsonResponse(
 export async function confirmReschedule(page: Page, url = "/api/book/event") {
   await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
+  });
+}
+export async function confirmBooking(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
   });
 }
 

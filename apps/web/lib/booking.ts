@@ -61,6 +61,7 @@ export const getEventTypesFromDB = async (id: number) => {
       },
       team: {
         select: {
+          id: true,
           slug: true,
           name: true,
           hideBranding: true,
@@ -80,6 +81,11 @@ export const getEventTypesFromDB = async (id: number) => {
       schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
     },
   });
 
