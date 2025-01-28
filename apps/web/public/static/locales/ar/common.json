@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "عند تفعيل الأوزان، سيكون من الممكن تعيين أولوية أعلى لبعض السمات لكل مستخدم. كلما زاد الوزن، زادت الأولوية.",
   "routed": "تم التوجيه",
   "reassigned": "تمت إعادة التعيين",
+  "allow_rescheduling_past_events": "السماح بإعادة جدولة الفعاليات السابقة",
+  "allow_rescheduling_past_events_description": "تفعيل هذا الخيار يسمح بإعادة جدولة الفعاليات السابقة",
   "rerouted": "تمت إعادة التوجيه",
   "salesforce_assigned": "تعيين Salesforce",
   "router_position": "موضع الموجه",
@@ -2945,5 +2947,6 @@
   "asc": "تصاعدي",
   "desc": "تنازلي",
   "verify_email": "التحقق من البريد الإلكتروني",
+  "verify_email_change": "تأكيد تغيير البريد الإلكتروني",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ أضف السلاسل الجديدة أعلاه هنا ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

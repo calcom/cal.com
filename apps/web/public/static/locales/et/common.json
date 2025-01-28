@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Kaalude lubamisel on võimalik määrata teatud atribuutidele kasutajapõhiselt kõrgem prioriteet. Mida suurem on kaal, seda kõrgem on prioriteet.",
   "routed": "Suunatud",
   "reassigned": "Ümber määratud",
+  "allow_rescheduling_past_events": "Luba möödunud sündmuste ümberkorraldamist",
+  "allow_rescheduling_past_events_description": "Selle valiku lubamine võimaldab möödunud sündmusi ümber planeerida",
   "rerouted": "Ümber suunatud",
   "salesforce_assigned": "Salesforce'i määramine",
   "router_position": "Ruuteri positsioon",
@@ -2945,5 +2947,6 @@
   "asc": "Kasvav",
   "desc": "Kahanev",
   "verify_email": "Kinnita e-post",
+  "verify_email_change": "Kinnita e-posti muudatus",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
