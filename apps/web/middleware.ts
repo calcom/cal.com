@@ -162,6 +162,7 @@ export const config = {
     "/auth/platform/authorize",
     "/auth/verify-email",
     "/auth/verify",
+    "/auth/setup",
     /**
      * Paths required by routingForms.handle
      */
