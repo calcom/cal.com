@@ -74,23 +74,23 @@ export function getAbsoluteEventTypeRedirectUrl({
     throw new Error("eventTypeRedirectUrl must have username or teamSlug");
   }
 
-  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
-
-  let url = `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
-
   if (teamSlugInRedirectUrl && form.nonOrgTeamslug) {
     const isEventTypeRedirectToOldTeamSlug = teamSlugInRedirectUrl === form.nonOrgTeamslug;
     if (isEventTypeRedirectToOldTeamSlug) {
-      url = `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
-    }
-  } else if (usernameInRedirectUrl && form.nonOrgUsername) {
-    const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
-    if (isEventTypeRedirectToOldUser) {
-      url = `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
     }
   }
 
-  return `${url}&action=externalRedirectUrl`;
+  if (usernameInRedirectUrl && form.nonOrgUsername) {
+    const isEventTypeRedirectToOldUser = usernameInRedirectUrl === form.nonOrgUsername;
+    if (isEventTypeRedirectToOldUser) {
+      return `${CAL_URL}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
+    }
+  }
+
+  const origin = teamSlugInRedirectUrl ? form.teamOrigin : form.userOrigin;
+
+  return `${origin}/${eventTypeRedirectUrl}?${allURLSearchParams}`;
 }
 
 export function getAbsoluteEventTypeRedirectUrlWithEmbedSupport(
