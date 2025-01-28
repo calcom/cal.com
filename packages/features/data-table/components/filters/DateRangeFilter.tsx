@@ -161,14 +161,14 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
     });
   };
 
+  const isCustomPreset = selectedPreset.value === CUSTOM_PRESET_VALUE;
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button color="secondary" className="items-center capitalize">
-          {selectedPreset.value !== CUSTOM_PRESET_VALUE && (
-            <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>
-          )}
-          {selectedPreset.value === CUSTOM_PRESET_VALUE &&
+          {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
+          {isCustomPreset &&
             (endDate ? (
               <span>
                 {format(startDate.toDate(), "LLL dd, y")} - {format(endDate.toDate(), "LLL dd, y")}
@@ -180,7 +180,7 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">
-        {selectedPreset.value === CUSTOM_PRESET_VALUE && (
+        {isCustomPreset && (
           <div className="border-subtle border-r">
             <DateRangePicker
               dates={{
@@ -195,13 +195,13 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
             />
           </div>
         )}
-        <Command className="w-40">
+        <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
           <CommandList>
             {PRESET_OPTIONS.map((option) => (
               <CommandItem
                 key={option.value}
                 className={classNames(
-                  "cursor-pointer justify-between",
+                  "cursor-pointer justify-between px-3 py-2",
                   selectedPreset.value === option.value && "bg-emphasis"
                 )}
                 onSelect={() => {
