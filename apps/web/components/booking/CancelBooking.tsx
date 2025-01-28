@@ -136,7 +136,7 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          {props.isHost && teamId && (
+          {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
                 internalNotePresets={props.internalNotePresets}
@@ -188,7 +188,10 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={props.isHost && !cancellationReason}
+                disabled={
+                  props.isHost &&
+                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                }
                 onClick={async () => {
                   setLoading(true);
 
