@@ -188,7 +188,10 @@ export default function CancelBooking(props: Props) {
               </Button>
               <Button
                 data-testid="confirm_cancel"
-                disabled={props.isHost && !cancellationReason}
+                disabled={
+                  props.isHost &&
+                  (!cancellationReason || (props.internalNotePresets.length > 0 && !internalNote?.id))
+                }
                 onClick={async () => {
                   setLoading(true);
 
