@@ -449,6 +449,7 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) {
+    const log = logger.getSubLogger({ prefix: [`[createContacts]:${contactsToCreate}`] });
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
@@ -470,7 +471,7 @@ export default class SalesforceCRMService implements CRM {
       );
     }
 
-    if (contactsToCreate[0]?.email) {
+    if (!contactsToCreate[0]?.email) {
       this.log.warn(`createContact: no attendee email found `, contactsToCreate);
     }
 
@@ -481,6 +482,8 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
+
+        log.info(`Creating contacts under accountId ${accountId}`);
 
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
@@ -687,6 +690,8 @@ export default class SalesforceCRMService implements CRM {
       }
     }
 
+    this.log.info(`Dominant accountId found is ${dominantAccountId} for contacts ${contacts}`);
+
     return dominantAccountId;
   }
 
@@ -823,14 +828,23 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const emailDomain = email.split("@")[1];
 
+    const log = logger.getSubLogger({
+      prefix: [`[getAccountIdBasedOnEmailDomainOfContacts]:${emailDomain}`],
+    });
+
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
       `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%'`
     );
 
+    log.info(`accountQuery ${accountQuery}`);
+
     if (accountQuery.records.length > 0) {
       const account = accountQuery.records[0] as { Id: string };
-      return account.Id;
+      const accountId = account.Id;
+
+      log.info(`accountId from accountQuery ${accountId}`);
+      return accountId;
     }
 
     // Fallback to querying which account the majority of contacts are under
