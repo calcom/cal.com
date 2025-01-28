@@ -56,7 +56,7 @@ export async function loadAndValidateUsers({
   routedTeamMemberIds,
   contactOwnerEmail,
   isSameHostReschedule,
-}: InputProps): Promise<Users> {
+}: InputProps): Promise<{ qualifiedUsers: Users; fallbackUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -105,8 +105,7 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-  //no available users found if contact owner is not available?
-  const { qualifiedHosts } = await findQualifiedHosts({
+  const { qualifiedHosts, fallbackHosts } = await findQualifiedHosts({
     eventType: {
       ...eventType,
       rescheduleWithSameRoundRobinHost: isSameHostReschedule,
@@ -116,10 +115,18 @@ export async function loadAndValidateUsers({
     contactOwnerEmail,
   });
 
+  let qualifiedUsers: Users = [];
+  let fallbackUsers: Users = [];
+
   if (qualifiedHosts.length) {
     // remove users that are not in the qualified hosts array
     const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    users = users.filter((user) => qualifiedHostIds.has(user.id));
+    qualifiedUsers = users.filter((user) => qualifiedHostIds.has(user.id));
+  }
+
+  if (fallbackHosts?.length) {
+    const fallbackHostIds = new Set(fallbackHosts.map((fallbackHost) => fallbackHost.user.id));
+    fallbackUsers = users.filter((user) => fallbackHostIds.has(user.id));
   }
 
   logger.debug(
@@ -129,5 +136,5 @@ export async function loadAndValidateUsers({
     })
   );
 
-  return users;
+  return { qualifiedUsers, fallbackUsers };
 }

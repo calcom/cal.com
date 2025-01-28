@@ -180,7 +180,7 @@ function buildLuckyUsersWithJustContactOwner({
   availableUsers: IsFixedAwareUser[];
   fixedUserPool: IsFixedAwareUser[];
 }) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
+  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedUsers"] = [];
   if (!contactOwnerEmail) {
     return luckyUsers;
   }
@@ -490,7 +490,7 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
+  const { qualifiedUsers, fallbackUsers } = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -502,7 +502,7 @@ async function handler(
   });
 
   // We filter out users but ensure allHostUsers remain same.
-  let users = allHostUsers;
+  let users = [...qualifiedUsers, ...fallbackUsers];
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
     dynamicUserList,
@@ -600,8 +600,8 @@ async function handler(
     }
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
-      const availableUsers = await ensureAvailableUsers(
-        eventTypeWithUsers,
+      let availableUsers = await ensureAvailableUsers(
+        { ...eventTypeWithUsers, users: qualifiedUsers as IsFixedAwareUser[] },
         {
           dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
           dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -617,6 +617,27 @@ async function handler(
         user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
       });
 
+      if (!luckyUserPool.length) {
+        // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
+        // use fallback instead
+        availableUsers = await ensureAvailableUsers(
+          { ...eventTypeWithUsers, users: fallbackUsers as IsFixedAwareUser[] },
+          {
+            dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+            dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+            timeZone: reqBody.timeZone,
+            originalRescheduledBooking,
+          },
+          loggerWithEventDetails,
+          shouldServeCache
+        );
+        availableUsers.forEach((user) => {
+          if (!user.isFixed) {
+            luckyUserPool.push(user);
+          }
+        });
+      }
+
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -627,11 +648,7 @@ async function handler(
         })
       );
 
-      const luckyUsers: typeof users = buildLuckyUsersWithJustContactOwner({
-        contactOwnerEmail: contactOwnerEmail,
-        availableUsers,
-        fixedUserPool,
-      });
+      const luckyUsers: typeof users = [];
 
       // loop through all non-fixed hosts and get the lucky users
       // This logic doesn't run when contactOwner is used because in that case, luckUsers.length === 1
