@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Ved at aktivere vægtning bliver det muligt at tildele højere prioritet til bestemte attributter pr. bruger. Jo højere vægtning, jo højere prioritet.",
   "routed": "Dirigeret",
   "reassigned": "Omfordelt",
+  "allow_rescheduling_past_events": "Tillad omlægning af tidligere aftaler",
+  "allow_rescheduling_past_events_description": "Aktivering af denne indstilling gør det muligt at omlægge tidligere aftaler",
   "rerouted": "Omdirigeret",
   "salesforce_assigned": "Salesforce-tildeling",
   "router_position": "Router-position",
@@ -2945,5 +2947,6 @@
   "asc": "Stigende",
   "desc": "Faldende",
   "verify_email": "Bekræft e-mail",
+  "verify_email_change": "Bekræft ændring af e-mail",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

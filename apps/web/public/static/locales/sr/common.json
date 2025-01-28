@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Omogućavanjem težina, moguće je dodeliti veći prioritet određenim atributima po korisniku. Što je veća težina, to je veći prioritet.",
   "routed": "Prosleđeno",
   "reassigned": "Preraspoređeno",
+  "allow_rescheduling_past_events": "Dozvoli zakazivanje prošlih događaja",
+  "allow_rescheduling_past_events_description": "Omogućavanje ove opcije dozvoljava zakazivanje prošlih događaja",
   "rerouted": "Preusmereno",
   "salesforce_assigned": "Salesforce dodeljivanje",
   "router_position": "Pozicija rutera",
@@ -2945,5 +2947,6 @@
   "asc": "Rastuće",
   "desc": "Opadajuće",
   "verify_email": "Potvrdi email",
+  "verify_email_change": "Potvrdi promenu email adrese",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
