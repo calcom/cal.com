@@ -87,7 +87,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeFullName)
     .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
-    .replaceAll("{name}", attendeeFullName)
+    .replaceAll("{name}", attendeeFullName === eventNameObj.t("scheduler") ? "name input" : attendeeFullName)
     .replaceAll(
       "{Scheduler first name}",
       attendeeFullName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeFirstName
