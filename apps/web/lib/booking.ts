@@ -80,6 +80,11 @@ export const getEventTypesFromDB = async (id: number) => {
       schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
     },
   });
 

@@ -136,7 +136,7 @@ export default function CancelBooking(props: Props) {
       )}
       {!error && (
         <div className="mt-5 sm:mt-6">
-          {props.isHost && teamId && (
+          {props.isHost && props.internalNotePresets.length > 0 && (
             <>
               <InternalNotePresetsSelect
                 internalNotePresets={props.internalNotePresets}
