@@ -132,7 +132,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   const isBookingInPast = booking.endTime && new Date(booking.endTime) < new Date();
-  if (isBookingInPast && !eventType.alllowReschedulingPastBooking) {
+  if (isBookingInPast && !eventType.allowReschedulingPastBookings) {
     const destinationUrlSearchParams = new URLSearchParams();
     const responses = bookingSeat ? getSafe<string>(bookingSeat.data, ["responses"]) : booking.responses;
     const name = getSafe<string>(responses, ["name"]);
