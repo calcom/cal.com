@@ -2942,4 +2942,5 @@ checksums:
     asc: 859eb73e4d1bda5351ca36472efe6492
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email: 42dcab68d931f9145d9b6d76740a5c66
+    verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

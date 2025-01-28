@@ -2945,5 +2945,6 @@
   "asc": "Asc",
   "desc": "Desc",
   "verify_email": "Verificar correo",
+  "verify_email_change": "Verificar cambio de correo electrónico",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

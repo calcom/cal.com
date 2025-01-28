@@ -2945,5 +2945,6 @@
   "asc": "Αύξουσα",
   "desc": "Φθίνουσα",
   "verify_email": "Επαλήθευση email",
+  "verify_email_change": "Επαλήθευση αλλαγής email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
