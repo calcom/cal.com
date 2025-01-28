@@ -154,17 +154,7 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    "/auth/logout",
-    "/auth/error",
-    "/auth/signin",
-    "/auth/oauth2/authorize",
-    "/auth/platform/authorize",
-    "/auth/verify-email-change",
-    "/auth/verify-email",
-    "/auth/verify",
-    "/auth/forgot-password/:path*",
-    "/auth/setup",
+    "/auth/:path*",
     /**
      * Paths required by routingForms.handle
      */
