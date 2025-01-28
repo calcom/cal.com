@@ -101,16 +101,12 @@ export function usePersistentColumnResizing<TData>({
   const initialColumnSizing = useRef<ColumnSizingState>({});
   const resizedColumns = useRef<Set<string>>(new Set());
 
-  const onColumnSizingChange = useCallback(
+  const adjustColumnSizing = useCallback(
     (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
       // `!identifier` is checked already in the `useEffect` hook,
       // but TS doesn't know that, and this won't happen.
       if (!identifier) return;
 
-      const isResizingColumn = table.getState().columnSizingInfo.isResizingColumn;
-      if (isResizingColumn) {
-        resizedColumns.current.add(isResizingColumn);
-      }
       table.setState((oldTableState) => {
         let newColumnSizing = typeof updater === "function" ? updater(oldTableState.columnSizing) : updater;
         newColumnSizing = getAdjustedColumnSizing({
@@ -132,7 +128,18 @@ export function usePersistentColumnResizing<TData>({
         };
       });
     },
-    [identifier, table]
+    [table, identifier, tableContainerRef]
+  );
+
+  const onColumnSizingChange = useCallback(
+    (updater: ColumnSizingState | ((old: ColumnSizingState) => ColumnSizingState)) => {
+      const isResizingColumn = table.getState().columnSizingInfo.isResizingColumn;
+      if (isResizingColumn) {
+        resizedColumns.current.add(isResizingColumn);
+      }
+      adjustColumnSizing(updater);
+    },
+    [identifier, table, adjustColumnSizing]
   );
 
   const debouncedContainerWidth = useDebouncedWidth(tableContainerRef);
