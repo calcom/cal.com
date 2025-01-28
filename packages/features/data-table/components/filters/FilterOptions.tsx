@@ -1,6 +1,7 @@
 "use client";
 
 import type { FilterableColumn } from "../../lib/types";
+import { ColumnFilterType } from "../../lib/types";
 import { DateRangeFilter } from "./DateRangeFilter";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
 import { NumberFilterOptions } from "./NumberFilterOptions";
@@ -12,15 +13,15 @@ export type FilterOptionsProps = {
 };
 
 export function FilterOptions({ column }: FilterOptionsProps) {
-  if (column.type === "text") {
+  if (column.type === ColumnFilterType.TEXT) {
     return <TextFilterOptions column={column} />;
-  } else if (column.type === "multi_select") {
+  } else if (column.type === ColumnFilterType.MULTI_SELECT) {
     return <MultiSelectFilterOptions column={column} />;
-  } else if (column.type === "single_select") {
+  } else if (column.type === ColumnFilterType.SINGLE_SELECT) {
     return <SingleSelectFilterOptions column={column} />;
-  } else if (column.type === "number") {
+  } else if (column.type === ColumnFilterType.NUMBER) {
     return <NumberFilterOptions column={column} />;
-  } else if (column.type === "date_range") {
+  } else if (column.type === ColumnFilterType.DATE_RANGE) {
     return <DateRangeFilter column={column} />;
   } else {
     return null;

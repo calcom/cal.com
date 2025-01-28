@@ -9,7 +9,8 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, TypedColumnFilter, ColumnFilterType } from "@calcom/features/data-table";
+import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
+import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
@@ -235,7 +236,7 @@ class RoutingEventsInsights {
     });
 
     const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
-      if (filter.value.type === "text") {
+      if (filter.value.type === ColumnFilterType.TEXT) {
         return {
           ...filter.value,
           data: {
@@ -250,7 +251,7 @@ class RoutingEventsInsights {
     const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
     const bookingAssignmentReason = columnFilters.find(
       (filter) => filter.id === "bookingAssignmentReason"
-    ) as TypedColumnFilter<"text"> | undefined;
+    ) as TypedColumnFilter<ColumnFilterType.TEXT> | undefined;
     const assignmentReasonValue = bookingAssignmentReason
       ? getLowercasedFilterValue(bookingAssignmentReason)
       : undefined;

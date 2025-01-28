@@ -4,6 +4,7 @@ import { BillingModule } from "@/modules/billing/billing.module";
 import { ConferencingModule } from "@/modules/conferencing/conferencing.module";
 import { DestinationCalendarsModule } from "@/modules/destination-calendars/destination-calendars.module";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
+import { RouterModule } from "@/modules/router/router.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
@@ -24,6 +25,7 @@ import { WebhooksModule } from "./webhooks/webhooks.module";
     AtomsModule,
     StripeModule,
     ConferencingModule,
+    RouterModule,
   ],
 })
 export class EndpointsModule implements NestModule {
