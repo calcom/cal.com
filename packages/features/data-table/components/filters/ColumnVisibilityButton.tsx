@@ -40,9 +40,6 @@ function ColumnVisibilityButtonComponent<TData>(
   const { t } = useLocale();
   const allColumns = table.getAllLeafColumns();
   const [open, setOpen] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState(
-    () => new Set(allColumns.filter((col) => col.getIsVisible()).map((col) => col.id))
-  );
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,21 +58,12 @@ function ColumnVisibilityButtonComponent<TData>(
                 const canHide = column.getCanHide();
                 if (!column.columnDef.header || typeof column.columnDef.header !== "string" || !canHide)
                   return null;
-                const isVisible = visibleColumns.has(column.id);
+                const isVisible = column.getIsVisible();
                 return (
                   <CommandItem
                     key={column.id}
                     onSelect={() => {
                       column.toggleVisibility(!isVisible);
-                      setVisibleColumns((prev) => {
-                        const next = new Set(prev);
-                        if (isVisible) {
-                          next.delete(column.id);
-                        } else {
-                          next.add(column.id);
-                        }
-                        return next;
-                      });
                     }}>
                     <div
                       className={classNames(
@@ -95,7 +83,6 @@ function ColumnVisibilityButtonComponent<TData>(
             <CommandItem
               onSelect={() => {
                 allColumns.forEach((column) => column.toggleVisibility(true));
-                setVisibleColumns(new Set(allColumns.map((col) => col.id)));
               }}
               className={classNames(
                 "w-full justify-center text-center",
