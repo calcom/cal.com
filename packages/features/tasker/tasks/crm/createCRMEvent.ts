@@ -77,6 +77,11 @@ export async function createCRMEvent(payload: string): Promise<void> {
       try {
         const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
         const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+
+        if (!appData || !appDataSchema) {
+          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
+        }
+
         const appParse = appDataSchema.safeParse(appData);
 
         if (!appParse.success) {
