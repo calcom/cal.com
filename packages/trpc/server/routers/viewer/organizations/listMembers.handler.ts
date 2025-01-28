@@ -1,4 +1,5 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -122,7 +123,7 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        if (filter.value.type === "multi_select" && isAllString(filter.value.data)) {
+        if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
           const attributeOptionValues: string[] = [];
           filter.value.data.forEach((filterValueItem) => {
             attributeOptionValues.push(filterValueItem);

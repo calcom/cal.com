@@ -1,5 +1,6 @@
+import { ShellMainAppDir } from "app/(use-page-wrapper)/(main-nav)/ShellMainAppDir";
 import type { PageProps } from "app/_types";
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -16,13 +17,18 @@ export const generateMetadata = async () =>
     (t) => t("bookings_description")
   );
 
-const Page = ({ params }: PageProps) => {
+const Page = async ({ params }: PageProps) => {
   const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }
+  const t = await getTranslate();
 
-  return <BookingsList status={parsed.data.status} />;
+  return (
+    <ShellMainAppDir heading={t("bookings")} subtitle={t("bookings_description")}>
+      <BookingsList status={parsed.data.status} />
+    </ShellMainAppDir>
+  );
 };
 
 export default Page;

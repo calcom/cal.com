@@ -5,7 +5,7 @@ import type { IconName } from "@calcom/ui";
 import { Button, Icon, Popover, PopoverContent, PopoverTrigger } from "@calcom/ui";
 
 import { useFilterValue } from "../../hooks";
-import { type FilterableColumn, type FilterValue, ZFilterValue } from "../../lib/types";
+import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
 import {
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
@@ -14,12 +14,12 @@ import {
 } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
 
-const FILTER_ICONS: Record<FilterableColumn["type"], IconName> = {
-  text: "file-text",
-  number: "binary",
-  multi_select: "layers",
-  single_select: "disc",
-  date_range: "calendar-range",
+const FILTER_ICONS: Record<ColumnFilterType, IconName> = {
+  [ColumnFilterType.TEXT]: "file-text",
+  [ColumnFilterType.NUMBER]: "binary",
+  [ColumnFilterType.MULTI_SELECT]: "layers",
+  [ColumnFilterType.SINGLE_SELECT]: "disc",
+  [ColumnFilterType.DATE_RANGE]: "calendar-range",
 };
 
 type FilterPopoverProps = {
@@ -38,11 +38,11 @@ const useSelectedLabels = ({
   } else if (isNumberFilterValue(filterValue)) {
     return { text: filterValue.data.operand, moreCount: 0 };
   } else if (isSingleSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: "single_select" }>).options;
+    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.SINGLE_SELECT }>).options;
     const text = options.find((opt) => opt.value === filterValue.data)?.label;
     return { text, moreCount: 0 };
   } else if (isMultiSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: "multi_select" }>).options;
+    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>).options;
     const text = options.find((opt) => opt.value === filterValue.data[0])?.label;
     return { text, moreCount: filterValue.data.length - 1 };
   } else {
@@ -54,6 +54,11 @@ export function FilterPopover({ column }: FilterPopoverProps) {
   const icon = column.icon || FILTER_ICONS[column.type];
   const filterValue = useFilterValue(column.id, ZFilterValue);
   const { text, moreCount } = useSelectedLabels({ column, filterValue });
+  console.log("💡 icon", {
+    icon: column.icon,
+    type: column.type,
+    FILTER_ICONS,
+  });
   return (
     <Popover>
       <PopoverTrigger asChild>
