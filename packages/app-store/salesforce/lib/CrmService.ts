@@ -690,8 +690,6 @@ export default class SalesforceCRMService implements CRM {
       }
     }
 
-    this.log.info(`Dominant accountId found is ${dominantAccountId} for contacts ${contacts}`);
-
     return dominantAccountId;
   }
 
@@ -883,6 +881,8 @@ export default class SalesforceCRMService implements CRM {
     if (!contacts) return;
 
     const dominantAccountId = this.getDominantAccountId(contacts);
+
+    this.log.info(`Dominant accountId ${dominantAccountId} for email domain ${emailDomain}`);
 
     const contactUnderAccount = contacts.find((contact) => contact.AccountId === dominantAccountId);
 
