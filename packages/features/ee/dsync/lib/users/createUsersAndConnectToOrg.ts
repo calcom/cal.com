@@ -2,6 +2,7 @@ import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/cr
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import type { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 
 import dSyncUserSelect from "./dSyncUserSelect";
 
@@ -37,6 +38,7 @@ const createUsersAndConnectToOrg = async (
         organizationId,
         identityProvider,
         identityProviderId,
+        creationSource: CreationSource.WEBAPP,
       };
     }),
   });

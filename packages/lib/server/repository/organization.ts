@@ -4,6 +4,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
@@ -64,6 +65,7 @@ export class OrganizationRepository {
   static async createWithNonExistentOwner({
     orgData,
     owner,
+    creationSource,
   }: {
     orgData: {
       name: string;
@@ -79,6 +81,7 @@ export class OrganizationRepository {
     owner: {
       email: string;
     };
+    creationSource: CreationSource;
   }) {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
@@ -87,6 +90,7 @@ export class OrganizationRepository {
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
+      creationSource,
     });
 
     await prisma.membership.create({

@@ -1,6 +1,5 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -63,29 +62,14 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     requestHeaders.set("x-csp-enforce", "true");
   }
 
-  if (url.pathname.startsWith("/future/apps/installed")) {
-    const returnTo = req.cookies.get("return-to")?.value;
-    if (returnTo !== undefined) {
-      requestHeaders.set("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+  if (url.pathname.startsWith("/apps/installed")) {
+    const returnTo = req.cookies.get("return-to");
 
-      let validPathname = returnTo;
-
-      try {
-        validPathname = new URL(returnTo).pathname;
-      } catch (e) {}
-
-      const nextUrl = url.clone();
-      nextUrl.pathname = validPathname;
-      // TODO: Consider using responseWithHeaders here
-      return NextResponse.redirect(nextUrl, { headers: requestHeaders });
+    if (returnTo?.value) {
+      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      response.cookies.delete("return-to");
+      return response;
     }
-  }
-
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
   }
 
   requestHeaders.set("x-pathname", url.pathname);
@@ -99,6 +83,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
 
   return responseWithHeaders({ url, res, req });
 };
@@ -167,10 +155,13 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/login",
+    "/auth/logout",
     "/auth/error",
     "/auth/signin",
     "/auth/oauth2/authorize",
     "/auth/platform/authorize",
+    "/auth/verify-email",
+    "/auth/verify",
     /**
      * Paths required by routingForms.handle
      */
@@ -178,15 +169,11 @@ export const config = {
 
     "/event-types/:path*",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
+    "/apps/installation/:path*",
     "/apps/:slug/",
-    "/future/apps/:slug/",
     "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
     "/apps/categories/",
-    "/future/apps/categories/",
     "/apps/categories/:category/",
-    "/future/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
     "/apps",
@@ -198,6 +185,7 @@ export const config = {
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",

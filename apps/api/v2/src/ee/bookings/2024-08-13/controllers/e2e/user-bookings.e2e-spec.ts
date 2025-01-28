@@ -354,6 +354,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toBeDefined();
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
@@ -518,6 +519,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toEqual(createdBooking.uid);
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdBooking.status);
               expect(data.start).toEqual(createdBooking.start);
               expect(data.end).toEqual(createdBooking.end);
@@ -552,6 +554,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toEqual(createdRecurringBooking[0].id);
               expect(data.uid).toEqual(createdRecurringBooking[0].uid);
               expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdRecurringBooking[0].status);
               expect(data.start).toEqual(createdRecurringBooking[0].start);
               expect(data.end).toEqual(createdRecurringBooking[0].end);
@@ -1021,6 +1025,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdBooking.status);
             expect(data.duration).toEqual(createdBooking.duration);
             expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
@@ -1078,6 +1084,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdRecurringBooking[0].status);
             expect(data.start).toEqual(body.start);
             expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 9, 15, 0, 0)).toISOString());
@@ -1158,6 +1166,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1190,6 +1200,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1228,6 +1240,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual("cancelled");
             expect(data.cancellationReason).toEqual(body.cancellationReason);
             expect(data.start).toEqual(rescheduledBooking.start);
