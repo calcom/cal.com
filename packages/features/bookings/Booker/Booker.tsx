@@ -152,12 +152,48 @@ const BookerComponent = ({
     }
   };
 
+  /**
+   * Checks if a given time slot is available in the schedule
+   * @param params - Object containing slot checking parameters
+   * @param params.slotToCheck - The time slot to check in ISO string format
+   * @param params.dateString - The date string in YYYY-MM-DD format
+   * @returns boolean - true if the slot is available, false otherwise
+   */
+  const isTimeSlotAvailable = ({
+    slotToCheckInUTC,
+    dateString,
+  }: {
+    slotToCheckInUTC: string;
+    dateString: string;
+  }) => {
+    // If schedule is not loaded, consider the slot available
+    if (!schedule?.data) {
+      return true;
+    }
+
+    // Get the slots for this date
+    const slotsForDateInUtc = schedule.data.slots[dateString];
+    if (!slotsForDateInUtc) return false;
+
+    // Check if the exact time slot exists in the available slots
+    return slotsForDateInUtc.some((slot) => {
+      const slotTimeInUtc = slot.time;
+      return slotTimeInUtc === slotToCheckInUTC;
+    });
+  };
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
+
+    // Check if selected timeslot is available before moving to booking state
+    if (!isTimeSlotAvailable({ slotToCheckInUTC: selectedTimeslot, dateString: selectedDate })) {
+      setSelectedTimeslot(null);
+      return;
+    }
     return setBookerState("booking");
-  }, [event, selectedDate, selectedTimeslot, setBookerState]);
+  }, [event, selectedDate, selectedTimeslot, setBookerState, setSelectedTimeslot]);
 
   const slot = getQueryParam("slot");
   useEffect(() => {

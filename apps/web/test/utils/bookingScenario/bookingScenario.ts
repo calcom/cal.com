@@ -104,6 +104,17 @@ type InputHost = {
   isFixed?: boolean;
   scheduleId?: number | null;
 };
+
+type InputSelectedSlot = {
+  eventTypeId: number;
+  userId: number;
+  slotUtcStartDate: Date;
+  slotUtcEndDate: Date;
+  uid: string;
+  releaseAt: Date;
+  isSeat?: boolean;
+};
+
 /**
  * Data to be mocked
  */
@@ -124,6 +135,7 @@ export type ScenarioData = {
   webhooks?: InputWebhook[];
   workflows?: InputWorkflow[];
   payment?: InputPayment[];
+  selectedSlots?: InputSelectedSlot[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
@@ -811,6 +823,16 @@ async function addAppsToDb(apps: any[]) {
   const allApps = await prismock.app.findMany();
   log.silly("TestData: Apps as in DB", JSON.stringify({ apps: allApps }));
 }
+
+async function addSelectedSlotsToDb(selectedSlots: InputSelectedSlot[]) {
+  log.silly("TestData: Creating Selected Slots", JSON.stringify(selectedSlots));
+  await prismock.selectedSlots.createMany({
+    data: selectedSlots,
+  });
+  const allSelectedSlots = await prismock.selectedSlots.findMany();
+  log.silly("TestData: Selected Slots as in DB", JSON.stringify({ selectedSlots: allSelectedSlots }));
+}
+
 export async function createBookingScenario(data: ScenarioData) {
   log.silly("TestData: Creating Scenario", JSON.stringify({ data }));
   await addUsers(data.users);
@@ -833,6 +855,10 @@ export async function createBookingScenario(data: ScenarioData) {
   // addPaymentMock();
   const workflows = await addWorkflows(data.workflows || []);
   await addPaymentToDb(data.payment || []);
+
+  if (data.selectedSlots) {
+    await addSelectedSlotsToDb(data.selectedSlots);
+  }
 
   return {
     eventTypes,
