@@ -2945,5 +2945,6 @@
   "asc": "Artan",
   "desc": "Azalan",
   "verify_email": "E-poçtu təsdiqlə",
+  "verify_email_change": "E-poçt dəyişikliyini təsdiqləyin",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

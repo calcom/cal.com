@@ -2945,5 +2945,6 @@
   "asc": "Gorantz",
   "desc": "Beherantz",
   "verify_email": "Egiaztatu emaila",
+  "verify_email_change": "Egiaztatu posta elektronikoaren aldaketa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

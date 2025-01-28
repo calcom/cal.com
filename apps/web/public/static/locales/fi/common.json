@@ -2945,5 +2945,6 @@
   "asc": "Nouseva",
   "desc": "Laskeva",
   "verify_email": "Vahvista sähköposti",
+  "verify_email_change": "Vahvista sähköpostin muutos",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
