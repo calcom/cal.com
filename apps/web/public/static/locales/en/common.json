@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "By enabling weights, it would be possible to assign higher priority to certain attributes per user. The higher the weight, the higher the priority.",
   "routed": "Routed",
   "reassigned": "Reassigned",
+  "allow_rescheduling_past_events": "Allow rescheduling past events",
+  "allow_rescheduling_past_events_description": "Enabling this option allows for past events to be rescheduled",
   "rerouted": "Rerouted",
   "salesforce_assigned": "Salesforce assignment",
   "router_position": "Router Position",
