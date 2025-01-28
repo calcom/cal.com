@@ -109,16 +109,8 @@ export const findQualifiedHosts = async <
   );
 
   if (hostsAfterRescheduleWithSameRoundRobinHost.length === 1) {
-    // push all disqualified hosts into fallback, reschedule with same user is recoverable
-    const fallbackHosts = getFallbackHosts(
-      fixedHosts,
-      roundRobinHosts,
-      hostsAfterRescheduleWithSameRoundRobinHost,
-      "NotSameRoundRobinHost"
-    );
     return {
       qualifiedHosts: [...fixedHosts, ...hostsAfterRescheduleWithSameRoundRobinHost],
-      fallbackHosts,
     };
   }
 

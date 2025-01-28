@@ -105,7 +105,7 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-
+  //no available users found if contact owner is not available?
   const { qualifiedHosts } = await findQualifiedHosts({
     eventType: {
       ...eventType,
