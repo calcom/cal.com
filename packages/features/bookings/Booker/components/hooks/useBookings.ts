@@ -101,6 +101,12 @@ const storeInLocalStorage = ({
   localStorage.setItem(STORAGE_KEY, value);
 };
 
+const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+  const message = "/o";
+  event.returnValue = message; // Standard for most browsers
+  return message; // For some older browsers
+};
+
 export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
@@ -180,6 +186,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
     onSuccess: (booking) => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+
       if (booking.isDryRun) {
         router.push("/booking/dry-run-successful");
         return;
@@ -279,10 +287,20 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
     onError: (err, _, ctx) => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       // eslint-disable-next-line @calcom/eslint/no-scroll-into-view-embed -- It is only called when user takes an action in embed
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
+
+  useEffect(() => {
+    if (!createBookingMutation.isPending) return;
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [createBookingMutation.isPending]);
 
   const createInstantBookingMutation = useMutation({
     mutationFn: createInstantBooking,
