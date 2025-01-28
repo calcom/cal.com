@@ -101,13 +101,19 @@ export const handleResponse = async (
     };
 
     const missingFields = (serializableFormWithFields.fields || [])
-      .filter((field) => !(field.required ? response[field.id]?.value : true))
+      .filter((field) => {
+        return field.required && !field.deleted && !response[field.id]?.value;
+      })
       .map((f) => f.label);
 
     if (missingFields.length) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: `Missing required fields ${missingFields.join(", ")}`,
+        cause: {
+          errorType: "missing_required_fields",
+          missingFields,
+        },
       });
     }
     const invalidFields = (serializableFormWithFields.fields || [])
@@ -122,6 +128,7 @@ export const handleResponse = async (
         } else if (field.type === "phone") {
           schema = z.any();
         } else {
+          ``;
           schema = z.any();
         }
         return !schema.safeParse(fieldValue).success;
@@ -236,6 +243,7 @@ export const handleResponse = async (
         error: true,
         message: e.message,
         status: 400,
+        data: e.cause,
       };
     }
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
