@@ -279,7 +279,7 @@ const buildDryRunBooking = ({
     noShowHost: null,
     cancelledBy: null,
     creationSource: CreationSource.WEBAPP,
-  } as unknown as CreatedBooking;
+  } as CreatedBooking;
 
   /**
    * Troubleshooting data
