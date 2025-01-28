@@ -730,22 +730,23 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && !isBookingInPast && (
-                                <span className="text-default inline">
-                                  <span className="underline" data-testid="reschedule-link">
-                                    <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
-                                        currentUserEmail
-                                          ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
-                                          : ""
-                                      }`}
-                                      legacyBehavior>
-                                      {t("reschedule")}
-                                    </Link>
+                              {!props.recurringBookings &&
+                                (!isBookingInPast || eventType.allowReschedulingPastBookings) && (
+                                  <span className="text-default inline">
+                                    <span className="underline" data-testid="reschedule-link">
+                                      <Link
+                                        href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}${
+                                          currentUserEmail
+                                            ? `?rescheduledBy=${encodeURIComponent(currentUserEmail)}`
+                                            : ""
+                                        }`}
+                                        legacyBehavior>
+                                        {t("reschedule")}
+                                      </Link>
+                                    </span>
+                                    <span className="mx-2">{t("or_lowercase")}</span>
                                   </span>
-                                  <span className="mx-2">{t("or_lowercase")}</span>
-                                </span>
-                              )}
+                                )}
 
                               <button
                                 data-testid="cancel"
