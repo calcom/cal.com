@@ -123,11 +123,14 @@ export default function App({ Component, pageProps }: AppProps) {
         </div>
       )}
       {pathname === "/router" && (
-        <div>
-          HELLO
+        <div className="p-4">
           <Router
-            formId="c6c039dc-1531-43cc-9e64-46f42f24b9a0"
-            searchParams={new URLSearchParams({ isBookingDryRun: "true" })}
+            formId="a63e6fce-899a-404e-8c38-e069710589c5"
+            searchParams={new URLSearchParams({ isBookingDryRun: "true", Territory: "Europe" })}
+            bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
+            customClassNames={{
+              bookerWrapper: "dark",
+            }}
           />
         </div>
       )}

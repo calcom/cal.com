@@ -139,6 +139,7 @@ export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
+  bookerWrapper?: string;
   bookerContainer?: string;
   eventMetaCustomClassNames?: {
     eventMetaContainer?: string;
