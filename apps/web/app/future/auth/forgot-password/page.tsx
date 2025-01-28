@@ -1,10 +1,13 @@
-import { withAppDirSsr } from "app/WithAppDirSsr";
+import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { getCsrfToken } from "next-auth/react";
+import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import { getServerSidePropsAppDir } from "@server/lib/auth/forgot-password/getServerSideProps";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import type { PageProps } from "~/auth/forgot-password/forgot-password-view";
+import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
 import ForgotPassword from "~/auth/forgot-password/forgot-password-view";
 
 export const generateMetadata = async () => {
@@ -14,8 +17,17 @@ export const generateMetadata = async () => {
   );
 };
 
-export default WithLayout({
-  getLayout: null,
-  Page: ForgotPassword,
-  getData: withAppDirSsr<PageProps>(getServerSidePropsAppDir),
-})<"P">;
+const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
+  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const session = await getServerSession({ req: context.req });
+
+  if (session) {
+    redirect("/");
+  }
+
+  const csrfToken = await getCsrfToken(context);
+
+  return <ForgotPassword csrfToken={csrfToken} />;
+};
+
+export default ServerPage;
