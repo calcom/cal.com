@@ -105,6 +105,21 @@ describe("event tests", () => {
       expect(result).toBe("scheduler: example attendee");
     });
 
+    it("should support templating of scheduler with split inputs", () => {
+      const tFunc = vi.fn(() => "foo");
+
+      const result = event.getEventName({
+        attendeeName: { firstName: "rock", lastName: "lee" },
+        eventType: "example event type",
+        host: "example host",
+        eventName: "scheduler: {Scheduler}",
+        eventDuration: 15,
+        t: tFunc as TFunction,
+      });
+
+      expect(result).toBe("scheduler: rock lee");
+    });
+
     it("should support templating of organiser", () => {
       const tFunc = vi.fn(() => "foo");
 
@@ -209,6 +224,7 @@ describe("event tests", () => {
         bookingFields: {
           customField: "example custom field",
         },
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -383,6 +399,86 @@ describe("event tests", () => {
     });
 
     expect(result).toBe("Scheduler first name: example");
+  });
+
+  it("should support templating of Scheduler first name with split inputs", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: { firstName: "rock", lastName: "lee" },
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Scheduler first name: {Scheduler first name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Scheduler first name: rock");
+  });
+
+  it("should support templating of Scheduler last name", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: "rock lee",
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Scheduler last name: {Scheduler last name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Scheduler last name: lee");
+  });
+
+  it("should support templating of Scheduler last name with split inputs", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: { firstName: "rock", lastName: "lee" },
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Scheduler last name: {Scheduler last name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Scheduler last name: lee");
+  });
+
+  it("should support templating of name", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: "rock lee",
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Name input: {name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Name input: rock lee");
+  });
+
+  it("should support templating of name with split inputs", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: { firstName: "rock", lastName: "lee" },
+      eventType: "example event type",
+      host: "example host",
+      location: "attendeeInPerson",
+      eventName: "Name input: {name}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+
+    expect(result).toBe("Name input: rock lee");
   });
 
   describe("fn: validateCustomEventName", () => {
