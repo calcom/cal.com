@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "En activar els pesos, serà possible assignar una prioritat més alta a certs atributs per usuari. Com més alt sigui el pes, més alta serà la prioritat.",
   "routed": "Redirigit",
   "reassigned": "Reassignat",
+  "allow_rescheduling_past_events": "Permet reprogramar esdeveniments passats",
+  "allow_rescheduling_past_events_description": "Activar aquesta opció permet reprogramar esdeveniments passats",
   "rerouted": "Redirigit de nou",
   "salesforce_assigned": "Assignació de Salesforce",
   "router_position": "Posició del router",
@@ -2945,5 +2947,6 @@
   "asc": "Asc",
   "desc": "Desc",
   "verify_email": "Verifica el correu",
+  "verify_email_change": "Verifica el canvi de correu electrònic",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Prin activarea ponderilor, ar fi posibilă atribuirea unei priorități mai mari anumitor atribute per utilizator. Cu cât ponderea este mai mare, cu atât prioritatea este mai mare.",
   "routed": "Direcționat",
   "reassigned": "Realocat",
+  "allow_rescheduling_past_events": "Permite reprogramarea evenimentelor trecute",
+  "allow_rescheduling_past_events_description": "Activarea acestei opțiuni permite reprogramarea evenimentelor care au avut loc în trecut",
   "rerouted": "Redirecționat",
   "salesforce_assigned": "Atribuire Salesforce",
   "router_position": "Poziția routerului",
@@ -2945,5 +2947,6 @@
   "asc": "Crescător",
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
+  "verify_email_change": "Verifică schimbarea adresei de email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

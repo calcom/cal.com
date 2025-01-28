@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "啟用權重後，即可為每位使用者的特定屬性分配較高的優先順序。權重越高，優先順序就越高。",
   "routed": "已轉送",
   "reassigned": "已重新分配",
+  "allow_rescheduling_past_events": "允許重新安排過去的活動",
+  "allow_rescheduling_past_events_description": "啟用此選項可重新安排過去的活動",
   "rerouted": "已重新轉送",
   "salesforce_assigned": "Salesforce 分配",
   "router_position": "路由器位置",
@@ -2945,5 +2947,6 @@
   "asc": "升序",
   "desc": "降序",
   "verify_email": "驗證電子郵件",
+  "verify_email_change": "驗證電子郵件變更",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
