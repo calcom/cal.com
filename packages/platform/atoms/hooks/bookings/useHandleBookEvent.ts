@@ -39,7 +39,7 @@ export const useHandleBookEvent = ({
   routingFormSearchParams,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const storeTimeSlot = useBookerStore((state) => state.selectedTimeslot);
   const duration = useBookerStore((state) => state.selectedDuration);
   const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
@@ -55,8 +55,9 @@ export const useHandleBookEvent = ({
   const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
   const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
 
-  const handleBookEvent = () => {
+  const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
+    const timeslot = inputTimeSlot ?? storeTimeSlot;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
