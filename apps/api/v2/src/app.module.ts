@@ -10,6 +10,7 @@ import { RequestIdMiddleware } from "@/middleware/request-ids/request-id.middlew
 import { AuthModule } from "@/modules/auth/auth.module";
 import { EndpointsModule } from "@/modules/endpoints.module";
 import { JwtModule } from "@/modules/jwt/jwt.module";
+import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
@@ -58,6 +59,7 @@ import { AppController } from "./app.controller";
     EndpointsModule,
     AuthModule,
     JwtModule,
+    OAuthClientModule,
   ],
   controllers: [AppController],
   providers: [
