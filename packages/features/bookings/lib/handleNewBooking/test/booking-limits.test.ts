@@ -865,7 +865,7 @@ describe("handleNewBooking", () => {
           },
         });
 
-        expect(() => handleNewBooking(req)).rejects.toThrowError("cannot be booked at this time");
+        expect(() => handleNewBooking(req)).rejects.toThrowError("booking_time_out_of_bounds_error");
       },
       timeout
     );
