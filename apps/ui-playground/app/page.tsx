@@ -1,5 +1,5 @@
-// import  AvatarDemo  from "./_components/AvatarDemo";
+import PageContent from "./_components/PageContent";
 
 export default function Home() {
-  return <div className="p-4 font-[family-name:var(--font-geist-sans)]">{/* <AvatarDemo /> */}</div>;
+  return <PageContent />;
 }
