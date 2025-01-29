@@ -875,7 +875,7 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
     if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
       const attributeIdForWeights = chosenRoute.attributeIdForWeights;
 
-      const attributeWithEnabledWeights = await prisma.attribute.findFirst({
+      const attributeWithEnabledWeights = await prisma.attribute.findUnique({
         where: {
           id: attributeIdForWeights,
           teamId: organizationId,
