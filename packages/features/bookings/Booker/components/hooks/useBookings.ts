@@ -373,6 +373,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       const isBookingInProgress = createBookingMutation.isPending || createRecurringBookingMutation.isPending;
       if (!isBookingInProgress) return;
 
+      // Note: Modern browsers show their own message regardless of what we set here
       const message = "/o";
       event.returnValue = message; // Standard for most browsers
       return message; // For some older browsers
