@@ -52,5 +52,5 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
     }
   }
 
-  if (timeOutOfBounds) throw new Error(ErrorCode.NoAvailableUsersFound);
+  if (timeOutOfBounds) throw new Error(ErrorCode.BookingTimeOutOfBounds);
 };
