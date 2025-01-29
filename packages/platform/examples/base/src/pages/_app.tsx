@@ -100,7 +100,6 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/embed" && (
         <div>
           <BookerEmbed
-            routingFormUrl="http://localhost:3000/team/seeded-team/collective-seeded-team-event?cal.teamId=2&Territory=EUROPE&cal.routingFormResponseId=2"
             customClassNames={{
               bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {
@@ -125,8 +124,15 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/router" && (
         <div className="p-4">
           <Router
-            formId="a63e6fce-899a-404e-8c38-e069710589c5"
-            searchParams={new URLSearchParams({ isBookingDryRun: "true", Territory: "Europe" })}
+            // formId="a63e6fce-899a-404e-8c38-e069710589c5"
+            formId="ea8c3c14-c988-4d1a-a277-083d1e8b2af4"
+            searchParams={
+              new URLSearchParams({
+                isBookingDryRun: "true",
+                Territory: "Europe",
+                action: "externalRedirectUrl",
+              })
+            }
             bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
             customClassNames={{
               bookerWrapper: "dark",
