@@ -83,6 +83,7 @@
   "payment_not_created_error": "No se pudo crear el pago",
   "couldnt_charge_card_error": "No se pudo cargar la tarjeta para el pago",
   "no_available_users_found_error": "No se encontraron usuarios disponibles. ¿Podrías intentar en otro horario?",
+  "booking_time_out_of_bounds_error": "El evento no se puede agendar en este momento. ¿Podrías intentar con otro horario?",
   "request_body_end_time_internal_error": "Error interno. El cuerpo de la solicitud no contiene la hora de finalización",
   "create_calendar_event_error": "No se pudo crear el evento en el calendario del organizador",
   "update_calendar_event_error": "No se pudo actualizar el evento del calendario.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Al habilitar los pesos, será posible asignar mayor prioridad a ciertos atributos por usuario. Cuanto mayor sea el peso, mayor será la prioridad.",
   "routed": "Enrutado",
   "reassigned": "Reasignado",
+  "allow_rescheduling_past_events": "Permitir reagendar eventos pasados",
+  "allow_rescheduling_past_events_description": "Habilitar esta opción permite reagendar eventos que ya pasaron",
   "rerouted": "Reenrutado",
   "salesforce_assigned": "Asignación de Salesforce",
   "router_position": "Posición del enrutador",
@@ -2945,5 +2948,6 @@
   "asc": "Asc",
   "desc": "Desc",
   "verify_email": "Verificar correo",
+  "verify_email_change": "Verificar cambio de correo electrónico",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agrega tus nuevas cadenas arriba de esta línea ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
