@@ -1,5 +1,6 @@
 import { getEnv } from "@/env";
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
+import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
 import { Inject, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
@@ -26,6 +27,10 @@ type RateLimitType = z.infer<typeof rateLimitSchema>;
 const rateLimitsSchema = z.array(rateLimitSchema);
 
 const sixtySecondsMs = 60 * 1000;
+const API_KEY_ = "api_key_";
+const ACCESS_TOKEN_ = "access_token_";
+const OAUTH_CLIENT_ = "oauth_client_";
+const IP_ = "ip_";
 
 @Injectable()
 export class CustomThrottlerGuard extends ThrottlerGuard {
@@ -36,7 +41,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   private defaultLimitApiKey = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_API_KEY", 120));
   private defaultLimitOAuthClient = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT", 500));
   private defaultLimitAccessToken = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_ACCESS_TOKEN", 500));
-  private defaultLimit = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 120));
+  private defaultLimit = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT", 10));
 
   private defaultBlockDuration = Number(getEnv("RATE_LIMIT_DEFAULT_BLOCK_DURATION_MS", sixtySecondsMs));
 
@@ -44,7 +49,8 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     options: ThrottlerModuleOptions,
     @Inject(ThrottlerStorageRedisService) protected readonly storageService: ThrottlerStorageRedisService,
     reflector: Reflector,
-    private readonly dbRead: PrismaReadService
+    private readonly dbRead: PrismaReadService,
+    private readonly oauthFlowService: OAuthFlowService
   ) {
     super(options, storageService, reflector);
     this.storageService = storageService;
@@ -56,21 +62,35 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const tracker = await this.getTracker(request);
-    this.logger.verbose(
-      `Tracker "${tracker}" generated based on: Bearer token "${request.get(
-        "Authorization"
-      )}", OAuth client ID "${request.get(X_CAL_CLIENT_ID)}" and IP "${request.ip}"`
-    );
 
-    if (tracker.startsWith("api_key_")) {
-      return this.handleApiKeyRequest(tracker, response);
-    } else {
-      return this.handleNonApiKeyRequest(tracker, response);
-    }
+    return this.hasRequestsRemaining(tracker, response);
   }
 
-  private async handleApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimits = await this.getRateLimitsForApiKeyTracker(tracker);
+  protected async getTracker(request: Request): Promise<string> {
+    const authorizationHeader = request.get("Authorization")?.replace("Bearer ", "");
+
+    if (authorizationHeader) {
+      const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
+      return isApiKey(authorizationHeader, apiKeyPrefix)
+        ? `${API_KEY_}${hashAPIKey(stripApiKey(authorizationHeader, apiKeyPrefix))}`
+        : `${ACCESS_TOKEN_}${authorizationHeader}`;
+    }
+
+    const oauthClientId = request.get(X_CAL_CLIENT_ID);
+
+    if (oauthClientId) {
+      return `${OAUTH_CLIENT_}${oauthClientId}`;
+    }
+
+    if (request.ip) {
+      return `${IP_}${request.ip}`;
+    }
+
+    return "unknown";
+  }
+
+  private async hasRequestsRemaining(tracker: string, response: Response): Promise<boolean> {
+    const rateLimits = await this.getRateLimits(tracker);
 
     let allLimitsBlocked = true;
     for (const rateLimit of rateLimits) {
@@ -87,47 +107,16 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     return true;
   }
 
-  private async handleNonApiKeyRequest(tracker: string, response: Response): Promise<boolean> {
-    const rateLimit = this.getDefaultRateLimit(tracker);
-    this.logger.verbose(`Tracker "${tracker}" uses default rate limits because it is not tracking api key:
-      ${JSON.stringify(rateLimit, null, 2)}
-    `);
-
-    const { isBlocked } = await this.incrementRateLimit(tracker, rateLimit, response);
-    if (isBlocked) {
-      throw new ThrottlerException("Too many requests. Please try again later.");
-    }
-
-    return true;
-  }
-
-  private getDefaultRateLimit(tracker: string) {
-    return {
-      name: "default",
-      limit: this.getDefaultLimit(tracker),
-      ttl: this.getDefaultTtl(),
-      blockDuration: this.getDefaultBlockDuration(),
-    };
-  }
-
-  getDefaultLimit(tracker: string) {
-    if (tracker.startsWith("api_key_")) {
-      return this.defaultLimitApiKey;
-    } else if (tracker.startsWith("oauth_client_")) {
-      return this.defaultLimitOAuthClient;
-    } else if (tracker.startsWith("access_token_")) {
-      return this.defaultLimitAccessToken;
+  private async getRateLimits(tracker: string) {
+    if (tracker.startsWith(API_KEY_)) {
+      return await this.getRateLimitsForApiKeyTracker(tracker);
+    } else if (tracker.startsWith(ACCESS_TOKEN_)) {
+      return await this.getRateLimitsForAccessTokenTracker(tracker);
+    } else if (tracker.startsWith(OAUTH_CLIENT_)) {
+      return await this.getRateLimitsForOAuthClientTracker(tracker);
     } else {
-      return this.defaultLimit;
+      return [this.getDefaultRateLimitByTracker(tracker)];
     }
-  }
-
-  getDefaultTtl() {
-    return this.defaultTttl;
-  }
-
-  getDefaultBlockDuration() {
-    return this.defaultBlockDuration;
   }
 
   private async getRateLimitsForApiKeyTracker(tracker: string) {
@@ -135,42 +124,125 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
 
     const cachedRateLimits = await this.storageService.redis.get(cacheKey);
     if (cachedRateLimits) {
-      this.logger.verbose(`Tracker "${tracker}" rate limits retrieved from redis cache:
-        ${cachedRateLimits}
-      `);
       return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
     }
 
-    const apiKey = tracker.replace("api_key_", "");
-    let rateLimits: RateLimitType[];
+    const apiKey = tracker.replace(API_KEY_, "");
     const apiKeyRecord = await this.dbRead.prisma.apiKey.findUnique({
       where: { hashedKey: apiKey },
       select: { id: true },
     });
 
-    if (!apiKeyRecord) {
-      throw new UnauthorizedException("Invalid API Key");
-    }
+    let rateLimits: RateLimitType[];
 
-    rateLimits = await this.dbRead.prisma.rateLimit.findMany({
-      where: { apiKeyId: apiKeyRecord.id },
-      select: { name: true, limit: true, ttl: true, blockDuration: true },
-    });
-
-    if (rateLimits) {
-      this.logger.verbose(`Tracker "${tracker}" rate limits retrieved from database:
-        ${JSON.stringify(rateLimits, null, 2)}`);
-    }
-
-    if (!rateLimits || rateLimits.length === 0) {
-      rateLimits = [this.getDefaultRateLimit(tracker)];
-      this.logger.verbose(`Tracker "${tracker}" rate limits not found in database. Using default rate limits:
-        ${JSON.stringify(rateLimits, null, 2)}`);
+    if (apiKeyRecord) {
+      rateLimits = await this.dbRead.prisma.rateLimit.findMany({
+        where: { apiKeyId: apiKeyRecord.id },
+        select: { name: true, limit: true, ttl: true, blockDuration: true },
+      });
+      if (!rateLimits || rateLimits.length === 0) {
+        rateLimits = [this.getDefaultRateLimitByTracker(tracker)];
+      }
+    } else {
+      this.logger.verbose(`warning - ApiKey "${apiKey}" not found, default rate limit applied.`);
+      rateLimits = [this.getDefaultRateLimit()];
     }
 
     await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
 
     return rateLimits;
+  }
+
+  private async getRateLimitsForOAuthClientTracker(tracker: string) {
+    const cacheKey = `rate_limit:${tracker}`;
+
+    const cachedRateLimits = await this.storageService.redis.get(cacheKey);
+    if (cachedRateLimits) {
+      return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
+    }
+
+    const clientId = tracker.replace(OAUTH_CLIENT_, "");
+
+    const oAuthClient = await this.dbRead.prisma.platformOAuthClient.findUnique({
+      where: { id: clientId },
+      select: { id: true },
+    });
+
+    let rateLimits: RateLimitType[];
+
+    if (oAuthClient) {
+      rateLimits = [this.getDefaultRateLimitByTracker(tracker)];
+    } else {
+      this.logger.verbose(`warning - OAuth Client "${clientId}" not found, default rate limit applied.`);
+      rateLimits = [this.getDefaultRateLimit()];
+    }
+
+    await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
+
+    return rateLimits;
+  }
+
+  private async getRateLimitsForAccessTokenTracker(tracker: string) {
+    const cacheKey = `rate_limit:${tracker}`;
+
+    const cachedRateLimits = await this.storageService.redis.get(cacheKey);
+    if (cachedRateLimits) {
+      return rateLimitsSchema.parse(JSON.parse(cachedRateLimits));
+    }
+
+    const accessToken = tracker.replace(ACCESS_TOKEN_, "");
+
+    let rateLimits: RateLimitType[];
+
+    try {
+      await this.oauthFlowService.validateAccessToken(accessToken);
+      rateLimits = [this.getDefaultRateLimitByTracker(tracker)];
+    } catch (err) {
+      this.logger.verbose(`warning - AccessToken "${accessToken}" is invalid, default rate limit applied.`);
+      rateLimits = [this.getDefaultRateLimit()];
+    }
+
+    await this.storageService.redis.set(cacheKey, JSON.stringify(rateLimits), "EX", 3600);
+
+    return rateLimits;
+  }
+
+  private getDefaultRateLimitByTracker(tracker: string) {
+    return {
+      name: "default",
+      limit: this.getDefaultLimitByTracker(tracker),
+      ttl: this.getDefaultTtl(),
+      blockDuration: this.getDefaultBlockDuration(),
+    };
+  }
+
+  private getDefaultRateLimit() {
+    return {
+      name: "default",
+      limit: this.defaultLimit,
+      ttl: this.getDefaultTtl(),
+      blockDuration: this.getDefaultBlockDuration(),
+    };
+  }
+
+  private getDefaultLimitByTracker(tracker: string) {
+    if (tracker.startsWith(API_KEY_)) {
+      return this.defaultLimitApiKey;
+    } else if (tracker.startsWith(OAUTH_CLIENT_)) {
+      return this.defaultLimitOAuthClient;
+    } else if (tracker.startsWith(ACCESS_TOKEN_)) {
+      return this.defaultLimitAccessToken;
+    } else {
+      return this.defaultLimit;
+    }
+  }
+
+  private getDefaultTtl() {
+    return this.defaultTttl;
+  }
+
+  private getDefaultBlockDuration() {
+    return this.defaultBlockDuration;
   }
 
   private async incrementRateLimit(tracker: string, rateLimit: RateLimitType, response: Response) {
@@ -201,33 +273,9 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
       `Tracker "${tracker}" rate limit "${name}" response headers:
         X-RateLimit-Limit-${nameFirstUpper}: ${limit},
         X-RateLimit-Remaining-${nameFirstUpper}: ${timeToBlockExpire ? 0 : Math.max(0, limit - totalHits)},
-        X-RateLimit-Reset-${nameFirstUpper}: ${timeToBlockExpire || timeToExpire}`
+        X-RateLimit-Reset-${nameFirstUpper}: ${timeToBlockExpire || timeToExpire}\n`
     );
 
     return { isBlocked };
-  }
-
-  protected async getTracker(request: Request): Promise<string> {
-    const authorizationHeader = request.get("Authorization")?.replace("Bearer ", "");
-
-    if (authorizationHeader) {
-      const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
-      return isApiKey(authorizationHeader, apiKeyPrefix)
-        ? `api_key_${hashAPIKey(stripApiKey(authorizationHeader, apiKeyPrefix))}`
-        : `access_token_${authorizationHeader}`;
-    }
-
-    const oauthClientId = request.get(X_CAL_CLIENT_ID);
-
-    if (oauthClientId) {
-      return `oauth_client_${oauthClientId}`;
-    }
-
-    if (request.ip) {
-      return `ip_${request.ip}`;
-    }
-
-    this.logger.verbose(`no tracker found: ${request.url}`);
-    return "unknown";
   }
 }
