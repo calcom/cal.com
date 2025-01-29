@@ -83,6 +83,7 @@
   "payment_not_created_error": "Platbu se nepodařilo vytvořit",
   "couldnt_charge_card_error": "Nepodařilo se strhnout platbu z karty",
   "no_available_users_found_error": "Nebyli nalezeni žádní dostupní uživatelé. Můžete zkusit jiný časový slot?",
+  "booking_time_out_of_bounds_error": "Tento typ události nelze v tomto čase rezervovat. Můžete zkusit jiný časový termín?",
   "request_body_end_time_internal_error": "Interní chyba. Tělo požadavku neobsahuje čas ukončení",
   "create_calendar_event_error": "Nelze vytvořit událost v kalendáři organizátora",
   "update_calendar_event_error": "Nelze aktualizovat událost v kalendáři.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Povolením vah bude možné přiřadit některým atributům uživatele vyšší prioritu. Čím vyšší váha, tím vyšší priorita.",
   "routed": "Přesměrováno",
   "reassigned": "Přeřazeno",
+  "allow_rescheduling_past_events": "Povolit přeplánování minulých událostí",
+  "allow_rescheduling_past_events_description": "Povolením této možnosti umožníte přeplánování minulých událostí",
   "rerouted": "Přesměrováno jinam",
   "salesforce_assigned": "Přiřazení Salesforce",
   "router_position": "Pozice routeru",
@@ -2945,5 +2948,6 @@
   "asc": "Vzestupně",
   "desc": "Sestupně",
   "verify_email": "Ověřit e-mail",
+  "verify_email_change": "Ověřit změnu e-mailu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
