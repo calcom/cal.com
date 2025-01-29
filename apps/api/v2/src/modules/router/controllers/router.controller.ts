@@ -20,7 +20,6 @@ export class RouterController {
     @Body() body?: Record<string, string>
   ): Promise<void | (ApiResponse<unknown> & { redirect: boolean })> {
     const params = Object.fromEntries(new URLSearchParams(body ?? {}));
-    console.log("PARAMS", params);
     const routedUrlData = await getRoutedUrl({ req: request, query: { ...params, form: formId } });
 
     if (routedUrlData?.notFound) {

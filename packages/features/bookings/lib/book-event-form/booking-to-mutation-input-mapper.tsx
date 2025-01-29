@@ -51,7 +51,6 @@ export const mapBookingToMutationInput = ({
   routingFormSearchParams,
 }: BookingOptions): BookingCreateBody => {
   const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
-  console.log("SEARCH PARAMS FROM PROP: routingFormSearchParams", routingFormSearchParams);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;

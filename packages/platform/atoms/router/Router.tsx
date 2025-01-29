@@ -53,19 +53,15 @@ export const Router = React.memo(
             }
           })
           .catch((err) => {
-            console.log("CATCH", err);
             setIsError(true);
           })
           .finally(() => {
-            console.log("FINNALY");
             setIsLoading(false);
           });
       }
     }, []);
 
     const isRedirect = !!routerUrl;
-
-    console.log({ isLoading, isError, routerUrl, routingData });
 
     if (isLoading || isError) {
       return <></>;

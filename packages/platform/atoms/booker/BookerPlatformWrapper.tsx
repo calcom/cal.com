@@ -334,8 +334,6 @@ export const BookerPlatformWrapper = (
     isError: isCreateBookingError,
   } = useCreateBooking({
     onSuccess: (data) => {
-      console.log(data);
-
       if (data?.data?.isDryRun) {
         props?.onDryRunSuccess?.();
       }
