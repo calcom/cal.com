@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import type { BookingField } from "@calcom/features/form-builder/schema";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -489,7 +490,7 @@ export default function FormEditPage({
             title={t("booking_questions_title")}
             description={t("booking_questions_description")}
             addFieldLabel={t("add_a_booking_question")}
-            formProp="bookingFields"
+            formProp="fields"
             dataStore={{
               options: {
                 locations: {
