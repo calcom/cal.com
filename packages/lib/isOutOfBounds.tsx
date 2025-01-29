@@ -250,6 +250,12 @@ export function isTimeViolatingFutureLimit({
       isAfterRollingEndDay,
       endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
     });
+    if (isAfterRollingEndDay)
+      log.warn("Booking is out of bounds due to rolling period end day.", {
+        formattedDate: dateInSystemTz.format(),
+        isAfterRollingEndDay,
+        endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
+      });
     return isAfterRollingEndDay;
   }
 
@@ -263,6 +269,14 @@ export function isTimeViolatingFutureLimit({
       startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
       endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
     });
+    if (isBeforeRangeStart || isAfterRangeEnd)
+      log.warn("Booking is out of bounds due to range start and end.", {
+        formattedDate: dateInSystemTz.format(),
+        isBeforeRangeStart,
+        isAfterRangeEnd,
+        startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
+        endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
+      });
     return isBeforeRangeStart || isAfterRangeEnd;
   }
   return false;
@@ -311,11 +325,13 @@ export default function isOutOfBounds(
       cause: "Booking is out of bounds due to minimum booking notice.",
     };
 
-  if (isOutOfBoundsByPeriod)
+  if (isOutOfBoundsByPeriod) {
+    log.warn(`Booking is out of bounds due to period restrictions - ${periodLimits}`);
     return {
       isOutOfBounds: true,
       cause: "Booking is out of bounds due to period restrictions.",
     };
+  }
 
   return {
     isOutOfBounds: false,
