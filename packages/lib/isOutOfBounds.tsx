@@ -327,7 +327,10 @@ export default function isOutOfBounds(
   });
 
   if (isOutOfBoundsByTime) {
-    log.warn("Booking is out of bounds due to minimum booking notice.");
+    log.warn(
+      "Booking is out of bounds due to minimum booking notice.",
+      safeStringify({ minimumBookingNotice })
+    );
     return true;
   }
 
