@@ -11,6 +11,7 @@ import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/u
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
@@ -20,6 +21,7 @@ import type {
   ApiSuccessResponse,
   ApiSuccessResponseWithoutData,
 } from "@calcom/platform-types";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import {
@@ -78,6 +80,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
   bannerUrl?: string;
+  onDryRunSuccess?: () => void;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -85,18 +88,20 @@ type VIEW_TYPE = keyof typeof BookerLayouts;
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW", bannerUrl } = props;
+  const { view = "MONTH_VIEW", bannerUrl, routingFormSearchParams } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -259,6 +264,32 @@ export const BookerPlatformWrapper = (
     selectedDate,
   });
 
+  const [routingParams, setRoutingParams] = useState<{
+    routedTeamMemberIds?: number[];
+    shouldServeCache?: boolean;
+    skipContactOwner?: boolean;
+    isBookingDryRun?: boolean;
+  }>({});
+
+  useEffect(() => {
+    const searchParams = routingFormSearchParams
+      ? new URLSearchParams(routingFormSearchParams)
+      : new URLSearchParams(window.location.search);
+
+    const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
+    const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+
+    const _cacheParam = searchParams?.get("cal.cache");
+    const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    setRoutingParams({
+      ...(skipContactOwner ? { skipContactOwner } : {}),
+      ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
+      ...(shouldServeCache ? { shouldServeCache } : {}),
+      ...(isBookingDryRun ? { isBookingDryRun } : {}),
+    });
+  }, [routingFormSearchParams]);
+
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -281,6 +312,7 @@ export const BookerPlatformWrapper = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
+    ...routingParams,
   });
 
   const bookerForm = useBookingForm({
@@ -302,6 +334,9 @@ export const BookerPlatformWrapper = (
     isError: isCreateBookingError,
   } = useCreateBooking({
     onSuccess: (data) => {
+      if (data?.data?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
 
@@ -319,6 +354,9 @@ export const BookerPlatformWrapper = (
     isError: isCreateRecBookingError,
   } = useCreateRecurringBooking({
     onSuccess: (data) => {
+      if (data?.data?.[0]?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
 
@@ -383,6 +421,7 @@ export const BookerPlatformWrapper = (
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
+    routingFormSearchParams,
   });
 
   const onOverlaySwitchStateChange = useCallback(
@@ -514,6 +553,7 @@ export const BookerPlatformWrapper = (
         verifyCode={undefined}
         isPlatform
         hasValidLicense={true}
+        isBookingDryRun={routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );
