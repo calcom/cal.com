@@ -42,7 +42,7 @@ export function Avatar(props: AvatarProps) {
       data-testid={props?.["data-testid"]}
       className={classNames(
         "bg-emphasis item-center border-1 border-default relative inline-flex aspect-square justify-center rounded-full align-top",
-        indicator ? "overflow-visible" : "",
+        indicator ? "overflow-visible" : "overflow-hidden",
         props.className,
         sizesPropsBySize[size]
       )}>
