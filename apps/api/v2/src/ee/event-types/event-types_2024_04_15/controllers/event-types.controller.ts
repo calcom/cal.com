@@ -39,7 +39,7 @@ import {
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getEventTypesByViewer, getPublicEvent } from "@calcom/platform-libraries-0.0.2";
+import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
@@ -120,11 +120,8 @@ export class EventTypesController_2024_04_15 {
         this.prismaReadService.prisma as unknown as PrismaClient,
         // We should be fine allowing unpublished orgs events to be servable through platform because Platform access is behind license
         // If there is ever a need to restrict this, we can introduce a new query param `fromRedirectOfNonOrgLink`
-        true,
-        undefined,
         true
       );
-
       return {
         data: event,
         status: SUCCESS_STATUS,

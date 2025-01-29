@@ -399,8 +399,8 @@ class PublicEventTypeOutput {
   workflows!: any[];
 
   @IsArray()
-  @ApiPropertyOptional()
-  hosts?: any[];
+  @ApiProperty()
+  hosts!: any[];
 
   @ValidateNested()
   @Type(() => Owner)
@@ -427,13 +427,8 @@ class PublicEventTypeOutput {
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => User)
-  @ApiPropertyOptional({ type: [User] })
-  users?: User[];
-
-  @ValidateNested({ each: true })
-  @Type(() => User)
   @ApiProperty({ type: [User] })
-  subsetOfUsers!: User[];
+  users!: User[];
 
   @IsObject()
   @ApiProperty({ type: Object })
