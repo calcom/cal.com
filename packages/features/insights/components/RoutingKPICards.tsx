@@ -66,7 +66,7 @@ export const RoutingKPICards = ({
     },
   ];
 
-  if (isPending) {
+  if (isPending || !data) {
     return <LoadingKPICards categories={categories} />;
   }
 
