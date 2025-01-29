@@ -83,6 +83,7 @@
   "payment_not_created_error": "Không thể tạo thanh toán",
   "couldnt_charge_card_error": "Không thể tính phí thẻ cho thanh toán",
   "no_available_users_found_error": "Không tìm thấy người dùng khả dụng. Bạn có thể thử một khung giờ khác không?",
+  "booking_time_out_of_bounds_error": "Không thể đặt lịch sự kiện vào thời điểm này. Bạn có thể thử chọn khung giờ khác không?",
   "request_body_end_time_internal_error": "Lỗi nội bộ. Yêu cầu không chứa thời gian kết thúc",
   "create_calendar_event_error": "Không thể tạo sự kiện trên lịch của người tổ chức",
   "update_calendar_event_error": "Không thể cập nhật sự kiện Lịch.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Bằng cách bật trọng số, bạn có thể gán mức độ ưu tiên cao hơn cho một số thuộc tính của từng người dùng. Trọng số càng cao thì mức độ ưu tiên càng cao.",
   "routed": "Đã chuyển",
   "reassigned": "Đã phân công lại",
+  "allow_rescheduling_past_events": "Cho phép đặt lại lịch các sự kiện đã qua",
+  "allow_rescheduling_past_events_description": "Bật tùy chọn này cho phép đặt lại lịch các sự kiện đã diễn ra",
   "rerouted": "Đã chuyển hướng lại",
   "salesforce_assigned": "Phân công Salesforce",
   "router_position": "Vị trí bộ định tuyến",
@@ -2945,5 +2948,6 @@
   "asc": "Tăng dần",
   "desc": "Giảm dần",
   "verify_email": "Xác thực email",
+  "verify_email_change": "Xác minh thay đổi email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
