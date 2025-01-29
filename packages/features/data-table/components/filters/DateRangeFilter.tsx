@@ -10,7 +10,7 @@ import { Select } from "@calcom/ui";
 import "../../../insights/filters/DateSelect.css";
 import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZDateRangeFilterValue } from "../../lib/types";
+import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
 
 type PresetOption = {
   labelKey: string;
@@ -20,7 +20,7 @@ type PresetOption = {
 
 type DateRangeFilterProps = {
   className?: string;
-  column: Extract<FilterableColumn, { type: "date_range" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
 };
 
 const CUSTOM_PRESET_VALUE = "c" as const;
@@ -112,7 +112,7 @@ export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => 
 
     if (startDate && endDate) {
       updateFilter(column.id, {
-        type: "date_range",
+        type: ColumnFilterType.DATE_RANGE,
         data: {
           startDate: startDate.toDate().toISOString(),
           endDate: endDate.toDate().toISOString(),
