@@ -15,6 +15,7 @@ type ValidateBookingTimeEventType = Pick<
   | "minimumBookingNotice"
   | "eventName"
   | "id"
+  | "title"
 >;
 
 export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBookingTimeEventType>(

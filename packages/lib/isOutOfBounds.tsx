@@ -301,6 +301,7 @@ export default function isOutOfBounds(
   },
   minimumBookingNotice?: number
 ): { isOutOfBounds: boolean; cause: string | null } {
+  const log = logger.getSubLogger({ prefix: ["isOutOfBounds"] });
   const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
   const periodLimits = calculatePeriodLimits({
     periodType,
