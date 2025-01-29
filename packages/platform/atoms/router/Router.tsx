@@ -4,23 +4,39 @@ import React, { useState } from "react";
 import { BookerEmbed } from "../booker-embed";
 import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlatformWrapper";
 
+/**
+ * Renders the Router component with predefined props.
+ * Depending on the routing form either renders a custom message, redirects or display Booker embed atom.
+ * formResponsesURLParams contains the answers to the questions fields defined in the form.
+ * ```tsx
+ * <Router
+ *   formId="1a1a1a1a-2b2b-3c3c-4d4d-5e5e5e5e5e5e"
+ *   formResponsesURLParams={new URLSearchParams({ Territory: "Europe" })}
+ *   bookerBannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
+ *   bookerCustomClassNames={{
+ *     bookerWrapper: "dark",
+ *   }}
+ * />
+ * ```
+ */
+
 export const Router = React.memo(
   ({
     formId,
-    searchParams,
+    formResponsesURLParams,
     onExternalRedirect,
     onDisplayBookerEmbed,
     renderMessage,
-    bannerUrl,
-    customClassNames,
+    bookerBannerUrl,
+    bookerCustomClassNames,
   }: {
     formId: string;
-    searchParams?: URLSearchParams;
+    formResponsesURLParams?: URLSearchParams;
     onExternalRedirect?: () => void;
     onDisplayBookerEmbed?: () => void;
     renderMessage?: (message?: string) => ReactElement | ReactElement[];
-    bannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
-    customClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
+    bookerBannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
+    bookerCustomClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
   }) => {
     const [isLoading, setIsLoading] = useState<boolean>();
     const [routerUrl, setRouterUrl] = useState<string>();
@@ -40,7 +56,9 @@ export const Router = React.memo(
           headers: {
             "Content-Type": "application/json",
           },
-          body: searchParams ? JSON.stringify(Object.fromEntries(searchParams)) : undefined,
+          body: formResponsesURLParams
+            ? JSON.stringify(Object.fromEntries(formResponsesURLParams))
+            : undefined,
         })
           .then(async (response) => {
             const body:
@@ -53,6 +71,7 @@ export const Router = React.memo(
             }
           })
           .catch((err) => {
+            console.error(err);
             setIsError(true);
           })
           .finally(() => {
@@ -73,7 +92,11 @@ export const Router = React.memo(
         // display booker with redirect URL
         onDisplayBookerEmbed?.();
         return (
-          <BookerEmbed routingFormUrl={routerUrl} customClassNames={customClassNames} bannerUrl={bannerUrl} />
+          <BookerEmbed
+            routingFormUrl={routerUrl}
+            customClassNames={bookerCustomClassNames}
+            bannerUrl={bookerBannerUrl}
+          />
         );
       } else if (redirectParams.get("cal.action") === "externalRedirectUrl") {
         onExternalRedirect?.();
