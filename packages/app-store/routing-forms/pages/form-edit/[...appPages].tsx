@@ -4,8 +4,12 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
+import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -471,11 +475,37 @@ export default function FormEditPage({
   appUrl,
   ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+
   return (
     <SingleForm
       {...props}
       appUrl={appUrl}
-      Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
+      Page={({ hookForm, form }) => (
+        <>
+          {/* <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} /> */}
+          <FormBuilder
+            title={t("booking_questions_title")}
+            description={t("booking_questions_description")}
+            addFieldLabel={t("add_a_booking_question")}
+            formProp="bookingFields"
+            dataStore={{
+              options: {
+                locations: {
+                  // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                  source: { label: "Location" },
+                  value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+                },
+              },
+            }}
+            shouldConsiderRequired={(field: BookingField) => {
+              // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+              return field.name === "location" ? true : field.required;
+            }}
+          />
+        </>
+      )}
     />
   );
 }
