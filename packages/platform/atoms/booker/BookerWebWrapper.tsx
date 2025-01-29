@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useCallback, useEffect } from "react";
@@ -21,7 +21,7 @@ import { useBookerStore, useInitializeBookerStore } from "@calcom/features/booki
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { getLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
 import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand-colors";
-import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR, WEBAPP_URL } from "@calcom/lib/constants";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
@@ -204,11 +204,17 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       onOverlayClickNoCalendar={() => {
         router.push("/apps/categories/calendar");
       }}
-      onClickOverlayContinue={() => {
-        const newUrl = new URL(`${WEBAPP_URL}/login`);
-        newUrl.searchParams.set("callbackUrl", window.location.pathname);
-        newUrl.searchParams.set("overlayCalendar", "true");
-        router.push(newUrl.toString());
+      onClickOverlayContinue={(provider: "google" | "calcom" = "calcom") => {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set("overlayCalendar", "true");
+        if (provider === "google") {
+          signIn("google", { callbackUrl: currentUrl.toString() });
+        } else {
+          const redirectBaseUrl = "/login";
+          const url = new URL(redirectBaseUrl, window.location.origin);
+          url.searchParams.set("callbackUrl", currentUrl.toString());
+          router.push(url.toString());
+        }
       }}
       onOverlaySwitchStateChange={onOverlaySwitchStateChange}
       sessionUsername={session?.user.username}

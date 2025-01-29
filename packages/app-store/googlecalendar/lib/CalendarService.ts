@@ -28,6 +28,7 @@ import type {
   Calendar,
   CalendarEvent,
   EventBusyDate,
+  EventBusyData,
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
@@ -556,6 +557,144 @@ export default class GoogleCalendarService implements Calendar {
     }
   }
 
+  async getCalIds(selectedCalendars: IntegrationCalendar[]): Promise<string[]> {
+    const selectedCalendarsIds = selectedCalendars.reduce((calendarIds, calendar) => {
+      if (calendar.integration === this.integrationName && calendar.externalId)
+        calendarIds.push(calendar.externalId);
+      return calendarIds;
+    }, [] as string[]);
+    if (selectedCalendarsIds.length === 0 && selectedCalendars.length > 0) {
+      // Only calendars of other integrations selected
+      return [];
+    }
+    if (selectedCalendarsIds.length !== 0) return selectedCalendarsIds;
+    const calendar = await this.authedCalendar();
+    const cals = await this.getAllCalendars(calendar, ["id"]);
+    if (!cals.length) return [];
+    return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
+  }
+
+  // fetches free-busy/events data with date range check
+  async fetchCalendarDataWithDateRangeCheck(
+    dateFrom: string,
+    dateTo: string,
+    calsIds: string[],
+    getEventsOrFreeBusyData: (
+      args: {
+        timeMin: string;
+        timeMax: string;
+        items: { id: string }[];
+      },
+      shouldServeCache?: boolean
+    ) => Promise<EventBusyDate[] | null> | Promise<EventBusyData[]>,
+    shouldServeCache?: boolean
+  ) {
+    const originalStartDate = dayjs(dateFrom);
+    const originalEndDate = dayjs(dateTo);
+    const diff = originalEndDate.diff(originalStartDate, "days");
+    if (diff <= 90) {
+      const data = await getEventsOrFreeBusyData(
+        {
+          timeMin: dateFrom,
+          timeMax: dateTo,
+          items: calsIds.map((id) => ({ id })),
+        },
+        shouldServeCache
+      );
+
+      if (!data) throw new Error("No response from google calendar");
+
+      return data;
+    } else {
+      const busyData = [];
+
+      const loopsNumber = Math.ceil(diff / 90);
+
+      let startDate = originalStartDate;
+      let endDate = originalStartDate.add(90, "days");
+
+      for (let i = 0; i < loopsNumber; i++) {
+        if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
+
+        busyData.push(
+          ...((await getEventsOrFreeBusyData(
+            {
+              timeMin: startDate.format(),
+              timeMax: endDate.format(),
+              items: calsIds.map((id) => ({ id })),
+            },
+            shouldServeCache
+          )) || [])
+        );
+
+        startDate = endDate.add(1, "minutes");
+        endDate = startDate.add(90, "days");
+      }
+      return busyData;
+    }
+  }
+
+  async getEventList(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyData[]> {
+    try {
+      const calsIds = await this.getCalIds(selectedCalendars);
+      if (calsIds.length === 0) return [];
+
+      const fetchEventData = async (args: {
+        timeMin: string;
+        timeMax: string;
+        items: { id: string }[];
+      }): Promise<EventBusyData[]> => {
+        const calendar = await this.authedCalendar();
+        const { timeMin, timeMax, items } = args;
+        const events = await Promise.all(
+          items.map(async (item) => {
+            const { json: eventData } = await this.oAuthManagerInstance.request(
+              async () =>
+                new AxiosLikeResponseToFetchResponse(
+                  await calendar.events.list({
+                    calendarId: item.id,
+                    timeMin: timeMin,
+                    timeMax: timeMax,
+                    fields: "items(summary,start/dateTime, start/date, end/dateTime, end/date)",
+                  })
+                )
+            );
+
+            if (!eventData.items || eventData.items?.length === 0) return [];
+
+            return eventData.items.map((event) => {
+              const busyData: EventBusyData = {
+                start: event.start?.date
+                  ? dayjs(event.start?.date).startOf("day").utc().format()
+                  : event.start?.dateTime || "",
+                end: event.end?.date
+                  ? dayjs(event.end?.date).subtract(1, "day").endOf("day").utc().format()
+                  : event.end?.dateTime || "",
+                title: event.summary || "",
+              };
+              return busyData;
+            });
+          })
+        );
+        if (events.length === 0) return [];
+        return events.flat();
+      };
+
+      const data = await this.fetchCalendarDataWithDateRangeCheck(dateFrom, dateTo, calsIds, fetchEventData);
+      return data;
+    } catch (error) {
+      this.log.error(
+        "There was an error getting availability from google calendar: ",
+        safeStringify({ error, selectedCalendars })
+      );
+      throw error;
+    }
+  }
+
   async fetchAvailability(requestBody: FreeBusyArgs): Promise<calendar_v3.Schema$FreeBusyResponse> {
     const calendar = await this.authedCalendar();
     const apiResponse = await this.oAuthManagerInstance.request(
@@ -669,67 +808,19 @@ export default class GoogleCalendarService implements Calendar {
     shouldServeCache?: boolean
   ): Promise<EventBusyDate[]> {
     this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
-    const calendar = await this.authedCalendar();
-    const selectedCalendarIds = selectedCalendars
-      .filter((e) => e.integration === this.integrationName)
-      .map((e) => e.externalId);
-    if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
-      // Only calendars of other integrations selected
-      return [];
-    }
-    const getCalIds = async () => {
-      if (selectedCalendarIds.length !== 0) return selectedCalendarIds;
-      const cals = await this.getAllCalendars(calendar, ["id"]);
-      if (!cals.length) return [];
-      return cals.reduce((c, cal) => (cal.id ? [...c, cal.id] : c), [] as string[]);
-    };
 
     try {
-      const calsIds = await getCalIds();
-      const originalStartDate = dayjs(dateFrom);
-      const originalEndDate = dayjs(dateTo);
-      const diff = originalEndDate.diff(originalStartDate, "days");
+      const calsIds = await this.getCalIds(selectedCalendars);
+      if (calsIds.length === 0) return [];
 
-      // /freebusy from google api only allows a date range of 90 days
-      if (diff <= 90) {
-        const freeBusyData = await this.getCacheOrFetchAvailability(
-          {
-            timeMin: dateFrom,
-            timeMax: dateTo,
-            items: calsIds.map((id) => ({ id })),
-          },
-          shouldServeCache
-        );
-        if (!freeBusyData) throw new Error("No response from google calendar");
-
-        return freeBusyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
-      } else {
-        const busyData = [];
-
-        const loopsNumber = Math.ceil(diff / 90);
-
-        let startDate = originalStartDate;
-        let endDate = originalStartDate.add(90, "days");
-
-        for (let i = 0; i < loopsNumber; i++) {
-          if (endDate.isAfter(originalEndDate)) endDate = originalEndDate;
-
-          busyData.push(
-            ...((await this.getCacheOrFetchAvailability(
-              {
-                timeMin: startDate.format(),
-                timeMax: endDate.format(),
-                items: calsIds.map((id) => ({ id })),
-              },
-              shouldServeCache
-            )) || [])
-          );
-
-          startDate = endDate.add(1, "minutes");
-          endDate = startDate.add(90, "days");
-        }
-        return busyData.map((freeBusy) => ({ start: freeBusy.start, end: freeBusy.end }));
-      }
+      const data = await this.fetchCalendarDataWithDateRangeCheck(
+        dateFrom,
+        dateTo,
+        calsIds,
+        this.getCacheOrFetchAvailability.bind(this),
+        shouldServeCache
+      );
+      return data;
     } catch (error) {
       this.log.error(
         "There was an error getting availability from google calendar: ",

@@ -1,7 +1,9 @@
 import { cva } from "class-variance-authority";
 
 import dayjs from "@calcom/dayjs";
+import { getCurrentTime } from "@calcom/features/bookings/lib/useCheckOverlapWithOverlay";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 
 import type { CalendarEvent } from "../../types/events";
@@ -54,6 +56,7 @@ export function Event({
 }: EventProps) {
   const selected = currentlySelectedEventId === event.id;
   const { options } = event;
+  const { i18n } = useLocale();
 
   const borderColor = options?.borderColor ? "custom" : options?.status;
 
@@ -64,6 +67,12 @@ export function Event({
     : {};
 
   const Component = onEventClick ? "button" : "div";
+
+  const displayEventDateTime = event.options?.multiDayEvent
+    ? `${getCurrentTime(dayjs(event.options?.multiDayEvent?.start).toDate(), true, i18n)} -
+      ${getCurrentTime(dayjs(event.options?.multiDayEvent?.end).toDate(), true, i18n)}`
+    : `${getCurrentTime(dayjs(event.start).toDate(), false, i18n)} -
+      ${getCurrentTime(dayjs(event.end).toDate(), false, i18n)}`;
 
   return (
     <Tooltip content={event.title}>
@@ -88,14 +97,12 @@ export function Event({
           <span>{event.title}</span>
           {eventDuration <= 30 && !event.options?.hideTime && (
             <p className="text-subtle w-full whitespace-nowrap text-left text-[10px] leading-none">
-              {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+              {displayEventDateTime}
             </p>
           )}
         </div>
         {eventDuration > 30 && !event.options?.hideTime && (
-          <p className="text-subtle text-left text-[10px] leading-none">
-            {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
-          </p>
+          <p className="text-subtle text-left text-[10px] leading-none">{displayEventDateTime}</p>
         )}
         {eventDuration > 45 && event.description && (
           <p className="text-subtle text-left text-[10px] leading-none">{event.description}</p>

@@ -175,6 +175,7 @@ test("Calendar Cache is being read on cache HIT", async () => {
   expect(data).toEqual([
     {
       start: "2023-12-01T18:00:00Z",
+      id: "0",
       end: "2023-12-01T19:00:00Z",
     },
   ]);
