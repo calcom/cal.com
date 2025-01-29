@@ -600,22 +600,41 @@ async function handler(
     }
 
     if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
-      let availableUsers = await ensureAvailableUsers(
-        { ...eventTypeWithUsers, users: qualifiedUsers as IsFixedAwareUser[] },
-        {
-          dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-          dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-          timeZone: reqBody.timeZone,
-          originalRescheduledBooking,
-        },
-        loggerWithEventDetails,
-        shouldServeCache
-      );
+      let availableUsers: IsFixedAwareUser[] = [];
+      try {
+        availableUsers = await ensureAvailableUsers(
+          { ...eventTypeWithUsers, users: qualifiedUsers as IsFixedAwareUser[] },
+          {
+            dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+            dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+            timeZone: reqBody.timeZone,
+            originalRescheduledBooking,
+          },
+          loggerWithEventDetails,
+          shouldServeCache
+        );
+      } catch {
+        if (fallbackUsers.length) {
+          loggerWithEventDetails.debug(
+            "Qualified users not available, check for fallback users",
+            safeStringify({
+              qualifiedUsers: qualifiedUsers.map((user) => user.id),
+              fallbackUsers: fallbackUsers.map((user) => user.id),
+            })
+          );
+        } else {
+          loggerWithEventDetails.debug(
+            "Qualified users not available, no fallback users",
+            safeStringify({
+              qualifiedUsers: qualifiedUsers.map((user) => user.id),
+            })
+          );
+          throw new Error(ErrorCode.NoAvailableUsersFound);
+        }
+      }
+
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
-      availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
-      });
 
       if (!luckyUserPool.length) {
         // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
@@ -631,12 +650,11 @@ async function handler(
           loggerWithEventDetails,
           shouldServeCache
         );
-        availableUsers.forEach((user) => {
-          if (!user.isFixed) {
-            luckyUserPool.push(user);
-          }
-        });
       }
+
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
 
       const notAvailableLuckyUsers: typeof users = [];
 
