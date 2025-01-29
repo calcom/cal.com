@@ -2904,6 +2904,8 @@ checksums:
     attribute_weight_enabled_description: 81fe2dfa958cef348e04bdb663ebce46
     routed: eb8e64a28653894faae90dda9ed1e696
     reassigned: de2ba8f5c983bf7f66859221f12e1608
+    allow_rescheduling_past_events: b4df51db180d64d24373c8ae68c13d30
+    allow_rescheduling_past_events_description: 55b1dacba9c72c1f4972fbff64554479
     rerouted: 6343fe8a25d8578fc05ff2a2ba950c93
     salesforce_assigned: 885bd396ce914aaa6d69476b39a2dcfc
     router_position: f4ab21e2479f07d9719e3942c5aa300a
@@ -2942,4 +2944,5 @@ checksums:
     asc: 859eb73e4d1bda5351ca36472efe6492
     desc: 55089d006e5eb530227e6f1c41707fc9
     verify_email: 42dcab68d931f9145d9b6d76740a5c66
+    verify_email_change: b7a83c7a3100b128e8d1a8f36a8171ba
     ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS: 18323f2f3fabb169a7cb50ff62433850

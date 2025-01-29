@@ -2907,6 +2907,8 @@
   "attribute_weight_enabled_description": "Ved å aktivere vekting blir det mulig å gi høyere prioritet til bestemte attributter per bruker. Jo høyere vekt, desto høyere prioritet.",
   "routed": "Rutet",
   "reassigned": "Omfordelt",
+  "allow_rescheduling_past_events": "Tillat omplanlegging av tidligere avtaler",
+  "allow_rescheduling_past_events_description": "Aktivering av dette alternativet gjør det mulig å omplanlegge tidligere avtaler",
   "rerouted": "Omdirigert",
   "salesforce_assigned": "Salesforce-tildeling",
   "router_position": "Ruterposisjon",
@@ -2945,5 +2947,6 @@
   "asc": "Stigende",
   "desc": "Synkende",
   "verify_email": "Bekreft e-post",
+  "verify_email_change": "Bekreft endring av e-post",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
