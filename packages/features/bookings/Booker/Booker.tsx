@@ -72,6 +72,7 @@ const BookerComponent = ({
   areInstantMeetingParametersSet = false,
   userLocale,
   hasValidLicense,
+  isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
@@ -273,14 +274,15 @@ const BookerComponent = ({
     <>
       {event.data && !isPlatform ? <BookingPageTagManager eventType={event.data} /> : <></>}
 
-      {isBookingDryRun(searchParams) && <DryRunMessage isEmbed={isEmbed} />}
+      {(isBookingDryRunProp || isBookingDryRun(searchParams)) && <DryRunMessage isEmbed={isEmbed} />}
 
       <div
         className={classNames(
           // In a popup embed, if someone clicks outside the main(having main class or main tag), it closes the embed
           "main",
           "text-default flex min-h-full w-full flex-col items-center",
-          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip"
+          layout === BookerLayouts.MONTH_VIEW ? "overflow-visible" : "overflow-clip",
+          `${customClassNames?.bookerWrapper}`
         )}>
         <div
           ref={animationScope}
