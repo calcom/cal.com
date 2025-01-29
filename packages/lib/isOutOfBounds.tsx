@@ -308,7 +308,7 @@ export default function isOutOfBounds(
   if (isOutOfBoundsByTime)
     return {
       isOutOfBounds: true,
-      cause: "Booking is out of bounds due to time restrictions.",
+      cause: "Booking is out of bounds due to minimum booking notice.",
     };
 
   if (isOutOfBoundsByPeriod)
