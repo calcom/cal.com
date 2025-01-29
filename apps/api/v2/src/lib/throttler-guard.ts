@@ -36,7 +36,7 @@ const IP_ = "ip_";
 export class CustomThrottlerGuard extends ThrottlerGuard {
   private logger = new Logger("CustomThrottlerGuard");
 
-  private defaultTttl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", sixtySecondsMs));
+  private defaultTtl = Number(getEnv("RATE_LIMIT_DEFAULT_TTL_MS", sixtySecondsMs));
 
   private defaultLimitApiKey = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_API_KEY", 120));
   private defaultLimitOAuthClient = Number(getEnv("RATE_LIMIT_DEFAULT_LIMIT_OAUTH_CLIENT", 500));
@@ -115,7 +115,7 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     } else if (tracker.startsWith(OAUTH_CLIENT_)) {
       return await this.getRateLimitsForOAuthClientTracker(tracker);
     } else {
-      return [this.getDefaultRateLimitByTracker(tracker)];
+      return [this.getDefaultRateLimit()];
     }
   }
 
@@ -219,13 +219,17 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
   private getDefaultRateLimit() {
     return {
       name: "default",
-      limit: this.defaultLimit,
+      limit: this.getDefaultLimit(),
       ttl: this.getDefaultTtl(),
       blockDuration: this.getDefaultBlockDuration(),
     };
   }
 
-  private getDefaultLimitByTracker(tracker: string) {
+  getDefaultLimit() {
+    return this.defaultLimit;
+  }
+
+  getDefaultLimitByTracker(tracker: string) {
     if (tracker.startsWith(API_KEY_)) {
       return this.defaultLimitApiKey;
     } else if (tracker.startsWith(OAUTH_CLIENT_)) {
@@ -233,15 +237,15 @@ export class CustomThrottlerGuard extends ThrottlerGuard {
     } else if (tracker.startsWith(ACCESS_TOKEN_)) {
       return this.defaultLimitAccessToken;
     } else {
-      return this.defaultLimit;
+      return this.getDefaultLimit();
     }
   }
 
-  private getDefaultTtl() {
-    return this.defaultTttl;
+  getDefaultTtl() {
+    return this.defaultTtl;
   }
 
-  private getDefaultBlockDuration() {
+  getDefaultBlockDuration() {
     return this.defaultBlockDuration;
   }
 
