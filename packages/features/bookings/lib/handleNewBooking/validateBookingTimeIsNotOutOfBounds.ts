@@ -28,7 +28,6 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   let cause: string | null = null;
 
   try {
-    // Capture both isOutOfBounds and the cause
     const result = isOutOfBounds(
       reqBodyStartTime,
       {

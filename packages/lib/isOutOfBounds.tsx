@@ -305,8 +305,6 @@ export default function isOutOfBounds(
     periodLimits,
   });
 
-  const cause: string | null = null;
-
   if (isOutOfBoundsByTime)
     return {
       isOutOfBounds: true,
