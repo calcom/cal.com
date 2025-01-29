@@ -48,6 +48,7 @@ import {
   isSMSAction,
   isSMSOrWhatsappAction,
   isWhatsappAction,
+  getTemplateForAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -133,37 +134,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+    const template = getTemplateForAction({
+      action,
+      locale: i18n.language,
+      template: step.template ?? WorkflowTemplates.REMINDER,
+      timeFormat,
+    });
+    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+  }
 
-  if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
-    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-      const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-      if (isSMSAction(action)) {
-        form.setValue(
-          `steps.${step.stepNumber - 1}.reminderBody`,
-          smsReminderTemplate(true, i18n.language, action, timeFormat)
-        );
-      } else if (isWhatsappAction(action)) {
-        form.setValue(
-          `steps.${step.stepNumber - 1}.reminderBody`,
-          whatsappReminderTemplate(true, i18n.language, action, timeFormat)
-        );
-      } else {
-        const reminderBodyTemplate = emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody;
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
-      }
-    }
-    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-      const subjectTemplate = emailReminderTemplate(
-        true,
-        i18n.language,
-        form.getValues(`steps.${step.stepNumber - 1}.action`),
-        timeFormat
-      ).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  } else if (step && isWhatsappAction(step.action)) {
-    const templateBody = getWhatsappTemplateForAction(step.action, i18n.language, step.template, timeFormat);
-    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody);
+  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+    const subjectTemplate = emailReminderTemplate(
+      true,
+      i18n.language,
+      form.getValues(`steps.${step.stepNumber - 1}.action`),
+      timeFormat
+    ).emailSubject;
+    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
   }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
