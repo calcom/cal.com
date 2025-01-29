@@ -47,6 +47,7 @@ import {
   getQueryBuilderConfigForAttributes,
   type FormFieldsQueryBuilderConfigWithRaqbFields,
   type AttributesQueryBuilderConfigWithRaqbFields,
+  isDynamicOperandField,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
 import type { SerializableForm } from "../../types/types";
@@ -201,6 +202,126 @@ const buildEventsData = ({
   return { eventOptions, eventTypesMap };
 };
 
+const isValidAttributeIdForWeights = ({
+  attributeIdForWeights,
+  jsonTree,
+}: {
+  attributeIdForWeights: string;
+  jsonTree: JsonTree;
+}) => {
+  if (!attributeIdForWeights || !jsonTree.children1) {
+    return false;
+  }
+
+  return Object.values(jsonTree.children1).some((rule) => {
+    if (rule.type !== "rule" || rule?.properties?.field !== attributeIdForWeights) {
+      return false;
+    }
+
+    const values = rule.properties.value.flat();
+    return values.length === 1 && values.some((value: string) => isDynamicOperandField(value));
+  });
+};
+
+const WeightedAttributesSelector = ({
+  attributes,
+  route,
+  eventTypeRedirectUrlSelectedOption,
+  setRoute,
+}: {
+  attributes?: Attribute[];
+  route: EditFormRoute;
+  eventTypeRedirectUrlSelectedOption: { isRRWeightsEnabled: boolean } | undefined;
+  setRoute: SetRoute;
+}) => {
+  const [attributeIdForWeights, setAttributeIdForWeights] = useState(
+    "attributeIdForWeights" in route ? route.attributeIdForWeights : undefined
+  );
+
+  const { t } = useLocale();
+  if (isRouter(route)) {
+    return null;
+  }
+
+  let attributesWithWeightsEnabled: Attribute[] = [];
+
+  if (eventTypeRedirectUrlSelectedOption?.isRRWeightsEnabled) {
+    const validatedQueryValue = route.attributesQueryBuilderState?.tree
+      ? QbUtils.getTree(route.attributesQueryBuilderState.tree)
+      : null;
+
+    if (
+      validatedQueryValue &&
+      raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue) &&
+      validatedQueryValue.children1
+    ) {
+      const attributeIds = Object.values(validatedQueryValue.children1).map((rule) => {
+        if (rule.type === "rule" && rule?.properties?.field) {
+          if (
+            rule.properties.value.flat().length == 1 &&
+            rule.properties.value.flat().some((value) => isDynamicOperandField(value))
+          ) {
+            return rule.properties.field;
+          }
+        }
+      });
+
+      attributesWithWeightsEnabled = attributes
+        ? attributes.filter(
+            (attribute) =>
+              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+          )
+        : [];
+    }
+  }
+
+  const onChangeAttributeIdForWeights = (
+    route: EditFormRoute & { attributeIdForWeights?: string },
+    attributeIdForWeights?: string
+  ) => {
+    setRoute(route.id, {
+      attributeIdForWeights,
+    });
+  };
+
+  return attributesWithWeightsEnabled.length > 0 ? (
+    <div className="mt-8">
+      <SettingsToggle
+        title={t("use_attribute_weights")}
+        description={t("if_enabled_ignore_event_type_weights")}
+        checked={!!attributeIdForWeights}
+        onCheckedChange={(checked) => {
+          const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
+          setAttributeIdForWeights(attributeId);
+          onChangeAttributeIdForWeights(route, attributeId);
+        }}
+      />
+      {!!attributeIdForWeights ? (
+        <SelectField
+          containerClassName="mb-6 mt-4 data-testid-select-router"
+          label={t("attribute_for_weights")}
+          options={attributesWithWeightsEnabled.map((attribute) => {
+            return { value: attribute.id, label: attribute.name };
+          })}
+          value={{
+            value: attributeIdForWeights,
+            label: attributesWithWeightsEnabled.find((attribute) => attribute.id === attributeIdForWeights)
+              ?.name,
+          }}
+          onChange={(option) => {
+            if (option) {
+              setAttributeIdForWeights(option.value);
+              onChangeAttributeIdForWeights(route, option.value);
+            }
+          }}
+        />
+      ) : (
+        <></>
+      )}
+    </div>
+  ) : null;
+};
+
 const Route = ({
   form,
   route,
@@ -238,7 +359,7 @@ const Route = ({
   const isTeamForm = form.teamId !== null;
   const index = routes.indexOf(route);
 
-  const { eventOptions, eventTypesMap } = buildEventsData({ eventTypesByGroup, form, route });
+  const { eventOptions } = buildEventsData({ eventTypesByGroup, form, route });
 
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
@@ -247,10 +368,6 @@ const Route = ({
       : "";
 
   const [customEventTypeSlug, setCustomEventTypeSlug] = useState<string>("");
-
-  const [attributeIdForWeights, setAttributeIdForWeights] = useState(
-    "attributeIdForWeights" in route ? route.attributeIdForWeights : undefined
-  );
 
   useEffect(() => {
     const isCustom =
@@ -276,39 +393,30 @@ const Route = ({
     });
   };
 
+  const setAttributeIdForWeights = (attributeIdForWeights: string | undefined) => {
+    setRoute(route.id, {
+      attributeIdForWeights,
+    });
+  };
+
   const onChangeTeamMembersQuery = (
     route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
+    const attributeIdForWeights = isRouter(route) ? null : route.attributeIdForWeights;
+    const _isValidAttributeIdForWeights =
+      attributeIdForWeights && isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
 
-    //check if attributeIdForWeights does still exist, if not set to undefined
-    let attributeStillExists = false;
-
-    if (attributeIdForWeights) {
-      if (jsonTree.children1) {
-        attributeStillExists = Object.values(jsonTree.children1).some((rule) => {
-          if (rule.type === "rule" && rule?.properties?.field === attributeIdForWeights) {
-            if (
-              rule.properties.value.flat().length == 1 &&
-              rule.properties.value.flat().some((value: string) => value && value.includes("field:"))
-            ) {
-              return true;
-            }
-          }
-          return false;
-        });
-      }
-      if (!attributeStillExists) {
-        setAttributeIdForWeights(undefined);
-      }
+    if (attributeIdForWeights && !_isValidAttributeIdForWeights) {
+      setAttributeIdForWeights(undefined);
     }
 
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
       attributesQueryValue: jsonTree as AttributesQueryValue,
-      attributeIdForWeights: attributeStillExists ? attributeIdForWeights : undefined,
+      attributeIdForWeights: _isValidAttributeIdForWeights ? attributeIdForWeights : undefined,
     });
   };
 
@@ -321,15 +429,6 @@ const Route = ({
     setRoute(route.id, {
       fallbackAttributesQueryBuilderState: { tree: immutableTree, config: config },
       fallbackAttributesQueryValue: jsonTree as AttributesQueryValue,
-    });
-  };
-
-  const onChangeAttributeIdForWeights = (
-    route: EditFormRoute & { attributeIdForWeights?: string },
-    attributeIdForWeights?: string
-  ) => {
-    setRoute(route.id, {
-      attributeIdForWeights,
     });
   };
 
@@ -426,38 +525,6 @@ const Route = ({
         configFor: ConfigFor.Attributes,
       })
     : null;
-
-  let attributesWithWeightsEnabled: Attribute[] = [];
-
-  if (eventTypeRedirectUrlSelectedOption?.isRRWeightsEnabled) {
-    const validatedQueryValue = route.attributesQueryBuilderState?.tree
-      ? QbUtils.getTree(route.attributesQueryBuilderState.tree)
-      : null;
-
-    if (
-      validatedQueryValue &&
-      raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue) &&
-      validatedQueryValue.children1
-    ) {
-      const attributeIds = Object.values(validatedQueryValue.children1).map((rule) => {
-        if (rule.type === "rule" && rule?.properties?.field) {
-          if (
-            rule.properties.value.flat().length == 1 &&
-            rule.properties.value.flat().some((value) => value && value.includes("field:"))
-          ) {
-            return rule.properties.field;
-          }
-        }
-      });
-
-      attributesWithWeightsEnabled = attributes
-        ? attributes.filter(
-            (attribute) =>
-              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
-          )
-        : [];
-    }
-  }
 
   const attributesQueryBuilder =
     route.action?.type === RouteActionType.EventTypeRedirectUrl && isTeamForm ? (
@@ -667,45 +734,12 @@ const Route = ({
               ) : null}
             </div>
             {attributesQueryBuilder}
-            {attributesWithWeightsEnabled.length > 0 ? (
-              <div className="mt-8">
-                <SettingsToggle
-                  title={t("use_attribute_weights")}
-                  description={t("if_enabled_ignore_event_type_weights")}
-                  checked={!!attributeIdForWeights}
-                  onCheckedChange={(checked) => {
-                    const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
-                    setAttributeIdForWeights(attributeId);
-                    onChangeAttributeIdForWeights(route, attributeId);
-                  }}
-                />
-                {!!attributeIdForWeights ? (
-                  <SelectField
-                    containerClassName="mb-6 mt-4 data-testid-select-router"
-                    label={t("attribute_for_weights")}
-                    options={attributesWithWeightsEnabled.map((attribute) => {
-                      return { value: attribute.id, label: attribute.name };
-                    })}
-                    value={{
-                      value: attributeIdForWeights,
-                      label: attributesWithWeightsEnabled.find(
-                        (attribute) => attribute.id === attributeIdForWeights
-                      )?.name,
-                    }}
-                    onChange={(option) => {
-                      if (option) {
-                        setAttributeIdForWeights(option.value);
-                        onChangeAttributeIdForWeights(route, option.value);
-                      }
-                    }}
-                  />
-                ) : (
-                  <></>
-                )}
-              </div>
-            ) : (
-              <></>
-            )}
+            <WeightedAttributesSelector
+              attributes={attributes}
+              route={route}
+              eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
+              setRoute={setRoute}
+            />
             <Divider className="mb-6 mt-6" />
             {fallbackAttributesQueryBuilder}
           </div>
