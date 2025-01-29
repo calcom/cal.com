@@ -306,7 +306,7 @@ export default function isOutOfBounds(
     bookerUtcOffset: number;
   },
   minimumBookingNotice?: number
-): { isOutOfBounds: boolean; cause: string | null } {
+) {
   const log = logger.getSubLogger({ prefix: ["isOutOfBounds"] });
   const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
   const periodLimits = calculatePeriodLimits({
@@ -326,22 +326,15 @@ export default function isOutOfBounds(
     periodLimits,
   });
 
-  if (isOutOfBoundsByTime)
-    return {
-      isOutOfBounds: true,
-      cause: "Booking is out of bounds due to minimum booking notice.",
-    };
+  if (isOutOfBoundsByTime) {
+    log.warn("Booking is out of bounds due to minimum booking notice.");
+    return true;
+  }
 
   if (isOutOfBoundsByPeriod) {
     log.warn("Booking is out of bounds due to period restrictions", safeStringify({ periodLimits }));
-    return {
-      isOutOfBounds: true,
-      cause: "Booking is out of bounds due to period restrictions.",
-    };
+    return true;
   }
 
-  return {
-    isOutOfBounds: false,
-    cause: null,
-  };
+  return false;
 }

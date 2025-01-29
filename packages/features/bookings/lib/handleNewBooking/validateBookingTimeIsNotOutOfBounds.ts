@@ -1,6 +1,7 @@
 import type { Logger } from "tslog";
 
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import type { EventType } from "@calcom/prisma/client";
@@ -26,10 +27,8 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   logger: Logger<unknown>
 ) => {
   let timeOutOfBounds = false;
-  let cause: string | null = null;
-
   try {
-    const result = isOutOfBounds(
+    timeOutOfBounds = isOutOfBounds(
       reqBodyStartTime,
       {
         periodType: eventType.periodType,
@@ -42,9 +41,6 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
       },
       eventType.minimumBookingNotice
     );
-
-    timeOutOfBounds = result.isOutOfBounds;
-    cause = result.cause;
   } catch (error) {
     logger.warn({
       message: "NewBooking: Unable to determine timeOutOfBounds status. Defaulting to false.",
@@ -56,16 +52,5 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
     }
   }
 
-  if (timeOutOfBounds) {
-    const error = {
-      errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${eventType.title}' cannot be booked at this time. Reason: ${cause}`,
-    };
-
-    logger.warn({
-      message: `NewBooking: EventType '${eventType.title}' cannot be booked at this time. Reason: ${cause}`,
-    });
-
-    throw new HttpError({ statusCode: 400, message: error.message });
-  }
+  if (timeOutOfBounds) throw new Error(ErrorCode.NoAvailableUsersFound);
 };
