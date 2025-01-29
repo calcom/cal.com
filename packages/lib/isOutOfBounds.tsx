@@ -251,11 +251,14 @@ export function isTimeViolatingFutureLimit({
       endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
     });
     if (isAfterRollingEndDay)
-      log.warn("Booking is out of bounds due to rolling period end day.", {
-        formattedDate: dateInSystemTz.format(),
-        isAfterRollingEndDay,
-        endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
-      });
+      log.warn(
+        "Booking is out of bounds due to rolling period end day.",
+        safeStringify({
+          formattedDate: dateInSystemTz.format(),
+          isAfterRollingEndDay,
+          endOfRollingPeriodEndDayInBookerTz: periodLimits.endOfRollingPeriodEndDayInBookerTz.format(),
+        })
+      );
     return isAfterRollingEndDay;
   }
 
@@ -270,13 +273,16 @@ export function isTimeViolatingFutureLimit({
       endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
     });
     if (isBeforeRangeStart || isAfterRangeEnd)
-      log.warn("Booking is out of bounds due to range start and end.", {
-        formattedDate: dateInSystemTz.format(),
-        isBeforeRangeStart,
-        isAfterRangeEnd,
-        startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
-        endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
-      });
+      log.warn(
+        "Booking is out of bounds due to range start and end.",
+        safeStringify({
+          formattedDate: dateInSystemTz.format(),
+          isBeforeRangeStart,
+          isAfterRangeEnd,
+          startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
+          endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
+        })
+      );
     return isBeforeRangeStart || isAfterRangeEnd;
   }
   return false;
@@ -327,7 +333,7 @@ export default function isOutOfBounds(
     };
 
   if (isOutOfBoundsByPeriod) {
-    log.warn(`Booking is out of bounds due to period restrictions - ${periodLimits}`);
+    log.warn("Booking is out of bounds due to period restrictions", safeStringify({ periodLimits }));
     return {
       isOutOfBounds: true,
       cause: "Booking is out of bounds due to period restrictions.",
