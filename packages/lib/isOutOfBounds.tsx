@@ -286,23 +286,41 @@ export default function isOutOfBounds(
     bookerUtcOffset: number;
   },
   minimumBookingNotice?: number
-) {
-  return (
-    isTimeOutOfBounds({ time, minimumBookingNotice }) ||
-    isTimeViolatingFutureLimit({
-      time,
-      periodLimits: calculatePeriodLimits({
-        periodType,
-        periodDays,
-        periodCountCalendarDays,
-        periodStartDate,
-        periodEndDate,
-        // Temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability for the booked timeslot
-        allDatesWithBookabilityStatusInBookerTz: null,
-        _skipRollingWindowCheck: true,
-        eventUtcOffset,
-        bookerUtcOffset,
-      }),
-    })
-  );
+): { isOutOfBounds: boolean; cause: string | null } {
+  const isOutOfBoundsByTime = isTimeOutOfBounds({ time, minimumBookingNotice });
+  const periodLimits = calculatePeriodLimits({
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodStartDate,
+    periodEndDate,
+    allDatesWithBookabilityStatusInBookerTz: null, // Temporary workaround
+    _skipRollingWindowCheck: true,
+    eventUtcOffset,
+    bookerUtcOffset,
+  });
+
+  const isOutOfBoundsByPeriod = isTimeViolatingFutureLimit({
+    time,
+    periodLimits,
+  });
+
+  const cause: string | null = null;
+
+  if (isOutOfBoundsByTime)
+    return {
+      isOutOfBounds: true,
+      cause: "Booking is out of bounds due to time restrictions.",
+    };
+
+  if (isOutOfBoundsByPeriod)
+    return {
+      isOutOfBounds: true,
+      cause: "Booking is out of bounds due to period restrictions.",
+    };
+
+  return {
+    isOutOfBounds: false,
+    cause: null,
+  };
 }

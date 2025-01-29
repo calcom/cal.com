@@ -25,8 +25,11 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   logger: Logger<unknown>
 ) => {
   let timeOutOfBounds = false;
+  let cause: string | null = null;
+
   try {
-    timeOutOfBounds = isOutOfBounds(
+    // Capture both isOutOfBounds and the cause
+    const result = isOutOfBounds(
       reqBodyStartTime,
       {
         periodType: eventType.periodType,
@@ -39,10 +42,14 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
       },
       eventType.minimumBookingNotice
     );
+
+    timeOutOfBounds = result.isOutOfBounds;
+    cause = result.cause;
   } catch (error) {
     logger.warn({
-      message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
+      message: "NewBooking: Unable to determine timeOutOfBounds status. Defaulting to false.",
     });
+
     if (error instanceof BookingDateInPastError) {
       logger.info(`Booking eventType ${eventType.id} failed`, JSON.stringify({ error }));
       throw new HttpError({ statusCode: 400, message: error.message });
@@ -52,11 +59,13 @@ export const validateBookingTimeIsNotOutOfBounds = async <T extends ValidateBook
   if (timeOutOfBounds) {
     const error = {
       errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
+      message: `EventType '${eventType.title}' cannot be booked at this time. Reason: ${cause}`,
     };
+
     logger.warn({
-      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
+      message: `NewBooking: EventType '${eventType.title}' cannot be booked at this time. Reason: ${cause}`,
     });
+
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 };
