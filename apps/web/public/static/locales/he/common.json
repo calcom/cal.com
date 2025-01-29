@@ -83,6 +83,7 @@
   "payment_not_created_error": "אי אפשר ליצור תשלום",
   "couldnt_charge_card_error": "לא ניתן לחייב את התשלום בכרטיס",
   "no_available_users_found_error": "לא נמצאו משתמשים זמינים. אפשר לנסות ליצור חלון זמן נוסף?",
+  "booking_time_out_of_bounds_error": "לא ניתן לקבוע את סוג האירוע בזמן זה. אולי כדאי לנסות משבצת זמן אחרת?",
   "request_body_end_time_internal_error": "שגיאה פנימית. גוף הבקשה לא מכיל זמן סיום",
   "create_calendar_event_error": "לא ניתן ליצור אירוע לוח שנה בלוח השנה של הגוף המארגן",
   "update_calendar_event_error": "לא ניתן לעדכן אירוע לוח שנה.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "הפעלת משקולות תאפשר להקצות עדיפות גבוהה יותר למאפיינים מסוימים עבור כל משתמש. ככל שהמשקל גבוה יותר, כך העדיפות גבוהה יותר.",
   "routed": "נותב",
   "reassigned": "הוקצה מחדש",
+  "allow_rescheduling_past_events": "אפשר קביעה מחדש של אירועים שעברו",
+  "allow_rescheduling_past_events_description": "הפעלת אפשרות זו מאפשרת לקבוע מחדש אירועים שכבר התקיימו",
   "rerouted": "נותב מחדש",
   "salesforce_assigned": "הקצאת Salesforce",
   "router_position": "מיקום נתב",
@@ -2945,5 +2948,6 @@
   "asc": "סדר עולה",
   "desc": "סדר יורד",
   "verify_email": "אימות אימייל",
+  "verify_email_change": "אימות שינוי כתובת דוא\"ל",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -83,6 +83,7 @@
   "payment_not_created_error": "A fizetést nem sikerült létrehozni",
   "couldnt_charge_card_error": "Nem sikerült megterhelni a kártyát a fizetésért",
   "no_available_users_found_error": "Nem található elérhető felhasználó. Kipróbálhatnál egy másik időpontot?",
+  "booking_time_out_of_bounds_error": "Az esemény nem foglalható le ebben az időpontban. Kipróbálnál egy másik időpontot?",
   "request_body_end_time_internal_error": "Belső hiba. A kérelem törzse nem tartalmazza a befejezési időt",
   "create_calendar_event_error": "Nem lehet naptári eseményt létrehozni a Szervező naptárában",
   "update_calendar_event_error": "Nem sikerült frissíteni a naptári eseményt.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "A súlyozás engedélyezésével lehetőség nyílik magasabb prioritás hozzárendelésére bizonyos felhasználói attribútumokhoz. Minél nagyobb a súly, annál magasabb a prioritás.",
   "routed": "Átirányítva",
   "reassigned": "Újra kiosztva",
+  "allow_rescheduling_past_events": "Múltbeli események átütemezésének engedélyezése",
+  "allow_rescheduling_past_events_description": "Ennek az opciónak a bekapcsolásával lehetővé válik a múltbeli események átütemezése",
   "rerouted": "Átirányítva",
   "salesforce_assigned": "Salesforce hozzárendelés",
   "router_position": "Router pozíció",
@@ -2945,5 +2948,6 @@
   "asc": "Növekvő",
   "desc": "Csökkenő",
   "verify_email": "E-mail megerősítése",
+  "verify_email_change": "E-mail-cím módosításának megerősítése",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
