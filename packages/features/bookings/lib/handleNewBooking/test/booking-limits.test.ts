@@ -772,7 +772,9 @@ describe("handleNewBooking", () => {
       mockCalendarToHaveNoBusySlots("googlecalendar", {});
       await createBookingScenario(scenarioData);
 
-      await expect(() => handleNewBooking(req)).rejects.toThrowError("no_available_users_found_error");
+      await expect(() => handleNewBooking(req)).rejects.toThrowError(
+        "Attempting to book a meeting in the past."
+      );
     },
     timeout
   );
