@@ -1324,8 +1324,9 @@ export default class SalesforceCRMService implements CRM {
         ...writeOnRecordBody,
       })
       .catch((e) => {
+        const contactId = personRecord.Id || "unknown";
         // catch the error and throw a new one with a more descriptive message
-        const errorMessage = `Error updating person record for contactId ${personRecord.Id}: ${
+        const errorMessage = `Error updating person record for contactId '${contactId}': ${
           e instanceof Error ? e.message : String(e)
         }`;
         throw new Error(errorMessage);
