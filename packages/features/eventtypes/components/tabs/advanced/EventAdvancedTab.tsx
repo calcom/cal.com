@@ -28,7 +28,7 @@ import type {
   SettingsToggleClassNames,
 } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
-import type { fieldSchema } from "@calcom/features/form-builder/schema";
+import type { BookingField } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
@@ -95,8 +95,6 @@ export type EventAdvancedTabCustomClassNames = {
   roundRobinReschedule?: SettingsToggleClassNames;
   emailNotifications?: EmailNotificationToggleCustomClassNames;
 };
-
-type BookingField = z.infer<typeof fieldSchema>;
 
 export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
   user?: Partial<
