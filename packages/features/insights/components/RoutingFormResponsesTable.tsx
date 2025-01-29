@@ -60,7 +60,7 @@ import {
 } from "../lib/types";
 import { FailedBookingsByField } from "./FailedBookingsByField";
 import { RoutedToPerPeriod } from "./RoutedToPerPeriod";
-import { RoutingKPICards2 } from "./RoutingKPICards";
+import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
@@ -650,7 +650,7 @@ export function RoutingFormResponsesTableContent() {
               <DataTableFilters.ColumnVisibilityButton table={table} />
             </>
           }>
-          <RoutingKPICards2
+          <RoutingKPICards
             teamId={teamId}
             startDate={startDate}
             endDate={endDate}

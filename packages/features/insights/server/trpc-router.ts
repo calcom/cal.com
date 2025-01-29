@@ -1559,40 +1559,9 @@ export const insightsRouter = router({
       });
     }),
   routingFormsByStatus: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const { startDate, endDate } = input;
-
-      const stats = await RoutingEventsInsights.getRoutingFormStats({
-        teamId: input.teamId ?? null,
-        startDate,
-        endDate,
-        isAll: input.isAll ?? false,
-        organizationId: ctx.user.organizationId ?? null,
-        routingFormId: input.routingFormId ?? null,
-        userId: input.userId ?? null,
-        memberUserId: input.memberUserId ?? null,
-        bookingStatus: input.bookingStatus ?? null,
-        fieldFilter: input.fieldFilter ?? null,
-      });
-
-      return stats;
-    }),
-  routingFormsByStatus2: userBelongsToTeamProcedure
     .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {
-      return await RoutingEventsInsights.getRoutingFormStats2({
+      return await RoutingEventsInsights.getRoutingFormStats({
         teamId: input.teamId,
         startDate: input.startDate,
         endDate: input.endDate,
