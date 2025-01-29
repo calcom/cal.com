@@ -17,6 +17,7 @@
     "react-dom": "^18.0.0"
   },
   "devDependencies": {
+    "@calcom/types": "*",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^18",
