@@ -94,8 +94,11 @@ const BookerComponent = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-  const { selectedTimeslot, setSelectedTimeslot } = slots;
-
+  const {
+    selectedTimeslot,
+    setSelectedTimeslot,
+    isReservedBySomeoneElse: isSlotReservedBySomeoneElse,
+  } = slots;
   const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -154,20 +157,18 @@ const BookerComponent = ({
 
   /**
    * Checks if a given time slot is available in the schedule
-   * @param params - Object containing slot checking parameters
-   * @param params.slotToCheck - The time slot to check in ISO string format
-   * @param params.dateString - The date string in YYYY-MM-DD format
-   * @returns boolean - true if the slot is available, false otherwise
+   * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
+   * @returns boolean - true if the slot is available, false otherwise.
    */
   const isTimeSlotAvailable = ({
     slotToCheckInUTC,
     dateString,
   }: {
-    slotToCheckInUTC: string;
-    dateString: string;
+    slotToCheckInUTC: string | null;
+    dateString: string | null;
   }) => {
-    // If schedule is not loaded, consider the slot available
-    if (!schedule?.data) {
+    // If schedule is not loaded or other variables are unavailable consider the slot available
+    if (!schedule?.data || !slotToCheckInUTC || !dateString) {
       return true;
     }
 
@@ -186,14 +187,13 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-
-    // Check if selected timeslot is available before moving to booking state
-    if (!isTimeSlotAvailable({ slotToCheckInUTC: selectedTimeslot, dateString: selectedDate })) {
-      setSelectedTimeslot(null);
-      return;
-    }
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, setSelectedTimeslot]);
+
+  // Check if selected timeslot is available before moving to booking state
+  const isTimeslotUnavailable =
+    !isTimeSlotAvailable({ slotToCheckInUTC: selectedTimeslot, dateString: selectedDate }) ||
+    isSlotReservedBySomeoneElse;
 
   const slot = getQueryParam("slot");
   useEffect(() => {
@@ -213,6 +213,7 @@ const BookerComponent = ({
         onSubmit={renderConfirmNotVerifyEmailButtonCond ? handleBookEvent : handleVerifyEmail}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
+        isTimeslotUnavailable={isTimeslotUnavailable}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}

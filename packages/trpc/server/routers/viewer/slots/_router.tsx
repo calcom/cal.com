@@ -3,12 +3,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZGetScheduleInputSchema } from "./getSchedule.schema";
+import { ZIsReservedInputSchema } from "./isReserved.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 
 type SlotsRouterHandlerCache = {
   getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;
   reserveSlot?: typeof import("./reserveSlot.handler").reserveSlotHandler;
+  isReserved?: typeof import("./isReserved.handler").isReservedHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: SlotsRouterHandlerCache = {};
@@ -46,6 +48,23 @@ export const slotsRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.reserveSlot({
       ctx: { ...ctx, req: ctx.req as NextApiRequest, res: ctx.res as NextApiResponse },
+      input,
+    });
+  }),
+  isReserved: publicProcedure.input(ZIsReservedInputSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.isReserved) {
+      UNSTABLE_HANDLER_CACHE.isReserved = await import("./isReserved.handler").then(
+        (mod) => mod.isReservedHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.isReserved) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.isReserved({
+      ctx: { ...ctx, req: ctx.req as NextApiRequest },
       input,
     });
   }),

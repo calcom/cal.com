@@ -54,7 +54,18 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
     }
   }
 
-  if (eventType && shouldReserveSlot) {
+  // Check for existing reservations for the same slot
+  const reservedBySomeoneElse = await prisma.selectedSlots.findFirst({
+    where: {
+      slotUtcStartDate,
+      slotUtcEndDate,
+      eventTypeId,
+      uid: { not: uid }, // Exclude current user's reservation
+      releaseAt: { gt: new Date() }, // Only consider non-expired reservations
+    },
+  });
+
+  if (eventType && shouldReserveSlot && !reservedBySomeoneElse) {
     try {
       await Promise.all(
         eventType.users.map((user) =>

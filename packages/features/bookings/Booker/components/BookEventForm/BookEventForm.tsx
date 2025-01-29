@@ -38,6 +38,7 @@ type BookEventFormProps = {
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
   renderCaptcha?: boolean;
+  isTimeslotUnavailable: boolean;
 };
 
 export const BookEventForm = ({
@@ -55,6 +56,7 @@ export const BookEventForm = ({
   isVerificationCodeSending,
   isPlatform = false,
   renderCaptcha,
+  isTimeslotUnavailable,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -128,7 +130,7 @@ export const BookEventForm = ({
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
         />
-        {(errors.hasFormErrors || errors.hasDataErrors) && (
+        {errors.hasFormErrors || errors.hasDataErrors ? (
           <div data-testid="booking-fail">
             <Alert
               ref={errorRef}
@@ -138,7 +140,23 @@ export const BookEventForm = ({
               message={getError(errors.formErrors, errors.dataErrors, t, responseVercelIdHeader)}
             />
           </div>
-        )}
+        ) : isTimeslotUnavailable ? (
+          <div data-testid="booking-fail">
+            <Alert
+              severity="info"
+              title={t("unavailable_timeslot_title")}
+              message={
+                <Trans i18nKey="timeslot_unavailable_book_a_new_time">
+                  The selected time slot is no longer available.{" "}
+                  <button className="underline" onClick={onCancel}>
+                    Please select a new time
+                  </button>
+                </Trans>
+              }
+            />
+          </div>
+        ) : null}
+
         {/* Cloudflare Turnstile Captcha */}
         {shouldRenderCaptcha ? (
           <TurnstileCaptcha
@@ -209,7 +227,7 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                disabled={!!shouldRenderCaptcha && !watchedCfToken}
+                disabled={(!!shouldRenderCaptcha && !watchedCfToken) || isTimeslotUnavailable}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||

@@ -5,7 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { MINUTES_TO_BOOK, QUERY_RESERVATION_INTERVAL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
@@ -36,15 +36,37 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       removeSelectedSlot.mutate({ uid: slotReservationId });
     }
   };
+
+  const eventTypeId = event.data?.id;
+  const slotUtcStartDate = selectedTimeslot ? dayjs(selectedTimeslot).utc().format() : null;
+  const eventDuration = selectedDuration || event.data?.length;
+  const slotUtcEndDate =
+    selectedTimeslot && eventDuration
+      ? dayjs(selectedTimeslot).utc().add(eventDuration, "minutes").format()
+      : null;
+
+  const isReservedBySomeoneElseQuery = trpc.viewer.slots.isReserved.useQuery(
+    {
+      slotUtcStartDate: slotUtcStartDate!,
+      slotUtcEndDate: slotUtcEndDate!,
+      eventTypeId: eventTypeId!,
+    },
+    {
+      refetchInterval: QUERY_RESERVATION_INTERVAL,
+      refetchOnWindowFocus: true,
+      enabled: !!(eventTypeId && slotUtcStartDate && slotUtcEndDate),
+      staleTime: 1,
+    }
+  );
+
+  const isReservedBySomeoneElse = !!isReservedBySomeoneElseQuery.data?.isReserved;
+
   const handleReserveSlot = () => {
-    if (event?.data?.id && selectedTimeslot && (selectedDuration || event?.data?.length)) {
+    if (eventTypeId && slotUtcStartDate && slotUtcEndDate) {
       reserveSlotMutation.mutate({
-        slotUtcStartDate: dayjs(selectedTimeslot).utc().format(),
-        eventTypeId: event.data.id,
-        slotUtcEndDate: dayjs(selectedTimeslot)
-          .utc()
-          .add(selectedDuration || event.data.length, "minutes")
-          .format(),
+        slotUtcStartDate,
+        eventTypeId,
+        slotUtcEndDate,
       });
     }
   };
@@ -72,5 +94,6 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     slotReservationId,
     handleReserveSlot,
     handleRemoveSlot,
+    isReservedBySomeoneElse,
   };
 };

@@ -64,7 +64,8 @@ export const TRIAL_LIMIT_DAYS = 14;
 export const HOSTED_CAL_FEATURES = process.env.NEXT_PUBLIC_HOSTED_CAL_FEATURES || !IS_SELF_HOSTED;
 
 export const IS_EUROPE = dayjs.tz.guess()?.indexOf("Europe") !== -1;
-
+// In seconds
+export const QUERY_RESERVATION_INTERVAL = 30000;
 export const CURRENT_TIMEZONE = dayjs.tz.guess() !== "Etc/Unknown" ? dayjs.tz.guess() : "Europe/London";
 
 /** @deprecated use `WEBAPP_URL` */
