@@ -9,6 +9,9 @@ import {
   whatsappEventRescheduledTemplate,
   whatsappReminderTemplate,
 } from "../lib/reminders/templates/whatsapp";
+import emailRatingTemplate from "./reminders/templates/emailRatingTemplate";
+import emailReminderTemplate from "./reminders/templates/emailReminderTemplate";
+import smsReminderTemplate from "./reminders/templates/smsReminderTemplate";
 
 export function shouldScheduleEmailReminder(action: WorkflowActions) {
   return action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST;
@@ -86,6 +89,17 @@ export function getWhatsappTemplateFunction(template?: WorkflowTemplates): typeo
   }
 }
 
+function getEmailTemplateFunction(template?: WorkflowTemplates) {
+  switch (template) {
+    case WorkflowTemplates.REMINDER:
+      return emailReminderTemplate;
+    case WorkflowTemplates.RATING:
+      return emailRatingTemplate;
+    default:
+      return emailReminderTemplate;
+  }
+}
+
 export function getWhatsappTemplateForAction(
   action: WorkflowActions,
   locale: string,
@@ -94,4 +108,29 @@ export function getWhatsappTemplateForAction(
 ): string | null {
   const templateFunction = getWhatsappTemplateFunction(template);
   return templateFunction(true, locale, action, timeFormat);
+}
+
+export function getTemplateForAction({
+  action,
+  locale,
+  template,
+  timeFormat,
+}: {
+  action: WorkflowActions;
+  locale: string;
+  template: WorkflowTemplates;
+  timeFormat: TimeFormat;
+}): string | null {
+  if (isSMSAction(action)) {
+    return smsReminderTemplate(true, locale, action, timeFormat);
+  }
+
+  if (isWhatsappAction(action)) {
+    const templateFunction = getWhatsappTemplateFunction(template);
+    return templateFunction(true, locale, action, timeFormat);
+  }
+
+  // If not a whatsapp action then it's an email action
+  const templateFunction = getEmailTemplateFunction(template);
+  return templateFunction(true, locale, action, timeFormat).emailBody;
 }
