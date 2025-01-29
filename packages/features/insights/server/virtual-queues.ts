@@ -50,12 +50,28 @@ class VirtualQueuesInsights {
       INNER JOIN "users" u ON f."userId" = u.id
       WHERE e."schedulingType" = 'roundRobin'
         AND e."isRRWeightsEnabled" = true
-        AND EXISTS (
+        AND (
+          EXISTS (
           SELECT 1
           FROM "Host" h
           WHERE h."eventTypeId" = e.id
           AND h."userId" = ${userId}
-        );
+          )
+          OR EXISTS (
+          SELECT 1
+          FROM "Membership" m
+          WHERE m."teamId" = f."teamId"
+            AND m."userId" = ${userId}
+            AND m.role = 'ADMIN'
+          )
+          OR EXISTS (
+          SELECT 1
+          FROM "Membership" m
+          WHERE m."teamId" = t."parentId"
+            AND m."userId" = ${userId}
+            AND m.role = 'ADMIN'
+          )
+        )
     `;
 
     // Convert the raw forms to serializable format
