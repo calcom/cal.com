@@ -181,6 +181,55 @@ class RoutingEventsInsights {
     };
   }
 
+  static async getRoutingFormStats2({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    memberUserIds,
+    columnFilters,
+    sorting,
+  }: RoutingFormResponsesFilter) {
+    const whereClause = await this.getWhereClauseForRoutingFormResponses({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId,
+      routingFormId,
+      cursor,
+      limit,
+      userId,
+      memberUserIds,
+      columnFilters,
+      sorting,
+    });
+
+    const totalPromise = prisma.routingFormResponse.count({
+      where: whereClause,
+    });
+
+    const totalWithoutBookingPromise = prisma.routingFormResponse.count({
+      where: {
+        ...whereClause,
+        bookingUid: null,
+      },
+    });
+
+    const [total, totalWithoutBooking] = await Promise.all([totalPromise, totalWithoutBookingPromise]);
+
+    return {
+      total,
+      totalWithoutBooking,
+      totalWithBooking: total - totalWithoutBooking,
+    };
+  }
+
   static async getRoutingFormsForFilters({
     userId,
     teamId,
@@ -213,19 +262,16 @@ class RoutingEventsInsights {
     });
   }
 
-  static async getRoutingFormPaginatedResponses({
+  static async getWhereClauseForRoutingFormResponses({
     teamId,
     startDate,
     endDate,
     isAll,
     organizationId,
     routingFormId,
-    cursor,
-    limit,
     userId,
     memberUserIds,
     columnFilters,
-    sorting,
   }: RoutingFormResponsesFilter) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
@@ -306,6 +352,38 @@ class RoutingEventsInsights {
       }),
     };
 
+    return whereClause;
+  }
+
+  static async getRoutingFormPaginatedResponses({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    memberUserIds,
+    columnFilters,
+    sorting,
+  }: RoutingFormResponsesFilter) {
+    const whereClause = await this.getWhereClauseForRoutingFormResponses({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId,
+      routingFormId,
+      cursor,
+      limit,
+      userId,
+      memberUserIds,
+      columnFilters,
+      sorting,
+    });
+
     const totalResponsePromise = prisma.routingFormResponse.count({
       where: whereClause,
     });
@@ -331,7 +409,7 @@ class RoutingEventsInsights {
         createdAt: true,
       },
       where: whereClause,
-      orderBy: sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
+      orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
       take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
       cursor: cursor ? { id: cursor } : undefined,
     });

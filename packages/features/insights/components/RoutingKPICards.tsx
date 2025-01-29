@@ -1,6 +1,7 @@
 import { Grid } from "@tremor/react";
 import { Flex, Text, Metric } from "@tremor/react";
 
+import { type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -87,6 +88,84 @@ export const RoutingKPICards = ({
             <Text className="text-default">{item.title}</Text>
             <Flex className="items-baseline justify-start space-x-3 truncate">
               {/* @ts-expect-error - theyre actually dynamic fields that we know the index of - but TS doesnt know that */}
+              <Metric className="text-emphasis">{valueFormatter(data[item.index])}</Metric>
+            </Flex>
+          </CardInsights>
+        ))}
+      </Grid>
+    </>
+  );
+};
+
+export const RoutingKPICards2 = ({
+  teamId,
+  startDate,
+  endDate,
+  userId,
+  memberUserIds,
+  isAll,
+  routingFormId,
+  columnFilters,
+}: {
+  teamId: number | undefined;
+  startDate: string;
+  endDate: string;
+  userId: number | undefined;
+  memberUserIds: number[] | undefined;
+  isAll: boolean;
+  routingFormId: string | undefined;
+  columnFilters: ColumnFilter[];
+}) => {
+  const { t } = useLocale();
+
+  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus2.useQuery(
+    {
+      teamId,
+      startDate,
+      endDate,
+      userId,
+      memberUserIds,
+      isAll,
+      routingFormId,
+      columnFilters,
+    },
+    {
+      staleTime: 30000,
+      trpc: {
+        context: { skipBatch: true },
+      },
+    }
+  );
+
+  const categories: {
+    title: string;
+    index: "total" | "totalWithoutBooking" | "totalWithBooking";
+  }[] = [
+    {
+      title: t("routing_forms_total_responses"),
+      index: "total",
+    },
+    {
+      title: t("routing_forms_total_responses_without_booking"),
+      index: "totalWithoutBooking",
+    },
+    {
+      title: t("routing_forms_total_responses_with_booking"),
+      index: "totalWithBooking",
+    },
+  ];
+
+  if (isPending) {
+    return <LoadingKPICards categories={categories} />;
+  }
+
+  return (
+    <>
+      <Grid numColsSm={1} numColsLg={3} className="mt-4 gap-x-4 gap-y-4">
+        {categories.map((item) => (
+          <CardInsights key={item.title}>
+            <Text className="text-default">{item.title}</Text>
+            <Flex className="items-baseline justify-start space-x-3 truncate">
               <Metric className="text-emphasis">{valueFormatter(data[item.index])}</Metric>
             </Flex>
           </CardInsights>

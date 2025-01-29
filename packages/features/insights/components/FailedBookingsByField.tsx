@@ -4,7 +4,6 @@ import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
 import { BarList } from "./tremor/BarList";
 
 interface FormCardProps {
@@ -54,22 +53,27 @@ function FormCard({ formName, fields }: FormCardProps) {
   );
 }
 
-export function FailedBookingsByField() {
-  const { filter } = useFilterContext();
-  const { selectedTeamId, selectedUserId, isAll, initialConfig, selectedRoutingFormId } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(
-    {
-      userId: selectedUserId ?? undefined,
-      teamId: selectedTeamId ?? undefined,
-      isAll: !!isAll,
-      routingFormId: selectedRoutingFormId ?? undefined,
-    },
-    {
-      enabled: initialConfigIsReady,
-    }
-  );
+export function FailedBookingsByField({
+  userId,
+  teamId,
+  startDate,
+  endDate,
+  isAll,
+  routingFormId,
+}: {
+  userId?: number;
+  teamId?: number;
+  startDate: string;
+  endDate: string;
+  isAll: boolean;
+  routingFormId?: string;
+}) {
+  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery({
+    userId,
+    teamId,
+    isAll,
+    routingFormId,
+  });
 
   if (!data) return null;
 

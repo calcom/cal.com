@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  FailedBookingsByField,
-  RoutingFormResponsesTable,
-  RoutedToPerPeriod,
-} from "@calcom/features/insights/components";
+import { RoutingFormResponsesTable } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -15,10 +11,6 @@ export default function InsightsRoutingFormResponsesPage() {
     <FiltersProvider>
       <div className="mb-4 space-y-4">
         <RoutingFormResponsesTable />
-
-        <RoutedToPerPeriod />
-
-        <FailedBookingsByField />
 
         <small className="text-default block text-center">
           {t("looking_for_more_insights")}{" "}

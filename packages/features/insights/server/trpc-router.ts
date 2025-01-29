@@ -1589,6 +1589,24 @@ export const insightsRouter = router({
 
       return stats;
     }),
+  routingFormsByStatus2: userBelongsToTeamProcedure
+    .input(routingFormResponsesInputSchema)
+    .query(async ({ ctx, input }) => {
+      return await RoutingEventsInsights.getRoutingFormStats2({
+        teamId: input.teamId,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        isAll: input.isAll,
+        organizationId: ctx.user.organizationId ?? null,
+        routingFormId: input.routingFormId,
+        cursor: input.cursor,
+        userId: input.userId,
+        memberUserIds: input.memberUserIds,
+        limit: input.limit,
+        columnFilters: input.columnFilters,
+        sorting: input.sorting,
+      });
+    }),
   routingFormResponses: userBelongsToTeamProcedure
     .input(routingFormResponsesInputSchema)
     .query(async ({ ctx, input }) => {

@@ -23,8 +23,6 @@ import {
   DataTableSkeleton,
   useColumnFilters,
   useFilterValue,
-  multiSelectFilter,
-  textFilter,
   dataTableFilter,
   useDataTable,
   ZDateRangeFilterValue,
@@ -60,7 +58,9 @@ import {
   ZResponseTextValue,
   ZResponseNumericValue,
 } from "../lib/types";
-import { RoutingKPICards } from "./RoutingKPICards";
+import { FailedBookingsByField } from "./FailedBookingsByField";
+import { RoutedToPerPeriod } from "./RoutedToPerPeriod";
+import { RoutingKPICards2 } from "./RoutingKPICards";
 
 type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
 
@@ -287,8 +287,14 @@ export function RoutingFormResponsesTableContent() {
     | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
-  const startDate = createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString();
-  const endDate = createdAtRange?.endDate ?? dayjs().endOf("day").toISOString();
+  const startDate = useMemo(
+    () => createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString(),
+    [createdAtRange?.startDate]
+  );
+  const endDate = useMemo(
+    () => createdAtRange?.endDate ?? dayjs().endOf("day").toISOString(),
+    [createdAtRange?.endDate]
+  );
 
   const {
     data: headers,
@@ -358,6 +364,10 @@ export function RoutingFormResponsesTableContent() {
           filter: { type: ColumnFilterType.SINGLE_SELECT },
         },
         cell: () => null,
+        filterFn: (row, id, filterValue) => {
+          const cellValue = row.original.formId;
+          return dataTableFilter(cellValue, filterValue);
+        },
       }),
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
@@ -368,6 +378,10 @@ export function RoutingFormResponsesTableContent() {
           filter: { type: ColumnFilterType.MULTI_SELECT },
         },
         cell: () => null,
+        filterFn: (row, id, filterValue) => {
+          const cellValue = row.original.bookingUserId;
+          return dataTableFilter(cellValue, filterValue);
+        },
       }),
       columnHelper.accessor("bookingAttendees", {
         id: "bookingAttendees",
@@ -461,7 +475,8 @@ export function RoutingFormResponsesTableContent() {
           filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
         },
         filterFn: (row, id, filterValue) => {
-          return multiSelectFilter(row.original.bookingStatusOrder, filterValue);
+          const cellValue = row.original.bookingStatusOrder;
+          return dataTableFilter(cellValue, filterValue);
         },
         sortingFn: (rowA, rowB) => {
           const statusA = rowA.original.bookingStatusOrder ?? 6; // put it at the end if bookingStatusOrder is null
@@ -497,6 +512,7 @@ export function RoutingFormResponsesTableContent() {
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
+        enableColumnFilter: true,
         enableSorting: false,
         meta: {
           filter: { type: ColumnFilterType.TEXT },
@@ -507,18 +523,24 @@ export function RoutingFormResponsesTableContent() {
         },
         filterFn: (row, id, filterValue) => {
           const reason = row.original.bookingAssignmentReason;
-          return textFilter(reason, filterValue);
+          return dataTableFilter(reason, filterValue);
         },
       }),
       columnHelper.accessor("createdAt", {
         id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
+        // exclude from "Filters" component
+        // because we already have a DateRangeFilter component
         enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
+        filterFn: (row, id, filterValue) => {
+          const createdAt = row.original.createdAt;
+          return dataTableFilter(createdAt, filterValue);
+        },
       }),
     ];
   }, [isHeadersSuccess, headers, t, copyToClipboard]);
@@ -588,47 +610,76 @@ export function RoutingFormResponsesTableContent() {
   }
 
   return (
-    <div className="flex-1">
-      <DataTableWrapper
-        table={table}
-        isPending={isFetching && !data}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
-        ToolbarLeft={
-          <>
-            <OrgTeamsFilter
-              selectedType={orgTeamsType}
-              selectedTeamId={selectedTeamId}
-              onSelected={(params) => {
-                setOrgTeamsType(params.type);
-                setSelectedTeamId(params.teamId);
-              }}
-            />
-            <DataTableFilters.AddFilterButton table={table} />
-            <DataTableFilters.ActiveFilters table={table} />
-            <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
-          </>
-        }
-        ToolbarRight={
-          <>
-            <DateRangeFilter column={createdAtColumn} />
-            <RoutingFormResponsesDownload
-              startDate={startDate}
-              endDate={endDate}
-              teamId={teamId}
-              userId={userId}
-              isAll={isAll}
-              memberUserIds={memberUserIds}
-              routingFormId={routingFormId}
-              columnFilters={columnFilters}
-              sorting={sorting}
-            />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-          </>
-        }>
-        <RoutingKPICards given={{ isAll, teamId, userId }} />
-      </DataTableWrapper>
-    </div>
+    <>
+      <div className="flex-1">
+        <DataTableWrapper
+          table={table}
+          isPending={isFetching && !data}
+          hasNextPage={hasNextPage}
+          fetchNextPage={fetchNextPage}
+          isFetching={isFetching}
+          ToolbarLeft={
+            <>
+              <OrgTeamsFilter
+                selectedType={orgTeamsType}
+                selectedTeamId={selectedTeamId}
+                onSelected={(params) => {
+                  setOrgTeamsType(params.type);
+                  setSelectedTeamId(params.teamId);
+                }}
+              />
+              <DataTableFilters.AddFilterButton table={table} />
+              <DataTableFilters.ActiveFilters table={table} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+            </>
+          }
+          ToolbarRight={
+            <>
+              <DateRangeFilter column={createdAtColumn} />
+              <RoutingFormResponsesDownload
+                startDate={startDate}
+                endDate={endDate}
+                teamId={teamId}
+                userId={userId}
+                isAll={isAll}
+                memberUserIds={memberUserIds}
+                routingFormId={routingFormId}
+                columnFilters={columnFilters}
+                sorting={sorting}
+              />
+              <DataTableFilters.ColumnVisibilityButton table={table} />
+            </>
+          }>
+          <RoutingKPICards2
+            teamId={teamId}
+            startDate={startDate}
+            endDate={endDate}
+            userId={userId}
+            memberUserIds={memberUserIds}
+            isAll={isAll}
+            routingFormId={routingFormId}
+            columnFilters={columnFilters}
+          />
+        </DataTableWrapper>
+      </div>
+
+      <RoutedToPerPeriod
+        userId={userId}
+        teamId={teamId}
+        startDate={startDate}
+        endDate={endDate}
+        isAll={isAll}
+        routingFormId={routingFormId}
+      />
+
+      <FailedBookingsByField
+        userId={userId}
+        teamId={teamId}
+        startDate={startDate}
+        endDate={endDate}
+        isAll={isAll}
+        routingFormId={routingFormId}
+      />
+    </>
   );
 }
