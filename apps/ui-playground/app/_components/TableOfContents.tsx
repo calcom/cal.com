@@ -56,6 +56,15 @@ const sections: Section[] = [
       { id: "checkbox-info", title: "With Information Icon" },
     ],
   },
+  {
+    id: "dropdown",
+    title: "Dropdown",
+    subsections: [
+      { id: "dropdown-button", title: "Button Trigger" },
+      { id: "dropdown-avatar", title: "Avatar Trigger" },
+      { id: "dropdown-sizes", title: "Different Sizes" },
+    ],
+  },
 ];
 
 const STORAGE_KEY = "ui-playground-toc-state";

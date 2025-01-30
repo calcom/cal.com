@@ -176,9 +176,6 @@ module.exports = {
         drawerSlideLeftAndFade: "drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1)",
         drawerSlideRightAndFade: "drawerSlideRightAndFade 150ms ease-in",
       },
-      boxShadow: {
-        dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
-      },
       borderWidth: {
         "booker-width": "var(--cal-border-booker-width, 1px)",
       },
@@ -217,6 +214,7 @@ module.exports = {
         "gradient-primary": "radial-gradient(162.05% 170% at 109.58% 35%, #667593 0%, #E3E3E3 100%)",
       },
       boxShadow: {
+        dropdown: "0px 5px 20px 0px rgba(0, 0, 0, 0.10), 0px 10px 40px 0px rgba(0, 0, 0, 0.03)",
         "solid-gray-rested":
           "0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.40) inset",
         "solid-gray-hover":

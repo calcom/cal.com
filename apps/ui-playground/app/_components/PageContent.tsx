@@ -8,6 +8,7 @@ import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
 import ButtonDemo from "./ButtonDemo";
 import CheckboxDemo from "./CheckboxDemo";
+import DropdownDemo from "./DropdownDemo";
 import TableOfContents from "./TableOfContents";
 
 export default function PageContent() {
@@ -50,6 +51,10 @@ export default function PageContent() {
 
             <section id="checkbox" className="space-y-6">
               <CheckboxDemo />
+            </section>
+
+            <section id="dropdown" className="space-y-6">
+              <DropdownDemo />
             </section>
           </main>
         </div>
