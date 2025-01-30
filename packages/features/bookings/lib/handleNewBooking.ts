@@ -1310,7 +1310,7 @@ async function handler(
         endTime: reqBody.end,
         contactOwnerFromReq,
         contactOwnerEmail,
-        allHostUsers,
+        allHostUsers: [...qualifiedUsers, ...fallbackUsers],
         isManagedEventType,
       });
       booking = dryRunBooking;
