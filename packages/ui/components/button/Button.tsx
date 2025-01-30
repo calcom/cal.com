@@ -111,17 +111,16 @@ export const buttonClasses = cva(
           "disabled:hover:bg-transparent",
           "disabled:hover:text-muted",
           "disabled:hover:border-subtle",
-        ].join(" "),
+        ],
 
         destructive: [
           // Base colors and border
           "border",
           "border-default",
-          "text-emphasis",
+          "text-error",
           // Hover state
-          "hover:text-red-700",
           "dark:hover:text-red-100",
-          "hover:border-red-100",
+          "hover:border-semantic-danager-subtle",
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",
@@ -137,6 +136,12 @@ export const buttonClasses = cva(
           "disabled:text-red-700",
           "disabled:hover:border-red-200",
           "disabled:opacity-40",
+          // Shadows and effects
+          "shadow-outline-red-rested",
+          "enabled:hover:shadow-outline-red-hover",
+          "enabled:active:shadow-outline-red-active",
+          "transition-shadow",
+          "duration-200",
         ],
       },
       size: {

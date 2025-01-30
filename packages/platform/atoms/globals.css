@@ -73,8 +73,7 @@
     --cal-text-info: #253985;
     --cal-text-success: #285231;
     --cal-text-attention: #73321b;
-    --cal-text-error: #752522;
-
+    --cal-text-error: hsla(0, 63%, 31%, 1);
     /* Brand shinanigans
       -> These will be computed for the users theme at runtime.
     */
@@ -13346,7 +13345,7 @@ select {
   --cal-text-info: #253883;
   --cal-text-success: #285231;
   --cal-text-attention: #74331b;
-  --cal-text-error: #772522;
+  --cal-text-error: #7F1D1D;
   --cal-brand: #111827;
   --cal-brand-emphasis: #0f0f0f;
   --cal-brand-text: #fff

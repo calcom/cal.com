@@ -119,6 +119,11 @@ module.exports = {
         focus: "var(--cal-border-focus, #1A1A1A)",
         "cal-bg": "var(--cal-bg, white)",
         "cal-bg-muted": "var(--cal-bg-muted)",
+        semantic: {
+          danager: {
+            subtle: colors.red[200],
+          },
+        },
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -221,6 +226,10 @@ module.exports = {
         "outline-gray-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         "outline-gray-hover": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         "outline-gray-active": "0px 2px 1px 0px rgba(0, 0, 0, 0.05) inset",
+        "outline-red-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        "outline-red-hover": "0px 1px 1px 0px rgba(0, 0, 0, 0.06), 0px 2px 3px 0px rgba(0, 0, 0, 0.08)",
+        "outline-red-active":
+          "0px 1px 1px 0px rgba(127, 29, 29, 0.06), 0px 0px 3px 0px rgba(127, 29, 29, 0.08), 0px 2px 2px 1px rgba(127, 29, 29, 0.06) inset",
       },
     },
   },
