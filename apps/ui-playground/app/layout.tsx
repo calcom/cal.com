@@ -1,3 +1,5 @@
+"use client";
+
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
