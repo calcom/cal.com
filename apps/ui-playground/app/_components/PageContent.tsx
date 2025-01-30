@@ -13,8 +13,7 @@ export default function PageContent() {
   const [isDark, setIsDark] = useState(false);
 
   return (
-    <div
-      className={`min-h-screen ${isDark ? "dark" : ""} bg-default font-[family-name:var(--font-geist-sans)]`}>
+    <div className={`min-h-screen ${isDark ? "dark" : ""} bg-default font-[family-name:var(--font-inter)]`}>
       <div className="bg-default/80 sticky top-0 z-50 backdrop-blur-sm">
         <div className="mx-auto max-w-7xl">
           <div className="mx-6 flex justify-end py-4">

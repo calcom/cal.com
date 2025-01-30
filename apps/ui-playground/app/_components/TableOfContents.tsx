@@ -164,7 +164,7 @@ export default function TableOfContents() {
       </div>
       {filteredSections.map((section) => {
         // Only show section if it matches or has matching subsections
-        if (!searchQuery || section.matches || section.subsections?.length > 0) {
+        if (!searchQuery || section.matches || section?.subsections?.length > 0) {
           return (
             <div key={section.id} className="space-y-2">
               <div className="flex items-center gap-1">

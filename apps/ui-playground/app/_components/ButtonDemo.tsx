@@ -9,7 +9,7 @@ export default function ButtonDemo() {
 
   const variants = ["button", "icon", "fab"] as const;
   const colors = ["primary", "secondary", "minimal", "destructive"] as const;
-  const sizes = ["sm", "base", "lg"] as const;
+  const sizes = ["xs", "sm", "base", "lg"] as const;
 
   return (
     <div className="border-subtle bg-default rounded-lg border p-6">
@@ -40,9 +40,8 @@ export default function ButtonDemo() {
                             color={color}
                             size={size}
                             StartIcon={variant === "icon" ? "plus" : undefined}>
-                            {variant !== "icon" && `${color} ${size}`}
+                            {variant !== "icon" && `label`}
                           </Button>
-                          <span className="text-subtle text-xs">{size}</span>
                         </div>
                       ))}
                     </div>

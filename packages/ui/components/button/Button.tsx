@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-md transition disabled:cursor-not-allowed",
+  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
@@ -49,19 +49,108 @@ export const buttonClasses = cva(
         fab: "rounded-full justify-center md:rounded-md radix-state-open:rotate-45 md:radix-state-open:rotate-0 radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       color: {
-        primary:
-          "bg-brand-default hover:bg-brand-emphasis focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-brand-default text-brand disabled:bg-brand-subtle disabled:text-brand-subtle disabled:opacity-40 disabled:hover:bg-brand-subtle disabled:hover:text-brand-default disabled:hover:opacity-40",
-        secondary:
-          "text-emphasis border border-default bg-default hover:bg-muted hover:border-emphasis focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis disabled:border-subtle disabled:bg-opacity-30 disabled:text-muted disabled:hover:bg-opacity-30 disabled:hover:text-muted disabled:hover:border-subtle disabled:hover:bg-default",
-        minimal:
-          "text-emphasis hover:bg-subtle focus-visible:bg-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-empthasis disabled:border-subtle disabled:bg-opacity-30 disabled:text-muted disabled:hover:bg-transparent disabled:hover:text-muted disabled:hover:border-subtle",
-        destructive:
-          "border border-default text-emphasis hover:text-red-700 dark:hover:text-red-100 focus-visible:text-red-700  hover:border-red-100 focus-visible:border-red-100 hover:bg-error  focus-visible:bg-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset focus-visible:ring-red-700 disabled:bg-red-100 disabled:border-red-200 disabled:text-red-700 disabled:hover:border-red-200 disabled:opacity-40",
+        primary: [
+          // Base colors
+          "bg-brand-default",
+          "text-brand",
+          // Hover state
+          "hover:bg-brand-emphasis",
+          // Focus state
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-offset",
+          "focus-visible:ring-brand-default",
+          // Border
+          "border-[1px] border-brand-default",
+          // Disabled state
+          // "disabled:bg-brand-subtle",
+          // "disabled:text-brand-subtle",
+          // "disabled:opacity-40",
+          // "disabled:hover:bg-brand-subtle",
+          // "disabled:hover:text-brand-default",
+          // "disabled:hover:opacity-40",
+          // Shadows and effects
+          "shadow-[inset_0px_2px_0.5px_theme(colors.white/.2)]",
+          "active:shadow-[inset_0px_3px_1px_0px_rgba(0,0,0,0.40),inset_0px_0px_2px_1px_rgba(0,0,0,0.40)]",
+          "transition-shadow",
+          "duration-200",
+        ],
+
+        secondary: [
+          // Base colors and border
+          "bg-default",
+          "text-emphasis",
+          "border",
+          "border-default",
+          // Hover state
+          "hover:bg-muted",
+          "hover:border-emphasis",
+          // Focus state
+          "focus-visible:bg-subtle",
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-offset",
+          "focus-visible:ring-empthasis",
+          // Disabled state
+          "disabled:border-subtle",
+          "disabled:bg-opacity-30",
+          "disabled:text-muted",
+          "disabled:hover:bg-opacity-30",
+          "disabled:hover:text-muted",
+          "disabled:hover:border-subtle",
+          "disabled:hover:bg-default",
+        ],
+
+        minimal: [
+          // Base color
+          "text-emphasis",
+          // Hover and focus states
+          "hover:bg-subtle",
+          "focus-visible:bg-subtle",
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-offset",
+          "focus-visible:ring-empthasis",
+          // Disabled state
+          "disabled:border-subtle",
+          "disabled:bg-opacity-30",
+          "disabled:text-muted",
+          "disabled:hover:bg-transparent",
+          "disabled:hover:text-muted",
+          "disabled:hover:border-subtle",
+        ].join(" "),
+
+        destructive: [
+          // Base colors and border
+          "border",
+          "border-default",
+          "text-emphasis",
+          // Hover state
+          "hover:text-red-700",
+          "dark:hover:text-red-100",
+          "hover:border-red-100",
+          "hover:bg-error",
+          // Focus state
+          "focus-visible:text-red-700",
+          "focus-visible:border-red-100",
+          "focus-visible:bg-error",
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-offset",
+          "focus-visible:ring-red-700",
+          // Disabled state
+          "disabled:bg-red-100",
+          "disabled:border-red-200",
+          "disabled:text-red-700",
+          "disabled:hover:border-red-200",
+          "disabled:opacity-40",
+        ],
       },
       size: {
-        sm: "px-3 py-2 leading-4 rounded-md" /** For backwards compatibility */,
-        base: "h-9 px-4 py-2.5 ",
-        lg: "h-[36px] px-4 py-2.5 ",
+        xs: "h-6 px-2 py-2 leading-none text-xs rounded-md",
+        sm: "h-7 px-2 py-1.5 leading-none text-sm" /** For backwards compatibility */,
+        base: "px-2.5 py-2 text-sm leading-none",
+        lg: "px-4 py-2.5 ",
       },
       loading: {
         true: "cursor-wait",
@@ -72,7 +161,7 @@ export const buttonClasses = cva(
       {
         loading: true,
         color: "primary",
-        className: "bg-brand-subtle text-brand-subtle",
+        className: "opacity-30",
       },
       // Secondary variants
       {
@@ -180,7 +269,11 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             )}
           </>
         ))}
-      {variant === "fab" ? <span className="hidden md:inline">{props.children}</span> : props.children}
+      {variant === "fab" ? (
+        <span className={`hidden md:inline ${loading ? "invisible" : "visible"}`}>{props.children}</span>
+      ) : (
+        <span className={loading ? "invisible" : "visible"}>{props.children}</span>
+      )}
       {loading && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
