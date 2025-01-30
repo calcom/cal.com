@@ -70,8 +70,9 @@ export const buttonClasses = cva(
           // "disabled:hover:text-brand-default",
           // "disabled:hover:opacity-40",
           // Shadows and effects
-          "shadow-[inset_0px_2px_0.5px_theme(colors.white/.2)]",
-          "active:shadow-[inset_0px_3px_1px_0px_rgba(0,0,0,0.40),inset_0px_0px_2px_1px_rgba(0,0,0,0.40)]",
+          "shadow-solid-gray-rested",
+          "hover:shadow-solid-gray-hover",
+          "active:shadow-solid-gray-active",
           "transition-shadow",
           "duration-200",
         ],
