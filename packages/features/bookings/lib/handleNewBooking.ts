@@ -636,6 +636,10 @@ async function handler(
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
 
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
+
       if (!luckyUserPool.length) {
         // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
         // use fallback instead
@@ -650,11 +654,13 @@ async function handler(
           loggerWithEventDetails,
           shouldServeCache
         );
-      }
 
-      availableUsers.forEach((user) => {
-        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
-      });
+        availableUsers.forEach((user) => {
+          if (user.isFixed) {
+            luckyUserPool.push(user);
+          }
+        });
+      }
 
       const notAvailableLuckyUsers: typeof users = [];
 
