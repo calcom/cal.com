@@ -20,9 +20,9 @@ type Props = {
   eventData: Omit<
     Pick<
       NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>,
-      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "users" | "hidden"
+      "id" | "length" | "metadata" | "entity" | "profile" | "title" | "subsetOfUsers" | "hidden"
     >,
-    "profile" | "users"
+    "profile" | "subsetOfUsers"
   > & {
     profile: {
       image: string | undefined;
@@ -163,7 +163,10 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: usernames.join("+"),
@@ -259,7 +262,10 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
         username: eventData.profile.username ?? null,
       },
       title: eventData.title,
-      users: eventData.users.map((user) => ({ username: user.username ?? "", name: user.name ?? "" })),
+      users: eventData.subsetOfUsers.map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      })),
       hidden: eventData.hidden,
     },
     user: username,

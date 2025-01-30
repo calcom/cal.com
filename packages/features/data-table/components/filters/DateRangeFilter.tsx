@@ -1,13 +1,22 @@
+import { format } from "date-fns";
 import type { Dayjs } from "dayjs";
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { DateRangePicker } from "@calcom/ui";
-import { Select } from "@calcom/ui";
+import {
+  DateRangePicker,
+  Button,
+  Icon,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Command,
+  CommandList,
+  CommandItem,
+} from "@calcom/ui";
 
-import "../../../insights/filters/DateSelect.css";
 import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
@@ -19,7 +28,6 @@ type PresetOption = {
 };
 
 type DateRangeFilterProps = {
-  className?: string;
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
 };
 
@@ -83,7 +91,7 @@ const getDefaultStartDate = () => dayjs().subtract(1, "week").startOf("day");
 
 const getDefaultEndDate = () => dayjs().endOf("day");
 
-export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => {
+export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);
   const { updateFilter } = useDataTable();
 
@@ -153,39 +161,59 @@ export const DateRangeFilter = ({ className, column }: DateRangeFilterProps) => 
     });
   };
 
+  const isCustomPreset = selectedPreset.value === CUSTOM_PRESET_VALUE;
+
   return (
-    <div className={classNames("ml inline-flex space-x-2 rtl:space-x-reverse", className)}>
-      <DateRangePicker
-        dates={{
-          startDate: startDate.toDate(),
-          endDate: endDate?.toDate(),
-        }}
-        minDate={currentDate.subtract(2, "year").toDate()}
-        maxDate={currentDate.toDate()}
-        disabled={false}
-        onDatesChange={updateDateRangeFromPicker}
-      />
-      <Select
-        variant="default"
-        data-testid="insights-preset"
-        options={PRESET_OPTIONS.map((o) => ({
-          label: t(o.labelKey, o.i18nOptions),
-          value: o.value,
-        }))}
-        value={{ label: t(selectedPreset.labelKey, selectedPreset.i18nOptions), value: selectedPreset.value }}
-        className="w-40 capitalize text-black"
-        defaultValue={{
-          label: t(selectedPreset.labelKey, selectedPreset.i18nOptions),
-          value: selectedPreset.value,
-        }}
-        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-        menuPortalTarget={document.body}
-        onChange={(e) => {
-          if (e) {
-            updateDateRangeFromPreset(e.value);
-          }
-        }}
-      />
-    </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button color="secondary" className="items-center capitalize">
+          {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
+          {isCustomPreset &&
+            (endDate ? (
+              <span>
+                {format(startDate.toDate(), "LLL dd, y")} - {format(endDate.toDate(), "LLL dd, y")}
+              </span>
+            ) : (
+              <span>{format(startDate.toDate(), "LLL dd, y")} - End</span>
+            ))}
+          <Icon name="chevron-down" className="ml-2 h-4 w-4" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="flex w-fit p-0" align="end">
+        {isCustomPreset && (
+          <div className="border-subtle border-r">
+            <DateRangePicker
+              dates={{
+                startDate: startDate.toDate(),
+                endDate: endDate?.toDate(),
+              }}
+              minDate={currentDate.subtract(2, "year").toDate()}
+              maxDate={currentDate.toDate()}
+              disabled={false}
+              onDatesChange={updateDateRangeFromPicker}
+              withoutPopover={true}
+            />
+          </div>
+        )}
+        <Command className={classNames("w-40", isCustomPreset && "rounded-b-none")}>
+          <CommandList>
+            {PRESET_OPTIONS.map((option) => (
+              <CommandItem
+                key={option.value}
+                className={classNames(
+                  "cursor-pointer justify-between px-3 py-2",
+                  selectedPreset.value === option.value && "bg-emphasis"
+                )}
+                onSelect={() => {
+                  updateDateRangeFromPreset(option.value);
+                }}>
+                <span className="capitalize">{t(option.labelKey, option.i18nOptions)}</span>
+                {selectedPreset.value === option.value && <Icon name="check" />}
+              </CommandItem>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };

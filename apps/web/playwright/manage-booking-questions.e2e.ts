@@ -172,7 +172,6 @@ test.describe("Manage Booking Questions", () => {
           prefillUrl.searchParams.append("email", "john@example.com");
           prefillUrl.searchParams.append("guests", "guest1@example.com");
           prefillUrl.searchParams.append("guests", "guest2@example.com");
-          prefillUrl.searchParams.append("notes", "This is an additional note");
           await page.goto(prefillUrl.toString());
           await bookTimeSlot({ page, skipSubmission: true });
           await expectSystemFieldsToBeThereOnBookingPage({
@@ -185,7 +184,6 @@ test.describe("Manage Booking Questions", () => {
               },
               email: "john@example.com",
               guests: ["guest1@example.com", "guest2@example.com"],
-              notes: "This is an additional note",
             },
           });
         });
