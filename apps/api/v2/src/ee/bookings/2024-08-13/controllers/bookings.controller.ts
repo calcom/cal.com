@@ -6,6 +6,7 @@ import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outpu
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
+import { CustomThrottler } from "@/lib/throttler/custom-throttler.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -105,6 +106,7 @@ export class BookingsController_2024_08_13 {
     CreateInstantBookingInput_2024_08_13,
     CreateRecurringBookingInput_2024_08_13
   )
+  @CustomThrottler({ name: "Create-Booking", defaultLimit: 10 })
   async createBooking(
     @Body(new CreateBookingInputPipe())
     body: CreateBookingInput,

@@ -1,5 +1,5 @@
 import appConfig from "@/config/app";
-import { CustomThrottlerGuard } from "@/lib/throttler-guard";
+import { CustomThrottlerGuard } from "@/lib/throttler/throttler-guard";
 import { AppLoggerMiddleware } from "@/middleware/app.logger.middleware";
 import { RedirectsMiddleware } from "@/middleware/app.redirects.middleware";
 import { RewriterMiddleware } from "@/middleware/app.rewrites.middleware";
