@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Checkbox, CheckboxField } from "@calcom/ui";
 
+import DemoSection, { DemoSubSection } from "./DemoSection";
+
 export default function CheckboxDemo() {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -17,10 +19,9 @@ export default function CheckboxDemo() {
       </button>
 
       {isOpen && (
-        <div className="mt-4 space-y-8">
+        <DemoSection title="Checkbox">
           {/* Basic Checkboxes */}
-          <section id="checkbox-basic">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Basic</h2>
+          <DemoSubSection id="checkbox-basic" title="Basic">
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2">
                 <Checkbox id="basic-unchecked" />
@@ -38,11 +39,10 @@ export default function CheckboxDemo() {
                 <Checkbox id="basic-disabled-checked" disabled defaultChecked />
               </div>
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* With Description */}
-          <section id="checkbox-description">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">With Description</h2>
+          <DemoSubSection id="checkbox-description" title="With Description">
             <div className="space-y-4">
               <CheckboxField description="This is a regular description" id="desc-normal" />
               <CheckboxField
@@ -56,11 +56,10 @@ export default function CheckboxDemo() {
                 description="Label and description"
               />
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* Label Positions */}
-          <section id="checkbox-label">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Label Positions</h2>
+          <DemoSubSection id="checkbox-label" title="Label Positions">
             <div className="space-y-4">
               <CheckboxField
                 description="Description with label above (default on mobile)"
@@ -75,19 +74,18 @@ export default function CheckboxDemo() {
                 />
               </div>
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* With Information Icon */}
-          <section id="checkbox-info">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">With Information Icon</h2>
+          <DemoSubSection id="checkbox-info" title="With Information Icon">
             <CheckboxField
               description="Checkbox with additional information"
               id="info-icon"
               label="Information Icon"
               informationIconText="This is additional information that appears in a tooltip"
             />
-          </section>
-        </div>
+          </DemoSubSection>
+        </DemoSection>
       )}
     </div>
   );

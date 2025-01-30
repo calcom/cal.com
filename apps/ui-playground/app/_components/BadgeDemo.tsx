@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Badge } from "@calcom/ui";
 
+import DemoSection, { DemoSubSection } from "./DemoSection";
+
 export default function BadgeDemo() {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -32,11 +34,10 @@ export default function BadgeDemo() {
       </button>
 
       {isOpen && (
-        <div className="space-y-8 pt-4">
+        <DemoSection title="Badge" className="space-y-8 pt-4">
           {/* Variants with Sizes */}
           {variants.map((variant) => (
-            <section key={variant}>
-              <h2 className="text-emphasis mb-4 text-lg font-semibold capitalize">{variant}</h2>
+            <DemoSubSection key={variant} id={`badge-${variant}`} title={variant}>
               <div className="flex items-center gap-4">
                 {sizes.map((size) => (
                   <div key={size} className="flex flex-col items-center gap-2">
@@ -47,12 +48,11 @@ export default function BadgeDemo() {
                   </div>
                 ))}
               </div>
-            </section>
+            </DemoSubSection>
           ))}
 
           {/* With Icons */}
-          <section>
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">With Icons</h2>
+          <DemoSubSection id="badge-icons" title="With Icons">
             <div className="flex flex-wrap items-center gap-4">
               {variants.map((variant) => (
                 <div key={variant} className="flex flex-col items-center gap-2">
@@ -63,11 +63,10 @@ export default function BadgeDemo() {
                 </div>
               ))}
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* With Dots */}
-          <section>
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">With Dots</h2>
+          <DemoSubSection id="badge-dots" title="With Dots">
             <div className="flex flex-wrap items-center gap-4">
               {variants.map((variant) => (
                 <div key={variant} className="flex flex-col items-center gap-2">
@@ -78,11 +77,10 @@ export default function BadgeDemo() {
                 </div>
               ))}
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* Interactive */}
-          <section>
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Interactive</h2>
+          <DemoSubSection id="badge-interactive" title="Interactive">
             <div className="flex flex-wrap items-center gap-4">
               {variants.map((variant) => (
                 <div key={variant} className="flex flex-col items-center gap-2">
@@ -93,11 +91,10 @@ export default function BadgeDemo() {
                 </div>
               ))}
             </div>
-          </section>
+          </DemoSubSection>
 
           {/* Rounded */}
-          <section>
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Rounded</h2>
+          <DemoSubSection id="badge-rounded" title="Rounded">
             <div className="flex flex-wrap items-center gap-4">
               {variants.map((variant) => (
                 <div key={variant} className="flex flex-col items-center gap-2">
@@ -108,8 +105,8 @@ export default function BadgeDemo() {
                 </div>
               ))}
             </div>
-          </section>
-        </div>
+          </DemoSubSection>
+        </DemoSection>
       )}
     </div>
   );

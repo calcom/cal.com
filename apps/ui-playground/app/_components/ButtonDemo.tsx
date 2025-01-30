@@ -1,143 +1,111 @@
 "use client";
 
-import { useState } from "react";
-
 import { Button } from "@calcom/ui";
 
-export default function ButtonDemo() {
-  const [isOpen, setIsOpen] = useState(true);
+import DemoSection, { DemoSubSection } from "./DemoSection";
 
+export default function ButtonDemo() {
   const variants = ["button", "icon"] as const;
   const colors = ["primary", "secondary", "minimal", "destructive"] as const;
   const sizes = ["xs", "sm", "base", "lg"] as const;
 
   return (
-    <div className="border-subtle bg-default rounded-lg border p-6">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="text-emphasis flex w-full items-center justify-between rounded-md py-2 text-lg font-semibold">
-        <span>Button</span>
-        <span className="text-subtle">{isOpen ? "−" : "+"}</span>
-      </button>
-
-      {isOpen && (
-        <div className="space-y-8 pt-4">
-          {/* Variants with Colors */}
-          {variants.map((variant) => (
-            <section key={variant} id={`button-${variant === "button" ? "default" : variant}`}>
-              <h2 className="text-emphasis mb-4 text-lg font-semibold capitalize">
-                {variant === "button" ? "Default" : variant}
-              </h2>
-              <div className="space-y-6">
-                {colors.map((color) => (
-                  <div key={color} className="space-y-2">
-                    <h3 className="text-default text-sm capitalize">{color}</h3>
-                    <div className="flex flex-wrap items-center gap-4">
-                      {sizes.map((size) => (
-                        <div key={size} className="flex flex-col items-center gap-2">
-                          <Button
-                            variant={variant}
-                            color={color}
-                            size={size}
-                            StartIcon={variant === "icon" ? "plus" : undefined}>
-                            {variant !== "icon" && `label`}
-                          </Button>
-                          <span className="text-subtle text-xs">{size}</span>
-                        </div>
-                      ))}
+    <DemoSection title="Button">
+      {/* Variants with Colors */}
+      {variants.map((variant) => (
+        <DemoSubSection
+          key={variant}
+          id={`button-${variant === "button" ? "default" : variant}`}
+          title={variant === "button" ? "Default" : variant}>
+          <div className="space-y-6">
+            {colors.map((color) => (
+              <div key={color} className="space-y-2">
+                <h3 className="text-default text-sm capitalize">{color}</h3>
+                <div className="flex flex-wrap items-center gap-4">
+                  {sizes.map((size) => (
+                    <div key={size} className="flex flex-col items-center gap-2">
+                      <Button
+                        variant={variant}
+                        color={color}
+                        size={size}
+                        StartIcon={variant === "icon" ? "plus" : undefined}>
+                        {variant !== "icon" && `label`}
+                      </Button>
+                      <span className="text-subtle text-xs">{size}</span>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </section>
+            ))}
+          </div>
+        </DemoSubSection>
+      ))}
+
+      {/* With Icons */}
+      <DemoSubSection id="button-icons" title="With Icons">
+        <div className="flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <Button color={color} StartIcon="calendar">
+                {color}
+              </Button>
+              <span className="text-subtle text-xs">Start Icon</span>
+            </div>
           ))}
-
-          {/* With Icons */}
-          <section id="button-icons">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">With Icons</h2>
-            <div className="flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} StartIcon="calendar">
-                    {color}
-                  </Button>
-                  <span className="text-subtle text-xs">Start Icon</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} EndIcon="chevron-right">
-                    {color}
-                  </Button>
-                  <span className="text-subtle text-xs">End Icon</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Loading State */}
-          <section id="button-loading">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Loading State</h2>
-            <div className="flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} loading>
-                    {color}
-                  </Button>
-                  <span className="text-subtle text-xs">Loading</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Disabled State */}
-          <section id="button-disabled">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">Disabled State</h2>
-            <div className="flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} disabled>
-                    {color}
-                  </Button>
-                  <span className="text-subtle text-xs">Disabled</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* With Tooltip
-          <section>
-            <h2 className="mb-4 text-lg font-semibold">With Tooltip</h2>
-            <div className="flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} tooltip={`${color} button tooltip`}>
-                    Hover me
-                  </Button>
-                  <span className="text-subtle text-xs">Tooltip</span>
-                </div>
-              ))}
-            </div>
-          </section> */}
-
-          {/* As Link */}
-          <section id="button-link">
-            <h2 className="text-emphasis mb-4 text-lg font-semibold">As Link</h2>
-            <div className="flex flex-wrap items-center gap-4">
-              {colors.map((color) => (
-                <div key={color} className="flex flex-col items-center gap-2">
-                  <Button color={color} href="#" target="_blank">
-                    {color} Link
-                  </Button>
-                  <span className="text-subtle text-xs">Link</span>
-                </div>
-              ))}
-            </div>
-          </section>
         </div>
-      )}
-    </div>
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <Button color={color} EndIcon="chevron-right">
+                {color}
+              </Button>
+              <span className="text-subtle text-xs">End Icon</span>
+            </div>
+          ))}
+        </div>
+      </DemoSubSection>
+
+      {/* Loading State */}
+      <DemoSubSection id="button-loading" title="Loading State">
+        <div className="flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <Button color={color} loading>
+                {color}
+              </Button>
+              <span className="text-subtle text-xs">Loading</span>
+            </div>
+          ))}
+        </div>
+      </DemoSubSection>
+
+      {/* Disabled State */}
+      <DemoSubSection id="button-disabled" title="Disabled State">
+        <div className="flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <Button color={color} disabled>
+                {color}
+              </Button>
+              <span className="text-subtle text-xs">Disabled</span>
+            </div>
+          ))}
+        </div>
+      </DemoSubSection>
+
+      {/* As Link */}
+      <DemoSubSection id="button-link" title="As Link">
+        <div className="flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <Button color={color} href="https://cal.com" target="_blank">
+                {color}
+              </Button>
+              <span className="text-subtle text-xs">Link</span>
+            </div>
+          ))}
+        </div>
+      </DemoSubSection>
+    </DemoSection>
   );
 }
