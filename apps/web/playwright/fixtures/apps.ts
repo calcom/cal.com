@@ -29,7 +29,6 @@ export function createAppsFixture(page: Page) {
       (await page.waitForSelector('[data-testid="install-app-button"]')).click();
       await page.waitForURL(`apps/installation/accounts?slug=${app}`);
       await page.reload();
-      await page.click('[data-testid="install-app-button-personal"]');
 
       await page.click('[data-testid="install-app-button-personal"]');
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
