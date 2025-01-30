@@ -470,7 +470,7 @@ export default class SalesforceCRMService implements CRM {
       );
     }
 
-    if (contactsToCreate[0]?.email) {
+    if (!contactsToCreate[0]?.email) {
       this.log.warn(`createContact: no attendee email found `, contactsToCreate);
     }
 
@@ -1302,7 +1302,9 @@ export default class SalesforceCRMService implements CRM {
     }
 
     if (!personRecord) {
-      throw new Error(`No contact or lead found for email ${email}`);
+      this.log.info(`No contact or lead found for email ${email}`);
+      // No salesforce entity to update, skip and report success (unrecoverable)
+      return;
     }
     // Ensure the fields exist on the record
     const existingFields = await this.ensureFieldsExistOnObject(
@@ -1322,7 +1324,12 @@ export default class SalesforceCRMService implements CRM {
         ...writeOnRecordBody,
       })
       .catch((e) => {
-        this.log.error(`Error updating person record for contactId ${personRecord?.Id}`, e);
+        const contactId = personRecord?.Id || "unknown";
+        // catch the error and throw a new one with a more descriptive message
+        const errorMessage = `Error updating person record for contactId '${contactId}': ${
+          e instanceof Error ? e.message : String(e)
+        }`;
+        throw new Error(errorMessage);
       });
   }
 }

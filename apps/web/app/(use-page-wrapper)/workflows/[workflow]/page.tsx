@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 import { z } from "zod";
 
-// import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
+// import { cookies, headers } from "next/headers";
+// import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+// import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 import LegacyPage from "@calcom/features/ee/workflows/pages/workflow";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 
@@ -35,11 +37,8 @@ export const generateMetadata = async ({ params }: PageProps): Promise<Metadata 
   );
 };
 
-export const generateStaticParams = () => [];
-
 const Page = async ({ params }: PageProps) => {
-  // FIXME: Refactor me once next-auth endpoint is migrated to App Router
-  // const session = await getServerSessionForAppDir();
+  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   // const user = session?.user;
   const parsed = querySchema.safeParse(params);
   if (!parsed.success) {
@@ -64,13 +63,10 @@ const Page = async ({ params }: PageProps) => {
 
   return (
     <LegacyPage
-    //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
+      workflow={parsed.data.workflow}
+      //  workflowData={workflow} verifiedEmails={verifiedEmails} verifiedNumbers={verifiedNumbers}
     />
   );
 };
 
 export default Page;
-export const dynamic = "force-static";
-// generate segments on demand
-export const dynamicParams = true;
-export const revalidate = 10;
