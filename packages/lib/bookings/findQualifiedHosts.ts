@@ -59,6 +59,7 @@ export const findQualifiedHosts = async <
   rescheduleUid,
   routedTeamMemberIds,
   contactOwnerEmail,
+  routingFormResponseId,
 }: {
   eventType: {
     id: number;
@@ -72,6 +73,7 @@ export const findQualifiedHosts = async <
   rescheduleUid: string | null;
   routedTeamMemberIds: number[];
   contactOwnerEmail: string | null;
+  routingFormResponseId?: number;
 }): Promise<{
   qualifiedHosts: {
     isFixed: boolean;

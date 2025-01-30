@@ -45,6 +45,7 @@ type InputProps = {
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
   isSameHostReschedule: boolean;
+  routingFormResponseId?: number;
 };
 
 export async function loadAndValidateUsers({
@@ -56,6 +57,7 @@ export async function loadAndValidateUsers({
   routedTeamMemberIds,
   contactOwnerEmail,
   isSameHostReschedule,
+  routingFormResponseId,
 }: InputProps): Promise<{ qualifiedUsers: Users; fallbackUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
@@ -113,6 +115,7 @@ export async function loadAndValidateUsers({
     routedTeamMemberIds: routedTeamMemberIds || [],
     rescheduleUid: null,
     contactOwnerEmail,
+    routingFormResponseId,
   });
 
   let qualifiedUsers: Users = [];

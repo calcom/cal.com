@@ -270,6 +270,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
     _shouldServeCache,
+    routingFormResponseId,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -340,6 +341,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       rescheduleUid: input.rescheduleUid ?? null,
       routedTeamMemberIds,
       contactOwnerEmail,
+      //routingFormResponseId
     }
   );
 

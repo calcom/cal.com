@@ -125,7 +125,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     ],
     eventType,
     allRRHosts: hosts,
-    routingFormResponse: null,
+    routingFormResponse: null, // we need routing form response here for virtual queues
   });
 
   const perUserData = orderedLuckyUsers["perUserData"];

@@ -501,6 +501,7 @@ async function handler(
     routedTeamMemberIds: routedTeamMemberIds ?? null,
     contactOwnerEmail,
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
+    routingFormResponseId,
   });
 
   // We filter out users but ensure allHostUsers remain same.
