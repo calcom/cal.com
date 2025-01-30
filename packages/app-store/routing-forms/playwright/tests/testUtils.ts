@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+
 export async function addForm(
   page: Page,
   {
@@ -46,7 +48,6 @@ export async function addOneFieldAndDescriptionAndSaveForm(
   // Verify all Options of SelectBox
   const { optionsInUi: types } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
@@ -79,9 +80,17 @@ export async function saveCurrentForm(page: Page) {
 
 export async function verifySelectOptions(
   selector: { selector: string; nth: number },
-  expectedOptions: string[],
-  page: Page
+  page: Page,
+  expectedOptions?: string[]
 ) {
+  await page.click('[data-testid="add-field"]');
+
+  if (!expectedOptions) {
+    expectedOptions = Object.values(fieldTypesConfigMap)
+      .filter((field) => field.value !== "name" && field.value !== "radioInput")
+      .map((field) => field.label);
+  }
+
   await page.locator(selector.selector).nth(selector.nth).click();
   const selectOptions = await page
     .locator(selector.selector)

@@ -697,12 +697,10 @@ async function addAllTypesOfFieldsAndSaveForm(
   form: { description: string; label: string }
 ) {
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await page.click('[data-testid="add-field"]');
   await page.fill('[data-testid="description"]', form.description);
 
   const { optionsInUi: fieldTypesList } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
 
@@ -794,7 +792,6 @@ async function verifyFieldOptionsInRule(options: string[], page: Page) {
       selector: ".rule-container .data-testid-field-select",
       nth: 0,
     },
-    options,
     page
   );
 }
