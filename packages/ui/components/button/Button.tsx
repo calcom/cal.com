@@ -61,18 +61,11 @@ export const buttonClasses = cva(
           "focus-visible:ring-offset",
           "focus-visible:ring-brand-default",
           // Border
-          "border-[1px] border-brand-default",
-          // Disabled state
-          // "disabled:bg-brand-subtle",
-          // "disabled:text-brand-subtle",
-          // "disabled:opacity-40",
-          // "disabled:hover:bg-brand-subtle",
-          // "disabled:hover:text-brand-default",
-          // "disabled:hover:opacity-40",
+          "border border-brand-default",
           // Shadows and effects
           "shadow-solid-gray-rested",
-          "hover:shadow-solid-gray-hover",
-          "active:shadow-solid-gray-active",
+          "enabled:hover:shadow-solid-gray-hover",
+          "enabled:active:shadow-solid-gray-active",
           "transition-shadow",
           "duration-200",
         ],
@@ -80,26 +73,25 @@ export const buttonClasses = cva(
         secondary: [
           // Base colors and border
           "bg-default",
-          "text-emphasis",
+          "text-default",
           "border",
           "border-default",
           // Hover state
-          "hover:bg-muted",
-          "hover:border-emphasis",
+          "enabled:hover:bg-muted",
+          "enabled:hover:border-emphasis",
+          "enabled:hover:text-emphasis",
           // Focus state
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
           "focus-visible:ring-2",
           "focus-visible:ring-offset",
           "focus-visible:ring-empthasis",
-          // Disabled state
-          "disabled:border-subtle",
-          "disabled:bg-opacity-30",
-          "disabled:text-muted",
-          "disabled:hover:bg-opacity-30",
-          "disabled:hover:text-muted",
-          "disabled:hover:border-subtle",
-          "disabled:hover:bg-default",
+          // Shadows and effects
+          "shadow-outline-gray-rested",
+          "enabled:hover:shadow-outline-gray-hover",
+          "enabled:active:shadow-outline-gray-active",
+          "transition-shadow",
+          "duration-200",
         ],
 
         minimal: [

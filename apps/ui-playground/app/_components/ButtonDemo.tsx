@@ -7,7 +7,7 @@ import { Button } from "@calcom/ui";
 export default function ButtonDemo() {
   const [isOpen, setIsOpen] = useState(true);
 
-  const variants = ["button", "icon", "fab"] as const;
+  const variants = ["button", "icon"] as const;
   const colors = ["primary", "secondary", "minimal", "destructive"] as const;
   const sizes = ["xs", "sm", "base", "lg"] as const;
 
@@ -42,6 +42,7 @@ export default function ButtonDemo() {
                             StartIcon={variant === "icon" ? "plus" : undefined}>
                             {variant !== "icon" && `label`}
                           </Button>
+                          <span className="text-subtle text-xs">{size}</span>
                         </div>
                       ))}
                     </div>
