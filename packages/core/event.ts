@@ -9,10 +9,12 @@ export const nameObjectSchema = z.object({
   lastName: z.string().optional(),
 });
 
+const NAMELESS = "Nameless";
+
 function parseName(name: z.infer<typeof nameObjectSchema> | string | undefined) {
-  let firstName = "Nameless";
-  let lastName = "Nameless";
-  let fullName = "Nameless";
+  let firstName = NAMELESS;
+  let lastName = NAMELESS;
+  let fullName = NAMELESS;
 
   if (typeof name === "string") {
     const trimmedName = name.trim();
