@@ -29,7 +29,9 @@ export const scheduleNoShowTriggers = async (args: ScheduleNoShowTriggersArgs) =
     isDryRun = false,
   } = args;
 
-  if (isDryRun) return;
+  const isCalVideoLocation = booking.location === "integrations:daily" || booking.location === "";
+
+  if (isDryRun || !isCalVideoLocation) return;
 
   // Add task for automatic no show in cal video
   const noShowPromises: Promise<any>[] = [];
