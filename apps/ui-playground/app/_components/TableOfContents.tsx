@@ -174,6 +174,14 @@ export default function TableOfContents() {
   return (
     <nav className="space-y-4 p-2 text-sm">
       <div className="bg-default/80 sticky top-0 pb-2 backdrop-blur-sm">
+        <div className="mb-4 flex justify-center">
+          <img
+            src="https://media1.tenor.com/m/QWdPngpHxZ8AAAAd/family-guy-css.gif"
+            alt="Family Guy CSS GIF"
+            width={300}
+            height={169}
+          />
+        </div>
         <Input
           type="text"
           placeholder="Search..."
