@@ -62,6 +62,8 @@ export const buttonClasses = cva(
           "focus-visible:ring-brand-default",
           // Border
           "border border-brand-default",
+          // Disabled
+          "disabled:opacity-30",
           // Shadows and effects
           "shadow-solid-gray-rested",
           "enabled:hover:shadow-solid-gray-hover",
@@ -80,6 +82,8 @@ export const buttonClasses = cva(
           "enabled:hover:bg-muted",
           "enabled:hover:border-emphasis",
           "enabled:hover:text-emphasis",
+          // Disabled
+          "disabled:opacity-30",
           // Focus state
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
@@ -102,6 +106,8 @@ export const buttonClasses = cva(
           "enabled:hover:bg-subtle",
           "enabled:hover:text-emphasis",
           "enabled:hover:border-subtle hover:border",
+          // Disabled
+          "disabled:opacity-30",
           // Focus
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
@@ -137,7 +143,7 @@ export const buttonClasses = cva(
           "disabled:border-red-200",
           "disabled:text-red-700",
           "disabled:hover:border-red-200",
-          "disabled:opacity-40",
+          "disabled:opacity-30",
           // Shadows and effects
           "shadow-outline-red-rested",
           "enabled:hover:shadow-outline-red-hover",
