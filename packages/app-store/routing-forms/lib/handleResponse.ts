@@ -28,13 +28,26 @@ type Form = SerializableForm<
   }
 >;
 
+type HandleResponseOptions = {
+  query: GetServerSidePropsContext["query"];
+  req: {
+    body: Record<string, unknown> & {
+      formFillerId?: string;
+      chosenRouteId?: string | null;
+      isPreview?: boolean;
+    };
+  };
+  form: SerializableForm<
+    App_RoutingForms_Form & {
+      user: { id: number; email: string };
+      team: { parentId: number | null } | null;
+    }
+  >;
+};
+
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
-export const handleResponse = async (
-  context: Pick<GetServerSidePropsContext, "query"> & {
-    req: { body: unknown } & GetServerSidePropsContext["req"];
-  }
-) => {
+export const handleResponse = async (context: HandleResponseOptions) => {
   let serializableFormWithFields: Form | null = null;
 
   try {
@@ -74,9 +87,13 @@ export const handleResponse = async (
       });
     }
 
-    const response = (
-      typeof context.req.body === "string" ? JSON.parse(context.req.body) : context.req.body
-    ) as Record<string, { value: string | number | string[]; label: string }>;
+    const {
+      formFillerId: _formFillerId,
+      chosenRouteId: _chosenRouteId,
+      isPreview: _isPreview,
+      ...cleanBody
+    } = context.req.body;
+    const response = cleanBody as Record<string, { value: string | number | string[]; label: string }>;
 
     const matchingRoute = findMatchingRoute({ form, response });
 

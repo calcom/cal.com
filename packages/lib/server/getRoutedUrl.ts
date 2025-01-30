@@ -119,14 +119,19 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let attributeRoutingConfig = null;
   try {
     const result = await handleResponse({
+      query: { formId: serializableForm.id },
+      req: {
+        body: {
+          ...response,
+          formFillerId: uuidv4(),
+          chosenRouteId: matchingRoute.id,
+          isPreview: isBookingDryRun,
+        },
+      },
       form: serializableForm,
-      formFillerId: uuidv4(),
-      response: response,
-      chosenRouteId: matchingRoute.id,
-      isPreview: isBookingDryRun,
     });
-    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
-    formResponseId = result.formResponse.id;
+    teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic ?? null;
+    formResponseId = result.formResponse?.id ? Number(result.formResponse.id) : null;
     attributeRoutingConfig = result.attributeRoutingConfig;
     timeTaken = {
       ...timeTaken,
@@ -173,8 +178,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
             fields: serializableForm.fields,
             searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
             teamMembersMatchingAttributeLogic,
-            // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
-            formResponseId: formResponseId!,
+            formResponseId: formResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
