@@ -46,6 +46,16 @@ const sections: Section[] = [
       { id: "button-link", title: "As Link" },
     ],
   },
+  {
+    id: "checkbox",
+    title: "Checkbox",
+    subsections: [
+      { id: "checkbox-basic", title: "Basic" },
+      { id: "checkbox-description", title: "With Description" },
+      { id: "checkbox-label", title: "Label Positions" },
+      { id: "checkbox-info", title: "With Information Icon" },
+    ],
+  },
 ];
 
 const STORAGE_KEY = "ui-playground-toc-state";

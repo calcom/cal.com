@@ -7,6 +7,7 @@ import { Button } from "@calcom/ui";
 import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
 import ButtonDemo from "./ButtonDemo";
+import CheckboxDemo from "./CheckboxDemo";
 import TableOfContents from "./TableOfContents";
 
 export default function PageContent() {
@@ -14,11 +15,11 @@ export default function PageContent() {
 
   return (
     <div className={`min-h-screen ${isDark ? "dark" : ""} bg-default font-[family-name:var(--font-inter)]`}>
-      <div className="bg-default/80 sticky top-0 z-50 backdrop-blur-sm">
+      <div className="bg-default/80 sticky top-0 z-50 ">
         <div className="mx-auto max-w-7xl">
           <div className="mx-6 flex justify-end py-4">
             <Button onClick={() => setIsDark(!isDark)}>
-              {isDark ? "Light Mode" : "Dark Mode (colours not final)"}
+              {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             </Button>
           </div>
         </div>
@@ -28,7 +29,7 @@ export default function PageContent() {
         <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-8">
           {/* Sidebar */}
           <div className="hidden lg:block">
-            <div className="sticky top-24 overflow-y-auto">
+            <div className="sticky top-0 overflow-y-auto">
               <TableOfContents />
             </div>
           </div>
@@ -38,11 +39,17 @@ export default function PageContent() {
             <section id="avatar" className="space-y-6">
               <AvatarDemo />
             </section>
+
             <section id="badge" className="space-y-6">
               <BadgeDemo />
             </section>
+
             <section id="button" className="space-y-6">
               <ButtonDemo />
+            </section>
+
+            <section id="checkbox" className="space-y-6">
+              <CheckboxDemo />
             </section>
           </main>
         </div>
