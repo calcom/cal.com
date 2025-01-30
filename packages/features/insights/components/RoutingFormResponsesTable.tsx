@@ -312,7 +312,7 @@ export function RoutingFormResponsesTableContent() {
     isAll,
   });
 
-  const { sorting, setSorting } = useDataTable();
+  const { sorting } = useDataTable();
 
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
@@ -538,11 +538,6 @@ export function RoutingFormResponsesTableContent() {
         bookingUserId: false,
       },
     },
-    state: {
-      sorting,
-      columnFilters,
-    },
-    onSortingChange: setSorting,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (!headers) {
         return new Map();

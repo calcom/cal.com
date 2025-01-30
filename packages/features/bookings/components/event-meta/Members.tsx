@@ -14,7 +14,7 @@ export interface EventMembersProps {
    * In case of Round Robin type, members aren't shown.
    */
   schedulingType: BookerEvent["schedulingType"];
-  users: BookerEvent["users"];
+  users: BookerEvent["subsetOfUsers"];
   profile: BookerEvent["profile"];
   entity: BookerEvent["entity"];
 }

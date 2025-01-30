@@ -280,7 +280,7 @@ const EmailEmbed = ({
               locale={i18n.language}
               browsingDate={month ? dayjs(month) : undefined}
               selected={dayjs(selectedDate)}
-              weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+              weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
               eventSlug={eventType?.slug}
             />
           </CollapsibleContent>
