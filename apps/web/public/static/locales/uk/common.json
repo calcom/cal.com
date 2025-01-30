@@ -83,6 +83,7 @@
   "payment_not_created_error": "Не вдалося створити платіж",
   "couldnt_charge_card_error": "Не вдалося отримати оплату з картки",
   "no_available_users_found_error": "Не знайдено жодного доступного користувача. Чи могли б ви спробувати інший часовий слот?",
+  "booking_time_out_of_bounds_error": "Цей тип події неможливо забронювати в цей час. Спробуйте інший часовий проміжок?",
   "request_body_end_time_internal_error": "Внутрішня помилка. Тіло запиту не містить кінцевого часу",
   "create_calendar_event_error": "Не вдалося створити подію у календарі організаторів",
   "update_calendar_event_error": "Неможливо оновити подію Календаря.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Увімкнення ваг дозволяє призначати вищий пріоритет певним атрибутам для кожного користувача. Чим більша вага, тим вищий пріоритет.",
   "routed": "Перенаправлено",
   "reassigned": "Перепризначено",
+  "allow_rescheduling_past_events": "Дозволити перепланування минулих подій",
+  "allow_rescheduling_past_events_description": "Увімкнення цієї опції дозволяє перепланувати минулі події",
   "rerouted": "Перемаршрутизовано",
   "salesforce_assigned": "Призначення Salesforce",
   "router_position": "Позиція маршрутизатора",
@@ -2945,5 +2948,6 @@
   "asc": "За зростанням",
   "desc": "За спаданням",
   "verify_email": "Підтвердити email",
+  "verify_email_change": "Підтвердити зміну електронної пошти",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

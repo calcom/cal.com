@@ -83,6 +83,7 @@
   "payment_not_created_error": "결제를 생성할 수 없습니다.",
   "couldnt_charge_card_error": "카드 결제에 실패했습니다.",
   "no_available_users_found_error": "사용 가능한 사용자를 찾을 수 없습니다. 다른 시간대를 시도해 보시겠습니까?",
+  "booking_time_out_of_bounds_error": "이 시간에는 이벤트 유형을 예약할 수 없습니다. 다른 시간대를 시도해보시겠습니까?",
   "request_body_end_time_internal_error": "내부 오류. 요청 본문에 종료 시간이 포함되어 있지 않습니다.",
   "create_calendar_event_error": "주최자의 캘린더에 캘린더 이벤트를 생성할 수 없습니다.",
   "update_calendar_event_error": "캘린더 이벤트를 업데이트할 수 없습니다.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "가중치를 활성화하면 사용자별로 특정 속성에 더 높은 우선순위를 부여할 수 있습니다. 가중치가 높을수록 우선순위가 높아집니다.",
   "routed": "라우팅됨",
   "reassigned": "재할당됨",
+  "allow_rescheduling_past_events": "지난 이벤트 일정 변경 허용",
+  "allow_rescheduling_past_events_description": "이 옵션을 활성화하면 지난 이벤트의 일정을 변경할 수 있습니다",
   "rerouted": "재라우팅됨",
   "salesforce_assigned": "Salesforce 할당",
   "router_position": "라우터 위치",
@@ -2945,5 +2948,6 @@
   "asc": "오름차순",
   "desc": "내림차순",
   "verify_email": "이메일 인증",
+  "verify_email_change": "이메일 변경 확인",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
