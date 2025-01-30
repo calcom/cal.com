@@ -54,7 +54,7 @@ export function DataTableWrapper<TData, TValue>({
     fetchNextPage,
     isFetching,
   });
-  const { sorting, setSorting } = useDataTable();
+  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
   const columnFilters = useColumnFilters();
 
   useEffect(() => {
@@ -62,12 +62,14 @@ export function DataTableWrapper<TData, TValue>({
       ...prev,
       sorting,
       columnFilters,
+      columnVisibility,
     }));
     table.setOptions((prev) => ({
       ...prev,
       onSortingChange: setSorting,
+      onColumnVisibilityChange: setColumnVisibility,
     }));
-  }, [table, sorting, columnFilters]);
+  }, [table, sorting, columnFilters, columnVisibility]);
 
   return (
     <DataTable

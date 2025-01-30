@@ -83,6 +83,7 @@
   "payment_not_created_error": "Payment could not be created",
   "couldnt_charge_card_error": "Could not charge card for Payment",
   "no_available_users_found_error": "No available users found. Could you try another time slot?",
+  "booking_time_out_of_bounds_error": "The event type cannot be booked at this time. Could you try another time slot?",
   "request_body_end_time_internal_error": "Internal Error. Request body does not contain end time",
   "create_calendar_event_error": "Unable to create Calendar event in Organizer's calendar",
   "update_calendar_event_error": "Unable to update Calendar event.",

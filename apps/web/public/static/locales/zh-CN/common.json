@@ -83,6 +83,7 @@
   "payment_not_created_error": "付款创建失败",
   "couldnt_charge_card_error": "无法修改支付卡",
   "no_available_users_found_error": "找不到可用时间。请尝试另一个时间段。",
+  "booking_time_out_of_bounds_error": "此时间段无法预订该活动类型。您可以尝试选择其他时间段吗？",
   "request_body_end_time_internal_error": "内部错误。请求主体不包含结束时间",
   "create_calendar_event_error": "无法在组织者的日历中建立新的日历项目",
   "update_calendar_event_error": "无法更新日历事件。",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "启用权重后，可以为每个用户的特定属性分配更高的优先级。权重越高，优先级越高。",
   "routed": "已路由",
   "reassigned": "已重新分配",
+  "allow_rescheduling_past_events": "允许重新安排过去的活动",
+  "allow_rescheduling_past_events_description": "启用此选项可以重新安排过去的活动",
   "rerouted": "已重新路由",
   "salesforce_assigned": "Salesforce 分配",
   "router_position": "路由位置",
@@ -2945,5 +2948,6 @@
   "asc": "升序",
   "desc": "降序",
   "verify_email": "验证邮箱",
+  "verify_email_change": "验证邮箱变更",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

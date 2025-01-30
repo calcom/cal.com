@@ -15,11 +15,13 @@ interface InternalNotePresetsSelectProps {
       label: string;
     } | null
   ) => void;
+  setCancellationReason: (reason: string) => void;
 }
 
 const InternalNotePresetsSelect = ({
   internalNotePresets,
   onPresetSelect,
+  setCancellationReason,
 }: InternalNotePresetsSelectProps) => {
   const { t } = useLocale();
   const [showOtherInput, setShowOtherInput] = useState(false);
@@ -31,6 +33,7 @@ const InternalNotePresetsSelect = ({
   const handleSelectChange = (option: { value: number | string; label: string } | null) => {
     if (option?.value === "other") {
       setShowOtherInput(true);
+      setCancellationReason("");
     } else {
       setShowOtherInput(false);
       onPresetSelect && onPresetSelect(option);
@@ -140,6 +143,7 @@ export default function CancelBooking(props: Props) {
             <>
               <InternalNotePresetsSelect
                 internalNotePresets={props.internalNotePresets}
+                setCancellationReason={setCancellationReason}
                 onPresetSelect={(option) => {
                   if (!option) return;
 
