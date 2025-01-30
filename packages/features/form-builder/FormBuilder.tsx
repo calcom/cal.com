@@ -496,6 +496,7 @@ function FieldEditDialog({
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
+              containerClassName="data-testid-field-type"
               data-testid="test-field-type"
               id="test-field-type"
               isDisabled={
