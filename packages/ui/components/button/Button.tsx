@@ -96,21 +96,23 @@ export const buttonClasses = cva(
 
         minimal: [
           // Base color
-          "text-emphasis",
-          // Hover and focus states
-          "hover:bg-subtle",
+          "text-subtle",
+          "border border-transparent",
+          // Hover
+          "enabled:hover:bg-subtle",
+          "enabled:hover:text-emphasis",
+          "enabled:hover:border-subtle hover:border",
+          // Focus
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
           "focus-visible:ring-2",
           "focus-visible:ring-offset",
           "focus-visible:ring-empthasis",
-          // Disabled state
-          "disabled:border-subtle",
-          "disabled:bg-opacity-30",
-          "disabled:text-muted",
-          "disabled:hover:bg-transparent",
-          "disabled:hover:text-muted",
-          "disabled:hover:border-subtle",
+
+          // Shadows and effects
+          "enabled:active:shadow-outline-gray-active",
+          "transition-shadow",
+          "duration-200",
         ],
 
         destructive: [
