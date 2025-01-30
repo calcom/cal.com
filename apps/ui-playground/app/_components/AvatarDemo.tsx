@@ -6,7 +6,7 @@ import DemoSection, { DemoSubSection } from "./DemoSection";
 
 export default function AvatarDemo() {
   const sizes = ["xs", "xsm", "sm", "md", "mdLg", "lg", "xl"] as const;
-  const sampleImage = "https://app.cal.com/api/avatar/e9f012f2-8516-4012-b967-6fe1844a7b40.png";
+  const sampleImage = "https://cal.com/stakeholder/peer.jpg";
 
   return (
     <DemoSection title="Avatar">
