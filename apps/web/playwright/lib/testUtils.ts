@@ -221,6 +221,8 @@ export async function setupManagedEvent({
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
+  const locator = page.getByTestId("vertical-tab-event_setup_tab_title");
+  await expect(locator).toHaveClass(/bg-emphasis/);
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
