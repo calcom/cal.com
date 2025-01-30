@@ -146,3 +146,5 @@ export const ZSorting = z.object({
 });
 
 export type SortingState = Array<z.infer<typeof ZSorting>>;
+
+export const ZColumnVisibility = z.record(z.string(), z.boolean());
