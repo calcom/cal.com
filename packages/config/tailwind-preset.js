@@ -1,5 +1,6 @@
 const plugin = require("tailwindcss/plugin");
 const { fontFamily } = require("tailwindcss/defaultTheme");
+const colors = require("tailwindcss/colors");
 
 /** @type {import('tailwindcss').Config} */
 const subtleColor = "#E5E7EB";
@@ -59,6 +60,54 @@ module.exports = {
           800: "#e8e8e8",
           900: "#f3f4f6",
         },
+        semantic: {
+          info: {
+            subtle: colors.blue["100"],
+            emphasis: colors.blue["500"],
+          },
+          success: {
+            subtle: colors.green["100"],
+            emphasis: colors.green["500"],
+          },
+          attention: {
+            subtle: colors.orange["100"],
+            emphasis: colors.orange["500"],
+          },
+          error: {
+            subtle: colors.red["100"],
+            emphasis: colors.red["500"],
+          },
+        },
+        visualization: {
+          1: {
+            subtle: colors.pink["100"],
+            emphasis: colors.pink["500"],
+          },
+          2: {
+            subtle: colors.purple["100"],
+            emphasis: colors.purple["500"],
+          },
+          3: {
+            subtle: colors.blue["100"],
+            emphasis: colors.blue["500"],
+          },
+          4: {
+            subtle: colors.green["100"],
+            emphasis: colors.green["500"],
+          },
+          5: {
+            subtle: colors.yellow["100"],
+            emphasis: colors.yellow["500"],
+          },
+          6: {
+            subtle: colors.orange["100"],
+            emphasis: colors.orange["500"],
+          },
+          7: {
+            subtle: colors.red["100"],
+            emphasis: colors.red["500"],
+          },
+        },
       },
       borderColor: {
         emphasis: "var(--cal-border-emphasis, #9CA3AF)",
@@ -78,7 +127,7 @@ module.exports = {
         muted: "var(--cal-text-muted, #9CA3AF)",
         inverted: "var(--cal-text-inverted, white)",
         info: "var(--cal-text-info, #253985)",
-        success: "var(--cal-text-success, #285231)",
+        success: "var(--cal-text-success, #0B6638)",
         attention: "var(--cal-text-attention, #73321B)",
         error: "var(--cal-text-error, #752522)",
         brand: "var(--cal-brand-text,'white')",
