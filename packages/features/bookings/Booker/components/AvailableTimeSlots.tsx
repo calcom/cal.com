@@ -6,6 +6,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
+import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
@@ -15,7 +16,7 @@ import type { useScheduleForEventReturnType } from "../utils/event";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  schedule?: useScheduleForEventReturnType["data"];
+  schedule?: useScheduleForEventReturnType;
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -62,6 +63,11 @@ export const AvailableTimeSlots = ({
     seatsPerTimeSlot?: number | null,
     bookingUid?: string
   ) => {
+    // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
+    if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
+      // Ensures that user has latest available slots when they are about to confirm the booking by filling up the details
+      schedule?.invalidate();
+    }
     setSelectedTimeslot(time);
     if (seatsPerTimeSlot) {
       setSeatedEventData({
@@ -74,7 +80,8 @@ export const AvailableTimeSlots = ({
     return;
   };
 
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.slots);
+  const scheduleData = schedule?.data;
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
@@ -87,7 +94,7 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
-  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
+  const slotsPerDay = useSlotsForAvailableDates(dates, scheduleData?.slots);
 
   return (
     <>

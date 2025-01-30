@@ -68,6 +68,8 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   if (eventType && shouldReserveSlot && !reservedBySomeoneElse) {
     try {
       await Promise.all(
+        // FIXME: In case of team event, users doesn't have assignees, those are in hosts. users just have the creator of the event which is wrong.
+        // Also, we must not block all the users' slots, we must use routedTeamMemberIds if set like we do in getSchedule.
         eventType.users.map((user) =>
           prisma.selectedSlots.upsert({
             where: { selectedSlotUnique: { userId: user.id, slotUtcStartDate, slotUtcEndDate, uid } },

@@ -5,7 +5,11 @@ import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import { MINUTES_TO_BOOK, QUERY_RESERVATION_INTERVAL } from "@calcom/lib/constants";
+import {
+  MINUTES_TO_BOOK,
+  PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS,
+  PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
+} from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
@@ -52,10 +56,10 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       eventTypeId: eventTypeId!,
     },
     {
-      refetchInterval: QUERY_RESERVATION_INTERVAL,
+      refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
       refetchOnWindowFocus: true,
       enabled: !!(eventTypeId && slotUtcStartDate && slotUtcEndDate),
-      staleTime: 1,
+      staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
     }
   );
 

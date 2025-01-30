@@ -191,6 +191,7 @@ const BookerComponent = ({
   }, [event, selectedDate, selectedTimeslot, setBookerState, setSelectedTimeslot]);
 
   // Check if selected timeslot is available before moving to booking state
+  // Note: We can never be certain whether the slot is unavailable due to reservation or an actual booking/busy time because getSchedule considers both in deciding to keep a slot
   const isTimeslotUnavailable =
     !isTimeSlotAvailable({ slotToCheckInUTC: selectedTimeslot, dateString: selectedDate }) ||
     isSlotReservedBySomeoneElse;
@@ -472,7 +473,7 @@ const BookerComponent = ({
                 customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                schedule={schedule?.data}
+                schedule={schedule}
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
