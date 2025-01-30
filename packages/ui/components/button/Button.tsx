@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed",
+  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
@@ -258,10 +258,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <>
             {variant === "fab" ? (
               <>
-                <Icon
-                  name={StartIcon}
-                  className="hidden h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2 md:inline-flex"
-                />
+                <Icon name={StartIcon} className="hidden h-4 w-4 stroke-[1.5px]  md:inline-flex" />
                 <Icon name="plus" data-testid="plus" className="inline h-6 w-6 md:hidden" />
               </>
             ) : (
@@ -269,7 +266,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 name={StartIcon}
                 className={classNames(
                   variant === "icon" && "h-4 w-4",
-                  variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2"
+                  variant === "button" && "h-4 w-4 stroke-[1.5px] "
                 )}
               />
             )}
@@ -312,7 +309,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               className={classNames(
                 "inline-flex",
                 variant === "icon" && "h-4 w-4",
-                variant === "button" && "h-4 w-4 stroke-[1.5px] ltr:-mr-1 ltr:ml-2 rtl:-ml-1 rtl:mr-2"
+                variant === "button" && "h-4 w-4 stroke-[1.5px] "
               )}
             />
           )}
