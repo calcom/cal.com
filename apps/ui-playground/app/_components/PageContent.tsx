@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "@calcom/ui";
 
+import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
 
 export default function PageContent() {
@@ -15,6 +16,7 @@ export default function PageContent() {
         <div className="mb-4 flex justify-end">
           <Button onClick={() => setIsDark(!isDark)}>{isDark ? "Light Mode" : "Dark Mode"}</Button>
         </div>
+        <AvatarDemo />
         <BadgeDemo />
       </div>
     </div>
