@@ -548,6 +548,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
