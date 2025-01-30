@@ -108,6 +108,8 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   if (maxLeadThreshold === null) {
     return hosts; // don't apply filter.
   }
+
+  // this needs the routing forms response too, because it needs to know what queue we are in
   const orderedLuckyUsers = await getOrderedListOfLuckyUsers({
     availableUsers: [
       {

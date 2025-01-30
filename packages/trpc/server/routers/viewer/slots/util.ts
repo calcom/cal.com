@@ -343,6 +343,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     }
   );
 
+  // should I always make sure here to get availability of today + 14 days?
+  // TODO
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
