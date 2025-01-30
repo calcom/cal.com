@@ -34,13 +34,15 @@ describe("Tests the date-range slot logic", () => {
         dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
+  });
 
+  it("can fit 24 hourly slots for an empty day with interval != eventLength", async () => {
     expect(
       getSlots({
         inviteeDate: dayjs.utc().add(1, "day"),
         frequency: 60,
         minimumBookingNotice: 0,
-        eventLength: 60,
+        eventLength: 30,
         dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
@@ -165,11 +167,13 @@ describe("Tests the date-range slot logic", () => {
       offsetStart: 0,
     });
 
+    console.log(result);
+
     expect(result).toHaveLength(2);
   });
 
-  it.skip("finds correct slots over the span of multiple days", async () => {
-    const inviteeDate = dayjs.utc().startOf("day");
+  it("finds correct slots over the span of multiple days", async () => {
+    const inviteeDate = dayjs.utc().add(1, "day").startOf("day");
 
     const dateRanges = [
       // 11:30-14:00
@@ -177,7 +181,7 @@ describe("Tests the date-range slot logic", () => {
         start: inviteeDate.hour(11).minute(30),
         end: inviteeDate.hour(14),
       },
-      // 11:15-13:00
+      // 9:15-13:00
       {
         start: inviteeDate.hour(9).minute(15),
         end: inviteeDate.hour(11),
@@ -193,6 +197,9 @@ describe("Tests the date-range slot logic", () => {
         end: inviteeDate.add(1, "day").hour(11),
       },
     ];
+
+    // each day availability should go 10:00, 12:00, 13:00
+
     const result = getSlots({
       // right now from the perspective of invitee local time.
       inviteeDate,
@@ -204,6 +211,110 @@ describe("Tests the date-range slot logic", () => {
     });
 
     expect(result).toHaveLength(6);
+  });
+
+  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
+    const result = getSlots({
+      inviteeDate: dayjs().add(1, "day"),
+      frequency: 20,
+      minimumBookingNotice: 0,
+      dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
+      /*workingHours: [
+        {
+          userId: 1,
+          days: Array.from(Array(7).keys()),
+          startTime: MINUTES_DAY_START,
+          endTime: MINUTES_DAY_END - 14, // 23:45
+        },
+      ],*/
+      eventLength: 20,
+      offsetStart: 0,
+      organizerTimeZone: "America/Toronto",
+    });
+
+    // 71 20-minutes events in a 24h - 15m day
+    expect(result).toHaveLength(71);
+  });
+
+  it("tests the final slot of the day is included", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Europe/Brussels"),
+      eventLength: 15,
+      offsetStart: 0,
+      dateRanges: [
+        { start: dayjs("2023-07-13T07:00:00.000Z"), end: dayjs("2023-07-13T15:00:00.000Z") },
+        { start: dayjs("2023-07-13T18:30:00.000Z"), end: dayjs("2023-07-13T20:59:59.000Z") },
+      ],
+      minimumBookingNotice: 120,
+      frequency: 15,
+      organizerTimeZone: "Europe/London",
+    }).reverse();
+
+    expect(slots[0].time.format()).toBe("2023-07-13T22:45:00+02:00");
+  });
+
+  it("tests slots for half hour timezones", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000", "Asia/Kolkata"),
+      frequency: 60,
+      minimumBookingNotice: 0,
+      eventLength: 60,
+      dateRanges: [
+        {
+          start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata"),
+          end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(1);
+    expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
+  });
+
+  it("tests slots for 5 minute events", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
+      frequency: 5,
+      minimumBookingNotice: 0,
+      eventLength: 5,
+      dateRanges: [
+        // fits 1 slot
+        {
+          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London"),
+        },
+        // fits 4 slots
+        {
+          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(5);
+  });
+
+  it("tests slots for events with an event length that is not divisible by 5", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.utc().startOf("day"),
+      frequency: 8,
+      minimumBookingNotice: 0,
+      eventLength: 8,
+      dateRanges: [
+        {
+          start: dayjs.utc("2023-07-13T07:22:00.000"),
+          end: dayjs.utc("2023-07-13T08:00:00.000"),
+        },
+      ],
+    });
+    /*
+     * 2023-07-13T07:22:00.000Z
+     * 2023-07-13T07:30:00.000Z
+     * 2023-07-13T07:38:00.000Z
+     * 2023-07-13T07:46:00.000Z
+     */
+    console.log(slots);
+    expect(slots).toHaveLength(4);
   });
 });
 
@@ -318,29 +429,6 @@ describe("Tests the slot logic", () => {
     ).toHaveLength(11);
   });
 
-  it("shows correct time slots for 20 minutes long events with working hours that do not end at a full hour", async () => {
-    const result = getSlots({
-      inviteeDate: dayjs().add(1, "day"),
-      frequency: 20,
-      minimumBookingNotice: 0,
-      dateRanges: [{ start: dayjs("2021-06-21T00:00:00.000Z"), end: dayjs("2021-06-21T23:45:00.000Z") }],
-      /*workingHours: [
-        {
-          userId: 1,
-          days: Array.from(Array(7).keys()),
-          startTime: MINUTES_DAY_START,
-          endTime: MINUTES_DAY_END - 14, // 23:45
-        },
-      ],*/
-      eventLength: 20,
-      offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
-    });
-
-    // 71 20-minutes events in a 24h - 15m day
-    expect(result).toHaveLength(71);
-  });
-
   it("can fit 48 25 minute slots with a 5 minute offset for an empty day", async () => {
     expect(
       getSlots({
@@ -360,105 +448,6 @@ describe("Tests the slot logic", () => {
         organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(48);
-  });
-
-  it("tests the final slot of the day is included", async () => {
-    const slots = getSlots({
-      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+02:00", "Europe/Brussels"),
-      eventLength: 15,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480,
-          endTime: 960,
-          userId: 9,
-        },
-        {
-          days: [4],
-          startTime: 1170,
-          endTime: 1379,
-          userId: 9,
-        },
-      ],
-      dateOverrides: [],
-      offsetStart: 0,
-      dateRanges: [
-        { start: dayjs("2023-07-13T07:00:00.000Z"), end: dayjs("2023-07-13T15:00:00.000Z") },
-        { start: dayjs("2023-07-13T18:30:00.000Z"), end: dayjs("2023-07-13T20:59:59.000Z") },
-      ],
-      minimumBookingNotice: 120,
-      frequency: 15,
-      organizerTimeZone: "Europe/London",
-    }).reverse();
-
-    expect(slots[0].time.format()).toBe("2023-07-13T22:45:00+02:00");
-  });
-
-  it("tests slots for half hour timezones", async () => {
-    const slots = getSlots({
-      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Asia/Kolkata"),
-      frequency: 60,
-      minimumBookingNotice: 0,
-      eventLength: 60,
-      organizerTimeZone: "Asia/Kolkata",
-      dateRanges: [
-        {
-          start: dayjs.tz("2023-07-13T07:30:00.000", "Asia/Kolkata"),
-          end: dayjs.tz("2023-07-13T09:30:00.000", "Asia/Kolkata"),
-        },
-      ],
-    });
-
-    expect(slots).toHaveLength(1);
-    expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
-  });
-
-  it("tests slots for 5 minute events", async () => {
-    const slots = getSlots({
-      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
-      frequency: 5,
-      minimumBookingNotice: 0,
-      eventLength: 5,
-      organizerTimeZone: "Europe/London",
-      dateRanges: [
-        // fits 1 slot
-        {
-          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London"),
-          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London"),
-        },
-        // fits 4 slots
-        {
-          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London"),
-          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London"),
-        },
-      ],
-    });
-
-    expect(slots).toHaveLength(5);
-  });
-
-  it("tests slots for events with an event length that is not divisible by 5", async () => {
-    const slots = getSlots({
-      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
-      frequency: 8,
-      minimumBookingNotice: 0,
-      eventLength: 8,
-      organizerTimeZone: "Europe/London",
-      dateRanges: [
-        {
-          start: dayjs.tz("2023-07-13T07:22:00.000", "Europe/London"),
-          end: dayjs.tz("2023-07-13T08:00:00.000", "Europe/London"),
-        },
-      ],
-    });
-
-    /*
-      2023-07-13T06:22:00.000Z
-      2023-07-13T06:30:00.000Z
-      2023-07-13T06:38:00.000Z
-      2023-07-13T06:46:00.000Z
-   */
-    expect(slots).toHaveLength(4);
   });
 });
 

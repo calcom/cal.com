@@ -144,16 +144,11 @@ function buildSlots({
 const adjustDateRanges = (dateRanges: DateRange[], frequency: number) => {
   if (dateRanges.length === 0) return;
 
-  const baseStart = dateRanges[0].start.clone(); // Reference start time
-  const baseEnd = dateRanges[0].end.clone();
-
-  for (let i = 1; i < dateRanges.length; i++) {
-    // we skip if the date-range to adjust is outside the base date range day. - this avoids offset on other days.
-    if (dateRanges[i].start <= baseStart.startOf("day") || dateRanges[i].start >= baseEnd.endOf("day")) {
-      continue;
-    }
-    const timeSinceBase = dateRanges[i].start.diff(baseStart, "minutes");
-    const adjustedStart = baseStart.clone().add(Math.ceil(timeSinceBase / frequency) * frequency, "minutes");
+  for (let i = 0; i < dateRanges.length; i++) {
+    const adjustedStart = dateRanges[i].start
+      .clone()
+      .startOf("hour")
+      .add(Math.ceil(dateRanges[i].start.minute() / frequency) * frequency, "minutes");
     // Modify the start time directly in the original array
     dateRanges[i].start = adjustedStart;
   }
@@ -219,7 +214,6 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
-    // strictly speaking not required anymore, but we keep it for now.
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
