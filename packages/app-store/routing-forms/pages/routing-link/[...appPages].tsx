@@ -108,10 +108,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward({
         formResponse: chosenRouteWithFormResponse.response,
-        formResponseId: formResponse.id,
+        formResponseId: formResponse?.id ?? null,
         fields,
         searchParams: new URLSearchParams(window.location.search),
-        teamMembersMatchingAttributeLogic,
+        teamMembersMatchingAttributeLogic: teamMembersMatchingAttributeLogic ?? null,
         attributeRoutingConfig: attributeRoutingConfig ?? null,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
