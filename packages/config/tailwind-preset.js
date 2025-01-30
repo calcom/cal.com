@@ -119,6 +119,11 @@ module.exports = {
         focus: "var(--cal-border-focus, #1A1A1A)",
         "cal-bg": "var(--cal-bg, white)",
         "cal-bg-muted": "var(--cal-bg-muted)",
+        semantic: {
+          danager: {
+            subtle: colors.red[200],
+          },
+        },
       },
       textColor: {
         emphasis: "var(--cal-text-emphasis, #111827)",
@@ -211,6 +216,21 @@ module.exports = {
       backgroundImage: {
         "gradient-primary": "radial-gradient(162.05% 170% at 109.58% 35%, #667593 0%, #E3E3E3 100%)",
       },
+      boxShadow: {
+        "solid-gray-rested":
+          "0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.40) inset",
+        "solid-gray-hover":
+          "0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.40) inset",
+        "solid-gray-active":
+          "0px 3px 1px 0px rgba(0, 0, 0, 0.40) inset, 0px 0px 2px 1px rgba(0, 0, 0, 0.40) inset",
+        "outline-gray-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        "outline-gray-hover": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        "outline-gray-active": "0px 2px 1px 0px rgba(0, 0, 0, 0.05) inset",
+        "outline-red-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
+        "outline-red-hover": "0px 1px 1px 0px rgba(0, 0, 0, 0.06), 0px 2px 3px 0px rgba(0, 0, 0, 0.08)",
+        "outline-red-active":
+          "0px 1px 1px 0px rgba(127, 29, 29, 0.06), 0px 0px 3px 0px rgba(127, 29, 29, 0.08), 0px 2px 2px 1px rgba(127, 29, 29, 0.06) inset",
+      },
     },
   },
   plugins: [
@@ -231,6 +251,9 @@ module.exports = {
           borderColor: theme("subtle"),
         },
       });
+    }),
+    plugin(function ({ addVariant }) {
+      addVariant("enabled", "&:not(:disabled)");
     }),
   ],
   variants: {
