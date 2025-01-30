@@ -921,7 +921,7 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    prismaMock.attribute.findFirst.mockResolvedValue({
+    prismaMock.attribute.findUnique.mockResolvedValue({
       name: "Headquaters",
       id: attributeId,
       type: AttributeType.SINGLE_SELECT,
@@ -1143,7 +1143,7 @@ describe("attribute weights and virtual queues", () => {
       },
     ]);
 
-    prismaMock.attribute.findFirst.mockResolvedValue({
+    prismaMock.attribute.findUnique.mockResolvedValue({
       name: "Company Size",
       id: attributeId,
       type: AttributeType.SINGLE_SELECT,
