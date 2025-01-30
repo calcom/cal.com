@@ -83,6 +83,7 @@
   "payment_not_created_error": "Platbu sa nepodarilo vytvoriť",
   "couldnt_charge_card_error": "Nepodarilo sa zaúčtovať platbu na kartu",
   "no_available_users_found_error": "Nenašli sa žiadni dostupní používatelia. Mohli by ste skúsiť iný časový úsek?",
+  "booking_time_out_of_bounds_error": "Tento typ udalosti nie je možné v tomto čase rezervovať. Mohli by ste skúsiť iný termín?",
   "request_body_end_time_internal_error": "Interná chyba. Telo žiadosti neobsahuje koncový čas",
   "create_calendar_event_error": "Nepodarilo sa vytvoriť udalosť v kalendári organizátora",
   "update_calendar_event_error": "Nepodarilo sa aktualizovať udalosť v kalendári.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Povolením váh bude možné priradiť vyššiu prioritu určitým atribútom pre každého používateľa. Čím vyššia váha, tým vyššia priorita.",
   "routed": "Presmerované",
   "reassigned": "Preradené",
+  "allow_rescheduling_past_events": "Povoliť zmenu termínu pre uplynulé udalosti",
+  "allow_rescheduling_past_events_description": "Povolením tejto možnosti umožníte zmenu termínu aj pre už uplynulé udalosti",
   "rerouted": "Presmerované inam",
   "salesforce_assigned": "Priradenie Salesforce",
   "router_position": "Pozícia routera",
@@ -2945,5 +2948,6 @@
   "asc": "Vzostupne",
   "desc": "Zostupne",
   "verify_email": "Overiť email",
+  "verify_email_change": "Overiť zmenu e-mailu",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
