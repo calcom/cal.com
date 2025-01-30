@@ -28,6 +28,8 @@ import {
   TableRow,
 } from "@calcom/ui/components/table/TableNew";
 
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
+
 interface DownloadButtonProps {
   teamId?: number;
   userId?: number;
@@ -219,22 +221,9 @@ const getPerformanceBadge = (performance: RoutedToTableRow["performance"], t: TF
   }
 };
 
-export function RoutedToPerPeriod({
-  userId,
-  teamId,
-  startDate,
-  endDate,
-  isAll,
-  routingFormId,
-}: {
-  userId?: number;
-  teamId?: number;
-  startDate: string;
-  endDate: string;
-  isAll: boolean;
-  routingFormId?: string;
-}) {
+export function RoutedToPerPeriod() {
   const { t } = useLocale();
+  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
   const [selectedPeriod, setSelectedPeriod] = useQueryState("selectedPeriod", {
     defaultValue: "perWeek",
   });

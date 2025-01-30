@@ -1,33 +1,17 @@
 import { Grid } from "@tremor/react";
 import { Flex, Text, Metric } from "@tremor/react";
 
-import { type ColumnFilter } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib";
 import { CardInsights } from "./Card";
 
-export const RoutingKPICards = ({
-  teamId,
-  startDate,
-  endDate,
-  userId,
-  memberUserIds,
-  isAll,
-  routingFormId,
-  columnFilters,
-}: {
-  teamId: number | undefined;
-  startDate: string;
-  endDate: string;
-  userId: number | undefined;
-  memberUserIds: number[] | undefined;
-  isAll: boolean;
-  routingFormId: string | undefined;
-  columnFilters: ColumnFilter[];
-}) => {
+export const RoutingKPICards = () => {
   const { t } = useLocale();
+  const { teamId, startDate, endDate, userId, memberUserIds, isAll, routingFormId, columnFilters } =
+    useInsightsParameters();
 
   const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {

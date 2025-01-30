@@ -10,24 +10,17 @@ import {
 } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useMemo, useId, useState } from "react";
+import { useMemo, useId } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
 import {
   DataTableWrapper,
   DataTableFilters,
-  DataTableProvider,
   DataTableSkeleton,
-  useColumnFilters,
-  useFilterValue,
   dataTableFilter,
   useDataTable,
-  ZDateRangeFilterValue,
-  ZMultiSelectFilterValue,
-  ZSingleSelectFilterValue,
   DateRangeFilter,
   ColumnFilterType,
   type FilterableColumn,
@@ -50,16 +43,14 @@ import {
 } from "@calcom/ui";
 
 import { RoutingFormResponsesDownload } from "../filters/Download";
-import type { OrgTeamsType } from "../filters/OrgTeamsFilter";
 import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import {
   ZResponseMultipleValues,
   ZResponseSingleValue,
   ZResponseTextValue,
   ZResponseNumericValue,
 } from "../lib/types";
-import { FailedBookingsByField } from "./FailedBookingsByField";
-import { RoutedToPerPeriod } from "./RoutedToPerPeriod";
 import { RoutingKPICards } from "./RoutingKPICards";
 
 type RoutingFormTableRow = RouterOutputs["viewer"]["insights"]["routingFormResponses"]["data"][number];
@@ -254,47 +245,17 @@ function BookingAtCell({
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
-export function RoutingFormResponsesTable() {
-  return (
-    <DataTableProvider>
-      <RoutingFormResponsesTableContent />
-    </DataTableProvider>
-  );
-}
-
 const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
   id: "createdAt",
   title: "createdAt",
   type: ColumnFilterType.DATE_RANGE,
 };
 
-export function RoutingFormResponsesTableContent() {
+export function RoutingFormResponsesTable() {
   const { t } = useLocale();
   const { copyToClipboard } = useCopy();
-  const session = useSession();
-  const currentOrgId = session.data?.user.org?.id;
-  const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(currentOrgId ? "org" : "yours");
-  const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>();
-
-  const columnFilters = useColumnFilters({ exclude: ["bookingUserId", "formId", "createdAt"] });
-
-  const isAll = orgTeamsType === "org";
-  const teamId = orgTeamsType === "team" ? selectedTeamId : undefined;
-  const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
-
-  const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
-    | number[]
-    | undefined;
-  const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
-  const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
-  const startDate = useMemo(
-    () => createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString(),
-    [createdAtRange?.startDate]
-  );
-  const endDate = useMemo(
-    () => createdAtRange?.endDate ?? dayjs().endOf("day").toISOString(),
-    [createdAtRange?.endDate]
-  );
+  const { isAll, teamId, userId, memberUserIds, routingFormId, startDate, endDate, columnFilters } =
+    useInsightsParameters();
 
   const {
     data: headers,
@@ -620,14 +581,7 @@ export function RoutingFormResponsesTableContent() {
           isFetching={isFetching}
           ToolbarLeft={
             <>
-              <OrgTeamsFilter
-                selectedType={orgTeamsType}
-                selectedTeamId={selectedTeamId}
-                onSelected={(params) => {
-                  setOrgTeamsType(params.type);
-                  setSelectedTeamId(params.teamId);
-                }}
-              />
+              <OrgTeamsFilter />
               <DataTableFilters.AddFilterButton table={table} />
               <DataTableFilters.ActiveFilters table={table} />
               <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
@@ -636,50 +590,13 @@ export function RoutingFormResponsesTableContent() {
           ToolbarRight={
             <>
               <DateRangeFilter column={createdAtColumn} />
-              <RoutingFormResponsesDownload
-                startDate={startDate}
-                endDate={endDate}
-                teamId={teamId}
-                userId={userId}
-                isAll={isAll}
-                memberUserIds={memberUserIds}
-                routingFormId={routingFormId}
-                columnFilters={columnFilters}
-                sorting={sorting}
-              />
+              <RoutingFormResponsesDownload sorting={sorting} />
               <DataTableFilters.ColumnVisibilityButton table={table} />
             </>
           }>
-          <RoutingKPICards
-            teamId={teamId}
-            startDate={startDate}
-            endDate={endDate}
-            userId={userId}
-            memberUserIds={memberUserIds}
-            isAll={isAll}
-            routingFormId={routingFormId}
-            columnFilters={columnFilters}
-          />
+          <RoutingKPICards />
         </DataTableWrapper>
       </div>
-
-      <RoutedToPerPeriod
-        userId={userId}
-        teamId={teamId}
-        startDate={startDate}
-        endDate={endDate}
-        isAll={isAll}
-        routingFormId={routingFormId}
-      />
-
-      <FailedBookingsByField
-        userId={userId}
-        teamId={teamId}
-        startDate={startDate}
-        endDate={endDate}
-        isAll={isAll}
-        routingFormId={routingFormId}
-      />
     </>
   );
 }
