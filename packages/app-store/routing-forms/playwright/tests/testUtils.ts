@@ -22,6 +22,8 @@ export async function addForm(
 
   await page.fill("input[name]", name);
   await page.click('[data-testid="add-form"]');
+  await page.waitForSelector('[data-testid="add-field"]');
+
   const url = page.url();
   const formId = new URL(url).pathname.split("/").at(-1);
   if (!formId) {
