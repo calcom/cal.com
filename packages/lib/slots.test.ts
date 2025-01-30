@@ -31,7 +31,6 @@ describe("Tests the date-range slot logic", () => {
         frequency: 60,
         minimumBookingNotice: 0,
         eventLength: 60,
-        organizerTimeZone: "Etc/GMT",
         dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
@@ -42,7 +41,6 @@ describe("Tests the date-range slot logic", () => {
         frequency: 60,
         minimumBookingNotice: 0,
         eventLength: 60,
-        organizerTimeZone: "America/Toronto",
         dateRanges: dateRangesNextDay,
       })
     ).toHaveLength(24);
@@ -59,7 +57,6 @@ describe("Tests the date-range slot logic", () => {
         dateRanges: dateRangesMockDay,
         eventLength: 60,
         offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(12);
   });
@@ -74,7 +71,6 @@ describe("Tests the date-range slot logic", () => {
         dateRanges: dateRangesNextDay,
         eventLength: 60,
         offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
       })
     ).toHaveLength(11);
   });
@@ -88,7 +84,6 @@ describe("Tests the date-range slot logic", () => {
       dateRanges: dateRangesNextDay,
       eventLength: 20,
       offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
     });
     expect(result).toHaveLength(72);
   });
@@ -114,7 +109,6 @@ describe("Tests the date-range slot logic", () => {
       dateRanges: dateRanges,
       eventLength: 20,
       offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
     });
 
     expect(result).toHaveLength(6);
@@ -141,7 +135,6 @@ describe("Tests the date-range slot logic", () => {
       dateRanges: dateRanges,
       eventLength: 20,
       offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
     });
 
     expect(result).toHaveLength(5);
@@ -170,10 +163,47 @@ describe("Tests the date-range slot logic", () => {
       dateRanges: dateRanges,
       eventLength: 45,
       offsetStart: 0,
-      organizerTimeZone: "America/Toronto",
     });
 
     expect(result).toHaveLength(2);
+  });
+
+  it.skip("finds correct slots over the span of multiple days", async () => {
+    const inviteeDate = dayjs.utc().startOf("day");
+
+    const dateRanges = [
+      // 11:30-14:00
+      {
+        start: inviteeDate.hour(11).minute(30),
+        end: inviteeDate.hour(14),
+      },
+      // 11:15-13:00
+      {
+        start: inviteeDate.hour(9).minute(15),
+        end: inviteeDate.hour(11),
+      },
+      // 11:30-14:00
+      {
+        start: inviteeDate.add(1, "day").hour(11).minute(30),
+        end: inviteeDate.add(1, "day").hour(14),
+      },
+      // 11:15-13:00
+      {
+        start: inviteeDate.add(1, "day").hour(9).minute(15),
+        end: inviteeDate.add(1, "day").hour(11),
+      },
+    ];
+    const result = getSlots({
+      // right now from the perspective of invitee local time.
+      inviteeDate,
+      frequency: 60,
+      minimumBookingNotice: 0,
+      dateRanges: dateRanges,
+      eventLength: 60,
+      offsetStart: 0,
+    });
+
+    expect(result).toHaveLength(6);
   });
 });
 
@@ -468,7 +498,6 @@ describe("Tests the date-range slot logic with custom env variable", () => {
         minimumBookingNotice: 0,
         eventLength: 10,
         offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
         dateRanges: [{ start: dayjs("2023-07-13T00:10:00.000Z"), end: dayjs("2023-07-13T02:00:00.000Z") }],
       })
     ).toHaveLength(11);

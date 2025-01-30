@@ -16,7 +16,7 @@ export type GetSlots = {
   minimumBookingNotice: number;
   eventLength: number;
   offsetStart?: number;
-  organizerTimeZone: string;
+  organizerTimeZone?: string;
   datesOutOfOffice?: IOutOfOfficeData;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
@@ -167,7 +167,6 @@ function buildSlotsWithDateRanges({
   eventLength,
   timeZone,
   minimumBookingNotice,
-  organizerTimeZone,
   offsetStart,
   datesOutOfOffice,
 }: {
@@ -176,7 +175,6 @@ function buildSlotsWithDateRanges({
   eventLength: number;
   timeZone: string;
   minimumBookingNotice: number;
-  organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
 }) {
@@ -221,21 +219,15 @@ function buildSlotsWithDateRanges({
       ? range.start
       : startTimeWithMinNotice;
 
+    // strictly speaking not required anymore, but we keep it for now.
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
 
-    // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
-    const rangeEnd = range.end
-      .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
-      .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
-      ? range.end.add(1, "minute")
-      : range.end;
-
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
-    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
         time: Dayjs;
@@ -295,11 +287,14 @@ const getSlots = ({
       eventLength,
       timeZone: getTimeZone(inviteeDate),
       minimumBookingNotice,
-      organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
     });
     return slots;
+  }
+
+  if (!organizerTimeZone) {
+    throw new Error("organizerTimeZone is required during getSlots call without dateRanges");
   }
 
   // current date in invitee tz
