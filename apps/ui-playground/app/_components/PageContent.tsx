@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Button } from "@calcom/ui";
+import { Button, IconSprites } from "@calcom/ui";
 
 import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
@@ -59,6 +59,7 @@ export default function PageContent() {
           </main>
         </div>
       </div>
+      <IconSprites />
     </div>
   );
 }
