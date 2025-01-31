@@ -87,7 +87,7 @@ export async function verifySelectOptions(
 
   if (!expectedOptions) {
     expectedOptions = Object.values(fieldTypesConfigMap)
-      .filter((field) => field.value !== "name" && field.value !== "radioInput")
+      .filter((field) => !field.systemOnly)
       .map((field) => field.label);
   }
 
@@ -98,10 +98,21 @@ export async function verifySelectOptions(
     .locator('[id*="react-select-"][aria-disabled]')
     .allInnerTexts();
 
+  // At this point, check that rendered labels are the same as expected labels.
   const sortedSelectOptions = [...selectOptions].sort();
   const sortedExpectedOptions = [...expectedOptions].sort();
   expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
+
+  await page.locator('[data-testid="dialog-rejection"]').click();
+
+  // Get all fields by value. This is necessary because data-testid of the option
+  // uses values, not label.
+  // i.e [data-testid="select-option-textarea"] not [data-testid="select-option-Long Text]
+  const optionsByValue = Object.values(fieldTypesConfigMap)
+    .filter((field) => !field.systemOnly)
+    .map((field) => field.value);
+
   return {
-    optionsInUi: selectOptions,
+    optionsInUi: optionsByValue,
   };
 }
