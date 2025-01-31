@@ -24,20 +24,8 @@ function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
   return newValue.length > 0 ? newValue : currentValue;
 }
 
-type RecoverableDisqualificationReason = "NotSameRoundRobinHost" | "NotContactOwner" | "Unfair";
-
-const getFallbackHosts = <T>(
-  fixedHosts: T[],
-  oldValue: T[],
-  newValue: T[],
-  reason: RecoverableDisqualificationReason
-) => {
-  const fallbackRRHosts = oldValue
-    .filter((host) => !newValue.includes(host))
-    .map((host) => ({
-      ...host,
-      disqualifyReason: reason,
-    }));
+const getFallbackHosts = <T>(fixedHosts: T[], oldValue: T[], newValue: T[]) => {
+  const fallbackRRHosts = oldValue.filter((host) => !newValue.includes(host));
   if (fallbackRRHosts.length > 0) {
     return [...fixedHosts, ...fallbackRRHosts];
   }
