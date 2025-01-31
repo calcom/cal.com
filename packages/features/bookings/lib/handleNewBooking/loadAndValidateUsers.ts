@@ -6,6 +6,7 @@ import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { RoutingFormResponse } from "@calcom/lib/server/getLuckyUser";
 import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import { userSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
@@ -45,7 +46,7 @@ type InputProps = {
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
   isSameHostReschedule: boolean;
-  routingFormResponseId?: number;
+  routingFormResponse: RoutingFormResponse | null;
 };
 
 export async function loadAndValidateUsers({
@@ -57,7 +58,7 @@ export async function loadAndValidateUsers({
   routedTeamMemberIds,
   contactOwnerEmail,
   isSameHostReschedule,
-  routingFormResponseId,
+  routingFormResponse,
 }: InputProps): Promise<{ qualifiedUsers: Users; fallbackUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
@@ -115,7 +116,7 @@ export async function loadAndValidateUsers({
     routedTeamMemberIds: routedTeamMemberIds || [],
     rescheduleUid: null,
     contactOwnerEmail,
-    routingFormResponseId,
+    routingFormResponse,
   });
 
   let qualifiedUsers: Users = [];

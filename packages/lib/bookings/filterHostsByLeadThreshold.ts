@@ -2,6 +2,7 @@ import logger from "@calcom/lib/logger";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 
 export const errorCodes = {
@@ -91,6 +92,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   hosts,
   maxLeadThreshold,
   eventType,
+  routingFormResponse,
 }: {
   hosts: T[];
   maxLeadThreshold: number | null;
@@ -101,6 +103,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
       parentId?: number | null;
     } | null;
   };
+  routingFormResponse: RoutingFormResponse | null;
 }) => {
   if (maxLeadThreshold === 0) {
     throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
@@ -125,7 +128,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
     ],
     eventType,
     allRRHosts: hosts,
-    routingFormResponse: null, // we need routing form response here for virtual queues
+    routingFormResponse,
   });
 
   const perUserData = orderedLuckyUsers["perUserData"];

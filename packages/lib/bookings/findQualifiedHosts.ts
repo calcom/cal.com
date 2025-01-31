@@ -4,6 +4,7 @@ import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { SchedulingType } from "@calcom/prisma/enums";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { RoutingFormResponse } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { filterHostsBySameRoundRobinHost } from "./filterHostsBySameRoundRobinHost";
 
@@ -59,7 +60,7 @@ export const findQualifiedHosts = async <
   rescheduleUid,
   routedTeamMemberIds,
   contactOwnerEmail,
-  routingFormResponseId,
+  routingFormResponse,
 }: {
   eventType: {
     id: number;
@@ -73,7 +74,7 @@ export const findQualifiedHosts = async <
   rescheduleUid: string | null;
   routedTeamMemberIds: number[];
   contactOwnerEmail: string | null;
-  routingFormResponseId?: number;
+  routingFormResponse: RoutingFormResponse | null;
 }): Promise<{
   qualifiedHosts: {
     isFixed: boolean;
@@ -169,6 +170,7 @@ export const findQualifiedHosts = async <
       eventType,
       hosts: hostsAfterRoutedTeamMemberIdsMatching,
       maxLeadThreshold: eventType.maxLeadThreshold,
+      routingFormResponse,
     })
   );
 

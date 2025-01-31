@@ -491,6 +491,26 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
+  let routingFormResponse = null;
+
+  if (routedTeamMemberIds) {
+    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+      where: {
+        id: routingFormResponseId,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            routes: true,
+            fields: true,
+          },
+        },
+        chosenRouteId: true,
+      },
+    });
+  }
+
   const { qualifiedUsers, fallbackUsers } = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
@@ -500,7 +520,7 @@ async function handler(
     routedTeamMemberIds: routedTeamMemberIds ?? null,
     contactOwnerEmail,
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
-    routingFormResponseId,
+    routingFormResponse,
   });
 
   // We filter out users but ensure allHostUsers remain same.
@@ -699,26 +719,6 @@ async function handler(
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
-        let routingFormResponse;
-
-        if (routedTeamMemberIds) {
-          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
-            where: {
-              id: routingFormResponseId,
-            },
-            select: {
-              response: true,
-              form: {
-                select: {
-                  routes: true,
-                  fields: true,
-                },
-              },
-              chosenRouteId: true,
-            },
-          });
-        }
-
         const newLuckyUser = shouldUseSameRRHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser({
@@ -728,7 +728,7 @@ async function handler(
                 (host) => !host.isFixed && userIdsSet.has(host.user.id)
               ), // users part of virtual queue
               eventType,
-              routingFormResponse: routingFormResponse ?? null,
+              routingFormResponse,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

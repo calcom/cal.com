@@ -334,6 +334,25 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
 
+  let routingFormResponse = null;
+  if (routingFormResponseId) {
+    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+      where: {
+        id: routingFormResponseId,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            routes: true,
+            fields: true,
+          },
+        },
+        chosenRouteId: true,
+      },
+    });
+  }
+
   const { qualifiedHosts, fallbackHosts } = await monitorCallbackAsync(
     findQualifiedHosts<GetAvailabilityUser>,
     {
@@ -341,7 +360,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       rescheduleUid: input.rescheduleUid ?? null,
       routedTeamMemberIds,
       contactOwnerEmail,
-      //routingFormResponseId
+      routingFormResponse,
     }
   );
 
