@@ -1663,66 +1663,6 @@ export const insightsRouter = router({
 
       return headers || [];
     }),
-  rawRoutingData: userBelongsToTeamProcedure
-    .input(
-      rawDataInputSchema.extend({
-        routingFormId: z.string().optional(),
-        bookingStatus: bookingStatusSchema,
-        fieldFilter: z
-          .object({
-            fieldId: z.string(),
-            optionId: z.string(),
-          })
-          .optional(),
-        cursor: z.number().optional(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const {
-        teamId,
-        startDate,
-        endDate,
-        userId,
-        memberUserId,
-        isAll,
-        routingFormId,
-        bookingStatus,
-        fieldFilter,
-        cursor,
-      } = input;
-
-      if (!teamId && !userId) {
-        return { data: [], hasMore: false, nextCursor: null };
-      }
-
-      try {
-        const csvData = await RoutingEventsInsights.getRawData({
-          teamId,
-          startDate,
-          endDate,
-          userId,
-          memberUserId,
-          isAll: isAll ?? false,
-          organizationId: ctx.user.organizationId,
-          routingFormId,
-          bookingStatus,
-          fieldFilter,
-          take: BATCH_SIZE,
-          skip: cursor || 0,
-        });
-
-        const hasMore = csvData.length === BATCH_SIZE;
-        const nextCursor = hasMore ? (cursor || 0) + BATCH_SIZE : null;
-
-        return {
-          data: csvData,
-          hasMore,
-          nextCursor,
-        };
-      } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
-      }
-    }),
   routedToPerPeriod: userBelongsToTeamProcedure
     .input(
       rawDataInputSchema.extend({
