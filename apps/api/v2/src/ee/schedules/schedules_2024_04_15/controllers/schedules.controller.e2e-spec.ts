@@ -29,11 +29,11 @@ describe("Schedules Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let scheduleRepositoryFixture: SchedulesRepositoryFixture;
 
-    const userEmail = `schedules-user-${randomNumber()}@api.com`;
+    const userEmail = `schedules-2024-04-15-user-${randomNumber()}@api.com`;
     let user: User;
 
     let createdSchedule: CreateScheduleOutput_2024_04_15["data"];
-    const scheduleName = `schedules-schedule-${randomNumber()}`;
+    const scheduleName = `schedules-2024-04-15-schedule-${randomNumber()}`;
     const defaultAvailabilityDays = [1, 2, 3, 4, 5];
     const defaultAvailabilityStartTime = "1970-01-01T09:00:00.000Z";
     const defaultAvailabilityEndTime = "1970-01-01T17:00:00.000Z";
@@ -176,7 +176,7 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should update schedule name", async () => {
-      const newScheduleName = `schedules-schedule-${randomNumber()}`;
+      const newScheduleName = `schedules-2024-04-15-schedule-${randomNumber()}`;
 
       const body: UpdateScheduleInput_2024_04_15 = {
         name: newScheduleName,

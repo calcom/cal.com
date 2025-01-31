@@ -78,8 +78,8 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
-    const userEmail = `event-types-user-${randomNumber()}@api.com`;
-    const name = `event-types-user-${randomNumber()}`;
+    const userEmail = `event-types-2024-04-15-user-${randomNumber()}@api.com`;
+    const name = `event-types-2024-04-15-user-${randomNumber()}`;
     const username = name;
     let eventType: EventType;
     let user: User;

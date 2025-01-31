@@ -86,9 +86,9 @@ describe("Event types Endpoints", () => {
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
-    const userEmail = "event-types-test-e2e@api.com";
-    const falseTestEmail = "false-event-types@api.com";
-    const name = "bob-the-builder";
+    const userEmail = `event-types-2024-06-14-user@api.com`;
+    const falseTestEmail = `event-types-2024-06-14-false-user@api.com`;
+    const name = `event-types-2024-06-14-user`;
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;

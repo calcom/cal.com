@@ -164,7 +164,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: `team-emails-member1-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member1-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -173,7 +173,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: `team-emails-member2-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member2-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -239,7 +239,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Collective Event Type",
-      slug: `team-emails-event-type-${randomNumber()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -280,7 +280,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Round Robin Event Type",
-      slug: `team-emails-event-type-${randomNumber()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -337,7 +337,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const team = await teamRepositoryFixture.create({
-      name: `team-emails-team-${randomNumber()}`,
+      name: `team-emails-2024-08-13-team-${randomNumber()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -348,7 +348,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: `team-emails-member1-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member1-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -357,7 +357,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: `team-emails-member2-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member2-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -423,7 +423,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Collective Event Type",
-      slug: `team-emails-event-type-${randomNumber()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -464,7 +464,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Round Robin Event Type",
-      slug: `team-emails-event-type-${randomNumber()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -966,6 +966,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       });
     });
   });
+
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member1.email);

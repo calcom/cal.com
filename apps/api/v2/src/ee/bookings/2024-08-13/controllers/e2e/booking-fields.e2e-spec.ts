@@ -41,7 +41,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `booking-fields-user-${randomNumber()}@api.com`;
+    const userEmail = `booking-fields-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     let bookingWithSplitName: Booking;
@@ -53,8 +53,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let seatedBookingWithSplitName: Booking;
 
     let eventTypeWithBookingFieldsId: number;
-    const eventTypeSlug = `booking-fields-event-type-${randomNumber()}`;
-    const eventTypeWithBookingFieldsSlug = `booking-fields-event-type-${randomNumber()}`;
+    const eventTypeSlug = `booking-fields-2024-08-13-event-type-${randomNumber()}`;
+    const eventTypeWithBookingFieldsSlug = `booking-fields-2024-08-13-event-type-${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -77,7 +77,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `booking-fields-organization-${randomNumber()}`,
+        name: `booking-fields-2024-08-13-organization-${randomNumber()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -136,7 +136,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
           title: "peer coding",
-          slug: `booking-fields-event-type-${randomNumber()}`,
+          slug: `booking-fields-2024-08-13-event-type-${randomNumber()}`,
           length: 60,
           seatsPerTimeSlot: 3,
         },

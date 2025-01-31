@@ -36,11 +36,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `confirm-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `confirm-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = `confirm-bookings-event-type-${randomNumber()}`;
+    const eventTypeSlug = `confirm-bookings-2024-08-13-event-type-${randomNumber()}`;
 
     let createdBooking1: Booking;
     let createdBooking2: Booking;
@@ -66,7 +66,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `confirm-bookings-organization-${randomNumber()}`,
+        name: `confirm-bookings-2024-08-13-organization-${randomNumber()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 

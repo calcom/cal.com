@@ -93,7 +93,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = `confirm-emails-admin-${randomNumber()}@api.com`;
+  const authEmail = `confirm-emails-2024-08-13-admin-${randomNumber()}@api.com`;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -116,7 +116,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
     organization = await teamRepositoryFixture.create({
-      name: `confirm-emails-organization-${randomNumber()}`,
+      name: `confirm-emails-2024-08-13-organization-${randomNumber()}`,
     });
 
     await setupEnabledEmails();
@@ -142,7 +142,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: `alice-${randomNumber()}@gmail.com`,
+      email: `alice-2024-08-13-${randomNumber()}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -160,7 +160,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const event = await eventTypesRepositoryFixture.create(
       {
         title: "peer coding",
-        slug: `confirm-emails-event-type-${randomNumber()}`,
+        slug: `confirm-emails-2024-08-13-event-type-${randomNumber()}`,
         length: 60,
         requiresConfirmation: true,
       },
@@ -179,7 +179,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `bob-${randomNumber()}@gmail.com`,
+      email: `bob-2024-08-13-${randomNumber()}@gmail.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -195,7 +195,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const event = await eventTypesRepositoryFixture.create(
       {
         title: "peer coding",
-        slug: `confirm-emails-event-type-${randomNumber()}`,
+        slug: `confirm-emails-2024-08-13-event-type-${randomNumber()}`,
         length: 60,
         requiresConfirmation: true,
       },

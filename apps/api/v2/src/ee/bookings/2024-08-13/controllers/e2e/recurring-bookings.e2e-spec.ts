@@ -42,12 +42,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `recurring-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 3;
     let recurringEventTypeId: number;
-    const recurringEventSlug = `recurring-bookings-event-type-${randomNumber()}`;
+    const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomNumber()}`;
     let createdRecurringBooking: RecurringBookingOutput_2024_08_13[];
 
     beforeAll(async () => {
@@ -71,7 +71,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `recurring-bookings-organization-${randomNumber()}`,
+        name: `recurring-bookings-2024-08-13-organization-${randomNumber()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -349,7 +349,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `recurring-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 4;
@@ -386,7 +386,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `recurring-bookings-organization-${randomNumber()}`,
+        name: `recurring-bookings-2024-08-13-organization-${randomNumber()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -406,7 +406,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
-      const recurringEventSlug = `recurring-bookings-event-type-${randomNumber()}`;
+      const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomNumber()}`;
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
@@ -559,7 +559,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `recurring-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 4;
@@ -596,7 +596,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `recurring-bookings-organization-${randomNumber()}`,
+        name: `recurring-bookings-2024-08-13-organization-${randomNumber()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -616,7 +616,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
-      const recurringEventSlug = `recurring-bookings-event-type-${randomNumber()}`;
+      const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomNumber()}`;
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {

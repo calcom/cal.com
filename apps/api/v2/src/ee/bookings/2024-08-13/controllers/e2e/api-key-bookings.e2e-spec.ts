@@ -73,11 +73,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
 
-    const userEmail = `api-key-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `api-key-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = `api-key-bookings-event-type-${randomNumber()}`;
+    const eventTypeSlug = `api-key-bookings-2024-08-13-event-type-${randomNumber()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
