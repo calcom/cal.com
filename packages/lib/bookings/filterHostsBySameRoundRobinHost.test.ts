@@ -31,10 +31,12 @@ describe("filterHostsBySameRoundRobinHost", () => {
         rescheduleWithSameRoundRobinHost: false,
         routedTeamMemberIds: null,
       })
-    ).resolves.toStrictEqual([]);
+    ).resolves.toStrictEqual(hosts);
   });
   it("skips filter if rerouting", async () => {
-    const hosts = [{ isFixed: true, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } }];
+    const hosts = [
+      { isFixed: true as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
+    ];
     expect(
       filterHostsBySameRoundRobinHost({
         hosts,
@@ -42,7 +44,7 @@ describe("filterHostsBySameRoundRobinHost", () => {
         rescheduleWithSameRoundRobinHost: true,
         routedTeamMemberIds: [23],
       })
-    ).resolves.toStrictEqual([]);
+    ).resolves.toStrictEqual(hosts);
   });
 
   it("correctly selects the same host if the filter applies and the host is in the RR users", async () => {
