@@ -2928,6 +2928,9 @@ checksums:
     choose_an_option: 1c57b133afef47a60666d5d37b9b321e
     enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
     remove_option: 42e52c46cc51e56ebb5540bfb6f19b95
+    use_attribute_weights: 26aa25c847579b5b7c9980d501026d68
+    if_enabled_ignore_event_type_weights: bd201588ed639cd69075f67ea2fcbe74
+    attribute_for_weights: e7f77d055272820d78353bf9bf76311b
     managed_users: c6db1c3bb5c9b451471ca9b8d7dc8366
     managed_users_description: 45fea5321847b0c8ee72ce33684c1283
     select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607
