@@ -85,7 +85,7 @@ export const Select = <
           ),
         menu: () =>
           cx(
-            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+            "rounded-[10px] bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
