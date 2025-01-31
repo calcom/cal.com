@@ -25,7 +25,6 @@ interface getEventTypeByIdProps {
   isTrpcCall?: boolean;
   isUserOrganizationAdmin: boolean;
   currentOrganizationId: number | null;
-  limitHostsToThree?: boolean;
 }
 
 export type EventType = Awaited<ReturnType<typeof getEventTypeById>>;

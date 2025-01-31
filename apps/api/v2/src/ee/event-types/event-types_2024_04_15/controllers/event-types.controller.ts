@@ -35,7 +35,6 @@ import {
   Query,
   InternalServerErrorException,
   ParseIntPipe,
-  ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 

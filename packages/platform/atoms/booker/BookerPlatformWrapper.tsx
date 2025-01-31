@@ -145,12 +145,7 @@ export const BookerPlatformWrapper = (
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const { isSuccess, isError, isPending, data } = useEventType(
-    username,
-    props.eventSlug,
-    props.isTeamEvent,
-    true
-  );
+  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug, props.isTeamEvent);
   const {
     isSuccess: isTeamSuccess,
     isError: isTeamError,

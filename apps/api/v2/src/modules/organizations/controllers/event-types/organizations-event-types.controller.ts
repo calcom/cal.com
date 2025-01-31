@@ -150,7 +150,6 @@ export class OrganizationsEventTypesController {
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
     const { eventSlug, limitHostsToThree } = queryParams;
-    console.log("limitHostsToThree: ", limitHostsToThree);
 
     if (eventSlug) {
       const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(
