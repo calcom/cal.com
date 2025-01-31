@@ -27,6 +27,7 @@ export const BookerEmbed = (
       teamId: routingTeamId,
       eventTypeSlug,
       username,
+      defaultFormValues,
       ...routingFormSearchParams
     } = routingFormUrlProps;
     return (
@@ -53,6 +54,7 @@ export const BookerEmbed = (
                 customClassNames: props?.customClassNames,
               })}
           routingFormSearchParams={routingFormSearchParams}
+          defaultFormValues={defaultFormValues}
           bannerUrl={props.bannerUrl}
           onDryRunSuccess={() => {
             window.location.href = `https://app.cal.com/booking/dry-run-successful`;
