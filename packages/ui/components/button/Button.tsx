@@ -272,11 +272,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             )}
           </>
         ))}
-      {variant === "fab" ? (
-        <span className={`hidden md:inline ${loading ? "invisible" : "visible"}`}>{props.children}</span>
-      ) : (
-        <span className={loading ? "invisible" : "visible"}>{props.children}</span>
-      )}
+      {props.children &&
+        (variant === "fab" ? (
+          <span className={`hidden md:inline ${loading ? "invisible" : "visible"}`}>{props.children}</span>
+        ) : (
+          <span className={loading ? "invisible" : "visible"}>{props.children}</span>
+        ))}
       {loading && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg

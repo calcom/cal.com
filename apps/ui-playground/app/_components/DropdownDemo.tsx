@@ -72,7 +72,7 @@ export default function DropdownDemo() {
           <div className="flex flex-col items-center gap-2">
             <Dropdown>
               <DropdownMenuTrigger asChild>
-                <Button variant="icon" />
+                <Button variant="icon" StartIcon="calendar" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 {menuItems.map((item) => (
@@ -159,7 +159,7 @@ export default function DropdownDemo() {
           <Dropdown>
             <DropdownMenuTrigger asChild>
               <button className="cursor-pointer">
-                <Button variant="icon" color="secondary" StartIcon="menu" />
+                <Button variant="icon" color="secondary" StartIcon="calendar" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
