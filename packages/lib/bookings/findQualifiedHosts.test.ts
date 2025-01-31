@@ -74,10 +74,11 @@ describe("findQualifiedHosts", async () => {
       routedTeamMemberIds: [],
       rescheduleUid: null,
       contactOwnerEmail: null,
+      routingFormResponse: null,
     });
 
     // Verify the result
-    expect(result).toStrictEqual({ qualifiedHosts: hosts, fallbackHosts: [] });
+    expect(result).toStrictEqual({ qualifiedHosts: hosts });
   });
 
   it("should return hosts after valid input with users", async () => {
@@ -120,6 +121,7 @@ describe("findQualifiedHosts", async () => {
       routedTeamMemberIds: [],
       rescheduleUid: null,
       contactOwnerEmail: null,
+      routingFormResponse: null,
     });
 
     // Verify the result
@@ -135,7 +137,6 @@ describe("findQualifiedHosts", async () => {
     expect(filterHostsByLeadThreshold).not.toHaveBeenCalled();
   });
 
-  // TODO: Find out why this fails.
   it("should return only the crm contact owner match & other users as fallback", async () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
@@ -205,6 +206,7 @@ describe("findQualifiedHosts", async () => {
       routedTeamMemberIds: [],
       rescheduleUid: null,
       contactOwnerEmail: "hello1@gmail.com",
+      routingFormResponse: null,
     });
 
     // Verify the result
@@ -214,20 +216,7 @@ describe("findQualifiedHosts", async () => {
           ...hosts[0],
         },
       ],
-      fallbackHosts: [
-        {
-          ...hosts[0],
-          disqualifyReason: "NotContactOwner",
-        },
-        {
-          ...hosts[1],
-          disqualifyReason: "NotContactOwner",
-        },
-        {
-          ...hosts[2],
-          disqualifyReason: "NotContactOwner",
-        },
-      ],
+      fallbackHosts: hosts,
     });
   });
 
@@ -239,6 +228,8 @@ describe("findQualifiedHosts", async () => {
       {
         isFixed: false,
         createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
         user: {
           email: "hello1@gmail.com",
           id: 1,
@@ -249,6 +240,8 @@ describe("findQualifiedHosts", async () => {
       {
         isFixed: false,
         createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
         user: {
           email: "hello2@gmail.com",
           id: 2,
@@ -259,6 +252,8 @@ describe("findQualifiedHosts", async () => {
       {
         isFixed: false,
         createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
         user: {
           email: "hello3@gmail.com",
           id: 3,
@@ -294,39 +289,17 @@ describe("findQualifiedHosts", async () => {
       routedTeamMemberIds: [1],
       rescheduleUid: null,
       contactOwnerEmail: "hello3@gmail.com",
+      routingFormResponse: null,
     });
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedHosts: [
-        {
-          weight: undefined,
-          priority: undefined,
-          isFixed: false,
-          createdAt: oneYearAgo,
-          user: {
-            id: 3,
-            email: "hello3@gmail.com",
-            credentials: [],
-            userLevelSelectedCalendars: [],
-          },
-        },
-      ],
-      fallbackHosts: [
-        {
-          weight: undefined,
-          priority: undefined,
-          isFixed: false,
-          createdAt: oneYearAgo,
-          disqualifyReason: "NotContactOwner",
-          user: {
-            email: "hello1@gmail.com",
-            id: 1,
-            credentials: [],
-            userLevelSelectedCalendars: [],
-          },
-        },
-      ],
+      qualifiedHosts: [hosts[2]],
+      fallbackHosts: [hosts[0]],
     });
   });
+
+  // todo: add test for segment filtering
+
+  // todo: add test for fairness filtering
 });
