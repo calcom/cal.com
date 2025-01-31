@@ -12,6 +12,7 @@ import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -24,7 +25,7 @@ describe("Organizations Attributes Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "member@attributes-api.com";
+    const userEmail = `organization-attributes-member-${randomNumber()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -42,7 +43,7 @@ describe("Organizations Attributes Endpoints", () => {
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "AttributesCorp",
+        name: `organization-attributes-organization-${randomNumber()}`,
         isOrganization: true,
       });
 
@@ -88,7 +89,7 @@ describe("Organizations Attributes Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "admin@attributes-api.com";
+    const userEmail = `organization-attributes-admin-${randomNumber()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -116,7 +117,7 @@ describe("Organizations Attributes Endpoints", () => {
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "AttributesCorp",
+        name: `organization-attributes-admin-organization-${randomNumber()}`,
         isOrganization: true,
       });
 

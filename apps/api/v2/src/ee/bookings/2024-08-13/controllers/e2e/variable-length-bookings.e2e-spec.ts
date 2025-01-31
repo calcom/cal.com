@@ -17,6 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -40,8 +41,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let variableLengthEventType: EventType;
-    const variableLengthEventTypeSlug = "variable-length-event";
+    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-event-type-${randomNumber()}`;
     let normalEventType: EventType;
+    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-event-type-${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -85,7 +87,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       variableLengthEventType = await eventTypesRepositoryFixture.create(
         {
           title: "variable length event",
-          slug: variableLengthEventTypeSlug,
+          slug: VARIABLE_LENGTH_EVENT_TYPE_SLUG,
           length: 15,
           metadata: { multipleDuration: [15, 30, 60] },
         },
@@ -93,7 +95,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       );
 
       normalEventType = await eventTypesRepositoryFixture.create(
-        { title: "normal event", slug: "normal-event", length: 15 },
+        { title: "normal event", slug: NORMAL_EVENT_TYPE_SLUG, length: 15 },
         user.id
       );
 

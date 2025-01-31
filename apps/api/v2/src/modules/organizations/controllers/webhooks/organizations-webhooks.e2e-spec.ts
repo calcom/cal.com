@@ -17,13 +17,14 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Team, Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "webhook-controller-e2e@api.com";
+  const userEmail = `organizations-webhooks-admin-${randomNumber()}@api.com`;
   let org: Team;
 
   let organizationsRepositoryFixture: OrganizationRepositoryFixture;
@@ -53,7 +54,7 @@ describe("WebhooksController (e2e)", () => {
     });
 
     org = await organizationsRepositoryFixture.create({
-      name: "Test Organization",
+      name: `organizations-webhooks-organization-${randomNumber()}`,
       isOrganization: true,
     });
 

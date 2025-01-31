@@ -23,6 +23,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -128,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-    organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+    organization = await teamRepositoryFixture.create({ name: `team-emails-organization-${randomNumber()}` });
 
     await setupEnabledEmails();
     await setupDisabledEmails();
@@ -152,7 +153,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const team = await teamRepositoryFixture.create({
-      name: "team 1",
+      name: `team-emails-team-${randomNumber()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -163,7 +164,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: "alice@gmail.com",
+      email: `team-emails-member1-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -172,7 +173,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: "bob@gmail.com",
+      email: `team-emails-member2-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -238,7 +239,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Collective Event Type",
-      slug: "collective-event-type",
+      slug: `team-emails-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -279,7 +280,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Round Robin Event Type",
-      slug: "round-robin-event-type",
+      slug: `team-emails-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -336,7 +337,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const team = await teamRepositoryFixture.create({
-      name: "team 2",
+      name: `team-emails-team-${randomNumber()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -347,7 +348,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: "charlie@gmail.com",
+      email: `team-emails-member1-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -356,7 +357,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: "dean@gmail.com",
+      email: `team-emails-member2-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -422,7 +423,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Collective Event Type",
-      slug: "collective-event-type",
+      slug: `team-emails-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -463,7 +464,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
         connect: { id: team.id },
       },
       title: "Round Robin Event Type",
-      slug: "round-robin-event-type",
+      slug: `team-emails-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],

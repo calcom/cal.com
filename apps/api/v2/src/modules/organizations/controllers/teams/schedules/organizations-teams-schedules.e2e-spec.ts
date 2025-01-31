@@ -14,6 +14,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -37,11 +38,10 @@ describe("Organizations Teams Schedules Endpoints", () => {
     let nonOrgTeam: Team;
     let user2Schedule: Schedule;
 
-    const userEmail = "org-admin-schedules-teams-controller-e2e@api.com";
-    const userEmail2 = "org-member-schedules-teams-controller-e2e@api.com";
-    const nonOrgUserEmail = "non-org-member-schedules-teams-controller-e2e@api.com";
-
-    const invitedUserEmail = "org-member-invited-schedules-teams-controller-e2e@api.com";
+    const userEmail = `organizations-teams-schedules-admin-${randomNumber()}@api.com`;
+    const userEmail2 = `organizations-teams-schedules-member-${randomNumber()}@api.com`;
+    const nonOrgUserEmail = `organizations-teams-schedules-non-org-${randomNumber()}@api.com`;
+    const invitedUserEmail = `organizations-teams-schedules-invited-${randomNumber()}@api.com`;
 
     let user: User;
     let user2: User;
@@ -79,7 +79,7 @@ describe("Organizations Teams Schedules Endpoints", () => {
             id: user2.id,
           },
         },
-        name: "User 2 schedule",
+        name: `organizations-teams-schedules-user2-schedule-${randomNumber()}`,
         timeZone: "America/New_York",
       });
 
@@ -94,18 +94,18 @@ describe("Organizations Teams Schedules Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-schedules-organization-${randomNumber()}`,
         isOrganization: true,
       });
 
       orgTeam = await teamsRepositoryFixture.create({
-        name: "Org Team",
+        name: `organizations-teams-schedules-team-${randomNumber()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       nonOrgTeam = await teamsRepositoryFixture.create({
-        name: "Non Org Team",
+        name: `organizations-teams-schedules-non-org-team-${randomNumber()}`,
         isOrganization: false,
       });
 

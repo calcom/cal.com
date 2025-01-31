@@ -20,6 +20,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -101,7 +102,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-    organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+    organization = await teamRepositoryFixture.create({ name: `user-emails-organization-${randomNumber()}` });
 
     await setupEnabledEmails();
     await setupDisabledEmails();
@@ -116,7 +117,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: `alice-${Math.floor(Math.random() * 1000)}@gmail.com`,
+      email: `user-emails-user-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -132,15 +133,15 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     await schedulesService.createUserSchedule(user.id, userSchedule);
 
     const event = await eventTypesRepositoryFixture.create(
-      { title: "peer coding", slug: "peer-coding", length: 60 },
+      { title: "peer coding", slug: `user-emails-event-type-${randomNumber()}`, length: 60 },
       user.id
     );
 
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: "peer coding recurring",
-        slug: "peer-coding-recurring",
+        title: "recurring event",
+        slug: `user-emails-event-type-${randomNumber()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },
@@ -160,7 +161,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
+      email: `user-emails-user-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -174,15 +175,15 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     };
     await schedulesService.createUserSchedule(user.id, userSchedule);
     const event = await eventTypesRepositoryFixture.create(
-      { title: "peer coding", slug: "peer-coding", length: 60 },
+      { title: "peer coding", slug: `user-emails-event-type-${randomNumber()}`, length: 60 },
       user.id
     );
 
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: "peer coding recurring",
-        slug: "peer-coding-recurring",
+        title: "recurring event",
+        slug: `user-emails-event-type-${randomNumber()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },

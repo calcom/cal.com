@@ -19,6 +19,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -51,22 +52,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "seated-bookings-controller-e2e@api.com";
+    const userEmail = `seated-bookings-user-${randomNumber()}@api.com`;
     let user: User;
 
-    const seatedTventTypeSlug = "peer-coding-seated";
-    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
+    const seatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = "mr_proper_seated@gmail.com";
-    const nameAttendeeOne = "Mr Proper Seated";
-    const emailAttendeeTwo = "mr_proper_friend_seated@gmail.com";
-    const nameAttendeeTwo = "Mr Proper Friend Seated";
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomNumber()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomNumber()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomNumber()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -88,7 +90,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `seated-bookings-organization-${randomNumber()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -108,8 +112,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding",
-          slug: seatedTventTypeSlug,
+          title: "seated event",
+          slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
@@ -123,8 +127,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: recurringSeatedTventTypeSlug,
+          title: "recurring seated event",
+          slug: recurringSeatedEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
           seatsPerTimeSlot: 5,
@@ -200,7 +204,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(1);
             expect(data.attendees[0]).toEqual({
@@ -272,7 +276,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(2);
             // note(Lauris): first attendee is from previous test request
@@ -366,7 +370,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
@@ -401,7 +405,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
@@ -575,7 +579,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(1);
             const attendee = createdSeatedBooking.attendees.find((a) => a.seatUid === body.seatUid);
@@ -629,7 +633,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.eventTypeId).toEqual(seatedEventTypeId);
             expect(data.eventType).toEqual({
               id: seatedEventTypeId,
-              slug: seatedTventTypeSlug,
+              slug: seatedEventSlug,
             });
             expect(data.attendees.length).toEqual(0);
             expect(data.location).toBeDefined();
@@ -681,22 +685,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "seated-bookings-controller-e2e@api.com";
+    const userEmail = `seated-bookings-user-${randomNumber()}@api.com`;
     let user: User;
 
-    const seatedTventTypeSlug = "peer-coding-seated";
-    const recurringSeatedTventTypeSlug = "peer-coding-recurring-seated";
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
+    const seatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = "mr_proper_first@gmail.com";
-    const nameAttendeeOne = "Mr Proper First";
-    const emailAttendeeTwo = "mr_proper_second@gmail.com";
-    const nameAttendeeTwo = "Mr Proper Second";
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomNumber()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomNumber()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomNumber()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -718,7 +723,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `seated-bookings-organization-${randomNumber()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -738,13 +745,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding",
-          slug: seatedTventTypeSlug,
+          title: "seated event",
+          slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
-          seatsShowAvailabilityCount: true,
-          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
         },
         user.id
       );
@@ -753,14 +758,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: recurringSeatedTventTypeSlug,
+          title: "recurring seated event",
+          slug: recurringSeatedEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
           seatsPerTimeSlot: 5,
           seatsShowAttendees: true,
-          seatsShowAvailabilityCount: true,
-          locations: [{ type: "inPerson", address: "via 10, rome, italy" }],
         },
         user.id
       );
@@ -836,7 +839,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(1);
             expect(firstBooking.attendees[0]).toEqual({
@@ -871,7 +874,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(1);
             expect(secondBooking.attendees[0]).toEqual({
@@ -949,7 +952,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(firstBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(firstBooking.attendees.length).toEqual(2);
             const firstAttendee = firstBooking.attendees.find(
@@ -1003,7 +1006,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.eventTypeId).toEqual(recurringSeatedEventTypeId);
             expect(secondBooking.eventType).toEqual({
               id: recurringSeatedEventTypeId,
-              slug: recurringSeatedTventTypeSlug,
+              slug: recurringSeatedEventSlug,
             });
             expect(secondBooking.attendees.length).toEqual(2);
             expect(secondBooking.attendees[0]).toEqual({

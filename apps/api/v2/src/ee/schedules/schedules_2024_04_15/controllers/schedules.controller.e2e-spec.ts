@@ -16,6 +16,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
@@ -28,10 +29,11 @@ describe("Schedules Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let scheduleRepositoryFixture: SchedulesRepositoryFixture;
 
-    const userEmail = "schedules-controller-e2e@api.com";
+    const userEmail = `schedules-user-${randomNumber()}@api.com`;
     let user: User;
 
     let createdSchedule: CreateScheduleOutput_2024_04_15["data"];
+    const scheduleName = `schedules-schedule-${randomNumber()}`;
     const defaultAvailabilityDays = [1, 2, 3, 4, 5];
     const defaultAvailabilityStartTime = "1970-01-01T09:00:00.000Z";
     const defaultAvailabilityEndTime = "1970-01-01T17:00:00.000Z";
@@ -67,7 +69,6 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should not create an invalid schedule", async () => {
-      const scheduleName = "schedule-name";
       const scheduleTimeZone = "Europe/Rome";
       const isDefault = true;
 
@@ -98,13 +99,11 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should create a default schedule", async () => {
-      const scheduleName = "schedule-name";
-      const scheduleTimeZone = "Europe/Rome";
       const isDefault = true;
 
       const body: CreateScheduleInput_2024_04_15 = {
         name: scheduleName,
-        timeZone: scheduleTimeZone,
+        timeZone: "Europe/Rome",
         isDefault,
       };
 
@@ -118,7 +117,7 @@ describe("Schedules Endpoints", () => {
           expect(responseData.status).toEqual(SUCCESS_STATUS);
           expect(responseData.data).toBeDefined();
           expect(responseData.data.isDefault).toEqual(isDefault);
-          expect(responseData.data.timeZone).toEqual(scheduleTimeZone);
+          expect(responseData.data.timeZone).toEqual("Europe/Rome");
           expect(responseData.data.name).toEqual(scheduleName);
 
           const schedule = responseData.data.schedule;
@@ -177,7 +176,7 @@ describe("Schedules Endpoints", () => {
     });
 
     it("should update schedule name", async () => {
-      const newScheduleName = "new-schedule-name";
+      const newScheduleName = `schedules-schedule-${randomNumber()}`;
 
       const body: UpdateScheduleInput_2024_04_15 = {
         name: newScheduleName,

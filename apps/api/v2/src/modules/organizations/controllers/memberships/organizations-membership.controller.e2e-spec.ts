@@ -14,6 +14,7 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -33,10 +34,9 @@ describe("Organizations Memberships Endpoints", () => {
     let membership2: Membership;
     let membershipCreatedViaApi: Membership;
 
-    const userEmail = "org-admin-membership-controller-e2e@api.com";
-    const userEmail2 = "org-member-membership-controller-e2e@api.com";
-
-    const invitedUserEmail = "org-member-invited-membership-controller-e2e@api.com";
+    const userEmail = `organizations-memberships-admin-${randomNumber()}@api.com`;
+    const userEmail2 = `organizations-memberships-member-${randomNumber()}@api.com`;
+    const invitedUserEmail = `organizations-memberships-invited-${randomNumber()}@api.com`;
 
     let user: User;
     let user2: User;
@@ -70,7 +70,7 @@ describe("Organizations Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-memberships-organization-${randomNumber()}`,
         isOrganization: true,
       });
 
@@ -217,7 +217,7 @@ describe("Organizations Memberships Endpoints", () => {
     let org: Team;
     let membership: Membership;
 
-    const userEmail = "org-member-memberships-controller-e2e@api.com";
+    const userEmail = `organizations-memberships-member-${randomNumber()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -238,7 +238,7 @@ describe("Organizations Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-memberships-organization-${randomNumber()}`,
         isOrganization: true,
       });
 

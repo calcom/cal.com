@@ -21,6 +21,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -45,8 +46,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const teamUserEmail = "orgUser1team1@api.com";
-    const teamUserEmail2 = "orgUser2team1@api.com";
+    const teamUserEmail = `reassign-bookings-user1-${randomNumber()}@api.com`;
+    const teamUserEmail2 = `reassign-bookings-user2-${randomNumber()}@api.com`;
     let teamUser1: User;
     let teamUser2: User;
 
@@ -78,11 +79,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await organizationsRepositoryFixture.create({ name: "organization team bookings" });
+      organization = await organizationsRepositoryFixture.create({
+        name: `reassign-bookings-organization-${randomNumber()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       team = await teamRepositoryFixture.create({
-        name: "team 1",
+        name: `reassign-bookings-team-${randomNumber()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -95,13 +98,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamUser1 = await userRepositoryFixture.create({
         email: teamUserEmail,
         locale: "it",
-        name: "orgUser1team1",
+        name: `reassign-bookings-user1-${randomNumber()}`,
       });
 
       teamUser2 = await userRepositoryFixture.create({
         email: teamUserEmail2,
         locale: "it",
-        name: "orgUser2team1",
+        name: `reassign-bookings-user2-${randomNumber()}`,
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
@@ -165,7 +168,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           connect: [{ id: teamUser1.id }, { id: teamUser2.id }],
         },
         title: "Round Robin Event Type",
-        slug: "round-robin-event-type",
+        slug: `reassign-bookings-event-type-${randomNumber()}`,
         length: 60,
         assignAllTeamMembers: false,
         bookingFields: [],

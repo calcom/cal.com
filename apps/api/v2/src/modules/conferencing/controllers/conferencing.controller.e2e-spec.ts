@@ -11,6 +11,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { CredentialsRepositoryFixture } from "test/fixtures/repository/credentials.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -30,7 +31,7 @@ describe("Conferencing Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let credentialsRepositoryFixture: CredentialsRepositoryFixture;
 
-    const userEmail = "conferencing-controller-user-e2e@api.com";
+    const userEmail = `conferencing-user-${randomNumber()}@api.com`;
     let user: User;
 
     beforeAll(async () => {

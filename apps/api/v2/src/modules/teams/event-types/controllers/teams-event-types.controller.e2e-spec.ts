@@ -47,12 +47,12 @@ describe("Organizations Event Types Endpoints", () => {
     let team: Team;
     let falseTestTeam: Team;
 
-    const userEmail = `auth-${randomNumber()}@api.com`;
+    const userEmail = `teams-event-types-user-${randomNumber()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = "teammate111@team.com";
-    const teammate2Email = "teammate221@team.com";
-    const falseTestUserEmail = "false-user@false-team.com";
+    const teammate1Email = `teams-event-types-teammate1-${randomNumber()}@api.com`;
+    const teammate2Email = `teams-event-types-teammate2-${randomNumber()}@api.com`;
+    const falseTestUserEmail = `teams-event-types-false-user-${randomNumber()}@api.com`;
     let teamMember1: User;
     let teamMember2: User;
     let falseTestUser: User;
@@ -97,12 +97,12 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `teams-event-types-team-${randomNumber()}`,
         isOrganization: false,
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: "Outside org team",
+        name: `teams-event-types-false-team-${randomNumber()}`,
         isOrganization: false,
       });
 
@@ -169,8 +169,8 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation collective",
-        slug: "coding-consultation collective",
+        title: `teams-event-types-collective-${randomNumber()}`,
+        slug: `teams-event-types-collective-${randomNumber()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -275,8 +275,8 @@ describe("Organizations Event Types Endpoints", () => {
 
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
-        title: "Coding consultation managed",
-        slug: "coding-consultation-managed",
+        title: `teams-event-types-managed-${randomNumber()}`,
+        slug: `teams-event-types-managed-${randomNumber()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -316,6 +316,7 @@ describe("Organizations Event Types Endpoints", () => {
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
 
           expect(teammate1EventTypes.length).toEqual(1);
+          expect(teammate1EventTypes[0].title).toEqual(body.title);
           expect(teammate2EventTypes.length).toEqual(1);
           expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
             1
@@ -423,7 +424,7 @@ describe("Organizations Event Types Endpoints", () => {
     });
 
     it("should update managed event-type", async () => {
-      const newTitle = "Coding consultation managed updated";
+      const newTitle = `teams-event-types-managed-updated-${randomNumber()}`;
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
         {
           userId: teamMember1.id,
