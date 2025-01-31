@@ -1,9 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
-import { generateTeamProfilePageMetadata } from "app/generateBookingPageMetadata";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -17,17 +18,28 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
     buildLegacyCtx(headers(), cookies(), params, searchParams)
   );
 
-  return await generateTeamProfilePageMetadata({
+  const meeting = {
+    title: markdownStrippedBio ?? "",
     profile: {
-      teamName: team.name,
+      name: `${team.name}`,
       image: getOrgOrTeamAvatar(team),
-      markdownStrippedBio: markdownStrippedBio,
     },
-    event: null,
-    hideBranding: false,
-    orgSlug: currentOrgDomain ?? null,
-    isSEOIndexable: !!isSEOIndexable,
-  });
+  };
+
+  const metadata = await generateMeetingMetadata(
+    meeting,
+    (t) => team.name || t("nameless_team"),
+    (t) => team.name || t("nameless_team"),
+    false,
+    getOrgFullOrigin(currentOrgDomain ?? null)
+  );
+  return {
+    ...metadata,
+    robots: {
+      follow: isSEOIndexable,
+      index: isSEOIndexable,
+    },
+  };
 };
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);

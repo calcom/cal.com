@@ -1,5 +1,6 @@
 import { Prisma as PrismaClientType } from "@prisma/client";
 
+import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import logger from "@calcom/lib/logger";
@@ -187,7 +188,7 @@ export async function getBookings({
   if (filters?.afterStartDate) {
     bookingWhereInputFilters.afterStartDate = {
       startTime: {
-        gte: new Date(filters.afterStartDate),
+        gte: dayjs.utc(filters.afterStartDate).toDate(),
       },
     };
   }
@@ -195,7 +196,7 @@ export async function getBookings({
   if (filters?.beforeEndDate) {
     bookingWhereInputFilters.beforeEndDate = {
       endTime: {
-        lte: new Date(filters.beforeEndDate),
+        lte: dayjs.utc(filters.beforeEndDate).toDate(),
       },
     };
   }
@@ -235,6 +236,7 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        allowReschedulingPastBookings: true,
         schedulingType: true,
         length: true,
         team: {

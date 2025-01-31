@@ -9,13 +9,10 @@ import {
   routingFormResponseInDbSchema,
 } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
-import type {
-  ColumnFilter,
-  TypedColumnFilter,
-  ColumnFilterType,
-  SortingState,
-} from "@calcom/features/data-table";
+import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
+import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
+import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 
@@ -40,6 +37,10 @@ type RoutingFormInsightsFilter = RoutingFormInsightsTeamFilter & {
     optionId: string;
   } | null;
   columnFilters: ColumnFilter[];
+};
+
+type RoutingFormResponsesFilter = RoutingFormResponsesInput & {
+  organizationId: number | null;
 };
 
 type WhereForTeamOrAllTeams = Pick<Prisma.App_RoutingForms_FormWhereInput, "id" | "teamId" | "userId">;
@@ -222,14 +223,10 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    memberUserId,
+    memberUserIds,
     columnFilters,
     sorting,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
-    sorting: SortingState;
-    cursor?: number;
-    limit?: number;
-  }) {
+  }: RoutingFormResponsesFilter) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
       teamId,
@@ -239,7 +236,7 @@ class RoutingEventsInsights {
     });
 
     const getLowercasedFilterValue = <TData extends ColumnFilterType>(filter: TypedColumnFilter<TData>) => {
-      if (filter.value.type === "text") {
+      if (filter.value.type === ColumnFilterType.TEXT) {
         return {
           ...filter.value,
           data: {
@@ -254,7 +251,7 @@ class RoutingEventsInsights {
     const bookingStatusOrder = columnFilters.find((filter) => filter.id === "bookingStatusOrder");
     const bookingAssignmentReason = columnFilters.find(
       (filter) => filter.id === "bookingAssignmentReason"
-    ) as TypedColumnFilter<"text"> | undefined;
+    ) as TypedColumnFilter<ColumnFilterType.TEXT> | undefined;
     const assignmentReasonValue = bookingAssignmentReason
       ? getLowercasedFilterValue(bookingAssignmentReason)
       : undefined;
@@ -286,7 +283,7 @@ class RoutingEventsInsights {
         })),
 
       // memberUserId
-      ...(memberUserId && { bookingUserId: memberUserId }),
+      ...(memberUserIds && memberUserIds.length > 0 && { bookingUserId: { in: memberUserIds } }),
 
       // createdAt
       ...(startDate &&
@@ -369,14 +366,10 @@ class RoutingEventsInsights {
     cursor,
     limit,
     userId,
-    memberUserId,
+    memberUserIds,
     columnFilters,
     sorting,
-  }: Omit<RoutingFormInsightsFilter, "fieldFilter" | "bookingStatus"> & {
-    sorting: SortingState;
-    cursor?: number;
-    limit?: number;
-  }) {
+  }: RoutingFormResponsesFilter) {
     const headersPromise = this.getRoutingFormHeaders({
       userId,
       teamId,
@@ -393,7 +386,7 @@ class RoutingEventsInsights {
       routingFormId,
       cursor,
       userId,
-      memberUserId,
+      memberUserIds,
       limit,
       columnFilters,
       sorting,

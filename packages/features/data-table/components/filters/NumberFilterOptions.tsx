@@ -7,7 +7,7 @@ import { Form, Input, Select, Button } from "@calcom/ui";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
-import { ZNumberFilterValue } from "../../lib/types";
+import { ZNumberFilterValue, ColumnFilterType } from "../../lib/types";
 
 export type NumberFilterOperatorOption = {
   label: string;
@@ -24,7 +24,7 @@ const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
 ];
 
 export type NumberFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "number" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.NUMBER }>;
 };
 
 export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
@@ -48,7 +48,7 @@ export function NumberFilterOptions({ column }: NumberFilterOptionsProps) {
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
             updateFilter(column.id, {
-              type: "number",
+              type: ColumnFilterType.NUMBER,
               data: {
                 operator: operatorOption.value,
                 operand: Number(operand),

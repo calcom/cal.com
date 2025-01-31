@@ -123,7 +123,6 @@ describe("Event types Endpoints", () => {
       slug: "location",
       required: false,
       hidden: false,
-      disableOnPrefill: false,
     };
 
     const defaultResponseBookingFieldTitle = {
@@ -452,9 +451,6 @@ describe("Event types Endpoints", () => {
             { ...defaultResponseBookingFieldName, ...nameBookingField },
             { ...defaultResponseBookingFieldEmail },
             { ...defaultResponseBookingFieldLocation },
-            { ...defaultResponseBookingFieldTitle },
-            { ...defaultResponseBookingFieldGuests },
-            { ...defaultResponseBookingFieldRescheduleReason },
             {
               type: "select",
               label: "select which language you want to learn",
@@ -466,7 +462,10 @@ describe("Event types Endpoints", () => {
               hidden: false,
               isDefault: false,
             },
+            { ...defaultResponseBookingFieldTitle },
             { ...defaultResponseBookingFieldNotes },
+            { ...defaultResponseBookingFieldGuests },
+            { ...defaultResponseBookingFieldRescheduleReason },
           ];
 
           expect(createdEventType.bookingFields).toEqual(expectedBookingFields);
@@ -943,9 +942,6 @@ describe("Event types Endpoints", () => {
             { ...defaultResponseBookingFieldName, ...nameBookingField },
             { ...defaultResponseBookingFieldEmail },
             { ...defaultResponseBookingFieldLocation },
-            { ...defaultResponseBookingFieldTitle },
-            { ...defaultResponseBookingFieldGuests },
-            { ...defaultResponseBookingFieldRescheduleReason },
             {
               type: "select",
               label: "select which language you want to learn",
@@ -957,7 +953,10 @@ describe("Event types Endpoints", () => {
               hidden: false,
               isDefault: false,
             },
+            { ...defaultResponseBookingFieldTitle },
             { ...defaultResponseBookingFieldNotes, ...notesBookingField },
+            { ...defaultResponseBookingFieldGuests },
+            { ...defaultResponseBookingFieldRescheduleReason },
           ];
 
           expect(updatedEventType.bookingFields).toEqual(expectedBookingFields);
@@ -1164,10 +1163,7 @@ describe("Event types Endpoints", () => {
         type: "radioInput",
         slug: "location",
         required: false,
-        disableOnPrefill: false,
         hidden: false,
-        label: "",
-        placeholder: "",
       },
       { isDefault: true, required: true, slug: "title", type: "text", disableOnPrefill: false, hidden: true },
       {
@@ -1186,7 +1182,14 @@ describe("Event types Endpoints", () => {
         disableOnPrefill: false,
         hidden: false,
       },
-      { isDefault: true, type: "phone", slug: "attendeePhoneNumber", required: false, hidden: true },
+      {
+        disableOnPrefill: false,
+        isDefault: true,
+        type: "phone",
+        slug: "attendeePhoneNumber",
+        required: false,
+        hidden: true,
+      },
       {
         isDefault: true,
         required: false,
@@ -1611,7 +1614,6 @@ describe("Event types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
@@ -1621,6 +1623,14 @@ describe("Event types Endpoints", () => {
               required: true,
               disableOnPrefill: false,
               hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
             },
             {
               isDefault: true,
@@ -1634,14 +1644,6 @@ describe("Event types Endpoints", () => {
               isDefault: true,
               type: "textarea",
               slug: "rescheduleReason",
-              required: false,
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
-              type: "textarea",
-              slug: "notes",
               required: false,
               disableOnPrefill: false,
               hidden: false,

@@ -1,8 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import { generateEventBookingPageMetadata } from "app/generateBookingPageMetadata";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
+
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
@@ -23,28 +25,36 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
   const rescheduleUid = booking?.uid;
 
   const profileName = eventData?.profile?.name ?? "";
-  const profileImage = eventData?.profile.image ?? "";
-
-  return await generateEventBookingPageMetadata({
+  const profileImage = eventData?.profile.image;
+  const title = eventData?.title ?? "";
+  const meeting = {
+    title,
     profile: { name: profileName, image: profileImage },
-    event: {
-      title: eventData?.title ?? "",
-      hidden: eventData?.hidden ?? false,
-      users: [
-        ...(eventData?.users || []).map((user) => ({
-          name: `${user.name}`,
-          username: `${user.username}`,
-        })),
-      ],
+    users: [
+      ...(eventData?.users || []).map((user) => ({
+        name: `${user.name}`,
+        username: `${user.username}`,
+      })),
+    ],
+  };
+  const metadata = await generateMeetingMetadata(
+    meeting,
+    (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
+    (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
+    isBrandingHidden,
+    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
+  );
+
+  return {
+    ...metadata,
+    robots: {
+      follow: !(eventData?.hidden || !isSEOIndexable),
+      index: !(eventData?.hidden || !isSEOIndexable),
     },
-    hideBranding: isBrandingHidden,
-    orgSlug: eventData?.entity.orgSlug ?? null,
-    isSEOIndexable: !!isSEOIndexable,
-    isReschedule: !!rescheduleUid,
-  });
+  };
 };
 
-export const Page = async (props: OrgTypePageProps) => {
+const Page = async (props: OrgTypePageProps) => {
   if ((props as TeamTypePageProps)?.teamId) {
     return <TeamTypePage {...(props as TeamTypePageProps)} />;
   }

@@ -270,6 +270,7 @@ export const bookingCreateBodySchema = z.object({
   routingFormResponseId: z.number().optional(),
   skipContactOwner: z.boolean().optional(),
   crmAppSlug: z.string().nullish().optional(),
+  cfToken: z.string().nullish().optional(),
 
   /**
    * Holds the corrected responses of the Form for a booking, provided during rerouting
@@ -369,6 +370,14 @@ export const bookingCancelSchema = z.object({
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
   cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  internalNote: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      cancellationReason: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
 });
 
 export const bookingCancelAttendeeSeatSchema = z.object({
@@ -739,6 +748,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   eventTypeColor: true,
+  allowReschedulingPastBookings: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
 };

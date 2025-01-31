@@ -131,7 +131,7 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
         await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
@@ -266,7 +266,7 @@ test.describe("Booking limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
         await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 5000 });
       });
@@ -357,7 +357,7 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
         await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
@@ -452,7 +452,7 @@ test.describe("Duration limits", () => {
 
         // try to book directly via form page
         await page.goto(slotUrl);
-        await bookTimeSlot(page);
+        await bookTimeSlot(page, { expectedStatusCode: 401 });
 
         await expect(page.getByTestId("booking-fail")).toBeVisible({ timeout: 1000 });
       });
