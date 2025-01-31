@@ -75,32 +75,24 @@ type AddonProps = {
   error?: boolean;
   onClickAddon?: () => void;
   size?: "sm" | "md";
+  position?: "start" | "end";
 };
 
-const Addon = ({ children, className, error, onClickAddon, size = "md" }: AddonProps) => (
+const Addon = ({ children, className, error, onClickAddon, size = "md", position = "start" }: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 px-3 transition",
-      onClickAddon && "cursor-pointer disabled:hover:cursor-not-allowed",
+      "flex items-center justify-center",
+      onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
-    <div
+    <span
       className={classNames(
-        "min-h-9 flex flex-col justify-center text-sm leading-7",
-        error ? "text-error" : "text-default"
+        "text-sm font-medium leading-none",
+        error ? "text-error" : "text-muted peer-disabled:opacity-50"
       )}>
-      <span
-        className="flex max-w-2xl overflow-y-auto whitespace-nowrap"
-        style={{
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "none",
-          overflow: "-ms-scroll-chaining",
-          msOverflowStyle: "-ms-autohiding-scrollbar",
-        }}>
-        {children}
-      </span>
-    </div>
+      {children}
+    </span>
   </div>
 );
 
@@ -158,28 +150,26 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div
           dir="ltr"
-          className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2 ">
+          className={classNames(
+            inputStyles({ size }),
+            "group relative mb-1 flex items-center gap-1",
+            inputIsFullWidth && "w-full"
+          )}>
           {addOnLeading && (
-            <Addon
-              size={size ?? "md"}
-              className={classNames("ltr:rounded-l-lg rtl:rounded-r-lg", addOnClassname)}>
+            <Addon size={size ?? "md"} position="start" className={classNames(addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
-          <Input
+          <input
             data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}
-            isFullWidth={inputIsFullWidth}
-            size={size}
             className={classNames(
-              className,
-              "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed",
-              addOnLeading && "rounded-l-none border-l-0",
-              addOnSuffix && "rounded-r-none border-r-0",
-              type === "search" && "pr-8",
-              "!my-0 !ring-0"
+              "w-full border-0 bg-transparent focus:outline-none focus:ring-0",
+              "text-default text-sm font-medium leading-none",
+              "placeholder:text-muted",
+              className
             )}
             {...passThrough}
             {...(type == "search" && {
@@ -195,8 +185,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           {addOnSuffix && (
             <Addon
               size={size ?? "md"}
+              position="end"
               onClickAddon={onClickAddon}
-              className={classNames("ltr:rounded-r-lg rtl:rounded-l-lg", addOnClassname)}>
+              className={classNames(addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}

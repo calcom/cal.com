@@ -69,18 +69,12 @@ export default function TextFieldDemo() {
                 <InputField
                   label={`Leading Add-on (${size})`}
                   placeholder="Enter username"
-                  addOnLeading="@"
+                  addOnLeading={<Icon name="user" className="text-subtle h-4 w-4" />}
                   size={size}
                 />
-                <InputField
-                  label={`Suffix Add-on (${size})`}
-                  placeholder="Enter domain"
-                  addOnSuffix=".com"
-                  size={size}
-                />
+                <InputField label={`Suffix Add-on (${size})`} addOnSuffix=".com" size={size} />
                 <InputField
                   label={`Both Add-ons (${size})`}
-                  placeholder="Enter subdomain"
                   addOnLeading="https://"
                   addOnSuffix=".cal.com"
                   size={size}
