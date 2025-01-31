@@ -75,14 +75,9 @@ export class EventTypesController_2024_04_15 {
   @UseGuards(ApiAuthGuard)
   async getEventType(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @GetUser() user: UserWithProfile,
-    @Query("limitHostsToThree", ParseBoolPipe) limitHostsToThree: boolean
+    @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput> {
-    const eventType = await this.eventTypesService.getUserEventTypeForAtom(
-      user,
-      Number(eventTypeId),
-      limitHostsToThree
-    );
+    const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);

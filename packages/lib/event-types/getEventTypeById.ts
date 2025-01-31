@@ -37,7 +37,6 @@ export const getEventTypeById = async ({
   prisma,
   isTrpcCall = false,
   isUserOrganizationAdmin,
-  limitHostsToThree = false,
 }: getEventTypeByIdProps) => {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     name: true,
@@ -49,7 +48,7 @@ export const getEventTypeById = async ({
     defaultScheduleId: true,
   });
 
-  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId, limitHostsToThree });
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
 
   if (!rawEventType) {
     if (isTrpcCall) {
