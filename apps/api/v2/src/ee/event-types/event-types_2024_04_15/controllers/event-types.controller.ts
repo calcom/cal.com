@@ -35,6 +35,7 @@ import {
   Query,
   InternalServerErrorException,
   ParseIntPipe,
+  ParseBoolPipe,
 } from "@nestjs/common";
 import { ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 
@@ -74,9 +75,14 @@ export class EventTypesController_2024_04_15 {
   @UseGuards(ApiAuthGuard)
   async getEventType(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: UserWithProfile,
+    @Query("limitHostsToThree", ParseBoolPipe) limitHostsToThree: boolean
   ): Promise<GetEventTypeOutput> {
-    const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
+    const eventType = await this.eventTypesService.getUserEventTypeForAtom(
+      user,
+      Number(eventTypeId),
+      limitHostsToThree
+    );
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);

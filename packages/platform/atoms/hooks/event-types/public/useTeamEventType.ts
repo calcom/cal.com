@@ -9,13 +9,13 @@ import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-type";
 
-export const useTeamEventType = (teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
+export const useTeamEventType = (teamId: number | undefined, eventSlug: string, isTeamEvent: boolean | undefined, limitHostsToThree = false) => {
   const { organizationId } = useAtomsContext();
 
 
   const requestEventSlug =  eventSlug;
 
-  const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
+  const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}&limitHostsToThree=${limitHostsToThree}`;
 
   const event = useQuery({
     queryKey: [QUERY_KEY, eventSlug, organizationId, teamId],

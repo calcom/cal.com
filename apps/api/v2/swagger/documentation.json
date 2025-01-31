@@ -1251,6 +1251,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "limitHostsToThree",
+            "required": false,
+            "in": "query",
+            "description": "If enabled, the response will be restricted to a maximum of three hosts, primarily to enhance performance.",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -5888,6 +5897,15 @@
             "description": "Slug of team event type to return.",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "limitHostsToThree",
+            "required": false,
+            "in": "query",
+            "description": "If enabled, the response will be restricted to a maximum of three hosts, primarily to enhance performance.",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],

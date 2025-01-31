@@ -16,7 +16,7 @@ export class TeamsEventTypesRepository {
     });
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string, limitHostsToThree?: boolean) {
     return this.dbRead.prisma.eventType.findUnique({
       where: {
         teamId_slug: {
@@ -27,7 +27,19 @@ export class TeamsEventTypesRepository {
       include: {
         users: true,
         schedule: true,
-        hosts: true,
+
+        hosts: limitHostsToThree
+          ? {
+              select: {
+                isFixed: true,
+                userId: true,
+                priority: true,
+                weight: true,
+                scheduleId: true,
+              },
+              take: 3,
+            }
+          : true,
         destinationCalendar: true,
         team: {
           select: {

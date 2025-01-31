@@ -75,8 +75,16 @@ export class TeamsEventTypesService {
     return eventType;
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string): Promise<DatabaseTeamEventType | null> {
-    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug);
+  async getTeamEventTypeBySlug(
+    teamId: number,
+    eventTypeSlug: string,
+    limitHostsToThree?: boolean
+  ): Promise<DatabaseTeamEventType | null> {
+    const eventType = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(
+      teamId,
+      eventTypeSlug,
+      limitHostsToThree
+    );
 
     if (!eventType) {
       return null;

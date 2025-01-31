@@ -82,7 +82,7 @@ export class EventTypesService_2024_04_15 {
     return eventType;
   }
 
-  async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
+  async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number, limitHostsToThree?: boolean) {
     const organizationId = this.usersService.getUserMainOrgId(user);
 
     const isUserOrganizationAdmin = organizationId
@@ -92,7 +92,8 @@ export class EventTypesService_2024_04_15 {
     const eventType = await this.eventTypesRepository.getUserEventTypeForAtom(
       user,
       isUserOrganizationAdmin,
-      eventTypeId
+      eventTypeId,
+      limitHostsToThree
     );
 
     if (!eventType) {

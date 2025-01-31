@@ -149,10 +149,15 @@ export class OrganizationsEventTypesController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
-    const { eventSlug } = queryParams;
+    const { eventSlug, limitHostsToThree } = queryParams;
+    console.log("limitHostsToThree: ", limitHostsToThree);
 
     if (eventSlug) {
-      const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+      const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(
+        teamId,
+        eventSlug,
+        limitHostsToThree
+      );
 
       return {
         status: SUCCESS_STATUS,

@@ -11,7 +11,7 @@ import http from "../../../lib/http";
 export const QUERY_KEY = "use-event-type";
 export type UsePublicEventReturnType = ReturnType<typeof useEventType>;
 
-export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined) => {
+export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined, limitHostsToThree =  false) => {
 
 
   const requestUsername =  username;
@@ -31,7 +31,7 @@ export const useEventType = (username: string, eventSlug: string, isTeamEvent: b
       if (isDynamic) {
         return http
           .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
-            `/${V2_ENDPOINTS.eventTypes}?usernames=${encodeURIComponent(getUsernameList(username).join(","))}`
+            `/${V2_ENDPOINTS.eventTypes}?usernames=${encodeURIComponent(getUsernameList(username).join(","))}&limitHostsToThree=${limitHostsToThree}`
           )
           .then((res) => {
             if (res.data.status === SUCCESS_STATUS) {
@@ -43,7 +43,7 @@ export const useEventType = (username: string, eventSlug: string, isTeamEvent: b
 
       return http
         .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
-          `/${V2_ENDPOINTS.eventTypes}?username=${requestUsername}&eventSlug=${requestEventSlug}`
+          `/${V2_ENDPOINTS.eventTypes}?username=${requestUsername}&eventSlug=${requestEventSlug}&limitHostsToThree=${limitHostsToThree}`
         )
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {

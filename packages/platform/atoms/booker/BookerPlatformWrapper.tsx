@@ -145,13 +145,18 @@ export const BookerPlatformWrapper = (
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug, props.isTeamEvent);
+  const { isSuccess, isError, isPending, data } = useEventType(
+    username,
+    props.eventSlug,
+    props.isTeamEvent,
+    true
+  );
   const {
     isSuccess: isTeamSuccess,
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, true);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
@@ -161,7 +166,12 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
+            ? transformApiTeamEventTypeForAtom(
+                teamEventTypeData[0],
+                props.entity,
+                props.defaultFormValues,
+                true
+              )
             : undefined,
       };
     }
@@ -172,7 +182,7 @@ export const BookerPlatformWrapper = (
       isPending,
       data:
         data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, true)
           : undefined,
     };
   }, [

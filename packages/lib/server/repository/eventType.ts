@@ -441,7 +441,15 @@ export class EventTypeRepository {
     });
   }
 
-  static async findById({ id, userId }: { id: number; userId: number }) {
+  static async findById({
+    id,
+    userId,
+    limitHostsToThree = false,
+  }: {
+    id: number;
+    userId: number;
+    limitHostsToThree?: boolean;
+  }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
       avatarUrl: true,
@@ -581,6 +589,7 @@ export class EventTypeRepository {
           weight: true,
           scheduleId: true,
         },
+        ...(limitHostsToThree ? { take: 3 } : {}),
       },
       userId: true,
       price: true,

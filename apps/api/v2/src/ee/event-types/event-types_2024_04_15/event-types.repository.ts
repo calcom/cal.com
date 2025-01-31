@@ -48,7 +48,8 @@ export class EventTypesRepository_2024_04_15 {
   async getUserEventTypeForAtom(
     user: UserWithProfile,
     isUserOrganizationAdmin: boolean,
-    eventTypeId: number
+    eventTypeId: number,
+    limitHostsToThree?: boolean
   ) {
     return await getEventTypeById({
       currentOrganizationId: this.usersService.getUserMainOrgId(user),
@@ -57,6 +58,7 @@ export class EventTypesRepository_2024_04_15 {
       prisma: this.dbRead.prisma as unknown as PrismaClient,
       isUserOrganizationAdmin,
       isTrpcCall: true,
+      limitHostsToThree,
     });
   }
 
