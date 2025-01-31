@@ -144,12 +144,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-    const subjectTemplate = emailReminderTemplate(
-      true,
-      i18n.language,
-      form.getValues(`steps.${step.stepNumber - 1}.action`),
-      timeFormat
-    ).emailSubject;
+    const subjectTemplate = emailReminderTemplate({
+      isEditingMode: true,
+      locale: i18n.language,
+      action: form.getValues(`steps.${step.stepNumber - 1}.action`),
+      timeFormat,
+    }).emailSubject;
     form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
   }
 

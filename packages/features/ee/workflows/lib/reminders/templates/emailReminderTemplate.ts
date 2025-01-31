@@ -4,21 +4,36 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-const emailReminderTemplate = (
-  isEditingMode: boolean,
-  locale: string,
-  action?: WorkflowActions,
-  timeFormat?: TimeFormat,
-  startTime?: string,
-  endTime?: string,
-  eventName?: string,
-  timeZone?: string,
-  location?: string,
-  meetingUrl?: string,
-  otherPerson?: string,
-  name?: string,
-  isBrandingDisabled?: boolean
-) => {
+const emailReminderTemplate = ({
+  isEditingMode,
+  locale,
+  action,
+  timeFormat,
+  startTime,
+  endTime,
+  eventName,
+  timeZone,
+  location,
+  meetingUrl,
+  otherPerson,
+  name,
+  isBrandingDisabled,
+}: {
+  isEditingMode: boolean;
+  locale: string;
+  action?: WorkflowActions;
+  timeFormat?: TimeFormat;
+  startTime?: string;
+  endTime?: string;
+  eventName?: string;
+  timeZone?: string;
+  location?: string;
+  meetingUrl?: string;
+  otherPerson?: string;
+  name?: string;
+  isBrandingDisabled?: boolean;
+}) => {
+  console.log("🚀 ~ isEditingMode:", isEditingMode);
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 

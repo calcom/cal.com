@@ -132,5 +132,5 @@ export function getTemplateForAction({
 
   // If not a whatsapp action then it's an email action
   const templateFunction = getEmailTemplateFunction(template);
-  return templateFunction(true, locale, action, timeFormat).emailBody;
+  return templateFunction({ isEditingMode: true, locale, action, timeFormat }).emailBody;
 }
