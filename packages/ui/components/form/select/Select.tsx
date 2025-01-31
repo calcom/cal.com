@@ -44,6 +44,8 @@ export const Select = <
     });
   }, [components, menuPlacement]);
 
+  const hasMultiLastIcons = props.isMulti || props.isLoading || props.isClearable;
+
   // Annoyingly if we update styles here we have to update timezone select too
   // We cant create a generate function for this as we can't force state changes - onSelect styles dont change for example
   return (
@@ -98,7 +100,7 @@ export const Select = <
         indicatorsContainer: (state) =>
           cx(
             state.selectProps.menuIsOpen
-              ? state.isMulti || props.isLoading
+              ? hasMultiLastIcons
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
                 : "rotate-180 transition-transform"
               : "text-default" // Woo it adds another SVG here on multi for some reason
