@@ -64,7 +64,7 @@ export const BookerEmbed = (
     );
   }
 
-  // If Not For From Routing Form, Use Props
+  // If Not For From Routing, Use Props
   if (props?.routingFormUrl === undefined) {
     return (
       <CalProvider
