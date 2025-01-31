@@ -118,7 +118,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
               {...(isTeamEvent
                 ? { isTeamEvent: true, teamId: teams?.[0]?.id || 0 }
                 : { username: props.calUsername })}
-              hostLimit={3}
+              hostsLimit={3}
             />
           </>
         )}
@@ -133,7 +133,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
             }}
             duration={eventTypeDuration}
             bannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
-            hostLimit={3}
+            hostsLimit={3}
           />
         )}
         {bookingTitle && <p>Booking created: {bookingTitle}</p>}
