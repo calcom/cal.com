@@ -128,6 +128,16 @@ const sections: Section[] = [
       { id: "tooltip-content", title: "Content" },
     ],
   },
+  {
+    id: "range-slider",
+    title: "Range Slider",
+    subsections: [
+      { id: "slider-basic", title: "Basic" },
+      { id: "slider-range", title: "Range" },
+      { id: "slider-stepped", title: "Stepped" },
+      { id: "slider-disabled", title: "Disabled" },
+    ],
+  },
 ];
 
 const STORAGE_KEY = "ui-playground-toc-state";

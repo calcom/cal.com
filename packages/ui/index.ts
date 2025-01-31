@@ -64,6 +64,8 @@ export type {
   TimezoneSelectProps,
   TimezoneSelectComponentProps,
 } from "./components/form";
+export { Slider as RangeSlider } from "./components/form/slider";
+
 export {
   AllApps,
   AppCard,
