@@ -364,8 +364,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     }
   );
 
-  // should I always make sure here to get availability of today + 14 days?
-  // TODO
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
@@ -379,8 +377,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       shouldServeCache,
     });
 
-  // Fairness and Contact Owner disqualification reasons need Availability within 2 weeks
-  // if not, we attempt to re-open.
+  // TODO
+  // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
   if (fallbackHosts && fallbackHosts.length > 0) {
     const twoWeeksFromNow = dayjs().add(2, "week");
     // there are fallback hosts, so check availability
@@ -388,18 +386,23 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       aggregatedAvailability.length > 0 ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day") : 1; // no aggregatedAvailability so we diff to +1
     if (diff > 0) {
       // if the first available slot is more than 2 weeks from now, round robin as normal
-      ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-        await calculateHostsAndAvailabilities({
-          input,
-          eventType,
-          hosts: fallbackHosts,
-          contactOwnerEmail,
-          loggerWithEventDetails,
-          startTime,
-          endTime,
-          bypassBusyCalendarTimes,
-          shouldServeCache,
-        }));
+      const fallbackAvailabilities = await calculateHostsAndAvailabilities({
+        input,
+        eventType,
+        hosts: fallbackHosts,
+        contactOwnerEmail,
+        loggerWithEventDetails,
+        startTime,
+        endTime,
+        bypassBusyCalendarTimes,
+        shouldServeCache,
+      });
+
+      // Merge qualified availability with fallback availabilities
+      aggregatedAvailability = [...aggregatedAvailability, ...fallbackAvailabilities.aggregatedAvailability];
+      allUsersAvailability = { ...allUsersAvailability, ...fallbackAvailabilities.allUsersAvailability };
+      usersWithCredentials = [...usersWithCredentials, ...fallbackAvailabilities.usersWithCredentials];
+      currentSeats = [...(currentSeats || []), ...(fallbackAvailabilities.currentSeats || [])];
     }
   }
 
