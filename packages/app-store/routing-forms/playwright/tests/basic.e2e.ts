@@ -706,39 +706,21 @@ async function addAllTypesOfFieldsAndSaveForm(
 
   const fields = [];
   for (let index = 0; index < fieldTypesList.length; index++) {
-    const fieldTypeLabel = fieldTypesList[index];
-    const nth = index;
+    await page.click('[data-testid="add-field"]');
+    await page.getByRole("dialog").waitFor({ state: "visible" });
+
+    const fieldTypeLabel = fieldTypesList[index].toLowerCase();
     const label = `${form.label} ${fieldTypeLabel}`;
-    let identifier = "";
+    const identifier = label;
 
-    if (index !== 0) {
-      identifier = label;
-      // Click on the field type dropdown.
-      await page.locator(".data-testid-field-type").nth(nth).click();
-      // Click on the dropdown option.
-      await page.locator(`[data-testid^="select-option-"]`).filter({ hasText: fieldTypeLabel }).click();
-    } else {
-      // Set the identifier manually for the first field to test out a case when identifier isn't computed from label automatically
-      // First field type is by default selected. So, no need to choose from dropdown
-      identifier = "firstField";
-    }
+    // Click on the field type dropdown.
+    await page.locator(".data-testid-field-type").click();
+    // Click on the dropdown option.
+    await page.locator(`[data-testid="select-option-${fieldTypeLabel}"]`).press("Enter");
+    await page.getByTestId("dialog-creation").locator('[name="label"]').fill(label);
+    await page.getByTestId("dialog-creation").locator('[name="name"]').fill(identifier);
 
-    if (fieldTypeLabel === "Multiple Selection" || fieldTypeLabel === "Single Selection") {
-      await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
-      await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
-      await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");
-      await page.fill(`[data-testid="fields.${nth}.options.3-input"]`, "10-11-12");
-    }
-
-    await page.fill(`[name="fields.${nth}.label"]`, label);
-
-    if (identifier !== label) {
-      await page.fill(`[name="fields.${nth}.identifier"]`, identifier);
-    }
-
-    if (index !== fieldTypesList.length - 1) {
-      await page.click('[data-testid="add-field"]');
-    }
+    await page.click('[data-testid="field-add-save"]');
     fields.push({ identifier: identifier, label, type: fieldTypeLabel });
   }
 
