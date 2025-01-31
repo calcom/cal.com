@@ -46,6 +46,7 @@ export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
   showTimeFormatToggle?: boolean;
   className?: string;
+  // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
   onTentativeTimeSelect?: TOnTentativeTimeSelect;
   unavailableTimeSlots?: string[];
 } & Omit<SlotItemProps, "slot">;
@@ -147,8 +148,11 @@ const SlotItem = ({
     slot.bookingUid,
     seatsPerTimeSlot,
     skipConfirmStep,
+    onTentativeTimeSelect,
   ]);
+
   const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
+
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -162,7 +166,7 @@ const SlotItem = ({
             isVerificationCodeSending ||
             loadingStates?.creatingInstantBooking ||
             (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken) ||
-            unavailableTimeSlots.includes(slot.time)
+            isTimeslotUnavailable
           }
           data-testid="time"
           data-disabled={bookingFull}
@@ -226,13 +230,11 @@ const SlotItem = ({
                       isVerificationCodeSending ||
                       loadingStates?.creatingInstantBooking
                     }>
-                    {isTimeslotUnavailable
-                      ? t("timeslot_unavailable_short")
-                      : renderConfirmNotVerifyEmailButtonCond
-                      ? isPaidEvent
-                        ? t("pay_and_book")
-                        : t("confirm")
-                      : t("verify_email_email_button")}
+                    {(() => {
+                      if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
+                      if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_email_button");
+                      return isPaidEvent ? t("pay_and_book") : t("confirm");
+                    })()}
                   </Button>
                 ) : (
                   <Button

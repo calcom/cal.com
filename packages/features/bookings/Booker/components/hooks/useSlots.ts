@@ -12,13 +12,64 @@ import {
 } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
+export type SlotQuickCheckStatus = "available" | "reserved";
+
+export type QuickAvailabilityCheck = {
+  utcStartIso: string;
+  utcEndIso: string;
+  status: SlotQuickCheckStatus;
+};
+
+const useQuickAvailabilityChecks = ({
+  eventTypeId,
+  eventDuration,
+  timeslotsAsISOString,
+}: {
+  eventTypeId: number | undefined;
+  eventDuration: number;
+  timeslotsAsISOString: string[];
+}) => {
+  // Maintain a cache to ensure previous state is maintained as the request is fetched
+  // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
+  const cachedQuickAvailabilityChecksRef = useRef<QuickAvailabilityCheck[]>([]);
+
+  // Create array of slots with their UTC start and end dates
+  const slotsToCheck = timeslotsAsISOString.map((slot) => {
+    const slotDayjs = dayjs(slot);
+    return {
+      utcStartIso: slotDayjs.utc().toISOString(),
+      utcEndIso: slotDayjs.add(eventDuration, "minutes").utc().toISOString(),
+    };
+  });
+
+  const isAvailableQuery = trpc.viewer.slots.isAvailable.useQuery(
+    {
+      slots: slotsToCheck,
+      // enabled flag can't be true if eventTypeId is nullish
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      eventTypeId: eventTypeId!,
+    },
+    {
+      refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
+      refetchOnWindowFocus: true,
+      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0),
+      staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
+    }
+  );
+
+  const quickAvailabilityChecks = isAvailableQuery.data?.slots;
+  if (quickAvailabilityChecks && quickAvailabilityChecks.length > 0) {
+    cachedQuickAvailabilityChecksRef.current = quickAvailabilityChecks;
+  }
+
+  return quickAvailabilityChecks || cachedQuickAvailabilityChecksRef.current;
+};
+
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const cachedAvailabilityStatusesRef = useRef<
-    { slotUtcStartDate: string; slotUtcEndDate: string; status: "available" | "reserved" }[]
-  >([]);
+
   const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
     useBookerStore(
       (state) => [
@@ -51,47 +102,28 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
   };
 
   const eventTypeId = event.data?.id;
-  const eventDuration = selectedDuration || event.data?.length;
-  const allTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
+  const eventDuration = selectedDuration || event.data?.length || 0;
+  const allSelectedTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
     (slot): slot is string => slot !== null
   );
-  const allUniqueTimeslots = Array.from(new Set(allTimeslots));
 
-  // Create array of slots with their UTC start and end dates
-  const slotsToCheck = allUniqueTimeslots.map((slot) => ({
-    slotUtcStartDate: dayjs(slot).utc().toISOString(),
-    slotUtcEndDate: dayjs(slot)
-      .add(eventDuration || 0, "minutes")
-      .utc()
-      .toISOString(),
-  }));
+  const allUniqueSelectedTimeslots = Array.from(new Set(allSelectedTimeslots));
 
-  const isAvailableQuery = trpc.viewer.slots.isAvailable.useQuery(
-    {
-      slots: slotsToCheck,
-      // enabled flag can't be true if eventTypeId is nullish
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      eventTypeId: eventTypeId!,
-    },
-    {
-      refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
-      refetchOnWindowFocus: true,
-      enabled: !!(eventTypeId && allTimeslots.length > 0 && eventDuration),
-      staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
-    }
-  );
+  const quickAvailabilityChecks = useQuickAvailabilityChecks({
+    eventTypeId,
+    eventDuration,
+    timeslotsAsISOString: allUniqueSelectedTimeslots,
+  });
 
-  const availabilityStatuses = isAvailableQuery.data?.slots;
-  if (availabilityStatuses && availabilityStatuses.length > 0) {
-    cachedAvailabilityStatusesRef.current = availabilityStatuses;
-  }
+  // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
+  const timeSlotToBeBooked = selectedTimeslot ?? allSelectedTimeslots.at(-1);
 
   const handleReserveSlot = () => {
-    if (eventTypeId && selectedTimeslot && eventDuration) {
+    if (eventTypeId && timeSlotToBeBooked && eventDuration) {
       reserveSlotMutation.mutate({
-        slotUtcStartDate: dayjs(selectedTimeslot).utc().toISOString(),
+        slotUtcStartDate: dayjs(timeSlotToBeBooked).utc().toISOString(),
         eventTypeId,
-        slotUtcEndDate: dayjs(selectedTimeslot).utc().add(eventDuration, "minutes").toISOString(),
+        slotUtcEndDate: dayjs(timeSlotToBeBooked).utc().add(eventDuration, "minutes").toISOString(),
       });
     }
   };
@@ -108,7 +140,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.data?.id, selectedTimeslot]);
+  }, [event?.data?.id, timeSlotToBeBooked]);
 
   return {
     setSelectedTimeslot,
@@ -116,6 +148,10 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     selectedTimeslot,
     tentativeSelectedTimeslots,
     slotReservationId,
-    availabilityStatuses: availabilityStatuses || cachedAvailabilityStatusesRef.current,
+    allSelectedTimeslots,
+    /**
+     * Faster but not that accurate as getSchedule, but doesn't give false positive, so it is usable
+     */
+    quickAvailabilityChecks,
   };
 };

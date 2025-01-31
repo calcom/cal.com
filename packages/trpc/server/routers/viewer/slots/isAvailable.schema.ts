@@ -3,8 +3,8 @@ import { z } from "zod";
 export const ZIsReservedInputSchema = z.object({
   slots: z.array(
     z.object({
-      slotUtcStartDate: z.string(),
-      slotUtcEndDate: z.string(),
+      utcStartIso: z.string(),
+      utcEndIso: z.string(),
     })
   ),
   eventTypeId: z.number().int(),

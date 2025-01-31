@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -55,14 +56,13 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
   }
 
   // Check for existing reservations for the same slot
-  const reservedBySomeoneElse = await prisma.selectedSlots.findFirst({
-    where: {
-      slotUtcStartDate,
-      slotUtcEndDate,
-      eventTypeId,
-      uid: { not: uid }, // Exclude current user's reservation
-      releaseAt: { gt: new Date() }, // Only consider non-expired reservations
+  const reservedBySomeoneElse = await SelectedSlotsRepository.findReservedByOthers({
+    slot: {
+      utcStartIso: slotUtcStartDate,
+      utcEndIso: slotUtcEndDate,
     },
+    eventTypeId,
+    uid,
   });
 
   if (eventType && shouldReserveSlot && !reservedBySomeoneElse) {
