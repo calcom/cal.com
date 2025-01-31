@@ -581,7 +581,7 @@ export function RoutingFormResponsesTable() {
           isFetching={isFetching}
           ToolbarLeft={
             <>
-              <OrgTeamsFilter />
+              <OrgTeamsFilter showOrg={false} />
               <DataTableFilters.AddFilterButton table={table} />
               <DataTableFilters.ActiveFilters table={table} />
               <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />

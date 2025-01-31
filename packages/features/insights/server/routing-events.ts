@@ -69,6 +69,8 @@ class RoutingEventsInsights {
       teamIds = [teamId];
     }
 
+    // TODO: filter teamIds that this user can access!!!
+
     // Base where condition for forms
     const formsWhereCondition: WhereForTeamOrAllTeams = {
       ...(teamIds.length > 0

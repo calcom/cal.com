@@ -16,7 +16,7 @@ export type OrgTeamsType = "org" | "team" | "yours";
 
 // This is a clone of TeamAndSelfList, but without useFilterContext().
 // It's meant to be used in the RoutingFormResponsesTable.
-export const OrgTeamsFilter = () => {
+export const OrgTeamsFilter = ({ showOrg }: { showOrg: boolean }) => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
   const session = useSession();
@@ -60,8 +60,16 @@ export const OrgTeamsFilter = () => {
     return { text: t("select"), imageUrl: undefined };
   };
 
+  const resetSelection = () => {
+    if (isOrgDataAvailable) {
+      onSelected({ type: "org", teamId: currentOrgId });
+    } else {
+      onSelected({ type: "yours", teamId: undefined });
+    }
+  };
+
   const { text, placeholder, imageUrl } = getPopoverProps();
-  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
+  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg && data[0].id === currentOrgId;
 
   const PrefixComponent =
     orgTeamsType !== undefined && (imageUrl || placeholder) ? (
@@ -89,7 +97,11 @@ export const OrgTeamsFilter = () => {
             icon={<Icon name="layers" className="h-4 w-4" />}
             checked={orgTeamsType === "org"}
             onChange={(e) => {
-              onSelected({ type: "org", teamId: undefined });
+              if (e.target.checked) {
+                onSelected({ type: "org", teamId: currentOrgId });
+              } else {
+                resetSelection();
+              }
             }}
             label={t("all")}
           />
@@ -109,15 +121,15 @@ export const OrgTeamsFilter = () => {
             if (e.target.checked) {
               onSelected({ type: "yours", teamId: undefined });
             } else if (!e.target.checked) {
-              onSelected({ type: currentOrgId ? "org" : "yours", teamId: undefined });
+              resetSelection();
             }
           }}
           label={t("yours")}
         />
 
         <Divider />
-        {data
-          ?.filter((team) => !team.isOrg)
+        {(data || [])
+          .filter((team) => !team.isOrg)
           .filter((team) => team.name?.toLowerCase().includes(query.toLowerCase()))
           .map((team) => {
             return (
@@ -130,7 +142,7 @@ export const OrgTeamsFilter = () => {
                   if (e.target.checked) {
                     onSelected({ type: "team", teamId: team.id });
                   } else if (!e.target.checked) {
-                    onSelected({ type: currentOrgId ? "org" : "yours", teamId: undefined });
+                    resetSelection();
                   }
                 }}
                 icon={

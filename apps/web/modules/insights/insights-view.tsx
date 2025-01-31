@@ -1,5 +1,6 @@
 "use client";
 
+import { DataTableProvider } from "@calcom/features/data-table";
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -13,7 +14,9 @@ import {
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Filters } from "@calcom/features/insights/filters";
+import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage() {
@@ -21,38 +24,43 @@ export default function InsightsPage() {
 
   return (
     <FiltersProvider>
-      <Filters />
+      <DataTableProvider>
+        <InsightsOrgTeamsProvider>
+          <OrgTeamsFilter showOrg={true} />
+          <Filters />
 
-      <div className="mb-4 space-y-4">
-        <BookingKPICards />
+          <div className="mb-4 space-y-4">
+            <BookingKPICards />
 
-        <BookingStatusLineChart />
+            <BookingStatusLineChart />
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <PopularEventsTable />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <PopularEventsTable />
 
-          <AverageEventDurationChart />
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <MostBookedTeamMembersTable />
-          <LeastBookedTeamMembersTable />
-        </div>
-        <RecentFeedbackTable />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <HighestNoShowHostTable />
-          <HighestRatedMembersTable />
-          <LowestRatedMembersTable />
-        </div>
-        <small className="text-default block text-center">
-          {t("looking_for_more_insights")}{" "}
-          <a
-            className="text-blue-500 hover:underline"
-            href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
-            {" "}
-            {t("contact_support")}
-          </a>
-        </small>
-      </div>
+              <AverageEventDurationChart />
+            </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <MostBookedTeamMembersTable />
+              <LeastBookedTeamMembersTable />
+            </div>
+            <RecentFeedbackTable />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <HighestNoShowHostTable />
+              <HighestRatedMembersTable />
+              <LowestRatedMembersTable />
+            </div>
+            <small className="text-default block text-center">
+              {t("looking_for_more_insights")}{" "}
+              <a
+                className="text-blue-500 hover:underline"
+                href="mailto:updates@cal.com?subject=Feature%20Request%3A%20More%20Analytics&body=Hey%20Cal.com%20Team%2C%20I%20love%20the%20analytics%20page%20but%20I%20am%20looking%20for%20...">
+                {" "}
+                {t("contact_support")}
+              </a>
+            </small>
+          </div>
+        </InsightsOrgTeamsProvider>
+      </DataTableProvider>
     </FiltersProvider>
   );
 }
