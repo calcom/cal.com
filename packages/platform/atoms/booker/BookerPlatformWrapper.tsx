@@ -81,6 +81,7 @@ export type BookerPlatformWrapperAtomProps = Omit<
   metadata?: Record<string, string>;
   bannerUrl?: string;
   onDryRunSuccess?: () => void;
+  hostLimit?: number;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -151,7 +152,7 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, 3);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, props.hostLimit);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
@@ -165,7 +166,7 @@ export const BookerPlatformWrapper = (
                 teamEventTypeData[0],
                 props.entity,
                 props.defaultFormValues,
-                true
+                !!props.hostLimit
               )
             : undefined,
       };
@@ -177,7 +178,7 @@ export const BookerPlatformWrapper = (
       isPending,
       data:
         data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, true)
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, !!props.hostLimit)
           : undefined,
     };
   }, [
@@ -192,6 +193,7 @@ export const BookerPlatformWrapper = (
     isTeamPending,
     isTeamSuccess,
     isTeamError,
+    props.hostLimit,
   ]);
 
   if (isDynamic && props.duration && event.data) {

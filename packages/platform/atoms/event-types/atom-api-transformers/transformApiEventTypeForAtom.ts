@@ -38,7 +38,7 @@ export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
-  limitHostsToThree = false
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -127,7 +127,7 @@ export function transformApiEventTypeForAtom(
         },
     hosts: [],
     subsetOfHosts: [],
-    users: !limitHostsToThree ? usersTransformed : undefined,
+    users: !limitHosts ? usersTransformed : undefined,
     subsetOfUsers: usersTransformed,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
     durationLimits: bookingLimitsDuration
@@ -158,7 +158,7 @@ export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
-  limitHostsToThree = false
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -262,9 +262,9 @@ export function transformApiTeamEventTypeForAtom(
           name: team?.name,
           logoUrl: team?.logoUrl,
         },
-    hosts: !limitHostsToThree ? hostTransformed : undefined,
+    hosts: !limitHosts ? hostTransformed : undefined,
     subsetOfHosts: hostTransformed,
-    users: !limitHostsToThree ? usersTransformed : undefined,
+    users: !limitHosts ? usersTransformed : undefined,
     subsetOfUsers: usersTransformed,
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
