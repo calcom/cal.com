@@ -75,7 +75,7 @@ describe("Teams endpoint", () => {
   describe("User has membership in created team", () => {
     it("should create a team", async () => {
       const body: CreateTeamInput = {
-        name: "Team dog",
+        name: `teams-dog-${randomNumber()}`,
       };
 
       return request(app.getHttpServer())
@@ -96,7 +96,7 @@ describe("Teams endpoint", () => {
 
     it("should create a team", async () => {
       const body: CreateTeamInput = {
-        name: "Team cats",
+        name: `teams-cats-${randomNumber()}`,
       };
 
       return request(app.getHttpServer())
@@ -148,7 +148,7 @@ describe("Teams endpoint", () => {
 
     it("should update a team", async () => {
       const body: UpdateTeamDto = {
-        name: "Team dogs shepherds",
+        name: `teams-dogs-shepherds-${randomNumber()}`,
       };
 
       return request(app.getHttpServer())

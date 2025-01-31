@@ -15,6 +15,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -29,7 +30,7 @@ describe("Me Endpoints", () => {
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
-    const userEmail = "me-controller-e2e@api.com";
+    const userEmail = `me-controller-user-${randomNumber()}@api.com`;
     let user: User;
     let org: Team;
 
@@ -58,7 +59,7 @@ describe("Me Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org team",
+        name: `me-controller-organization-${randomNumber()}`,
         isOrganization: true,
         isPlatform: true,
       });

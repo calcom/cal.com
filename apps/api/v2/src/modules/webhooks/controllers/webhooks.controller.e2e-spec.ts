@@ -15,13 +15,14 @@ import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
+import { randomNumber } from "test/utils/randomNumber";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Webhook } from "@calcom/prisma/client";
 
 describe("WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = "webhook-controller-e2e@api.com";
+  const userEmail = `webhooks-controller-user-${randomNumber()}@api.com`;
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
 
@@ -47,8 +48,8 @@ describe("WebhooksController (e2e)", () => {
     });
 
     otherUser = await userRepositoryFixture.create({
-      email: "other-user-webhook-controller@api.com",
-      username: "other-user-webhook-controller@api.com",
+      email: `webhooks-controller-other-user-${randomNumber()}@api.com`,
+      username: `webhooks-controller-other-user-${randomNumber()}@api.com`,
     });
 
     otherWebhook = await webhookRepositoryFixture.create({

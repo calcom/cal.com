@@ -37,7 +37,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `variable-length-bookings-2024-08-13-user-${randomNumber()}@api.com`;
     let user: User;
 
     let variableLengthEventType: EventType;
@@ -65,7 +65,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `variable-length-bookings-2024-08-13-organization-${randomNumber()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
