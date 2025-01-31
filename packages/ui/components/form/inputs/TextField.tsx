@@ -71,18 +71,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 type AddonProps = {
   children: React.ReactNode;
-  isFilled?: boolean;
   className?: string;
   error?: boolean;
   onClickAddon?: () => void;
+  size?: "sm" | "md";
 };
 
-const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProps) => (
+const Addon = ({ children, className, error, onClickAddon, size = "md" }: AddonProps) => (
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3 transition",
-      isFilled && "bg-subtle",
+      "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 px-3 transition",
       onClickAddon && "cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
@@ -120,7 +119,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     className,
     addOnLeading,
     addOnSuffix,
-    addOnFilled = true,
     addOnClassname,
     inputIsFullWidth,
     hint,
@@ -160,16 +158,16 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div
           dir="ltr"
-          className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
+          className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2 ">
           {addOnLeading && (
             <Addon
-              isFilled={addOnFilled}
-              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
+              size={size ?? "md"}
+              className={classNames("ltr:rounded-l-lg rtl:rounded-r-lg", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
           <Input
-            data-testid={`${dataTestid}-input` ?? "input-field"}
+            data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}
@@ -196,9 +194,9 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           />
           {addOnSuffix && (
             <Addon
+              size={size ?? "md"}
               onClickAddon={onClickAddon}
-              isFilled={addOnFilled}
-              className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
+              className={classNames("ltr:rounded-r-lg rtl:rounded-l-lg", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}

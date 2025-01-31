@@ -10,7 +10,6 @@ export type InputFieldProps = {
   addOnLeading?: React.ReactNode;
   addOnSuffix?: React.ReactNode;
   inputIsFullWidth?: boolean;
-  addOnFilled?: boolean;
   addOnClassname?: string;
   error?: string;
   labelSrOnly?: boolean;

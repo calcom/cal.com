@@ -70,14 +70,12 @@ export default function TextFieldDemo() {
                   label={`Leading Add-on (${size})`}
                   placeholder="Enter username"
                   addOnLeading="@"
-                  addOnFilled
                   size={size}
                 />
                 <InputField
                   label={`Suffix Add-on (${size})`}
                   placeholder="Enter domain"
                   addOnSuffix=".com"
-                  addOnFilled
                   size={size}
                 />
                 <InputField
@@ -85,7 +83,6 @@ export default function TextFieldDemo() {
                   placeholder="Enter subdomain"
                   addOnLeading="https://"
                   addOnSuffix=".cal.com"
-                  addOnFilled
                   size={size}
                 />
                 <InputField
