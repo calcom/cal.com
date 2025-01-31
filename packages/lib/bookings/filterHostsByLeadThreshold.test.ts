@@ -2,6 +2,7 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 
 import prisma from "@calcom/prisma";
 
+import { getOrderedListOfLuckyUsers } from "../server/getLuckyUser";
 import { filterHostsByLeadThreshold, errorCodes } from "./filterHostsByLeadThreshold";
 
 // Import the original Prisma client
@@ -15,6 +16,10 @@ const prismaMock = {
 
 // Use `vi.spyOn` to make `prisma.booking.groupBy` call the mock instead
 vi.spyOn(prisma.booking, "groupBy").mockImplementation(prismaMock.booking.groupBy);
+
+vi.mock("../server/getLuckyUser", () => ({
+  getOrderedListOfLuckyUsers: vi.fn(),
+}));
 
 afterEach(() => {
   // Clear call history before each test to avoid cross-test interference
@@ -46,9 +51,11 @@ describe("filterHostByLeadThreshold", () => {
             parentId: null,
           },
         },
+        routingFormResponse: null,
       })
     ).resolves.toStrictEqual(hosts);
   });
+
   it("throws error when maxLeadThreshold = 0, 0 ahead makes no sense.", async () => {
     expect(
       filterHostsByLeadThreshold({
@@ -61,37 +68,116 @@ describe("filterHostByLeadThreshold", () => {
             parentId: null,
           },
         },
+        routingFormResponse: null,
       })
     ).rejects.toThrow(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
   });
 
-  it.skip("correctly disqualifies a host when the lead offset is exceeding the threshold", async () => {
-    prismaMock.booking.groupBy.mockResolvedValue([
-      { userId: 1, _count: { _all: 5 } },
-      { userId: 2, _count: { _all: 10 } },
-    ]);
+  it("correctly disqualifies a host when the lead offset is exceeding the threshold without weights", async () => {
     const hosts = [
-      { isFixed: false as const, createdAt: new Date(), user: { id: 1, email: "example1@acme.com" } },
-      { isFixed: false as const, createdAt: new Date(), user: { id: 2, email: "example2@acme.com" } },
+      {
+        isFixed: false as const,
+        createdAt: new Date(),
+        user: {
+          id: 1,
+          email: "member1-acme@example.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false as const,
+        createdAt: new Date(),
+        user: {
+          id: 2,
+          email: "member2-acme@example.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
     ];
-    // host is not disqualified as the threshold of 11 is not exceeded.
+
+    getOrderedListOfLuckyUsers.mockResolvedValue({
+      perUserData: {
+        bookingsCount: { 1: 10, 2: 6 },
+      },
+    });
+
     expect(
       filterHostsByLeadThreshold({
-        hosts: [],
-        maxLeadThreshold: 11,
+        hosts,
+        maxLeadThreshold: 3,
         eventType: {
           id: 1,
-          isRRWeightsEnabled: true,
+          isRRWeightsEnabled: false,
           team: {
             parentId: null,
           },
         },
+        routingFormResponse: null,
       })
-    ).resolves.toStrictEqual(hosts);
-    // with a reduced threshold of 3 the second host (t=10) is disqualified
+    ).resolves.toStrictEqual([hosts[1]]); // host 1 (host[0]) disqualified
+  });
+
+  it("correctly disqualifies a host when the lead offset is exceeding the threshold with weights", async () => {
+    const hosts = [
+      {
+        isFixed: false as const,
+        createdAt: new Date(),
+        user: {
+          id: 1,
+          email: "member1-acme@example.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false as const,
+        createdAt: new Date(),
+        user: {
+          id: 2,
+          email: "member2-acme@example.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false as const,
+        createdAt: new Date(),
+        user: {
+          id: 3,
+          email: "member3-acme@example.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    getOrderedListOfLuckyUsers.mockResolvedValue({
+      perUserData: {
+        bookingsCount: { 1: 7, 2: 5, 3: 0 },
+        weights: { 1: 100, 2: 50, 3: 20 },
+        bookingShortfalls: { 1: 1, 2: -3, 3: 0 },
+        calibrations: { 1: 1, 2: 2, 3: 1 },
+      },
+    });
+
+    const test = filterHostsByLeadThreshold({
+      hosts,
+      maxLeadThreshold: 3,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: true,
+        team: {
+          parentId: null,
+        },
+      },
+      routingFormResponse: null,
+    });
+
     expect(
       filterHostsByLeadThreshold({
-        hosts: [],
+        hosts,
         maxLeadThreshold: 3,
         eventType: {
           id: 1,
@@ -100,15 +186,14 @@ describe("filterHostByLeadThreshold", () => {
             parentId: null,
           },
         },
+        routingFormResponse: null,
       })
-    ).resolves.toStrictEqual([hosts.find(({ user: { id: userId } }) => userId === 1)]);
-    // double check that lead thresholds are disabled when maxLeadThreshold=null as I'm paranoid.
-    expect(
-      filterHostsByLeadThreshold({
-        hosts,
-        maxLeadThreshold: null,
-        eventTypeId: 1,
-      })
-    ).resolves.toStrictEqual(hosts);
+    ).resolves.toStrictEqual([hosts[0], hosts[2]]); // host 2 (host[1]) disqualified
+  });
+
+  describe("with virtual queues by passing", () => {
+    it("correctly disqualifies a host when the lead offset is exceeding the threshold", async () => {
+      console.log("test");
+    });
   });
 });
