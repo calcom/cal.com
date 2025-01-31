@@ -11,6 +11,7 @@ import ButtonDemo from "./ButtonDemo";
 import CheckboxDemo from "./CheckboxDemo";
 import DropdownDemo from "./DropdownDemo";
 import InputDemo from "./InputDemo";
+import SelectDemo from "./SelectDemo";
 import TableOfContents from "./TableOfContents";
 import TextFieldDemo from "./TextFieldDemo";
 import ToastDemo from "./ToastDemo";
@@ -55,6 +56,10 @@ export default function PageContent() {
 
             <section id="toast" className="space-y-6">
               <ToastDemo />
+            </section>
+
+            <section id="select" className="space-y-6">
+              <SelectDemo />
             </section>
 
             <section id="checkbox" className="space-y-6">

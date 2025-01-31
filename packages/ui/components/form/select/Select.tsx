@@ -7,6 +7,7 @@ import cx from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Label } from "../inputs/Label";
+import { inputStyles } from "../inputs/TextField";
 import { getReactSelectProps } from "./selectTheme";
 
 export type SelectProps<
@@ -53,7 +54,7 @@ export const Select = <
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
@@ -63,7 +64,7 @@ export const Select = <
         dropdownIndicator: () => "text-default",
         control: (state) =>
           cx(
-            "bg-default border-default !min-h-9 h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal dark:focus:border-emphasis focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default hover:border-emphasis rounded-md transition border",
+            inputStyles({ size: "md" }),
             state.isMulti
               ? variant === "checkbox"
                 ? "px-3 py-2 h-fit"
@@ -74,21 +75,25 @@ export const Select = <
             props.isDisabled && "bg-subtle",
             innerClassNames?.control
           ),
-        singleValue: () => cx("text-emphasis placeholder:text-muted", innerClassNames?.singleValue),
+        singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
         valueContainer: () =>
-          cx("text-emphasis placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
+          cx("text-default placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
         multiValue: () =>
           cx(
-            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-tight",
+            "bg-subtle text-default rounded-lg py-1.5 px-2 flex items-center text-sm leading-tight",
             innerClassNames?.multiValue
           ),
         menu: () =>
           cx(
-            " rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
-        menuList: () => cx("scroll-bar scrollbar-track-w-20 rounded-md", innerClassNames?.menuList),
+        menuList: () =>
+          cx(
+            "scroll-bar scrollbar-track-w-20 rounded-lg flex flex-col space-y-[1px]",
+            innerClassNames?.menuList
+          ),
         indicatorsContainer: (state) =>
           cx(
             state.selectProps.menuIsOpen

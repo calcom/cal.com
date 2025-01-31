@@ -102,7 +102,11 @@ const sections: Section[] = [
     title: "Select",
     subsections: [
       { id: "select-basic", title: "Basic" },
-      { id: "select-groups", title: "Option Groups" },
+      { id: "select-multi", title: "Multi Select" },
+      { id: "select-grouped", title: "Grouped Options" },
+      { id: "select-field", title: "Select Field" },
+      { id: "select-disabled", title: "Disabled State" },
+      { id: "select-loading", title: "Loading State" },
     ],
   },
   {
