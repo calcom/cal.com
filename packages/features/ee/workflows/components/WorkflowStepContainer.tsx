@@ -46,7 +46,7 @@ import {
   getWhatsappTemplateForAction,
   isSMSAction,
   isWhatsappAction,
-  getTemplateForAction,
+  getTemplateBodyForAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -134,7 +134,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
   if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
     const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-    const template = getTemplateForAction({
+    const template = getTemplateBodyForAction({
       action,
       locale: i18n.language,
       template: step.template ?? WorkflowTemplates.REMINDER,
@@ -444,7 +444,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
-                            const template = getTemplateForAction({
+                            const template = getTemplateBodyForAction({
                               action: val.value,
                               locale: i18n.language,
                               template: WorkflowTemplates.REMINDER,
@@ -475,7 +475,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER, false);
 
                               if (!isWhatsappAction(oldValue)) {
-                                // form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, "");
                               }
 

@@ -110,7 +110,7 @@ export function getWhatsappTemplateForAction(
   return templateFunction(true, locale, action, timeFormat);
 }
 
-export function getTemplateForAction({
+export function getTemplateBodyForAction({
   action,
   locale,
   template,
