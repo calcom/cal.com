@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class GetEventTypesQuery_2024_06_14 {
   @IsOptional()
@@ -56,18 +56,14 @@ export class GetTeamEventTypesQuery_2024_06_14 {
   })
   eventSlug?: string;
 
-  @Transform(({ value }) => {
-    if (value === "true") return true;
-    if (value === "false") return false;
-    return value;
-  })
-  @IsBoolean()
+  @Transform(({ value }) => Number(value))
   @IsOptional()
+  @IsNumber()
   @ApiPropertyOptional({
     description:
-      "If enabled, the response will be restricted to a maximum of three hosts, primarily to enhance performance.",
+      "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
   })
-  limitHostsToThree?: boolean;
+  hostsLimit?: number;
 }
 
 function TransformUsernames() {

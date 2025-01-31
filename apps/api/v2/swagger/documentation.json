@@ -1253,12 +1253,12 @@
             }
           },
           {
-            "name": "limitHostsToThree",
+            "name": "hostsLimit",
             "required": false,
             "in": "query",
-            "description": "If enabled, the response will be restricted to a maximum of three hosts, primarily to enhance performance.",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
-              "type": "boolean"
+              "type": "number"
             }
           }
         ],
@@ -5900,12 +5900,12 @@
             }
           },
           {
-            "name": "limitHostsToThree",
+            "name": "hostsLimit",
             "required": false,
             "in": "query",
-            "description": "If enabled, the response will be restricted to a maximum of three hosts, primarily to enhance performance.",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
             "schema": {
-              "type": "boolean"
+              "type": "number"
             }
           }
         ],

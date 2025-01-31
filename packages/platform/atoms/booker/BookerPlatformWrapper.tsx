@@ -151,7 +151,7 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, true);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, 3);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {

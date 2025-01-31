@@ -226,7 +226,6 @@ export function transformApiTeamEventTypeForAtom(
       upId: `usr-${host.userId}`,
     },
   }));
-  console.log("usersTransformed: ", usersTransformed);
 
   return {
     ...rest,

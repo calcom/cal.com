@@ -67,9 +67,9 @@ export class OrganizationsEventTypesService {
   async getTeamEventTypeBySlug(
     teamId: number,
     eventTypeSlug: string,
-    limitHostsToThree?: boolean
+    hostsLimit?: number
   ): Promise<DatabaseTeamEventType | null> {
-    return this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventTypeSlug, limitHostsToThree);
+    return this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventTypeSlug, hostsLimit);
   }
 
   async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {
