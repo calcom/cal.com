@@ -98,7 +98,7 @@ export const Select = <
         indicatorsContainer: (state) =>
           cx(
             state.selectProps.menuIsOpen
-              ? state.isMulti
+              ? state.isMulti || props.isLoading
                 ? "[&>*:last-child]:rotate-180 [&>*:last-child]:transition-transform"
                 : "rotate-180 transition-transform"
               : "text-default" // Woo it adds another SVG here on multi for some reason
