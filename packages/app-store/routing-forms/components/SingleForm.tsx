@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
@@ -746,6 +747,19 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
       <Form
         form={hookForm}
         handleSubmit={(data) => {
+          // FormBuilder does not generate ids for each field and id's are required by Routing Forms.
+          const fieldsWithIds = data.fields?.map((field) => {
+            if (!field.id) {
+              return {
+                ...field,
+                id: uuidv4(),
+              };
+            }
+
+            return field;
+          });
+
+          data.fields = fieldsWithIds;
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           mutation.mutate({
