@@ -36,24 +36,20 @@ const log = logger.getSubLogger({ name: "filterHostsByLeadThreshold" });
 
 function filterHostsByLeadThresholdWithWeights(perUserData: WeightedPerUserData, maxLeadThreshold: number) {
   const filteredUserIds: number[] = [];
-  const maxShortfall = Math.max(...Object.values(perUserData.bookingShortfalls));
+  // negative shortfall means the host should receive negative bookings, so they are overbooked
+  const maxShortfall = Math.max(...Object.values(perUserData.bookingShortfalls)); // least amount of bookings
 
-  for (const userIdStr in perUserData.bookingsCount) {
+  for (const userIdStr in perUserData.bookingShortfalls) {
     const shortfall = perUserData.bookingShortfalls[userIdStr];
-    // negative shortfall means the host should receive negative bookings
-    // this means they are overbooked and should be filtered out if
-    // if they exceed the allowed lead
-    if (maxShortfall - maxLeadThreshold > shortfall) {
+    // if user's shortfall is more than
+    if (maxShortfall - shortfall > maxLeadThreshold) {
       log.debug(
-        `Host ${userIdStr} has been filtered out because the amount of bookings made him exceed the thresholds. Shortfall: ${shortfall}, MinShortfall: ${
-          maxShortfall - maxLeadThreshold
-        }`
+        `Host ${userIdStr} has been filtered out because the amount of bookings made him exceed the thresholds. Shortfall: ${shortfall}, Max Shortfall: ${maxShortfall}`
       );
     } else {
       filteredUserIds.push(parseInt(userIdStr, 10));
     }
   }
-
   return filteredUserIds;
 }
 
@@ -62,18 +58,17 @@ function filterHostsByLeadThresholdWithoutWeights(perUserData: PerUserData, maxL
 
   const bookingsArray = Object.values(perUserData.bookingsCount);
   const minBookings = Math.min(...bookingsArray);
-  const maxBookings = Math.max(...bookingsArray);
 
   for (const userIdStr in perUserData.bookingsCount) {
     const bookingsCount = perUserData.bookingsCount[userIdStr];
-    if (bookingsCount <= minBookings + maxLeadThreshold) {
+    if (bookingsCount - minBookings > maxLeadThreshold) {
+      log.debug(
+        `Host ${userIdStr} has been filtered out because the given data made them exceed the thresholds. BookingsCount: ${bookingsCount}, MinBookings: ${minBookings}`
+      );
+    } else {
       filteredUserIds.push(parseInt(userIdStr, 10));
       log.debug(
         `Host Allowed ${userIdStr} has been filtered out because the given data made them exceed the thresholds. BookingsCount: ${bookingsCount}, MinBookings: ${minBookings}, MaxBookings: ${maxBookings}, MaxLeadThreshold: ${maxLeadThreshold}`
-      );
-    } else {
-      log.debug(
-        `Host ${userIdStr} has been filtered out because the given data made them exceed the thresholds. BookingsCount: ${bookingsCount}, MinBookings: ${minBookings}, MaxBookings: ${maxBookings}, MaxLeadThreshold: ${maxLeadThreshold}`
       );
     }
   }
