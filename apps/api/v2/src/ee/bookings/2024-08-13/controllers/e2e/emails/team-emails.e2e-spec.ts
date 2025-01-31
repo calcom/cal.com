@@ -104,7 +104,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = "admin@example.com";
+  const authEmail = "team-emails-2024-08-13-user-admin@example.com";
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -969,15 +969,16 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
 
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
+    await userRepositoryFixture.deleteByEmail(authEmail);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member1.email);
-    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member1.email);
+    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member2.email);
     await bookingsRepositoryFixture.deleteAllBookings(
       emailsEnabledSetup.member1.id,
       emailsEnabledSetup.member1.email
     );
     await bookingsRepositoryFixture.deleteAllBookings(
       emailsDisabledSetup.member1.id,
-      emailsDisabledSetup.member1.email
+      emailsDisabledSetup.member2.email
     );
     await app.close();
   });

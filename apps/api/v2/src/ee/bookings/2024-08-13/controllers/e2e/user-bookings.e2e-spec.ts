@@ -100,7 +100,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
-        username: `bob-${randomNumber()}@gmail.com`,
+        username: userEmail,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,

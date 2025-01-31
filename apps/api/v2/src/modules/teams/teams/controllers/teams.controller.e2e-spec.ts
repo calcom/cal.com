@@ -223,6 +223,7 @@ describe("Teams endpoint", () => {
 
   afterAll(async () => {
     await userRepositoryFixture.deleteByEmail(aliceEmail);
+    await userRepositoryFixture.deleteByEmail(bobEmail);
     await teamRepositoryFixture.delete(team1.id);
     await teamRepositoryFixture.delete(team2.id);
     await app.close();
