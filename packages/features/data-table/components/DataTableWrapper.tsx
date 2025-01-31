@@ -1,13 +1,15 @@
 "use client";
 
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import {
   DataTable,
   DataTableToolbar,
   DataTablePagination,
   useFetchMoreOnBottomReached,
+  useDataTable,
+  useColumnFilters,
 } from "@calcom/features/data-table";
 
 export type DataTableWrapperProps<TData, TValue> = {
@@ -52,6 +54,22 @@ export function DataTableWrapper<TData, TValue>({
     fetchNextPage,
     isFetching,
   });
+  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
+  const columnFilters = useColumnFilters();
+
+  useEffect(() => {
+    table.setState((prev) => ({
+      ...prev,
+      sorting,
+      columnFilters,
+      columnVisibility,
+    }));
+    table.setOptions((prev) => ({
+      ...prev,
+      onSortingChange: setSorting,
+      onColumnVisibilityChange: setColumnVisibility,
+    }));
+  }, [table, sorting, columnFilters, columnVisibility]);
 
   return (
     <DataTable

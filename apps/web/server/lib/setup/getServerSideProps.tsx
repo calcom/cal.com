@@ -17,11 +17,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {
-      redirect: {
-        destination: `/404`,
-        permanent: false,
-      },
-    };
+      notFound: true,
+    } as const;
   }
 
   const deploymentKey = await prisma.deployment.findUnique({
