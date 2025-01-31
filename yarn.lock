@@ -23262,7 +23262,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.1.2":
+"csstype@npm:^3.1.2, csstype@npm:^3.1.3":
   version: 3.1.3
   resolution: "csstype@npm:3.1.3"
   checksum: 8db785cc92d259102725b3c694ec0c823f5619a84741b5c7991b8ad135dfaa66093038a1cc63e03361a6cd28d122be48f2106ae72334e067dd619a51f49eddf7
@@ -28608,6 +28608,15 @@ __metadata:
   peerDependencies:
     csstype: ^3.0.10
   checksum: 55a353a477665ea3ae748153132a32184a6a0db42b24ec66cdca97d1e046a2b63af29f698e245fe2f51c05d0eaefeda2cce4a106bc2b6293ea67490c39b6b5c8
+  languageName: node
+  linkType: hard
+
+"goober@npm:^2.1.16":
+  version: 2.1.16
+  resolution: "goober@npm:2.1.16"
+  peerDependencies:
+    csstype: ^3.0.10
+  checksum: ec82aa2e4dc7c30b1fc681e3555818386fbcb61350afdd4deb44431e4df4eba4f25ef7dbabbac06fccc1b62a417ddd66563b80045443a623554dcc793ee17238
   languageName: node
   linkType: hard
 
@@ -39453,6 +39462,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-hot-toast@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "react-hot-toast@npm:2.5.1"
+  dependencies:
+    csstype: ^3.1.3
+    goober: ^2.1.16
+  peerDependencies:
+    react: ">=16"
+    react-dom: ">=16"
+  checksum: 1dc12684e0a3110fc9b80118d38e0c7a43059851cc51db9035a831fbeabe2da8c1831e1c6279cb4f042ba9387c152ab4704cd7d8c554d885b761134b47a45f4c
+  languageName: node
+  linkType: hard
+
 "react-i18next@npm:^12.2.0":
   version: 12.3.1
   resolution: "react-i18next@npm:12.3.1"
@@ -45927,6 +45949,7 @@ __metadata:
     postcss: ^8
     react: ^18.0.0
     react-dom: ^18.0.0
+    react-hot-toast: ^2.5.1
     tailwindcss: ^3.4.1
     typescript: ^5
   languageName: unknown

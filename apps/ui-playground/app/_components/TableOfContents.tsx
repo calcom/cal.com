@@ -106,6 +106,15 @@ const sections: Section[] = [
     ],
   },
   {
+    id: "toast",
+    title: "Toast",
+    subsections: [
+      { id: "toast-variants", title: "Variants" },
+      { id: "toast-positions", title: "Positions" },
+      { id: "toast-duration", title: "Custom Duration" },
+    ],
+  },
+  {
     id: "tooltip",
     title: "Tooltip",
     subsections: [

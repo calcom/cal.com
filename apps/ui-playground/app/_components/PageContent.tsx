@@ -13,6 +13,7 @@ import DropdownDemo from "./DropdownDemo";
 import InputDemo from "./InputDemo";
 import TableOfContents from "./TableOfContents";
 import TextFieldDemo from "./TextFieldDemo";
+import ToastDemo from "./ToastDemo";
 
 export default function PageContent() {
   const [isDark, setIsDark] = useState(false);
@@ -50,6 +51,10 @@ export default function PageContent() {
 
             <section id="button" className="space-y-6">
               <ButtonDemo />
+            </section>
+
+            <section id="toast" className="space-y-6">
+              <ToastDemo />
             </section>
 
             <section id="checkbox" className="space-y-6">
