@@ -105,14 +105,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `seated-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "seated event",
+          title: `seated-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 5,
@@ -127,7 +127,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "recurring seated event",
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomNumber()}`,
           slug: recurringSeatedEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
@@ -738,18 +738,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `seated-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "seated event",
+          title: `seated-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: seatedEventSlug,
           length: 60,
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: true,
+          seatsPerTimeSlot: 3,
         },
         user.id
       );
@@ -758,12 +757,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "recurring seated event",
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomNumber()}`,
           slug: recurringSeatedEventSlug,
           length: 60,
+          seatsPerTimeSlot: 3,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
-          seatsPerTimeSlot: 5,
-          seatsShowAttendees: true,
         },
         user.id
       );

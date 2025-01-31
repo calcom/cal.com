@@ -26,7 +26,7 @@ import {
   GetSeatedBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 import { BookingOutput_2024_08_13 } from "@calcom/platform-types";
-import { Booking, PlatformOAuthClient, Team, User } from "@calcom/prisma/client";
+import { Booking, PlatformOAuthClient, Team, User, EventType } from "@calcom/prisma/client";
 
 describe("Bookings Endpoints 2024-08-13", () => {
   describe("Booking fields", () => {
@@ -52,9 +52,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
     let seatedBookingWithSplitName: Booking;
 
-    let eventTypeWithBookingFieldsId: number;
+    let eventTypeId: number;
+    let seatedEvent: EventType;
+    let eventTypeWithBookingFields: EventType;
     const eventTypeSlug = `booking-fields-2024-08-13-event-type-${randomNumber()}`;
     const eventTypeWithBookingFieldsSlug = `booking-fields-2024-08-13-event-type-${randomNumber()}`;
+    const seatedEventTypeSlug = `booking-fields-2024-08-13-event-type-${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -91,113 +94,35 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `booking-fields-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `booking-fields-2024-08-13-event-type-${randomNumber()}`,
+          slug: eventTypeSlug,
+          length: 60,
+        },
         user.id
       );
 
-      bookingWithSplitName = await bookingsRepositoryFixture.create({
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-        startTime: new Date(Date.UTC(2020, 0, 8, 12, 0, 0)),
-        endTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
-        title: "peer coding lets goo",
-        uid: "booking",
-        eventType: {
-          connect: {
-            id: event.id,
-          },
-        },
-        location: "integrations:daily",
-        customInputs: {},
-        metadata: {},
-        responses: {
-          name: splitName,
-          email: "oldie@gmail.com",
-        },
-        attendees: {
-          create: {
-            email: "oldie@gmail.com",
-            name: "Oldie Goldie",
-            locale: "lv",
-            timeZone: "Europe/Rome",
-          },
-        },
-      });
+      eventTypeId = event.id;
 
-      const seatedEvent = await eventTypesRepositoryFixture.create(
+      seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding",
-          slug: `booking-fields-2024-08-13-event-type-${randomNumber()}`,
+          title: `booking-fields-2024-08-13-event-type-${randomNumber()}`,
+          slug: seatedEventTypeSlug,
           length: 60,
           seatsPerTimeSlot: 3,
         },
         user.id
       );
 
-      seatedBookingWithSplitName = await bookingsRepositoryFixture.create({
-        user: {
-          connect: {
-            id: user.id,
-          },
-        },
-        startTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
-        endTime: new Date(Date.UTC(2020, 0, 8, 15, 0, 0)),
-        title: "peer coding lets goo",
-        uid: "seated-booking",
-        eventType: {
-          connect: {
-            id: seatedEvent.id,
-          },
-        },
-        location: "integrations:daily",
-        customInputs: {},
-        metadata: {},
-        responses: {
-          name: splitName,
-          email: "oldie@gmail.com",
-        },
-        attendees: {
-          create: {
-            email: "oldie@gmail.com",
-            name: "Oldie Goldie",
-            locale: "lv",
-            timeZone: "Europe/Rome",
-            bookingSeat: {
-              create: {
-                referenceUid: "unique-seat-uid",
-                data: {
-                  responses: {
-                    email: "oldie@gmail.com",
-                    name: {
-                      firstName: "Oldie",
-                      lastName: "Goldie",
-                    },
-                  },
-                },
-                metadata: {},
-                booking: {
-                  connect: {
-                    uid: "seated-booking",
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const eventTypeWithBookingFields = await eventTypesRepositoryFixture.create(
+      eventTypeWithBookingFields = await eventTypesRepositoryFixture.create(
         {
-          title: "peer coding with booking fields",
+          title: `booking-fields-2024-08-13-event-type-${randomNumber()}`,
           slug: eventTypeWithBookingFieldsSlug,
           length: 60,
           bookingFields: [
@@ -388,11 +313,93 @@ describe("Bookings Endpoints 2024-08-13", () => {
         },
         user.id
       );
-      eventTypeWithBookingFieldsId = eventTypeWithBookingFields.id;
+
+      bookingWithSplitName = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2020, 0, 8, 12, 0, 0)),
+        endTime: new Date(Date.UTC(2020, 0, 8, 13, 0, 0)),
+        title: "peer coding lets goo",
+        uid: "booking",
+        eventType: {
+          connect: {
+            id: eventTypeId,
+          },
+        },
+        location: "integrations:daily",
+        customInputs: {},
+        metadata: {},
+        responses: {
+          name: splitName,
+          email: "oldie@gmail.com",
+        },
+        attendees: {
+          create: {
+            email: "oldie@gmail.com",
+            name: "Oldie Goldie",
+            locale: "lv",
+            timeZone: "Europe/Rome",
+          },
+        },
+      });
+
+      seatedBookingWithSplitName = await bookingsRepositoryFixture.create({
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+        startTime: new Date(Date.UTC(2020, 0, 8, 14, 0, 0)),
+        endTime: new Date(Date.UTC(2020, 0, 8, 15, 0, 0)),
+        title: "peer coding lets goo",
+        uid: "seated-booking",
+        eventType: {
+          connect: {
+            id: seatedEvent.id,
+          },
+        },
+        location: "integrations:daily",
+        customInputs: {},
+        metadata: {},
+        responses: {
+          name: splitName,
+          email: "oldie@gmail.com",
+        },
+        attendees: {
+          create: {
+            email: "oldie@gmail.com",
+            name: "Oldie Goldie",
+            locale: "lv",
+            timeZone: "Europe/Rome",
+            bookingSeat: {
+              create: {
+                referenceUid: "unique-seat-uid",
+                data: {
+                  responses: {
+                    email: "oldie@gmail.com",
+                    name: {
+                      firstName: "Oldie",
+                      lastName: "Goldie",
+                    },
+                  },
+                },
+                metadata: {},
+                booking: {
+                  connect: {
+                    uid: "seated-booking",
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
-
       await app.init();
     });
 
@@ -464,7 +471,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       it("should not be able to book an event type with custom required booking fields if they are missing in bookingFieldsResponses", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithBookingFieldsId,
+          eventTypeId: eventTypeWithBookingFields.id,
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",
@@ -483,7 +490,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       it("should be able to book an event type with custom required booking fields", async () => {
         const body: CreateBookingInput_2024_08_13 = {
           start: new Date(Date.UTC(2030, 0, 8, 13, 0, 0)).toISOString(),
-          eventTypeId: eventTypeWithBookingFieldsId,
+          eventTypeId: eventTypeWithBookingFields.id,
           attendee: {
             name: "Mr Proper",
             email: "mr_proper@gmail.com",

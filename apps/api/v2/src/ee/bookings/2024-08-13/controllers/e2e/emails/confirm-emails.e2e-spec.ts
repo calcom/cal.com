@@ -142,7 +142,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: `alice-2024-08-13-${randomNumber()}@gmail.com`,
+      email: `confirm-emails-2024-08-13-user-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -151,7 +151,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `confirm-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -179,7 +179,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `bob-2024-08-13-${randomNumber()}@gmail.com`,
+      email: `confirm-emails-2024-08-13-user-${randomNumber()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -187,7 +187,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       },
     });
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `confirm-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };

@@ -220,8 +220,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType1 = await eventTypesRepositoryFixture.create(
         {
-          title: `orgUserEventType1-${randomNumber()}`,
-          slug: `org-event-type-1-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
           length: 60,
           locations: [],
         },
@@ -230,8 +230,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType2 = await eventTypesRepositoryFixture.create(
         {
-          title: `orgUserEventType2-${randomNumber()}`,
-          slug: `org-event-type-2-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
           length: 60,
           locations: [],
         },
@@ -240,8 +240,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType3 = await eventTypesRepositoryFixture.create(
         {
-          title: `orgUserEventType3-${randomNumber()}`,
-          slug: `org-event-type-3-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
           length: 60,
           locations: [],
         },
@@ -257,25 +257,25 @@ describe("Event types Endpoints", () => {
 
       falseTestUser = await userRepositoryFixture.create({
         email: falseTestEmail,
-        name: `false-test-${randomNumber()}`,
+        name: `event-types-2024-06-14-false-test-user-${randomNumber()}`,
         username: falseTestEmail,
       });
 
       firstSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
-        name: `work-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-work-${randomNumber()}`,
         timeZone: "Europe/Rome",
       });
 
       secondSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
-        name: `chill-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-chill-${randomNumber()}`,
         timeZone: "Europe/Rome",
       });
 
       falseTestSchedule = await schedulesRepostoryFixture.create({
         userId: falseTestUser.id,
-        name: `work-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-work-${randomNumber()}`,
         timeZone: "Europe/Rome",
       });
 

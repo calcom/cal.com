@@ -80,13 +80,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `confirm-bookings-2024-08-13-${randomNumber()}-schedule`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `confirm-bookings-2024-08-13-${randomNumber()}-event-type`,
+          slug: `confirm-bookings-2024-08-13-${randomNumber()}-event-type-slug`,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;

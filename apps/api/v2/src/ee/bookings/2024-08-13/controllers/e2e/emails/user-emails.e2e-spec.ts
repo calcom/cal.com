@@ -128,22 +128,26 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `user-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
     await schedulesService.createUserSchedule(user.id, userSchedule);
 
     const event = await eventTypesRepositoryFixture.create(
-      { title: "peer coding", slug: `user-emails-2024-08-13-event-type-${randomNumber()}`, length: 60 },
+      {
+        title: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        length: 60,
+      },
       user.id
     );
 
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: "recurring event",
-        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
+        slug: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },
@@ -171,21 +175,25 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
       },
     });
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `user-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
     await schedulesService.createUserSchedule(user.id, userSchedule);
     const event = await eventTypesRepositoryFixture.create(
-      { title: "peer coding", slug: `user-emails-2024-08-13-event-type-${randomNumber()}`, length: 60 },
+      {
+        title: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        length: 60,
+      },
       user.id
     );
 
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: "recurring event",
-        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
+        slug: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },

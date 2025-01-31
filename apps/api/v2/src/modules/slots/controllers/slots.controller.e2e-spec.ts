@@ -291,14 +291,23 @@ describe("Slots Endpoints", () => {
       });
 
       // nxte(Lauris): this creates default schedule monday to friday from 9AM to 5PM in Europe/Rome timezone
-      await schedulesService.createUserDefaultSchedule(user.id, "Europe/Rome");
+      const userSchedule = await schedulesService.createUserSchedule(user.id, {
+        name: `slots-schedule-${randomNumber()}-slots.controller.e2e-spec`,
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      });
 
-      const event = await eventTypesRepositoryFixture.create(
-        { title: "frisbee match", slug: "frisbee-match", length: 60 },
+      const eventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `slots-event-type-${randomNumber()}-slots.controller.e2e-spec`,
+          slug: `slots-event-type-${randomNumber()}-slots.controller.e2e-spec`,
+          length: 60,
+          locations: [],
+        },
         user.id
       );
-      eventTypeId = event.id;
-      eventTypeSlug = event.slug;
+      eventTypeId = eventType.id;
+      eventTypeSlug = eventType.slug;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);

@@ -69,13 +69,17 @@ describe("Bookings Endpoints 2024-04-15", () => {
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = keyString;
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `bookings-2024-04-15-schedule-${randomNumber()}-${describe.name}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: "peer-coding", length: 60 },
+        {
+          title: `bookings-2024-04-15-event-type-${randomNumber()}-${describe.name}`,
+          slug: `bookings-2024-04-15-event-type-${randomNumber()}-${describe.name}`,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;
@@ -342,94 +346,6 @@ describe("Bookings Endpoints 2024-04-15", () => {
           expect(bookingInfo?.uid).toEqual(createdBooking.uid);
           expect(bookingInfo?.eventTypeId).toEqual(createdBooking.eventTypeId);
           expect(bookingInfo?.startTime).toEqual(createdBooking.startTime);
-        });
-    });
-
-    // note(Lauris) : found this test broken here - first thing to fix is that recurring endpoint accepts an array not 1 object.
-    // it("should create a recurring booking", async () => {
-    //   const bookingStart = "2040-05-25T09:30:00.000Z";
-    //   const bookingEnd = "2040-05-25T10:30:00.000Z";
-    //   const bookingEventTypeId = 7;
-    //   const bookingTimeZone = "Europe/London";
-    //   const bookingLanguage = "en";
-    //   const bookingHashedLink = "";
-    //   const bookingRecurringCount = 5;
-    //   const currentBookingRecurringIndex = 0;
-
-    //   const body = {
-    //     start: bookingStart,
-    //     end: bookingEnd,
-    //     eventTypeId: bookingEventTypeId,
-    //     timeZone: bookingTimeZone,
-    //     language: bookingLanguage,
-    //     metadata: {},
-    //     hashedLink: bookingHashedLink,
-    //     recurringCount: bookingRecurringCount,
-    //     currentRecurringIndex: currentBookingRecurringIndex,
-    //   };
-
-    //   return request(app.getHttpServer())
-    //     .post("/v2/bookings/recurring")
-    //     .send(body)
-    //     .expect(201)
-    //     .then((response) => {
-    //       const responseBody: ApiResponse<Awaited<ReturnType<typeof handleNewRecurringBooking>>> =
-    //         response.body;
-
-    //       expect(responseBody.status).toEqual("recurring");
-    //     });
-    // });
-
-    // note(Lauris) : found this test broken here - first thing to fix is that the eventTypeId must be team event type, because
-    // instant bookings only work for teams.
-    // it("should create an instant booking", async () => {
-    //   const bookingStart = "2040-05-25T09:30:00.000Z";
-    //   const bookingEnd = "2040-25T10:30:00.000Z";
-    //   const bookingEventTypeId = 7;
-    //   const bookingTimeZone = "Europe/London";
-    //   const bookingLanguage = "en";
-    //   const bookingHashedLink = "";
-
-    //   const body = {
-    //     start: bookingStart,
-    //     end: bookingEnd,
-    //     eventTypeId: bookingEventTypeId,
-    //     timeZone: bookingTimeZone,
-    //     language: bookingLanguage,
-    //     metadata: {},
-    //     hashedLink: bookingHashedLink,
-    //   };
-
-    //   return request(app.getHttpServer())
-    //     .post("/v2/bookings/instant")
-    //     .send(body)
-    //     .expect(201)
-    //     .then((response) => {
-    //       const responseBody: ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>> = response.body;
-
-    //       expect(responseBody.status).toEqual("instant");
-    //     });
-    // });
-
-    // cancelling a booking hangs the test for some reason
-    it.skip("should cancel a booking", async () => {
-      const bookingId = createdBooking.id;
-
-      const body = {
-        allRemainingBookings: false,
-        cancellationReason: "Was fighting some unforseen rescheduling demons",
-      };
-
-      return request(app.getHttpServer())
-        .post(`/v2/bookings/${bookingId}/cancel`)
-        .send(body)
-        .expect(201)
-        .then((response) => {
-          const responseBody: ApiResponse<{ status: typeof SUCCESS_STATUS | typeof ERROR_STATUS }> =
-            response.body;
-
-          expect(bookingId).toBeDefined();
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
         });
     });
 

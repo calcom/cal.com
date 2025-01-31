@@ -108,7 +108,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `reassign-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -167,7 +167,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         users: {
           connect: [{ id: teamUser1.id }, { id: teamUser2.id }],
         },
-        title: "Round Robin Event Type",
+        title: `reassign-bookings-2024-08-13-event-type-${randomNumber()}`,
         slug: `reassign-bookings-2024-08-13-event-type-${randomNumber()}`,
         length: 60,
         assignAllTeamMembers: false,

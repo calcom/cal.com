@@ -140,7 +140,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `team-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -203,7 +203,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: "Collective Event Type",
+        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
         slug: team1EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,
@@ -218,7 +218,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: "Phone Only Event Type",
+        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
         slug: phoneOnlyEventTypeSlug,
         length: 15,
         assignAllTeamMembers: false,
@@ -295,7 +295,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team2.id },
         },
-        title: "Collective Event Type 2",
+        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
         slug: team2EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,

@@ -85,7 +85,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -94,7 +94,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "recurring event",
+          title: `recurring-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
@@ -400,7 +400,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -410,7 +410,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "recurring event",
+          title: `recurring-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
@@ -610,7 +610,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -620,7 +620,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "recurring event",
+          title: `recurring-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },

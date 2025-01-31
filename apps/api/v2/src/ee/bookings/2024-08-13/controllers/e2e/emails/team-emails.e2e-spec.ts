@@ -182,7 +182,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `team-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -238,7 +238,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Collective Event Type",
+      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
@@ -279,7 +279,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Round Robin Event Type",
+      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,
@@ -366,7 +366,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `team-emails-2024-08-13-schedule-${randomNumber()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -422,7 +422,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Collective Event Type",
+      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: true,
@@ -463,7 +463,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Round Robin Event Type",
+      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
       length: 60,
       assignAllTeamMembers: false,

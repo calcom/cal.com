@@ -41,9 +41,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let user: User;
 
     let variableLengthEventType: EventType;
-    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-event-type-${randomNumber()}`;
+    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`;
     let normalEventType: EventType;
-    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-event-type-${randomNumber()}`;
+    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -80,7 +80,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `variable-length-bookings-2024-08-13-schedule-${randomNumber()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -88,7 +88,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       variableLengthEventType = await eventTypesRepositoryFixture.create(
         {
-          title: "variable length event",
+          title: `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`,
           slug: VARIABLE_LENGTH_EVENT_TYPE_SLUG,
           length: 15,
           metadata: { multipleDuration: [15, 30, 60] },
@@ -97,7 +97,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       );
 
       normalEventType = await eventTypesRepositoryFixture.create(
-        { title: "normal event", slug: NORMAL_EVENT_TYPE_SLUG, length: 15 },
+        {
+          title: `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`,
+          slug: NORMAL_EVENT_TYPE_SLUG,
+          length: 15,
+        },
         user.id
       );
 
