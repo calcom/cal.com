@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
@@ -16,10 +16,19 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
-  const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
-    (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
-    shallow
-  );
+  const cachedAvailabilityStatusesRef = useRef<
+    { slotUtcStartDate: string; slotUtcEndDate: string; status: "available" | "reserved" }[]
+  >([]);
+  const [selectedTimeslot, setSelectedTimeslot, tentativeSelectedTimeslots, setTentativeSelectedTimeslots] =
+    useBookerStore(
+      (state) => [
+        state.selectedTimeslot,
+        state.setSelectedTimeslot,
+        state.tentativeSelectedTimeslots,
+        state.setTentativeSelectedTimeslots,
+      ],
+      shallow
+    );
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
   const reserveSlotMutation = trpc.viewer.public.slots.reserveSlot.useMutation({
     trpc: {
@@ -42,40 +51,50 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
   };
 
   const eventTypeId = event.data?.id;
-  const slotUtcStartDate = selectedTimeslot ? dayjs(selectedTimeslot).utc().format() : null;
   const eventDuration = selectedDuration || event.data?.length;
-  const slotUtcEndDate =
-    selectedTimeslot && eventDuration
-      ? dayjs(selectedTimeslot).utc().add(eventDuration, "minutes").format()
-      : null;
+  const allTimeslots = [...tentativeSelectedTimeslots, selectedTimeslot].filter(
+    (slot): slot is string => slot !== null
+  );
+  const allUniqueTimeslots = Array.from(new Set(allTimeslots));
+
+  // Create array of slots with their UTC start and end dates
+  const slotsToCheck = allUniqueTimeslots.map((slot) => ({
+    slotUtcStartDate: dayjs(slot).utc().toISOString(),
+    slotUtcEndDate: dayjs(slot)
+      .add(eventDuration || 0, "minutes")
+      .utc()
+      .toISOString(),
+  }));
 
   const isAvailableQuery = trpc.viewer.slots.isAvailable.useQuery(
     {
-      slotUtcStartDate: slotUtcStartDate!,
-      slotUtcEndDate: slotUtcEndDate!,
+      slots: slotsToCheck,
+      // enabled flag can't be true if eventTypeId is nullish
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       eventTypeId: eventTypeId!,
     },
     {
       refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
       refetchOnWindowFocus: true,
-      enabled: !!(eventTypeId && slotUtcStartDate && slotUtcEndDate),
+      enabled: !!(eventTypeId && allTimeslots.length > 0 && eventDuration),
       staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
     }
   );
 
-  const availablityStatus = isAvailableQuery.data?.status;
+  const availabilityStatuses = isAvailableQuery.data?.slots;
+  if (availabilityStatuses && availabilityStatuses.length > 0) {
+    cachedAvailabilityStatusesRef.current = availabilityStatuses;
+  }
 
   const handleReserveSlot = () => {
-    if (eventTypeId && slotUtcStartDate && slotUtcEndDate) {
+    if (eventTypeId && selectedTimeslot && eventDuration) {
       reserveSlotMutation.mutate({
-        slotUtcStartDate,
+        slotUtcStartDate: dayjs(selectedTimeslot).utc().toISOString(),
         eventTypeId,
-        slotUtcEndDate,
+        slotUtcEndDate: dayjs(selectedTimeslot).utc().add(eventDuration, "minutes").toISOString(),
       });
     }
   };
-
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
 
   useEffect(() => {
     handleReserveSlot();
@@ -89,12 +108,14 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       clearInterval(interval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event?.data?.id, timeslot]);
+  }, [event?.data?.id, selectedTimeslot]);
 
   return {
-    selectedTimeslot,
     setSelectedTimeslot,
+    setTentativeSelectedTimeslots,
+    selectedTimeslot,
+    tentativeSelectedTimeslots,
     slotReservationId,
-    availablityStatus,
+    availabilityStatuses: availabilityStatuses || cachedAvailabilityStatusesRef.current,
   };
 };

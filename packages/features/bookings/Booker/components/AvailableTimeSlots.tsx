@@ -68,7 +68,11 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
-
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+    setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
+    tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
+  }));
+  // Local state for tentatively selected time slots
   const onTentativeTimeSelect = ({
     time,
     attendees: _attendees,
@@ -83,6 +87,7 @@ export const AvailableTimeSlots = ({
     // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
     // We could start doing that after we fix this behaviour.
     setSelectedTimeslot(time);
+    setTentativeSelectedTimeslots(Array.from(new Set([...tentativeSelectedTimeslots, time])));
   };
 
   const onTimeSelect = (
@@ -97,6 +102,8 @@ export const AvailableTimeSlots = ({
       schedule?.invalidate();
     }
     setSelectedTimeslot(time);
+    setTentativeSelectedTimeslots([]);
+
     if (seatsPerTimeSlot) {
       setSeatedEventData({
         seatsPerTimeSlot,

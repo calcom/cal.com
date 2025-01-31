@@ -1,9 +1,13 @@
 import { z } from "zod";
 
 export const ZIsReservedInputSchema = z.object({
+  slots: z.array(
+    z.object({
+      slotUtcStartDate: z.string(),
+      slotUtcEndDate: z.string(),
+    })
+  ),
   eventTypeId: z.number().int(),
-  slotUtcStartDate: z.string(),
-  slotUtcEndDate: z.string(),
 });
 
 export type TIsReservedInputSchema = z.infer<typeof ZIsReservedInputSchema>;

@@ -1,6 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -12,6 +12,7 @@ import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hook
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -55,14 +56,24 @@ const isTimeSlotAvailable = ({
   schedule,
   slotToCheckInUTC,
   dateString,
-  availablityStatus,
+  availabilityStatuses,
 }: {
   schedule: WrappedBookerProps["schedule"];
   slotToCheckInUTC: string;
   dateString: string | null;
-  availablityStatus: "available" | "reserved" | null;
+  availabilityStatuses: {
+    slotUtcStartDate: string;
+    slotUtcEndDate: string;
+    status: "available" | "reserved";
+  }[];
 }) => {
-  if (availablityStatus && availablityStatus !== "available") return false;
+  if (
+    availabilityStatuses &&
+    availabilityStatuses.some(
+      (status) => status.slotUtcStartDate === slotToCheckInUTC && status.status !== "available"
+    )
+  )
+    return false;
   // If schedule is not loaded or other variables are unavailable consider the slot available
   if (!schedule?.data || !slotToCheckInUTC || !dateString) {
     return true;
@@ -133,7 +144,7 @@ const BookerComponent = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-  const { selectedTimeslot, setSelectedTimeslot, availablityStatus } = slots;
+  const { selectedTimeslot, setSelectedTimeslot, availabilityStatuses } = slots;
   const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -203,8 +214,6 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
-  const [unavailableTimeSlots, setUnavailableTimeSlots] = useState<string[]>([]);
-
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -212,19 +221,21 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
-  useEffect(() => {
-    if (
-      selectedTimeslot &&
-      !isTimeSlotAvailable({
+  const isCurrentlySelectedTimeslotUnAvailable = selectedTimeslot
+    ? !isTimeSlotAvailable({
         schedule,
         slotToCheckInUTC: selectedTimeslot,
         dateString: selectedDate,
-        availablityStatus: availablityStatus ?? null,
+        availabilityStatuses: availabilityStatuses,
       })
-    ) {
-      setUnavailableTimeSlots((prev) => [...Array.from(new Set([...prev, selectedTimeslot]))]);
-    }
-  }, [selectedTimeslot, selectedDate, availablityStatus, schedule]);
+    : false;
+
+  const unavailableTimeSlots = [
+    isCurrentlySelectedTimeslotUnAvailable ? selectedTimeslot : null,
+    ...(availabilityStatuses
+      ?.filter((status) => status.status !== "available")
+      .map((status) => status.slotUtcStartDate) || []),
+  ].filter((slot): slot is string => slot !== null);
 
   const slot = getQueryParam("slot");
 
@@ -243,6 +254,11 @@ const BookerComponent = ({
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
+          // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
+          if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
+            // Ensures that user has latest available slots when they want to re-choose from the slots
+            schedule?.invalidate();
+          }
           if (seatedEventData.bookingUid) {
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
           }
