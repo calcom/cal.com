@@ -969,7 +969,7 @@ export default class SalesforceCRMService implements CRM {
 
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
-        this.log.warn(
+        this.log.info(
           `Writing to field ${field.name} on contactId ${personRecord?.id} with value ${
             personRecord[field.name]
           }`
