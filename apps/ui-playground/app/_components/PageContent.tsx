@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button, IconSprites } from "@calcom/ui";
 
+import AlertDemo from "./AlertDemo";
 import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
 import ButtonDemo from "./ButtonDemo";
@@ -55,6 +56,10 @@ export default function PageContent() {
 
             <section id="dropdown" className="space-y-6">
               <DropdownDemo />
+            </section>
+
+            <section id="alert" className="space-y-6">
+              <AlertDemo />
             </section>
           </main>
         </div>

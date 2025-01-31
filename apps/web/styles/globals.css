@@ -37,7 +37,7 @@
   --cal-text-inverted: hsla(0, 0%, 100%, 1);
 
   /* Content/Text -> components */
-  --cal-text-info: hsla(228, 56%, 33%, 1);
+  --cal-text-info: hsla(236, 80%, 25%, 1);
   --cal-text-success: hsla(133, 34%, 24%, 1);
   --cal-text-attention: hsla(16, 62%, 28%, 1);
   --cal-text-error: hsla(0, 63%, 31%, 1);

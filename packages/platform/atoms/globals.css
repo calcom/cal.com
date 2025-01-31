@@ -70,7 +70,7 @@
     --cal-text-inverted: white;
 
     /* Content/Text -> components */
-    --cal-text-info: #253985;
+    --cal-text-info: hsla(236, 80%, 25%, 1);
     --cal-text-success: #285231;
     --cal-text-attention: #73321b;
     --cal-text-error: hsla(0, 63%, 31%, 1);

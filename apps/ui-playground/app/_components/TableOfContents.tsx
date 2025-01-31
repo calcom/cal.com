@@ -23,6 +23,17 @@ const sections: Section[] = [
     ],
   },
   {
+    id: "alert",
+    title: "Alert",
+    subsections: [
+      { id: "alert-basic", title: "Basic" },
+      { id: "alert-with-actions", title: "With Actions" },
+      { id: "alert-custom-icons", title: "Custom Icons" },
+      { id: "alert-custom-icon-colors", title: "Custom Icon Colors" },
+      { id: "alert-no-title", title: "Without Title" },
+    ],
+  },
+  {
     id: "badge",
     title: "Badge",
     subsections: [
