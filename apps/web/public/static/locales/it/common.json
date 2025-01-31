@@ -83,6 +83,7 @@
   "payment_not_created_error": "Non è stato possibile creare il pagamento",
   "couldnt_charge_card_error": "Non è stato possibile addebitare la carta per il pagamento",
   "no_available_users_found_error": "Nessun utente disponibile. Puoi provare un altro intervallo temporale?",
+  "booking_time_out_of_bounds_error": "Non è possibile prenotare questo tipo di evento in questo momento. Potresti provare un altro orario?",
   "request_body_end_time_internal_error": "Errore interno. La richiesta non contiene l'ora finale",
   "create_calendar_event_error": "Impossibile creare l'evento nel calendario dell'organizzatore",
   "update_calendar_event_error": "Impossibile aggiornare l'evento nel calendario.",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Abilitando i pesi, sarà possibile assegnare una priorità più alta a determinati attributi per utente. Maggiore è il peso, maggiore è la priorità.",
   "routed": "Instradato",
   "reassigned": "Riassegnato",
+  "allow_rescheduling_past_events": "Consenti la riprogrammazione di eventi passati",
+  "allow_rescheduling_past_events_description": "L'attivazione di questa opzione permette di riprogrammare eventi già conclusi",
   "rerouted": "Reindirizzato",
   "salesforce_assigned": "Assegnazione Salesforce",
   "router_position": "Posizione del router",
@@ -2945,5 +2948,6 @@
   "asc": "Crescente",
   "desc": "Decrescente",
   "verify_email": "Verifica email",
+  "verify_email_change": "Verifica la modifica dell'email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

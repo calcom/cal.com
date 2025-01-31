@@ -32,6 +32,7 @@ import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -57,20 +58,7 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
-const getVerifiedOrganizationByAutoAcceptEmailDomain = async (domain: string) => {
-  const existingOrg = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: domain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  return existingOrg?.id;
-};
+
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
@@ -369,15 +357,17 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
-            if (organizationId) {
+            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
-                organizationId,
                 identityProvider: IdentityProvider.SAML,
                 identityProviderId: email,
               };
-              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+              await createUsersAndConnectToOrg({
+                createUsersAndConnectToOrgProps,
+                org,
+              });
               user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
