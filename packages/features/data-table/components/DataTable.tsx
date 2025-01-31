@@ -155,10 +155,11 @@ export function DataTable<TData, TValue>({
                             onMouseDown={header.getResizeHandler()}
                             onTouchStart={header.getResizeHandler()}
                             className={classNames(
-                              "bg-inverted absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-0 hover:opacity-50",
+                              "group absolute right-0 top-0 h-full w-[5px] cursor-col-resize touch-none select-none opacity-[0.1] hover:opacity-50",
                               header.column.getIsResizing() && "!opacity-75"
-                            )}
-                          />
+                            )}>
+                            <div className="bg-inverted mx-auto h-full w-[1px]" />
+                          </div>
                         )}
                       </TableHead>
                     );
@@ -289,9 +290,16 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
   const [open, setOpen] = useState(false);
   const { t } = useLocale();
 
-  if (!header.column.getCanSort() && !header.column.getCanHide()) {
+  const canHide = header.column.getCanHide();
+  const canSort = header.column.getCanSort();
+
+  if (!canSort && !canHide) {
     return (
-      <div className="-ml-2 px-2 py-1">
+      <div
+        className="truncate px-2 py-1"
+        title={
+          typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
+        }>
         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
       </div>
     );
@@ -303,7 +311,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
         <button
           type="button"
           className={classNames(
-            "group -ml-2 flex w-full items-center gap-2 rounded-md px-2 py-1",
+            "group mr-1 flex w-full items-center gap-2 rounded-md px-2 py-1",
             open && "bg-muted"
           )}>
           <div
@@ -315,6 +323,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
           </div>
           {header.column.getIsSorted() === "asc" && <Icon name="arrow-up" className="h-4 w-4 shrink-0" />}
           {header.column.getIsSorted() === "desc" && <Icon name="arrow-down" className="h-4 w-4 shrink-0" />}
+          <div className="grow" />
           <Icon
             name="chevrons-up-down"
             className={classNames(
@@ -327,7 +336,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
       <PopoverContent align="start" className="w-32 p-0">
         <Command>
           <CommandList>
-            {header.column.getCanSort() && (
+            {canSort && (
               <>
                 <CommandItem
                   className="flex cursor-pointer items-center gap-2 px-3 py-2"
@@ -359,7 +368,7 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
                 </CommandItem>
               </>
             )}
-            {header.column.getCanHide() && (
+            {canHide && (
               <CommandItem
                 className="flex cursor-pointer items-center gap-2 px-3 py-2"
                 onSelect={() => {
