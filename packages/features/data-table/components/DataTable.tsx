@@ -114,6 +114,19 @@ export function DataTable<TData, TValue>({
         ...rest.style,
       }}
       data-testid={testId ?? "data-table"}>
+      {/*
+        Invalidate left & right properties for <= sm screen size,
+        because we pin columns only for >= sm screen sizes.
+      */}
+      <style jsx global>{`
+        @media (max-width: 640px) {
+          .data-table th,
+          .data-table td {
+            left: initial !important;
+            right: initial !important;
+          }
+        }
+      `}</style>
       <div
         ref={tableContainerRef}
         onScroll={onScroll}
@@ -124,7 +137,7 @@ export function DataTable<TData, TValue>({
         )}
         style={{ gridArea: "body" }}>
         <TableNew
-          className="grid border-0"
+          className="data-table grid border-0"
           style={{
             ...columnSizingVars,
             ...(Boolean(enableColumnResizing) && { width: table.getTotalSize() }),
@@ -135,7 +148,6 @@ export function DataTable<TData, TValue>({
                 <TableRow key={headerGroup.id} className="hover:bg-subtle flex w-full">
                   {headerGroup.headers.map((header) => {
                     const { column } = header;
-                    const meta = column.columnDef.meta;
                     return (
                       <TableHead
                         key={header.id}

@@ -4,80 +4,55 @@ import { Flex, Text, Metric } from "@tremor/react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib";
 import { CardInsights } from "./Card";
 
-export const RoutingKPICards = ({
-  given,
-}: {
-  given?: { isAll: boolean; teamId: number | undefined; userId: number | undefined };
-}) => {
+export const RoutingKPICards = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
+  const { teamId, startDate, endDate, userId, memberUserIds, isAll, routingFormId, columnFilters } =
+    useInsightsParameters();
 
-  const userId = given?.userId ?? filter.selectedUserId;
-  const isAll = given?.isAll ?? filter.isAll;
-  const teamId = given?.teamId ?? filter.selectedTeamId;
-
-  const {
-    dateRange,
-    selectedEventTypeId,
-    selectedMemberUserId,
-    initialConfig,
-    selectedRoutingFormId,
-    selectedBookingStatus,
-    selectedRoutingFormFilter,
-  } = filter;
-  const initialConfigIsReady =
-    Boolean(given) || !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const [startDate, endDate] = dateRange;
-
-  const { data, isSuccess, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
+  const { data, isPending } = trpc.viewer.insights.routingFormsByStatus.useQuery(
     {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
       teamId,
-      eventTypeId: selectedEventTypeId ?? undefined,
-      isAll,
-      routingFormId: selectedRoutingFormId ?? undefined,
+      startDate,
+      endDate,
       userId,
-      memberUserId: selectedMemberUserId ?? undefined,
-      bookingStatus: selectedBookingStatus ?? undefined,
-      fieldFilter: selectedRoutingFormFilter ?? undefined,
+      memberUserIds,
+      isAll,
+      routingFormId,
+      columnFilters,
     },
     {
       staleTime: 30000,
       trpc: {
         context: { skipBatch: true },
       },
-      enabled: initialConfigIsReady,
     }
   );
 
   const categories: {
     title: string;
-    index: "active" | "total_responses" | "total_responses_without_booking" | "total_responses_with_booking";
+    index: "total" | "totalWithoutBooking" | "totalWithBooking";
   }[] = [
     {
       title: t("routing_forms_total_responses"),
-      index: "total_responses",
+      index: "total",
     },
     {
       title: t("routing_forms_total_responses_without_booking"),
-      index: "total_responses_without_booking",
+      index: "totalWithoutBooking",
     },
     {
       title: t("routing_forms_total_responses_with_booking"),
-      index: "total_responses_with_booking",
+      index: "totalWithBooking",
     },
   ];
 
-  if (isPending) {
+  if (isPending || !data) {
     return <LoadingKPICards categories={categories} />;
   }
-
-  if (!isSuccess || !startDate || !endDate || (!teamId && !userId)) return null;
 
   return (
     <>
@@ -86,7 +61,6 @@ export const RoutingKPICards = ({
           <CardInsights key={item.title}>
             <Text className="text-default">{item.title}</Text>
             <Flex className="items-baseline justify-start space-x-3 truncate">
-              {/* @ts-expect-error - theyre actually dynamic fields that we know the index of - but TS doesnt know that */}
               <Metric className="text-emphasis">{valueFormatter(data[item.index])}</Metric>
             </Flex>
           </CardInsights>
