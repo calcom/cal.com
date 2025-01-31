@@ -146,13 +146,15 @@ export default function DropdownDemo() {
             <DropdownMenuContent>
               <DropdownMenuLabel>peer@cal.com</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownItem>My account</DropdownItem>
-              <DropdownItem>Plan</DropdownItem>
-              <DropdownItem>Billing</DropdownItem>
-              <DropdownItem>Integrations</DropdownItem>
-              <DropdownItem>Module</DropdownItem>
+              <DropdownItem StartIcon="user">My account</DropdownItem>
+              <DropdownItem StartIcon="map">Plan</DropdownItem>
+              <DropdownItem StartIcon="credit-card">Billing</DropdownItem>
+              <DropdownItem StartIcon="link">Integrations</DropdownItem>
+              <DropdownItem StartIcon="upload">Module</DropdownItem>
               <DropdownMenuSeparator />
-              <DropdownItem className="text-error">Log out</DropdownItem>
+              <DropdownItem className="text-error" StartIcon="log-out">
+                Log out
+              </DropdownItem>
             </DropdownMenuContent>
           </Dropdown>
 
