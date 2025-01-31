@@ -43,17 +43,15 @@ import {
 } from "@calcom/ui";
 
 import {
-  getWhatsappTemplateForAction,
   isSMSAction,
   isWhatsappAction,
   getTemplateBodyForAction,
+  shouldScheduleEmailReminder,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
-import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -762,57 +760,40 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-                            if (val.value === WorkflowTemplates.REMINDER) {
-                              if (isWhatsappAction(action)) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  whatsappReminderTemplate(true, i18n.language, action, timeFormat)
-                                );
-                              } else if (isSMSAction(action)) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  smsReminderTemplate(true, i18n.language, action, timeFormat)
-                                );
-                              } else {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody
-                                );
+
+                            const template = getTemplateBodyForAction({
+                              action,
+                              locale: i18n.language,
+                              template: val.value ?? WorkflowTemplates.REMINDER,
+                              timeFormat,
+                            });
+
+                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
+                            if (shouldScheduleEmailReminder(action)) {
+                              if (val.value === WorkflowTemplates.REMINDER) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailSubject
+                                  emailReminderTemplate({
+                                    isEditingMode: true,
+                                    locale: i18n.language,
+                                    action,
+                                    timeFormat,
+                                  }).emailSubject
                                 );
-                              }
-                            } else if (val.value === WorkflowTemplates.RATING) {
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailRatingTemplate({
-                                  isEditingMode: true,
-                                  locale: i18n.language,
-                                  action,
-                                  timeFormat,
-                                }).emailBody
-                              );
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailRatingTemplate({
-                                  isEditingMode: true,
-                                  locale: i18n.language,
-                                  action,
-                                  timeFormat,
-                                }).emailSubject
-                              );
-                            } else {
-                              if (isWhatsappAction(action)) {
+                              } else if (val.value === WorkflowTemplates.RATING) {
                                 form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  getWhatsappTemplateForAction(action, i18n.language, val.value, timeFormat)
+                                  `steps.${step.stepNumber - 1}.emailSubject`,
+                                  emailRatingTemplate({
+                                    isEditingMode: true,
+                                    locale: i18n.language,
+                                    action,
+                                    timeFormat,
+                                  }).emailSubject
                                 );
-                              } else {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
-                                form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
                               }
                             }
+                            [];
                             field.onChange(val.value);
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
