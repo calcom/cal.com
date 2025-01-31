@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import type { PrismaClient } from "@calcom/prisma";
 
-import type { TIsReservedInputSchema } from "./isReserved.schema";
+import type { TIsReservedInputSchema } from "./isAvailable.schema";
 
 interface IsReservedOptions {
   ctx: {
@@ -12,7 +12,7 @@ interface IsReservedOptions {
   input: TIsReservedInputSchema;
 }
 
-export const isReservedHandler = async ({ ctx, input }: IsReservedOptions) => {
+export const isAvailableHandler = async ({ ctx, input }: IsReservedOptions) => {
   const { prisma, req } = ctx;
   const uid = req?.cookies?.uid;
   const { slotUtcStartDate, slotUtcEndDate, eventTypeId } = input;
@@ -27,7 +27,15 @@ export const isReservedHandler = async ({ ctx, input }: IsReservedOptions) => {
     },
   });
 
+  let status: "available" | "reserved" | null = null;
+
+  if (reservedBySomeoneElse) {
+    status = "reserved";
+  } else {
+    status = "available";
+  }
+
   return {
-    isReserved: !!reservedBySomeoneElse,
+    status,
   };
 };

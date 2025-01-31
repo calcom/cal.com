@@ -49,7 +49,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
       ? dayjs(selectedTimeslot).utc().add(eventDuration, "minutes").format()
       : null;
 
-  const isReservedBySomeoneElseQuery = trpc.viewer.slots.isReserved.useQuery(
+  const isAvailableQuery = trpc.viewer.slots.isAvailable.useQuery(
     {
       slotUtcStartDate: slotUtcStartDate!,
       slotUtcEndDate: slotUtcEndDate!,
@@ -63,7 +63,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     }
   );
 
-  const isReservedBySomeoneElse = !!isReservedBySomeoneElseQuery.data?.isReserved;
+  const availablityStatus = isAvailableQuery.data?.status;
 
   const handleReserveSlot = () => {
     if (eventTypeId && slotUtcStartDate && slotUtcEndDate) {
@@ -94,10 +94,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
   return {
     selectedTimeslot,
     setSelectedTimeslot,
-    setSlotReservationId,
     slotReservationId,
-    handleReserveSlot,
-    handleRemoveSlot,
-    isReservedBySomeoneElse,
+    availablityStatus,
   };
 };

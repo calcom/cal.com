@@ -38,6 +38,7 @@ type AvailableTimeSlotsProps = {
   skipConfirmStep: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
+  unavailableTimeSlots: string[];
 };
 
 /**
@@ -57,6 +58,7 @@ export const AvailableTimeSlots = ({
   customClassNames,
   skipConfirmStep,
   onSubmit,
+  unavailableTimeSlots,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -66,6 +68,22 @@ export const AvailableTimeSlots = ({
   const [layout] = useBookerStore((state) => [state.layout]);
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const onTentativeTimeSelect = ({
+    time,
+    attendees: _attendees,
+    seatsPerTimeSlot: _seatsPerTimeSlot,
+    bookingUid: _bookingUid,
+  }: {
+    time: string;
+    attendees: number;
+    seatsPerTimeSlot?: number | null;
+    bookingUid?: string;
+  }) => {
+    // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
+    // We could start doing that after we fix this behaviour.
+    setSelectedTimeslot(time);
+  };
 
   const onTimeSelect = (
     time: string,
@@ -87,7 +105,9 @@ export const AvailableTimeSlots = ({
         showAvailableSeatsCount,
       });
     }
-    if (skipConfirmStep) {
+
+    const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
+    if (skipConfirmStep && isTimeSlotAvailable) {
       onSubmit(time);
     }
     return;
@@ -154,6 +174,8 @@ export const AvailableTimeSlots = ({
                 customClassNames={customClassNames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
+                onTentativeTimeSelect={onTentativeTimeSelect}
+                unavailableTimeSlots={unavailableTimeSlots}
                 slots={slots.slots}
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 skipConfirmStep={skipConfirmStep}

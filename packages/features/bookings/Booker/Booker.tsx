@@ -1,6 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -45,6 +45,39 @@ const UnpublishedEntity = dynamic(() =>
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
+
+/**
+ * Checks if a given time slot is available in the schedule
+ * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
+ * @returns boolean - true if the slot is available, false otherwise.
+ */
+const isTimeSlotAvailable = ({
+  schedule,
+  slotToCheckInUTC,
+  dateString,
+  availablityStatus,
+}: {
+  schedule: WrappedBookerProps["schedule"];
+  slotToCheckInUTC: string;
+  dateString: string | null;
+  availablityStatus: "available" | "reserved" | null;
+}) => {
+  if (availablityStatus && availablityStatus !== "available") return false;
+  // If schedule is not loaded or other variables are unavailable consider the slot available
+  if (!schedule?.data || !slotToCheckInUTC || !dateString) {
+    return true;
+  }
+
+  // Get the slots for this date
+  const slotsForDateInUtc = schedule.data.slots[dateString];
+  if (!slotsForDateInUtc) return false;
+
+  // Check if the exact time slot exists in the available slots
+  return slotsForDateInUtc.some((slot) => {
+    const slotTimeInUtc = slot.time;
+    return slotTimeInUtc === slotToCheckInUTC;
+  });
+};
 
 const BookerComponent = ({
   username,
@@ -100,11 +133,7 @@ const BookerComponent = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-  const {
-    selectedTimeslot,
-    setSelectedTimeslot,
-    isReservedBySomeoneElse: isSlotReservedBySomeoneElse,
-  } = slots;
+  const { selectedTimeslot, setSelectedTimeslot, availablityStatus } = slots;
   const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -163,34 +192,6 @@ const BookerComponent = ({
     }
   };
 
-  /**
-   * Checks if a given time slot is available in the schedule
-   * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
-   * @returns boolean - true if the slot is available, false otherwise.
-   */
-  const isTimeSlotAvailable = ({
-    slotToCheckInUTC,
-    dateString,
-  }: {
-    slotToCheckInUTC: string | null;
-    dateString: string | null;
-  }) => {
-    // If schedule is not loaded or other variables are unavailable consider the slot available
-    if (!schedule?.data || !slotToCheckInUTC || !dateString) {
-      return true;
-    }
-
-    // Get the slots for this date
-    const slotsForDateInUtc = schedule.data.slots[dateString];
-    if (!slotsForDateInUtc) return false;
-
-    // Check if the exact time slot exists in the available slots
-    return slotsForDateInUtc.some((slot) => {
-      const slotTimeInUtc = slot.time;
-      return slotTimeInUtc === slotToCheckInUTC;
-    });
-  };
-
   const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
 
   // Cloudflare Turnstile Captcha
@@ -202,17 +203,29 @@ const BookerComponent = ({
     (bookerState === "booking" || (bookerState === "selecting_time" && skipConfirmStep))
   );
 
+  const [unavailableTimeSlots, setUnavailableTimeSlots] = useState<string[]>([]);
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot || skipConfirmStep) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
-  // Check if selected timeslot is available before moving to booking state
-  // Note: We can never be certain whether the slot is unavailable due to reservation or an actual booking/busy time because getSchedule considers both in deciding to keep a slot
-  const isTimeslotUnavailable =
-    !isTimeSlotAvailable({ slotToCheckInUTC: selectedTimeslot, dateString: selectedDate }) ||
-    isSlotReservedBySomeoneElse;
+
+  useEffect(() => {
+    if (
+      selectedTimeslot &&
+      !isTimeSlotAvailable({
+        schedule,
+        slotToCheckInUTC: selectedTimeslot,
+        dateString: selectedDate,
+        availablityStatus: availablityStatus ?? null,
+      })
+    ) {
+      setUnavailableTimeSlots((prev) => [...Array.from(new Set([...prev, selectedTimeslot]))]);
+    }
+  }, [selectedTimeslot, selectedDate, availablityStatus, schedule]);
+
   const slot = getQueryParam("slot");
 
   useEffect(() => {
@@ -237,7 +250,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
-        isTimeslotUnavailable={isTimeslotUnavailable}
+        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
@@ -311,6 +324,7 @@ const BookerComponent = ({
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
+    unavailableTimeSlots,
   ]);
 
   /**
@@ -502,6 +516,7 @@ const BookerComponent = ({
                 schedule={schedule}
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                unavailableTimeSlots={unavailableTimeSlots}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
                 event={event}
                 loadingStates={loadingStates}
