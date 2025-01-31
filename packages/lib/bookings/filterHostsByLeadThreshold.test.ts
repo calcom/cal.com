@@ -190,10 +190,4 @@ describe("filterHostByLeadThreshold", () => {
       })
     ).resolves.toStrictEqual([hosts[0], hosts[2]]); // host 2 (host[1]) disqualified
   });
-
-  describe("with virtual queues by passing", () => {
-    it("correctly disqualifies a host when the lead offset is exceeding the threshold", async () => {
-      console.log("test");
-    });
-  });
 });
