@@ -1,5 +1,6 @@
 "use client";
 
+import { cva } from "class-variance-authority";
 import React, { forwardRef, useId, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
@@ -11,19 +12,59 @@ import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
 
+export const inputStyles = cva(
+  [
+    // Base styles
+    "block rounded-lg border",
+    "leading-none font-normal",
+
+    // Colors
+    "bg-default",
+    "border-default",
+    "text-default",
+    "placeholder:text-muted",
+
+    // States
+    "hover:border-emphasis",
+    "dark:focus:border-emphasis",
+    "focus:border-subtle",
+    "focus:ring-brand-default",
+    "focus:ring-2",
+    "focus:outline-none",
+
+    // Disabled state
+    "disabled:bg-subtle",
+    "disabled:hover:border-default",
+    "disabled:cursor-not-allowed",
+
+    // Shadow
+    "shadow-outline-gray-rested",
+
+    // Transitions
+    "transition",
+  ],
+  {
+    variants: {
+      size: {
+        sm: "h-7 px-2 py-1 mb-1 text-xs",
+        md: "h-9 px-3 py-2 mb-2 text-sm",
+      },
+    },
+    defaultVariants: {
+      size: "md",
+    },
+  }
+);
+
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { isFullWidth = true, ...props },
+  { isFullWidth = true, size = "md", className, ...props },
   ref
 ) {
   return (
     <input
       {...props}
       ref={ref}
-      className={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
-        isFullWidth && "w-full",
-        props.className
-      )}
+      className={classNames(inputStyles({ size }), isFullWidth && "w-full", className)}
     />
   );
 });
@@ -94,6 +135,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     dataTestid,
+    size,
     ...passThrough
   } = props;
 
@@ -132,6 +174,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             isFullWidth={inputIsFullWidth}
+            size={size}
             className={classNames(
               className,
               "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed",
@@ -175,6 +218,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           id={id}
           type={type}
           placeholder={placeholder}
+          size={size}
           className={classNames(
             className,
             "disabled:bg-subtle disabled:hover:border-subtle disabled:cursor-not-allowed"

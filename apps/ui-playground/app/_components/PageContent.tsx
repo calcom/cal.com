@@ -10,7 +10,9 @@ import BadgeDemo from "./BadgeDemo";
 import ButtonDemo from "./ButtonDemo";
 import CheckboxDemo from "./CheckboxDemo";
 import DropdownDemo from "./DropdownDemo";
+import InputDemo from "./InputDemo";
 import TableOfContents from "./TableOfContents";
+import TextFieldDemo from "./TextFieldDemo";
 
 export default function PageContent() {
   const [isDark, setIsDark] = useState(false);
@@ -60,6 +62,14 @@ export default function PageContent() {
 
             <section id="alert" className="space-y-6">
               <AlertDemo />
+            </section>
+
+            <section id="input" className="space-y-6">
+              <InputDemo />
+            </section>
+
+            <section id="textfield" className="space-y-6">
+              <TextFieldDemo />
             </section>
           </main>
         </div>

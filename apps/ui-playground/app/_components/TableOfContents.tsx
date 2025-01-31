@@ -12,17 +12,6 @@ type Section = {
 
 const sections: Section[] = [
   {
-    id: "avatar",
-    title: "Avatar",
-    subsections: [
-      { id: "avatar-sizes", title: "Size Variations" },
-      { id: "avatar-images", title: "With/Without Image" },
-      { id: "avatar-tooltip", title: "With Tooltip" },
-      { id: "avatar-link", title: "With Link" },
-      { id: "avatar-indicator", title: "With Indicator" },
-    ],
-  },
-  {
     id: "alert",
     title: "Alert",
     subsections: [
@@ -31,6 +20,17 @@ const sections: Section[] = [
       { id: "alert-custom-icons", title: "Custom Icons" },
       { id: "alert-custom-icon-colors", title: "Custom Icon Colors" },
       { id: "alert-no-title", title: "Without Title" },
+    ],
+  },
+  {
+    id: "avatar",
+    title: "Avatar",
+    subsections: [
+      { id: "avatar-sizes", title: "Size Variations" },
+      { id: "avatar-images", title: "With/Without Image" },
+      { id: "avatar-tooltip", title: "With Tooltip" },
+      { id: "avatar-link", title: "With Link" },
+      { id: "avatar-indicator", title: "With Indicator" },
     ],
   },
   {
@@ -74,6 +74,45 @@ const sections: Section[] = [
       { id: "dropdown-button", title: "Button Trigger" },
       { id: "dropdown-avatar", title: "Avatar Trigger" },
       { id: "dropdown-sizes", title: "Different Sizes" },
+    ],
+  },
+  {
+    id: "input",
+    title: "Input",
+    subsections: [
+      { id: "input-states", title: "States" },
+      { id: "input-types", title: "Types" },
+      { id: "input-widths", title: "Widths" },
+      { id: "input-values", title: "With Values" },
+    ],
+  },
+  {
+    id: "textfield",
+    title: "TextField",
+    subsections: [
+      { id: "textfield-basic", title: "Basic" },
+      { id: "textfield-hints", title: "With Hints & Errors" },
+      { id: "textfield-addons", title: "With Add-ons" },
+      { id: "textfield-labels", title: "Label Variations" },
+      { id: "textfield-states", title: "States" },
+    ],
+  },
+  {
+    id: "select",
+    title: "Select",
+    subsections: [
+      { id: "select-basic", title: "Basic" },
+      { id: "select-groups", title: "Option Groups" },
+    ],
+  },
+  {
+    id: "tooltip",
+    title: "Tooltip",
+    subsections: [
+      { id: "tooltip-basic", title: "Basic" },
+      { id: "tooltip-positions", title: "Positions" },
+      { id: "tooltip-triggers", title: "Triggers" },
+      { id: "tooltip-content", title: "Content" },
     ],
   },
 ];

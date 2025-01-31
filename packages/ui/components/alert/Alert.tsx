@@ -43,7 +43,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
               name={CustomIcon}
               data-testid="custom-icon"
               aria-hidden="true"
-              className={classNames(`h4 w-4`, iconClassName, customIconColor ?? "text-default")}
+              className={classNames(`h4 mr-2 w-4`, iconClassName, customIconColor ?? "text-default")}
             />
           </div>
         ) : (
