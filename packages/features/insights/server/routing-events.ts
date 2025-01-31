@@ -93,91 +93,48 @@ class RoutingEventsInsights {
     teamId,
     startDate,
     endDate,
-    isAll = false,
+    isAll,
     organizationId,
     routingFormId,
+    cursor,
+    limit,
     userId,
-    memberUserId,
-    searchQuery,
-    bookingStatus,
-    fieldFilter,
-  }: Omit<RoutingFormInsightsFilter, "columnFilters">) {
-    // Get team IDs based on organization if applicable
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
-      userId,
+    memberUserIds,
+    columnFilters,
+    sorting,
+  }: RoutingFormResponsesFilter) {
+    const whereClause = await this.getWhereClauseForRoutingFormResponses({
       teamId,
+      startDate,
+      endDate,
       isAll,
       organizationId,
       routingFormId,
+      cursor,
+      limit,
+      userId,
+      memberUserIds,
+      columnFilters,
+      sorting,
     });
 
-    // Base where condition for responses
-    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
-      ...(startDate &&
-        endDate && {
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-        }),
-      ...(memberUserId || bookingStatus || searchQuery
-        ? {
-            ...(bookingStatus === "NO_BOOKING"
-              ? { routedToBooking: null }
-              : {
-                  routedToBooking: {
-                    ...(memberUserId && { userId: memberUserId }),
-                    ...(searchQuery && {
-                      user: {
-                        OR: [
-                          { email: { contains: searchQuery, mode: "insensitive" } },
-                          { name: { contains: searchQuery, mode: "insensitive" } },
-                        ],
-                      },
-                    }),
-                    ...(bookingStatus && { status: bookingStatus }),
-                  },
-                }),
-          }
-        : {}),
-      ...(fieldFilter && {
-        response: {
-          path: [fieldFilter.fieldId, "value"],
-          array_contains: [fieldFilter.optionId],
-        },
-      }),
-      form: formsWhereCondition,
-    };
-
-    // Get total forms count
-    const totalFormsPromise = prisma.app_RoutingForms_Form.count({
-      where: formsWhereCondition,
+    const totalPromise = prisma.routingFormResponse.count({
+      where: whereClause,
     });
 
-    // Get total responses
-    const totalResponsesPromise = prisma.app_RoutingForms_FormResponse.count({
-      where: responsesWhereCondition,
-    });
-
-    // Get responses without booking
-    const responsesWithoutBookingPromise = prisma.app_RoutingForms_FormResponse.count({
+    const totalWithoutBookingPromise = prisma.routingFormResponse.count({
       where: {
-        ...responsesWhereCondition,
-        routedToBookingUid: null,
+        ...whereClause,
+        bookingUid: null,
       },
     });
 
-    const [totalForms, totalResponses, responsesWithoutBooking] = await Promise.all([
-      totalFormsPromise,
-      totalResponsesPromise,
-      responsesWithoutBookingPromise,
-    ]);
+    const [total, totalWithoutBooking] = await Promise.all([totalPromise, totalWithoutBookingPromise]);
 
     return {
-      created: totalForms,
-      total_responses: totalResponses,
-      total_responses_without_booking: responsesWithoutBooking,
-      total_responses_with_booking: totalResponses - responsesWithoutBooking,
+      total,
+      totalWithoutBooking,
+      totalWithBooking: total - totalWithoutBooking,
     };
   }
 
@@ -213,19 +170,16 @@ class RoutingEventsInsights {
     });
   }
 
-  static async getRoutingFormPaginatedResponses({
+  static async getWhereClauseForRoutingFormResponses({
     teamId,
     startDate,
     endDate,
     isAll,
     organizationId,
     routingFormId,
-    cursor,
-    limit,
     userId,
     memberUserIds,
     columnFilters,
-    sorting,
   }: RoutingFormResponsesFilter) {
     const formsTeamWhereCondition = await this.getWhereForTeamOrAllTeams({
       userId,
@@ -306,6 +260,38 @@ class RoutingEventsInsights {
       }),
     };
 
+    return whereClause;
+  }
+
+  static async getRoutingFormPaginatedResponses({
+    teamId,
+    startDate,
+    endDate,
+    isAll,
+    organizationId,
+    routingFormId,
+    cursor,
+    limit,
+    userId,
+    memberUserIds,
+    columnFilters,
+    sorting,
+  }: RoutingFormResponsesFilter) {
+    const whereClause = await this.getWhereClauseForRoutingFormResponses({
+      teamId,
+      startDate,
+      endDate,
+      isAll,
+      organizationId,
+      routingFormId,
+      cursor,
+      limit,
+      userId,
+      memberUserIds,
+      columnFilters,
+      sorting,
+    });
+
     const totalResponsePromise = prisma.routingFormResponse.count({
       where: whereClause,
     });
@@ -331,7 +317,7 @@ class RoutingEventsInsights {
         createdAt: true,
       },
       where: whereClause,
-      orderBy: sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
+      orderBy: sorting && sorting.length > 0 ? makeOrderBy(sorting) : { createdAt: "desc" },
       take: limit ? limit + 1 : undefined, // Get one extra item to check if there are more pages
       cursor: cursor ? { id: cursor } : undefined,
     });
