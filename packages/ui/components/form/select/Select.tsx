@@ -73,6 +73,7 @@ export const Select = <
                 : "px-3 py-2 h-fit"
               : "py-2 px-3",
             props.isDisabled && "bg-subtle",
+            "rounded-[10px]",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
