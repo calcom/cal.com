@@ -68,7 +68,7 @@ function filterHostsByLeadThresholdWithoutWeights(perUserData: PerUserData, maxL
     } else {
       filteredUserIds.push(parseInt(userIdStr, 10));
       log.debug(
-        `Host Allowed ${userIdStr} has been filtered out because the given data made them exceed the thresholds. BookingsCount: ${bookingsCount}, MinBookings: ${minBookings}, MaxBookings: ${maxBookings}, MaxLeadThreshold: ${maxLeadThreshold}`
+        `Host Allowed ${userIdStr} has been filtered out because the given data made them exceed the thresholds. BookingsCount: ${bookingsCount}, MinBookings: ${minBookings}, MaxLeadThreshold: ${maxLeadThreshold}`
       );
     }
   }

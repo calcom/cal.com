@@ -138,8 +138,7 @@ export const findQualifiedHosts = async <
       const fallbackHosts = getFallbackHosts(
         fixedHosts,
         hostsAfterRoutedTeamMemberIdsMatching,
-        hostsAfterContactOwnerMatching,
-        "NotContactOwner"
+        hostsAfterContactOwnerMatching
       );
 
       return {
@@ -172,8 +171,7 @@ export const findQualifiedHosts = async <
           (fairnessHost) => fairnessHost.user.id === host.user.id // Compare unique identifiers
         )
     ),
-    hostsAfterFairnessMatching,
-    "Unfair"
+    hostsAfterFairnessMatching
   );
 
   if (fallbackHosts.length > 0) {
@@ -185,8 +183,7 @@ export const findQualifiedHosts = async <
     const fallbackHosts = getFallbackHosts(
       fixedHosts,
       hostsAfterFairnessMatching,
-      hostsAfterContactOwnerMatching,
-      "NotContactOwner"
+      hostsAfterContactOwnerMatching
     );
 
     return {
