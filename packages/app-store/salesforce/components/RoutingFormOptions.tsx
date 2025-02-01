@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 
+import type {
+  LocalRouteWithRaqbStates,
+  AttributeRoutingConfig,
+} from "@calcom/features/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Select, Input, Label } from "@calcom/ui";
 
-import type { LocalRouteWithRaqbStates, AttributeRoutingConfig } from "../../routing-forms/types/types";
 import { appDataSchema } from "../zod";
 
 enum SalesforceRoutingConfig {

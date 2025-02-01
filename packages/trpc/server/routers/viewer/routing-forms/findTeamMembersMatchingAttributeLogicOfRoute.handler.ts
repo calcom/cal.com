@@ -6,8 +6,13 @@ import type { App_RoutingForms_Form } from "@prisma/client";
 import type { ServerResponse } from "http";
 import type { NextApiResponse } from "next";
 
-import { enrichFormWithMigrationData } from "@calcom/app-store/routing-forms/enrichFormWithMigrationData";
-import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
+import { enrichFormWithMigrationData } from "@calcom/features/routing-forms/enrichFormWithMigrationData";
+import { getAbsoluteEventTypeRedirectUrl } from "@calcom/features/routing-forms/getEventTypeRedirectUrl";
+import { getSerializableForm } from "@calcom/features/routing-forms/lib/getSerializableForm";
+import { getServerTimingHeader } from "@calcom/features/routing-forms/lib/getServerTimingHeader";
+import { getUrlSearchParamsToForwardForTestPreview } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
+import isRouter from "@calcom/features/routing-forms/lib/isRouter";
+import { RouteActionType } from "@calcom/features/routing-forms/zod";
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { fromEntriesWithDuplicateKeys } from "@calcom/lib/fromEntriesWithDuplicateKeys";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -15,16 +20,12 @@ import { getOrderedListOfLuckyUsers } from "@calcom/lib/server/getLuckyUser";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { getAbsoluteEventTypeRedirectUrl } from "@calcom/routing-forms/getEventTypeRedirectUrl";
-import { getSerializableForm } from "@calcom/routing-forms/lib/getSerializableForm";
-import { getServerTimingHeader } from "@calcom/routing-forms/lib/getServerTimingHeader";
-import isRouter from "@calcom/routing-forms/lib/isRouter";
-import { RouteActionType } from "@calcom/routing-forms/zod";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TFindTeamMembersMatchingAttributeLogicOfRouteInputSchema } from "./findTeamMembersMatchingAttributeLogicOfRoute.schema";
 
+type A = TrpcSessionUser;
 interface FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions {
   ctx: {
     prisma: PrismaClient;

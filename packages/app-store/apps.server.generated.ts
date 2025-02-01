@@ -67,7 +67,6 @@ export const apiHandlers = {
   "retell-ai": import("./retell-ai/api"),
   riverside: import("./riverside/api"),
   roam: import("./roam/api"),
-  "routing-forms": import("./routing-forms/api"),
   salesforce: import("./salesforce/api"),
   salesroom: import("./salesroom/api"),
   sendgrid: import("./sendgrid/api"),

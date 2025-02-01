@@ -38,7 +38,7 @@ import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import { RoutingFormFieldType } from "@calcom/features/routing-forms/lib/FieldTypes";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Badge,

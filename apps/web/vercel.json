@@ -21,7 +21,7 @@
     "pages/api/trpc/highPerf/[trpc].ts": {
       "memory": 3008
     },
-    "pages/api/trpc/appRoutingForms/[trpc].ts": {
+    "pages/api/trpc/routingForms/[trpc].ts": {
       "memory": 2048
     },
     "pages/router/embed.tsx": {

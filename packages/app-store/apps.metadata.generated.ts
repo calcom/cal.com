@@ -67,7 +67,6 @@ import raycast_config_json from "./raycast/config.json";
 import retell_ai_config_json from "./retell-ai/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
-import routing_forms_config_json from "./routing-forms/config.json";
 import salesforce_config_json from "./salesforce/config.json";
 import salesroom_config_json from "./salesroom/config.json";
 import sendgrid_config_json from "./sendgrid/config.json";
@@ -170,7 +169,6 @@ export const appStoreMetadata = {
   "retell-ai": retell_ai_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,
-  "routing-forms": routing_forms_config_json,
   salesforce: salesforce_config_json,
   salesroom: salesroom_config_json,
   sendgrid: sendgrid_config_json,

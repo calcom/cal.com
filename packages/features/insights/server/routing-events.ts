@@ -7,7 +7,7 @@ import startCase from "lodash/startCase";
 import {
   zodFields as routingFormFieldsSchema,
   routingFormResponseInDbSchema,
-} from "@calcom/app-store/routing-forms/zod";
+} from "@calcom/features/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";

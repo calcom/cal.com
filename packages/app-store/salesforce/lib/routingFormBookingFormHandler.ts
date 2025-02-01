@@ -1,6 +1,7 @@
+import type { AttributeRoutingConfig } from "@calcom/features/routing-forms/types/types";
+
 import { CredentialRepository } from "../../../lib/server/repository/credential";
 import { EventTypeService } from "../../../lib/server/service/eventType";
-import type { AttributeRoutingConfig } from "../../routing-forms/types/types";
 import SalesforceCRMService from "./CrmService";
 import { SalesforceRecordEnum, RoutingReasons } from "./enums";
 

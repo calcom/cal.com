@@ -1,10 +1,10 @@
 import type { ParsedUrlQuery } from "querystring";
 
 import { getCRMContactOwnerForRRLeadSkip } from "@calcom/app-store/_utils/CRMRoundRobinSkip";
-import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/app-store/routing-forms/lib/constants";
-import { enabledAppSlugs } from "@calcom/app-store/routing-forms/lib/enabledApps";
-import type { AttributeRoutingConfig, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes as routesSchema } from "@calcom/app-store/routing-forms/zod";
+import { ROUTING_FORM_RESPONSE_ID_QUERY_STRING } from "@calcom/features/routing-forms/lib/constants";
+import { enabledAppSlugs } from "@calcom/features/routing-forms/lib/enabledApps";
+import type { AttributeRoutingConfig, LocalRoute } from "@calcom/features/routing-forms/types/types";
+import { zodRoutes as routesSchema } from "@calcom/features/routing-forms/zod";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -151,7 +151,7 @@ async function getTeamMemberEmailUsingRoutingFormHandler({
   // If the skipContactOwner is enabled then don't return an team member email
   if (attributeRoutingConfig.skipContactOwner) return { ...nullReturnValue, skipContactOwner: true };
 
-  const appBookingFormHandler = (await import("@calcom/app-store/routing-forms/appBookingFormHandler"))
+  const appBookingFormHandler = (await import("@calcom/features/routing-forms/appBookingFormHandler"))
     .default;
   const appHandler = appBookingFormHandler[crmAppSlug];
   if (!appHandler) return nullReturnValue;

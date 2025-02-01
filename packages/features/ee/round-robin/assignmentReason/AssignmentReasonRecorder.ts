@@ -1,5 +1,5 @@
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import type { FormResponse, Fields } from "@calcom/features/routing-forms/types/types";
+import { zodRoutes } from "@calcom/features/routing-forms/zod";
 import { acrossQueryValueCompatiblity } from "@calcom/lib/raqb/raqbUtils";
 import { getUsersAttributes } from "@calcom/lib/service/attribute/server/getAttributes";
 import prisma from "@calcom/prisma";

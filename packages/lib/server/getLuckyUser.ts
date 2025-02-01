@@ -1,7 +1,7 @@
 import type { Prisma, User } from "@prisma/client";
 
-import type { FormResponse, Fields } from "@calcom/app-store/routing-forms/types/types";
-import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import type { FormResponse, Fields } from "@calcom/features/routing-forms/types/types";
+import { zodRoutes } from "@calcom/features/routing-forms/zod";
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";

@@ -1,4 +1,4 @@
-import { zodRoutes } from "@calcom/app-store/routing-forms/zod";
+import { zodRoutes } from "@calcom/features/routing-forms/zod";
 import prisma from "@calcom/prisma";
 import { AssignmentReasonEnum } from "@calcom/prisma/enums";
 
