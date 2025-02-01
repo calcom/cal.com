@@ -32,11 +32,13 @@ const {
   Button,
   ButtonGroup,
   Provider,
+  AddressWidget,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
 const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(props, TextAreaWidget);
 const NumberFactory = (props: WidgetProps | undefined) => renderComponent(props, NumberWidget);
+const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
 const MultiSelectFactory = (
   props:
     | (SelectWidgetProps & {
@@ -111,6 +113,10 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     email: {
       ...widgets.text,
       factory: EmailFactory,
+    },
+    address: {
+      ...widgets.text,
+      factory: AddressFactory,
     },
   };
   return widgetsWithFactory;

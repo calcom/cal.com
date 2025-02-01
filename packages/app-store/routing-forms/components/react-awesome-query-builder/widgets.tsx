@@ -9,7 +9,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
+import { Button as CalButton, TextField, TextArea, AddressInput } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 const Select = dynamic(
@@ -360,6 +360,19 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
+function AddressWidget(props: any) {
+  return (
+    <AddressInput
+      id={props.name}
+      onChange={(val) => {
+        props.setValue(val);
+      }}
+      {...props}
+      disabled={props.readOnly}
+    />
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -368,6 +381,7 @@ const widgets = {
   SelectWidget,
   NumberWidget,
   MultiSelectWidget,
+  AddressWidget,
   FieldSelect,
   Button,
   ButtonGroup,

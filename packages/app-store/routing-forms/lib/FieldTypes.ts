@@ -7,6 +7,7 @@ export const enum RoutingFormFieldType {
   PHONE = "phone",
   EMAIL = "email",
   URL = "url",
+  ADDRESS = "address",
 }
 
 export const FieldTypes = [
@@ -41,5 +42,9 @@ export const FieldTypes = [
   {
     label: "URL",
     value: RoutingFormFieldType.URL,
+  },
+  {
+    label: "Address",
+    value: RoutingFormFieldType.ADDRESS,
   },
 ] as const;

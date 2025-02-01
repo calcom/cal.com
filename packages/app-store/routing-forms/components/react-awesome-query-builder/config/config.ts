@@ -18,6 +18,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     url: {
       ...BasicConfig.widgets.text,
     },
+    address: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
