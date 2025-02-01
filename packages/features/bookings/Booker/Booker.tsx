@@ -249,6 +249,7 @@ const BookerComponent = ({
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
+          console.log("PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM");
           // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
           if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
             // Ensures that user has latest available slots when they want to re-choose from the slots
