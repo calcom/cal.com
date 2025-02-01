@@ -485,7 +485,6 @@ export default function FormEditPage({
       appUrl={appUrl}
       Page={({ hookForm, form }) => (
         <>
-          {/* <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} /> */}
           <FormBuilder
             title={t("booking_questions_title")}
             description={t("booking_questions_description")}
