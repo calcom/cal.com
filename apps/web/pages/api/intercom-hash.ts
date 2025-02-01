@@ -5,7 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { defaultHandler } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   const secret = process.env.INTERCOM_SECRET;
 
   if (!session) {
