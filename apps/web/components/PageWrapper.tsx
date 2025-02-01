@@ -8,6 +8,7 @@ import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import PostHog from "@calcom/features/ee/event-tracking/lib/posthog/Provider";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { IconSprites } from "@calcom/ui";
@@ -63,48 +64,50 @@ function PageWrapper(props: AppProps) {
 
   return (
     <AppProviders {...providerProps}>
-      <Head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
+      <PostHog>
+        <Head>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
+          />
+        </Head>
+        <DefaultSeo
+          // Set canonical to https://cal.com or self-hosted URL
+          canonical={
+            IS_CALCOM
+              ? buildCanonical({ path, origin: "https://cal.com" }) // cal.com & .dev
+              : buildCanonical({ path, origin: WEBAPP_URL }) // self-hosted
+          }
+          {...seoConfig.defaultNextSeo}
         />
-      </Head>
-      <DefaultSeo
-        // Set canonical to https://cal.com or self-hosted URL
-        canonical={
-          IS_CALCOM
-            ? buildCanonical({ path, origin: "https://cal.com" }) // cal.com & .dev
-            : buildCanonical({ path, origin: WEBAPP_URL }) // self-hosted
-        }
-        {...seoConfig.defaultNextSeo}
-      />
-      <Script
-        nonce={nonce}
-        id="page-status"
-        // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
-        // And we don't want it to error here anyways
-        // eslint-disable-next-line react/no-danger
-        dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
-      />
+        <Script
+          nonce={nonce}
+          id="page-status"
+          // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+          // And we don't want it to error here anyways
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
+        />
 
-      <style jsx global>{`
-        :root {
-          --font-inter: ${interFont.style.fontFamily};
-          --font-cal: ${calFont.style.fontFamily};
-        }
-      `}</style>
-      <IconSprites />
+        <style jsx global>{`
+          :root {
+            --font-inter: ${interFont.style.fontFamily};
+            --font-cal: ${calFont.style.fontFamily};
+          }
+        `}</style>
+        <IconSprites />
 
-      {getLayout(
-        Component.requiresLicense ? (
-          <LicenseRequired>
+        {getLayout(
+          Component.requiresLicense ? (
+            <LicenseRequired>
+              <Component {...pageProps} err={err} />
+            </LicenseRequired>
+          ) : (
             <Component {...pageProps} err={err} />
-          </LicenseRequired>
-        ) : (
-          <Component {...pageProps} err={err} />
-        )
-      )}
-      <GoogleTagManagerComponent />
+          )
+        )}
+        <GoogleTagManagerComponent />
+      </PostHog>
     </AppProviders>
   );
 }

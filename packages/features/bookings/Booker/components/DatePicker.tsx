@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -64,6 +65,12 @@ export const DatePicker = ({
     onMonthChange(browsingDate.add(1, "month"));
   };
 
+  useEffect(() => {
+    // Set timestamp when DatePicker mounts (user lands on booking page)
+    localStorage.setItem("page_load_timestamp", Date.now().toString());
+    console.log("Page load timestamp set in DatePicker:", Date.now());
+  }, []);
+
   moveToNextMonthOnNoAvailability();
 
   return (
@@ -79,6 +86,15 @@ export const DatePicker = ({
       isPending={schedule.isPending}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+
+        // Only set the date selection timestamp, don't touch the page load timestamp
+        if (date) {
+          // Check if we already have a date selection timestamp to avoid resetting it
+          if (!localStorage.getItem("date_selected_timestamp")) {
+            localStorage.setItem("date_selected_timestamp", Date.now().toString());
+            console.log("Date selected timestamp set:", Date.now());
+          }
+        }
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
