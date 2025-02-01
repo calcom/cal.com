@@ -8,7 +8,7 @@ import Script from "next/script";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import PostHog from "@calcom/features/ee/event-tracking/lib/posthog/Provider";
+import Provider from "@calcom/features/ee/event-tracking/lib/posthog/Provider";
 import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { IconSprites } from "@calcom/ui";
@@ -64,7 +64,7 @@ function PageWrapper(props: AppProps) {
 
   return (
     <AppProviders {...providerProps}>
-      <PostHog>
+      <Provider>
         <Head>
           <meta
             name="viewport"
@@ -107,7 +107,7 @@ function PageWrapper(props: AppProps) {
           )
         )}
         <GoogleTagManagerComponent />
-      </PostHog>
+      </Provider>
     </AppProviders>
   );
 }

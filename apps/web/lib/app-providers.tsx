@@ -12,7 +12,7 @@ import type { ParsedUrlQuery } from "querystring";
 import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect } from "react";
 
-import PostHog from "@calcom/features/ee/event-tracking/lib/posthog/Provider";
+import Provider from "@calcom/features/ee/event-tracking/lib/posthog/Provider";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
@@ -322,10 +322,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
   return (
     <>
       <DynamicHelpscoutProvider>
-        <PostHog>
+        <Provider>
           <PostHogPageView />
           {RemainingProviders}
-        </PostHog>
+        </Provider>
       </DynamicHelpscoutProvider>
     </>
   );

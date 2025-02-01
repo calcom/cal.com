@@ -194,21 +194,21 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 onClick={() => {
-                  const pageLoadTime = localStorage.getItem("page_load_timestamp");
-                  const dateSelectedTime = localStorage.getItem("date_selected_timestamp");
+                  const dateSelectedTime = localStorage.getItem("page_load_timestamp");
+                  const pageLoadTime = localStorage.getItem("date_selected_timestamp");
 
                   const now = Date.now();
 
                   if (pageLoadTime) {
                     const totalTime = now - parseInt(pageLoadTime);
                     const totalTimeSeconds = Math.round(totalTime / 1000);
-                    console.log(`Time from date selection to booking:  ${totalTimeSeconds} seconds`);
+                    console.log(`Total time from page load to booking: ${totalTimeSeconds} seconds`);
                   }
 
                   if (dateSelectedTime) {
                     const timeFromDatePick = now - parseInt(dateSelectedTime);
                     const timeFromDatePickSeconds = Math.round(timeFromDatePick / 1000);
-                    console.log(`Total time from page load to booking: ${timeFromDatePickSeconds} seconds`);
+                    console.log(`Time from date selection to booking: ${timeFromDatePickSeconds} seconds`);
                   }
 
                   posthog.capture("book_event_form_submit", {
