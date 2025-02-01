@@ -1,3 +1,4 @@
+import posthog from "posthog-js";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -67,8 +68,18 @@ export const DatePicker = ({
 
   useEffect(() => {
     // Set timestamp when DatePicker mounts (user lands on booking page)
-    localStorage.setItem("page_load_timestamp", Date.now().toString());
-    console.log("Page load timestamp set in DatePicker:", Date.now());
+    const pageLoadTimestamp = Date.now().toString();
+    localStorage.setItem("page_load_timestamp", pageLoadTimestamp);
+
+    // Safe PostHog tracking
+    try {
+      posthog.capture("booking_process_started", {
+        timestamp: pageLoadTimestamp,
+        path: window.location.pathname,
+      });
+    } catch (e) {
+      console.error("PostHog tracking error:", e);
+    }
   }, []);
 
   moveToNextMonthOnNoAvailability();
@@ -89,10 +100,20 @@ export const DatePicker = ({
 
         // Only set the date selection timestamp, don't touch the page load timestamp
         if (date) {
-          // Check if we already have a date selection timestamp to avoid resetting it
-          if (!localStorage.getItem("date_selected_timestamp")) {
-            localStorage.setItem("date_selected_timestamp", Date.now().toString());
-            console.log("Date selected timestamp set:", Date.now());
+          const dateSelectedTimestamp = Date.now().toString();
+          localStorage.setItem("date_selected_timestamp", dateSelectedTimestamp);
+
+          try {
+            posthog.capture("date_selected", {
+              timestamp: dateSelectedTimestamp,
+              selected_date: date.format("YYYY-MM-DD"),
+              days_since_page_load: Math.floor(
+                (Number(dateSelectedTimestamp) - Number(localStorage.getItem("page_load_timestamp"))) /
+                  (1000 * 60 * 60 * 24)
+              ),
+            });
+          } catch (e) {
+            console.error("PostHog tracking error:", e);
           }
         }
       }}

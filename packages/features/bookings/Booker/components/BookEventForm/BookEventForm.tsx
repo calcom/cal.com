@@ -99,6 +99,47 @@ export const BookEventForm = ({
 
   const watchedCfToken = bookingForm.watch("cfToken");
 
+  const handleBookingConfirmation = async () => {
+    try {
+      // booking submission logic
+      const values = bookingForm.getValues();
+      setFormValues(values);
+      await onSubmit();
+
+      const pageLoadTime = localStorage.getItem("date_selected_timestamp");
+      const dateSelectedTime = localStorage.getItem("page_load_timestamp");
+      const now = Date.now();
+
+      //track yo analytics
+      if (pageLoadTime) {
+        const totalTime = now - parseInt(pageLoadTime);
+        const totalTimeSeconds = Math.round(totalTime / 1000);
+        console.log(`Time from date selection to booking: ${totalTimeSeconds} seconds`);
+      }
+
+      if (dateSelectedTime) {
+        const timeFromDatePick = now - parseInt(dateSelectedTime);
+        const timeFromDatePickSeconds = Math.round(timeFromDatePick / 1000);
+        console.log(`Total time from page load to booking: ${timeFromDatePickSeconds} seconds`);
+      }
+
+      posthog.capture("book_event_form_submit", {
+        totalTimeFromLoadMs: dateSelectedTime ? now - parseInt(dateSelectedTime) : null,
+        totalTimeFromLoadSeconds: dateSelectedTime
+          ? Math.round((now - parseInt(dateSelectedTime)) / 1000)
+          : null,
+        timeFromDatePickMs: pageLoadTime ? now - parseInt(pageLoadTime) : null,
+        timeFromDatePickSeconds: pageLoadTime ? Math.round((now - parseInt(pageLoadTime)) / 1000) : null,
+      });
+
+      // cleanup timestamps after success
+      localStorage.removeItem("page_load_timestamp");
+      localStorage.removeItem("date_selected_timestamp");
+    } catch (error) {
+      console.error("Booking confirmation error:", error);
+    }
+  };
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -194,21 +235,21 @@ export const BookEventForm = ({
                 type="submit"
                 color="primary"
                 onClick={() => {
-                  const dateSelectedTime = localStorage.getItem("page_load_timestamp");
-                  const pageLoadTime = localStorage.getItem("date_selected_timestamp");
+                  const pageLoadTime = localStorage.getItem("page_load_timestamp");
+                  const dateSelectedTime = localStorage.getItem("date_selected_timestamp");
 
                   const now = Date.now();
 
                   if (pageLoadTime) {
                     const totalTime = now - parseInt(pageLoadTime);
                     const totalTimeSeconds = Math.round(totalTime / 1000);
-                    console.log(`Total time from page load to booking: ${totalTimeSeconds} seconds`);
+                    console.log(`Time from date selection to booking:  ${totalTimeSeconds} seconds`);
                   }
 
                   if (dateSelectedTime) {
                     const timeFromDatePick = now - parseInt(dateSelectedTime);
                     const timeFromDatePickSeconds = Math.round(timeFromDatePick / 1000);
-                    console.log(`Time from date selection to booking: ${timeFromDatePickSeconds} seconds`);
+                    console.log(`Total time from page load to booking: ${timeFromDatePickSeconds} seconds`);
                   }
 
                   posthog.capture("book_event_form_submit", {
