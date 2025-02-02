@@ -508,8 +508,8 @@ export const BookerPlatformWrapper = (
         onOverlaySwitchStateChange={onOverlaySwitchStateChange}
         extraOptions={extraOptions ?? {}}
         bookings={{
-          handleBookEvent: () => {
-            handleBookEvent();
+          handleBookEvent: (timeSlot?: string) => {
+            handleBookEvent(timeSlot);
             return;
           },
           expiryTime: undefined,
