@@ -29,12 +29,18 @@ export const Router = React.memo(
     renderMessage,
     bookerBannerUrl,
     bookerCustomClassNames,
+    onSubmitFormStart,
+    onSubmitFormEnd,
+    renderLoader,
   }: {
     formId: string;
     formResponsesURLParams?: URLSearchParams;
     onExternalRedirect?: () => void;
     onDisplayBookerEmbed?: () => void;
+    onSubmitFormStart?: () => void;
+    onSubmitFormEnd?: () => void;
     renderMessage?: (message?: string) => ReactElement | ReactElement[];
+    renderLoader?: (isLoading?: boolean) => ReactElement | ReactElement[];
     bookerBannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
     bookerCustomClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
   }) => {
@@ -51,6 +57,7 @@ export const Router = React.memo(
         setRouterUrl("");
 
         const baseUrl = import.meta.env.VITE_BOOKER_EMBED_API_URL;
+        onSubmitFormStart?.();
         fetch(`${baseUrl}/router/forms/${formId}/submit`, {
           method: "POST",
           headers: {
@@ -76,11 +83,16 @@ export const Router = React.memo(
           })
           .finally(() => {
             setIsLoading(false);
+            onSubmitFormEnd?.();
           });
       }
     }, []);
 
     const isRedirect = !!routerUrl;
+
+    if (isLoading && renderLoader) {
+      return <>{renderLoader?.(isLoading)}</>;
+    }
 
     if (isLoading || isError) {
       return <></>;
