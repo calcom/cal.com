@@ -17,7 +17,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { RateLimitRepositoryFixture } from "test/fixtures/repository/rate-limit.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { User, PlatformOAuthClient, Team, RateLimit } from "@calcom/prisma/client";
@@ -27,7 +27,7 @@ describe("Global throttler rate limiting", () => {
   let userRepositoryFixture: UserRepositoryFixture;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let rateLimitRepositoryFixture: RateLimitRepositoryFixture;
-  const userEmail = `app-rate-limits-e2e-${randomNumber()}@api.com`;
+  const userEmail = `global-throttler-user-${randomString()}@api.com`;
   let managedUserId: number;
   let user: User;
 
@@ -362,7 +362,7 @@ describe("Global throttler rate limiting", () => {
         const limit = mockDefaultLimit;
         const blockDuration = mockDefaultBlockDuration;
 
-        const invalidApiKey = `cal_test_invalid_key-${randomNumber()}`;
+        const invalidApiKey = `cal_test_invalid_key-${randomString()}`;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())
@@ -457,7 +457,7 @@ describe("Global throttler rate limiting", () => {
       async () => {
         const limit = mockDefaultLimit;
         const blockDuration = mockDefaultBlockDuration;
-        const invalidOAuthClientId = `invalidOAuthClientId-${randomNumber()}`;
+        const invalidOAuthClientId = `invalidOAuthClientId-${randomString()}`;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())
@@ -508,7 +508,7 @@ describe("Global throttler rate limiting", () => {
         const blockDuration = mockDefaultBlockDuration;
 
         const requestBody: CreateManagedUserInput = {
-          email: `alice+${randomNumber()}@example.com`,
+          email: `global-throttler-managed-${randomString()}@api.com`,
           timeZone: "Europe/Rome",
           weekStart: "Monday",
           timeFormat: 24,
@@ -574,7 +574,7 @@ describe("Global throttler rate limiting", () => {
       async () => {
         const limit = mockDefaultLimit;
         const blockDuration = mockDefaultBlockDuration;
-        const invalidAccessToken = `invalidAccessToken-${randomNumber()}`;
+        const invalidAccessToken = `invalidAccessToken-${randomString()}`;
 
         for (let i = 1; i <= limit; i++) {
           const response = await request(app.getHttpServer())

@@ -22,11 +22,11 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { RateLimitRepositoryFixture } from "test/fixtures/repository/rate-limit.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, VERSION_2024_08_13, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13, BookingOutput_2024_08_13 } from "@calcom/platform-types";
+import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
 import { PlatformOAuthClient, Team } from "@calcom/prisma/client";
 
 describe("Custom throttler", () => {
@@ -45,7 +45,7 @@ describe("Custom throttler", () => {
     let rateLimitRepositoryFixture: RateLimitRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `custom-throttler-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
@@ -54,7 +54,7 @@ describe("Custom throttler", () => {
     let apiKeyString: string;
 
     let managedUserId: number;
-    let managedUserEmail: string;
+    let managedUserEmail = `custom-throttler-managed-${randomString()}@api.com`;
 
     let rateLimit: RateLimit;
     let apiKeyStringWithRateLimit: string;
@@ -106,7 +106,7 @@ describe("Custom throttler", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
-        username: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
+        username: `custom-throttler-user-${randomString()}`,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -510,7 +510,7 @@ describe("Custom throttler", () => {
           const limit = mockDefaultLimit;
           const blockDuration = mockDefaultBlockDuration;
 
-          const invalidApiKey = `cal_test_invalid_key-${randomNumber()}`;
+          const invalidApiKey = `cal_test_invalid_key-${randomString()}`;
 
           const body: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
@@ -655,7 +655,7 @@ describe("Custom throttler", () => {
         async () => {
           const limit = mockDefaultLimit;
           const blockDuration = mockDefaultBlockDuration;
-          const invalidOAuthClientId = `invalidOAuthClientId-${randomNumber()}`;
+          const invalidOAuthClientId = `invalidOAuthClientId-${randomString()}`;
 
           const body: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
@@ -733,7 +733,7 @@ describe("Custom throttler", () => {
           console.log("asap oAuthClient 111", oAuthClient);
 
           const requestBody: CreateManagedUserInput = {
-            email: `alice+${randomNumber()}@example.com`,
+            email: `custom-throttler-managed-${randomString()}@api.com`,
             timeZone: "Europe/Rome",
             weekStart: "Monday",
             timeFormat: 24,
@@ -825,7 +825,7 @@ describe("Custom throttler", () => {
         async () => {
           const limit = mockDefaultLimit;
           const blockDuration = mockDefaultBlockDuration;
-          const invalidAccessToken = `invalidAccessToken-${randomNumber()}`;
+          const invalidAccessToken = `invalidAccessToken-${randomString()}`;
 
           const body: CreateBookingInput_2024_08_13 = {
             start: new Date(Date.UTC(2030, 0, 8, 9, 0, 0)).toISOString(),
