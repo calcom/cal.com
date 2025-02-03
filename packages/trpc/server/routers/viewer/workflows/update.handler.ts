@@ -85,7 +85,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   if (!isCurrentUsernamePremium) {
     isTeamsPlan = await hasActiveTeamPlanHandler({
       ctx,
-      input: { teamId: userWorkflow?.teamId ?? undefined },
     });
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;

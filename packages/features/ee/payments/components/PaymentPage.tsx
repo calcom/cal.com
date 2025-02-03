@@ -2,7 +2,6 @@
 
 import classNames from "classnames";
 import dynamic from "next/dynamic";
-import Head from "next/head";
 import type { FC } from "react";
 import { useEffect, useState } from "react";
 
@@ -88,12 +87,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
 
   return (
     <div className="h-screen">
-      <Head>
-        <title>
-          {t("payment")} | {eventName} | {APP_NAME}
-        </title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <main className="mx-auto max-w-3xl py-24">
         <div className="fixed inset-0 z-50 overflow-y-auto scroll-auto">
           <div className="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">

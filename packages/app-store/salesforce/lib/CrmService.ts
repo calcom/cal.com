@@ -470,7 +470,7 @@ export default class SalesforceCRMService implements CRM {
       );
     }
 
-    if (contactsToCreate[0]?.email) {
+    if (!contactsToCreate[0]?.email) {
       this.log.warn(`createContact: no attendee email found `, contactsToCreate);
     }
 
@@ -919,6 +919,8 @@ export default class SalesforceCRMService implements CRM {
       return;
     }
 
+    this.log.info(`Writing to recordId ${contactId} on fields ${fieldsToWriteOn}`);
+
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
       personRecord,
@@ -928,6 +930,9 @@ export default class SalesforceCRMService implements CRM {
       organizerEmail,
       calEventResponses,
     });
+
+    this.log.info(`Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)}`);
+
     // Update the person record
     await conn
       .sobject(personRecordType)
@@ -964,6 +969,11 @@ export default class SalesforceCRMService implements CRM {
 
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
+        this.log.info(
+          `Writing to field ${field.name} on contactId ${personRecord?.id} with value ${
+            personRecord[field.name]
+          }`
+        );
         continue;
       }
 
@@ -1156,7 +1166,7 @@ export default class SalesforceCRMService implements CRM {
     const existingFieldNames = existingFields.map((field) => field.name);
 
     const query = await conn.query(
-      `SELECT ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
+      `SELECT Id, ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
     );
 
     if (!query.records.length) {
@@ -1302,7 +1312,9 @@ export default class SalesforceCRMService implements CRM {
     }
 
     if (!personRecord) {
-      throw new Error(`No contact or lead found for email ${email}`);
+      this.log.info(`No contact or lead found for email ${email}`);
+      // No salesforce entity to update, skip and report success (unrecoverable)
+      return;
     }
     // Ensure the fields exist on the record
     const existingFields = await this.ensureFieldsExistOnObject(
@@ -1322,7 +1334,12 @@ export default class SalesforceCRMService implements CRM {
         ...writeOnRecordBody,
       })
       .catch((e) => {
-        this.log.error(`Error updating person record for contactId ${personRecord?.Id}`, e);
+        const contactId = personRecord?.Id || "unknown";
+        // catch the error and throw a new one with a more descriptive message
+        const errorMessage = `Error updating person record for contactId '${contactId}': ${
+          e instanceof Error ? e.message : String(e)
+        }`;
+        throw new Error(errorMessage);
       });
   }
 }

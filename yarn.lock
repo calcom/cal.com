@@ -4151,7 +4151,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     "@lexical/react": ^0.9.0
-    "@tanstack/react-table": ^8.9.3
+    "@tanstack/react-table": ^8.20.6
     "@tanstack/react-virtual": ^3.10.9
     "@testing-library/react-hooks": ^8.0.1
     "@types/web-push": ^3.6.3
@@ -4957,7 +4957,7 @@ __metadata:
     "@storybook/blocks": ^7.6.3
     "@storybook/react": ^7.6.3
     "@tanstack/react-query": ^5.17.15
-    "@tanstack/react-table": ^8.9.3
+    "@tanstack/react-table": ^8.20.6
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
     "@wojtekmaj/react-daterange-picker": ^3.3.1
@@ -15307,15 +15307,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/react-table@npm:^8.9.3":
-  version: 8.9.3
-  resolution: "@tanstack/react-table@npm:8.9.3"
+"@tanstack/react-table@npm:^8.20.6":
+  version: 8.20.6
+  resolution: "@tanstack/react-table@npm:8.20.6"
   dependencies:
-    "@tanstack/table-core": 8.9.3
+    "@tanstack/table-core": 8.20.5
   peerDependencies:
-    react: ">=16"
-    react-dom: ">=16"
-  checksum: a71fbbc608bb11b79ecd2b1a838fad2fc4140f9eb1a25bd44b6b1b4c6acd52741b5745e3e022390c642c284d0d528249360e322c0dbc3d34fea031611c207a7d
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 709f7216cf31af65abe10121e92233c0d9f04b9167769a0997052200cdbc35af525cbf1879d456f27c6df70399a14d006d117b06c5db665d9c486038efc2f4b1
   languageName: node
   linkType: hard
 
@@ -15331,10 +15331,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/table-core@npm:8.9.3":
-  version: 8.9.3
-  resolution: "@tanstack/table-core@npm:8.9.3"
-  checksum: 52c7e57daaa3160450fb0bde702ec0b8aab159e2b19efd1012e03b3e167acc52839f5b39578cc8bf96e91346719f400d0435a5191384c168d9477da82f276c38
+"@tanstack/table-core@npm:8.20.5":
+  version: 8.20.5
+  resolution: "@tanstack/table-core@npm:8.20.5"
+  checksum: f8b175f11eb9ee1e029bb5e91c1038527714382de4bd14750377f43c25e69b687b21bfb181ee07131637d3432618964a4b7a898608fc8411ca50da1e7e8ed4c5
   languageName: node
   linkType: hard
 

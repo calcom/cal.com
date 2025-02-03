@@ -22,8 +22,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -287,12 +286,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   } = availabilitySchema.parse(query);
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify(
-      {
-        query,
-        initialData,
-      }
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify({
+      query,
+    })}`
   );
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -427,14 +423,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify(
-      {
-        chosenSchedule: schedule,
-        eventTypeSchedule: eventType?.schedule,
-        userSchedule: userSchedule,
-        hostSchedule: hostSchedule,
-      }
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
+      chosenSchedule: schedule,
+      eventTypeSchedule: eventType?.schedule,
+      userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
+    })}`
   );
 
   if (
@@ -547,7 +541,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       },
     }));
 
-  const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
+  const datesOutOfOffice: IOutOfOfficeData = await calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
@@ -586,9 +580,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   };
 
   log.debug(
-    `[getUserAvailability] EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(
-      result
-    )}`
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(result)}`
   );
 
   return result;
@@ -636,15 +628,17 @@ export interface IOutOfOfficeData {
   };
 }
 
-const calculateOutOfOfficeRanges = (
+const calculateOutOfOfficeRanges = async (
   outOfOfficeDays: GetUserAvailabilityInitialData["outOfOfficeDays"],
   availability: GetUserAvailabilityParamsDTO["availability"]
-): IOutOfOfficeData => {
+): Promise<IOutOfOfficeData> => {
   if (!outOfOfficeDays || outOfOfficeDays.length === 0) {
     return {};
   }
 
-  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
+  const acc: IOutOfOfficeData = {};
+
+  for (const { start, end, toUser, user, reason } of outOfOfficeDays) {
     // here we should use startDate or today if start is before today
     // consider timezone in start and end date range
     const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
@@ -665,19 +659,27 @@ const calculateOutOfOfficeRanges = (
         continue; // Skip to the next iteration if day not found in flattenDays
       }
 
+      const enrichedToUser = toUser ? await UserRepository.enrichUserWithItsProfile({ user: toUser }) : null;
+
       acc[date.format("YYYY-MM-DD")] = {
         // @TODO:  would be good having start and end availability time here, but for now should be good
         // you can obtain that from user availability defined outside of here
         fromUser: { id: user.id, displayName: user.name },
         // optional chaining destructuring toUser
-        toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
+        ...(!!enrichedToUser && {
+          toUser: {
+            id: enrichedToUser.id,
+            username: enrichedToUser.username,
+            displayName: enrichedToUser.name,
+          },
+        }),
         reason: !!reason ? reason.reason : null,
         emoji: !!reason ? reason.emoji : null,
       };
     }
+  }
 
-    return acc;
-  }, {});
+  return acc;
 };
 
 type GetUsersAvailabilityProps = {
