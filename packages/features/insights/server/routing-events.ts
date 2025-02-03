@@ -69,7 +69,22 @@ class RoutingEventsInsights {
       teamIds = [teamId];
     }
 
-    // TODO: filter teamIds that this user can access!!!
+    // Filter teamIds to only include teams the user has access to
+    if (teamIds.length > 0) {
+      const accessibleTeams = await prisma.membership.findMany({
+        where: {
+          userId: userId ?? -1,
+          teamId: {
+            in: teamIds,
+          },
+          accepted: true,
+        },
+        select: {
+          teamId: true,
+        },
+      });
+      teamIds = accessibleTeams.map((membership) => membership.teamId);
+    }
 
     // Base where condition for forms
     const formsWhereCondition: WhereForTeamOrAllTeams = {
@@ -146,7 +161,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
   }: {
-    userId?: number;
+    userId: number;
     teamId?: number;
     isAll: boolean;
     organizationId?: number | undefined;

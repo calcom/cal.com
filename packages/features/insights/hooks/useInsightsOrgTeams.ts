@@ -11,7 +11,7 @@ export function useInsightsOrgTeams() {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = context;
   const session = useSession();
   const isAll = orgTeamsType === "org";
-  const teamId = orgTeamsType === "team" ? selectedTeamId : undefined;
+  const teamId = orgTeamsType === "org" || orgTeamsType === "team" ? selectedTeamId : undefined;
   const userId = orgTeamsType === "yours" ? session.data?.user.id : undefined;
 
   return {
