@@ -270,7 +270,7 @@ export function RoutingFormResponsesTable() {
 
   const headers = useMemo(() => {
     if (!headersRaw) return;
-    return headersRaw.filter((header) => {
+    const filteredHeaders = headersRaw.filter((header) => {
       if (!header.label || !isValidRoutingFormFieldType(header.type)) {
         return false;
       }
@@ -283,6 +283,19 @@ export function RoutingFormResponsesTable() {
       }
       return true;
     });
+    const ids = new Set<string>();
+    const uniqueHeaders = filteredHeaders.filter((header) => {
+      if (ids.has(header.id)) {
+        return false;
+      }
+      ids.add(header.id);
+      return true;
+    });
+    console.log("💡 test", {
+      h1: filteredHeaders.length,
+      h2: uniqueHeaders.length,
+    });
+    return uniqueHeaders;
   }, [headersRaw]);
 
   const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
