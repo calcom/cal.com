@@ -919,6 +919,8 @@ export default class SalesforceCRMService implements CRM {
       return;
     }
 
+    this.log.info(`Writing to recordId ${contactId} on fields ${fieldsToWriteOn}`);
+
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
       personRecord,
@@ -928,6 +930,9 @@ export default class SalesforceCRMService implements CRM {
       organizerEmail,
       calEventResponses,
     });
+
+    this.log.info(`Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)}`);
+
     // Update the person record
     await conn
       .sobject(personRecordType)
@@ -964,6 +969,11 @@ export default class SalesforceCRMService implements CRM {
 
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
+        this.log.info(
+          `Writing to field ${field.name} on contactId ${personRecord?.id} with value ${
+            personRecord[field.name]
+          }`
+        );
         continue;
       }
 
@@ -1156,7 +1166,7 @@ export default class SalesforceCRMService implements CRM {
     const existingFieldNames = existingFields.map((field) => field.name);
 
     const query = await conn.query(
-      `SELECT ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
+      `SELECT Id, ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
     );
 
     if (!query.records.length) {

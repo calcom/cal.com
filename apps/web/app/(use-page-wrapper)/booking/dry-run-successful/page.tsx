@@ -1,5 +1,4 @@
 import { _generateMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 
 import BookingDryRunSuccessView from "~/bookings/views/booking-dry-run-success-view";
 
@@ -14,4 +13,4 @@ const Page = async () => {
   return <BookingDryRunSuccessView />;
 };
 
-export default WithLayout({ ServerPage: Page });
+export default Page;

@@ -83,6 +83,7 @@
   "payment_not_created_error": "Ezin izan da ordainketa sortu",
   "couldnt_charge_card_error": "Ezin izan da txartela kobratu ordainketarako",
   "no_available_users_found_error": "Ez da erabiltzaile eskuragarririk aurkitu. Beste denbora tarte bat probatu nahi duzu?",
+  "booking_time_out_of_bounds_error": "Ezin da gertaera mota hau momentu honetan erreserbatu. Beste denbora-tarte bat probatuko zenuke?",
   "request_body_end_time_internal_error": "Barne errorea. Eskaeraren gorputzak ez du amaiera ordua",
   "create_calendar_event_error": "Ezin izan da egutegiko gertaera sortu antolatzailearen egutegian",
   "update_calendar_event_error": "Ezin izan da egutegiko gertaera eguneratu",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "Pisuak gaituz gero, erabiltzaile bakoitzeko atributu batzuei lehentasun handiagoa eman ahal izango zaie. Zenbat eta pisu handiagoa izan, orduan eta lehentasun handiagoa izango du.",
   "routed": "Bideratuta",
   "reassigned": "Berresleituta",
+  "allow_rescheduling_past_events": "Baimendu iraganeko gertaeren berrantolaketa",
+  "allow_rescheduling_past_events_description": "Aukera hau aktibatzeak iraganeko gertaerak berrantolatzea ahalbidetzen du",
   "rerouted": "Berbideratuta",
   "salesforce_assigned": "Salesforce esleipena",
   "router_position": "Bideratzailearen posizioa",
@@ -2928,6 +2931,9 @@
   "choose_an_option": "Aukeratu aukera bat",
   "enter_option_value": "Sartu aukeraren balioa",
   "remove_option": "Kendu aukera",
+  "use_attribute_weights": "Erabili atributuen pisuak",
+  "if_enabled_ignore_event_type_weights": "Gaituz gero, gertaera motaren barruan ezarritako pisu guztiak baztertuko dira",
+  "attribute_for_weights": "Pisuen atributua",
   "managed_users": "Kudeatutako erabiltzaileak",
   "managed_users_description": "Ikusi zure OAuth bezeroak sortutako kudeatutako erabiltzaile guztiak",
   "select_oAuth_client": "Hautatu OAuth bezeroa",
@@ -2945,5 +2951,6 @@
   "asc": "Gorantz",
   "desc": "Beherantz",
   "verify_email": "Egiaztatu emaila",
+  "verify_email_change": "Egiaztatu posta elektronikoaren aldaketa",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

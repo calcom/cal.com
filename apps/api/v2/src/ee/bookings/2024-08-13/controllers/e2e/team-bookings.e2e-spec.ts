@@ -21,6 +21,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -52,14 +53,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const teamUserEmail = "orgUser1team1@api.com";
-    const teamUserEmail2 = "orgUser2team1@api.com";
+    const teamUserEmail = `team-bookings-user1-${randomString()}@api.com`;
+    const teamUserEmail2 = `team-bookings-user2-${randomString()}@api.com`;
     let teamUser: User;
     let teamUser2: User;
 
     let team1EventTypeId: number;
     let team2EventTypeId: number;
     let phoneOnlyEventTypeId: number;
+
+    const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -85,11 +90,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
       hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await organizationsRepositoryFixture.create({ name: "organization team bookings" });
+      organization = await organizationsRepositoryFixture.create({
+        name: `team-bookings-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       team1 = await teamRepositoryFixture.create({
-        name: "team 1",
+        name: `team-bookings-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -100,7 +107,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       team2 = await teamRepositoryFixture.create({
-        name: "team 2",
+        name: `team-bookings-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -133,7 +140,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `team-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -196,8 +203,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: "Collective Event Type",
-        slug: "collective-event-type",
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
+        slug: team1EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
@@ -211,8 +218,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: "Phone Only Event Type",
-        slug: "phone-only-event-type",
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
+        slug: phoneOnlyEventTypeSlug,
         length: 15,
         assignAllTeamMembers: false,
         hosts: {
@@ -288,8 +295,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team2.id },
         },
-        title: "Collective Event Type 2",
-        slug: "collective-event-type-2",
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
+        slug: team2EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
