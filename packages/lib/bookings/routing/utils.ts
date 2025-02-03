@@ -10,7 +10,7 @@ export function isRerouting({
   rescheduleUid: string | null;
   routedTeamMemberIds: number[] | null;
 }) {
-  return !!rescheduleUid && routedTeamMemberIds?.length;
+  return !!rescheduleUid && !!routedTeamMemberIds?.length;
 }
 
 export function shouldIgnoreContactOwner({
