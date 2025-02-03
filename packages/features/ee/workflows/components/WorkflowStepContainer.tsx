@@ -132,7 +132,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  let templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  if (hasActiveTeamPlan === false) {
+    templateOptions = templateOptions.map((option) =>
+      option.value === WorkflowTemplates.RATING ? { ...option, needsTeamsUpgrade: true } : option
+    );
+  }
 
   if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
     if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
