@@ -29,7 +29,7 @@ import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { RoutingFormFieldType, isValidRoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Badge,
@@ -258,7 +258,7 @@ export function RoutingFormResponsesTable() {
     useInsightsParameters();
 
   const {
-    data: headersRaw,
+    data: headers,
     isLoading: isHeadersLoading,
     isSuccess: isHeadersSuccess,
   } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -267,36 +267,6 @@ export function RoutingFormResponsesTable() {
     isAll,
     routingFormId,
   });
-
-  const headers = useMemo(() => {
-    if (!headersRaw) return;
-    const filteredHeaders = headersRaw.filter((header) => {
-      if (!header.label || !isValidRoutingFormFieldType(header.type)) {
-        return false;
-      }
-      if (
-        (header.type === RoutingFormFieldType.SINGLE_SELECT ||
-          header.type === RoutingFormFieldType.MULTI_SELECT) &&
-        (!header.options || header.options.length === 0)
-      ) {
-        return false;
-      }
-      return true;
-    });
-    const ids = new Set<string>();
-    const uniqueHeaders = filteredHeaders.filter((header) => {
-      if (ids.has(header.id)) {
-        return false;
-      }
-      ids.add(header.id);
-      return true;
-    });
-    console.log("💡 test", {
-      h1: filteredHeaders.length,
-      h2: uniqueHeaders.length,
-    });
-    return uniqueHeaders;
-  }, [headersRaw]);
 
   const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
     userId,
