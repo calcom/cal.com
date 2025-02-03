@@ -184,6 +184,7 @@ function buildSlotsWithDateRanges({
     }
   }
 
+  const processedOOODates = new Set<string>();
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
@@ -205,6 +206,25 @@ function buildSlotsWithDateRanges({
       : range.end;
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
+    // Add OOO slot if exists and is before current range
+    if (datesOutOfOffice) {
+      Object.entries(datesOutOfOffice).forEach(([dateStr, oooData]) => {
+        const oooDate = dayjs(dateStr);
+        if (oooDate.isBefore(dateYYYYMMDD, "day") && !processedOOODates.has(dateStr)) {
+          slots.push({
+            time: oooDate.startOf("day"),
+            away: true,
+            ...(oooData.fromUser && { fromUser: oooData.fromUser }),
+            ...(oooData.toUser && { toUser: oooData.toUser }),
+            ...(oooData.reason && { reason: oooData.reason }),
+            ...(oooData.emoji && { emoji: oooData.emoji }),
+          });
+          // when the date range increases in the next iteration, we don't want to process this date again
+          processedOOODates.add(dateStr);
+        }
+      });
+    }
 
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
@@ -231,8 +251,8 @@ function buildSlotsWithDateRanges({
           ...(reason && { reason }),
           ...(emoji && { emoji }),
         };
+        processedOOODates.add(dateYYYYMMDD);
       }
-
       slots.push(slotData);
       slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
     }
