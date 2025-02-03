@@ -22,6 +22,9 @@ export const useAvailableSlots = ({
       rest.isTeamEvent ?? false,
       rest.teamId ?? false,
       rest.usernameList,
+      rest.routedTeamMemberIds,
+      rest.skipContactOwner,
+      rest.shouldServeCache,
     ],
     queryFn: () => {
       return http
