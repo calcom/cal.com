@@ -270,7 +270,7 @@ export function RoutingFormResponsesTable() {
 
   const headers = useMemo(() => {
     if (!headersRaw) return;
-    return headersRaw.filter((header) => isValidRoutingFormFieldType(header.type));
+    return headersRaw.filter((header) => header.label && isValidRoutingFormFieldType(header.type));
   }, [headersRaw]);
 
   const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
