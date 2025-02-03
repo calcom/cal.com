@@ -52,6 +52,13 @@ export const Select = <
     <ReactSelect
       {...reactSelectProps}
       menuPlacement={menuPlacement}
+      styles={{
+        control: (base) => ({
+          ...base,
+          minHeight: "36px",
+          height: "36px",
+        }),
+      }}
       classNames={{
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
@@ -69,13 +76,13 @@ export const Select = <
             inputStyles({ size: "md" }),
             state.isMulti
               ? variant === "checkbox"
-                ? "px-3 py-2 h-fit"
+                ? "px-3 h-fit"
                 : state.hasValue
                 ? "p-1 h-fit"
-                : "px-3 py-2 h-fit"
-              : "py-2 px-3",
+                : "px-3 h-fit"
+              : "h-9 px-3",
             props.isDisabled && "bg-subtle",
-            "rounded-[10px]",
+            "rounded-lg",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
@@ -88,13 +95,13 @@ export const Select = <
           ),
         menu: () =>
           cx(
-            "rounded-[10px] bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
+            "rounded-lg bg-default text-sm leading-4 text-default mt-1 border border-subtle shadow-dropdown p-1",
             innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs text-muted p-2 font-medium ml-1",
         menuList: () =>
           cx(
-            "scroll-bar scrollbar-track-w-20 rounded-lg flex flex-col space-y-[1px]",
+            "scroll-bar scrollbar-track-w-20 rounded-md flex flex-col space-y-[1px]",
             innerClassNames?.menuList
           ),
         indicatorsContainer: (state) =>
