@@ -21,6 +21,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -58,12 +59,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = "peer-coding";
+    const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
+    const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -91,12 +93,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `user-bookings-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
-        username: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
+        username: userEmail,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -105,13 +109,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `user-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
+
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `user-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: eventTypeSlug,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;
@@ -120,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
           title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          slug: recurringEventTypeSlug,
           length: 60,
           recurringEvent: { freq: 2, count: 3, interval: 1 },
         },
