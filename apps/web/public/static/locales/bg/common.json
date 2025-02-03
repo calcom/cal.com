@@ -83,6 +83,7 @@
   "payment_not_created_error": "Плащането не можа да бъде създадено",
   "couldnt_charge_card_error": "Не можа да се извърши плащане с картата",
   "no_available_users_found_error": "Не са намерени свободни потребители. Бихте ли опитали друг времеви интервал?",
+  "booking_time_out_of_bounds_error": "Този тип събитие не може да бъде резервирано в този час. Бихте ли опитали друг часови интервал?",
   "request_body_end_time_internal_error": "Вътрешна грешка. Заявката не съдържа краен час",
   "create_calendar_event_error": "Не може да се създаде събитие в календара на организатора",
   "update_calendar_event_error": "Не може да се актуализира събитието в календара",
@@ -2907,6 +2908,8 @@
   "attribute_weight_enabled_description": "При активиране на тежестите ще бъде възможно да се зададе по-висок приоритет на определени атрибути за всеки потребител. Колкото по-голяма е тежестта, толкова по-висок е приоритетът.",
   "routed": "Пренасочен",
   "reassigned": "Преразпределен",
+  "allow_rescheduling_past_events": "Разреши препланиране на минали събития",
+  "allow_rescheduling_past_events_description": "Активирането на тази опция позволява препланиране на минали събития",
   "rerouted": "Пренасочен",
   "salesforce_assigned": "Възложен в Salesforce",
   "router_position": "Позиция на рутера",
@@ -2928,6 +2931,9 @@
   "choose_an_option": "Изберете опция",
   "enter_option_value": "Въведете стойност на опцията",
   "remove_option": "Премахване на опцията",
+  "use_attribute_weights": "Използване на тежести на атрибутите",
+  "if_enabled_ignore_event_type_weights": "Ако е активирано, всички тежести, зададени в типа събитие, ще бъдат игнорирани",
+  "attribute_for_weights": "Атрибут за тежести",
   "managed_users": "Управлявани потребители",
   "managed_users_description": "Вижте всички управлявани потребители, създадени от вашия OAuth клиент",
   "select_oAuth_client": "Изберете OAuth клиент",
@@ -2945,5 +2951,6 @@
   "asc": "Възх",
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
+  "verify_email_change": "Потвърди промяната на имейл",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

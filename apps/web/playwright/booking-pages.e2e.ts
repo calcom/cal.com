@@ -401,6 +401,23 @@ test.describe("prefill", () => {
       await expect(page.locator('[name="email"]')).toHaveValue(testEmail);
     });
   });
+
+  test("skip confirm step if all fields are prefilled from query params", async ({ page }) => {
+    await page.goto("/pro/30min");
+    const url = new URL(page.url());
+    url.searchParams.set("name", testName);
+    url.searchParams.set("email", testEmail);
+    url.searchParams.set("guests", "guest1@example.com");
+    url.searchParams.set("guests", "guest2@example.com");
+    url.searchParams.set("notes", "This is an additional note");
+    await page.goto(url.toString());
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await expect(page.locator('[data-testid="skip-confirm-book-button"]')).toBeVisible();
+    await page.click('[data-testid="skip-confirm-book-button"]');
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
 });
 
 test.describe("Booking on different layouts", () => {

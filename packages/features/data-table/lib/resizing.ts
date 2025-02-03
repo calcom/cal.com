@@ -49,8 +49,13 @@ function getAdjustedColumnSizing<TData>({
     return currentColumnSizing;
   }
 
-  const getColumnSize = (id: string) =>
-    resizedColumns.has(id) ? currentColumnSizing[id] : initialColumnSizing[id];
+  const getColumnSize = (header: Header<TData, unknown>) => {
+    const id = header.id;
+    if (resizedColumns.has(id)) {
+      return currentColumnSizing[id] ?? initialColumnSizing[id] ?? header.getSize();
+    }
+    return initialColumnSizing[id] ?? header.getSize();
+  };
 
   const isAdjustable = (header: Header<TData, unknown>) =>
     header.column.columnDef.enableResizing !== false && !resizedColumns.has(header.id);
@@ -59,7 +64,7 @@ function getAdjustedColumnSizing<TData>({
   const numberOfAdjustableColumns = headers.filter(isAdjustable).length;
 
   // Calculate widths and required adjustments
-  const totalColumnsWidth = headers.reduce((total, header) => total + getColumnSize(header.id), 0);
+  const totalColumnsWidth = headers.reduce((total, header) => total + getColumnSize(header), 0);
   const widthToFill = Math.max(0, containerWidth - totalColumnsWidth);
   const widthPerAdjustableColumn =
     numberOfAdjustableColumns === 0 ? 0 : Math.floor(widthToFill / numberOfAdjustableColumns);
@@ -69,7 +74,7 @@ function getAdjustedColumnSizing<TData>({
 
   // Build the new column sizing object
   const newColumnSizing = headers.reduce((acc, header, index) => {
-    const baseWidth = getColumnSize(header.id);
+    const baseWidth = getColumnSize(header);
     const adjustmentWidth = isAdjustable(header) ? widthPerAdjustableColumn : 0;
     const isLastColumn = index === headers.length - 1;
     const extraWidth = isLastColumn ? leftoverWidth : 0;

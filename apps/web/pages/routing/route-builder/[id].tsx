@@ -42,7 +42,9 @@ import type {
 import { RouteActionType } from "@calcom/features/routing-forms/zod";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { buildEmptyQueryValue } from "@calcom/lib/raqb/raqbUtils";
+import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
+import type { App_RoutingForms_Form } from "@calcom/prisma/client";
+
 import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -55,10 +57,41 @@ import {
   TextField,
   Badge,
   Divider,
+  SettingsToggle,
 } from "@calcom/ui";
-
 import PageWrapper from "@components/PageWrapper";
 
+import { routingFormAppComponents } from "../../appComponents";
+import DynamicAppComponent from "../../components/DynamicAppComponent";
+import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
+import SingleForm, {
+  getServerSidePropsForSingleFormView as getServerSideProps,
+} from "../../components/SingleForm";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "../../components/react-awesome-query-builder/config/uiConfig";
+import { RoutingPages } from "../../lib/RoutingPages";
+import { createFallbackRoute } from "../../lib/createFallbackRoute";
+import getEventTypeAppMetadata from "../../lib/getEventTypeAppMetadata";
+import {
+  getQueryBuilderConfigForFormFields,
+  getQueryBuilderConfigForAttributes,
+  type FormFieldsQueryBuilderConfigWithRaqbFields,
+  type AttributesQueryBuilderConfigWithRaqbFields,
+  isDynamicOperandField,
+} from "../../lib/getQueryBuilderConfig";
+import isRouter from "../../lib/isRouter";
+import type { SerializableForm } from "../../types/types";
+import type {
+  GlobalRoute,
+  LocalRoute,
+  SerializableRoute,
+  Attribute,
+  EditFormRoute,
+  AttributeRoutingConfig,
+} from "../../types/types";
+import { RouteActionType } from "../../zod";
 export { getServerSideProps };
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
@@ -148,6 +181,7 @@ const buildEventsData = ({
     value: string;
     eventTypeId: number;
     eventTypeAppMetadata?: Record<string, any>;
+    isRRWeightsEnabled: boolean;
   }[] = [];
   const eventTypesMap = new Map<
     number,
@@ -193,11 +227,132 @@ const buildEventsData = ({
         value: uniqueSlug,
         eventTypeId: eventType.id,
         eventTypeAppMetadata,
+        isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       });
     });
   });
 
   return { eventOptions, eventTypesMap };
+};
+
+const isValidAttributeIdForWeights = ({
+  attributeIdForWeights,
+  jsonTree,
+}: {
+  attributeIdForWeights: string;
+  jsonTree: JsonTree;
+}) => {
+  if (!attributeIdForWeights || !jsonTree.children1) {
+    return false;
+  }
+
+  return Object.values(jsonTree.children1).some((rule) => {
+    if (rule.type !== "rule" || rule?.properties?.field !== attributeIdForWeights) {
+      return false;
+    }
+
+    const values = rule.properties.value.flat();
+    return values.length === 1 && values.some((value: string) => isDynamicOperandField(value));
+  });
+};
+
+const WeightedAttributesSelector = ({
+  attributes,
+  route,
+  eventTypeRedirectUrlSelectedOption,
+  setRoute,
+}: {
+  attributes?: Attribute[];
+  route: EditFormRoute;
+  eventTypeRedirectUrlSelectedOption: { isRRWeightsEnabled: boolean } | undefined;
+  setRoute: SetRoute;
+}) => {
+  const [attributeIdForWeights, setAttributeIdForWeights] = useState(
+    "attributeIdForWeights" in route ? route.attributeIdForWeights : undefined
+  );
+
+  const { t } = useLocale();
+  if (isRouter(route)) {
+    return null;
+  }
+
+  let attributesWithWeightsEnabled: Attribute[] = [];
+
+  if (eventTypeRedirectUrlSelectedOption?.isRRWeightsEnabled) {
+    const validatedQueryValue = route.attributesQueryBuilderState?.tree
+      ? QbUtils.getTree(route.attributesQueryBuilderState.tree)
+      : null;
+
+    if (
+      validatedQueryValue &&
+      raqbQueryValueUtils.isQueryValueARuleGroup(validatedQueryValue) &&
+      validatedQueryValue.children1
+    ) {
+      const attributeIds = Object.values(validatedQueryValue.children1).map((rule) => {
+        if (rule.type === "rule" && rule?.properties?.field) {
+          if (
+            rule.properties.value.flat().length == 1 &&
+            rule.properties.value.flat().some((value) => isDynamicOperandField(value))
+          ) {
+            return rule.properties.field;
+          }
+        }
+      });
+
+      attributesWithWeightsEnabled = attributes
+        ? attributes.filter(
+            (attribute) =>
+              attribute.isWeightsEnabled && attributeIds.find((attributeId) => attributeId === attribute.id)
+          )
+        : [];
+    }
+  }
+
+  const onChangeAttributeIdForWeights = (
+    route: EditFormRoute & { attributeIdForWeights?: string },
+    attributeIdForWeights?: string
+  ) => {
+    setRoute(route.id, {
+      attributeIdForWeights,
+    });
+  };
+
+  return attributesWithWeightsEnabled.length > 0 ? (
+    <div className="mt-8">
+      <SettingsToggle
+        title={t("use_attribute_weights")}
+        description={t("if_enabled_ignore_event_type_weights")}
+        checked={!!attributeIdForWeights}
+        onCheckedChange={(checked) => {
+          const attributeId = checked ? attributesWithWeightsEnabled[0].id : undefined;
+          setAttributeIdForWeights(attributeId);
+          onChangeAttributeIdForWeights(route, attributeId);
+        }}
+      />
+      {!!attributeIdForWeights ? (
+        <SelectField
+          containerClassName="mb-6 mt-4 data-testid-select-router"
+          label={t("attribute_for_weights")}
+          options={attributesWithWeightsEnabled.map((attribute) => {
+            return { value: attribute.id, label: attribute.name };
+          })}
+          value={{
+            value: attributeIdForWeights,
+            label: attributesWithWeightsEnabled.find((attribute) => attribute.id === attributeIdForWeights)
+              ?.name,
+          }}
+          onChange={(option) => {
+            if (option) {
+              setAttributeIdForWeights(option.value);
+              onChangeAttributeIdForWeights(route, option.value);
+            }
+          }}
+        />
+      ) : (
+        <></>
+      )}
+    </div>
+  ) : null;
 };
 
 const Route = ({
@@ -215,6 +370,7 @@ const Route = ({
   disabled = false,
   fieldIdentifiers,
   eventTypesByGroup,
+  attributes,
 }: {
   form: Form;
   route: EditFormRoute;
@@ -230,12 +386,13 @@ const Route = ({
   appUrl: string;
   disabled?: boolean;
   eventTypesByGroup: EventTypesByGroup;
+  attributes?: Attribute[];
 }) => {
   const { t } = useLocale();
   const isTeamForm = form.teamId !== null;
   const index = routes.indexOf(route);
 
-  const { eventOptions, eventTypesMap } = buildEventsData({ eventTypesByGroup, form, route });
+  const { eventOptions } = buildEventsData({ eventTypesByGroup, form, route });
 
   // /team/{TEAM_SLUG}/{EVENT_SLUG} -> /team/{TEAM_SLUG}
   const eventTypePrefix =
@@ -269,15 +426,30 @@ const Route = ({
     });
   };
 
+  const setAttributeIdForWeights = (attributeIdForWeights: string | undefined) => {
+    setRoute(route.id, {
+      attributeIdForWeights,
+    });
+  };
+
   const onChangeTeamMembersQuery = (
     route: EditFormRoute,
     immutableTree: ImmutableTree,
     config: AttributesQueryBuilderConfigWithRaqbFields
   ) => {
     const jsonTree = QbUtils.getTree(immutableTree);
+    const attributeIdForWeights = isRouter(route) ? null : route.attributeIdForWeights;
+    const _isValidAttributeIdForWeights =
+      attributeIdForWeights && isValidAttributeIdForWeights({ attributeIdForWeights, jsonTree });
+
+    if (attributeIdForWeights && !_isValidAttributeIdForWeights) {
+      setAttributeIdForWeights(undefined);
+    }
+
     setRoute(route.id, {
       attributesQueryBuilderState: { tree: immutableTree, config: config },
       attributesQueryValue: jsonTree as AttributesQueryValue,
+      attributeIdForWeights: _isValidAttributeIdForWeights ? attributeIdForWeights : undefined,
     });
   };
 
@@ -338,7 +510,9 @@ const Route = ({
   const shouldShowFormFieldsQueryBuilder = (route.isFallback && hasRules(route)) || !route.isFallback;
   const eventTypeRedirectUrlOptions =
     eventOptions.length !== 0
-      ? [{ label: t("custom"), value: "custom", eventTypeId: 0 }].concat(eventOptions)
+      ? [{ label: t("custom"), value: "custom", eventTypeId: 0, isRRWeightsEnabled: false }].concat(
+          eventOptions
+        )
       : [];
 
   const eventTypeRedirectUrlSelectedOption =
@@ -349,6 +523,7 @@ const Route = ({
           label: t("custom"),
           value: "custom",
           eventTypeId: 0,
+          isRRWeightsEnabled: false,
         }
       : undefined;
 
@@ -592,6 +767,12 @@ const Route = ({
               ) : null}
             </div>
             {attributesQueryBuilder}
+            <WeightedAttributesSelector
+              attributes={attributes}
+              route={route}
+              eventTypeRedirectUrlSelectedOption={eventTypeRedirectUrlSelectedOption}
+              setRoute={setRoute}
+            />
             <Divider className="mb-6 mt-6" />
             {fallbackAttributesQueryBuilder}
           </div>
@@ -723,6 +904,7 @@ function useRoutes({
           queryValue: route.queryValue,
           attributesQueryValue: route.attributesQueryValue,
           fallbackAttributesQueryValue: route.fallbackAttributesQueryValue,
+          attributeIdForWeights: route.attributeIdForWeights,
         };
       });
     }
@@ -741,7 +923,7 @@ const Routes = ({
   form: inferSSRProps<typeof getServerSideProps>["form"];
   hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   appUrl: string;
-  attributes: Attribute[] | null;
+  attributes?: Attribute[];
   eventTypesByGroup: EventTypesByGroup;
 }) => {
   const { routes: serializedRoutes } = hookForm.getValues();
@@ -916,6 +1098,7 @@ const Routes = ({
               form={form}
               appUrl={appUrl}
               key={route.id}
+              attributes={attributes}
               formFieldsQueryBuilderConfig={formFieldsQueryBuilderConfig}
               attributesQueryBuilderConfig={attributesQueryBuilderConfig}
               route={route}
@@ -1065,7 +1248,6 @@ function Page({
     console.error("Events not available");
     return <div>{t("something_went_wrong")}</div>;
   }
-
   return (
     <div className="route-config">
       <Routes
@@ -1073,7 +1255,7 @@ function Page({
         appUrl={appUrl}
         eventTypesByGroup={eventTypesByGroup}
         form={form}
-        attributes={attributes || null}
+        attributes={attributes}
       />
     </div>
   );

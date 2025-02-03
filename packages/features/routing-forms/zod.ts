@@ -71,6 +71,7 @@ export const attributeRoutingConfigSchema = z
 export const zodNonRouterRoute = z.object({
   id: z.string(),
   name: z.string().optional(),
+  attributeIdForWeights: z.string().optional(),
   attributeRoutingConfig: attributeRoutingConfigSchema,
 
   // TODO: It should be renamed to formFieldsQueryValue but it would take some effort
