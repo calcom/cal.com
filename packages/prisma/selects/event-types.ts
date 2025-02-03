@@ -14,6 +14,7 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
   requiresBookerEmailVerification: true,
+  canSendCalVideoTranscriptionEmails: true,
 });
 
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({

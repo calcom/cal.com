@@ -24,6 +24,8 @@
   "verify_email_email_header": "Verify your email address",
   "verify_email_email_button": "Verify email",
   "cal_ai_assistant": "Cal AI Assistant",
+  "send_cal_video_transcription_emails": "Send Cal Video Transcription Emails",
+  "description_send_cal_video_transcription_emails": "Send emails with the transcription of the Cal Video after the meeting ends. (Requires a paid plan)",
   "verify_email_change_description": "You have recently requested to change the email address you use to log into your {{appName}} account. Please click the button below to confirm your new email address.",
   "verify_email_change_success_toast": "Updated your email to {{email}}",
   "verify_email_change_failure_toast": "Failed to update email.",
