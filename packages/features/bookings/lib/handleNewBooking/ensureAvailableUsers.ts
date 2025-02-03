@@ -7,6 +7,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
@@ -101,6 +102,22 @@ export async function ensureAvailableUsers(
     },
   });
 
+  const eventDetails = safeStringify({
+    startDateTimeUtc,
+    endDateTimeUtc,
+    ...{
+      ...input,
+      originalRescheduledBooking: input.originalRescheduledBooking
+        ? {
+            ...input.originalRescheduledBooking,
+            user: input.originalRescheduledBooking?.user
+              ? getPiiFreeUser(input.originalRescheduledBooking.user)
+              : null,
+          }
+        : undefined,
+    },
+  });
+
   usersAvailability.forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
     const user = eventType.users[index];
 
@@ -110,27 +127,13 @@ export async function ensureAvailableUsers(
     );
 
     if (!dateRanges.length) {
-      loggerWithEventDetails.error(
-        `User does not have availability at this time.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
-      );
+      loggerWithEventDetails.error(`User does not have availability at this time.`, errorDetail);
       return;
     }
 
     //check if event time is within the date range
     if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(
-        `No date range for booking.`,
-        safeStringify({
-          startDateTimeUtc,
-          endDateTimeUtc,
-          input,
-        })
-      );
+      loggerWithEventDetails.error(`No date range for booking.`, errorDetail);
       return;
     }
 
@@ -149,14 +152,7 @@ export async function ensureAvailableUsers(
   });
 
   if (availableUsers.length === 0) {
-    loggerWithEventDetails.error(
-      `No available users found.`,
-      safeStringify({
-        startDateTimeUtc,
-        endDateTimeUtc,
-        input,
-      })
-    );
+    loggerWithEventDetails.error(`No available users found.`, eventDetails);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   // make sure TypeScript understands availableUsers is at least one.
