@@ -1,4 +1,10 @@
-const compareReminderBodyToTemplate = ({ reminderBody, template }) => {
+const compareReminderBodyToTemplate = ({
+  reminderBody,
+  template,
+}: {
+  reminderBody: string;
+  template: string;
+}) => {
   const stripHTML = (html: string) => html.replace(/<[^>]+>/g, "").replace(/&amp;/g, "&");
 
   const stripedReminderBody = stripHTML(reminderBody);
