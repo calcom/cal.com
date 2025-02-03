@@ -16,6 +16,7 @@ import RangeSliderDemo from "./RangeSliderDemo";
 import RangeSliderPopoverDemo from "./RangeSliderPopoverDemo";
 import SelectDemo from "./SelectDemo";
 import TableOfContents from "./TableOfContents";
+import TabsDemo from "./TabsDemo";
 import TextFieldDemo from "./TextFieldDemo";
 import ToastDemo from "./ToastDemo";
 
@@ -95,6 +96,10 @@ export default function PageContent() {
 
             <section id="range-slider-popover" className="space-y-6">
               <RangeSliderPopoverDemo />
+            </section>
+
+            <section id="tabs" className="space-y-6">
+              <TabsDemo />
             </section>
           </main>
         </div>

@@ -1,13 +1,11 @@
-import Link from "next/link";
-
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
 import { Avatar } from "../../avatar";
+import { Button } from "../../button";
 import { Icon } from "../../icon";
 import type { IconName } from "../../icon";
-import { SkeletonText } from "../../skeleton";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -36,7 +34,15 @@ const HorizontalTabItem = function ({
   const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
-    <Link
+    <Button
+      color={isCurrent ? "secondary" : "minimal"}
+      className={classNames(
+        props.icon ? "p-1.5" : "p-2",
+        props.disabled && "pointer-events-none !opacity-30",
+        props.className
+      )}
+      href={href}
+      shallow={linkShallow}
       onClick={(e) => {
         if (props.onClick) {
           e.preventDefault();
@@ -44,36 +50,14 @@ const HorizontalTabItem = function ({
         }
       }}
       key={name}
-      href={href}
-      shallow={linkShallow}
-      scroll={linkScroll}
-      className={classNames(
-        isCurrent ? "bg-emphasis text-emphasis" : "hover:bg-subtle hover:text-emphasis text-default",
-        "inline-flex items-center justify-center whitespace-nowrap rounded-[6px] p-2 text-sm font-medium leading-4 transition md:mb-0",
-        props.disabled && "pointer-events-none !opacity-30",
-        props.className
-      )}
-      target={props.target ? props.target : undefined}
+      target={props.target}
       data-testid={`horizontal-tab-${name}`}
-      aria-current={isCurrent ? "page" : undefined}>
-      {props.icon && (
-        <Icon
-          name={props.icon}
-          className={classNames(
-            isCurrent ? "text-emphasis" : "group-hover:text-subtle text-muted",
-            "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
-          )}
-          aria-hidden="true"
-        />
-      )}
-      {isLocaleReady ? (
-        <div className="flex items-center gap-x-2">
-          {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" />} {t(name)}
-        </div>
-      ) : (
-        <SkeletonText className="h-4 w-24" />
-      )}
-    </Link>
+      aria-current={isCurrent ? "page" : undefined}
+      CustomStartIcon={props.icon && <Icon name={props.icon} className="text-subtle h-[14px] w-[14px]" />}>
+      <div className="text-emphasis flex items-center gap-x-2 text-sm font-medium leading-none">
+        {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" />} {t(name)}
+      </div>
+    </Button>
   );
 };
 
