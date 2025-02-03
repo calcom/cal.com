@@ -35,6 +35,7 @@ const {
   Provider,
   AddressWidget,
   UrlWidget,
+  CheckboxWidget,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -49,6 +50,13 @@ const MultiEmailFactory = (props: WidgetProps | undefined) => {
 
   return <MultiEmail label="Add Email" {...props} />;
 };
+const CheckboxFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, CheckboxWidget);
 const RadioGroupFactory = (
   props:
     | (SelectWidgetProps & {
@@ -146,6 +154,10 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     radio: {
       ...widgets.radiogroup,
       factory: RadioGroupFactory,
+    } as SelectWidgetType,
+    checkbox: {
+      ...widgets.checkbox,
+      factory: CheckboxFactory,
     } as SelectWidgetType,
   };
   return widgetsWithFactory;

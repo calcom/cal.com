@@ -27,6 +27,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     radio: {
       ...BasicConfig.widgets.select,
     },
+    checkbox: {
+      ...BasicConfig.widgets.select,
+    },
   };
   return widgetsWithoutFactory;
 }
