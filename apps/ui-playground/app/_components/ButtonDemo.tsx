@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@calcom/ui";
+import { Button, SplitButton } from "@calcom/ui";
 
 import DemoSection, { DemoSubSection } from "./DemoSection";
 
@@ -104,6 +104,76 @@ export default function ButtonDemo() {
               <span className="text-subtle text-xs">Link</span>
             </div>
           ))}
+        </div>
+      </DemoSubSection>
+
+      {/* Split Button */}
+      <DemoSubSection id="split-button" title="Split Button">
+        <div className="flex flex-wrap items-center gap-4">
+          {colors.map((color) => (
+            <div key={color} className="flex flex-col items-center gap-2">
+              <SplitButton
+                color={color}
+                StartIcon="plus"
+                onClick={() => alert("Main action clicked")}
+                dropdown={{
+                  items: [
+                    {
+                      label: "Create New",
+                      action: () => alert("Create New clicked"),
+                      icon: "plus",
+                    },
+                    {
+                      label: "Import",
+                      action: () => alert("Import clicked"),
+                      icon: "download",
+                    },
+                    {
+                      label: "Delete",
+                      action: () => alert("Delete clicked"),
+                      icon: "trash",
+                      color: "destructive",
+                    },
+                  ],
+                }}>
+                Create
+              </SplitButton>
+              <span className="text-subtle text-xs capitalize">{color}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Split Button Sizes */}
+        <div className="mt-8 space-y-2">
+          <h3 className="text-default text-sm">Sizes</h3>
+          <div className="flex flex-wrap items-center gap-4">
+            {sizes.map((size) => (
+              <div key={size} className="flex flex-col items-center gap-2">
+                <SplitButton
+                  color="primary"
+                  size={size}
+                  StartIcon="calendar"
+                  onClick={() => alert("Main action clicked")}
+                  dropdown={{
+                    items: [
+                      {
+                        label: "Schedule",
+                        action: () => alert("Schedule clicked"),
+                        icon: "calendar",
+                      },
+                      {
+                        label: "Reschedule",
+                        action: () => alert("Reschedule clicked"),
+                        icon: "clock",
+                      },
+                    ],
+                  }}>
+                  Schedule
+                </SplitButton>
+                <span className="text-subtle text-xs">{size}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </DemoSubSection>
     </DemoSection>
