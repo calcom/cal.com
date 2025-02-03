@@ -60,7 +60,7 @@ export const RangeSliderPopover = ({
       <Popover.Portal>
         <Popover.Content
           align="start"
-          className="border-subtle shadow-dropdown z-50 mt-2 w-72 rounded-lg border-[1px] bg-white px-4 pb-3 pt-4 font-[family-name:var(--font-inter)]">
+          className="border-subtle shadow-dropdown bg-default z-50 mt-2 w-72 rounded-lg border-[1px] px-4 pb-3 pt-4 font-[family-name:var(--font-inter)]">
           <div className="mb-4">
             <Slider min={min} max={max} step={step} value={internalValue} onValueChange={setInternalValue} />
           </div>
