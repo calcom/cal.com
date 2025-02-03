@@ -57,7 +57,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "grid-3x3",
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
+      return path?.startsWith(item.href) ?? false;
     },
     child: [
       {
@@ -65,11 +65,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         href: "/apps",
         isCurrent: ({ pathname: path, item }) => {
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            (path?.startsWith(item.href) ?? false) &&
-            !(path?.includes("routing-forms/") ?? false) &&
-            !(path?.includes("/installed") ?? false)
-          );
+          return (path?.startsWith(item.href) ?? false) && !(path?.includes("/installed") ?? false);
         },
       },
       {
@@ -88,9 +84,9 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing_forms",
-    href: "/apps/routing-forms/forms",
+    href: "/routing/forms",
     icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing/") ?? false,
     moreOnMobile: true,
   },
   {

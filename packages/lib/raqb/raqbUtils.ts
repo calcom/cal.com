@@ -2,8 +2,8 @@ import type { JsonGroup, JsonItem, JsonRule, JsonTree } from "react-awesome-quer
 import type { Config } from "react-awesome-query-builder";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 
-import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
-import type { LocalRoute } from "@calcom/app-store/routing-forms/types/types";
+import { getQueryBuilderConfigForAttributes } from "@calcom/features/routing-forms/lib/getQueryBuilderConfig";
+import type { LocalRoute } from "@calcom/features/routing-forms/types/types";
 import logger from "@calcom/lib/logger";
 import type { dynamicFieldValueOperands, dynamicFieldValueOperandsResponse } from "@calcom/lib/raqb/types";
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";

@@ -4,12 +4,12 @@ import mapKeys from "lodash/mapKeys";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
-import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { makeWhereClause, makeOrderBy } from "@calcom/features/data-table/lib/server";
 import type { RoutingFormResponsesInput } from "@calcom/features/insights/server/raw-data.schema";
+import { zodFields as routingFormFieldsSchema } from "@calcom/features/routing-forms/zod";
 import { readonlyPrisma as prisma } from "@calcom/prisma";
 import type { BookingStatus } from "@calcom/prisma/enums";
 

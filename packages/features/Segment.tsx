@@ -8,8 +8,8 @@ import type { JsonTree } from "react-awesome-query-builder";
 import {
   withRaqbSettingsAndWidgets,
   ConfigFor,
-} from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/config/uiConfig";
-import { getQueryBuilderConfigForAttributes } from "@calcom/app-store/routing-forms/lib/getQueryBuilderConfig";
+} from "@calcom/features/routing-forms/components/react-awesome-query-builder/config/uiConfig";
+import { getQueryBuilderConfigForAttributes } from "@calcom/features/routing-forms/lib/getQueryBuilderConfig";
 import { classNames as cn } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isEqual } from "@calcom/lib/isEqual";

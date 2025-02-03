@@ -4656,19 +4656,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/routing-forms@workspace:packages/app-store/routing-forms":
-  version: 0.0.0-use.local
-  resolution: "@calcom/routing-forms@workspace:packages/app-store/routing-forms"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-    "@types/json-logic-js": ^1.2.1
-    dotenv: ^16.3.1
-    json-logic-js: ^2.0.2
-    react-awesome-query-builder: ^5.1.2
-  languageName: unknown
-  linkType: soft
-
 "@calcom/salesforce@workspace:packages/app-store/salesforce":
   version: 0.0.0-use.local
   resolution: "@calcom/salesforce@workspace:packages/app-store/salesforce"

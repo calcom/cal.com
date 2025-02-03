@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
-import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
@@ -13,6 +12,7 @@ import { teamsAndUserProfilesQuery } from "@calcom/trpc/server/routers/loggedInV
 import { event } from "@calcom/trpc/server/routers/publicViewer/procedures/event";
 import { session } from "@calcom/trpc/server/routers/publicViewer/procedures/session";
 import { get } from "@calcom/trpc/server/routers/viewer/eventTypes/procedures/get";
+import { forms } from "@calcom/trpc/server/routers/viewer/routing-forms/procedures/forms";
 import { hasTeamPlan } from "@calcom/trpc/server/routers/viewer/teams/procedures/hasTeamPlan";
 import { router, mergeRouters } from "@calcom/trpc/server/trpc";
 
@@ -36,6 +36,9 @@ const routerSlice = router({
         hasTeamPlan,
       }),
       appRoutingForms: router({
+        forms,
+      }),
+      routingForms: router({
         forms,
       }),
       teamsAndUserProfilesQuery: router({

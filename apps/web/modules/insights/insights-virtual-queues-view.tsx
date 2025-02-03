@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { TestForm } from "@calcom/app-store/routing-forms/components/SingleForm";
-import type { RoutingForm } from "@calcom/app-store/routing-forms/types/types";
+import { TestForm } from "@calcom/features/routing-forms/components/SingleForm";
+import type { RoutingForm } from "@calcom/features/routing-forms/types/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Label, Select } from "@calcom/ui";

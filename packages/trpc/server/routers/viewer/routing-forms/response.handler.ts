@@ -1,5 +1,5 @@
-import { getSerializableForm } from "@calcom/app-store/routing-forms/lib/getSerializableForm";
-import { handleResponse } from "@calcom/app-store/routing-forms/lib/handleResponse";
+import { getSerializableForm } from "@calcom/features/routing-forms/lib/getSerializableForm";
+import { handleResponse } from "@calcom/features/routing-forms/lib/handleResponse";
 import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
 

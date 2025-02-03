@@ -1,7 +1,7 @@
 import type { BaseWidget } from "react-awesome-query-builder";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RouteActionType } from "@calcom/features/routing-forms/zod";
 import { RaqbLogicResult } from "@calcom/lib/raqb/evaluateRaqbLogic";
 import {
   findTeamMembersMatchingAttributeLogic,
@@ -10,8 +10,8 @@ import {
 // import { EmailField } from "@calcom/ui";
 import * as getAttributesModule from "@calcom/lib/service/attribute/server/getAttributes";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
-import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/routing-forms/types/types";
+import { RoutingFormFieldType } from "@calcom/features/routing-forms/lib/FieldTypes";
+import type { AttributesQueryValue, FormFieldsQueryValue } from "@calcom/features/routing-forms/types/types";
 
 vi.mock("@calcom/lib/service/attribute/server/getAttributes");
 vi.mock("../../components/react-awesome-query-builder/widgets", () => ({

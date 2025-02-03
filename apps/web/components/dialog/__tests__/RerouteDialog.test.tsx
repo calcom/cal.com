@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
+import { RouteActionType } from "@calcom/features/routing-forms/zod";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { RerouteDialog } from "../RerouteDialog";
@@ -20,7 +20,7 @@ vi.mock("next/navigation", async (importOriginal) => {
   };
 });
 
-vi.mock("@calcom/app-store/routing-forms/lib/processRoute", () => ({
+vi.mock("@calcom/features/routing-forms/lib/processRoute", () => ({
   findMatchingRoute: vi.fn(({ form, response }) => {
     return form.routes.find((route: any) => route.__testMatching);
   }),
@@ -36,7 +36,7 @@ const mockOpen = vi.fn((_url: string) => {
 
 vi.stubGlobal("open", mockOpen);
 
-vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
+vi.mock("@calcom/features/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
     return (
       <div data-testid="mock-form-input-fields">

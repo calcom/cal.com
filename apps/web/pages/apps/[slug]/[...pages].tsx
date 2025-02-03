@@ -1,15 +1,11 @@
-import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
+import type { GetServerSideProps } from "next";
 
-import PageWrapper from "@components/PageWrapper";
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    notFound: true, // This will let Next.js handle the routing through the pages directory
+  };
+};
 
-import type { PageProps } from "~/apps/[slug]/[...pages]/pages-view";
-import PagesView, { getLayout } from "~/apps/[slug]/[...pages]/pages-view";
-
-const Page = (props: PageProps) => <PagesView {...props} />;
-
-Page.PageWrapper = PageWrapper;
-Page.getLayout = getLayout;
-
-export { getServerSideProps };
-
-export default Page;
+export default function AppPage() {
+  return null;
+}

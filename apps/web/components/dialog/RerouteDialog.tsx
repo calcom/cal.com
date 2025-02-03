@@ -5,17 +5,17 @@ import { useState } from "react";
 import { useEffect, useCallback } from "react";
 import type { z } from "zod";
 
-import FormInputFields, {
-  FormInputFieldsSkeleton,
-} from "@calcom/app-store/routing-forms/components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "@calcom/app-store/routing-forms/getEventTypeRedirectUrl";
-import { findMatchingRoute } from "@calcom/app-store/routing-forms/lib/processRoute";
-import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substituteVariables";
-import { getUrlSearchParamsToForwardForReroute } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
-import type { FormResponse, LocalRoute } from "@calcom/app-store/routing-forms/types/types";
-import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import { createBooking } from "@calcom/features/bookings/lib/create-booking";
+import FormInputFields, {
+  FormInputFieldsSkeleton,
+} from "@calcom/features/routing-forms/components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "@calcom/features/routing-forms/getEventTypeRedirectUrl";
+import { getUrlSearchParamsToForwardForReroute } from "@calcom/features/routing-forms/lib/getUrlSearchParamsToForward";
+import { findMatchingRoute } from "@calcom/features/routing-forms/lib/processRoute";
+import { substituteVariables } from "@calcom/features/routing-forms/lib/substituteVariables";
+import type { FormResponse, LocalRoute } from "@calcom/features/routing-forms/types/types";
+import { RouteActionType } from "@calcom/features/routing-forms/zod";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventType, User, Team, Attendee, Booking as PrismaBooking } from "@calcom/prisma/client";
@@ -35,7 +35,7 @@ const enum ReroutingStatusEnum {
   REROUTING_FAILED = "failed",
 }
 
-type ResponseWithForm = RouterOutputs["viewer"]["appRoutingForms"]["getResponseWithFormFields"];
+type ResponseWithForm = RouterOutputs["viewer"]["routingForms"]["getResponseWithFormFields"];
 
 type BookingToReroute = Pick<PrismaBooking, "metadata" | "responses" | "id" | "uid" | "title" | "status"> & {
   routedFromRoutingFormReponse: {

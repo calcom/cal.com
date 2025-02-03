@@ -13,7 +13,7 @@ import { getLuckyUser, prepareQueuesAndAttributesData } from "./getLuckyUser";
 type NonEmptyArray<T> = [T, ...T[]];
 type GetLuckyUserAvailableUsersType = NonEmptyArray<ReturnType<typeof buildUser>>;
 
-vi.mock("@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets", () => ({
+vi.mock("@calcom/features/routing-forms/components/react-awesome-query-builder/widgets", () => ({
   default: {},
 }));
 vi.mock("@calcom/ui", () => ({}));

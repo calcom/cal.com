@@ -6,7 +6,19 @@ export class RoutingFormRepository {
       where: {
         id: formId,
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        disabled: true,
+        fields: true,
+        routes: true,
+        createdAt: true,
+        updatedAt: true,
+        userId: true,
+        teamId: true,
+        position: true,
+        settings: true,
         user: {
           select: {
             id: true,
@@ -14,6 +26,9 @@ export class RoutingFormRepository {
             email: true,
             movedToProfileId: true,
             metadata: true,
+            theme: true,
+            brandColor: true,
+            darkBrandColor: true,
             organization: {
               select: {
                 slug: true,
