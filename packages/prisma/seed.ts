@@ -921,7 +921,7 @@ async function main() {
   await createUserAndEventType({
     user: {
       email: "admin@example.com",
-      /** To comply with admin password requirements  */
+      /** To comply with admin password requirements */
       password: "ADMINadmin2022!",
       username: "admin",
       name: "Admin Example",
