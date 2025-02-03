@@ -9,10 +9,10 @@ import { ZCreateInviteInputSchema } from "./createInvite.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetSchema } from "./get.schema";
+import { ZGetInternalNotesPresetsInputSchema } from "./getInternalNotesPresets.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
 import { ZGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
-import { ZHasActiveTeamPlanSchema } from "./hasActiveTeamPlan.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
@@ -29,6 +29,7 @@ import { ZRoundRobinManualReassignInputSchema } from "./roundRobin/roundRobinMan
 import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZUpdateInternalNotesPresetsInputSchema } from "./updateInternalNotesPresets.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
 
 const NAMESPACE = "teams";
@@ -223,7 +224,25 @@ export const viewerTeamsRouter = router({
     );
     return handler(opts);
   }),
-  hasActiveTeamPlan: authedProcedure.input(ZHasActiveTeamPlanSchema).query(async (opts) => {
+  getInternalNotesPresets: authedProcedure
+    .input(ZGetInternalNotesPresetsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("getInternalNotesPresets"),
+        () => import("./getInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
+    }),
+  updateInternalNotesPresets: authedProcedure
+    .input(ZUpdateInternalNotesPresetsInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("updateInternalNotesPresets"),
+        () => import("./updateInternalNotesPresets.handler")
+      );
+      return handler({ ctx, input });
+    }),
+  hasActiveTeamPlan: authedProcedure.query(async (opts) => {
     const handler = await importHandler(
       namespaced("hasActiveTeamPlan"),
       () => import("./hasActiveTeamPlan.handler")

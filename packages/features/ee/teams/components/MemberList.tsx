@@ -407,9 +407,6 @@ function MemberListContent(props: Props) {
         id: "actions",
         size: 90,
         enableResizing: false,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -634,6 +631,9 @@ function MemberListContent(props: Props) {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        right: ["actions"],
+      },
     },
     state: {
       columnFilters,

@@ -90,6 +90,11 @@ class BookingHost {
   @Expose()
   name!: string;
 
+  @ApiProperty({ type: String, example: "jane100@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
+
   @ApiProperty({ type: String, example: "jane100" })
   @IsString()
   @Expose()
