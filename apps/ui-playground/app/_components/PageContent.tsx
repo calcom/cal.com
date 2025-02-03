@@ -11,6 +11,7 @@ import ButtonDemo from "./ButtonDemo";
 import CheckboxDemo from "./CheckboxDemo";
 import DialogDemo from "./DialogDemo";
 import DropdownDemo from "./DropdownDemo";
+import EmptyScreenDemo from "./EmptyScreenDemo";
 import InputDemo from "./InputDemo";
 import RangeSliderDemo from "./RangeSliderDemo";
 import RangeSliderPopoverDemo from "./RangeSliderPopoverDemo";
@@ -104,6 +105,9 @@ export default function PageContent() {
 
             <section id="tabs" className="space-y-6">
               <TabsDemo />
+            </section>
+            <section id="empty-screen" className="space-y-6">
+              <EmptyScreenDemo />
             </section>
           </main>
         </div>
