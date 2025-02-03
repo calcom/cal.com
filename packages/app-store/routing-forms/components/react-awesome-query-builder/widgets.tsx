@@ -360,17 +360,19 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
   );
 };
 
-function AddressWidget(props: any) {
+function AddressWidget(props: TextLikeComponentPropsRAQB) {
   return (
     <AddressInput
-      id={props.name}
       onChange={(val) => {
         props.setValue(val);
       }}
       {...props}
-      disabled={props.readOnly}
     />
   );
+}
+
+function UrlWidget(props: TextLikeComponentPropsRAQB) {
+  return <TextWidget type="url" {...props} />;
 }
 
 const Provider = ({ children }: ProviderProps) => children;
@@ -382,6 +384,7 @@ const widgets = {
   NumberWidget,
   MultiSelectWidget,
   AddressWidget,
+  UrlWidget,
   FieldSelect,
   Button,
   ButtonGroup,

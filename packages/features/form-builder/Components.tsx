@@ -8,7 +8,6 @@ import type {
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  AddressInput,
   Button,
   CheckboxField,
   EmailField,
@@ -217,16 +216,7 @@ export const Components: Record<FieldType, Component> = {
   address: {
     propsType: propsTypes.address,
     factory: (props) => {
-      return (
-        <AddressInput
-          id={props.name}
-          onChange={(val) => {
-            props.setValue(val);
-          }}
-          {...props}
-          disabled={props.readOnly}
-        />
-      );
+      return <Widgets.AddressWidget id={props.name} noLabel={true} disabled={props.readOnly} {...props} />;
     },
   },
   multiemail: {
@@ -545,7 +535,7 @@ export const Components: Record<FieldType, Component> = {
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
+      return <Widgets.UrlWidget noLabel={true} {...props} />;
     },
   },
 } as const;
