@@ -28,6 +28,7 @@ const {
   SelectWidget,
   NumberWidget,
   FieldSelect,
+  RadioWidget,
   Conjs,
   Button,
   ButtonGroup,
@@ -48,6 +49,13 @@ const MultiEmailFactory = (props: WidgetProps | undefined) => {
 
   return <MultiEmail label="Add Email" {...props} />;
 };
+const RadioGroupFactory = (
+  props:
+    | (SelectWidgetProps & {
+        listValues: { title: string; value: string }[];
+      })
+    | undefined
+) => renderComponent(props, RadioWidget);
 const MultiSelectFactory = (
   props:
     | (SelectWidgetProps & {
@@ -135,6 +143,10 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.multiemail,
       factory: MultiEmailFactory,
     },
+    radio: {
+      ...widgets.radiogroup,
+      factory: RadioGroupFactory,
+    } as SelectWidgetType,
   };
   return widgetsWithFactory;
 }

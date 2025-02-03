@@ -24,6 +24,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     multiemail: {
       ...BasicConfig.widgets.text,
     },
+    radio: {
+      ...BasicConfig.widgets.select,
+    },
   };
   return widgetsWithoutFactory;
 }

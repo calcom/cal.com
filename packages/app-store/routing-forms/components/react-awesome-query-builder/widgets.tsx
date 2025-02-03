@@ -10,7 +10,7 @@ import type {
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton, TextField, TextArea, AddressInput } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { Icon, Group, RadioField } from "@calcom/ui";
 
 const Select = dynamic(
   async () => (await import("@calcom/ui")).SelectWithValidation
@@ -375,6 +375,51 @@ function UrlWidget(props: TextLikeComponentPropsRAQB) {
   return <TextWidget type="url" {...props} />;
 }
 
+function RadioWidget(props: SelectLikeComponentPropsRAQB) {
+  if (!props.listValues) {
+    return null;
+  }
+
+  const selectItems = props.listValues.map((item) => {
+    return {
+      label: item.title,
+      value: item.value,
+    };
+  });
+
+  const optionFromList = selectItems.find((item) => item.value === props.value);
+
+  // If the value is not in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it only when it is not already empty string, this is to avoid infinite state updates
+  if (!optionFromList && props.value) {
+    props.setValue("");
+  }
+
+  return (
+    <Group
+      disabled={props.readOnly}
+      value={props.value}
+      onValueChange={(e) => {
+        if (!e) {
+          return;
+        }
+        props.setValue(e);
+      }}>
+      <>
+        {selectItems.map((option, i) => (
+          <RadioField
+            label={option.label}
+            key={`option.${i}.radio`}
+            value={option.label}
+            id={`${props.name}.option.${i}.radio`}
+          />
+        ))}
+      </>
+    </Group>
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -388,6 +433,7 @@ const widgets = {
   FieldSelect,
   Button,
   ButtonGroup,
+  RadioWidget,
   Conjs,
   Provider,
 };
