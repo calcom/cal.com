@@ -77,6 +77,15 @@ const sections: Section[] = [
     ],
   },
   {
+    id: "dialog",
+    title: "Dialog",
+    subsections: [
+      { id: "dialog-basic", title: "Basic Dialog" },
+      { id: "dialog-form", title: "Form Dialog" },
+      { id: "dialog-confirm", title: "Confirmation Dialog" },
+    ],
+  },
+  {
     id: "input",
     title: "Input",
     subsections: [

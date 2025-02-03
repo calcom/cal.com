@@ -1,12 +1,13 @@
 "use client";
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { cva, type VariantProps } from "class-variance-authority";
 import { usePathname, useRouter } from "next/navigation";
 import type { ForwardRefExoticComponent, ReactElement, ReactNode } from "react";
 import React, { useMemo, useState } from "react";
 
 import { Dialog as PlatformDialogPrimitives, useIsPlatform } from "@calcom/atoms/monorepo";
-import classNames from "@calcom/lib/classNames";
+import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -14,6 +15,23 @@ import type { ButtonProps } from "../button";
 import { Button } from "../button";
 import type { IconName } from "../icon";
 import { Icon } from "../icon";
+
+const dialogClasses = cva(
+  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
+  {
+    variants: {
+      size: {
+        xl: "px-8 pt-8 sm:max-w-[90rem]",
+        lg: "px-8 pt-8 sm:max-w-[70rem]",
+        md: "px-8 pt-8 sm:max-w-[48rem]",
+        default: "px-8 pt-8 sm:max-w-[35rem]",
+      },
+    },
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
 
 export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]> & {
   name?: string;
@@ -81,7 +99,6 @@ function WebDialog(props: DialogProps) {
 }
 
 type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & {
-  size?: "xl" | "lg" | "md";
   type?: "creation" | "confirmation";
   title?: string;
   description?: string | JSX.Element | null;
@@ -94,7 +111,7 @@ type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content
    * Disables the ability to close the dialog by clicking outside of it. Could be useful when the dialog is doing something critical which might be in progress.
    */
   preventCloseOnOutsideClick?: boolean;
-};
+} & VariantProps<typeof dialogClasses>;
 
 // enableOverflow:- use this prop whenever content inside DialogContent could overflow and require scrollbar
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -138,16 +155,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             }
           }}
           className={classNames(
-            "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
-            props.size == "xl"
-              ? "px-8 pt-8 sm:max-w-[90rem]"
-              : props.size == "lg"
-              ? "px-8 pt-8 sm:max-w-[70rem]"
-              : props.size == "md"
-              ? "px-8 pt-8 sm:max-w-[48rem]"
-              : "px-8 pt-8 sm:max-w-[35rem]",
+            dialogClasses({ size: props.size }),
             "max-h-[95vh]",
-            enableOverflow ? "overflow-auto" : "overflow-visible",
+            enableOverflow ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
@@ -191,7 +201,7 @@ export function DialogHeader(props: DialogHeaderProps) {
     <div className="mb-4">
       <h3
         data-testid="dialog-title"
-        className="leading-20 text-semibold font-cal text-emphasis pb-1 text-xl"
+        className="leading-20 text-semibold text-emphasis text-xl"
         id="modal-title">
         {props.title}
       </h3>
@@ -208,16 +218,13 @@ type DialogFooterProps = {
 
 export function DialogFooter(props: DialogFooterProps) {
   return (
-    <div className={classNames("bg-default bottom-0", props?.noSticky ? "" : "sticky", props.className)}>
-      {props.showDivider && (
-        // TODO: the -mx-8 is causing overflow in the dialog buttons
-        <hr data-testid="divider" className="border-subtle -mx-8" />
-      )}
-      <div
-        className={classNames(
-          "flex justify-end space-x-2 pb-4 pt-4 rtl:space-x-reverse",
-          !props.showDivider && "pb-8"
-        )}>
+    <div
+      className={classNames(
+        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl border-t-[1px]",
+        props?.noSticky ? "" : "sticky",
+        props.className
+      )}>
+      <div className={classNames("flex justify-end space-x-2 px-8 py-4 rtl:space-x-reverse")}>
         {props.children}
       </div>
     </div>

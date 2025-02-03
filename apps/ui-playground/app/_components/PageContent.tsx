@@ -9,6 +9,7 @@ import AvatarDemo from "./AvatarDemo";
 import BadgeDemo from "./BadgeDemo";
 import ButtonDemo from "./ButtonDemo";
 import CheckboxDemo from "./CheckboxDemo";
+import DialogDemo from "./DialogDemo";
 import DropdownDemo from "./DropdownDemo";
 import InputDemo from "./InputDemo";
 import RangeSliderDemo from "./RangeSliderDemo";
@@ -54,6 +55,10 @@ export default function PageContent() {
 
             <section id="button" className="space-y-6">
               <ButtonDemo />
+            </section>
+
+            <section id="dialog" className="space-y-6">
+              <DialogDemo />
             </section>
 
             <section id="toast" className="space-y-6">
