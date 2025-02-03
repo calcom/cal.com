@@ -15,7 +15,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -37,7 +37,7 @@ describe("Organizations Team Endpoints", () => {
     let teamCreatedViaApi: Team;
     let teamCreatedViaApi2: Team;
 
-    const userEmail = `organizations-teams-admin-${randomNumber()}@api.com`;
+    const userEmail = `organizations-teams-admin-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -59,7 +59,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomNumber()}`,
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -70,13 +70,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomNumber()}`,
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team2-${randomNumber()}`,
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -134,7 +134,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create the team of the org", async () => {
-      const teamName = `organizations-teams-api-team1-${randomNumber()}`;
+      const teamName = `organizations-teams-api-team1-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
@@ -173,7 +173,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should update the team of the org", async () => {
-      const updatedTeamName = `organizations-teams-api-team1-${randomNumber()}-updated`;
+      const updatedTeamName = `organizations-teams-api-team1-${randomString()}-updated`;
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
         .send({
@@ -222,7 +222,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create the team of the org without auto-accepting creator", async () => {
-      const teamName = `organizations-teams-api-team2-${randomNumber()}`;
+      const teamName = `organizations-teams-api-team2-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
@@ -269,7 +269,7 @@ describe("Organizations Team Endpoints", () => {
     let team: Team;
     let team2: Team;
 
-    const userEmail = `organizations-teams-member-${randomNumber()}@api.com`;
+    const userEmail = `organizations-teams-member-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -291,7 +291,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomNumber()}`,
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -302,13 +302,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomNumber()}`,
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team2-${randomNumber()}`,
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -342,7 +342,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: `organizations-teams-api-team1-${randomNumber()}`,
+          name: `organizations-teams-api-team1-${randomString()}`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -351,7 +351,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
         .send({
-          name: `organizations-teams-api-team1-${randomNumber()}-updated`,
+          name: `organizations-teams-api-team1-${randomString()}-updated`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -383,7 +383,7 @@ describe("Organizations Team Endpoints", () => {
     let team: Team;
     let team2: Team;
 
-    const userEmail = `organizations-teams-owner-${randomNumber()}@api.com`;
+    const userEmail = `organizations-teams-owner-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -405,7 +405,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-teams-organization-${randomNumber()}`,
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -416,13 +416,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team1-${randomNumber()}`,
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: `organizations-teams-team2-${randomNumber()}`,
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -468,7 +468,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: `organizations-teams-api-team1-${randomNumber()}`,
+          name: `organizations-teams-api-team1-${randomString()}`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -477,7 +477,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
         .send({
-          name: `organizations-teams-api-team1-${randomNumber()}-updated`,
+          name: `organizations-teams-api-team1-${randomString()}-updated`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -513,7 +513,7 @@ describe("Organizations Team Endpoints", () => {
     let team1: Team;
     let team2: Team;
 
-    const userEmail = `organizations-teams-platform-owner-${randomNumber()}@api.com`;
+    const userEmail = `organizations-teams-platform-owner-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -535,7 +535,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await orgRepositoryFixture.create({
-        name: `organizations-teams-platform-organization-${randomNumber()}`,
+        name: `organizations-teams-platform-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -574,7 +574,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create first oAuth client team", async () => {
-      const teamName = `organizations-teams-platform-api-team1-${randomNumber()}`;
+      const teamName = `organizations-teams-platform-api-team1-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .set(X_CAL_CLIENT_ID, oAuthClient1.id)
@@ -597,7 +597,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create second oAuth client team", async () => {
-      const teamName = `organizations-teams-platform-api-team2-${randomNumber()}`;
+      const teamName = `organizations-teams-platform-api-team2-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .set(X_CAL_CLIENT_ID, oAuthClient2.id)

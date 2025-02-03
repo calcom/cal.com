@@ -21,7 +21,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -59,13 +59,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `user-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = `user-bookings-event-type-${randomNumber()}`;
+    const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
-    const recurringEventTypeSlug = `user-bookings-event-type-${randomNumber()}`;
+    const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -94,7 +94,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `user-bookings-organization-${randomNumber()}`,
+        name: `user-bookings-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -109,7 +109,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `user-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `user-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -117,7 +117,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       const event = await eventTypesRepositoryFixture.create(
         {
-          title: `user-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `user-bookings-2024-08-13-event-type-${randomString()}`,
           slug: eventTypeSlug,
           length: 60,
         },

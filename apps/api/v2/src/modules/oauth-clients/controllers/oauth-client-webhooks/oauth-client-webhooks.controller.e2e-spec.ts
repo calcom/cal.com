@@ -20,15 +20,15 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { PlatformOAuthClient, Team, Webhook } from "@calcom/prisma/client";
 
 describe("OAuth client WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = `oauth-client-webhooks-user-${randomNumber()}@api.com`;
-  const otherUserEmail = `oauth-client-webhooks-other-user-${randomNumber()}@api.com`;
+  const userEmail = `oauth-client-webhooks-user-${randomString()}@api.com`;
+  const otherUserEmail = `oauth-client-webhooks-other-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
   let oAuthClient: PlatformOAuthClient;
@@ -70,7 +70,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
     });
 
     org = await orgRepositoryFixture.create({
-      name: `oauth-client-webhooks-organization-${randomNumber()}`,
+      name: `oauth-client-webhooks-organization-${randomString()}`,
       isOrganization: true,
       metadata: {
         isOrganization: true,
@@ -81,7 +81,7 @@ describe("OAuth client WebhooksController (e2e)", () => {
       isPlatform: true,
     });
     otherOrg = await orgRepositoryFixture.create({
-      name: `oauth-client-webhooks-other-organization-${randomNumber()}`,
+      name: `oauth-client-webhooks-other-organization-${randomString()}`,
       isOrganization: true,
       metadata: {
         isOrganization: true,

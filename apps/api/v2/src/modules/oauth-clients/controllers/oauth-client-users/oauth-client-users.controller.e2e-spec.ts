@@ -22,7 +22,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
@@ -85,10 +85,10 @@ describe("OAuth Client Users Endpoints", () => {
 
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const platformAdminEmail = `oauth-client-users-admin-${randomNumber()}@api.com`;
+    const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = `oauth-client-users-user-${randomNumber()}@api.com`;
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -111,7 +111,7 @@ describe("OAuth Client Users Endpoints", () => {
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
       organization = await teamRepositoryFixture.create({
-        name: `oauth-client-users-organization-${randomNumber()}`,
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
         isOrganization: true,
       });
@@ -393,7 +393,7 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const userEmail = `oauth-client-users-user-${randomNumber()}@api.com`;
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -412,20 +412,20 @@ describe("OAuth Client Users Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
-        name: `oauth-client-users-organization-${randomNumber()}`,
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
         isOrganization: true,
       });
 
       owner = await userRepositoryFixture.create({
-        email: `oauth-client-users-admin-${randomNumber()}@api.com`,
-        username: `oauth-client-users-admin-${randomNumber()}@api.com`,
+        email: `oauth-client-users-admin-${randomString()}@api.com`,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: { connect: { id: organization.id } },
       });
 
       await profileRepositoryFixture.create({
         uid: `usr-${owner.id}`,
-        username: `oauth-client-users-admin-${randomNumber()}@api.com`,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: {
           connect: {
             id: organization.id,

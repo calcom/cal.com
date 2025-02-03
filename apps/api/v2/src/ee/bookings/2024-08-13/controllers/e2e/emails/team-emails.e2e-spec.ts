@@ -23,7 +23,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -129,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-    organization = await teamRepositoryFixture.create({ name: `team-emails-organization-${randomNumber()}` });
+    organization = await teamRepositoryFixture.create({ name: `team-emails-organization-${randomString()}` });
 
     await setupEnabledEmails();
     await setupDisabledEmails();
@@ -153,7 +153,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const team = await teamRepositoryFixture.create({
-      name: `team-emails-team-${randomNumber()}`,
+      name: `team-emails-team-${randomString()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -164,7 +164,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member1-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -173,7 +173,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member2-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -182,7 +182,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `team-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `team-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -238,8 +238,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -279,8 +279,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -337,7 +337,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const team = await teamRepositoryFixture.create({
-      name: `team-emails-2024-08-13-team-${randomNumber()}`,
+      name: `team-emails-2024-08-13-team-${randomString()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -348,7 +348,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member1-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -357,7 +357,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: `team-emails-2024-08-13-member2-${randomNumber()}@api.com`,
+      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -366,7 +366,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `team-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `team-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -422,8 +422,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -463,8 +463,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: `team-emails-2024-08-13-event-type-${randomNumber()}`,
-      slug: `team-emails-2024-08-13-event-type-${randomNumber()}`,
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],

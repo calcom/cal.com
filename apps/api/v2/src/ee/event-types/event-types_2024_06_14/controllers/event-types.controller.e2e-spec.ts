@@ -19,7 +19,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
@@ -87,9 +87,9 @@ describe("Event types Endpoints", () => {
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
-    const userEmail = `event-types-2024-06-14-user-${randomNumber()}@api.com`;
-    const falseTestEmail = `event-types-2024-06-14-false-user-${randomNumber()}@api.com`;
-    const name = `event-types-2024-06-14-user-${randomNumber()}`;
+    const userEmail = `event-types-2024-06-14-user-${randomString()}@api.com`;
+    const falseTestEmail = `event-types-2024-06-14-false-user-${randomString()}@api.com`;
+    const name = `event-types-2024-06-14-user-${randomString()}`;
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
@@ -187,8 +187,8 @@ describe("Event types Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
-        name: `event-types-2024-06-14-organization-${randomNumber()}`,
-        slug: `event-type-2024-06-14-org-slug-${randomNumber()}`,
+        name: `event-types-2024-06-14-organization-${randomString()}`,
+        slug: `event-type-2024-06-14-org-slug-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
@@ -198,9 +198,9 @@ describe("Event types Endpoints", () => {
       });
 
       orgUser = await userRepositoryFixture.create({
-        email: `event-types-2024-06-14-org-user-${randomNumber()}@example.com`,
-        name: `event-types-2024-06-14-org-user-${randomNumber()}`,
-        username: `event-types-2024-06-14-org-user-${randomNumber()}`,
+        email: `event-types-2024-06-14-org-user-${randomString()}@example.com`,
+        name: `event-types-2024-06-14-org-user-${randomString()}`,
+        username: `event-types-2024-06-14-org-user-${randomString()}`,
       });
 
       profileRepositoryFixture.create({
@@ -220,8 +220,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType1 = await eventTypesRepositoryFixture.create(
         {
-          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
-          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomString()}`,
+          slug: `event-types-2024-06-14-event-type-${randomString()}`,
           length: 60,
           locations: [],
         },
@@ -230,8 +230,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType2 = await eventTypesRepositoryFixture.create(
         {
-          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
-          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomString()}`,
+          slug: `event-types-2024-06-14-event-type-${randomString()}`,
           length: 60,
           locations: [],
         },
@@ -240,8 +240,8 @@ describe("Event types Endpoints", () => {
 
       orgUserEventType3 = await eventTypesRepositoryFixture.create(
         {
-          title: `event-types-2024-06-14-event-type-${randomNumber()}`,
-          slug: `event-types-2024-06-14-event-type-${randomNumber()}`,
+          title: `event-types-2024-06-14-event-type-${randomString()}`,
+          slug: `event-types-2024-06-14-event-type-${randomString()}`,
           length: 60,
           locations: [],
         },
@@ -257,25 +257,25 @@ describe("Event types Endpoints", () => {
 
       falseTestUser = await userRepositoryFixture.create({
         email: falseTestEmail,
-        name: `event-types-2024-06-14-false-test-user-${randomNumber()}`,
+        name: `event-types-2024-06-14-false-test-user-${randomString()}`,
         username: falseTestEmail,
       });
 
       firstSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
-        name: `event-types-2024-06-14-schedule-work-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-work-${randomString()}`,
         timeZone: "Europe/Rome",
       });
 
       secondSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
-        name: `event-types-2024-06-14-schedule-chill-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-chill-${randomString()}`,
         timeZone: "Europe/Rome",
       });
 
       falseTestSchedule = await schedulesRepostoryFixture.create({
         userId: falseTestUser.id,
-        name: `event-types-2024-06-14-schedule-work-${randomNumber()}`,
+        name: `event-types-2024-06-14-schedule-work-${randomString()}`,
         timeZone: "Europe/Rome",
       });
 
@@ -1238,7 +1238,7 @@ describe("Event types Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: `event-types-2024-06-14-organization-${randomNumber()}`,
+        name: `event-types-2024-06-14-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
@@ -1727,7 +1727,7 @@ describe("Event types Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: `event-types-2024-06-14-organization-${randomNumber()}`,
+        name: `event-types-2024-06-14-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({

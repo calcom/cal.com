@@ -17,7 +17,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -57,11 +57,11 @@ describe("Platform Destination Calendar Endpoints", () => {
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     organization = await teamRepositoryFixture.create({
-      name: `destination-calendars-organization-${randomNumber()}`,
+      name: `destination-calendars-organization-${randomString()}`,
     });
     oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.createOAuthManagedUser(
-      `destination-calendars-user-${randomNumber()}@api.com`,
+      `destination-calendars-user-${randomString()}@api.com`,
       oAuthClient.id
     );
     const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClient.id);

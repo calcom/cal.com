@@ -19,7 +19,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -52,23 +52,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `seated-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
-    const seatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
-    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+    const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomString()}`;
 
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = `seated-bookings-attendee1-${randomNumber()}@api.com`;
-    const nameAttendeeOne = `Attendee One ${randomNumber()}`;
-    const emailAttendeeTwo = `seated-bookings-attendee2-${randomNumber()}@api.com`;
-    const nameAttendeeTwo = `Attendee Two ${randomNumber()}`;
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomString()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomString()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomString()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -91,7 +91,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `seated-bookings-organization-${randomNumber()}`,
+        name: `seated-bookings-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -105,14 +105,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `seated-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: `seated-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `seated-bookings-2024-08-13-event-type-${randomString()}`,
           slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 5,
@@ -127,7 +127,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: `seated-bookings-2024-08-13-recurring-event-type-${randomNumber()}`,
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomString()}`,
           slug: recurringSeatedEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
@@ -685,23 +685,23 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `seated-bookings-user-${randomNumber()}@api.com`;
+    const userEmail = `seated-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let seatedEventTypeId: number;
     let recurringSeatedEventTypeId: number;
     const maxRecurrenceCount = 3;
 
-    const seatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
-    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomNumber()}`;
+    const seatedEventSlug = `seated-bookings-event-type-${randomString()}`;
+    const recurringSeatedEventSlug = `seated-bookings-event-type-${randomString()}`;
 
     let createdSeatedBooking: CreateSeatedBookingOutput_2024_08_13;
     let createdRecurringSeatedBooking: CreateRecurringSeatedBookingOutput_2024_08_13[];
 
-    const emailAttendeeOne = `seated-bookings-attendee1-${randomNumber()}@api.com`;
-    const nameAttendeeOne = `Attendee One ${randomNumber()}`;
-    const emailAttendeeTwo = `seated-bookings-attendee2-${randomNumber()}@api.com`;
-    const nameAttendeeTwo = `Attendee Two ${randomNumber()}`;
+    const emailAttendeeOne = `seated-bookings-attendee1-${randomString()}@api.com`;
+    const nameAttendeeOne = `Attendee One ${randomString()}`;
+    const emailAttendeeTwo = `seated-bookings-attendee2-${randomString()}@api.com`;
+    const nameAttendeeTwo = `Attendee Two ${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -724,7 +724,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `seated-bookings-organization-${randomNumber()}`,
+        name: `seated-bookings-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -738,14 +738,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `seated-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `seated-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const seatedEvent = await eventTypesRepositoryFixture.create(
         {
-          title: `seated-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `seated-bookings-2024-08-13-event-type-${randomString()}`,
           slug: seatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 3,
@@ -757,7 +757,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringSeatedEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: `seated-bookings-2024-08-13-recurring-event-type-${randomNumber()}`,
+          title: `seated-bookings-2024-08-13-recurring-event-type-${randomString()}`,
           slug: recurringSeatedEventSlug,
           length: 60,
           seatsPerTimeSlot: 3,

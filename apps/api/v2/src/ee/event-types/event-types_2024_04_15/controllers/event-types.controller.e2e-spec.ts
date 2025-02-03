@@ -22,7 +22,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -78,8 +78,8 @@ describe("Event types Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
-    const userEmail = `event-types-2024-04-15-user-${randomNumber()}@api.com`;
-    const name = `event-types-2024-04-15-user-${randomNumber()}`;
+    const userEmail = `event-types-2024-04-15-user-${randomString()}@api.com`;
+    const name = `event-types-2024-04-15-user-${randomString()}`;
     const username = name;
     let eventType: EventType;
     let user: User;
@@ -107,7 +107,7 @@ describe("Event types Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: `event-types-organization-${randomNumber()}`,
+        name: `event-types-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
       user = await userRepositoryFixture.create({
@@ -142,7 +142,7 @@ describe("Event types Endpoints", () => {
     it("should create an event type", async () => {
       const body: CreateEventTypeInput_2024_04_15 = {
         title: "Test Event Type",
-        slug: `event-types-event-type-${randomNumber()}`,
+        slug: `event-types-event-type-${randomString()}`,
         description: "A description of the test event type.",
         length: 60,
         hidden: false,

@@ -23,7 +23,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { MockedRedisService } from "test/mocks/mock-redis-service";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
@@ -40,9 +40,9 @@ describe("ApiAuthStrategy", () => {
   let oAuthClientRepositoryFixture: OAuthClientRepositoryFixture;
   let profilesRepositoryFixture: ProfileRepositoryFixture;
 
-  const validApiKeyEmail = `api-auth-api-key-user-${randomNumber()}@api.com`;
-  const validAccessTokenEmail = `api-auth-access-token-user-${randomNumber()}@api.com`;
-  const validOAuthEmail = `api-auth-oauth-user-${randomNumber()}@api.com`;
+  const validApiKeyEmail = `api-auth-api-key-user-${randomString()}@api.com`;
+  const validAccessTokenEmail = `api-auth-access-token-user-${randomString()}@api.com`;
+  const validOAuthEmail = `api-auth-oauth-user-${randomString()}@api.com`;
 
   let validApiKeyUser: User;
   let validAccessTokenUser: User;
@@ -84,7 +84,7 @@ describe("ApiAuthStrategy", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(module);
     oAuthClientRepositoryFixture = new OAuthClientRepositoryFixture(module);
     profilesRepositoryFixture = new ProfileRepositoryFixture(module);
-    organization = await teamRepositoryFixture.create({ name: `api-auth-organization-${randomNumber()}` });
+    organization = await teamRepositoryFixture.create({ name: `api-auth-organization-${randomString()}` });
     validApiKeyUser = await userRepositoryFixture.create({
       email: validApiKeyEmail,
     });

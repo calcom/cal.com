@@ -19,7 +19,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -71,7 +71,7 @@ describe("OAuthFlow Endpoints", () => {
     let refreshToken: string;
 
     beforeAll(async () => {
-      const userEmail = `oauth-flow-user-${randomNumber()}@api.com`;
+      const userEmail = `oauth-flow-user-${randomString()}@api.com`;
 
       const moduleRef: TestingModule = await withNextAuth(
         userEmail,
@@ -94,7 +94,7 @@ describe("OAuthFlow Endpoints", () => {
       });
 
       organization = await organizationsRepositoryFixture.create({
-        name: `oauth-flow-organization-${randomNumber()}`,
+        name: `oauth-flow-organization-${randomString()}`,
       });
       await profilesRepositoryFixture.create({
         uid: "asd-asd",

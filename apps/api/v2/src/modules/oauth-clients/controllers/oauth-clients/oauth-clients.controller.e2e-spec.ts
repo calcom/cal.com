@@ -18,7 +18,7 @@ import { MembershipRepositoryFixture } from "test/fixtures/repository/membership
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withNextAuth } from "test/utils/withNextAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -69,7 +69,7 @@ describe("OAuth Clients Endpoints", () => {
     let user: User;
     let org: Team;
     let app: INestApplication;
-    const userEmail = `oauth-clients-user-${randomNumber()}@api.com`;
+    const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
       const moduleRef = await withNextAuth(
@@ -90,7 +90,7 @@ describe("OAuth Clients Endpoints", () => {
         email: userEmail,
       });
       org = await teamFixtures.create({
-        name: `oauth-clients-organization-${randomNumber()}`,
+        name: `oauth-clients-organization-${randomString()}`,
         isOrganization: true,
         metadata: {
           isOrganization: true,
@@ -127,7 +127,7 @@ describe("OAuth Clients Endpoints", () => {
     let user: User;
     let org: Team;
     let app: INestApplication;
-    const userEmail = `oauth-clients-user-${randomNumber()}@api.com`;
+    const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
       const moduleRef = await withNextAuth(
@@ -148,7 +148,7 @@ describe("OAuth Clients Endpoints", () => {
         email: userEmail,
       });
       org = await teamFixtures.create({
-        name: `oauth-clients-organization-${randomNumber()}`,
+        name: `oauth-clients-organization-${randomString()}`,
         isOrganization: true,
         metadata: {
           isOrganization: true,
@@ -212,7 +212,7 @@ describe("OAuth Clients Endpoints", () => {
     describe("User is part of an organization as Admin", () => {
       let membership: Membership;
       let client: { clientId: string; clientSecret: string };
-      const oAuthClientName = `oauth-clients-admin-${randomNumber()}`;
+      const oAuthClientName = `oauth-clients-admin-${randomString()}`;
 
       beforeAll(async () => {
         membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
@@ -265,7 +265,7 @@ describe("OAuth Clients Endpoints", () => {
           });
       });
       it(`/PUT/:id`, () => {
-        const clientUpdatedName = `oauth-clients-admin-updated-${randomNumber()}`;
+        const clientUpdatedName = `oauth-clients-admin-updated-${randomString()}`;
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
           .patch(`/api/v2/oauth-clients/${client.clientId}`)
@@ -290,7 +290,7 @@ describe("OAuth Clients Endpoints", () => {
     describe("User is part of an organization as Owner", () => {
       let membership: Membership;
       let client: { clientId: string; clientSecret: string };
-      const oAuthClientName = `oauth-clients-owner-${randomNumber()}`;
+      const oAuthClientName = `oauth-clients-owner-${randomString()}`;
       const oAuthClientPermissions = 32;
 
       beforeAll(async () => {
@@ -347,7 +347,7 @@ describe("OAuth Clients Endpoints", () => {
           });
       });
       it(`/PUT/:id`, () => {
-        const clientUpdatedName = `oauth-clients-owner-updated-${randomNumber()}`;
+        const clientUpdatedName = `oauth-clients-owner-updated-${randomString()}`;
         const body: UpdateOAuthClientInput = { name: clientUpdatedName };
         return request(app.getHttpServer())
           .patch(`/api/v2/oauth-clients/${client.clientId}`)

@@ -20,7 +20,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -93,7 +93,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = `confirm-emails-2024-08-13-admin-${randomNumber()}@api.com`;
+  const authEmail = `confirm-emails-2024-08-13-admin-${randomString()}@api.com`;
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -116,7 +116,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
     organization = await teamRepositoryFixture.create({
-      name: `confirm-emails-2024-08-13-organization-${randomNumber()}`,
+      name: `confirm-emails-2024-08-13-organization-${randomString()}`,
     });
 
     await setupEnabledEmails();
@@ -142,7 +142,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: `confirm-emails-2024-08-13-user-${randomNumber()}@api.com`,
+      email: `confirm-emails-2024-08-13-user-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -151,7 +151,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `confirm-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -160,7 +160,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const event = await eventTypesRepositoryFixture.create(
       {
         title: "peer coding",
-        slug: `confirm-emails-2024-08-13-event-type-${randomNumber()}`,
+        slug: `confirm-emails-2024-08-13-event-type-${randomString()}`,
         length: 60,
         requiresConfirmation: true,
       },
@@ -179,7 +179,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `confirm-emails-2024-08-13-user-${randomNumber()}@api.com`,
+      email: `confirm-emails-2024-08-13-user-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -187,7 +187,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
       },
     });
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `confirm-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `confirm-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -195,7 +195,7 @@ describe("Bookings Endpoints 2024-08-13 confirm emails", () => {
     const event = await eventTypesRepositoryFixture.create(
       {
         title: "peer coding",
-        slug: `confirm-emails-2024-08-13-event-type-${randomNumber()}`,
+        slug: `confirm-emails-2024-08-13-event-type-${randomString()}`,
         length: 60,
         requiresConfirmation: true,
       },

@@ -17,7 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -37,13 +37,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = `variable-length-bookings-2024-08-13-user-${randomNumber()}@api.com`;
+    const userEmail = `variable-length-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     let variableLengthEventType: EventType;
-    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`;
+    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomString()}`;
     let normalEventType: EventType;
-    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`;
+    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -66,7 +66,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await teamRepositoryFixture.create({
-        name: `variable-length-bookings-2024-08-13-organization-${randomNumber()}`,
+        name: `variable-length-bookings-2024-08-13-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
@@ -80,7 +80,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `variable-length-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `variable-length-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -88,7 +88,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       variableLengthEventType = await eventTypesRepositoryFixture.create(
         {
-          title: `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `variable-length-bookings-2024-08-13-event-type-${randomString()}`,
           slug: VARIABLE_LENGTH_EVENT_TYPE_SLUG,
           length: 15,
           metadata: { multipleDuration: [15, 30, 60] },
@@ -98,7 +98,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       normalEventType = await eventTypesRepositoryFixture.create(
         {
-          title: `variable-length-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `variable-length-bookings-2024-08-13-event-type-${randomString()}`,
           slug: NORMAL_EVENT_TYPE_SLUG,
           length: 15,
         },

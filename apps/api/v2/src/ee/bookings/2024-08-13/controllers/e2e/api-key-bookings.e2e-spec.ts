@@ -19,7 +19,7 @@ import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.rep
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -73,11 +73,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
 
-    const userEmail = `api-key-bookings-2024-08-13-user-${randomNumber()}@api.com`;
+    const userEmail = `api-key-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = `api-key-bookings-2024-08-13-event-type-${randomNumber()}`;
+    const eventTypeSlug = `api-key-bookings-2024-08-13-event-type-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -103,7 +103,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: `api-key-bookings-organization-${randomNumber()}`,
+        name: `api-key-bookings-organization-${randomString()}`,
       });
 
       user = await userRepositoryFixture.create({
@@ -114,14 +114,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       apiKeyString = keyString;
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `api-key-bookings-e2e-api-key-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `api-key-bookings-e2e-api-key-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
         {
-          title: `api-key-bookings-e2e-api-key-bookings-2024-08-13-event-type-${randomNumber()}`,
+          title: `api-key-bookings-e2e-api-key-bookings-2024-08-13-event-type-${randomString()}`,
           slug: eventTypeSlug,
           length: 60,
         },

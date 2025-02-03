@@ -19,7 +19,7 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -37,7 +37,7 @@ describe("Bookings Endpoints 2024-04-15", () => {
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
 
-    const userEmail = `bookings-2024-04-15-user-${randomNumber()}@api.com`;
+    const userEmail = `bookings-2024-04-15-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
@@ -69,15 +69,15 @@ describe("Bookings Endpoints 2024-04-15", () => {
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = keyString;
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `bookings-2024-04-15-schedule-${randomNumber()}-${describe.name}`,
+        name: `bookings-2024-04-15-schedule-${randomString()}-${describe.name}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
         {
-          title: `bookings-2024-04-15-event-type-${randomNumber()}-${describe.name}`,
-          slug: `bookings-2024-04-15-event-type-${randomNumber()}-${describe.name}`,
+          title: `bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
+          slug: `bookings-2024-04-15-event-type-${randomString()}-${describe.name}`,
           length: 60,
         },
         user.id

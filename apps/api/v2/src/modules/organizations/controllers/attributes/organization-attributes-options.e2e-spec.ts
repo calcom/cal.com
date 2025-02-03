@@ -14,7 +14,7 @@ import { AttributeRepositoryFixture } from "test/fixtures/repository/attributes.
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -27,7 +27,7 @@ describe("Organizations Attributes Options Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = `organization-attributes-options-member-${randomNumber()}@api.com`;
+    const userEmail = `organization-attributes-options-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -46,7 +46,7 @@ describe("Organizations Attributes Options Endpoints", () => {
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: `organization-attributes-options-organization-${randomNumber()}`,
+        name: `organization-attributes-options-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -98,7 +98,7 @@ describe("Organizations Attributes Options Endpoints", () => {
     let membershipFixtures: MembershipRepositoryFixture;
     let attributeRepositoryFixture: AttributeRepositoryFixture;
 
-    const userEmail = `organization-attributes-options-admin-${randomNumber()}@api.com`;
+    const userEmail = `organization-attributes-options-admin-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -124,7 +124,7 @@ describe("Organizations Attributes Options Endpoints", () => {
       attributeRepositoryFixture = new AttributeRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: `organization-attributes-options-admin-organization-${randomNumber()}`,
+        name: `organization-attributes-options-admin-organization-${randomString()}`,
         isOrganization: true,
       });
 

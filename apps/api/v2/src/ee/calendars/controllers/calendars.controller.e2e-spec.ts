@@ -20,7 +20,7 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 import { IcsCalendarServiceMock } from "test/mocks/ics-calendar-service-mock";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -72,10 +72,10 @@ describe("Platform Calendars Endpoints", () => {
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
     tokensRepositoryFixture = new TokensRepositoryFixture(moduleRef);
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
-    organization = await teamRepositoryFixture.create({ name: `calendars-organization-${randomNumber()}` });
+    organization = await teamRepositoryFixture.create({ name: `calendars-organization-${randomString()}` });
     oAuthClient = await createOAuthClient(organization.id);
     user = await userRepositoryFixture.createOAuthManagedUser(
-      `calendars-user-${randomNumber()}@api.com`,
+      `calendars-user-${randomString()}@api.com`,
       oAuthClient.id
     );
     const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClient.id);

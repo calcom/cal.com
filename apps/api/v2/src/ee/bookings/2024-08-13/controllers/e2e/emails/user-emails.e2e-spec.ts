@@ -20,7 +20,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
 import {
@@ -103,7 +103,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
     organization = await teamRepositoryFixture.create({
-      name: `user-emails-2024-08-13-organization-${randomNumber()}`,
+      name: `user-emails-2024-08-13-organization-${randomString()}`,
     });
 
     await setupEnabledEmails();
@@ -119,7 +119,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const user = await userRepositoryFixture.create({
-      email: `user-emails-2024-08-13-user-${randomNumber()}@api.com`,
+      email: `user-emails-2024-08-13-user-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -128,7 +128,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `user-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `user-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -136,8 +136,8 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
 
     const event = await eventTypesRepositoryFixture.create(
       {
-        title: `user-emails-2024-08-13-event-type-${randomNumber()}`,
-        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-event-type-${randomString()}`,
+        slug: `user-emails-2024-08-13-event-type-${randomString()}`,
         length: 60,
       },
       user.id
@@ -146,8 +146,8 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
-        slug: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-recurring-event-type-${randomString()}`,
+        slug: `user-emails-2024-08-13-recurring-event-type-${randomString()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },
@@ -167,7 +167,7 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const user = await userRepositoryFixture.create({
-      email: `user-emails-2024-08-13-user-${randomNumber()}@api.com`,
+      email: `user-emails-2024-08-13-user-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -175,15 +175,15 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
       },
     });
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: `user-emails-2024-08-13-schedule-${randomNumber()}`,
+      name: `user-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
     await schedulesService.createUserSchedule(user.id, userSchedule);
     const event = await eventTypesRepositoryFixture.create(
       {
-        title: `user-emails-2024-08-13-event-type-${randomNumber()}`,
-        slug: `user-emails-2024-08-13-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-event-type-${randomString()}`,
+        slug: `user-emails-2024-08-13-event-type-${randomString()}`,
         length: 60,
       },
       user.id
@@ -192,8 +192,8 @@ describe("Bookings Endpoints 2024-08-13 user emails", () => {
     const recurringEvent = await eventTypesRepositoryFixture.create(
       // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
       {
-        title: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
-        slug: `user-emails-2024-08-13-recurring-event-type-${randomNumber()}`,
+        title: `user-emails-2024-08-13-recurring-event-type-${randomString()}`,
+        slug: `user-emails-2024-08-13-recurring-event-type-${randomString()}`,
         length: 60,
         recurringEvent: { freq: 2, count: 3, interval: 1 },
       },

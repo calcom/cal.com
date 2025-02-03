@@ -17,7 +17,7 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { TeamOutputDto } from "@calcom/platform-types";
@@ -29,11 +29,11 @@ describe("Teams endpoint", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
   let membershipRepositoryFixture: MembershipRepositoryFixture;
 
-  const aliceEmail = `alice-${randomNumber()}@api.com`;
+  const aliceEmail = `alice-${randomString()}@api.com`;
   let alice: User;
   let aliceApiKey: string;
 
-  const bobEmail = `bob-${randomNumber()}@api.com`;
+  const bobEmail = `bob-${randomString()}@api.com`;
   let bob: User;
   let bobApiKey: string;
 
@@ -75,7 +75,7 @@ describe("Teams endpoint", () => {
   describe("User has membership in created team", () => {
     it("should create a team", async () => {
       const body: CreateTeamInput = {
-        name: `teams-dog-${randomNumber()}`,
+        name: `teams-dog-${randomString()}`,
       };
 
       return request(app.getHttpServer())
@@ -96,7 +96,7 @@ describe("Teams endpoint", () => {
 
     it("should create a team", async () => {
       const body: CreateTeamInput = {
-        name: `teams-cats-${randomNumber()}`,
+        name: `teams-cats-${randomString()}`,
       };
 
       return request(app.getHttpServer())
@@ -148,7 +148,7 @@ describe("Teams endpoint", () => {
 
     it("should update a team", async () => {
       const body: UpdateTeamDto = {
-        name: `teams-dogs-shepherds-${randomNumber()}`,
+        name: `teams-dogs-shepherds-${randomString()}`,
       };
 
       return request(app.getHttpServer())

@@ -12,7 +12,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -36,7 +36,7 @@ describe("Organizations Schedules Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = `organizations-schedules-member-${randomNumber()}@api.com`;
+    const userEmail = `organizations-schedules-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -54,7 +54,7 @@ describe("Organizations Schedules Endpoints", () => {
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-schedules-organization-${randomNumber()}`,
+        name: `organizations-schedules-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -116,8 +116,8 @@ describe("Organizations Schedules Endpoints", () => {
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmail = `organizations-schedules-admin-${randomNumber()}@api.com`;
-    const userEmail2 = `organizations-schedules-member-${randomNumber()}@api.com`;
+    const userEmail = `organizations-schedules-admin-${randomString()}@api.com`;
+    const userEmail2 = `organizations-schedules-member-${randomString()}@api.com`;
     let user: User;
     let user2: User;
     let org: Team;
@@ -156,7 +156,7 @@ describe("Organizations Schedules Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-schedules-admin-organization-${randomNumber()}`,
+        name: `organizations-schedules-admin-organization-${randomString()}`,
         isOrganization: true,
       });
 

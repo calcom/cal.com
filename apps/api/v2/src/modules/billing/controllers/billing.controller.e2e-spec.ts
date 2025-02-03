@@ -16,14 +16,14 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { Team, PlatformOAuthClient, PlatformBilling } from "@calcom/prisma/client";
 
 describe("Platform Billing Controller (e2e)", () => {
   let app: INestApplication;
-  const userEmail = `billing-user-${randomNumber()}@api.com`;
+  const userEmail = `billing-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let billing: PlatformBilling;
   let userRepositoryFixture: UserRepositoryFixture;
@@ -49,7 +49,7 @@ describe("Platform Billing Controller (e2e)", () => {
     membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     organization = await organizationsRepositoryFixture.create({
-      name: `billing-organization-${randomNumber()}`,
+      name: `billing-organization-${randomString()}`,
     });
 
     user = await userRepositoryFixture.create({

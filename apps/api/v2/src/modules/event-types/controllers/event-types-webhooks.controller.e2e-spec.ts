@@ -17,14 +17,14 @@ import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { WebhookRepositoryFixture } from "test/fixtures/repository/webhooks.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { EventType, Webhook } from "@calcom/prisma/client";
 
 describe("EventTypes WebhooksController (e2e)", () => {
   let app: INestApplication;
-  const userEmail = `event-types-webhooks-user-${randomNumber()}@api.com`;
+  const userEmail = `event-types-webhooks-user-${randomString()}@api.com`;
   let user: UserWithProfile;
   let otherUser: UserWithProfile;
   let eventType: EventType;
@@ -56,14 +56,14 @@ describe("EventTypes WebhooksController (e2e)", () => {
     });
 
     otherUser = await userRepositoryFixture.create({
-      email: `event-types-webhooks-other-user-${randomNumber()}@api.com`,
-      username: `event-types-webhooks-other-user-${randomNumber()}@api.com`,
+      email: `event-types-webhooks-other-user-${randomString()}@api.com`,
+      username: `event-types-webhooks-other-user-${randomString()}@api.com`,
     });
 
     eventType = await eventTypeRepositoryFixture.create(
       {
         title: "Event Type 1",
-        slug: `event-types-webhooks-event-type-${randomNumber()}`,
+        slug: `event-types-webhooks-event-type-${randomString()}`,
         length: 60,
       },
       user.id
@@ -72,7 +72,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
     eventType2 = await eventTypeRepositoryFixture.create(
       {
         title: "Event Type 2",
-        slug: `event-types-webhooks-event-type-${randomNumber()}`,
+        slug: `event-types-webhooks-event-type-${randomString()}`,
         length: 60,
       },
       user.id
@@ -81,7 +81,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
     otherEventType = await eventTypeRepositoryFixture.create(
       {
         title: "Other Event Type ",
-        slug: `event-types-webhooks-other-event-type-${randomNumber()}`,
+        slug: `event-types-webhooks-other-event-type-${randomString()}`,
         length: 60,
       },
       otherUser.id

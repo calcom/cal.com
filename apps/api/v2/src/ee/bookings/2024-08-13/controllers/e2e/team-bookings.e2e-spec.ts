@@ -21,7 +21,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -53,8 +53,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const teamUserEmail = `team-bookings-user1-${randomNumber()}@api.com`;
-    const teamUserEmail2 = `team-bookings-user2-${randomNumber()}@api.com`;
+    const teamUserEmail = `team-bookings-user1-${randomString()}@api.com`;
+    const teamUserEmail2 = `team-bookings-user2-${randomString()}@api.com`;
     let teamUser: User;
     let teamUser2: User;
 
@@ -62,9 +62,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let team2EventTypeId: number;
     let phoneOnlyEventTypeId: number;
 
-    const team1EventTypeSlug = `team-bookings-event-type-${randomNumber()}`;
-    const team2EventTypeSlug = `team-bookings-event-type-${randomNumber()}`;
-    const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomNumber()}`;
+    const team1EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const team2EventTypeSlug = `team-bookings-event-type-${randomString()}`;
+    const phoneOnlyEventTypeSlug = `team-bookings-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -91,12 +91,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       organization = await organizationsRepositoryFixture.create({
-        name: `team-bookings-organization-${randomNumber()}`,
+        name: `team-bookings-organization-${randomString()}`,
       });
       oAuthClient = await createOAuthClient(organization.id);
 
       team1 = await teamRepositoryFixture.create({
-        name: `team-bookings-team1-${randomNumber()}`,
+        name: `team-bookings-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -107,7 +107,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       team2 = await teamRepositoryFixture.create({
-        name: `team-bookings-team2-${randomNumber()}`,
+        name: `team-bookings-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
         createdByOAuthClient: {
@@ -140,7 +140,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: `team-bookings-2024-08-13-schedule-${randomNumber()}`,
+        name: `team-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -203,7 +203,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
         slug: team1EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,
@@ -218,7 +218,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team1.id },
         },
-        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
         slug: phoneOnlyEventTypeSlug,
         length: 15,
         assignAllTeamMembers: false,
@@ -295,7 +295,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         team: {
           connect: { id: team2.id },
         },
-        title: `team-bookings-2024-08-13-event-type-${randomNumber()}`,
+        title: `team-bookings-2024-08-13-event-type-${randomString()}`,
         slug: team2EventTypeSlug,
         length: 60,
         assignAllTeamMembers: true,

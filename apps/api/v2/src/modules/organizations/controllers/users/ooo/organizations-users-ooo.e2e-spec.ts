@@ -14,7 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -35,12 +35,12 @@ describe("Organizations User OOO Endpoints", () => {
     let falseTestOrg: Team;
     let falseTestTeam: Team;
 
-    const userEmail = `organizations-users-ooo-admin-${randomNumber()}@api.com`;
+    const userEmail = `organizations-users-ooo-admin-${randomString()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = `organizations-users-ooo-member1-${randomNumber()}@api.com`;
-    const teammate2Email = `organizations-users-ooo-member2-${randomNumber()}@api.com`;
-    const falseTestUserEmail = `organizations-users-ooo-false-user-${randomNumber()}@api.com`;
+    const teammate1Email = `organizations-users-ooo-member1-${randomString()}@api.com`;
+    const teammate2Email = `organizations-users-ooo-member2-${randomString()}@api.com`;
+    const falseTestUserEmail = `organizations-users-ooo-false-user-${randomString()}@api.com`;
     let teammate1: User;
     let teammate2: User;
     let falseTestUser: User;
@@ -81,23 +81,23 @@ describe("Organizations User OOO Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: `organizations-users-ooo-organization-${randomNumber()}`,
+        name: `organizations-users-ooo-organization-${randomString()}`,
         isOrganization: true,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
-        name: `organizations-users-ooo-false-org-${randomNumber()}`,
+        name: `organizations-users-ooo-false-org-${randomString()}`,
         isOrganization: true,
       });
 
       team = await teamsRepositoryFixture.create({
-        name: `organizations-users-ooo-team-${randomNumber()}`,
+        name: `organizations-users-ooo-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: `organizations-users-ooo-false-team-${randomNumber()}`,
+        name: `organizations-users-ooo-false-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: falseTestOrg.id } },
       });
