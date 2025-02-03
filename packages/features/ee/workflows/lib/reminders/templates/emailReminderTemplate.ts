@@ -33,7 +33,6 @@ const emailReminderTemplate = ({
   name?: string;
   isBrandingDisabled?: boolean;
 }) => {
-  console.log("🚀 ~ isEditingMode:", isEditingMode);
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 

@@ -793,7 +793,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                                 );
                               }
                             }
-                            [];
                             field.onChange(val.value);
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             setUpdateTemplate(!updateTemplate);
