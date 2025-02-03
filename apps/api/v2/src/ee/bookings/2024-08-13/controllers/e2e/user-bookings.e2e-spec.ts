@@ -268,6 +268,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
             .expect(400);
         });
 
@@ -294,6 +295,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
             .expect(400);
         });
 
@@ -320,6 +322,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             .post("/v2/bookings")
             .send(body)
             .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+            .set(X_CAL_CLIENT_ID, oAuthClient.id)
             .expect(400);
         });
       });
@@ -349,6 +352,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post("/v2/bookings")
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(201)
           .then(async (response) => {
             const afterCreate = new Date();
@@ -426,6 +430,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post("/v2/bookings")
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(201)
           .then(async (response) => {
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
@@ -1018,6 +1023,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings/${createdBooking.uid}/reschedule`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(201)
           .then(async (response) => {
             const afterCreate = new Date();
@@ -1082,6 +1088,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings/${createdRecurringBooking[0].uid}/reschedule`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(201)
           .then(async (response) => {
             const responseBody: RescheduleBookingOutput_2024_08_13 = response.body;
@@ -1161,6 +1168,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings/${createdRecurringBooking[1].uid}/mark-absent`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(200)
           .then(async (response) => {
             const responseBody: MarkAbsentBookingOutput_2024_08_13 = response.body;
@@ -1196,6 +1204,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings/${createdRecurringBooking[2].uid}/mark-absent`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(200)
           .then(async (response) => {
             const responseBody: MarkAbsentBookingOutput_2024_08_13 = response.body;

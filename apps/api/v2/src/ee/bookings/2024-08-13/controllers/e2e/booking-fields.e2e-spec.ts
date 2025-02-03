@@ -19,7 +19,12 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
+import {
+  CAL_API_VERSION_HEADER,
+  SUCCESS_STATUS,
+  VERSION_2024_08_13,
+  X_CAL_CLIENT_ID,
+} from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   GetBookingOutput_2024_08_13,
@@ -482,6 +487,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         };
         return request(app.getHttpServer())
           .post(`/v2/bookings`)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(400);
@@ -506,6 +512,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
           .post(`/v2/bookings`)
           .send(body)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .set(X_CAL_CLIENT_ID, oAuthClient.id)
           .expect(201)
           .then(async (response) => {
             const responseBody: CreateBookingOutput_2024_08_13 = response.body;
