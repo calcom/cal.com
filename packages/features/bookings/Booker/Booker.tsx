@@ -8,6 +8,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import PoweredBy from "@calcom/ee/components/PoweredBy";
+import TurnstileCaptcha from "@calcom/features/auth/Turnstile";
 import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hooks/useSkipConfirmStep";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
@@ -36,8 +37,6 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
-
-const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
 
