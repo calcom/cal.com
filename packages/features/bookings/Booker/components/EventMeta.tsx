@@ -47,6 +47,7 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  isPrivateLink,
   classNames,
   locale,
 }: {
@@ -73,6 +74,7 @@ export const EventMeta = ({
     | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
+  isPrivateLink: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
@@ -153,6 +155,7 @@ export const EventMeta = ({
             users={event.subsetOfUsers}
             profile={event.profile}
             entity={event.entity}
+            isPrivateLink={isPrivateLink}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
