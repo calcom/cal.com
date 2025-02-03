@@ -270,7 +270,19 @@ export function RoutingFormResponsesTable() {
 
   const headers = useMemo(() => {
     if (!headersRaw) return;
-    return headersRaw.filter((header) => header.label && isValidRoutingFormFieldType(header.type));
+    return headersRaw.filter((header) => {
+      if (!header.label || !isValidRoutingFormFieldType(header.type)) {
+        return false;
+      }
+      if (
+        (header.type === RoutingFormFieldType.SINGLE_SELECT ||
+          header.type === RoutingFormFieldType.MULTI_SELECT) &&
+        (!header.options || header.options.length === 0)
+      ) {
+        return false;
+      }
+      return true;
+    });
   }, [headersRaw]);
 
   const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
