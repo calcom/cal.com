@@ -138,6 +138,11 @@ const sections: Section[] = [
       { id: "slider-disabled", title: "Disabled" },
     ],
   },
+  {
+    id: "range-slider-popover",
+    title: "Range Slider Popover",
+    subsections: [{ id: "range-slider-popover-basic", title: "Basic Usage" }],
+  },
 ];
 
 const STORAGE_KEY = "ui-playground-toc-state";

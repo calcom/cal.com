@@ -65,6 +65,7 @@ export type {
   TimezoneSelectComponentProps,
 } from "./components/form";
 export { Slider as RangeSlider } from "./components/form/slider";
+export { RangeSliderPopover } from "./components/form/slider/RangeSliderPopover";
 
 export {
   AllApps,

@@ -12,6 +12,7 @@ import CheckboxDemo from "./CheckboxDemo";
 import DropdownDemo from "./DropdownDemo";
 import InputDemo from "./InputDemo";
 import RangeSliderDemo from "./RangeSliderDemo";
+import RangeSliderPopoverDemo from "./RangeSliderPopoverDemo";
 import SelectDemo from "./SelectDemo";
 import TableOfContents from "./TableOfContents";
 import TextFieldDemo from "./TextFieldDemo";
@@ -85,6 +86,10 @@ export default function PageContent() {
 
             <section id="range-slider" className="space-y-6">
               <RangeSliderDemo />
+            </section>
+
+            <section id="range-slider-popover" className="space-y-6">
+              <RangeSliderPopoverDemo />
             </section>
           </main>
         </div>
