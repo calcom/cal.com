@@ -7,8 +7,8 @@ import { Tooltip } from "../components/tooltip";
 
 interface MultiEmailProps {
   value: string[];
-  readOnly: boolean;
-  label: string;
+  readOnly?: boolean;
+  label?: string;
   setValue: (value: string[]) => void;
   placeholder?: string;
 }

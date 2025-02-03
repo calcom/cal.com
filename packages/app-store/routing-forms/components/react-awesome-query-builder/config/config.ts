@@ -21,6 +21,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     address: {
       ...BasicConfig.widgets.text,
     },
+    multiemail: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }

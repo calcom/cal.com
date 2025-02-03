@@ -6,7 +6,7 @@ import type {
   WidgetProps,
 } from "react-awesome-query-builder";
 
-import { EmailField as EmailWidget } from "@calcom/ui";
+import { EmailField as EmailWidget, MultiEmail } from "@calcom/ui";
 
 import widgetsComponents from "../widgets";
 import type { Widgets, WidgetsWithoutFactory } from "./types";
@@ -41,6 +41,13 @@ const TextAreaFactory = (props: WidgetProps | undefined) => renderComponent(prop
 const NumberFactory = (props: WidgetProps | undefined) => renderComponent(props, NumberWidget);
 const AddressFactory = (props: WidgetProps | undefined) => renderComponent(props, AddressWidget);
 const UrlFactory = (props: WidgetProps | undefined) => renderComponent(props, UrlWidget);
+const MultiEmailFactory = (props: WidgetProps | undefined) => {
+  if (!props) {
+    return <div />;
+  }
+
+  return <MultiEmail label="Add Email" {...props} />;
+};
 const MultiSelectFactory = (
   props:
     | (SelectWidgetProps & {
@@ -123,6 +130,10 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
     url: {
       ...widgets.text,
       factory: UrlFactory,
+    },
+    multiemail: {
+      ...widgets.multiemail,
+      factory: MultiEmailFactory,
     },
   };
   return widgetsWithFactory;
