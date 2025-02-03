@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistMono.variable} font-[family-name:var(--font-inter)] antialiased`}>
+        className={`${inter.variable} ${geistMono.variable} bg-default font-[family-name:var(--font-inter)] antialiased`}>
         <TooltipProvider>
           <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
         </TooltipProvider>

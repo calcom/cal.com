@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button, IconSprites } from "@calcom/ui";
 
@@ -23,9 +23,13 @@ import ToastDemo from "./ToastDemo";
 export default function PageContent() {
   const [isDark, setIsDark] = useState(false);
 
+  useEffect(() => {
+    document.documentElement.className = isDark ? "dark" : "light";
+  }, [isDark]);
+
   return (
-    <div className={`min-h-screen ${isDark ? "dark" : ""} bg-default font-[family-name:var(--font-inter)]`}>
-      <div className="bg-default/80 sticky top-0 z-50 ">
+    <div className="bg-default min-h-screen font-[family-name:var(--font-inter)]">
+      <div className="bg-default/80 sticky top-0 z-50">
         <div className="mx-auto max-w-7xl">
           <div className="mx-6 flex justify-end py-4">
             <Button onClick={() => setIsDark(!isDark)}>
