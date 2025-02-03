@@ -102,7 +102,7 @@ export async function ensureAvailableUsers(
     },
   });
 
-  const eventDetails = safeStringify({
+  const piiFreeInputDataForLogging = safeStringify({
     startDateTimeUtc,
     endDateTimeUtc,
     ...{
@@ -127,13 +127,16 @@ export async function ensureAvailableUsers(
     );
 
     if (!dateRanges.length) {
-      loggerWithEventDetails.error(`User does not have availability at this time.`, errorDetail);
+      loggerWithEventDetails.error(
+        `User does not have availability at this time.`,
+        piiFreeInputDataForLogging
+      );
       return;
     }
 
     //check if event time is within the date range
     if (!hasDateRangeForBooking(dateRanges, startDateTimeUtc, endDateTimeUtc)) {
-      loggerWithEventDetails.error(`No date range for booking.`, errorDetail);
+      loggerWithEventDetails.error(`No date range for booking.`, piiFreeInputDataForLogging);
       return;
     }
 
@@ -152,7 +155,7 @@ export async function ensureAvailableUsers(
   });
 
   if (availableUsers.length === 0) {
-    loggerWithEventDetails.error(`No available users found.`, eventDetails);
+    loggerWithEventDetails.error(`No available users found.`, piiFreeInputDataForLogging);
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
   // make sure TypeScript understands availableUsers is at least one.
