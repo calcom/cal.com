@@ -246,7 +246,6 @@ function UserListTableContent({ oAuthClientId }: PlatformManagedUsersTableProps)
     data: flatData,
     columns,
     enableRowSelection: true,
-    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
