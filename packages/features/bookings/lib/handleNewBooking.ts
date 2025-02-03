@@ -644,6 +644,19 @@ async function handler(
               fallbackUsers: fallbackUsers.map((user) => user.id),
             })
           );
+          // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
+          // use fallback instead
+          availableUsers = await ensureAvailableUsers(
+            { ...eventTypeWithUsers, users: fallbackUsers as IsFixedAwareUser[] },
+            {
+              dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
+              dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
+              timeZone: reqBody.timeZone,
+              originalRescheduledBooking,
+            },
+            loggerWithEventDetails,
+            shouldServeCache
+          );
         } else {
           loggerWithEventDetails.debug(
             "Qualified users not available, no fallback users",
@@ -661,28 +674,6 @@ async function handler(
       availableUsers.forEach((user) => {
         user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
       });
-
-      if (!luckyUserPool.length) {
-        // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
-        // use fallback instead
-        availableUsers = await ensureAvailableUsers(
-          { ...eventTypeWithUsers, users: fallbackUsers as IsFixedAwareUser[] },
-          {
-            dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
-            dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
-            timeZone: reqBody.timeZone,
-            originalRescheduledBooking,
-          },
-          loggerWithEventDetails,
-          shouldServeCache
-        );
-
-        availableUsers.forEach((user) => {
-          if (user.isFixed) {
-            luckyUserPool.push(user);
-          }
-        });
-      }
 
       const notAvailableLuckyUsers: typeof users = [];
 
