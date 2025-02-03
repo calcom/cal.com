@@ -1,3 +1,5 @@
+import posthog from "posthog-js";
+import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
@@ -64,6 +66,22 @@ export const DatePicker = ({
     onMonthChange(browsingDate.add(1, "month"));
   };
 
+  useEffect(() => {
+    // Set timestamp when DatePicker mounts (user lands on booking page)
+    const pageLoadTimestamp = Date.now().toString();
+    localStorage.setItem("page_load_timestamp", pageLoadTimestamp);
+
+    // Safe PostHog tracking
+    try {
+      posthog.capture("booking_process_started", {
+        timestamp: pageLoadTimestamp,
+        path: window.location.pathname,
+      });
+    } catch (e) {
+      console.error("PostHog tracking error:", e);
+    }
+  }, []);
+
   moveToNextMonthOnNoAvailability();
 
   return (
@@ -79,6 +97,25 @@ export const DatePicker = ({
       isPending={schedule.isPending}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+
+        // Only set the date selection timestamp, don't touch the page load timestamp
+        if (date) {
+          const dateSelectedTimestamp = Date.now().toString();
+          localStorage.setItem("date_selected_timestamp", dateSelectedTimestamp);
+
+          try {
+            posthog.capture("date_selected", {
+              timestamp: dateSelectedTimestamp,
+              selected_date: date.format("YYYY-MM-DD"),
+              days_since_page_load: Math.floor(
+                (Number(dateSelectedTimestamp) - Number(localStorage.getItem("page_load_timestamp"))) /
+                  (1000 * 60 * 60 * 24)
+              ),
+            });
+          } catch (e) {
+            console.error("PostHog tracking error:", e);
+          }
+        }
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}

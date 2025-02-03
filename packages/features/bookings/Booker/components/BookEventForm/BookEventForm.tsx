@@ -1,7 +1,8 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import posthog from "posthog-js";
+import { useMemo, useState, useEffect } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { useIsPlatformBookerEmbed } from "@calcom/atoms/monorepo";
@@ -72,6 +73,12 @@ export const BookEventForm = ({
     return eventType?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
   }, [eventType]);
 
+  useEffect(() => {
+    // Set timestamp when component mounts (page load)
+    localStorage.setItem("page_load_timestamp", Date.now().toString());
+    console.log("Page load timestamp set:", Date.now());
+  }, []);
+
   if (eventQuery.isError) return <Alert severity="warning" message={t("error_booking_event")} />;
   if (eventQuery.isPending || !eventQuery.data) return <FormSkeleton />;
   if (!timeslot)
@@ -91,6 +98,47 @@ export const BookEventForm = ({
   }
 
   const watchedCfToken = bookingForm.watch("cfToken");
+
+  const handleBookingConfirmation = async () => {
+    try {
+      // booking submission logic
+      const values = bookingForm.getValues();
+      setFormValues(values);
+      await onSubmit();
+
+      const pageLoadTime = localStorage.getItem("date_selected_timestamp");
+      const dateSelectedTime = localStorage.getItem("page_load_timestamp");
+      const now = Date.now();
+
+      //track yo analytics
+      if (pageLoadTime) {
+        const totalTime = now - parseInt(pageLoadTime);
+        const totalTimeSeconds = Math.round(totalTime / 1000);
+        console.log(`Time from date selection to booking: ${totalTimeSeconds} seconds`);
+      }
+
+      if (dateSelectedTime) {
+        const timeFromDatePick = now - parseInt(dateSelectedTime);
+        const timeFromDatePickSeconds = Math.round(timeFromDatePick / 1000);
+        console.log(`Total time from page load to booking: ${timeFromDatePickSeconds} seconds`);
+      }
+
+      posthog.capture("book_event_form_submit", {
+        totalTimeFromLoadMs: dateSelectedTime ? now - parseInt(dateSelectedTime) : null,
+        totalTimeFromLoadSeconds: dateSelectedTime
+          ? Math.round((now - parseInt(dateSelectedTime)) / 1000)
+          : null,
+        timeFromDatePickMs: pageLoadTime ? now - parseInt(pageLoadTime) : null,
+        timeFromDatePickSeconds: pageLoadTime ? Math.round((now - parseInt(pageLoadTime)) / 1000) : null,
+      });
+
+      // cleanup timestamps after success
+      localStorage.removeItem("page_load_timestamp");
+      localStorage.removeItem("date_selected_timestamp");
+    } catch (error) {
+      console.error("Booking confirmation error:", error);
+    }
+  };
 
   return (
     <div className="flex h-full flex-col">
@@ -186,6 +234,37 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
+                onClick={() => {
+                  const pageLoadTime = localStorage.getItem("page_load_timestamp");
+                  const dateSelectedTime = localStorage.getItem("date_selected_timestamp");
+
+                  const now = Date.now();
+
+                  if (pageLoadTime) {
+                    const totalTime = now - parseInt(pageLoadTime);
+                    const totalTimeSeconds = Math.round(totalTime / 1000);
+                    console.log(`Time from date selection to booking:  ${totalTimeSeconds} seconds`);
+                  }
+
+                  if (dateSelectedTime) {
+                    const timeFromDatePick = now - parseInt(dateSelectedTime);
+                    const timeFromDatePickSeconds = Math.round(timeFromDatePick / 1000);
+                    console.log(`Total time from page load to booking: ${timeFromDatePickSeconds} seconds`);
+                  }
+
+                  posthog.capture("book_event_form_submit", {
+                    totalTimeFromLoadMs: pageLoadTime ? now - parseInt(pageLoadTime) : null,
+                    totalTimeFromLoadSeconds: pageLoadTime
+                      ? Math.round((now - parseInt(pageLoadTime)) / 1000)
+                      : null,
+                    timeFromDatePickMs: dateSelectedTime ? now - parseInt(dateSelectedTime) : null,
+                    timeFromDatePickSeconds: dateSelectedTime
+                      ? Math.round((now - parseInt(dateSelectedTime)) / 1000)
+                      : null,
+                  });
+                  localStorage.removeItem("page_load_timestamp");
+                  localStorage.removeItem("date_selected_timestamp");
+                }}
                 disabled={!!shouldRenderCaptcha && !watchedCfToken}
                 loading={
                   loadingStates.creatingBooking ||
