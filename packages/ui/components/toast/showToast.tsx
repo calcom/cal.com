@@ -14,64 +14,57 @@ type IToast = {
 export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "data-testid-toast-success bg-default text-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
       <Icon name="check" className="h-4 w-4" />
     </span>
-    <p data-testid="toast-success" className="text-left">
+    <p data-testid="toast-success" className="w-full text-left">
       {message}
     </p>
+    <span className="mt-0.5">
+      <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
+    </span>
   </button>
 );
 
 export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-error text-error text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
       <Icon name="info" className="h-4 w-4" />
     </span>
-    <p data-testid="toast-error" className="text-left">
+    <p data-testid="toast-error" className="w-full text-left">
       {message}
     </p>
+    <span className="mt-0.5">
+      <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
+    </span>
   </button>
 );
 
 export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
       <Icon name="info" className="h-4 w-4" />
     </span>
-    <p data-testid="toast-warning" className="text-left">
+    <p data-testid="toast-warning" className="w-full text-left">
       {message}
     </p>
-  </button>
-);
-
-export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
-  <button
-    className={classNames(
-      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
-      toastVisible && "animate-fade-in-up cursor-pointer"
-    )}
-    onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Icon name="check" className="h-4 w-4" />
+      <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
     </span>
-    <p data-testid="toast-default" className="text-left">
-      {message}
-    </p>
   </button>
 );
 
@@ -104,7 +97,7 @@ export function showToast(
   };
   return toast.custom(
     toastElements[variant] ||
-      ((t) => <DefaultToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />),
+      ((t) => <SuccessToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />),
     _options
   );
 }

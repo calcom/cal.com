@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
+import { showToast, SuccessToast, ErrorToast, WarningToast } from "@calcom/ui";
 
 import DemoSection, { DemoSubSection } from "./DemoSection";
 
@@ -16,16 +18,46 @@ export default function ToastDemo() {
     "bottom-right",
   ] as const;
 
+  const [demoToastId] = useState("demo-toast");
+
   const handleShowToast = (variant: (typeof variants)[number], position?: (typeof positions)[number]) => {
     showToast(`This is a ${variant} toast message`, variant, {
       position: position || "bottom-center",
     });
   };
 
+  const dummyCloseHandler = () => {
+    // Dummy close handler for demo toasts
+  };
+
   return (
     <DemoSection title="Toast">
-      {/* Basic Variants */}
-      <DemoSubSection id="toast-variants" title="Variants">
+      {/* Toast Components */}
+      <DemoSubSection id="toast-components" title="Toast Components">
+        <div className="flex flex-col gap-4">
+          <SuccessToast
+            message="This is a success toast message"
+            toastVisible={true}
+            toastId={demoToastId}
+            onClose={dummyCloseHandler}
+          />
+          <WarningToast
+            message="This is a warning toast message"
+            toastVisible={true}
+            toastId={demoToastId}
+            onClose={dummyCloseHandler}
+          />
+          <ErrorToast
+            message="This is an error toast message"
+            toastVisible={true}
+            toastId={demoToastId}
+            onClose={dummyCloseHandler}
+          />
+        </div>
+      </DemoSubSection>
+
+      {/* Interactive Variants */}
+      <DemoSubSection id="toast-variants" title="Interactive Variants">
         <div className="flex flex-wrap items-center gap-4">
           {variants.map((variant) => (
             <div key={variant} className="flex flex-col items-center gap-2">
