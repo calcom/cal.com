@@ -373,7 +373,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       contactOwnerEmail,
       loggerWithEventDetails,
       // adjust start time so we can check for available slots in the first two weeks
-      startTime: startTime.isBefore(twoWeeksFromNow) ? dayjs() : startTime,
+      startTime: startTime.isBefore(twoWeeksFromNow)
+        ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+        : startTime,
       endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
