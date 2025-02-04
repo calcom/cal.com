@@ -133,7 +133,7 @@ export const BookEventForm = ({
               message={
                 <Trans i18nKey="timeslot_unavailable_book_a_new_time">
                   The selected time slot is no longer available.{" "}
-                  <button className="underline" onClick={onCancel}>
+                  <button type="button" className="underline" onClick={onCancel}>
                     Please select a new time
                   </button>
                 </Trans>

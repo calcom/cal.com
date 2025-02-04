@@ -171,6 +171,13 @@ export const bookTimeSlot = async (
   });
 };
 
+export async function expectSlotNotAllowedToBook(page: Page) {
+  await page.waitForResponse((response) => {
+    return response.url().includes("/slots/isAvailable");
+  });
+  await expect(page.locator("[data-testid=slot-not-allowed-to-book]")).toBeVisible();
+}
+
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
