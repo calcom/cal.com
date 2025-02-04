@@ -23,7 +23,7 @@ const querySchema = z.object({
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
 
   const {
     uid: bookingUid,

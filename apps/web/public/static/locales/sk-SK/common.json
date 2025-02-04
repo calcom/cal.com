@@ -108,6 +108,7 @@
   "accept_license": "Prijať licenciu",
   "still_waiting_for_approval": "Udalosť stále čaká na schválenie",
   "event_is_still_waiting": "Žiadosť o udalosť stále čaká: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Pre výraz \"{{searchTerm}}\" neboli nájdené žiadne výsledky",
   "no_more_results": "Žiadne ďalšie výsledky",
   "no_results": "Žiadne výsledky",
   "load_more_results": "Načítať ďalšie výsledky",

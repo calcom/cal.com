@@ -28,7 +28,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
       CTA={<TeamsCTA />}
       heading={t("teams")}
       subtitle={t("create_manage_teams_collaborative")}>
-      <TeamsView {...props} />;
+      <TeamsView {...props} />
     </ShellMainAppDir>
   );
 };
