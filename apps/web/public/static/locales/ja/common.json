@@ -108,6 +108,7 @@
   "accept_license": "ライセンスに同意する",
   "still_waiting_for_approval": "イベントはまだ承認待ちです",
   "event_is_still_waiting": "イベントリクエストはまだ待機中です: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "\"{{searchTerm}}\"の検索結果が見つかりませんでした",
   "no_more_results": "他の結果はありません",
   "no_results": "結果はありません",
   "load_more_results": "さらに結果を読み込む",
