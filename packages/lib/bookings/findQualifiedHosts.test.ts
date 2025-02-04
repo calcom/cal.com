@@ -45,10 +45,26 @@ describe("findQualifiedHosts", async () => {
         priority: undefined,
         weight: undefined,
       },
+      {
+        isFixed: false,
+        createdAt: new Date(),
+        user: {
+          id: 3,
+          email: "hellouser3@email.com",
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+        priority: undefined,
+        weight: undefined,
+      },
     ];
 
+    const rrHosts = hosts.filter((host) => !host.isFixed);
+    const fixedHosts = hosts.filter((host) => host.isFixed);
+    const rrHostsAfterFairness = [rrHosts[2]];
+
     // Configure the mock return value
-    (filterHostsByLeadThreshold as Mock).mockResolvedValue(hosts);
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(rrHostsAfterFairness);
 
     // Define the input for the test
     const eventType = {
@@ -78,7 +94,11 @@ describe("findQualifiedHosts", async () => {
     });
 
     // Verify the result
-    expect(result).toStrictEqual({ qualifiedHosts: hosts });
+    expect(result).toStrictEqual({
+      qualifiedRRHosts: rrHostsAfterFairness,
+      fixedHosts,
+      fallbackRRHosts: rrHosts,
+    });
   });
 
   it("should return hosts after valid input with users", async () => {
@@ -126,7 +146,8 @@ describe("findQualifiedHosts", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedHosts: users.map((user) => ({
+      qualifiedRRHosts: [],
+      fixedHosts: users.map((user) => ({
         user: user,
         isFixed: true,
         email: user.email,
@@ -211,12 +232,13 @@ describe("findQualifiedHosts", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedHosts: [
+      qualifiedRRHosts: [
         {
           ...hosts[0],
         },
       ],
-      fallbackHosts: hosts,
+      fallbackRRHosts: hosts,
+      fixedHosts: [],
     });
   });
 
@@ -294,8 +316,9 @@ describe("findQualifiedHosts", async () => {
 
     // Verify the result
     expect(result).toEqual({
-      qualifiedHosts: [hosts[2]],
-      fallbackHosts: [hosts[0]],
+      qualifiedRRHosts: [hosts[2]],
+      fallbackRRHosts: [hosts[0], hosts[2]],
+      fixedHosts: [],
     });
   });
 

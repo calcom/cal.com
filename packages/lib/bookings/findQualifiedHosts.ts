@@ -24,6 +24,17 @@ function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
   return newValue.length > 0 ? newValue : currentValue;
 }
 
+function getFallBackWithContactOwner<T extends { user: { id: number } }>(
+  fallbackHosts: T[],
+  contactOwner: T
+) {
+  if (fallbackHosts.find((host) => host.user.id === contactOwner.user.id)) {
+    return fallbackHosts;
+  }
+
+  return [...fallbackHosts, contactOwner];
+}
+
 const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
   return host.isFixed === false;
 };
@@ -139,7 +150,10 @@ export const findQualifiedHosts = async <
     if (hostsAfterContactOwnerMatching.length === 1) {
       return {
         qualifiedRRHosts: hostsAfterContactOwnerMatching,
-        fallbackRRHosts: hostsAfterRoutedTeamMemberIdsMatching,
+        fallbackRRHosts: getFallBackWithContactOwner(
+          hostsAfterRoutedTeamMemberIdsMatching,
+          hostsAfterContactOwnerMatching[0]
+        ),
         fixedHosts,
       };
     }
@@ -162,7 +176,10 @@ export const findQualifiedHosts = async <
   if (hostsAfterContactOwnerMatching.length === 1) {
     return {
       qualifiedRRHosts: hostsAfterContactOwnerMatching,
-      fallbackRRHosts: hostsAfterFairnessMatching,
+      fallbackRRHosts: getFallBackWithContactOwner(
+        hostsAfterFairnessMatching,
+        hostsAfterContactOwnerMatching[0]
+      ),
       fixedHosts,
     };
   }
