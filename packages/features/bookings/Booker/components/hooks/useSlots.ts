@@ -19,10 +19,12 @@ const useQuickAvailabilityChecks = ({
   eventTypeId,
   eventDuration,
   timeslotsAsISOString,
+  slotReservationId,
 }: {
   eventTypeId: number | undefined;
   eventDuration: number;
   timeslotsAsISOString: string[];
+  slotReservationId: string | undefined | null;
 }) => {
   // Maintain a cache to ensure previous state is maintained as the request is fetched
   // It is important because tentatively selecting a new timeslot will cause a new request which is uncached.
@@ -47,7 +49,10 @@ const useQuickAvailabilityChecks = ({
     {
       refetchInterval: PUBLIC_QUERY_RESERVATION_INTERVAL_SECONDS * 1000,
       refetchOnWindowFocus: true,
-      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0),
+      // We must have slotReservationId because it is possible that slotReservationId is set right after isAvailable request is made and we accidentally could consider the slot as unavailable.
+      // isAvailable request also prevents querying reserved slots if uid is not set. We are safe from both sides.
+      // TODO: We should move to creating uuid client side for reservation and not waiting for server to set uid cookie.
+      enabled: !!(eventTypeId && timeslotsAsISOString.length > 0 && slotReservationId),
       staleTime: PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS * 1000,
     }
   );
@@ -110,6 +115,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
     eventTypeId,
     eventDuration,
     timeslotsAsISOString: allUniqueSelectedTimeslots,
+    slotReservationId,
   });
 
   // In case of skipConfirm flow selectedTimeslot would never be set and instead we could have multiple tentatively selected timeslots, so we pick the latest one from it.
