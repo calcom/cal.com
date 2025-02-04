@@ -24,14 +24,6 @@ function applyFilterWithFallback<T>(currentValue: T[], newValue: T[]): T[] {
   return newValue.length > 0 ? newValue : currentValue;
 }
 
-const getFallbackHosts = <T>(fixedHosts: T[], oldValue: T[], newValue: T[]) => {
-  const fallbackRRHosts = oldValue.filter((host) => !newValue.includes(host));
-  if (fallbackRRHosts.length > 0) {
-    return [...fixedHosts, ...fallbackRRHosts];
-  }
-  return [];
-};
-
 const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
   return host.isFixed === false;
 };
@@ -64,14 +56,21 @@ export const findQualifiedHosts = async <
   contactOwnerEmail: string | null;
   routingFormResponse: RoutingFormResponse | null;
 }): Promise<{
-  qualifiedHosts: {
+  qualifiedRRHosts: {
     isFixed: boolean;
     createdAt: Date | null;
     priority?: number | null;
     weight?: number | null;
     user: T;
   }[];
-  fallbackHosts?: {
+  fixedHosts: {
+    isFixed: boolean;
+    createdAt: Date | null;
+    priority?: number | null;
+    weight?: number | null;
+    user: T;
+  }[];
+  fallbackRRHosts?: {
     isFixed: boolean;
     createdAt: Date | null;
     priority?: number | null;
@@ -82,7 +81,9 @@ export const findQualifiedHosts = async <
   const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } = getNormalizedHosts({ eventType });
   // not a team event type, or some other reason - segment matching isn't necessary.
   if (!normalizedHosts) {
-    return { qualifiedHosts: fallbackUsers };
+    const fixedHosts = fallbackUsers.filter((host) => host.isFixed);
+    const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost);
+    return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
   }
 
   const fixedHosts = normalizedHosts.filter((host) => host.isFixed);
@@ -101,7 +102,8 @@ export const findQualifiedHosts = async <
 
   if (hostsAfterRescheduleWithSameRoundRobinHost.length === 1) {
     return {
-      qualifiedHosts: [...fixedHosts, ...hostsAfterRescheduleWithSameRoundRobinHost],
+      qualifiedRRHosts: hostsAfterRescheduleWithSameRoundRobinHost,
+      fixedHosts,
     };
   }
 
@@ -115,7 +117,8 @@ export const findQualifiedHosts = async <
 
   if (hostsAfterSegmentMatching.length === 1) {
     return {
-      qualifiedHosts: [...fixedHosts, ...hostsAfterSegmentMatching],
+      qualifiedRRHosts: hostsAfterSegmentMatching,
+      fixedHosts,
     };
   }
 
@@ -134,20 +137,15 @@ export const findQualifiedHosts = async <
 
   if (hostsAfterRoutedTeamMemberIdsMatching.length === 1) {
     if (hostsAfterContactOwnerMatching.length === 1) {
-      // push all disqualified hosts into fallback, contact owner is recoverable
-      const fallbackHosts = getFallbackHosts(
-        fixedHosts,
-        hostsAfterRoutedTeamMemberIdsMatching,
-        hostsAfterContactOwnerMatching
-      );
-
       return {
-        qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
-        fallbackHosts,
+        qualifiedRRHosts: hostsAfterContactOwnerMatching,
+        fallbackRRHosts: hostsAfterRoutedTeamMemberIdsMatching,
+        fixedHosts,
       };
     }
     return {
-      qualifiedHosts: [...fixedHosts, ...hostsAfterRoutedTeamMemberIdsMatching],
+      qualifiedRRHosts: hostsAfterRoutedTeamMemberIdsMatching,
+      fixedHosts,
     };
   }
 
@@ -161,39 +159,17 @@ export const findQualifiedHosts = async <
     })
   );
 
-  const fallbackHosts: (Omit<(typeof hostsAfterFairnessMatching)[number], "isFixed"> & {
-    isFixed: boolean;
-  })[] = getFallbackHosts(
-    [],
-    hostsAfterRoutedTeamMemberIdsMatching.filter(
-      (host) =>
-        !hostsAfterFairnessMatching.some(
-          (fairnessHost) => fairnessHost.user.id === host.user.id // Compare unique identifiers
-        )
-    ),
-    hostsAfterFairnessMatching
-  );
-
-  if (fallbackHosts.length > 0) {
-    fallbackHosts.unshift(...fixedHosts);
-  }
-
   if (hostsAfterContactOwnerMatching.length === 1) {
-    // push all disqualified hosts into fallback, contact owner is recoverable
-    const fallbackHosts = getFallbackHosts(
-      fixedHosts,
-      hostsAfterFairnessMatching,
-      hostsAfterContactOwnerMatching
-    );
-
     return {
-      qualifiedHosts: [...fixedHosts, ...hostsAfterContactOwnerMatching],
-      fallbackHosts,
+      qualifiedRRHosts: hostsAfterContactOwnerMatching,
+      fallbackRRHosts: hostsAfterFairnessMatching,
+      fixedHosts,
     };
   }
 
   return {
-    qualifiedHosts: [...fixedHosts, ...hostsAfterFairnessMatching],
-    fallbackHosts, // if fairness causes no availability for at least 2 weeks
+    qualifiedRRHosts: hostsAfterFairnessMatching,
+    fallbackRRHosts: hostsAfterRoutedTeamMemberIdsMatching, // if fairness causes no availability for at least 2 weeks
+    fixedHosts,
   };
 };

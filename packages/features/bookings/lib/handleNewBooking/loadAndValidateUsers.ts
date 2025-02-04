@@ -59,7 +59,7 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   isSameHostReschedule,
   routingFormResponse,
-}: InputProps): Promise<{ qualifiedUsers: Users; fallbackUsers: Users }> {
+}: InputProps): Promise<{ qualifiedRRUsers: Users; fallbackRRUsers: Users; fixedUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -108,7 +108,7 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-  const { qualifiedHosts, fallbackHosts } = await findQualifiedHosts({
+  const { qualifiedRRHosts, fallbackRRHosts, fixedHosts } = await findQualifiedHosts({
     eventType: {
       ...eventType,
       rescheduleWithSameRoundRobinHost: isSameHostReschedule,
@@ -119,18 +119,24 @@ export async function loadAndValidateUsers({
     routingFormResponse,
   });
 
-  let qualifiedUsers: Users = [];
-  let fallbackUsers: Users = [];
+  let qualifieRRdUsers: Users = [];
+  let fallbackRRUsers: Users = [];
+  let fixedUsers: Users = [];
 
-  if (qualifiedHosts.length) {
+  if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
-    const qualifiedHostIds = new Set(qualifiedHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    qualifiedUsers = users.filter((user) => qualifiedHostIds.has(user.id));
+    const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
+    qualifieRRdUsers = users.filter((user) => qualifiedHostIds.has(user.id));
   }
 
-  if (fallbackHosts?.length) {
-    const fallbackHostIds = new Set(fallbackHosts.map((fallbackHost) => fallbackHost.user.id));
-    fallbackUsers = users.filter((user) => fallbackHostIds.has(user.id));
+  if (fallbackRRHosts?.length) {
+    const fallbackHostIds = new Set(fallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+    fallbackRRUsers = users.filter((user) => fallbackHostIds.has(user.id));
+  }
+
+  if (fixedHosts?.length) {
+    const fixedHostIds = new Set(fixedHosts.map((fixedHost) => fixedHost.user.id));
+    fixedUsers = users.filter((user) => fixedHostIds.has(user.id));
   }
 
   logger.debug(
@@ -140,7 +146,15 @@ export async function loadAndValidateUsers({
     })
   );
 
-  qualifiedUsers = qualifiedUsers.length ? qualifiedUsers : users;
+  qualifieRRdUsers = qualifieRRdUsers.length ? qualifieRRdUsers : users;
 
-  return { qualifiedUsers, fallbackUsers };
+  fallbackRRUsers = fallbackRRUsers.filter((fallbackUser) =>
+    qualifieRRdUsers.find((qualifiedUser) => qualifiedUser.id == fallbackUser.id)
+  );
+
+  return {
+    qualifieRRdUsers,
+    fallbackRRUsers, //without qualified
+    fixedUsers,
+  };
 }

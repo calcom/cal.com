@@ -353,7 +353,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     });
   }
 
-  const { qualifiedHosts, fallbackHosts } = await monitorCallbackAsync(
+  const { qualifiedRRHosts, fallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
     findQualifiedHosts<GetAvailabilityUser>,
     {
       eventType,
@@ -363,13 +363,16 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       routingFormResponse,
     }
   );
+
+  const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+
   const twoWeeksFromNow = dayjs().add(2, "week");
 
   let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
     await calculateHostsAndAvailabilities({
       input,
       eventType,
-      hosts: qualifiedHosts,
+      hosts: allHosts,
       contactOwnerEmail,
       loggerWithEventDetails,
       // adjust start time so we can check for available slots in the first two weeks
@@ -380,11 +383,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       bypassBusyCalendarTimes,
       shouldServeCache,
     });
-
-  // TODO
   // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
-  if (fallbackHosts && fallbackHosts.length > 0) {
-    //
+  if (fallbackRRHosts && fallbackRRHosts.length > 0) {
     let diff = 0;
     if (startTime.isBefore(twoWeeksFromNow)) {
       //check if first two week have availability
@@ -397,7 +397,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         const firstTwoWeeksAvailabilities = await calculateHostsAndAvailabilities({
           input,
           eventType,
-          hosts: fallbackHosts,
+          hosts: [...fallbackRRHosts, ...fixedHosts],
           contactOwnerEmail,
           loggerWithEventDetails,
           startTime: dayjs(),
@@ -416,7 +416,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       const fallbackAvailabilities = await calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: fallbackHosts,
+        hosts: [...fallbackRRHosts, ...fixedHosts],
         contactOwnerEmail,
         loggerWithEventDetails,
         startTime,
@@ -676,7 +676,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hostsAfterSegmentMatching: qualifiedHosts.map((host) => ({
+          hostsAfterSegmentMatching: allHosts.map((host) => ({
             userId: host.user.id,
           })),
         },
