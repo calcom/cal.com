@@ -10,9 +10,9 @@ export const alertStyles = cva("rounded-[10px] p-3", {
   variants: {
     severity: {
       neutral: "bg-default border-subtle border-[1px] text-default",
-      info: "bg-semantic-info-subtle text-info",
-      warning: "bg-semantic-attention-subtle text-attention",
-      error: "bg-semantic-error-subtle text-error",
+      info: "bg-semantic-info-subtle text-semantic-info",
+      warning: "bg-semantic-attention-subtle text-semantic-attention",
+      error: "bg-semantic-error-subtle text-semantic-error",
     },
   },
   defaultVariants: {

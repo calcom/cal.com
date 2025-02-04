@@ -1,0 +1,118 @@
+{
+  "alias": {
+    "light": {
+      "bg": {
+        "emphasis": {
+          "value": "{core.gray.200}",
+          "type": "color",
+          "description": "active items and emphasising"
+        },
+        "default": {
+          "value": "{core.white}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{core.gray.100}",
+          "type": "color",
+          "description": "hovering on items, subtle raising"
+        },
+        "muted": {
+          "value": "{core.gray.50}",
+          "type": "color",
+          "description": "large items, sidebar, sections"
+        },
+        "inverted": {
+          "value": "{core.gray.900}",
+          "type": "color",
+          "description": "tooltips"
+        },
+        "info": {
+          "value": "#dee9fc",
+          "type": "color"
+        },
+        "success": {
+          "value": "#e2fbe8",
+          "type": "color",
+          "description": "Use to highlight a positive message."
+        },
+        "attention": {
+          "value": "#fceed8",
+          "type": "color",
+          "description": "Use to highlight elements that require a user's attention or pending statuses."
+        },
+        "error": {
+          "value": "#f9e3e2",
+          "type": "color",
+          "description": "Use to emphasize an error status or where action is required."
+        }
+      },
+      "border": {
+        "emphasis": {
+          "value": "{core.gray.400}",
+          "type": "color",
+          "description": "input:hover"
+        },
+        "default": {
+          "value": "{core.gray.300}",
+          "type": "color",
+          "description": "inputs"
+        },
+        "subtle": {
+          "value": "{core.gray.200}",
+          "type": "color",
+          "description": "{gray-200}\ncontainer borders"
+        },
+        "muted": {
+          "value": "{core.gray.100}",
+          "type": "color"
+        }
+      },
+      "content": {
+        "emphasis": {
+          "value": "{core.gray.900}",
+          "type": "color",
+          "description": "{gray-900} \nPrimary color for text and icons in any given interface. It should be used for titles and labels."
+        },
+        "default": {
+          "value": "{core.gray.700}",
+          "type": "color",
+          "description": "{gray-700}\nUse for content that is secondary or that provides additional context but is not critical to understanding the flow of an interface. Body text"
+        },
+        "subtle": {
+          "value": "{core.gray.500}",
+          "type": "color",
+          "description": "{gray-500}\nUse for secondary text, icons"
+        },
+        "muted": {
+          "value": "{core.gray.400}",
+          "type": "color",
+          "description": "{gray-400}\nUse for secondary text, icons"
+        },
+        "inverted": {
+          "value": "{core.white}",
+          "type": "color"
+        },
+        "info": {
+          "value": "#253985",
+          "type": "color",
+          "description": "Use for interactive text or icons like links or buttons."
+        },
+        "success": {
+          "value": "#285231",
+          "type": "color",
+          "description": "Use to emphasize a positive message."
+        },
+        "attention": {
+          "value": "#73321b",
+          "type": "color",
+          "description": "Use to highlight elements that require a user's attention or pending statuses."
+        },
+        "error": {
+          "value": "#752522",
+          "type": "color",
+          "description": "Use to emphasize content for an error. Action is required."
+        }
+      }
+    }
+  }
+}

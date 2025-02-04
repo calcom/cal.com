@@ -19,123 +19,140 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Standard Background
         emphasis: "var(--cal-bg-emphasis)",
         default: "var(--cal-bg, white)",
         subtle: "var(--cal-bg-subtle)",
         muted: "var(--cal-bg-muted)",
         inverted: "var(--cal-bg-inverted)",
-        info: "var(--cal-bg-info)",
-        success: "var(--cal-bg-success)",
-        attention: "var(--cal-bg-attention)",
-        error: "var(--cal-bg-error)",
-        darkerror: "var(--cal-bg-dark-error)",
-        black: "#111111",
+
+        // Primary Background
+        primary: {
+          default: "var(--cal-bg-primary)",
+          emphasis: "var(--cal-bg-primary-emphasis)",
+          muted: "var(--cal-bg-primary-muted)",
+        },
+
+        // Brand
         brand: {
           default: "var(--cal-brand,#111827)",
           emphasis: "var(--cal-brand-emphasis,#101010)",
           subtle: "var(--cal-brand-subtle,#9CA3AF)",
           accent: "var(--cal-brand-accent,white)",
         },
-        gray: {
-          50: "#F9FAFB",
-          100: "#F3F4F6",
-          200: "#E5E7EB",
-          300: "#D1D5DB",
-          400: "#9CA3AF",
-          500: "#6B7280",
-          600: "#4B5563",
-          700: "#374151",
-          800: "#1F2937",
-          900: "#111827",
-        },
-        darkgray: {
-          50: "#101010",
-          100: "#1c1c1c",
-          200: "#2b2b2b",
-          300: "#444444",
-          400: "#575757",
-          500: "#767676",
-          600: "#a5a5a5",
-          700: "#d6d6d6",
-          800: "#e8e8e8",
-          900: "#f3f4f6",
-        },
+
+        // Semantic Background
         semantic: {
           info: {
-            subtle: colors.blue["100"],
-            emphasis: colors.blue["500"],
+            subtle: "var(--cal-bg-semantic-info-subtle)",
+            emphasis: "var(--cal-bg-semantic-info-emphasis)",
           },
           success: {
-            subtle: colors.green["100"],
-            emphasis: colors.green["500"],
+            subtle: "var(--cal-bg-semantic-success-subtle)",
+            emphasis: "var(--cal-bg-semantic-success-emphasis)",
           },
           attention: {
-            subtle: colors.orange["100"],
-            emphasis: colors.orange["500"],
+            subtle: "var(--cal-bg-semantic-attention-subtle)",
+            emphasis: "var(--cal-bg-semantic-attention-emphasis)",
           },
           error: {
-            subtle: colors.red["100"],
-            emphasis: colors.red["500"],
+            subtle: "var(--cal-bg-semantic-error-subtle)",
+            emphasis: "var(--cal-bg-semantic-error-emphasis)",
           },
         },
+
+        // Visualization Background
         visualization: {
           1: {
-            subtle: colors.pink["100"],
-            emphasis: colors.pink["500"],
+            subtle: "var(--cal-bg-visualization-1-subtle)",
+            emphasis: "var(--cal-bg-visualization-1-emphasis)",
           },
           2: {
-            subtle: colors.purple["100"],
-            emphasis: colors.purple["500"],
+            subtle: "var(--cal-bg-visualization-2-subtle)",
+            emphasis: "var(--cal-bg-visualization-2-emphasis)",
           },
           3: {
-            subtle: colors.blue["100"],
-            emphasis: colors.blue["500"],
+            subtle: "var(--cal-bg-visualization-3-subtle)",
+            emphasis: "var(--cal-bg-visualization-3-emphasis)",
           },
           4: {
-            subtle: colors.green["100"],
-            emphasis: colors.green["500"],
+            subtle: "var(--cal-bg-visualization-4-subtle)",
+            emphasis: "var(--cal-bg-visualization-4-emphasis)",
           },
           5: {
-            subtle: colors.yellow["100"],
-            emphasis: colors.yellow["500"],
+            subtle: "var(--cal-bg-visualization-5-subtle)",
+            emphasis: "var(--cal-bg-visualization-5-emphasis)",
           },
           6: {
-            subtle: colors.orange["100"],
-            emphasis: colors.orange["500"],
+            subtle: "var(--cal-bg-visualization-6-subtle)",
+            emphasis: "var(--cal-bg-visualization-6-emphasis)",
           },
           7: {
-            subtle: colors.red["100"],
-            emphasis: colors.red["500"],
+            subtle: "var(--cal-bg-visualization-7-subtle)",
+            emphasis: "var(--cal-bg-visualization-7-emphasis)",
           },
         },
+
+        // Legacy - Consider deprecating
+        info: "var(--cal-bg-info)",
+        success: "var(--cal-bg-success)",
+        attention: "var(--cal-bg-attention)",
+        error: "var(--cal-bg-error)",
+        darkerror: "var(--cal-bg-dark-error)",
+
+        // Base colors
+        black: "#111111",
+        gray: colors.gray,
+        darkgray: colors.slate,
       },
       borderColor: {
-        emphasis: "var(--cal-border-emphasis, #9CA3AF)",
-        default: "var(--cal-border, #D1D5DB)",
-        subtle: `var(--cal-border-subtle, ${subtleColor})`,
-        muted: "var(--cal-border-muted, #F3F4F6)",
-        booker: `var(--cal-border-booker, ${subtleColor})`,
-        error: "var(--cal-border-error, #AA2E26)",
-        focus: "var(--cal-border-focus, #1A1A1A)",
-        "cal-bg": "var(--cal-bg, white)",
-        "cal-bg-muted": "var(--cal-bg-muted)",
+        // Standard Borders
+        emphasis: "var(--cal-border-emphasis)",
+        default: "var(--cal-border)",
+        subtle: "var(--cal-border-subtle)",
+        muted: "var(--cal-border-muted)",
+
+        // Semantic Borders
         semantic: {
-          danager: {
-            subtle: colors.red[200],
-          },
+          error: "var(--cal-border-semantic-error)",
         },
+
+        // Used in booker embed customization
+        booker: `var(--cal-border-booker, ${subtleColor})`,
+        // Legacy - Consider deprecating
+        error: "var(--cal-border-error)",
+        focus: "var(--cal-border-focus)",
+        "cal-bg": "var(--cal-bg)",
+        "cal-bg-muted": "var(--cal-bg-muted)",
       },
       textColor: {
-        emphasis: "var(--cal-text-emphasis, #111827)",
-        default: "var(--cal-text, #374151)",
-        subtle: "var(--cal-text-subtle, #6B7280)",
-        muted: "var(--cal-text-muted, #9CA3AF)",
-        inverted: "var(--cal-text-inverted, white)",
-        info: "var(--cal-text-info, #253985)",
-        success: "var(--cal-text-success, #0B6638)",
-        attention: "var(--cal-text-attention, #73321B)",
-        error: "var(--cal-text-error, #752522)",
-        brand: "var(--cal-brand-text,'white')",
+        // Standard Text
+        emphasis: "var(--cal-text-emphasis)",
+        default: "var(--cal-text)",
+        subtle: "var(--cal-text-subtle)",
+        muted: "var(--cal-text-muted)",
+        inverted: "var(--cal-text-inverted)",
+
+        // Semantic Text
+        semantic: {
+          info: "var(--cal-text-semantic-info)",
+          success: "var(--cal-text-semantic-success)",
+          attention: "var(--cal-text-semantic-attention)",
+          error: "var(--cal-text-semantic-error)",
+        },
+
+        // Semantic Text Emphasis
+        "semantic-info-emphasis": "var(--cal-text-semantic-info-emphasis)",
+        "semantic-success-emphasis": "var(--cal-text-semantic-success-emphasis)",
+        "semantic-attention-emphasis": "var(--cal-text-semantic-attention-emphasis)",
+        "semantic-error-emphasis": "var(--cal-text-semantic-error-emphasis)",
+
+        // Legacy - Consider deprecating
+        info: "var(--cal-text-info)",
+        success: "var(--cal-text-success)",
+        attention: "var(--cal-text-attention)",
+        error: "var(--cal-text-error)",
+        brand: "var(--cal-brand-text)",
       },
       fill: {
         emphasis: "var(--cal-text-emphasis, #111827)",

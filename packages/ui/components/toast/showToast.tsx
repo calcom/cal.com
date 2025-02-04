@@ -14,7 +14,7 @@ type IToast = {
 export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-default text-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
@@ -33,18 +33,18 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
 export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Icon name="info" className="h-4 w-4" />
+      <Icon name="info" className="text-semantic-error h-4 w-4" />
     </span>
     <p data-testid="toast-error" className="w-full text-left">
       {message}
     </p>
     <span className="mt-0.5">
-      <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
+      <Icon name="x" className="text-semantic-error h-4 w-4 hover:cursor-pointer" />
     </span>
   </button>
 );
@@ -52,18 +52,18 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) 
 export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention-emphasis shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
-      <Icon name="info" className="h-4 w-4" />
+      <Icon name="info" className="text-semantic-attention h-4 w-4" />
     </span>
     <p data-testid="toast-warning" className="w-full text-left">
       {message}
     </p>
     <span className="mt-0.5">
-      <Icon name="x" className="h-4 w-4 hover:cursor-pointer" />
+      <Icon name="x" className="text-semantic-attention h-4 w-4 hover:cursor-pointer" />
     </span>
   </button>
 );

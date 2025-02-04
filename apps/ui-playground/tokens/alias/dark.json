@@ -1,0 +1,68 @@
+{
+  "alias": {
+    "light": {
+      "bg": {
+        "emphasis": {
+          "value": "{core.stone.700}",
+          "type": "color"
+        },
+        "default": {
+          "value": "{core.black}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{core.stone.800}",
+          "type": "color"
+        },
+        "muted": {
+          "value": "{core.stone.900}",
+          "type": "color"
+        },
+        "inverted": {
+          "value": "{core.stone.50}",
+          "type": "color"
+        }
+      },
+      "border": {
+        "emphasis": {
+          "value": "{core.stone.500}",
+          "type": "color"
+        },
+        "default": {
+          "value": "{core.stone.600}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{core.stone.700}",
+          "type": "color"
+        },
+        "muted": {
+          "value": "{core.stone.800}",
+          "type": "color"
+        }
+      },
+      "content": {
+        "emphasis": {
+          "value": "{core.stone.50}",
+          "type": "color"
+        },
+        "default": {
+          "value": "{core.stone.300}",
+          "type": "color"
+        },
+        "subtle": {
+          "value": "{core.stone.500}",
+          "type": "color"
+        },
+        "muted": {
+          "value": "{core.stone.600}",
+          "type": "color"
+        },
+        "inverted": {
+          "value": "{core.black}",
+          "type": "color"
+        }
+      }
+    }
+  }
+}
