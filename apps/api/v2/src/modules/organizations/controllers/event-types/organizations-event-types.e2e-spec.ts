@@ -14,6 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -48,12 +49,12 @@ describe("Organizations Event Types Endpoints", () => {
     let falseTestOrg: Team;
     let falseTestTeam: Team;
 
-    const userEmail = "org-admin-event-types-controller-e222e@api.com";
+    const userEmail = `organizations-event-types-admin-${randomString()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = "teammate111@team.com";
-    const teammate2Email = "teammate221@team.com";
-    const falseTestUserEmail = "false-user@false-team.com";
+    const teammate1Email = `organizations-event-types-teammate1-${randomString()}@api.com`;
+    const teammate2Email = `organizations-event-types-teammate2-${randomString()}@api.com`;
+    const falseTestUserEmail = `organizations-event-types-false-user-${randomString()}@api.com`;
     let teammate1: User;
     let teammate2: User;
     let falseTestUser: User;
@@ -98,23 +99,23 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-event-types-organization-${randomString()}`,
         isOrganization: true,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
-        name: "False test org",
+        name: `organizations-event-types-false-org-${randomString()}`,
         isOrganization: true,
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `organizations-event-types-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: "Outside org team",
+        name: `organizations-event-types-false-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: falseTestOrg.id } },
       });
@@ -237,7 +238,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
         title: "Coding consultation collective",
-        slug: "coding-consultation collective",
+        slug: `organizations-event-types-collective-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -343,7 +344,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation managed",
-        slug: "coding-consultation-managed",
+        slug: `organizations-event-types-managed-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -577,6 +578,100 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should be able to configure phone-only event type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        bookingFields: [
+          {
+            type: "email",
+            required: false,
+            label: "Email",
+          },
+          {
+            type: "phone",
+            slug: "attendeePhoneNumber",
+            required: true,
+            label: "Phone number",
+            hidden: true,
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          const data = responseBody.data;
+          expect(data.bookingFields).toEqual([
+            {
+              isDefault: true,
+              type: "name",
+              slug: "name",
+              required: true,
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "email",
+              slug: "email",
+              required: false,
+              label: "Email",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "radioInput",
+              slug: "location",
+              required: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "phone",
+              slug: "attendeePhoneNumber",
+              required: true,
+              hidden: true,
+              label: "Phone number",
+              disableOnPrefill: false,
+            },
+            {
+              isDefault: true,
+              type: "text",
+              slug: "title",
+              required: true,
+              disableOnPrefill: false,
+              hidden: true,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "notes",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "multiemail",
+              slug: "guests",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              type: "textarea",
+              slug: "rescheduleReason",
+              required: false,
+              disableOnPrefill: false,
+              hidden: false,
+            },
+          ]);
+        });
+    });
+
     it("should assign all members to managed event-type", async () => {
       const body: UpdateTeamEventTypeInput_2024_06_14 = {
         assignAllTeamMembers: true,
@@ -657,10 +752,10 @@ describe("Organizations Event Types Endpoints", () => {
     it("should return event type with default bookingFields if they are not defined", async () => {
       const eventTypeInput = {
         title: "unknown field event type two",
+        slug: `organizations-event-types-unknown-${randomString()}`,
         description: "unknown field event type description two",
         length: 40,
         hidden: false,
-        slug: "unknown-field-type-two",
         locations: [],
         schedulingType: SchedulingType.ROUND_ROBIN,
       };
@@ -677,21 +772,10 @@ describe("Organizations Event Types Endpoints", () => {
           const fetchedEventType = responseBody.data;
 
           expect(fetchedEventType.bookingFields).toEqual([
+            { isDefault: true, required: true, slug: "name", type: "name", disableOnPrefill: false },
+            { isDefault: true, required: true, slug: "email", type: "email", disableOnPrefill: false },
             {
-              isDefault: true,
-              type: "name",
-              slug: "name",
-              required: true,
               disableOnPrefill: false,
-            },
-            {
-              isDefault: true,
-              type: "email",
-              slug: "email",
-              required: true,
-              disableOnPrefill: false,
-            },
-            {
               isDefault: true,
               type: "phone",
               slug: "attendeePhoneNumber",
@@ -703,38 +787,37 @@ describe("Organizations Event Types Endpoints", () => {
               type: "radioInput",
               slug: "location",
               required: false,
-              disableOnPrefill: false,
               hidden: false,
             },
             {
               isDefault: true,
-              type: "text",
-              slug: "title",
               required: true,
+              slug: "title",
+              type: "text",
               disableOnPrefill: false,
               hidden: true,
             },
             {
               isDefault: true,
-              type: "textarea",
+              required: false,
               slug: "notes",
-              required: false,
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
-              type: "multiemail",
-              slug: "guests",
-              required: false,
-              disableOnPrefill: false,
-              hidden: false,
-            },
-            {
-              isDefault: true,
               type: "textarea",
-              slug: "rescheduleReason",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
               required: false,
+              slug: "guests",
+              type: "multiemail",
+              disableOnPrefill: false,
+              hidden: false,
+            },
+            {
+              isDefault: true,
+              required: false,
+              slug: "rescheduleReason",
+              type: "textarea",
               disableOnPrefill: false,
               hidden: false,
             },

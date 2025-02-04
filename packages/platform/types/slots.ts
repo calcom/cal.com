@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsArray,
@@ -37,7 +37,10 @@ export class GetAvailableSlotsInput {
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: "Slug of the event type for which slots are being fetched." })
+  @ApiPropertyOptional({
+    description:
+      "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
+  })
   eventTypeSlug?: string;
 
   @IsArray()
@@ -45,7 +48,9 @@ export class GetAvailableSlotsInput {
   @IsOptional()
   @ApiPropertyOptional({
     type: [String],
-    description: "Only for dynamic events - list of usernames for which slots are being fetched.",
+    description:
+      "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
+    example: "usernameList[]=bob",
   })
   usernameList?: string[];
 
@@ -91,6 +96,34 @@ export class GetAvailableSlotsInput {
     enum: SlotFormat,
   })
   slotFormat?: SlotFormat;
+
+  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
+  // that the below properties were not being included inside getSlots :- cc @morgan
+  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting, cal.routingFormResponseId, cal.reroutingFormResponses & cal.isTestPreviewLink
+  // hence no input values have been setup for them in GetAvailableSlotsInput
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  skipContactOwner?: boolean;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  shouldServeCache?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map((s: string) => parseInt(s));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ApiHideProperty()
+  routedTeamMemberIds?: number[];
 }
 
 export class RemoveSelectedSlotInput {
