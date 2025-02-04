@@ -7,7 +7,6 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../icon";
-import { Skeleton } from "../../skeleton";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -134,10 +133,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   return (
     <div className={classNames(containerClassName)}>
       {!!name && !noLabel && (
-        <Skeleton
-          as={Label}
+        <Label
           htmlFor={id}
-          loadingClassName="w-16"
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-error")}>
           {label}
@@ -145,7 +142,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             <span className="text-default ml-1 font-medium">*</span>
           ) : null}
           {LockedIcon}
-        </Skeleton>
+        </Label>
       )}
       {addOnLeading || addOnSuffix ? (
         <div

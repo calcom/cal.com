@@ -12,7 +12,9 @@ import CheckboxDemo from "./CheckboxDemo";
 import DialogDemo from "./DialogDemo";
 import DropdownDemo from "./DropdownDemo";
 import EmptyScreenDemo from "./EmptyScreenDemo";
+import FormDemo from "./FormDemo";
 import InputDemo from "./InputDemo";
+import RadioDemo from "./RadioDemo";
 import RangeSliderDemo from "./RangeSliderDemo";
 import RangeSliderPopoverDemo from "./RangeSliderPopoverDemo";
 import SelectDemo from "./SelectDemo";
@@ -92,12 +94,20 @@ export default function PageContent() {
               <InputDemo />
             </section>
 
+            <section id="form" className="space-y-6">
+              <FormDemo />
+            </section>
+
             <section id="textfield" className="space-y-6">
               <TextFieldDemo />
             </section>
 
             <section id="range-slider" className="space-y-6">
               <RangeSliderDemo />
+            </section>
+
+            <section id="radio" className="space-y-6">
+              <RadioDemo />
             </section>
 
             <section id="range-slider-popover" className="space-y-6">

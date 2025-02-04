@@ -6753,6 +6753,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@hookform/resolvers@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "@hookform/resolvers@npm:3.10.0"
+  peerDependencies:
+    react-hook-form: ^7.0.0
+  checksum: e062f10bebff696a669fe37388f64f6b7c322eb524e99008c0e157e7adf68d2cee4d86fce1a7304a80d7f6fdd6d92facc37320a539cb195235a31a680415760c
+  languageName: node
+  linkType: hard
+
 "@hubspot/api-client@npm:^6.0.1":
   version: 6.0.1
   resolution: "@hubspot/api-client@npm:6.0.1"
@@ -39522,6 +39531,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-hook-form@npm:^7.54.2":
+  version: 7.54.2
+  resolution: "react-hook-form@npm:7.54.2"
+  peerDependencies:
+    react: ^16.8.0 || ^17 || ^18 || ^19
+  checksum: 49a867ece9894dca82f6552e5eefd012b7db962c56a7543f9275ae0b6ec202d549973c3694e7f97436afc2396549cb8fc8777241dd660b71793547aa9c8e5686
+  languageName: node
+  linkType: hard
+
 "react-hot-toast@npm:^2.3.0":
   version: 2.3.0
   resolution: "react-hot-toast@npm:2.3.0"
@@ -46011,6 +46029,7 @@ __metadata:
     "@calcom/types": "*"
     "@calcom/ui": "*"
     "@eslint/eslintrc": ^3
+    "@hookform/resolvers": ^3.10.0
     "@radix-ui/react-tooltip": ^1.1.7
     "@types/node": ^20
     "@types/react": ^18
@@ -46021,9 +46040,11 @@ __metadata:
     postcss: ^8
     react: ^18.0.0
     react-dom: ^18.0.0
+    react-hook-form: ^7.54.2
     react-hot-toast: ^2.5.1
     tailwindcss: ^3.4.1
     typescript: ^5
+    zod: ^3.24.1
   languageName: unknown
   linkType: soft
 
@@ -48357,6 +48378,13 @@ __metadata:
   version: 3.23.8
   resolution: "zod@npm:3.23.8"
   checksum: 15949ff82118f59c893dacd9d3c766d02b6fa2e71cf474d5aa888570c469dbf5446ac5ad562bb035bf7ac9650da94f290655c194f4a6de3e766f43febd432c5c
+  languageName: node
+  linkType: hard
+
+"zod@npm:^3.24.1":
+  version: 3.24.1
+  resolution: "zod@npm:3.24.1"
+  checksum: dcd5334725b29555593c186fd6505878bb7ccb4f5954f728d2de24bf71f9397492d83bdb69d5b8a376eb500a02273ae0691b57deb1eb8718df3f64c77cc5534a
   languageName: node
   linkType: hard
 

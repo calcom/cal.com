@@ -42,14 +42,21 @@ export const RadioField = ({
   id,
   value,
   className,
+  withPadding,
 }: {
   label: string | ReactNode;
   disabled?: boolean;
   id: string;
   value: string;
   className?: string;
+  withPadding?: boolean;
 }) => (
-  <div className={classNames("flex items-start", className)}>
+  <div
+    className={classNames(
+      "flex items-start",
+      withPadding && "hover:bg-subtle cursor-pointer rounded-lg p-1.5",
+      className
+    )}>
     <Radio value={value} disabled={disabled} id={id}>
       <Indicator disabled={disabled} />
     </Radio>
