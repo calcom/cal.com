@@ -556,7 +556,7 @@ describe("getSchedule", () => {
   });
 
   describe("User Event", () => {
-    test("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
+    test.only("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });

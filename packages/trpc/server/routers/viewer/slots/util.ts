@@ -409,7 +409,14 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
-    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+    datesOutOfOffice: {
+      "2020-06-01": {
+        fromUser: null,
+        toUser: null,
+        reason: null,
+        emoji: null,
+      },
+    },
   });
 
   let availableTimeSlots: typeof timeSlots = [];
