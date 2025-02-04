@@ -9,5 +9,6 @@ items:
   - 6.jpeg
 ---
 
-{DESCRIPTION}
+# Customer relationship magic.
 
+Attio is the AI-native CRM that builds, scales and grows your company to the next level.

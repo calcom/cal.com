@@ -3,8 +3,8 @@
   "name": "Attio",
   "slug": "attio",
   "type": "attio_crm",
-  "logo": "icon.svg",
-  "url": "https://cal.com/help/apps-and-integrations/attio",
+  "logo": "icon-dark.svg",
+  "url": "/apps/installed/crm",
   "variant": "crm",
   "categories": ["crm"],
   "publisher": "Cal.com, Inc.",
@@ -12,6 +12,5 @@
   "description": "Attio is the AI-native CRM that builds, scales and grows your company to the next level.",
   "isTemplate": false,
   "__createdUsingCli": true,
-  "dependencies": ["google-calendar"],
   "__template": "link-as-an-app"
 }

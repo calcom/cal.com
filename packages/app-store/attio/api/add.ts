@@ -10,8 +10,8 @@ const handler: AppDeclarativeHandler = {
   supportsMultipleInstalls: false,
   handlerType: "add",
   redirect: {
-    newTab: true,
-    url: "https://cal.com/help/apps-and-integrations/attio",
+    newTab: false,
+    url: "/apps/installed/crm",
   },
   createCredential: ({ appType, user, slug, teamId }) =>
     createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
