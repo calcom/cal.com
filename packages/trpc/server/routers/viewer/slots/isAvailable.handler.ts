@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { getTimeOutOfBoundsStatus } from "@calcom/lib/isOutOfBounds";
+import { getPastTimeAndMinimumBookingNoticeBoundsStatus } from "@calcom/lib/isOutOfBounds";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { SelectedSlotsRepository } from "@calcom/lib/server/repository/selectedSlots";
 import type { PrismaClient } from "@calcom/prisma";
@@ -57,7 +57,7 @@ export const isAvailableHandler = async ({
     }
 
     // Check time bounds
-    const timeStatus = getTimeOutOfBoundsStatus({
+    const timeStatus = getPastTimeAndMinimumBookingNoticeBoundsStatus({
       time: slot.utcStartIso,
       minimumBookingNotice: eventType.minimumBookingNotice,
     });

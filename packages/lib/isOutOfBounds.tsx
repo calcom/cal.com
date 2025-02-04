@@ -231,7 +231,7 @@ export function isTimeOutOfBounds({
  * Wrapper over isTimeOutOfBounds to return a status object.
  * Note: It doesn't throw any error and can be safely used
  */
-export function getTimeOutOfBoundsStatus({
+export function getPastTimeAndMinimumBookingNoticeBoundsStatus({
   time,
   minimumBookingNotice,
 }: {
