@@ -524,7 +524,7 @@ async function handler(
   });
 
   // We filter out users but ensure allHostUsers remain same.
-  let users = [...qualifiedRRUsers, ...fallbackRRUsers, fixedUsers];
+  let users = [...qualifiedRRUsers, ...fallbackRRUsers, ...fixedUsers];
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
     dynamicUserList,
