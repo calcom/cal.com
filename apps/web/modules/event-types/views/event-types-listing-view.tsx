@@ -15,7 +15,6 @@ import CreateEventTypeDialog from "@calcom/features/eventtypes/components/Create
 import { DuplicateDialog } from "@calcom/features/eventtypes/components/DuplicateDialog";
 import { InfiniteSkeletonLoader } from "@calcom/features/eventtypes/components/SkeletonLoader";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell from "@calcom/features/shell/Shell";
 import { classNames, parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -458,9 +457,9 @@ export const InfiniteEventTypeList = ({
     if (isPending) return <InfiniteSkeletonLoader />;
 
     return group.teamId ? (
-      <EmptyEventTypeList group={group} />
+      <EmptyEventTypeList group={group} searchTerm={debouncedSearchTerm} />
     ) : !group.profile.eventTypesLockedByOrg ? (
-      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} searchTerm={debouncedSearchTerm} />
     ) : (
       <></>
     );
@@ -819,13 +818,13 @@ export const InfiniteEventTypeList = ({
   );
 };
 
-const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
+const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTerm?: string }) => {
   const { t } = useLocale();
 
   return (
     <EmptyScreen
       Icon="link"
-      headline={t("new_event_type_heading")}
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
@@ -864,12 +863,18 @@ const CTA = ({
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: EventTypeGroup | InfiniteEventTypeGroup }) => {
+const EmptyEventTypeList = ({
+  group,
+  searchTerm,
+}: {
+  group: EventTypeGroup | InfiniteEventTypeGroup;
+  searchTerm?: string;
+}) => {
   const { t } = useLocale();
   return (
     <>
       <EmptyScreen
-        headline={t("team_no_event_types")}
+        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
@@ -942,9 +947,36 @@ const InfiniteScrollMain = ({
   );
 };
 
+export const EventTypesCTA = () => {
+  const { data: user } = useMeQuery();
+  const routerQuery = useRouterQuery();
+  const filters = getTeamsFiltersFromQuery(routerQuery);
+  const { data: getUserEventGroupsData } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(
+    filters && { filters },
+    {
+      refetchOnWindowFocus: false,
+      gcTime: 1 * 60 * 60 * 1000,
+      staleTime: 1 * 60 * 60 * 1000,
+    }
+  );
+  const profileOptions =
+    getUserEventGroupsData?.profiles
+      ?.filter((profile) => !profile.readOnly)
+      ?.filter((profile) => !profile.eventTypesLockedByOrg)
+      ?.map((profile) => {
+        return {
+          teamId: profile.teamId,
+          label: profile.name || profile.slug,
+          image: profile.image,
+          membershipRole: profile.membershipRole,
+          slug: profile.slug,
+        };
+      }) ?? [];
+
+  return <CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />;
+};
+
 const EventTypesPage: React.FC = () => {
-  const { t } = useLocale();
-  const searchParams = useSearchParams();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_showProfileBanner, setShowProfileBanner] = useState(false);
@@ -981,37 +1013,13 @@ const EventTypesPage: React.FC = () => {
     );
   }, [orgBranding, user]);
 
-  const profileOptions =
-    getUserEventGroupsData?.profiles
-      ?.filter((profile) => !profile.readOnly)
-      ?.filter((profile) => !profile.eventTypesLockedByOrg)
-      ?.map((profile) => {
-        return {
-          teamId: profile.teamId,
-          label: profile.name || profile.slug,
-          image: profile.image,
-          membershipRole: profile.membershipRole,
-          slug: profile.slug,
-        };
-      }) ?? [];
-
   return (
-    <Shell
-      withoutMain={false}
-      title={t("event_types_page_title")}
-      description={t("event_types_page_subtitle")}
-      withoutSeo
-      heading={t("event_types_page_title")}
-      hideHeadingOnMobile
-      subtitle={t("event_types_page_subtitle")}
-      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
-      <InfiniteScrollMain
-        profiles={getUserEventGroupsData?.profiles}
-        eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
-        status={getUserEventGroupsStatus}
-        errorMessage={getUserEventGroupsStatusError?.message}
-      />
-    </Shell>
+    <InfiniteScrollMain
+      profiles={getUserEventGroupsData?.profiles}
+      eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
+      status={getUserEventGroupsStatus}
+      errorMessage={getUserEventGroupsStatusError?.message}
+    />
   );
 };
 

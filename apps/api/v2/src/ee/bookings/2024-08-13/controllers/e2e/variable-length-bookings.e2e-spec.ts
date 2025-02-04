@@ -17,6 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -36,12 +37,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `variable-length-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     let variableLengthEventType: EventType;
-    const variableLengthEventTypeSlug = "variable-length-event";
+    const VARIABLE_LENGTH_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomString()}`;
     let normalEventType: EventType;
+    const NORMAL_EVENT_TYPE_SLUG = `variable-length-bookings-2024-08-13-event-type-${randomString()}`;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -63,7 +65,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `variable-length-bookings-2024-08-13-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -76,7 +80,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `variable-length-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -84,8 +88,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       variableLengthEventType = await eventTypesRepositoryFixture.create(
         {
-          title: "variable length event",
-          slug: variableLengthEventTypeSlug,
+          title: `variable-length-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: VARIABLE_LENGTH_EVENT_TYPE_SLUG,
           length: 15,
           metadata: { multipleDuration: [15, 30, 60] },
         },
@@ -93,7 +97,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
       );
 
       normalEventType = await eventTypesRepositoryFixture.create(
-        { title: "normal event", slug: "normal-event", length: 15 },
+        {
+          title: `variable-length-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: NORMAL_EVENT_TYPE_SLUG,
+          length: 15,
+        },
         user.id
       );
 

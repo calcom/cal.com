@@ -24,6 +24,9 @@ export const getServerSideProps = async function getServerSideProps(
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
   const isEmbed = params.appPages[1] === "embed";
+  if (context.query["flag.coep"] === "true") {
+    context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  }
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {

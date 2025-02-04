@@ -835,6 +835,9 @@ describe("transformBookingFieldsInternalToApi", () => {
         slug: "attendeePhoneNumber",
         required: false,
         hidden: true,
+        disableOnPrefill: false,
+        label: undefined,
+        placeholder: undefined,
       },
     ];
 

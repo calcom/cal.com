@@ -1,6 +1,5 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -64,32 +63,13 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   }
 
   if (url.pathname.startsWith("/apps/installed")) {
-    const returnTo = req.cookies.get("return-to")?.value;
-    if (returnTo !== undefined) {
-      let validPathname = returnTo;
+    const returnTo = req.cookies.get("return-to");
 
-      try {
-        validPathname = new URL(returnTo).pathname;
-      } catch (e) {}
-
-      const nextUrl = url.clone();
-      nextUrl.pathname = validPathname;
-
-      const response = NextResponse.redirect(nextUrl);
-      response.cookies.set("return-to", "", {
-        expires: new Date(0),
-        path: "/",
-      });
-
+    if (returnTo?.value) {
+      const response = NextResponse.redirect(new URL(returnTo.value, req.url), { headers: requestHeaders });
+      response.cookies.delete("return-to");
       return response;
     }
-  }
-
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
   }
 
   requestHeaders.set("x-pathname", url.pathname);
@@ -104,6 +84,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     },
   });
 
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
+
   return responseWithHeaders({ url, res, req });
 };
 
@@ -111,10 +95,9 @@ const routingForms = {
   handleRewrite: (url: URL) => {
     // Don't 404 old routing_forms links
     if (url.pathname.startsWith("/apps/routing_forms")) {
-      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/routing/");
+      url.pathname = url.pathname.replace(/^\/apps\/routing_forms($|\/)/, "/apps/routing-forms/");
       return NextResponse.rewrite(url);
     }
-    return null;
   },
 };
 
@@ -157,6 +140,7 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/",
     "/403",
     "/500",
     "/icons",
@@ -171,12 +155,22 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    "/apps/:path*",
-    "/getting-started/:path*",
-    "/workflows/:path*",
+    "/auth/:path*",
+    /**
+     * Paths required by routingForms.handle
+     */
+    "/apps/routing_forms/:path*",
+
     "/event-types/:path*",
-    "/routing/:path*",
+    "/apps/installed/:category/",
+    "/apps/installation/:path*",
+    "/apps/:slug/",
+    "/apps/:slug/setup/",
+    "/apps/categories/",
+    "/apps/categories/:category/",
+    "/workflows/:path*",
+    "/getting-started/:path*",
+    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
@@ -185,7 +179,10 @@ export const config = {
     "/reschedule/:path*",
     "/availability/:path*",
     "/booking/:path*",
+    "/payment/:path*",
     "/routing-forms/:path*",
+    "/team/:path*",
+    "/org/:path*",
   ],
 };
 

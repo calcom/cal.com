@@ -58,7 +58,7 @@ const signupSchema = apiSignupSchema.extend({
   cfToken: z.string().optional(),
 });
 
-const TurnstileCaptcha = dynamic(() => import("@components/auth/Turnstile"), { ssr: false });
+const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
 type FormValues = z.infer<typeof signupSchema>;
 

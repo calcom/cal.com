@@ -1251,6 +1251,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -5889,6 +5898,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -8001,7 +8019,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "only allowed value for type is `name`"
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name."
           },
           "label": {
             "type": "string"
@@ -8795,7 +8813,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
           },
           "label": {
@@ -15101,6 +15119,10 @@
             "type": "string",
             "example": "Jane Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "jane100@example.com"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -15113,6 +15135,7 @@
         "required": [
           "id",
           "name",
+          "email",
           "username",
           "timeZone"
         ]
