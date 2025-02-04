@@ -140,5 +140,7 @@ export async function loadAndValidateUsers({
     })
   );
 
+  qualifiedUsers = qualifiedUsers.length ? qualifiedUsers : users;
+
   return { qualifiedUsers, fallbackUsers };
 }
