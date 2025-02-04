@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
   );
 
 export const buttonClasses = cva(
-  "whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
+  "group whitespace-nowrap inline-flex items-center text-sm font-medium relative rounded-[10px] transition disabled:cursor-not-allowed gap-1",
   {
     variants: {
       variant: {
@@ -69,7 +69,8 @@ export const buttonClasses = cva(
           "enabled:hover:shadow-solid-gray-hover",
           "enabled:active:shadow-solid-gray-active",
           "transition-shadow",
-          "duration-200",
+          "transition-transform",
+          "duration-100",
         ],
 
         secondary: [
@@ -263,8 +264,10 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
               </>
             ) : (
               <Icon
+                data-name="start-icon"
                 name={StartIcon}
                 className={classNames(
+                  "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
                   variant === "button" && "h-4 w-4 stroke-[1.5px] "
                 )}
@@ -274,9 +277,11 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         ))}
       {props.children &&
         (variant === "fab" ? (
-          <span className={`hidden md:inline ${loading ? "invisible" : "visible"}`}>{props.children}</span>
+          <span className={`hidden md:inline ${loading ? "invisible" : "visible "}`}>{props.children}</span>
         ) : (
-          <span className={loading ? "invisible" : "visible"}>{props.children}</span>
+          <span className={loading ? "invisible" : "visible group-active:translate-y-[0.5px]"}>
+            {props.children}
+          </span>
         ))}
       {loading && (
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform">
@@ -308,7 +313,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             <Icon
               name={EndIcon}
               className={classNames(
-                "inline-flex",
+                "group-active:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
                 variant === "button" && "h-4 w-4 stroke-[1.5px] "
               )}
