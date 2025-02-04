@@ -485,7 +485,7 @@ export default function Success(props: PageProps) {
 
     if (!purchaseDate || !eventTypes || !appointmentType) return { description: "", rescheduleRoute: "" };
 
-    const baseRescheduleRoute = `agenda.yinflow.life/${props.profile.slug}/`;
+    const baseRescheduleRoute = `https://agenda.yinflow.life/${props.profile.slug}/`;
     const urgentMedicalAppointments = appointmentType === BookingTypes.URGENT_APPOINTMENT;
     const medicalAppointments = appointmentType === BookingTypes.MEDIC_APPOINTMENT;
     const occupationalTherapy = appointmentType === BookingTypes.OCCUPATIONAL_THERAPY;
