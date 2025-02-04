@@ -4,6 +4,10 @@ import mapKeys from "lodash/mapKeys";
 // eslint-disable-next-line no-restricted-imports
 import startCase from "lodash/startCase";
 
+import {
+  RoutingFormFieldType,
+  isValidRoutingFormFieldType,
+} from "@calcom/app-store/routing-forms/lib/FieldTypes";
 import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
@@ -617,14 +621,38 @@ class RoutingEventsInsights {
     });
 
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
-    const headers = fields?.map((f) => {
-      return {
-        id: f.id,
-        label: f.label,
-        type: f.type,
-        options: f.options,
-      };
-    });
+    const ids = new Set<string>();
+    const headers = (fields || [])
+      .map((f) => {
+        return {
+          id: f.id,
+          label: f.label,
+          type: f.type,
+          options: f.options,
+        };
+      })
+      .filter((field) => {
+        if (!field.label || !isValidRoutingFormFieldType(field.type)) {
+          return false;
+        }
+        if (
+          field.type === RoutingFormFieldType.SINGLE_SELECT ||
+          field.type === RoutingFormFieldType.MULTI_SELECT
+        ) {
+          return field.options && field.options.length > 0;
+        }
+        return true;
+      })
+      .filter((field) => {
+        // Remove duplicate fields
+        // because we aggregate fields from multiple routing forms.
+        if (ids.has(field.id)) {
+          return false;
+        } else {
+          ids.add(field.id);
+          return true;
+        }
+      });
 
     return headers;
   }
