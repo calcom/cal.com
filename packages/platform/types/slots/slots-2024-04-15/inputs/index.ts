@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import {
   IsArray,
@@ -96,6 +96,34 @@ export class GetAvailableSlotsInput_2024_04_15 {
     enum: SlotFormat,
   })
   slotFormat?: SlotFormat;
+
+  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
+  // that the below properties were not being included inside getSlots :- cc @morgan
+  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting, cal.routingFormResponseId, cal.reroutingFormResponses & cal.isTestPreviewLink
+  // hence no input values have been setup for them in GetAvailableSlotsInput
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  skipContactOwner?: boolean;
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  shouldServeCache?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (Array.isArray(value)) {
+      return value.map((s: string) => parseInt(s));
+    }
+    return value;
+  })
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ApiHideProperty()
+  routedTeamMemberIds?: number[];
 }
 
 export class RemoveSelectedSlotInput_2024_04_15 {

@@ -16,6 +16,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -35,11 +36,11 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `confirm-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = "peer-coding";
+    const eventTypeSlug = `confirm-bookings-2024-08-13-event-type-${randomString()}`;
 
     let createdBooking1: Booking;
     let createdBooking2: Booking;
@@ -64,7 +65,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `confirm-bookings-2024-08-13-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -77,13 +80,17 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `confirm-bookings-2024-08-13-${randomString()}-schedule`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `confirm-bookings-2024-08-13-${randomString()}-event-type`,
+          slug: `confirm-bookings-2024-08-13-${randomString()}-event-type-slug`,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;

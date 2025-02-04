@@ -5,7 +5,7 @@ import { FUTURE_ROUTES_OVERRIDE_COOKIE_NAME as COOKIE_NAME } from "@calcom/lib/c
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse): Promise<void> {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });

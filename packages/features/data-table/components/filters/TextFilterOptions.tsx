@@ -7,7 +7,7 @@ import { Form, Input, Select, Button } from "@calcom/ui";
 
 import { useFilterValue, useDataTable } from "../../hooks";
 import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
-import { ZTextFilterValue } from "../../lib/types";
+import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
 
 export type TextFilterOperatorOption = {
   label: string;
@@ -30,7 +30,7 @@ const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
 };
 
 export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "text" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.TEXT }>;
 };
 
 export function TextFilterOptions({ column }: TextFilterOptionsProps) {
@@ -55,7 +55,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
             updateFilter(column.id, {
-              type: "text",
+              type: ColumnFilterType.TEXT,
               data: {
                 operator: operatorOption.value,
                 operand: operatorOption.requiresOperand ? operand : "",

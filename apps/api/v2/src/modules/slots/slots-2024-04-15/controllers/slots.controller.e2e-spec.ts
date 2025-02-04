@@ -16,7 +16,7 @@ import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.rep
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { SelectedSlotsRepositoryFixture } from "test/fixtures/repository/selected-slots.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { randomNumber } from "test/utils/randomNumber";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -251,7 +251,7 @@ describe("Slots 2024-04-15 Endpoints", () => {
     let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
-    const userEmail = `slots-${randomNumber()}-controller-e2e@api.com`;
+    const userEmail = `slots-${randomString()}-controller-e2e@api.com`;
     const userName = "bob";
     let user: User;
     let eventTypeId: number;
@@ -291,14 +291,23 @@ describe("Slots 2024-04-15 Endpoints", () => {
       });
 
       // nxte(Lauris): this creates default schedule monday to friday from 9AM to 5PM in Europe/Rome timezone
-      await schedulesService.createUserDefaultSchedule(user.id, "Europe/Rome");
+      const userSchedule = await schedulesService.createUserSchedule(user.id, {
+        name: `slots-schedule-${randomString()}-slots.controller.e2e-spec`,
+        timeZone: "Europe/Rome",
+        isDefault: true,
+      });
 
-      const event = await eventTypesRepositoryFixture.create(
-        { title: "frisbee match", slug: "frisbee-match", length: 60 },
+      const eventType = await eventTypesRepositoryFixture.create(
+        {
+          title: `slots-event-type-${randomString()}-slots.controller.e2e-spec`,
+          slug: `slots-event-type-${randomString()}-slots.controller.e2e-spec`,
+          length: 60,
+          locations: [],
+        },
         user.id
       );
-      eventTypeId = event.id;
-      eventTypeSlug = event.slug;
+      eventTypeId = eventType.id;
+      eventTypeSlug = eventType.slug;
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
