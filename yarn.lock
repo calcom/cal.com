@@ -41601,11 +41601,11 @@ __metadata:
   linkType: hard
 
 "semver@npm:^7.6.0, semver@npm:^7.6.3":
-  version: 7.7.0
-  resolution: "semver@npm:7.7.0"
+  version: 7.7.1
+  resolution: "semver@npm:7.7.1"
   bin:
     semver: bin/semver.js
-  checksum: a4eefdada9c40df120935b73b0b86080d22f375ed9b950403a4b6a90cc036e552d903ff3c7c3e865823c434ee6c6473908b13d64c84aa307423d3a998e654652
+  checksum: 586b825d36874007c9382d9e1ad8f93888d8670040add24a28e06a910aeebd673a2eb9e3bf169c6679d9245e66efb9057e0852e70d9daa6c27372aab1dda7104
   languageName: node
   linkType: hard
 
