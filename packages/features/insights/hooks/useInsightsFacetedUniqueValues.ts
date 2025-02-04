@@ -37,6 +37,7 @@ export const useInsightsFacetedUniqueValues = ({
     isAll,
   });
 
+  console.log("💡 hey!", { teamId, userId, isAll });
   const { data: eventTypes } = trpc.viewer.insights.eventTypeList.useQuery({
     teamId,
     userId,

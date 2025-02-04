@@ -12,15 +12,14 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, memberUserId, startDate, endDate } = useInsightsParameters();
+  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  // TODO: support eventTypeId
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
       startDate: dayjs.utc(startDate).toISOString(),
       endDate: dayjs.utc(endDate).toISOString(),
       teamId,
-      eventTypeId: undefined,
+      eventTypeId,
       memberUserId,
       userId,
       isAll,

@@ -10,15 +10,14 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate } = useInsightsParameters();
+  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  // TODO: support eventTypeId
   const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
     {
       startDate,
       endDate,
       teamId,
-      eventTypeId: undefined,
+      eventTypeId,
       isAll,
     },
     {

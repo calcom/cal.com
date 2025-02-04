@@ -9,16 +9,15 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, memberUserId, startDate, endDate } = useInsightsParameters();
+  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  // TODO: support eventTypeId
   const { data, isSuccess, isPending } = trpc.viewer.insights.popularEventTypes.useQuery(
     {
       startDate,
       endDate,
       teamId,
       userId,
-      eventTypeId: undefined,
+      eventTypeId,
       memberUserId,
       isAll,
     },

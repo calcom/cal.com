@@ -10,15 +10,14 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const RecentFeedbackTable = () => {
   const { t } = useLocale();
-  const { isAll, teamId, startDate, endDate } = useInsightsParameters();
+  const { isAll, teamId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
-  // TODO: support eventTypeId
   const { data, isSuccess, isPending } = trpc.viewer.insights.recentRatings.useQuery(
     {
       startDate,
       endDate,
       teamId,
-      eventTypeId: undefined,
+      eventTypeId,
       isAll,
     },
     {

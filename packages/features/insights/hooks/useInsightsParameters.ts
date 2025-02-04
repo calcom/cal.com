@@ -23,6 +23,7 @@ export function useInsightsParameters() {
     | number[]
     | undefined;
   const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
+  const eventTypeId = useFilterValue("eventTypeId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   const startDate = useMemo(
@@ -37,7 +38,9 @@ export function useInsightsParameters() {
     return (createdAtRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
   }, [createdAtRange?.preset]);
 
-  const columnFilters = useColumnFilters({ exclude: ["bookingUserId", "formId", "createdAt"] });
+  const columnFilters = useColumnFilters({
+    exclude: ["bookingUserId", "formId", "createdAt", "eventTypeId"],
+  });
 
   return {
     isAll,
@@ -45,6 +48,7 @@ export function useInsightsParameters() {
     userId,
     memberUserIds,
     memberUserId,
+    eventTypeId,
     routingFormId,
     startDate,
     endDate,

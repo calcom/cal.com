@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-table";
 import { useMemo } from "react";
 
+import { ColumnFilterType } from "@calcom/features/data-table";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import type { RoutingFormTableRow } from "../lib/types";
@@ -22,6 +24,7 @@ type FakeTableRow = RoutingFormTableRow & {
 const emptyData: FakeTableRow[] = [];
 
 export const useInsightsBookings = () => {
+  const { t } = useLocale();
   const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
 
   const { data: headers, isSuccess: isHeadersSuccess } =
@@ -42,8 +45,13 @@ export const useInsightsBookings = () => {
       ...columns,
       columnHelper.accessor("eventTypeId", {
         id: "eventTypeId",
-        header: "",
+        header: t("event_type"),
         size: 200,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,

@@ -987,7 +987,7 @@ export const insightsRouter = router({
   userList: authedProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.number().optional(),
         isAll: z.boolean().nullable(),
       })
     )
