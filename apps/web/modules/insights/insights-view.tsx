@@ -21,6 +21,7 @@ import {
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
+import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
 import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -55,6 +56,7 @@ function InsightsPageContent() {
         <DataTableFilters.ActiveFilters table={table} />
         <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
         <div className="grow" />
+        <Download />
         <DateRangeFilter column={createdAtColumn} />
       </div>
 
