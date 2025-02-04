@@ -29,7 +29,7 @@ import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { RoutingFormFieldType, isValidRoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
+import { RoutingFormFieldType } from "@calcom/routing-forms/lib/FieldTypes";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import {
   Badge,
@@ -258,7 +258,7 @@ export function RoutingFormResponsesTable() {
     useInsightsParameters();
 
   const {
-    data: headersRaw,
+    data: headers,
     isLoading: isHeadersLoading,
     isSuccess: isHeadersSuccess,
   } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
@@ -267,11 +267,6 @@ export function RoutingFormResponsesTable() {
     isAll,
     routingFormId,
   });
-
-  const headers = useMemo(() => {
-    if (!headersRaw) return;
-    return headersRaw.filter((header) => header.label && isValidRoutingFormFieldType(header.type));
-  }, [headersRaw]);
 
   const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
     userId,
@@ -423,7 +418,7 @@ export function RoutingFormResponsesTable() {
             filter: { type: filterType },
           },
           filterFn: (row, id, filterValue) => {
-            const cellValue = row.original.response[id].value;
+            const cellValue = row.original.response[id]?.value;
             return dataTableFilter(cellValue, filterValue);
           },
         });
