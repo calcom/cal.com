@@ -36,6 +36,7 @@ async function authMiddleware() {
   return userWithCredentials;
 }
 
+// TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
 export async function GET() {
   try {
     const user = await authMiddleware();
@@ -44,23 +45,23 @@ export async function GET() {
       where: { userId: user.id },
       select: { externalId: true },
     });
-
+    // get user's credentials + their connected integrations
     const calendarCredentials = getCalendarCredentials(user.credentials);
+    // get all the connected integrations' calendars (from third party)
     const { connectedCalendars } = await getConnectedCalendars(
       calendarCredentials,
       user.userLevelSelectedCalendars
     );
 
     const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
-    const selectableCalendars = calendars.map((cal) => ({
-      selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1,
-      ...cal,
-    }));
+    const selectableCalendars = calendars.map((cal) => {
+      return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
+    });
 
     return NextResponse.json(selectableCalendars);
   } catch (error) {
     if (error instanceof HttpError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      throw error;
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Calendar Selection Saved" });
   } catch (error) {
     if (error instanceof HttpError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      throw error;
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
@@ -115,7 +116,7 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ message: "Calendar Selection Saved" });
   } catch (error) {
     if (error instanceof HttpError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      throw error;
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
