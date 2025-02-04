@@ -12,7 +12,7 @@ import { showToast } from "@calcom/ui";
 
 import type { UseCreateBookingInput } from "./useCreateBooking";
 
-type Callbacks = { onSuccess: () => void; onError: (err: any) => void };
+type Callbacks = { onSuccess?: () => void; onError?: (err: any) => void };
 type UseHandleBookingProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   event?: {
@@ -23,9 +23,9 @@ type UseHandleBookingProps = {
   };
   metadata: Record<string, string>;
   hashedLink?: string | null;
-  handleBooking: (input: UseCreateBookingInput, callbacks: Callbacks) => void;
-  handleInstantBooking: (input: BookingCreateBody, callbacks: Callbacks) => void;
-  handleRecBooking: (input: BookingCreateBody[], callbacks: Callbacks) => void;
+  handleBooking: (input: UseCreateBookingInput, callbacks?: Callbacks) => void;
+  handleInstantBooking: (input: BookingCreateBody, callbacks?: Callbacks) => void;
+  handleRecBooking: (input: BookingCreateBody[], callbacks?: Callbacks) => void;
   locationUrl?: string;
   routingFormSearchParams?: RoutingFormSearchParams;
 };
