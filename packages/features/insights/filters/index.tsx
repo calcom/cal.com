@@ -2,15 +2,12 @@ import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, Tooltip } from "@calcom/ui";
 
-import { BookingStatusFilter } from "./BookingStatusFilter";
 import { DateSelect } from "./DateSelect";
-import { Download, RoutingDownload } from "./Download";
+import { Download } from "./Download";
 import { EventTypeList } from "./EventTypeList";
 import { FilterType } from "./FilterType";
-import { RoutingFormFieldFilter } from "./RoutingFormFieldFilter";
-import { RoutingFormFilterList } from "./RoutingFormFilterList";
 import { TeamAndSelfList } from "./TeamAndSelfList";
-import { UserListInTeam } from "./UsersListInTeam";
+import { UserListInTeam } from "./UserListInTeam";
 
 const ClearFilters = () => {
   const { t } = useLocale();
@@ -37,7 +34,7 @@ const ClearFilters = () => {
   );
 };
 
-export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: boolean }) => {
+export const Filters = () => {
   const { filter } = useFilterContext();
   const { selectedFilter } = filter;
 
@@ -51,23 +48,13 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
   return (
     <div className="ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
-        <TeamAndSelfList omitOrg={showRoutingFilters} />
+        <TeamAndSelfList omitOrg={false} />
 
         <UserListInTeam />
 
         <EventTypeList />
 
-        {showRoutingFilters ? (
-          <>
-            <RoutingFormFilterList />
-            <BookingStatusFilter />
-            {routingFormFieldIds.map((fieldId) => {
-              if (fieldId) return <RoutingFormFieldFilter fieldId={fieldId} />;
-            })}
-          </>
-        ) : null}
-
-        <FilterType showRoutingFilters={showRoutingFilters} />
+        <FilterType />
 
         <ClearFilters />
       </div>
@@ -96,8 +83,8 @@ export const Filters = ({ showRoutingFilters = false }: { showRoutingFilters?: b
         </Tooltip>
       </ButtonGroup> */}
       <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
-        {showRoutingFilters ? <RoutingDownload /> : <Download />}
-        <DateSelect />
+        <Download />
+        <DateSelect className="me-2 ms-2" />
       </div>
     </div>
   );

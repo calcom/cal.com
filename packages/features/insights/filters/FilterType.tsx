@@ -1,7 +1,6 @@
 import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 import type { IconName } from "@calcom/ui";
 import {
   Dropdown,
@@ -23,30 +22,10 @@ type Option = {
   StartIcon: IconName;
 };
 
-export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?: boolean }) => {
+export const FilterType = () => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
-  const { selectedFilter, selectedUserId, selectedTeamId, selectedRoutingFormId, isAll, initialConfig } =
-    filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-
-  // Dynamically load filters if showRoutingFilters is set to true
-  // Query routing form field options when showRoutingFilters is true
-  const { data: routingFormFieldOptions } = trpc.viewer.insights.getRoutingFormFieldOptions.useQuery(
-    {
-      teamId: selectedTeamId ?? -1,
-      isAll: !!isAll,
-      routingFormId: selectedRoutingFormId ?? undefined,
-    },
-    {
-      enabled: showRoutingFilters && initialConfigIsReady,
-      trpc: {
-        context: {
-          skipBatch: true,
-        },
-      },
-    }
-  );
+  const { selectedFilter, selectedUserId } = filter;
 
   const filterOptions = useMemo(() => {
     let options: Option[] = [
@@ -57,38 +36,11 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
       },
     ];
 
-    // Add routing forms filter options
-    if (showRoutingFilters) {
-      options.push({
-        label: t("routing_forms"),
-        value: "routing_forms" as FilterType,
-        StartIcon: "calendar-check-2" as IconName,
-      });
-
-      options.push({
-        label: t("booking_status"),
-        value: "booking_status" as FilterType,
-        StartIcon: "circle" as IconName,
-      });
-
-      // Add dynamic routing form field options
-      if (routingFormFieldOptions?.length) {
-        options = [
-          ...options,
-          ...routingFormFieldOptions.map((option) => ({
-            label: option.label,
-            value: `rf_${option.id}` as FilterType,
-            StartIcon: "layers" as IconName,
-          })),
-        ];
-      }
-    } else {
-      options.push({
-        label: t("event_type"),
-        value: "event-type",
-        StartIcon: "link",
-      });
-    }
+    options.push({
+      label: t("event_type"),
+      value: "event-type",
+      StartIcon: "link",
+    });
 
     if (selectedUserId) {
       // remove user option from filterOptions
@@ -96,7 +48,7 @@ export const FilterType = ({ showRoutingFilters = false }: { showRoutingFilters?
     }
 
     return options;
-  }, [t, showRoutingFilters, routingFormFieldOptions, selectedUserId]);
+  }, [t, selectedUserId]);
 
   return (
     <Dropdown>

@@ -172,6 +172,7 @@ export const getEventTypesFromGroup = async ({
     mappedEventTypes.forEach((evType) => {
       evType.users = [];
       evType.hosts = [];
+      evType.children = [];
     });
 
   return { eventTypes: mappedEventTypes, nextCursor: nextCursor ?? undefined };

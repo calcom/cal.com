@@ -15,7 +15,7 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Teams A/B tests", () => {
+test.describe("Teams tests", () => {
   test("should render the /teams page", async ({ page, users, context }) => {
     const user = await users.create();
 

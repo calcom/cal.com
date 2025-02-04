@@ -16,6 +16,9 @@ test.describe("SAML tests", () => {
     // TODO: Figure out a way to use the users from fixtures here, right now we cannot set
     // the SAML_ADMINS env variables dynamically
     await login({ username: "pro", email: "pro@example.com", password: "pro" }, page);
+    const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
+    await page.waitForURL("/event-types");
+    await expect(shellLocator).toBeVisible();
     // eslint-disable-next-line playwright/no-skipped-test
     // Try to go Security page
     await page.goto("/settings/security/sso");

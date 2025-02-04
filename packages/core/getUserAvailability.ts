@@ -19,10 +19,11 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository } from "@calcom/lib/server/repository/user";
+import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -45,6 +46,7 @@ const availabilitySchema = z
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
     bypassBusyCalendarTimes: z.boolean().optional(),
+    shouldServeCache: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -61,6 +63,7 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      useEventLevelSelectedCalendars: true,
       parent: {
         select: {
           team: {
@@ -149,18 +152,49 @@ const getUser = async (...args: Parameters<typeof _getUser>): Promise<ReturnType
 };
 
 const _getUser = async (where: Prisma.UserWhereInput) => {
-  return await prisma.user.findFirst({
-    where,
-    select: {
-      ...availabilityUserSelect,
-      credentials: {
-        select: credentialForCalendarServiceSelect,
-      },
-    },
-  });
+  return UserRepository.findForAvailabilityCheck({ where });
 };
 
 type GetUser = Awaited<ReturnType<typeof getUser>>;
+
+export type GetUserAvailabilityInitialData = {
+  user?: GetUser;
+  eventType?: EventType;
+  currentSeats?: CurrentSeats;
+  rescheduleUid?: string | null;
+  currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
+    eventType: Pick<
+      PrismaEventType,
+      "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
+    > | null;
+    _count?: {
+      seatsReferences: number;
+    };
+  })[];
+  outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
+    user: Pick<User, "id" | "name">;
+    toUser: Pick<User, "id" | "username" | "name"> | null;
+    reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
+  })[];
+  busyTimesFromLimitsBookings: EventBusyDetails[];
+};
+
+export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
+
+type GetUserAvailabilityQuery = {
+  withSource?: boolean;
+  username?: string;
+  userId?: number;
+  dateFrom: string;
+  dateTo: string;
+  eventTypeId?: number;
+  afterEventBuffer?: number;
+  beforeEventBuffer?: number;
+  duration?: number;
+  returnDateOverrides: boolean;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
+};
 
 export const getCurrentSeats = async (
   ...args: Parameters<typeof _getCurrentSeats>
@@ -227,46 +261,16 @@ export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
 export const getUserAvailability = async (
   ...args: Parameters<typeof _getUserAvailability>
-): Promise<ReturnType<typeof _getUserAvailability>> => {
+): Promise<GetUserAvailabilityResult> => {
   return monitorCallbackAsync(_getUserAvailability, ...args);
 };
 
+type GetUserAvailabilityResult = ReturnType<typeof _getUserAvailability>;
+
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseAndEverythingElse(
-  query: {
-    withSource?: boolean;
-    username?: string;
-    userId?: number;
-    dateFrom: string;
-    dateTo: string;
-    eventTypeId?: number;
-    afterEventBuffer?: number;
-    beforeEventBuffer?: number;
-    duration?: number;
-    returnDateOverrides: boolean;
-    bypassBusyCalendarTimes: boolean;
-  },
-  initialData?: {
-    user?: GetUser;
-    eventType?: EventType;
-    currentSeats?: CurrentSeats;
-    rescheduleUid?: string | null;
-    currentBookings?: (Pick<Booking, "id" | "uid" | "userId" | "startTime" | "endTime" | "title"> & {
-      eventType: Pick<
-        PrismaEventType,
-        "id" | "beforeEventBuffer" | "afterEventBuffer" | "seatsPerTimeSlot"
-      > | null;
-      _count?: {
-        seatsReferences: number;
-      };
-    })[];
-    outOfOfficeDays?: (Pick<OutOfOfficeEntry, "id" | "start" | "end"> & {
-      user: Pick<User, "id" | "name">;
-      toUser: Pick<User, "id" | "username" | "name"> | null;
-      reason: Pick<OutOfOfficeReason, "id" | "emoji" | "reason"> | null;
-    })[];
-    busyTimesFromLimitsBookings: EventBusyDetails[];
-  }
+  query: GetUserAvailabilityQuery,
+  initialData?: GetUserAvailabilityInitialData
 ) {
   const {
     username,
@@ -279,7 +283,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     duration,
     returnDateOverrides,
     bypassBusyCalendarTimes = false,
+    shouldServeCache,
   } = availabilitySchema.parse(query);
+
+  log.debug(
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Called with: ${safeStringify({
+      query,
+    })}`
+  );
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
     throw new HttpError({ statusCode: 400, message: "Invalid time range given." });
@@ -291,11 +302,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   const user = initialData?.user || (await getUser(where));
 
-  if (!user) throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
-  log.debug(
-    "getUserAvailability for user",
-    safeStringify({ user: { id: user.id }, slot: { dateFrom, dateTo } })
-  );
+  if (!user) {
+    throw new HttpError({ statusCode: 404, message: "No user found in getUserAvailability" });
+  }
 
   let eventType: EventType | null = initialData?.eventType || null;
   if (!eventType && eventTypeId) eventType = await getEventType(eventTypeId);
@@ -377,6 +386,10 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
+  const selectedCalendars = eventType?.useEventLevelSelectedCalendars
+    ? EventTypeRepository.getSelectedCalendarsFromUser({ user, eventTypeId: eventType.id })
+    : user.userLevelSelectedCalendars;
+
   const busyTimes = await monitorCallbackAsync(getBusyTimes, {
     credentials: user.credentials,
     startTime: getBusyTimesStart,
@@ -387,12 +400,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     username: `${user.username}`,
     beforeEventBuffer,
     afterEventBuffer,
-    selectedCalendars: user.selectedCalendars,
+    selectedCalendars,
     seatedEvent: !!eventType?.seatsPerTimeSlot,
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
     bypassBusyCalendarTimes,
+    shouldServeCache,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -410,13 +424,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
-    "Using schedule:",
-    safeStringify({
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - usingSchedule: ${safeStringify({
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
       hostSchedule: hostSchedule,
-    })
+    })}`
   );
 
   if (
@@ -556,7 +569,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
-  return {
+  const result = {
     busy: detailedBusyTimes,
     timeZone,
     dateRanges: dateRangesInWhichUserIsAvailable,
@@ -566,6 +579,12 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     currentSeats,
     datesOutOfOffice,
   };
+
+  log.debug(
+    `EventType: ${eventTypeId} | User: ${username} (ID: ${userId}) - Result: ${safeStringify(result)}`
+  );
+
+  return result;
 };
 
 export const getPeriodStartDatesBetween = (
@@ -654,22 +673,16 @@ const calculateOutOfOfficeRanges = (
   }, {});
 };
 
-type GetUserAvailabilityQuery = Parameters<typeof getUserAvailability>[0];
-type GetUserAvailabilityInitialData = NonNullable<Parameters<typeof getUserAvailability>[1]>;
-export type GetAvailabilityUser = NonNullable<GetUserAvailabilityInitialData["user"]>;
-
-const _getUsersAvailability = async ({
-  users,
-  query,
-  initialData,
-}: {
+type GetUsersAvailabilityProps = {
   users: (GetAvailabilityUser & {
     currentBookings?: GetUserAvailabilityInitialData["currentBookings"];
     outOfOfficeDays?: GetUserAvailabilityInitialData["outOfOfficeDays"];
   })[];
   query: Omit<GetUserAvailabilityQuery, "userId" | "username">;
   initialData?: Omit<GetUserAvailabilityInitialData, "user">;
-}) => {
+};
+
+const _getUsersAvailability = async ({ users, query, initialData }: GetUsersAvailabilityProps) => {
   return await Promise.all(
     users.map((user) =>
       _getUserAvailability(
@@ -693,6 +706,6 @@ const _getUsersAvailability = async ({
 
 export const getUsersAvailability = async (
   ...args: Parameters<typeof _getUsersAvailability>
-): Promise<ReturnType<typeof _getUsersAvailability>> => {
+): Promise<Awaited<GetUserAvailabilityResult>[]> => {
   return monitorCallbackAsync(_getUsersAvailability, ...args);
 };

@@ -1,8 +1,7 @@
 import { _generateMetadata } from "app/_utils";
-import { getFixedT } from "app/_utils";
+import { getTranslate } from "app/_utils";
 
 import { ConferencingAppsViewWebWrapper } from "@calcom/atoms/monorepo";
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -11,8 +10,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
 
   return (
     <ConferencingAppsViewWebWrapper

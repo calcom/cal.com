@@ -23,6 +23,11 @@ export interface Contact {
 
 export interface CrmEvent {
   id: string;
+  uid?: string;
+  type?: string;
+  password?: string;
+  url?: string;
+  additionalInfo?: any;
 }
 
 export interface CRM {

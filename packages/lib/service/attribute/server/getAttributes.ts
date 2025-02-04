@@ -2,12 +2,32 @@
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { AttributeToUser } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
 
+import { AttributeRepository } from "../../../server/repository/attribute";
+import { AttributeToUserRepository } from "../../../server/repository/attributeToUser";
+import { MembershipRepository } from "../../../server/repository/membership";
 import type { AttributeId } from "../types";
-import { findAllAttributesWithTheirOptions } from "./utils";
 
 type UserId = number;
+type OrgMembershipId = number;
+type AttributeOptionId = string;
+type AssignmentForTheTeam = {
+  userId: number;
+  attributeOption: {
+    id: string;
+    value: string;
+    slug: string;
+    contains: string[];
+    isGroup: boolean;
+  };
+  attribute: {
+    id: string;
+    name: string;
+    type: AttributeType;
+  };
+};
 
 export type Attribute = {
   name: string;
@@ -18,6 +38,20 @@ export type Attribute = {
     id: string;
     value: string;
     slug: string;
+  }[];
+};
+
+type FullAttribute = {
+  name: string;
+  slug: string;
+  type: AttributeType;
+  id: string;
+  options: {
+    id: string;
+    value: string;
+    slug: string;
+    isGroup: boolean;
+    contains: string[];
   }[];
 };
 
@@ -36,122 +70,17 @@ export type AttributeOptionValueWithType = {
   attributeOption: AttributeOptionValue | AttributeOptionValue[];
 };
 
-/**
- * Note: assignedAttributeOptions[x].attributeOption isn't unique. It is returned multiple times depending on how many users it is assigned to
- */
-async function getAssignedAttributeOptions({ teamId }: { teamId: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAssignedAttributeOptions"] });
-  const whereClauseForAssignment = {
-    member: {
-      user: {
-        teams: {
-          some: {
-            teamId,
-          },
-        },
-      },
-    },
-  };
-
-  log.debug(
-    safeStringify({
-      teamId,
-      whereClauseForAssignment,
-    })
-  );
-
-  const assignedAttributeOptions = await prisma.attributeToUser.findMany({
-    where: whereClauseForAssignment,
-    select: {
-      member: {
-        select: {
-          userId: true,
-        },
-      },
-      attributeOption: {
-        select: {
-          id: true,
-          value: true,
-          slug: true,
-          contains: true,
-          isGroup: true,
-          attribute: {
-            select: { id: true, name: true, type: true, slug: true },
-          },
-        },
-      },
-    },
-  });
-
-  log.debug("Returned assignedAttributeOptions", safeStringify({ assignedAttributeOptions }));
-  return assignedAttributeOptions;
-}
-
-async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
-  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
-
-  const whereClauseForAttributesAssignedToMembersOfTeam = {
-    options: {
-      some: {
-        assignedUsers: {
-          some: {
-            member: {
-              userId,
-              user: {
-                teams: {
-                  some: {
-                    teamId,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  };
-
-  log.debug(
-    safeStringify({
-      teamId,
-      whereClauseForAttributesAssignedToMembersOfTeam,
-    })
-  );
-
-  const assignedAttributeOptions = await prisma.attribute.findMany({
-    where: whereClauseForAttributesAssignedToMembersOfTeam,
-    select: {
-      id: true,
-      name: true,
-      type: true,
-      options: {
-        select: {
-          id: true,
-          value: true,
-          slug: true,
-        },
-      },
-      slug: true,
-    },
-  });
-  return assignedAttributeOptions;
-}
-
-export async function getAttributesForTeam({ teamId }: { teamId: number }) {
-  const attributes = await getAttributesAssignedToMembersOfTeam({ teamId });
-  return attributes satisfies Attribute[];
-}
-
-export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamId }: { teamId: number }) {
-  const [assignedAttributeOptions, allAttributesWithTheirOptions] = await Promise.all([
-    getAssignedAttributeOptions({ teamId }),
-    // We need to fetch even the unassigned options, to know what all sub-options are there in an option group. Because it is possible that sub-options aren't assigned directly to the user
-    findAllAttributesWithTheirOptions({ teamId }),
-  ]);
-
-  const teamMembersThatHaveOptionAssigned = assignedAttributeOptions.reduce((acc, attributeToUser) => {
-    const { userId } = attributeToUser.member;
-    const { attribute, ...attributeOption } = attributeToUser.attributeOption;
+function _prepareAssignmentData({
+  assignmentsForTheTeam,
+  attributesOfTheOrg,
+}: {
+  assignmentsForTheTeam: AssignmentForTheTeam[];
+  attributesOfTheOrg: Attribute[];
+}) {
+  const teamMembersThatHaveOptionAssigned = assignmentsForTheTeam.reduce((acc, attributeToUser) => {
+    const userId = attributeToUser.userId;
+    const attributeOption = attributeToUser.attributeOption;
+    const attribute = attributeToUser.attribute;
 
     if (!acc[userId]) {
       acc[userId] = { userId, attributes: {} };
@@ -208,7 +137,7 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
   }) {
     return contains
       .map((optionId) => {
-        const allOptions = allAttributesWithTheirOptions.get(attribute.id);
+        const allOptions = attributesOfTheOrg.find((_attribute) => _attribute.id === attribute.id)?.options;
         const option = allOptions?.find((option) => option.id === optionId);
         if (!option) {
           console.error(
@@ -226,6 +155,211 @@ export async function getTeamMembersWithAttributeOptionValuePerAttribute({ teamI
       })
       .filter((option): option is NonNullable<typeof option> => option !== null);
   }
+}
+
+function _getAttributeFromAttributeOption({
+  allAttributesOfTheOrg,
+  attributeOptionId,
+}: {
+  allAttributesOfTheOrg: Attribute[];
+  attributeOptionId: AttributeOptionId;
+}) {
+  return allAttributesOfTheOrg.find((attribute) =>
+    attribute.options.some((option) => option.id === attributeOptionId)
+  );
+}
+
+function _getAttributeOptionFromAttributeOption({
+  allAttributesOfTheOrg,
+  attributeOptionId,
+}: {
+  allAttributesOfTheOrg: FullAttribute[];
+  attributeOptionId: AttributeOptionId;
+}) {
+  const matchingOption = allAttributesOfTheOrg.reduce((found, attribute) => {
+    if (found) return found;
+    return attribute.options.find((option) => option.id === attributeOptionId) || null;
+  }, null as null | (typeof allAttributesOfTheOrg)[number]["options"][number]);
+  return matchingOption;
+}
+
+async function _getOrgMembershipToUserIdForTeam({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const { orgMemberships, teamMemberships } = await MembershipRepository.findMembershipsForBothOrgAndTeam({
+    orgId,
+    teamId,
+  });
+
+  // Using map for performance lookup as it matters in the below loop working with 1000s of records
+  const orgMembershipsByUserId = new Map(orgMemberships.map((m) => [m.userId, m]));
+
+  /**
+   * Holds the records of orgMembershipId to userId for the sub-team's members only.
+   */
+  const orgMembershipToUserIdForTeamMembers = new Map<OrgMembershipId, UserId>();
+
+  /**
+   * For an organization with 3000 users and 10 teams, with every team having around 300 members, the total memberships we get for a team are 3000+300 = 3300
+   * So, these are not a lot of records and we could afford to do in memory computations on them.
+   */
+  teamMemberships.forEach((teamMembership) => {
+    const orgMembership = orgMembershipsByUserId.get(teamMembership.userId);
+    if (!orgMembership) {
+      console.error(
+        `Org membership not found for userId ${teamMembership.userId} in the organization's memberships`
+      );
+      return;
+    }
+    orgMembershipToUserIdForTeamMembers.set(orgMembership.id, orgMembership.userId);
+  });
+
+  return orgMembershipToUserIdForTeamMembers;
+}
+
+async function _queryAllData({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const [orgMembershipToUserIdForTeamMembers, attributesOfTheOrg] = await Promise.all([
+    _getOrgMembershipToUserIdForTeam({ orgId, teamId }),
+    AttributeRepository.findManyByOrgId({ orgId }),
+  ]);
+
+  const orgMembershipIds = Array.from(orgMembershipToUserIdForTeamMembers.keys());
+
+  // Get all the attributes assigned to the members of the team
+  const attributesToUsersForTeam = await AttributeToUserRepository.findManyByOrgMembershipIds({
+    orgMembershipIds,
+  });
+
+  return {
+    attributesOfTheOrg,
+    attributesToUsersForTeam,
+    orgMembershipToUserIdForTeamMembers,
+  };
+}
+
+async function getAttributesAssignedToMembersOfTeam({ teamId, userId }: { teamId: number; userId?: number }) {
+  const log = logger.getSubLogger({ prefix: ["getAttributeToUserWithMembershipAndAttributes"] });
+
+  const whereClauseForAttributesAssignedToMembersOfTeam = {
+    options: {
+      some: {
+        assignedUsers: {
+          some: {
+            member: {
+              userId,
+              user: {
+                teams: {
+                  some: {
+                    teamId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  log.debug(
+    safeStringify({
+      teamId,
+      whereClauseForAttributesAssignedToMembersOfTeam,
+    })
+  );
+
+  const assignedAttributeOptions = await prisma.attribute.findMany({
+    where: whereClauseForAttributesAssignedToMembersOfTeam,
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      isWeightsEnabled: true,
+      options: {
+        select: {
+          id: true,
+          value: true,
+          slug: true,
+          contains: true,
+          isGroup: true,
+        },
+      },
+      slug: true,
+    },
+  });
+
+  return assignedAttributeOptions;
+}
+
+function _buildAssignmentsForTeam({
+  attributesToUsersForTeam,
+  orgMembershipToUserIdForTeamMembers,
+  attributesOfTheOrg,
+}: {
+  attributesToUsersForTeam: AttributeToUser[];
+  orgMembershipToUserIdForTeamMembers: Map<OrgMembershipId, UserId>;
+  attributesOfTheOrg: FullAttribute[];
+}) {
+  return attributesToUsersForTeam
+    .map((attributeToUser) => {
+      const orgMembershipId = attributeToUser.memberId;
+      const userId = orgMembershipToUserIdForTeamMembers.get(orgMembershipId);
+      if (!userId) {
+        console.error(`No org membership found for membership id ${orgMembershipId}`);
+        return null;
+      }
+      const attribute = _getAttributeFromAttributeOption({
+        allAttributesOfTheOrg: attributesOfTheOrg,
+        attributeOptionId: attributeToUser.attributeOptionId,
+      });
+
+      const attributeOption = _getAttributeOptionFromAttributeOption({
+        allAttributesOfTheOrg: attributesOfTheOrg,
+        attributeOptionId: attributeToUser.attributeOptionId,
+      });
+
+      if (!attributeOption || !attribute) {
+        console.error(
+          `Attribute option with id ${attributeToUser.attributeOptionId} not found in the organization's attributes`
+        );
+        return null;
+      }
+
+      return {
+        ...attributeToUser,
+        userId,
+        attribute,
+        attributeOption,
+      };
+    })
+    .filter((assignment): assignment is NonNullable<typeof assignment> => assignment !== null);
+}
+
+export async function getAttributesAssignmentData({ orgId, teamId }: { orgId: number; teamId: number }) {
+  const { attributesOfTheOrg, attributesToUsersForTeam, orgMembershipToUserIdForTeamMembers } =
+    await _queryAllData({
+      orgId,
+      teamId,
+    });
+
+  const assignmentsForTheTeam = _buildAssignmentsForTeam({
+    attributesToUsersForTeam,
+    orgMembershipToUserIdForTeamMembers,
+    attributesOfTheOrg,
+  });
+
+  const attributesAssignedToTeamMembersWithOptions = _prepareAssignmentData({
+    attributesOfTheOrg,
+    assignmentsForTheTeam,
+  });
+
+  return {
+    attributesOfTheOrg,
+    attributesAssignedToTeamMembersWithOptions,
+  };
+}
+
+export async function getAttributesForTeam({ teamId }: { teamId: number }) {
+  const attributes = await getAttributesAssignedToMembersOfTeam({ teamId });
+  return attributes satisfies Attribute[];
 }
 
 export async function getUsersAttributes({ userId, teamId }: { userId: number; teamId: number }) {

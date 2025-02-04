@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import React from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -53,6 +52,7 @@ function CreateAttributesPage() {
               type: attribute.data.type,
               options: attribute.data.options,
               isLocked: attribute.data.isLocked,
+              isWeightsEnabled: attribute.data.isWeightsEnabled,
             }}
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {

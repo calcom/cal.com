@@ -34,6 +34,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
       name: true,
       type: true,
       isLocked: true,
+      isWeightsEnabled: true,
       options: {
         select: {
           id: true,
@@ -65,6 +66,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
     id: z.string(),
     name: z.string(),
     isLocked: z.boolean().optional(),
+    isWeightsEnabled: z.boolean().optional(),
     type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
     options: z.array(
       z.object({

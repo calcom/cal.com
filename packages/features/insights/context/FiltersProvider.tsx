@@ -96,6 +96,7 @@ export function FiltersProvider({ children }: { children: React.ReactNode }) {
 
   // Use the custom hook
   const { mostPopularForm } = useDefaultRoutingForm({
+    userId: userIdParsed,
     teamId: teamIdParsed,
     isAll: safe.success ? !!safe.data.teamId : false,
     routingFormId: routingFormIdParsed,

@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ILicenseKeyService } from "@calcom/ee/common/server/LicenseKeyService";
 import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import prisma from "@calcom/prisma";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
@@ -21,7 +22,7 @@ afterEach(() => {
 });
 
 describe("Verify API key", () => {
-  let service: LicenseKeyService;
+  let service: ILicenseKeyService;
 
   beforeEach(async () => {
     service = await LicenseKeyService.create();

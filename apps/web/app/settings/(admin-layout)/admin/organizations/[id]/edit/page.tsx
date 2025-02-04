@@ -1,9 +1,8 @@
 import { type Params } from "app/_types";
-import { _generateMetadata, getFixedT } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { getServerSessionForAppDir } from "@calcom/features/auth/lib/get-server-session-for-app-dir";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { OrgForm } from "@calcom/features/ee/organizations/pages/settings/admin/AdminOrgEditPage";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
@@ -35,8 +34,7 @@ const Page = async ({ params }: { params: Params }) => {
 
   try {
     const org = await OrganizationRepository.adminFindById({ id: input.data.id });
-    const session = await getServerSessionForAppDir();
-    const t = await getFixedT(session?.user.locale || "en");
+    const t = await getTranslate();
     return (
       <SettingsHeader
         title={`${t("editing_org")}: ${org.name}`}

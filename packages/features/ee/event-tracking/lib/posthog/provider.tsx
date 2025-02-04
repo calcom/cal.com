@@ -15,6 +15,7 @@ function Provider({ children }: { children: React.ReactNode }) {
     posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
       autocapture: false,
+      person_profiles: "never",
       persistence: "memory",
       request_batching: true,
       capture_pageview: false,

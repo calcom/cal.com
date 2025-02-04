@@ -14,13 +14,17 @@ interface BookerSeoProps {
   isTeamEvent?: boolean;
   eventData?: Omit<
     Pick<NonNullable<Awaited<ReturnType<typeof getPublicEvent>>>, "profile" | "title" | "users" | "hidden">,
-    "profile"
+    "profile" | "users"
   > & {
     profile: {
       image: string | undefined;
       name: string | null;
       username: string | null;
     };
+    users: {
+      username: string;
+      name: string;
+    }[];
   };
   entity: {
     fromRedirectOfNonOrgLink: boolean;

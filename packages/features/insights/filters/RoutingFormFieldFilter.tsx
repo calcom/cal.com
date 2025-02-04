@@ -9,10 +9,11 @@ import { useFilterContext } from "../context/provider";
 export const RoutingFormFieldFilter = ({ fieldId }: { fieldId: string }) => {
   const { t } = useLocale();
   const { filter, setConfigFilters } = useFilterContext();
-  const { selectedTeamId, isAll, selectedRoutingFormId, selectedRoutingFormFilter } = filter;
+  const { selectedTeamId, selectedUserId, isAll, selectedRoutingFormId, selectedRoutingFormFilter } = filter;
 
   const { data: fieldOptions } = trpc.viewer.insights.getRoutingFormFieldOptions.useQuery(
     {
+      userId: selectedUserId ?? undefined,
       teamId: selectedTeamId ?? undefined,
       isAll: !!isAll,
       routingFormId: selectedRoutingFormId ?? undefined,
