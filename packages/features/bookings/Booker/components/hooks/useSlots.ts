@@ -11,14 +11,9 @@ import {
   PUBLIC_QUERY_RESERVATION_STALE_TIME_SECONDS,
 } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
+import type { TIsAvailableOutputSchema } from "@calcom/trpc/server/routers/viewer/slots/isAvailable.schema";
 
-export type SlotQuickCheckStatus = "available" | "reserved";
-
-export type QuickAvailabilityCheck = {
-  utcStartIso: string;
-  utcEndIso: string;
-  status: SlotQuickCheckStatus;
-};
+export type QuickAvailabilityCheck = TIsAvailableOutputSchema["slots"][number];
 
 const useQuickAvailabilityChecks = ({
   eventTypeId,
@@ -58,6 +53,8 @@ const useQuickAvailabilityChecks = ({
   );
 
   const quickAvailabilityChecks = isAvailableQuery.data?.slots;
+
+  // Only valid slots response should override the cache. In worst case, we let the actual booking flow(book/event call) decide whether to go ahead with the booking or not.
   if (quickAvailabilityChecks && quickAvailabilityChecks.length > 0) {
     cachedQuickAvailabilityChecksRef.current = quickAvailabilityChecks;
   }

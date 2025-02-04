@@ -204,6 +204,7 @@ export function getRollingWindowEndDate({
 /**
  * To be used when we work on Timeslots(and not Dates) to check boundaries
  * It ensures that the time isn't in the past and also checks if the time is within the minimum booking notice.
+ * Note: It throws error that needs to be caught by caller.
  */
 export function isTimeOutOfBounds({
   time,
@@ -224,6 +225,37 @@ export function isTimeOutOfBounds({
   }
 
   return false;
+}
+
+/**
+ * Wrapper over isTimeOutOfBounds to return a status object.
+ * Note: It doesn't throw any error and can be safely used
+ */
+export function getTimeOutOfBoundsStatus({
+  time,
+  minimumBookingNotice,
+}: {
+  time: dayjs.ConfigType;
+  minimumBookingNotice?: number;
+}): {
+  isOutOfBounds: boolean;
+  reason: "minBookNoticeViolation" | "slotInPast" | null;
+} {
+  try {
+    const isOutOfBounds = isTimeOutOfBounds({ time, minimumBookingNotice });
+    return {
+      isOutOfBounds,
+      reason: isOutOfBounds ? "minBookNoticeViolation" : null,
+    };
+  } catch (error) {
+    if (error instanceof BookingDateInPastError) {
+      return {
+        isOutOfBounds: true,
+        reason: "slotInPast",
+      };
+    }
+    throw error;
+  }
 }
 
 type PeriodLimits = {

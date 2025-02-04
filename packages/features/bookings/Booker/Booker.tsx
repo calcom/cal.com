@@ -31,7 +31,7 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
-import type { SlotQuickCheckStatus } from "./components/hooks/useSlots";
+import type { QuickAvailabilityCheck } from "./components/hooks/useSlots";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -62,11 +62,7 @@ const isTimeSlotAvailable = ({
   schedule: WrappedBookerProps["schedule"];
   slotToCheckInIso: string;
   dateString: string | null;
-  quickAvailabilityChecks: {
-    utcStartIso: string;
-    utcEndIso: string;
-    status: SlotQuickCheckStatus;
-  }[];
+  quickAvailabilityChecks: QuickAvailabilityCheck[];
 }) => {
   const isUnavailableAsPerQuickCheck =
     quickAvailabilityChecks &&
