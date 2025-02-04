@@ -3,6 +3,7 @@ import type z from "zod";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -76,8 +77,7 @@ export const getAllCredentials = async (
   }
 
   // Only return CRM credentials that are enabled on the event type
-  const eventTypeAppMetadata = eventType?.metadata?.apps;
-  console.log(eventTypeAppMetadata);
+  const eventTypeAppMetadata = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
 
   // Will be [credentialId]: { enabled: boolean }]
   const eventTypeCrmCredentials: Record<number, { enabled: boolean }> = {};

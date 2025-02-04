@@ -8,11 +8,9 @@ import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/a
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Icon } from "@calcom/ui";
 import {
   AppSkeletonLoader as SkeletonLoader,
@@ -23,7 +21,6 @@ import {
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import type { querySchemaType, getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
@@ -183,13 +180,13 @@ type ModalState = {
   teamId?: number;
 };
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = {
+  category: AppCategories;
+};
 
-export default function InstalledApps(props: PageProps) {
-  const searchParams = useCompatSearchParams();
+export default function InstalledApps({ category }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
     // Exclude calendar and other from categoryList, we handle those slightly differently below
     return !(category in { other: null, calendar: null });

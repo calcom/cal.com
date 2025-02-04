@@ -10,11 +10,12 @@ import { Button } from "../../button";
 import { Calendar } from "./Calendar";
 
 type DatePickerWithRangeProps = {
-  dates: { startDate: Date; endDate?: Date };
+  dates: { startDate?: Date; endDate?: Date };
   onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
   disabled?: boolean;
   minDate?: Date | null;
   maxDate?: Date;
+  withoutPopover?: boolean;
 };
 
 export function DatePickerWithRange({
@@ -24,17 +25,37 @@ export function DatePickerWithRange({
   maxDate,
   onDatesChange,
   disabled,
+  withoutPopover,
 }: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
   function handleDayClick(date: Date) {
     if (dates?.endDate) {
       onDatesChange({ startDate: date, endDate: undefined });
     } else {
-      const startDate = date < dates.startDate ? date : dates.startDate;
-      const endDate = date < dates.startDate ? dates.startDate : date;
+      const startDate = dates.startDate ? (date < dates.startDate ? date : dates.startDate) : date;
+      const endDate = dates.startDate ? (date < dates.startDate ? dates.startDate : date) : undefined;
       onDatesChange({ startDate, endDate });
     }
   }
   const fromDate = minDate ?? new Date();
+
+  const calendar = (
+    <Calendar
+      initialFocus
+      //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
+      fromDate={minDate === null ? undefined : fromDate}
+      toDate={maxDate}
+      mode="range"
+      defaultMonth={dates?.startDate}
+      selected={{ from: dates?.startDate, to: dates?.endDate }}
+      onDayClick={(day) => handleDayClick(day)}
+      numberOfMonths={1}
+      disabled={disabled}
+    />
+  );
+
+  if (withoutPopover) {
+    return calendar;
+  }
 
   return (
     <div className={cn("grid gap-2", className)}>
@@ -62,18 +83,7 @@ export function DatePickerWithRange({
           className="bg-default text-emphasis z-50 w-auto rounded-md border p-0 outline-none"
           align="start"
           sideOffset={4}>
-          <Calendar
-            initialFocus
-            //When explicitly null, we want past dates to be shown as well, otherwise show only dates passed or from current date
-            fromDate={minDate === null ? undefined : fromDate}
-            toDate={maxDate}
-            mode="range"
-            defaultMonth={dates?.startDate}
-            selected={{ from: dates?.startDate, to: dates?.endDate }}
-            onDayClick={(day) => handleDayClick(day)}
-            numberOfMonths={1}
-            disabled={disabled}
-          />
+          {calendar}
         </Popover.Content>
       </Popover.Root>
     </div>

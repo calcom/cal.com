@@ -44,6 +44,12 @@ class Attendee {
   @IsBoolean()
   @Expose()
   absent!: boolean;
+
+  @ApiPropertyOptional({ type: String, example: "+1234567890" })
+  @IsString()
+  @Expose()
+  @IsOptional()
+  phoneNumber?: string;
 }
 
 export class SeatedAttendee extends Attendee {
@@ -83,6 +89,11 @@ class BookingHost {
   @IsString()
   @Expose()
   name!: string;
+
+  @ApiProperty({ type: String, example: "jane100@example.com" })
+  @IsString()
+  @Expose()
+  email!: string;
 
   @ApiProperty({ type: String, example: "jane100" })
   @IsString()

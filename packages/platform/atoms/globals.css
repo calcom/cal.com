@@ -6,6 +6,7 @@
 
 @import "/packages/ui/styles/shared-globals.css";
 @import "/apps/web/styles/globals.css";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
@@ -39,48 +40,6 @@
     --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
-    /* background */
-
-    --cal-bg-emphasis: #e5e7eb;
-    --cal-bg: white;
-    --cal-bg-subtle: #f3f4f6;
-    --cal-bg-muted: #f9fafb;
-    --cal-bg-inverted: #111827;
-
-    /* background -> components*/
-    --cal-bg-info: #dee9fc;
-    --cal-bg-success: #e2fbe8;
-    --cal-bg-attention: #fceed8;
-    --cal-bg-error: #f9e3e2;
-    --cal-bg-dark-error: #752522;
-
-    /* Borders */
-    --cal-border-emphasis: #9ca3af;
-    --cal-border: #d1d5db;
-    --cal-border-subtle: #e5e7eb;
-    --cal-border-booker: #e5e7eb;
-    --cal-border-muted: #f3f4f6;
-    --cal-border-error: #aa2e26;
-
-    /* Content/Text */
-    --cal-text-emphasis: #111827;
-    --cal-text: #374151;
-    --cal-text-subtle: #6b7280;
-    --cal-text-muted: #9ca3af;
-    --cal-text-inverted: white;
-
-    /* Content/Text -> components */
-    --cal-text-info: #253985;
-    --cal-text-success: #285231;
-    --cal-text-attention: #73321b;
-    --cal-text-error: #752522;
-
-    /* Brand shinanigans
-      -> These will be computed for the users theme at runtime.
-    */
-    --cal-brand: #111827;
-    --cal-brand-emphasis: #101010;
-    --cal-brand-text: white;
   }
 
   .dark {
@@ -114,46 +73,6 @@
     --ring: 216 34% 17%;
 
     --radius: 0.5rem;
-    --cal-bg-emphasis: #2b2b2b;
-    --cal-bg: #101010;
-    --cal-bg-subtle: #2b2b2b;
-    --cal-bg-muted: #1c1c1c;
-    --cal-bg-inverted: #f3f4f6;
-
-    /* background -> components*/
-    --cal-bg-info: #263fa9;
-    --cal-bg-success: #306339;
-    --cal-bg-attention: #8e3b1f;
-    --cal-bg-error: #8c2822;
-    --cal-bg-dark-error: #752522;
-
-    /* Borders */
-    --cal-border-emphasis: #575757;
-    --cal-border: #444444;
-    --cal-border-subtle: #2b2b2b;
-    --cal-border-booker: #2b2b2b;
-    --cal-border-muted: #1c1c1c;
-    --cal-border-error: #aa2e26;
-
-    /* Content/Text */
-    --cal-text-emphasis: #f3f4f6;
-    --cal-text: #d6d6d6;
-    --cal-text-subtle: #a5a5a5;
-    --cal-text-muted: #575757;
-    --cal-text-inverted: #101010;
-
-    /* Content/Text -> components */
-    --cal-text-info: #dee9fc;
-    --cal-text-success: #e2fbe8;
-    --cal-text-attention: #fceed8;
-    --cal-text-error: #f9e3e2;
-
-    /* Brand shenanigans
-      -> These will be computed for the users theme at runtime.
-    */
-    --cal-brand: white;
-    --cal-brand-emphasis: #e1e1e1;
-    --cal-brand-text: black;
   }
 }
 
@@ -13219,23 +13138,23 @@ select {
   scrollbar-width: none
 }
 
-.\[--booker-main-width\: 420px\] {
+.\[--booker-main-width\:420px\] {
   --booker-main-width:420px
 }
 
-.\[--booker-main-width\: 480px\] {
+.\[--booker-main-width\:480px\] {
   --booker-main-width:480px;
 }
 
-.\[--booker-meta-width\: 240px\] {
+.\[--booker-meta-width\:240px\] {
   --booker-meta-width:240px
 }
 
-.\[--booker-meta-width\: 340px\] {
+.\[--booker-meta-width\:340px\] {
   --booker-meta-width:340px
 }
 
-.\[--booker-timeslots-width\: 240px\] {
+.\[--booker-timeslots-width\:240px\] {
   --booker-timeslots-width:240px
 }
 
@@ -13259,7 +13178,7 @@ select {
   --cal-brand:#111827
 }
 
-.\[--calendar-dates-sticky-offset\: 66px\] {
+.\[--calendar-dates-sticky-offset\:66px\] {
   --calendar-dates-sticky-offset:66px
 }
 
@@ -13279,11 +13198,11 @@ select {
   --disabled-gradient-foreground:#e6e7eb
 }
 
-.\[--troublehooster-meta-width\: 0px\] {
+.\[--troublehooster-meta-width\:0px\] {
   --troublehooster-meta-width:0px
 }
 
-.\[--troublehooster-meta-width\: 250px\] {
+.\[--troublehooster-meta-width\:250px\] {
   --troublehooster-meta-width:250px
 }
 
@@ -13321,67 +13240,100 @@ select {
   grid-area: timeslots
 }
 
+
+
 :root {
-  --cal-bg-emphasis: #e5e7eb;
-  --cal-bg: #fff;
-  --cal-bg-subtle: #f3f4f6;
-  --cal-bg-muted: #f9fafb;
-  --cal-bg-inverted: #0f0f0f;
-  --cal-bg-info: #f6f9fe;
-  --cal-bg-success: #e4fbe9;
-  --cal-bg-attention: #fcefd9;
-  --cal-bg-error: hsla(3,66,93,1);
-  --cal-bg-dark-error: #772522;
-  --cal-border-emphasis: #9ca3b0;
-  --cal-border: #d1d5db;
-  --cal-border-subtle: #e5e7eb;
-  --cal-border-booker: #e5e7eb;
-  --cal-border-muted: #f3f4f6;
-  --cal-border-error: #aa2f27;
-  --cal-text-emphasis: #384252;
-  --cal-text: #384252;
-  --cal-text-subtle: #6b7280;
-  --cal-text-muted: #9ca3b0;
-  --cal-text-inverted: #fff;
-  --cal-text-info: #253883;
-  --cal-text-success: #285231;
-  --cal-text-attention: #74331b;
-  --cal-text-error: #772522;
-  --cal-brand: #111827;
-  --cal-brand-emphasis: #0f0f0f;
-  --cal-brand-text: #fff
+/* background */
+
+--cal-bg-emphasis: hsla(220,13%,91%,1);
+--cal-bg: hsla(0,0%,100%,1);
+--cal-bg-subtle: hsla(220, 14%, 96%,1);
+--cal-bg-muted: hsla(210,20%,98%,1);
+--cal-bg-inverted: hsla(0,0%,6%,1);
+
+/* background -> components*/
+--cal-bg-info: hsla(218,83%,98%,1);
+--cal-bg-success: hsla(134,76%,94%,1);
+--cal-bg-attention: hsla(37, 86%, 92%, 1);
+--cal-bg-error: hsla(3,66%,93%,1);
+--cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+
+/* Borders */
+--cal-border-emphasis: hsla(218, 11%, 65%, 1);
+--cal-border: hsla(216, 12%, 84%, 1);
+--cal-border-subtle: hsla(220, 13%, 91%, 1);
+--cal-border-booker: #e5e7eb;
+--cal-border-muted: hsla(220, 14%, 96%, 1);
+--cal-border-error: hsla(4, 63%, 41%, 1);
+--cal-border-focus: hsla(0, 0%, 10%, 1);
+
+/* Content/Text */
+--cal-text-emphasis: hsla(217, 19%, 27%, 1);
+--cal-text: hsla(217, 19%, 27%, 1);
+--cal-text-subtle: hsla(220, 9%, 46%, 1);
+--cal-text-muted: hsla(218, 11%, 65%, 1);
+--cal-text-inverted: hsla(0, 0%, 100%, 1);
+
+/* Content/Text -> components */
+--cal-text-info: hsla(228, 56%, 33%, 1);
+--cal-text-success: hsla(133, 34%, 24%, 1);
+--cal-text-attention: hsla(16, 62%, 28%, 1);
+--cal-text-error: hsla(2, 55%, 30%, 1);
+
+/* Brand shinanigans
+    -> These will be computed for the users theme at runtime.
+  */
+--cal-brand: hsla(221, 39%, 11%, 1);
+--cal-brand-emphasis: hsla(0, 0%, 6%, 1);
+--cal-brand-text: hsla(0, 0%, 100%, 1);
 }
 
 .dark {
-  --cal-bg-emphasis: #404040;
-  --cal-bg: #1a1a1a;
-  --cal-bg-subtle: #2e2e2e;
-  --cal-bg-muted: #1f1f1f;
-  --cal-bg-inverted: #f3f4f6;
-  --cal-bg-info: #253883;
-  --cal-bg-success: #285231;
-  --cal-bg-attention: #74331b;
-  --cal-bg-error: #772522;
-  --cal-bg-dark-error: #772522;
-  --cal-border-emphasis: #757575;
-  --cal-border: #575757;
-  --cal-border-subtle: #383838;
-  --cal-border-booker: #383838;
-  --cal-border-muted: #2e2e2e;
-  --cal-border-error: #aa2f27;
-  --cal-text-emphasis: #fcfcfd;
-  --cal-text: #d6d6d6;
-  --cal-text-subtle: #a6a6a6;
-  --cal-text-muted: #575757;
-  --cal-text-inverted: #1a1a1a;
-  --cal-text-info: #dee9fc;
-  --cal-text-success: #e4fbe9;
-  --cal-text-attention: #fcefd9;
-  --cal-text-error: #f9e3e1;
-  --cal-brand: #fff;
-  --cal-brand-emphasis: #9ca3b0;
-  --cal-brand-text: #000
+  /* background */
+
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
+  --cal-bg: hsla(0, 0%, 10%, 1);
+  --cal-bg-subtle: hsla(0, 0%, 18%, 1);
+  --cal-bg-muted: hsla(0, 0%, 12%, 1);
+  --cal-bg-inverted: hsla(220, 14%, 96%, 1);
+
+  /* background -> components*/
+  --cal-bg-info: hsla(228, 56%, 33%, 1);
+  --cal-bg-success: hsla(133, 34%, 24%, 1);
+  --cal-bg-attention: hsla(16, 62%, 28%, 1);
+  --cal-bg-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+
+  /* Borders */
+  --cal-border-emphasis: hsla(0, 0%, 46%, 1);
+  --cal-border: hsla(0, 0%, 34%, 1);
+  --cal-border-subtle: hsla(0, 0%, 22%, 1);
+  --cal-border-booker: hsla(0, 0%, 22%, 1);
+  --cal-border-muted: hsla(0, 0%, 18%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 100%, 1);
+
+  /* Content/Text */
+  --cal-text-emphasis: hsla(240, 20%, 99%, 1);
+  --cal-text: hsla(0, 0%, 84%, 1);
+  --cal-text-subtle: hsla(0, 0%, 65%, 1);
+  --cal-text-muted: hsla(0, 0%, 34%, 1);
+  --cal-text-inverted: hsla(0, 0%, 10%, 1);
+
+  /* Content/Text -> components */
+  --cal-text-info: hsla(218, 83%, 93%, 1);
+  --cal-text-success: hsla(134, 76%, 94%, 1);
+  --cal-text-attention: hsla(37, 86%, 92%, 1);
+  --cal-text-error: hsla(3, 66%, 93%, 1);
+
+  /* Brand shenanigans
+      -> These will be computed for the users theme at runtime.
+    */
+  --cal-brand: hsla(0, 0%, 100%, 1);
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-brand-text: hsla(0, 0%, 0%,1);
 }
+
 
 ::-moz-selection {
   color: var(--cal-brand-text);

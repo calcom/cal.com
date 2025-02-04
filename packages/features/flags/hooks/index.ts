@@ -16,6 +16,7 @@ const initialData: AppFlags = {
   attributes: false,
   "organizer-request-email-v2": false,
   "domain-wide-delegation": false,
+  "salesforce-crm-tasker": false,
 };
 
 if (process.env.NEXT_PUBLIC_IS_E2E) {

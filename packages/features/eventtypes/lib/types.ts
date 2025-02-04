@@ -5,7 +5,7 @@ import type { ChildrenEventType } from "@calcom/features/eventtypes/components/C
 import type { AttributesQueryValue } from "@calcom/lib/raqb/types";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
 import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
-import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { BookerLayoutSettings, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { eventTypeColor } from "@calcom/prisma/zod-utils";
@@ -122,7 +122,7 @@ export type FormValues = {
   beforeEventBuffer: number;
   afterEventBuffer: number;
   slotInterval: number | null;
-  metadata: z.infer<typeof EventTypeMetaDataSchema>;
+  metadata: z.infer<typeof eventTypeMetaDataSchemaWithTypedApps>;
   destinationCalendar: {
     integration: string;
     externalId: string;

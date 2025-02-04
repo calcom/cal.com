@@ -8,6 +8,7 @@ import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
+import { CreationSource } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
@@ -29,6 +30,7 @@ export async function moveUserToMatchingOrg({ email }: { email: string }) {
     inviterName: null,
     teamId: org.id,
     language: "en",
+    creationSource: CreationSource.WEBAPP,
     invitations: [
       {
         usernameOrEmail: email,
