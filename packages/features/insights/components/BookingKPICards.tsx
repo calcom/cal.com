@@ -10,16 +10,14 @@ import { KPICard } from "./KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();
-  const { startDate, endDate, teamId, userId, isAll, memberUserId } = useInsightsParameters();
+  const { startDate, endDate, teamId, userId, isAll, memberUserId, eventTypeId } = useInsightsParameters();
 
-  // TODO: eventTypeId is missing
-  // TODO: support multiple member user ids
   const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
       startDate,
       endDate,
       teamId,
-      eventTypeId: undefined,
+      eventTypeId,
       memberUserId,
       userId,
       isAll,

@@ -1,6 +1,5 @@
 import { Title } from "@tremor/react";
 
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
@@ -16,8 +15,8 @@ export const AverageEventDurationChart = () => {
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
-      startDate: dayjs.utc(startDate).toISOString(),
-      endDate: dayjs.utc(endDate).toISOString(),
+      startDate,
+      endDate,
       teamId,
       eventTypeId,
       memberUserId,

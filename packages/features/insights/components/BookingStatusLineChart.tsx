@@ -12,7 +12,7 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, startDate, endDate, dateRangePreset } = useInsightsParameters();
+  const { isAll, teamId, userId, startDate, endDate, dateRangePreset, eventTypeId } = useInsightsParameters();
 
   const selectedTimeView = useMemo(() => {
     if (dateRangePreset === "tdy") return "day";
@@ -22,7 +22,6 @@ export const BookingStatusLineChart = () => {
     else return "week";
   }, [dateRangePreset]);
 
-  // TODO: Add eventTypeId
   const {
     data: eventsTimeLine,
     isSuccess,
@@ -33,7 +32,7 @@ export const BookingStatusLineChart = () => {
       startDate,
       endDate,
       teamId,
-      eventTypeId: undefined,
+      eventTypeId,
       userId,
       isAll,
     },
