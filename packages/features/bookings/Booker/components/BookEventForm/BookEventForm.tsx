@@ -126,7 +126,7 @@ export const BookEventForm = ({
             />
           </div>
         ) : isTimeslotUnavailable ? (
-          <div data-testid="booking-fail">
+          <div data-testid="slot-not-allowed-to-book">
             <Alert
               severity="info"
               title={t("unavailable_timeslot_title")}
