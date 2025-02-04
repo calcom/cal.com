@@ -108,6 +108,7 @@
   "accept_license": "Прийняти ліцензію",
   "still_waiting_for_approval": "Захід досі чекає на схвалення",
   "event_is_still_waiting": "Запит на захід досі в очікуванні: {{attendeeName}} – {{date}} – {{eventType}}",
+  "no_result_found_for": "За запитом \"{{searchTerm}}\" нічого не знайдено",
   "no_more_results": "Інших результатів немає",
   "no_results": "Немає результатів",
   "load_more_results": "Завантажити інші результати",
