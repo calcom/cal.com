@@ -32,10 +32,11 @@ export default function PageContent() {
     <div className="bg-default min-h-screen font-[family-name:var(--font-inter)]">
       <div className="bg-default/80 sticky top-0 z-50">
         <div className="mx-auto max-w-7xl">
-          <div className="mx-6 flex justify-end py-4">
+          <div className="mx-6 flex items-center justify-end space-x-2 py-4">
             <Button onClick={() => setIsDark(!isDark)}>
               {isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             </Button>
+            {/* <ThemePicker /> */}
           </div>
         </div>
       </div>
