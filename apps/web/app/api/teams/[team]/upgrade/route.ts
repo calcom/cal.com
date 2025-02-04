@@ -98,7 +98,7 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
     return redirect(redirectUrl);
   } catch (error) {
     if (error instanceof HttpError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+      throw error;
     }
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
