@@ -9,7 +9,7 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton, TextField, TextArea, AddressInput } from "@calcom/ui";
+import { Button as CalButton, TextField, TextArea, AddressInput, CheckboxField } from "@calcom/ui";
 import { Icon, Group, RadioField } from "@calcom/ui";
 
 const Select = dynamic(
@@ -460,6 +460,29 @@ function CheckboxWidget({
   );
 }
 
+function BooleanWidget({ name, label, value, setValue, readOnly }: TextLikeComponentPropsRAQB<boolean>) {
+  return (
+    <div className="flex">
+      <CheckboxField
+        name={name}
+        onChange={(e) => {
+          if (e.target.checked) {
+            setValue(true);
+          } else {
+            setValue(false);
+          }
+        }}
+        placeholder=""
+        checked={value}
+        disabled={readOnly}
+        description=""
+        // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
+        descriptionAsSafeHtml={label ?? ""}
+      />
+    </div>
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -470,6 +493,7 @@ const widgets = {
   MultiSelectWidget,
   AddressWidget,
   CheckboxWidget,
+  BooleanWidget,
   UrlWidget,
   FieldSelect,
   Button,

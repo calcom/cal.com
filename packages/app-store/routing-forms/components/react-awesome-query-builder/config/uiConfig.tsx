@@ -36,6 +36,7 @@ const {
   AddressWidget,
   UrlWidget,
   CheckboxWidget,
+  BooleanWidget,
 } = widgetsComponents;
 
 const TextFactory = (props: WidgetProps | undefined) => renderComponent(props, TextWidget);
@@ -104,6 +105,8 @@ const EmailFactory = (props: WidgetProps | undefined) => {
   );
 };
 
+const BooleanFactory = (props: WidgetProps | undefined) => renderComponent(props, BooleanWidget);
+
 // react-query-builder types have missing type property on Widget
 //TODO: Reuse FormBuilder Components - FormBuilder components are built considering Cal.com design system and coding guidelines. But when awesome-query-builder renders these components, it passes its own props which are different from what our Components expect.
 // So, a mapper should be written here that maps the props provided by awesome-query-builder to the props that our components expect.
@@ -159,6 +162,10 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
       ...widgets.checkbox,
       factory: CheckboxFactory,
     } as SelectWidgetType,
+    boolean: {
+      ...widgets.boolean,
+      factory: BooleanFactory,
+    },
   };
   return widgetsWithFactory;
 }

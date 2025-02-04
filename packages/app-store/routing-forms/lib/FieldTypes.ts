@@ -11,6 +11,7 @@ export const enum RoutingFormFieldType {
   MULTI_EMAIL = "multiemail",
   RADIO = "radio",
   CHECKBOX = "checkbox",
+  BOOLEAN = "boolean",
 }
 
 export const FieldTypes = [
@@ -61,5 +62,9 @@ export const FieldTypes = [
   {
     label: "Check box",
     value: RoutingFormFieldType.CHECKBOX,
+  },
+  {
+    label: "Boolean",
+    value: RoutingFormFieldType.BOOLEAN,
   },
 ] as const;

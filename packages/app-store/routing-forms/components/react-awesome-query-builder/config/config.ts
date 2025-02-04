@@ -30,6 +30,9 @@ function getWidgetsWithoutFactory(_configFor: ConfigFor) {
     checkbox: {
       ...BasicConfig.widgets.select,
     },
+    boolean: {
+      ...BasicConfig.widgets.text,
+    },
   };
   return widgetsWithoutFactory;
 }
