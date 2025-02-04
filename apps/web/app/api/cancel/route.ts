@@ -8,14 +8,13 @@ import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooki
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 async function handler(req: NextRequest) {
-  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   let appDirRequestBody;
   try {
     appDirRequestBody = await req.json();
   } catch (error) {
     return NextResponse.json({ success: false, message: "Invalid JSON" }, { status: 400 });
   }
-
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   const result = await handleCancelBooking({
     appDirRequestBody,
     userId: session?.user?.id || -1,
