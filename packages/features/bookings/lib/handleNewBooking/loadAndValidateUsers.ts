@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 import type { Logger } from "tslog";
 
+import { checkIfUsersAreBlocked } from "@calcom/features/watchlist/operations/check-if-users-are-blocked.controller";
 import { filterHostsByLeadThreshold } from "@calcom/lib/bookings/filterHostsByLeadThreshold";
 import { HttpError } from "@calcom/lib/http-error";
 import { getPiiFreeUser } from "@calcom/lib/piiFreeData";
@@ -96,6 +97,12 @@ export async function loadAndValidateUsers({
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  // Determine if users are locked
+  const containsBlockedUser = await checkIfUsersAreBlocked(users);
+
+  if (containsBlockedUser) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
   // map fixed users
   users = users.map((user) => ({
     ...user,
