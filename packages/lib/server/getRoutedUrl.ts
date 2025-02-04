@@ -171,7 +171,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
-            searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
+            searchParams: new URLSearchParams(
+              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
+            ),
             teamMembersMatchingAttributeLogic,
             // formResponseId is guaranteed to be set because in catch block of trpc request we return from the function and otherwise it would have been set
             formResponseId: formResponseId!,
@@ -187,7 +189,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}`,
+        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };

@@ -354,4 +354,23 @@ export class OrganizationRepository {
 
     return org?.calVideoLogo;
   }
+
+  static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
+    return await prisma.team.findFirst({
+      where: {
+        organizationSettings: {
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: domain,
+        },
+      },
+      select: {
+        id: true,
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+  }
 }
