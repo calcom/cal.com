@@ -180,7 +180,7 @@ function buildLuckyUsersWithJustContactOwner({
   availableUsers: IsFixedAwareUser[];
   fixedUserPool: IsFixedAwareUser[];
 }) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedUsers"] = [];
+  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>>["qualifiedRRUsers"] = [];
   if (!contactOwnerEmail) {
     return luckyUsers;
   }
@@ -640,8 +640,8 @@ async function handler(
           loggerWithEventDetails.debug(
             "Qualified users not available, check for fallback users",
             safeStringify({
-              qualifiedUsers: qualifiedRRUsers.map((user) => user.id),
-              fallbackUsers: fallbackRRUsers.map((user) => user.id),
+              qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
+              fallbackRRUsers: fallbackRRUsers.map((user) => user.id),
             })
           );
           // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
@@ -661,7 +661,7 @@ async function handler(
           loggerWithEventDetails.debug(
             "Qualified users not available, no fallback users",
             safeStringify({
-              qualifiedUsers: qualifiedRRUsers.map((user) => user.id),
+              qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
             })
           );
           throw new Error(ErrorCode.NoAvailableUsersFound);

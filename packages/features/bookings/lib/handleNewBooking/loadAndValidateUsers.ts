@@ -119,14 +119,14 @@ export async function loadAndValidateUsers({
     routingFormResponse,
   });
 
-  let qualifieRRdUsers: Users = [];
+  let qualifiedRRUsers: Users = [];
   let fallbackRRUsers: Users = [];
   let fixedUsers: Users = [];
 
   if (qualifiedRRHosts.length) {
     // remove users that are not in the qualified hosts array
     const qualifiedHostIds = new Set(qualifiedRRHosts.map((qualifiedHost) => qualifiedHost.user.id));
-    qualifieRRdUsers = users.filter((user) => qualifiedHostIds.has(user.id));
+    qualifiedRRUsers = users.filter((user) => qualifiedHostIds.has(user.id));
   }
 
   if (fallbackRRHosts?.length) {
@@ -146,14 +146,14 @@ export async function loadAndValidateUsers({
     })
   );
 
-  qualifieRRdUsers = qualifieRRdUsers.length ? qualifieRRdUsers : users;
+  qualifiedRRUsers = qualifiedRRUsers.length ? qualifiedRRUsers : users;
 
   fallbackRRUsers = fallbackRRUsers.filter((fallbackUser) =>
-    qualifieRRdUsers.find((qualifiedUser) => qualifiedUser.id == fallbackUser.id)
+    qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id == fallbackUser.id)
   );
 
   return {
-    qualifieRRdUsers,
+    qualifiedRRUsers,
     fallbackRRUsers, //without qualified
     fixedUsers,
   };
