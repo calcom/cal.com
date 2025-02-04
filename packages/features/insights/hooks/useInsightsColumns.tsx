@@ -23,11 +23,9 @@ import {
 } from "../lib/types";
 
 export const useInsightsColumns = ({
-  allowMultiMembers,
   headers,
   isHeadersSuccess,
 }: {
-  allowMultiMembers: boolean;
   headers: HeaderRow[] | undefined;
   isHeadersSuccess: boolean;
 }) => {
@@ -61,7 +59,7 @@ export const useInsightsColumns = ({
         enableSorting: false,
         meta: {
           filter: {
-            type: allowMultiMembers ? ColumnFilterType.MULTI_SELECT : ColumnFilterType.SINGLE_SELECT,
+            type: ColumnFilterType.MULTI_SELECT,
           },
         },
         cell: () => null,

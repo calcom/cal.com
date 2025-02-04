@@ -13,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
 import type { RoutingFormTableRow } from "../lib/types";
-import { useInsightsColumns } from "./useInsightsColumns";
 import { useInsightsFacetedUniqueValues } from "./useInsightsFacetedUniqueValues";
 import { useInsightsParameters } from "./useInsightsParameters";
 
@@ -37,12 +36,21 @@ export const useInsightsBookings = () => {
 
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
-  const columns = useInsightsColumns({ allowMultiMembers: false, headers, isHeadersSuccess });
-
-  const finalColumns = useMemo(() => {
+  const columns = useMemo(() => {
     const columnHelper = createColumnHelper<FakeTableRow>();
     return [
-      ...columns,
+      columnHelper.accessor("bookingUserId", {
+        id: "bookingUserId",
+        header: t("people"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: {
+            type: ColumnFilterType.SINGLE_SELECT,
+          },
+        },
+        cell: () => null,
+      }),
       columnHelper.accessor("eventTypeId", {
         id: "eventTypeId",
         header: t("event_type"),
@@ -57,11 +65,11 @@ export const useInsightsBookings = () => {
         cell: () => null,
       }),
     ] as ColumnDef<FakeTableRow>[];
-  }, [columns]);
+  });
 
   const table = useReactTable<FakeTableRow>({
     data: emptyData,
-    columns: finalColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),

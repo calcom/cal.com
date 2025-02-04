@@ -84,7 +84,7 @@ export function RoutingFormResponsesTable() {
     return (data?.pages?.flatMap((page) => page.data) ?? []) as RoutingFormTableRow[];
   }, [data, isHeadersSuccess]);
 
-  const columns = useInsightsColumns({ allowMultiMembers: true, headers, isHeadersSuccess });
+  const columns = useInsightsColumns({ headers, isHeadersSuccess });
 
   const table = useReactTable<RoutingFormTableRow>({
     data: processedData,
