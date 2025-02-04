@@ -46,7 +46,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   );
 
   const ssr = await ssrInit(context);
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   let tz: string | null = null;
   let userTimeFormat: number | null = null;
   let requiresLoginToUpdate = false;

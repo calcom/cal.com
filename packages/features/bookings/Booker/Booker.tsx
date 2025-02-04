@@ -124,6 +124,7 @@ const BookerComponent = ({
   hasValidLicense,
   isBookingDryRun: isBookingDryRunProp,
   renderCaptcha,
+  hashedLink,
 }: BookerProps & WrappedBookerProps) => {
   const searchParams = useCompatSearchParams();
   const isPlatformBookerEmbed = useIsPlatformBookerEmbed();
@@ -450,6 +451,7 @@ const BookerComponent = ({
                   event={event.data}
                   isPending={event.isPending}
                   isPlatform={isPlatform}
+                  isPrivateLink={!!hashedLink}
                   locale={userLocale}
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
