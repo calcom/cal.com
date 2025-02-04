@@ -4,7 +4,7 @@ import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import { useEffect, useRef } from "react";
 
-function Provider({ children }: { children: React.ReactNode }) {
+function PostHogWrapper({ children }: { children: React.ReactNode }) {
   const initializeOnce = useRef(false);
 
   useEffect(() => {
@@ -31,4 +31,4 @@ function Provider({ children }: { children: React.ReactNode }) {
   return <PostHogProvider client={posthog}>{children}</PostHogProvider>;
 }
 
-export default Provider;
+export default PostHogWrapper;
