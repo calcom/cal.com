@@ -140,7 +140,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
 
 export type BookingToDelete = Awaited<ReturnType<typeof getBookingToDelete>>;
 
-export type CustomRequest = NextApiRequest & {
+export type AppRouterRequest = { appDirRequestBody: unknown };
+export type CustomRequest = (NextApiRequest | AppRouterRequest) & {
   userId?: number;
   bookingToDelete?: BookingToDelete;
   platformClientId?: string;
@@ -159,6 +160,7 @@ export type HandleCancelBookingResponse = {
 };
 
 async function handler(req: CustomRequest) {
+  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
   const {
     id,
     uid,
@@ -168,7 +170,7 @@ async function handler(req: CustomRequest) {
     cancelledBy,
     cancelSubsequentBookings,
     internalNote,
-  } = bookingCancelInput.parse(req.body);
+  } = bookingCancelInput.parse(body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
     bookingToDelete,
@@ -568,7 +570,7 @@ async function handler(req: CustomRequest) {
     await handleInternalNote({
       internalNote,
       booking: bookingToDelete,
-      userId,
+      userId: userId || -1,
       teamId: teamId,
     });
   }
@@ -586,7 +588,7 @@ async function handler(req: CustomRequest) {
   } catch (error) {
     console.error("Error deleting event", error);
   }
-  req.statusCode = 200;
+  (req as NextApiRequest).statusCode = 200;
   return {
     success: true,
     message: "Booking successfully cancelled.",
