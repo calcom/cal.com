@@ -26,6 +26,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle, RadioGroup as RadioArea } from "@calcom/ui";
 
+import { EditWeightsForAllTeamMembers } from "../../EditWeightsForAllTeamMembers";
+
 export type EventTeamAssignmentTabCustomClassNames = {
   assignmentType?: {
     container?: string;
@@ -291,11 +293,15 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues, control } = useFormContext<FormValues>();
+  const { setValue, getValues, control, formState } = useFormContext<FormValues>();
   const assignRRMembersUsingSegment = getValues("assignRRMembersUsingSegment");
   const isRRWeightsEnabled = useWatch({
     control,
     name: "isRRWeightsEnabled",
+  });
+  const rrSegmentQueryValue = useWatch({
+    control,
+    name: "rrSegmentQueryValue",
   });
 
   return (
@@ -317,14 +323,14 @@ const RoundRobinHosts = ({
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignAllTeamMembers && !assignRRMembersUsingSegment && (
+        <>
           <Controller<FormValues>
             name="isRRWeightsEnabled"
-            render={({ field: { value, onChange } }) => (
+            render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
               <SettingsToggle
                 title={t("enable_weights")}
                 description={weightDescription}
-                checked={value}
+                checked={isRRWeightsEnabled}
                 switchContainerClassName={customClassNames?.enableWeights?.container}
                 labelClassName={customClassNames?.enableWeights?.label}
                 descriptionClassName={customClassNames?.enableWeights?.description}
@@ -333,11 +339,23 @@ const RoundRobinHosts = ({
                   const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
                   const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
                   setValue("hosts", sortedRRHosts);
-                }}
-              />
+                }}>
+                <EditWeightsForAllTeamMembers
+                  teamMembers={teamMembers}
+                  value={value}
+                  onChange={(hosts) => {
+                    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+                    setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                  }}
+                  assignAllTeamMembers={assignAllTeamMembers}
+                  assignRRMembersUsingSegment={assignRRMembersUsingSegment}
+                  teamId={teamId}
+                  queryValue={rrSegmentQueryValue}
+                />
+              </SettingsToggle>
             )}
           />
-        )}
+        </>
         <AddMembersWithSwitch
           teamId={teamId}
           teamMembers={teamMembers}
@@ -367,7 +385,6 @@ const RoundRobinHosts = ({
               }),
               { shouldDirty: true }
             );
-            setValue("isRRWeightsEnabled", false);
           }}
           customClassNames={customClassNames?.addMembers}
         />

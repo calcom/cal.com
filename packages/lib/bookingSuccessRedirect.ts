@@ -43,6 +43,13 @@ type ResultType = {
   attendeeLastName?: string | null;
 };
 
+export function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
+  return path.reduce(
+    (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
+    obj
+  ) as T | undefined;
+}
+
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   const redirectQueryParamKeys: BookingResponseKey[] = [
     "title",
@@ -54,13 +61,6 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "user",
     "responses",
   ];
-
-  function getSafe<T>(obj: unknown, path: (string | number)[]): T | undefined {
-    return path.reduce(
-      (acc, key) => (typeof acc === "object" && acc !== null ? (acc as any)[key] : undefined),
-      obj
-    ) as T | undefined;
-  }
 
   // Helper function to extract response details (e.g., phone, attendee's first and last name)
   function extractResponseDetails(booking: SuccessRedirectBookingType, obj: ResultType): ResultType {

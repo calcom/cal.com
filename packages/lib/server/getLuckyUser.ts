@@ -70,7 +70,7 @@ interface GetLuckyUserParams<T extends PartialUser> {
       id: number;
       email: string;
       credentials: CredentialPayload[];
-      selectedCalendars: SelectedCalendar[];
+      userLevelSelectedCalendars: SelectedCalendar[];
     };
     createdAt: Date;
     weight?: number | null;
@@ -382,7 +382,7 @@ async function getCurrentMonthCalendarBusyTimes(
     id: number;
     email: string;
     credentials: CredentialPayload[];
-    selectedCalendars: SelectedCalendar[];
+    userLevelSelectedCalendars: SelectedCalendar[];
   }[]
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
   return Promise.all(
@@ -391,7 +391,7 @@ async function getCurrentMonthCalendarBusyTimes(
         user.credentials,
         startOfMonth().toISOString(),
         new Date().toISOString(),
-        user.selectedCalendars,
+        user.userLevelSelectedCalendars,
         true
       ).then((busyTimes) => ({
         userId: user.id,
@@ -868,53 +868,61 @@ export async function prepareQueuesAndAttributesData<T extends PartialUser>({
   const organizationId = eventType.team?.parentId;
   log.debug("prepareQueuesAndAttributesData", safeStringify({ routingFormResponse, organizationId }));
   if (routingFormResponse && organizationId) {
-    const attributeWithEnabledWeights = await prisma.attribute.findFirst({
-      where: {
-        teamId: organizationId,
-        isWeightsEnabled: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        type: true,
-        options: {
-          select: {
-            id: true,
-            value: true,
-            slug: true,
-            assignedUsers: {
-              select: {
-                member: {
-                  select: {
-                    userId: true,
+    const routingForm = routingFormResponse?.form;
+    const routes = zodRoutes.parse(routingForm.routes);
+    const chosenRoute = routes?.find((route) => route.id === routingFormResponse.chosenRouteId);
+
+    if (chosenRoute && "attributeIdForWeights" in chosenRoute) {
+      const attributeIdForWeights = chosenRoute.attributeIdForWeights;
+
+      const attributeWithEnabledWeights = await prisma.attribute.findUnique({
+        where: {
+          id: attributeIdForWeights,
+          teamId: organizationId,
+          isWeightsEnabled: true,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          type: true,
+          options: {
+            select: {
+              id: true,
+              value: true,
+              slug: true,
+              assignedUsers: {
+                select: {
+                  member: {
+                    select: {
+                      userId: true,
+                    },
                   },
+                  weight: true,
                 },
-                weight: true,
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (attributeWithEnabledWeights) {
-      // Virtual queues are defined by the attribute that has weights and is used with 'Value of field ...'
-      const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
-        allRRHosts,
-        routingFormResponse,
-        attributeWithEnabledWeights
-      );
-
-      log.debug(`attributeWithEnabledWeights ${safeStringify(attributeWithEnabledWeights)}`);
-
-      if (queueAndAtributeWeightData?.averageWeightsHosts && queueAndAtributeWeightData?.virtualQueuesData) {
-        attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
-        virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+      if (attributeWithEnabledWeights) {
+        // Virtual queues are defined by the attribute that is used for weights
+        const queueAndAtributeWeightData = await getQueueAndAttributeWeightData(
+          allRRHosts,
+          routingFormResponse,
+          attributeWithEnabledWeights
+        );
+        if (
+          queueAndAtributeWeightData?.averageWeightsHosts &&
+          queueAndAtributeWeightData?.virtualQueuesData
+        ) {
+          attributeWeights = queueAndAtributeWeightData?.averageWeightsHosts;
+          virtualQueuesData = queueAndAtributeWeightData?.virtualQueuesData;
+        }
       }
     }
   }
-
   return { attributeWeights, virtualQueuesData };
 }
 

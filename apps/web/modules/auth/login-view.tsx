@@ -182,6 +182,7 @@ PageProps & WithNonceProps<{}>) {
   return (
     <div className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen [--cal-brand-emphasis:#101010] [--cal-brand-subtle:#9CA3AF] [--cal-brand-text:white] [--cal-brand:#111827] dark:[--cal-brand-emphasis:#e1e1e1] dark:[--cal-brand-text:black] dark:[--cal-brand:white]">
       <AuthContainer
+        isAppDir
         title={t("login")}
         description={t("login")}
         showLogo
@@ -282,7 +283,7 @@ PageProps & WithNonceProps<{}>) {
                 disabled={formState.isSubmitting}
                 className="w-full justify-center">
                 <span>{twoFactorRequired ? t("submit") : t("sign_in")}</span>
-                {lastUsed === "credentials" && <LastUsed className="text-gray-600" />}
+                {lastUsed === "credentials" && !twoFactorRequired && <LastUsed className="text-gray-600" />}
               </Button>
             </div>
           </form>

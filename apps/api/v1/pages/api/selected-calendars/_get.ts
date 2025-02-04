@@ -1,9 +1,9 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
+import type { FindManyArgs } from "@calcom/lib/server/repository/selectedCalendar";
+import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
 
 import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -34,7 +34,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
 async function getHandler(req: NextApiRequest) {
   const { userId, isSystemWideAdmin } = req;
   /* Admin gets all selected calendar by default, otherwise only the user's ones */
-  const args: Prisma.SelectedCalendarFindManyArgs = isSystemWideAdmin ? {} : { where: { userId } };
+  const args: FindManyArgs = isSystemWideAdmin ? {} : { where: { userId } };
 
   /** Only admins can query other users */
   if (!isSystemWideAdmin && req.query.userId)
@@ -46,7 +46,7 @@ async function getHandler(req: NextApiRequest) {
     if (Array.isArray(query.userId)) args.orderBy = { userId: "asc" };
   }
 
-  const data = await prisma.selectedCalendar.findMany(args);
+  const data = await SelectedCalendarRepository.findManyUserLevel(args);
   return { selected_calendars: data.map((v) => schemaSelectedCalendarPublic.parse(v)) };
 }
 

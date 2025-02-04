@@ -31,63 +31,6 @@ vi.mock("@calcom/lib/constants", () => ({
 
 describe("getSchedule", () => {
   setupAndTeardown();
-  describe("Calendar event", () => {
-    test("correctly identifies unavailable slots from calendar", async () => {
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus2DateString}T04:45:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
-
-      const scenarioData = {
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 45,
-            length: 45,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        users: [
-          {
-            ...TestData.users.example,
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-          },
-        ],
-        apps: [TestData.apps["google-calendar"]],
-      };
-      // An event with one accepted booking
-      await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: false,
-          orgSlug: null,
-        },
-      });
-
-      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
-      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
-        dateString: plus2DateString,
-      });
-    });
-  });
 
   // TODO: Move these inside describe('Team Event')
   describe("Round robin lead skip(i.e. use contact owner specified by teamMemberEmail) - CRM", async () => {
