@@ -1,12 +1,7 @@
 "use client";
 
-import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter as useAppRouter } from "next/navigation";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import { useRouter as usePageRouter } from "next/router";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import type { NextRouter as NextPageRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
@@ -89,74 +84,21 @@ const EventAITab = dynamic(() =>
 
 export type EventTypeWebWrapperProps = {
   id: number;
-  isAppDir?: boolean;
 };
 
-// discriminative factor: isAppDir
-type EventTypeAppComponentProp = {
-  id: number;
-  isAppDir: true;
-  pathname: string;
-  pageRouter: null;
-  appRouter: AppRouterInstance;
-};
-
-// discriminative factor: isAppDir
-type EventTypePageComponentProp = {
-  id: number;
-  isAppDir: false;
-  pageRouter: NextPageRouter;
-  pathname: null;
-  appRouter: null;
-};
-
-type EventTypeAppPageComponentProp = EventTypeAppComponentProp | EventTypePageComponentProp;
-
-export const EventTypeWebWrapper = ({ id, isAppDir }: EventTypeWebWrapperProps & { isAppDir?: boolean }) => {
+export const EventTypeWebWrapper = ({ id }: EventTypeWebWrapperProps) => {
   const { data: eventTypeQueryData } = trpc.viewer.eventTypes.get.useQuery({ id });
 
   if (!eventTypeQueryData) return null;
 
-  return isAppDir ? (
-    <EventTypeAppWrapper {...eventTypeQueryData} id={id} />
-  ) : (
-    <EventTypePageWrapper {...eventTypeQueryData} id={id} />
-  );
+  return <EventTypeWeb {...eventTypeQueryData} id={id} />;
 };
 
-const EventTypePageWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
-  const router = usePageRouter();
-  return (
-    <EventTypeWeb {...rest} id={id} isAppDir={false} pageRouter={router} pathname={null} appRouter={null} />
-  );
-};
-
-const EventTypeAppWrapper = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
-  const pathname = usePathname();
-  const router = useAppRouter();
-  return (
-    <EventTypeWeb
-      {...rest}
-      id={id}
-      isAppDir={true}
-      pathname={pathname ?? ""}
-      pageRouter={null}
-      appRouter={router}
-    />
-  );
-};
-
-const EventTypeWeb = ({
-  id,
-  isAppDir,
-  pageRouter,
-  appRouter,
-  pathname,
-  ...rest
-}: EventTypeSetupProps & EventTypeAppPageComponentProp) => {
+const EventTypeWeb = ({ id, ...rest }: EventTypeSetupProps & { id: number }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-
+  const pathname = usePathname();
+  const appRouter = useAppRouter();
   const { data: user, isPending: isLoggedInUserPending } = useMeQuery();
   const isTeamEventTypeDeleted = useRef(false);
   const leaveWithoutAssigningHosts = useRef(false);
@@ -250,7 +192,14 @@ const EventTypeWeb = ({
         teamMembers={teamMembers}
       />
     ),
-    team: <EventTeamAssignmentTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    team: (
+      <EventTeamAssignmentTab
+        orgId={orgBranding?.id ?? null}
+        teamMembers={teamMembers}
+        team={team}
+        eventType={eventType}
+      />
+    ),
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: (
       <EventAdvancedTab
@@ -274,7 +223,7 @@ const EventTypeWeb = ({
   } as const;
 
   useHandleRouteChange({
-    watchTrigger: isAppDir ? pageRouter : pathname,
+    watchTrigger: pathname,
     isTeamEventTypeDeleted: isTeamEventTypeDeleted.current,
     isleavingWithoutAssigningHosts: leaveWithoutAssigningHosts.current,
     isTeamEventType: !!team,
@@ -285,22 +234,10 @@ const EventTypeWeb = ({
     onError: (url) => {
       setIsOpenAssignmentWarnDialog(true);
       setPendingRoute(url);
-      if (!isAppDir) {
-        pageRouter.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
-      }
-
-      if (isAppDir) throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
+      throw new Error(`Aborted route change to ${url} because none was assigned to team event`);
     },
     onStart: (handleRouteChange) => {
-      !isAppDir && pageRouter.events.on("routeChangeStart", handleRouteChange);
-      isAppDir && handleRouteChange(pathname || "");
-    },
-    onEnd: (handleRouteChange) => {
-      !isAppDir && pageRouter.events.off("routeChangeStart", handleRouteChange);
+      handleRouteChange(pathname || "");
     },
   });
 
@@ -363,7 +300,7 @@ const EventTypeWeb = ({
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
       isTeamEventTypeDeleted.current = true;
-      isAppDir ? appRouter.push("/event-types") : pageRouter.push("/event-types");
+      appRouter.push("/event-types");
       setSlugExistsChildrenDialogOpen([]);
       setIsOpenAssignmentWarnDialog(false);
     },

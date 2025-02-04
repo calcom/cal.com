@@ -1,5 +1,6 @@
 import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { AuthMethods } from "@/lib/enums/auth-methods";
+import { isOriginAllowed } from "@/lib/is-origin-allowed/is-origin-allowed";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
@@ -15,6 +16,8 @@ import type { Request } from "express";
 import { getToken } from "next-auth/jwt";
 
 import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
+
+export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
@@ -74,12 +77,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
   async authenticateNextAuth(token: { email?: string | null }) {
     const user = await this.nextAuthStrategy(token);
-    return this.success(user);
+    return this.success(this.getSuccessUser(user));
+  }
+
+  getSuccessUser(user: UserWithProfile): ApiAuthGuardUser {
+    return {
+      ...user,
+      isSystemAdmin: user.role === "ADMIN",
+    };
   }
 
   async authenticateOAuthClient(oAuthClientId: string, oAuthClientSecret: string) {
     const user = await this.oAuthClientStrategy(oAuthClientId, oAuthClientSecret);
-    return this.success(user);
+    return this.success(this.getSuccessUser(user));
   }
 
   async oAuthClientStrategy(oAuthClientId: string, oAuthClientSecret: string) {
@@ -118,7 +128,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         return this.error(new UnauthorizedException("No user associated with the provided token"));
       }
 
-      return this.success(user);
+      return this.success(this.getSuccessUser(user));
     } catch (err) {
       if (err instanceof Error) {
         return this.error(err);
@@ -167,9 +177,9 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("OAuth client not found given the access token");
     }
 
-    if (origin && !client.redirectUris.some((uri) => uri.startsWith(origin))) {
+    if (origin && !isOriginAllowed(origin, client.redirectUris)) {
       throw new UnauthorizedException(
-        `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${origin}' to the 'Redirect uris' of your OAuth client.`
+        `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${origin}' to the 'Redirect uris' of your OAuth client with ID '${client.id}'`
       );
     }
 

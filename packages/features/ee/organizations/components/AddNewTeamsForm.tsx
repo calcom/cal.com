@@ -10,6 +10,7 @@ import { classNames } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED_CLIENT } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import { Button, CheckboxField, Form, Icon, showToast, TextField } from "@calcom/ui";
@@ -151,7 +152,12 @@ const AddNewTeamsFormChild = ({
   const handleFormSubmit = () => {
     const fields = getValues("teams");
     const moveTeams = getValues("moveTeams");
-    createTeamsMutation.mutate({ orgId: org.id, moveTeams, teamNames: fields.map((field) => field.name) });
+    createTeamsMutation.mutate({
+      orgId: org.id,
+      moveTeams,
+      teamNames: fields.map((field) => field.name),
+      creationSource: CreationSource.WEBAPP,
+    });
   };
 
   const moveTeams = watch("moveTeams");

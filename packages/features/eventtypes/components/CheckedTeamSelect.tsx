@@ -1,12 +1,16 @@
+"use client";
+
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 import type { Props } from "react-select";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
+import type { SelectClassNames } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Button, Icon, Select, Tooltip } from "@calcom/ui";
 
+import type { PriorityDialogCustomClassNames, WeightDialogCustomClassNames } from "./HostEditDialogs";
 import { PriorityDialog, WeightDialog } from "./HostEditDialogs";
 
 export type CheckedSelectOption = {
@@ -20,15 +24,33 @@ export type CheckedSelectOption = {
   defaultScheduleId?: number | null;
 };
 
+export type CheckedTeamSelectCustomClassNames = {
+  hostsSelect?: SelectClassNames;
+  selectedHostList?: {
+    container?: string;
+    listItem?: {
+      container?: string;
+      avatar?: string;
+      name?: string;
+      changePriorityButton?: string;
+      changeWeightButton?: string;
+      removeButton?: string;
+    };
+  };
+  priorityDialog?: PriorityDialogCustomClassNames;
+  weightDialog?: WeightDialogCustomClassNames;
+};
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
   isRRWeightsEnabled,
+  customClassNames,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
   isRRWeightsEnabled?: boolean;
+  customClassNames?: CheckedTeamSelectCustomClassNames;
 }) => {
   const isPlatform = useIsPlatform();
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
@@ -48,21 +70,44 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         isMulti
+        className={customClassNames?.hostsSelect?.select}
+        innerClassNames={customClassNames?.hostsSelect?.innerClassNames}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
        - Slides down from the top instead of just teleporting in from nowhere*/}
       <ul
-        className={classNames("mb-4 mt-3 rounded-md", value.length >= 1 && "border-subtle border")}
+        className={classNames(
+          "mb-4 mt-3 rounded-md",
+          value.length >= 1 && "border-subtle border",
+          customClassNames?.selectedHostList?.container
+        )}
         ref={animationRef}>
         {value.map((option, index) => (
           <>
             <li
               key={option.value}
-              className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
+              className={classNames(
+                `flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`,
+                customClassNames?.selectedHostList?.listItem?.container
+              )}>
               {!isPlatform && <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />}
-              {isPlatform && <Icon name="user" className="mt-0.5 h-4 w-4" />}
-              <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
+              {isPlatform && (
+                <Icon
+                  name="user"
+                  className={classNames(
+                    "mt-0.5 h-4 w-4",
+                    customClassNames?.selectedHostList?.listItem?.avatar
+                  )}
+                />
+              )}
+              <p
+                className={classNames(
+                  "text-emphasis my-auto ms-3 text-sm",
+                  customClassNames?.selectedHostList?.listItem?.name
+                )}>
+                {option.label}
+              </p>
               <div className="ml-auto flex items-center">
                 {option && !option.isFixed ? (
                   <>
@@ -75,7 +120,8 @@ export const CheckedTeamSelect = ({
                         }}
                         className={classNames(
                           "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color
+                          getPriorityTextAndColor(option.priority).color,
+                          customClassNames?.selectedHostList?.listItem?.changePriorityButton
                         )}>
                         {t(getPriorityTextAndColor(option.priority).text)}
                       </Button>
@@ -83,7 +129,10 @@ export const CheckedTeamSelect = ({
                     {isRRWeightsEnabled ? (
                       <Button
                         color="minimal"
-                        className="mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent"
+                        className={classNames(
+                          "mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent",
+                          customClassNames?.selectedHostList?.listItem?.changeWeightButton
+                        )}
                         onClick={() => {
                           setWeightDialogOpen(true);
                           setCurrentOption(option);
@@ -101,7 +150,10 @@ export const CheckedTeamSelect = ({
                 <Icon
                   name="x"
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className="my-auto ml-2 h-4 w-4"
+                  className={classNames(
+                    "my-auto ml-2 h-4 w-4",
+                    customClassNames?.selectedHostList?.listItem?.removeButton
+                  )}
                 />
               </div>
             </li>
@@ -115,12 +167,14 @@ export const CheckedTeamSelect = ({
             setIsOpenDialog={setPriorityDialogOpen}
             option={currentOption}
             onChange={props.onChange}
+            customClassNames={customClassNames?.priorityDialog}
           />
           <WeightDialog
             isOpenDialog={weightDialogOpen}
             setIsOpenDialog={setWeightDialogOpen}
             option={currentOption}
             onChange={props.onChange}
+            customClassNames={customClassNames?.weightDialog}
           />
         </>
       ) : (

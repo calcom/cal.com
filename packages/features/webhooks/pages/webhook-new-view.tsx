@@ -3,27 +3,15 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
 import type { WebhookFormSubmitData } from "../components/WebhookForm";
 import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
-  return (
-    <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="h-8 w-full" />
-      </div>
-    </SkeletonContainer>
-  );
-};
 export const NewWebhookView = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
@@ -89,13 +77,7 @@ export const NewWebhookView = () => {
     });
   };
 
-  if (isPending)
-    return (
-      <SkeletonLoader
-        title={t("add_webhook")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-      />
-    );
+  if (isPending) return null;
 
   return (
     <WebhookForm

@@ -232,7 +232,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
                   size="md"
                   className="inline-flex justify-center"
                 />
-                <p className="text-subtle block">{group.slug}</p>
+                <p className="text-subtle block pl-2">{group.slug}</p>
               </div>
             )}
             <EventTypeGroup

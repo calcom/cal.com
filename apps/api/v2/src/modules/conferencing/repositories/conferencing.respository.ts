@@ -22,4 +22,10 @@ export class ConferencingRepository {
       where: { userId, type: GOOGLE_MEET_TYPE },
     });
   }
+
+  async findConferencingApp(userId: number, app: string) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { userId, appId: app },
+    });
+  }
 }

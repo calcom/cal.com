@@ -76,6 +76,10 @@ export default function InstantEventController({
   const [instantEventState, setInstantEventState] = useState<boolean>(eventType?.isInstantEvent ?? false);
   const formMethods = useFormContext<FormValues>();
 
+  const [parameters, setParameters] = useState<string[]>(
+    formMethods.getValues("instantMeetingParameters") || []
+  );
+
   const { shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
@@ -171,6 +175,56 @@ export default function InstantEventController({
                             );
                           }}
                         />
+                        <div>
+                          <Label>{t("only_show_if_parameter_set")}</Label>
+                          <div className="space-y-2">
+                            {parameters.map((parameter, index) => (
+                              <div key={index} className="flex gap-2">
+                                <TextField
+                                  required
+                                  name={`parameter-${index}`}
+                                  labelSrOnly
+                                  type="text"
+                                  value={parameter}
+                                  containerClassName="flex-1 max-w-80"
+                                  onChange={(e) => {
+                                    const newParameters = [...parameters];
+                                    newParameters[index] = e.target.value;
+                                    setParameters(newParameters);
+                                    formMethods.setValue("instantMeetingParameters", newParameters, {
+                                      shouldDirty: true,
+                                    });
+                                  }}
+                                />
+                                <Button
+                                  type="button"
+                                  color="destructive"
+                                  variant="icon"
+                                  StartIcon="trash"
+                                  onClick={() => {
+                                    const newParameters = parameters.filter((_, i) => i !== index);
+                                    setParameters(newParameters);
+                                    formMethods.setValue("instantMeetingParameters", newParameters, {
+                                      shouldDirty: true,
+                                    });
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <Button
+                            color="minimal"
+                            StartIcon="plus"
+                            onClick={() => {
+                              const newParameters = [...parameters, ""];
+                              setParameters(newParameters);
+                              formMethods.setValue("instantMeetingParameters", newParameters, {
+                                shouldDirty: true,
+                              });
+                            }}>
+                            {t("add_parameter")}
+                          </Button>
+                        </div>
                         <Controller
                           name="instantMeetingExpiryTimeOffsetInSeconds"
                           render={({ field: { value, onChange } }) => (

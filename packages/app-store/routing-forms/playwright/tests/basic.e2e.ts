@@ -61,11 +61,10 @@ async function addAttributeRoutingRule(page: Page) {
   });
 
   const attributeValueSelector = attributeQueryBuilder.locator(".rule--value").nth(0);
-  const numOfOptionsInAttribute = 3;
   await selectFirstValueForAttributeValue({
     fromLocator: attributeValueSelector,
     // Select 'Value of Field Short Text' option
-    option: numOfOptionsInAttribute + 1,
+    option: 1,
   });
 }
 
@@ -98,6 +97,21 @@ test.describe("Routing Forms", () => {
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
       await expect(page.getByTestId(`404-page`)).toBeVisible();
+    });
+
+    test("recently added form appears first in the list", async ({ page }) => {
+      await addForm(page, { name: "Test Form 1" });
+      await page.goto(`apps/routing-forms/forms`);
+      await page.waitForSelector('[data-testid="routing-forms-list"]');
+      await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(1);
+
+      await addForm(page, { name: "Test Form 2" });
+      await page.goto(`apps/routing-forms/forms`);
+      await page.waitForSelector('[data-testid="routing-forms-list"]');
+      await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(2);
+
+      const firstForm = page.locator('[data-testid="routing-forms-list"] > div h1').first();
+      await expect(firstForm).toHaveText("Test Form 2");
     });
 
     test("should be able to edit a newly created form", async ({ page }) => {
@@ -326,14 +340,15 @@ test.describe("Routing Forms", () => {
         // TODO: Find a way to incorporate Routed To and Booked At into the report
         // @see https://github.com/calcom/cal.com/pull/17229
         "Routed To",
+        "Assignment Reason",
         "Booked At",
         "Submitted At",
       ]);
       /* Last two columns are "Routed To" and "Booked At" */
       expect(responses).toEqual([
-        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
-        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
-        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", expect.any(String)],
+        ["custom-page", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
+        ["external-redirect", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
+        ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);

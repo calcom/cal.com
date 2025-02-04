@@ -1,11 +1,10 @@
 "use client";
 
+import type { AppListCardProps } from "@calcom/features/apps/components/AppListCard";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Badge, Icon, ListItemText } from "@calcom/ui";
-
-import type { AppListCardProps } from "../../../../apps/web/components/AppListCard";
 
 export const AppListCard = (props: AppListCardProps & { highlight?: boolean }) => {
   const { t } = useLocale();

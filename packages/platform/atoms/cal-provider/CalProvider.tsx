@@ -67,7 +67,7 @@ export type CalProviderProps = {
   children?: ReactNode;
   clientId: string;
   accessToken?: string;
-  options: { refreshUrl?: string; apiUrl: string };
+  options: { refreshUrl?: string; apiUrl: string; readingDirection?: "ltr" | "rtl" };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
   version?: API_VERSIONS_ENUM;
@@ -111,6 +111,10 @@ export function CalProvider({
       queryClient.resetQueries();
     }
   }, [accessToken]);
+
+  useEffect(() => {
+    http.setPlatformEmbedHeader(isEmbed);
+  }, [isEmbed]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -12,7 +12,7 @@ import generateIcsFile from "../lib/generateIcsFile";
 import { GenerateIcsRole } from "../lib/generateIcsFile";
 import BaseEmail from "./_base-email";
 
-type Reassigned = { name: string | null; email: string; reason?: string; byUser?: string };
+export type Reassigned = { name: string | null; email: string; reason?: string; byUser?: string };
 export default class OrganizerScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   t: TFunction;
@@ -60,7 +60,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
     };
   }
 
-  protected async getHtml(
+  async getHtml(
     calEvent: CalendarEvent,
     attendee: Person,
     teamMember?: Person,

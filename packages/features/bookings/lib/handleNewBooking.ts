@@ -12,10 +12,10 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
+import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -31,12 +31,15 @@ import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
+import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
+import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
+import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import {
@@ -44,25 +47,32 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
 import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { DistributionMethod, getLuckyUser } from "@calcom/lib/server/getLuckyUser";
+import { getLuckyUser } from "@calcom/lib/server/getLuckyUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
+import {
+  eventTypeAppMetadataOptionalSchema,
+  eventTypeMetaDataSchemaWithTypedApps,
+} from "@calcom/prisma/zod-utils";
+import type { PlatformClientParams } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -188,15 +198,161 @@ function buildLuckyUsersWithJustContactOwner({
   return luckyUsers;
 }
 
+type CreatedBooking = Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number };
+
+const buildDryRunBooking = ({
+  eventTypeId,
+  organizerUser,
+  eventName,
+  startTime,
+  endTime,
+  contactOwnerFromReq,
+  contactOwnerEmail,
+  allHostUsers,
+  isManagedEventType,
+}: {
+  eventTypeId: number;
+  organizerUser: {
+    id: number;
+    name: string | null;
+    username: string | null;
+    email: string;
+    timeZone: string;
+  };
+  eventName: string;
+  startTime: string;
+  endTime: string;
+  contactOwnerFromReq: string | null;
+  contactOwnerEmail: string | null;
+  allHostUsers: { id: number }[];
+  isManagedEventType: boolean;
+}) => {
+  const booking = {
+    id: -101,
+    uid: "DRY_RUN_UID",
+    iCalUID: "DRY_RUN_ICAL_UID",
+    status: BookingStatus.ACCEPTED,
+    eventTypeId: eventTypeId,
+    user: organizerUser,
+    userId: organizerUser.id,
+    title: eventName,
+    startTime: new Date(startTime),
+    endTime: new Date(endTime),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    attendees: [],
+    references: [],
+    payment: [],
+    oneTimePassword: null,
+    smsReminderNumber: null,
+    metadata: {},
+    idempotencyKey: null,
+    userPrimaryEmail: null,
+    description: null,
+    customInputs: null,
+    responses: null,
+    location: null,
+    paid: false,
+    destinationCalendar: null,
+    cancellationReason: null,
+    rejectionReason: null,
+    dynamicEventSlugRef: null,
+    dynamicGroupSlugRef: null,
+    rescheduledFrom: null,
+    fromReschedule: null,
+    recurringEventId: null,
+    seatsReferences: [],
+    workflowReminders: [],
+    scheduledJobs: [],
+    rescheduledTo: null,
+    rescheduledBy: null,
+    destinationCalendarId: null,
+    reassignReason: null,
+    reassignById: null,
+    rescheduled: false,
+    confirmed: false,
+    isRecurringEvent: false,
+    isRecorded: false,
+    iCalSequence: 0,
+    rating: null,
+    ratingFeedback: null,
+    noShowHost: null,
+    cancelledBy: null,
+    creationSource: CreationSource.WEBAPP,
+  } as CreatedBooking;
+
+  /**
+   * Troubleshooting data
+   */
+  const troubleshooterData = {
+    organizerUserId: organizerUser.id,
+    eventTypeId,
+    askedContactOwnerEmail: contactOwnerFromReq,
+    usedContactOwnerEmail: contactOwnerEmail,
+    allHostUsers: allHostUsers.map((user) => user.id),
+    isManagedEventType: isManagedEventType,
+  };
+
+  return {
+    booking,
+    troubleshooterData,
+  };
+};
+
+const buildDryRunEventManager = () => {
+  return {
+    create: async () => ({ results: [], referencesToCreate: [] }),
+    reschedule: async () => ({ results: [], referencesToCreate: [] }),
+  };
+};
+
+function buildTroubleshooterData({
+  eventType,
+}: {
+  eventType: {
+    id: number;
+    slug: string;
+  };
+}) {
+  const troubleshooterData: {
+    organizerUser: {
+      id: number;
+    } | null;
+    eventType: {
+      id: number;
+      slug: string;
+    };
+    allHostUsers: number[];
+    luckyUsers: number[];
+    luckyUserPool: number[];
+    fixedUsers: number[];
+    luckyUsersFromFirstBooking: number[];
+    usedContactOwnerEmail: string | null;
+    askedContactOwnerEmail: string | null;
+    isManagedEventType: boolean;
+  } = {
+    organizerUser: null,
+    eventType: {
+      id: eventType.id,
+      slug: eventType.slug,
+    },
+    luckyUsers: [],
+    luckyUserPool: [],
+    fixedUsers: [],
+    luckyUsersFromFirstBooking: [],
+    usedContactOwnerEmail: null,
+    allHostUsers: [],
+    askedContactOwnerEmail: null,
+    isManagedEventType: false,
+  };
+  return troubleshooterData;
+}
+
 async function handler(
-  req: NextApiRequest & {
-    userId?: number | undefined;
-    platformClientId?: string;
-    platformRescheduleUrl?: string;
-    platformCancelUrl?: string;
-    platformBookingUrl?: string;
-    platformBookingLocation?: string;
-  },
+  req: NextApiRequest &
+    PlatformClientParams & {
+      userId?: number | undefined;
+    },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
   const {
@@ -208,7 +364,7 @@ async function handler(
     platformBookingLocation,
   } = req;
 
-  const eventType = await getEventType({
+  const eventType = await monitorCallbackAsync(getEventType, {
     eventTypeId: req.body.eventTypeId,
     eventTypeSlug: req.body.eventTypeSlug,
   });
@@ -243,8 +399,14 @@ async function handler(
     routedTeamMemberIds,
     reroutingFormResponses,
     routingFormResponseId,
+    _isDryRun: isDryRun = false,
+    _shouldServeCache,
     ...reqBody
   } = bookingData;
+
+  let troubleshooterData = buildTroubleshooterData({
+    eventType,
+  });
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -260,11 +422,15 @@ async function handler(
 
   const dynamicUserList = Array.isArray(reqBody.user) ? reqBody.user : getUsernameList(reqBody.user);
   if (!eventType) throw new HttpError({ statusCode: 404, message: "event_type_not_found" });
+  const shouldServeCache = await getShouldServeCache(_shouldServeCache, eventType.team?.id);
 
   const isTeamEventType =
     !!eventType.schedulingType && ["COLLECTIVE", "ROUND_ROBIN"].includes(eventType.schedulingType);
 
-  const paymentAppData = getPaymentAppData(eventType);
+  const paymentAppData = getPaymentAppData({
+    ...eventType,
+    metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+  });
   loggerWithEventDetails.info(
     `Booking eventType ${eventTypeId} started`,
     safeStringify({
@@ -324,10 +490,21 @@ async function handler(
   });
 
   const contactOwnerFromReq = reqBody.teamMemberEmail ?? null;
-  const skipContactOwner = reqBody.skipContactOwner ?? false;
+
+  const isReroutingCase = isRerouting({
+    rescheduleUid: reqBody.rescheduleUid ?? null,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+  });
+
+  const skipContactOwner = shouldIgnoreContactOwner({
+    skipContactOwner: reqBody.skipContactOwner ?? null,
+    rescheduleUid: reqBody.rescheduleUid ?? null,
+    routedTeamMemberIds: routedTeamMemberIds ?? null,
+  });
+
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  let users = await loadAndValidateUsers({
+  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -335,7 +512,11 @@ async function handler(
     logger: loggerWithEventDetails,
     routedTeamMemberIds: routedTeamMemberIds ?? null,
     contactOwnerEmail,
+    isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
+
+  // We filter out users but ensure allHostUsers remain same.
+  let users = allHostUsers;
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
     dynamicUserList,
@@ -343,7 +524,7 @@ async function handler(
     location
   );
 
-  await checkBookingAndDurationLimits({
+  await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
     reqBodyStart: reqBody.start,
     reqBodyRescheduleUid: reqBody.rescheduleUid,
@@ -409,7 +590,8 @@ async function handler(
                 timeZone: reqBody.timeZone,
                 originalRescheduledBooking,
               },
-              loggerWithEventDetails
+              loggerWithEventDetails,
+              shouldServeCache
             );
           }
         } else {
@@ -421,7 +603,8 @@ async function handler(
               timeZone: reqBody.timeZone,
               originalRescheduledBooking,
             },
-            loggerWithEventDetails
+            loggerWithEventDetails,
+            shouldServeCache
           );
         }
       }
@@ -436,7 +619,8 @@ async function handler(
           timeZone: reqBody.timeZone,
           originalRescheduledBooking,
         },
-        loggerWithEventDetails
+        loggerWithEventDetails,
+        shouldServeCache
       );
       const luckyUserPool: IsFixedAwareUser[] = [];
       const fixedUserPool: IsFixedAwareUser[] = [];
@@ -472,18 +656,47 @@ async function handler(
         // freeUsers is ensured
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
-        const isSameRoundRobinHost =
+
+        const shouldUseSameRRHost =
           !!originalRescheduledBookingUserId &&
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-          eventType.rescheduleWithSameRoundRobinHost;
+          eventType.rescheduleWithSameRoundRobinHost &&
+          // If it is rerouting, we should not force reschedule with same host.
+          // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
+          !isReroutingCase;
 
-        const newLuckyUser = isSameRoundRobinHost
+        const userIdsSet = new Set(users.map((user) => user.id));
+
+        let routingFormResponse;
+
+        if (routedTeamMemberIds) {
+          routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+            where: {
+              id: routingFormResponseId,
+            },
+            select: {
+              response: true,
+              form: {
+                select: {
+                  routes: true,
+                  fields: true,
+                },
+              },
+              chosenRouteId: true,
+            },
+          });
+        }
+
+        const newLuckyUser = shouldUseSameRRHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-          : await getLuckyUser(DistributionMethod.PRIORITIZE_AVAILABILITY, {
+          : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              allRRHosts: eventTypeWithUsers.hosts.filter(
+                (host) => !host.isFixed && userIdsSet.has(host.user.id)
+              ), // users part of virtual queue
               eventType,
+              routingFormResponse: routingFormResponse ?? null,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop
@@ -507,7 +720,8 @@ async function handler(
                   timeZone: reqBody.timeZone,
                   originalRescheduledBooking,
                 },
-                loggerWithEventDetails
+                loggerWithEventDetails,
+                shouldServeCache
               );
             }
             // if no error, then lucky user is available for the next slots
@@ -529,6 +743,12 @@ async function handler(
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
       users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
+      troubleshooterData = {
+        ...troubleshooterData,
+        luckyUsers: luckyUsers.map((u) => u.id),
+        fixedUsers: fixedUserPool.map((u) => u.id),
+        luckyUserPool: luckyUserPool.map((u) => u.id),
+      };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
       const luckyUsersFromFirstBooking = luckyUsers
@@ -536,6 +756,11 @@ async function handler(
         : [];
       const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
       users = [...fixedHosts, ...luckyUsersFromFirstBooking];
+      troubleshooterData = {
+        ...troubleshooterData,
+        luckyUsersFromFirstBooking: luckyUsersFromFirstBooking.map((u) => u.id),
+        fixedUsers: fixedHosts.map((u) => u.id),
+      };
     }
   }
 
@@ -552,12 +777,13 @@ async function handler(
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
 
-  const { userReschedulingIsOwner, isConfirmedByDefault } = getRequiresConfirmationFlags({
+  const { userReschedulingIsOwner, isConfirmedByDefault } = await getRequiresConfirmationFlags({
     eventType,
     bookingStartTime: reqBody.start,
     userId,
     originalRescheduledBookingOrganizerId: originalRescheduledBooking?.user?.id,
     paymentAppData,
+    bookerEmail,
   });
 
   // If the Organizer himself is rescheduling, the booker should be sent the communication in his timezone and locale.
@@ -739,10 +965,12 @@ async function handler(
       value: platformBookingLocation ?? bookingLocation,
       optionValue: "",
     };
+
+  const eventName = getEventName(eventNameObject);
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
-    title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
+    title: eventName, //this needs to be either forced in english, or fetched for each attendee and organizer separately
     description: eventType.description,
     additionalNotes,
     customInputs,
@@ -841,7 +1069,13 @@ async function handler(
     oAuthClientId: platformClientId,
   };
 
-  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
+  const workflows = await getAllWorkflowsFromEventType(
+    {
+      ...eventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    organizerUser.id
+  );
 
   if (isTeamEventType) {
     evt.team = {
@@ -886,6 +1120,7 @@ async function handler(
       responses,
       workflows,
       rescheduledBy: reqBody.rescheduledBy,
+      isDryRun,
     });
 
     if (newBooking) {
@@ -897,6 +1132,8 @@ async function handler(
           email: null,
         },
         paymentRequired: false,
+        isDryRun: isDryRun,
+        ...(isDryRun ? { troubleshooterData } : {}),
       };
       return {
         ...bookingResponse,
@@ -927,8 +1164,7 @@ async function handler(
   let results: EventResult<AdditionalInformation & { url?: string; iCalUID?: string }>[] = [];
   let referencesToCreate: PartialReference[] = [];
 
-  let booking: (Booking & { appsStatus?: AppsStatus[]; paymentUid?: string; paymentId?: number }) | null =
-    null;
+  let booking: CreatedBooking | null = null;
 
   loggerWithEventDetails.debug(
     "Going to create booking in DB now",
@@ -942,68 +1178,113 @@ async function handler(
   );
 
   try {
-    booking = await createBooking({
-      uid,
-      rescheduledBy: reqBody.rescheduledBy,
-      routingFormResponseId: routingFormResponseId,
-      reroutingFormResponses: reroutingFormResponses ?? null,
-      reqBody: {
-        user: reqBody.user,
-        metadata: reqBody.metadata,
-        recurringEventId: reqBody.recurringEventId,
-      },
-      eventType: {
-        eventTypeData: eventType,
-        id: eventTypeId,
-        slug: eventTypeSlug,
-        organizerUser,
-        isConfirmedByDefault,
-        paymentAppData,
-      },
-      input: {
-        bookerEmail,
-        rescheduleReason,
-        changedOrganizer,
-        smsReminderNumber,
-        responses,
-      },
-      evt,
-      originalRescheduledBooking,
-    });
-
-    evt.uid = booking?.uid ?? null;
-    evt.oneTimePassword = booking?.oneTimePassword ?? null;
-
-    if (booking && booking.id && eventType.seatsPerTimeSlot) {
-      const currentAttendee = booking.attendees.find(
-        (attendee) =>
-          attendee.email === req.body.responses.email ||
-          (req.body.responses.attendeePhoneNumber &&
-            attendee.phoneNumber === req.body.responses.attendeePhoneNumber)
-      );
-
-      // Save description to bookingSeat
-      const uniqueAttendeeId = uuid();
-      await prisma.bookingSeat.create({
-        data: {
-          referenceUid: uniqueAttendeeId,
-          data: {
-            description: additionalNotes,
-            responses,
-          },
-          booking: {
-            connect: {
-              id: booking.id,
-            },
-          },
-          attendee: {
-            connect: {
-              id: currentAttendee?.id,
-            },
-          },
+    if (!isDryRun) {
+      booking = await monitorCallbackAsync(createBooking, {
+        uid,
+        rescheduledBy: reqBody.rescheduledBy,
+        routingFormResponseId: routingFormResponseId,
+        reroutingFormResponses: reroutingFormResponses ?? null,
+        reqBody: {
+          user: reqBody.user,
+          metadata: reqBody.metadata,
+          recurringEventId: reqBody.recurringEventId,
         },
+        eventType: {
+          eventTypeData: eventType,
+          id: eventTypeId,
+          slug: eventTypeSlug,
+          organizerUser,
+          isConfirmedByDefault,
+          paymentAppData,
+        },
+        input: {
+          bookerEmail,
+          rescheduleReason,
+          changedOrganizer,
+          smsReminderNumber,
+          responses,
+        },
+        evt,
+        originalRescheduledBooking,
+        creationSource: req.body.creationSource,
       });
-      evt.attendeeSeatId = uniqueAttendeeId;
+
+      if (booking?.userId) {
+        const usersRepository = new UsersRepository();
+        await usersRepository.updateLastActiveAt(booking.userId);
+      }
+
+      // If it's a round robin event, record the reason for the host assignment
+      if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
+          await monitorCallbackAsync(AssignmentReasonRecorder.CRMOwnership, {
+            bookingId: booking.id,
+            crmAppSlug: reqBody.crmAppSlug,
+            teamMemberEmail: contactOwnerEmail,
+            recordType: reqBody.crmOwnerRecordType,
+            routingFormResponseId,
+          });
+        } else if (routingFormResponseId && teamId) {
+          await monitorCallbackAsync(AssignmentReasonRecorder.routingFormRoute, {
+            bookingId: booking.id,
+            routingFormResponseId,
+            organizerId: organizerUser.id,
+            teamId,
+          });
+        }
+      }
+
+      evt.uid = booking.uid ?? null;
+      evt.oneTimePassword = booking.oneTimePassword ?? null;
+      if (booking && booking.id && eventType.seatsPerTimeSlot) {
+        const currentAttendee = booking.attendees.find(
+          (attendee) =>
+            attendee.email === req.body.responses.email ||
+            (req.body.responses.attendeePhoneNumber &&
+              attendee.phoneNumber === req.body.responses.attendeePhoneNumber)
+        );
+
+        // Save description to bookingSeat
+        const uniqueAttendeeId = uuid();
+        await prisma.bookingSeat.create({
+          data: {
+            referenceUid: uniqueAttendeeId,
+            data: {
+              description: additionalNotes,
+              responses,
+            },
+            metadata: reqBody.metadata,
+            booking: {
+              connect: {
+                id: booking.id,
+              },
+            },
+            attendee: {
+              connect: {
+                id: currentAttendee?.id,
+              },
+            },
+          },
+        });
+        evt.attendeeSeatId = uniqueAttendeeId;
+      }
+    } else {
+      const { booking: dryRunBooking, troubleshooterData: _troubleshooterData } = buildDryRunBooking({
+        eventTypeId,
+        organizerUser,
+        eventName,
+        startTime: reqBody.start,
+        endTime: reqBody.end,
+        contactOwnerFromReq,
+        contactOwnerEmail,
+        allHostUsers,
+        isManagedEventType,
+      });
+      booking = dryRunBooking;
+      troubleshooterData = {
+        ...troubleshooterData,
+        ..._troubleshooterData,
+      };
     }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
@@ -1019,8 +1300,11 @@ async function handler(
   }
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
-  const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
+  const credentials = await monitorCallbackAsync(refreshCredentials, allCredentials);
+  const apps = eventTypeAppMetadataOptionalSchema.parse(eventType?.metadata?.apps);
+  const eventManager = !isDryRun
+    ? new EventManager({ ...organizerUser, credentials }, apps)
+    : buildDryRunEventManager();
 
   let videoCallUrl;
 
@@ -1237,28 +1521,32 @@ async function handler(
           )
         );
 
-        sendRoundRobinRescheduledEmailsAndSMS(
-          copyEventAdditionalInfo,
-          rescheduledMembers,
-          eventType.metadata
-        );
-        sendRoundRobinScheduledEmailsAndSMS({
-          calEvent: copyEventAdditionalInfo,
-          members: newBookedMembers,
-          eventTypeMetadata: eventType.metadata,
-        });
-        sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+        if (!isDryRun) {
+          sendRoundRobinRescheduledEmailsAndSMS(
+            copyEventAdditionalInfo,
+            rescheduledMembers,
+            eventType.metadata
+          );
+          sendRoundRobinScheduledEmailsAndSMS({
+            calEvent: copyEventAdditionalInfo,
+            members: newBookedMembers,
+            eventTypeMetadata: eventType.metadata,
+          });
+          sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
+        }
       } else {
-        // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await sendRescheduledEmailsAndSMS(
-          {
-            ...copyEvent,
-            additionalInformation: metadata,
-            additionalNotes, // Resets back to the additionalNote input and not the override value
-            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-          },
-          eventType?.metadata
-        );
+        if (!isDryRun) {
+          // send normal rescheduled emails (non round robin event, where organizers stay the same)
+          await sendRescheduledEmailsAndSMS(
+            {
+              ...copyEvent,
+              additionalInformation: metadata,
+              additionalNotes, // Resets back to the additionalNote input and not the override value
+              cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+            },
+            eventType?.metadata
+          );
+        }
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -1352,7 +1640,7 @@ async function handler(
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           videoCallUrl;
 
-        if (evt.iCalUID !== booking.iCalUID) {
+        if (!isDryRun && evt.iCalUID !== booking.iCalUID) {
           // The eventManager could change the iCalUID. At this point we can update the DB record
           await prisma.booking.update({
             where: {
@@ -1388,18 +1676,21 @@ async function handler(
           })
         );
 
-        await sendScheduledEmailsAndSMS(
-          {
-            ...evt,
-            additionalInformation,
-            additionalNotes,
-            customInputs,
-          },
-          eventNameObject,
-          isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled,
-          eventType.metadata
-        );
+        if (!isDryRun) {
+          await monitorCallbackAsync(
+            sendScheduledEmailsAndSMS,
+            {
+              ...evt,
+              additionalInformation,
+              additionalNotes,
+              customInputs,
+            },
+            eventNameObject,
+            isHostConfirmationEmailsDisabled,
+            isAttendeeConfirmationEmailDisabled,
+            eventType.metadata
+          );
+        }
       }
     }
   } else {
@@ -1427,8 +1718,15 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
-    await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
+    if (!isDryRun) {
+      await monitorCallbackAsync(sendOrganizerRequestEmail, { ...evt, additionalNotes }, eventType.metadata);
+      await monitorCallbackAsync(
+        sendAttendeeRequestEmailAndSMS,
+        { ...evt, additionalNotes },
+        attendeesList[0],
+        eventType.metadata
+      );
+    }
   }
 
   if (booking.location?.startsWith("http")) {
@@ -1493,15 +1791,16 @@ async function handler(
 
     // Convert type of eventTypePaymentAppCredential to appId: EventTypeAppList
     if (!booking.user) booking.user = organizerUser;
-    const payment = await handlePayment(
+    const payment = await handlePayment({
       evt,
-      eventType,
-      eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
+      selectedEventType: eventType,
+      paymentAppCredentials: eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
-      fullName,
+      bookerName: fullName,
       bookerEmail,
-      bookerPhoneNumber
-    );
+      bookerPhoneNumber,
+      isDryRun,
+    });
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
@@ -1517,6 +1816,7 @@ async function handler(
         ...webhookData,
         paymentId: payment?.id,
       },
+      isDryRun,
     });
 
     req.statusCode = 201;
@@ -1537,6 +1837,8 @@ async function handler(
       paymentRequired: true,
       paymentUid: payment?.uid,
       paymentId: payment?.id,
+      isDryRun,
+      ...(isDryRun ? { troubleshooterData } : {}),
     };
   }
 
@@ -1544,8 +1846,11 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
+    const subscribersMeetingEnded = await monitorCallbackAsync(getWebhooks, subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await monitorCallbackAsync(
+      getWebhooks,
+      subscriberOptionsMeetingStarted
+    );
 
     let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
     const scheduleTriggerPromises = [];
@@ -1554,17 +1859,23 @@ async function handler(
       //delete all scheduled triggers for meeting ended and meeting started of booking
       deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
         booking: originalRescheduledBooking,
+        isDryRun,
       });
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
+      const bookingWithCalEventResponses = {
+        ...booking,
+        responses: reqBody.calEventResponses,
+      };
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+            isDryRun,
           })
         );
       }
@@ -1572,10 +1883,11 @@ async function handler(
       for (const subscriber of subscribersMeetingStarted) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+            isDryRun,
           })
         );
       }
@@ -1589,17 +1901,27 @@ async function handler(
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REQUESTED;
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
-    await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+    await monitorCallbackAsync(handleWebhookTrigger, {
+      subscriberOptions,
+      eventTrigger,
+      webhookData,
+      isDryRun,
+    });
   }
 
   try {
-    if (hasHashedBookingLink && reqBody.hashedLink) {
+    if (hasHashedBookingLink && reqBody.hashedLink && !isDryRun) {
       await prisma.hashedLink.delete({
         where: {
           link: reqBody.hashedLink as string,
@@ -1613,43 +1935,48 @@ async function handler(
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
-    await prisma.booking.update({
-      where: {
-        uid: booking.uid,
-      },
-      data: {
-        location: evt.location,
-        metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
-        references: {
-          createMany: {
-            data: referencesToCreate,
+    if (!isDryRun) {
+      await prisma.booking.update({
+        where: {
+          uid: booking.uid,
+        },
+        data: {
+          location: evt.location,
+          metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
+          references: {
+            createMany: {
+              data: referencesToCreate,
+            },
           },
         },
-      },
-    });
+      });
+    }
   } catch (error) {
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
   const evtWithMetadata = {
     ...evt,
+    rescheduleReason,
     metadata,
     eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
     bookerUrl,
   };
 
   if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
-    await scheduleMandatoryReminder(
-      evtWithMetadata,
+    await scheduleMandatoryReminder({
+      evt: evtWithMetadata,
       workflows,
-      !isConfirmedByDefault,
-      !!eventType.owner?.hideBranding,
-      evt.attendeeSeatId
-    );
+      requiresConfirmation: !isConfirmedByDefault,
+      hideBranding: !!eventType.owner?.hideBranding,
+      seatReferenceUid: evt.attendeeSeatId,
+      isPlatformNoEmail: noEmail && Boolean(platformClientId),
+      isDryRun,
+    });
   }
 
   try {
-    await scheduleWorkflowReminders({
+    await monitorCallbackAsync(scheduleWorkflowReminders, {
       workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
@@ -1658,20 +1985,22 @@ async function handler(
       isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
+      isDryRun,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
   }
 
   try {
-    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
-      await scheduleNoShowTriggers({
-        booking: { startTime: booking.startTime, id: booking.id },
+    if (isConfirmedByDefault) {
+      await monitorCallbackAsync(scheduleNoShowTriggers, {
+        booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
         triggerForUser,
         organizerUser: { id: organizerUser.id },
         eventTypeId,
         teamId,
         orgId,
+        isDryRun,
       });
     }
   } catch (error) {
@@ -1695,6 +2024,8 @@ async function handler(
   return {
     ...bookingResponse,
     ...luckyUserResponse,
+    isDryRun,
+    ...(isDryRun ? { troubleshooterData } : {}),
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
   };

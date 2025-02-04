@@ -17,4 +17,5 @@ export enum ErrorCode {
   UpdatingOauthClientError = "updating_oauth_client_error",
   CreatingOauthClientError = "creating_oauth_client_error",
   MinimumReschedulingNoticeExceededError = "minimum_rescheduling_notice_exceeded_error",
+  BookingTimeOutOfBounds = "booking_time_out_of_bounds_error",
 }

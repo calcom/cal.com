@@ -4,7 +4,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -18,7 +17,7 @@ import {
   DropdownMenuItem,
   Icon,
   showToast,
-  useMeta,
+  Badge,
 } from "@calcom/ui";
 
 import { DeleteAttributeModal } from "./DeleteAttributeModal";
@@ -77,6 +76,12 @@ function AttributeItem({
               <span>{t("number_of_options", { count: attribute.options.length })}</span>
             </>
           )}
+          {attribute.isWeightsEnabled && (
+            <>
+              <span className="text-muted">•</span>
+              <Badge>{t("attribute_weight_enabled")}</Badge>
+            </>
+          )}
         </p>
       </div>
       <div className="flex gap-4">
@@ -131,85 +136,58 @@ function OrganizationAttributesPage() {
   }
 
   return (
-    <>
-      <ListAttributeHeader />
-      <LicenseRequired>
-        <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
-          {data && data?.length > 0 ? (
-            <>
-              <h2 className="text-emphasis text-base font-semibold leading-none">{t("custom")}</h2>
-              <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
-                {data?.map((attribute) => (
-                  <AttributeItem
-                    setAttributeToDelete={setAttributeToDelete}
-                    attribute={attribute}
-                    key={attribute.id}
-                  />
-                ))}
-              </li>
-              <Button
-                className="w-fit"
-                StartIcon="plus"
-                color="minimal"
-                href="/settings/organizations/attributes/create">
-                {t("add")}
-              </Button>
-            </>
-          ) : (
-            <div className="flex w-full flex-col items-center justify-center p-14">
-              <div className="bg-emphasis text-emphasis flex h-16 w-16 items-center justify-center rounded-full p-2">
-                <Icon name="loader" />
-              </div>
-              <h2 className="font-cal text-emphasis mt-6 text-xl font-semibold leading-none">
-                {t("add_attributes")}
-              </h2>
-
-              <p className="text-emphasis mt-3 text-sm font-normal leading-none">
-                {t("add_attributes_description")}
-              </p>
-              <Button
-                className="mt-8"
-                StartIcon="plus"
-                color="secondary"
-                href="/settings/organizations/attributes/create">
-                {t("new_attribute")}
-              </Button>
+    <LicenseRequired>
+      <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
+        {data && data?.length > 0 ? (
+          <>
+            <h2 className="text-emphasis text-base font-semibold leading-none">{t("custom")}</h2>
+            <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
+              {data?.map((attribute) => (
+                <AttributeItem
+                  setAttributeToDelete={setAttributeToDelete}
+                  attribute={attribute}
+                  key={attribute.id}
+                />
+              ))}
+            </li>
+            <Button
+              className="w-fit"
+              StartIcon="plus"
+              color="minimal"
+              href="/settings/organizations/attributes/create">
+              {t("add")}
+            </Button>
+          </>
+        ) : (
+          <div className="flex w-full flex-col items-center justify-center p-14">
+            <div className="bg-emphasis text-emphasis flex h-16 w-16 items-center justify-center rounded-full p-2">
+              <Icon name="tags" />
             </div>
-          )}
-        </div>
-        {attributeToDelete && (
-          <DeleteAttributeModal
-            attributeToDelete={attributeToDelete}
-            setAttributeToDelete={setAttributeToDelete}
-          />
-        )}
-      </LicenseRequired>
-    </>
-  );
-}
+            <h2 className="font-cal text-emphasis mt-6 text-xl font-semibold leading-none">
+              {t("add_attributes")}
+            </h2>
 
-function ListAttributeHeader() {
-  const { meta } = useMeta();
-  const { t } = useLocale();
-
-  return (
-    <>
-      <div className="min-h-6 mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
-        <div className="flex items-center gap-4 ">
-          <div className="flex flex-col space-y-1 ">
-            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">
-              {meta.title || t("attributes")}
-            </h1>
-            <p className="text-subtle text-sm">{meta.description || t("attribute_meta_description")}</p>
+            <p className="text-emphasis mt-3 text-sm font-normal leading-none">
+              {t("add_attributes_description")}
+            </p>
+            <Button
+              className="mt-8"
+              StartIcon="plus"
+              color="secondary"
+              href="/settings/organizations/attributes/create">
+              {t("new_attribute")}
+            </Button>
           </div>
-        </div>
+        )}
       </div>
-    </>
+      {attributeToDelete && (
+        <DeleteAttributeModal
+          attributeToDelete={attributeToDelete}
+          setAttributeToDelete={setAttributeToDelete}
+        />
+      )}
+    </LicenseRequired>
   );
-}
-
-export function getLayout(page: React.ReactElement) {
-  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 export default OrganizationAttributesPage;

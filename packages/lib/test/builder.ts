@@ -3,6 +3,7 @@ import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@pri
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
+import { CreationSource } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
@@ -76,6 +77,7 @@ export const buildBooking = (
     ratingFeedback: null,
     attendees: [],
     oneTimePassword: null,
+    creationSource: CreationSource.WEBAPP,
     ...booking,
   };
 };
@@ -88,6 +90,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    instantMeetingParameters: [],
     instantMeetingExpiryTimeOffsetInSeconds: 90,
     instantMeetingScheduleId: null,
     locations: null,
@@ -108,6 +111,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     recurringEvent: null,
     lockTimeZoneToggleOnBookingPage: false,
     requiresConfirmation: false,
+    requiresConfirmationForFreeEmail: false,
     requiresConfirmationWillBlockSlot: false,
     disableGuests: false,
     hideCalendarNotes: false,
@@ -120,6 +124,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     seatsPerTimeSlot: null,
     seatsShowAttendees: null,
     seatsShowAvailabilityCount: null,
+    maxLeadThreshold: null,
     schedulingType: null,
     scheduleId: null,
     bookingLimits: null,
@@ -138,6 +143,11 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     secondaryEmailId: null,
     isRRWeightsEnabled: false,
     eventTypeColor: null,
+    assignRRMembersUsingSegment: false,
+    rrSegmentQueryValue: null,
+    autoTranslateDescriptionEnabled: false,
+    useEventLevelSelectedCalendars: false,
+    allowReschedulingPastBookings: false,
     ...eventType,
   };
 };

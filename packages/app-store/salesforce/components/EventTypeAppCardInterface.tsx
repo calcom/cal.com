@@ -26,6 +26,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
   const roundRobinSkipCheckRecordOn =
     getAppData("roundRobinSkipCheckRecordOn") ?? SalesforceRecordEnum.CONTACT;
+  const ifFreeEmailDomainSkipOwnerCheck = getAppData("ifFreeEmailDomainSkipOwnerCheck") ?? false;
   const isSkipContactCreationEnabled = getAppData("skipContactCreation");
   const createLeadIfAccountNull = getAppData("createLeadIfAccountNull");
   const createNewContactUnderAccount = getAppData("createNewContactUnderAccount");
@@ -39,6 +40,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const sendNoShowAttendeeDataField = getAppData("sendNoShowAttendeeDataField") ?? "";
   const onBookingWriteToRecord = getAppData("onBookingWriteToRecord") ?? false;
   const onBookingWriteToRecordFields = getAppData("onBookingWriteToRecordFields") ?? {};
+  const ignoreGuests = getAppData("ignoreGuests") ?? false;
 
   const { t } = useLocale();
 
@@ -54,6 +56,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const fieldTypeOptions = [
     { label: t("text"), value: SalesforceFieldType.TEXT },
     { label: t("date"), value: SalesforceFieldType.DATE },
+    { label: t("phone").charAt(0).toUpperCase() + t("phone").slice(1), value: SalesforceFieldType.PHONE },
+    { label: t("custom"), value: SalesforceFieldType.CUSTOM },
   ];
 
   const [writeToPersonObjectFieldType, setWriteToPersonObjectFieldType] = useState(fieldTypeOptions[0]);
@@ -93,6 +97,20 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
     value: "",
   });
 
+  // Used when creating events under leads or contacts under account
+  const CreateContactUnderAccount = () => {
+    return (
+      <Switch
+        label={t("salesforce_create_new_contact_under_account")}
+        labelOnLeading
+        checked={createNewContactUnderAccount}
+        onCheckedChange={(checked) => {
+          setAppData("createNewContactUnderAccount", checked);
+        }}
+      />
+    );
+  };
+
   return (
     <AppCard
       returnTo={`${WEBAPP_URL}${pathname}?tabName=apps`}
@@ -120,6 +138,16 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             }}
           />
         </div>
+        <div className="mb-4">
+          <Switch
+            label={t("salesforce_ignore_guests")}
+            labelOnLeading
+            checked={ignoreGuests}
+            onCheckedChange={(checked) => {
+              setAppData("ignoreGuests", checked);
+            }}
+          />
+        </div>
         {createEventOnSelectedOption.value === SalesforceRecordEnum.CONTACT ? (
           <div>
             <Switch
@@ -142,19 +170,15 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 setAppData("createEventOnLeadCheckForContact", checked);
               }}
             />
+            <div className="mt-4">
+              <CreateContactUnderAccount />
+            </div>
           </div>
         ) : null}
         {createEventOnSelectedOption.value === SalesforceRecordEnum.ACCOUNT ? (
           <>
             <div className="mb-4">
-              <Switch
-                label={t("salesforce_create_new_contact_under_account")}
-                labelOnLeading
-                checked={createNewContactUnderAccount}
-                onCheckedChange={(checked) => {
-                  setAppData("createNewContactUnderAccount", checked);
-                }}
-              />
+              <CreateContactUnderAccount />
             </div>
             <div>
               <Switch
@@ -475,22 +499,34 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               }}
             />
             {isRoundRobinLeadSkipEnabled ? (
-              <div className="my-4 ml-2">
-                <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
-                  {t("salesforce_check_owner_of")}
-                </label>
-                <Select
-                  className="mt-2 w-60"
-                  options={checkOwnerOptions}
-                  value={checkOwnerSelectedOption}
-                  onChange={(e) => {
-                    if (e) {
-                      setCheckOwnerSelectedOption(e);
-                      setAppData("roundRobinSkipCheckRecordOn", e.value);
-                    }
-                  }}
-                />
-              </div>
+              <>
+                <div className="my-4 ml-2">
+                  <label className="text-emphasis mb-2 align-text-top text-sm font-medium">
+                    {t("salesforce_check_owner_of")}
+                  </label>
+                  <Select
+                    className="mt-2 w-60"
+                    options={checkOwnerOptions}
+                    value={checkOwnerSelectedOption}
+                    onChange={(e) => {
+                      if (e) {
+                        setCheckOwnerSelectedOption(e);
+                        setAppData("roundRobinSkipCheckRecordOn", e.value);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="my-4">
+                  <Switch
+                    label={t("salesforce_if_free_email_domain_skip_owner_check")}
+                    labelOnLeading
+                    checked={ifFreeEmailDomainSkipOwnerCheck}
+                    onCheckedChange={(checked) => {
+                      setAppData("ifFreeEmailDomainSkipOwnerCheck", checked);
+                    }}
+                  />
+                </div>
+              </>
             ) : null}
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>

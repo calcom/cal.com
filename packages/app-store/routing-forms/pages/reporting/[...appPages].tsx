@@ -22,7 +22,10 @@ import { Button, showToast } from "@calcom/ui";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import "../../components/react-awesome-query-builder/styles.css";
+import {
+  withRaqbSettingsAndWidgets,
+  ConfigFor,
+} from "../../components/react-awesome-query-builder/config/uiConfig";
 import type { JsonLogicQuery } from "../../jsonLogicToPrisma";
 import {
   getQueryBuilderConfigForFormFields,
@@ -250,7 +253,10 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
   return (
     <div className="cal-query-builder">
       <Query
-        {...(config as unknown as Config)}
+        {...withRaqbSettingsAndWidgets({
+          config,
+          configFor: ConfigFor.FormFields,
+        })}
         value={query.state.tree}
         onChange={(immutableTree, config) => {
           onChange(immutableTree, config as unknown as FormFieldsQueryBuilderConfigWithRaqbFields);

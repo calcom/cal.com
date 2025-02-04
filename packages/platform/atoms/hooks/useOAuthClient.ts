@@ -26,11 +26,11 @@ export const useOAuthClient = ({
   const prevClientId = usePrevious(clientId);
   const [isInit, setIsInit] = useState<boolean>(false);
   useEffect(() => {
-    if (apiUrl && http.getUrl() !== apiUrl) {
+    if (apiUrl) {
       http.setUrl(apiUrl);
       setIsInit(true);
     }
-    if (refreshUrl && http.getRefreshUrl() !== refreshUrl) {
+    if (refreshUrl) {
       http.setRefreshUrl(refreshUrl);
     }
   }, [apiUrl, refreshUrl]);

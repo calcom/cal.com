@@ -1,0 +1,50 @@
+name: Draft release
+run-name: Draft release ${{ inputs.next_version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      next_version:
+        required: true
+        type: string
+        description: 'Version name'
+
+permissions:
+  contents: write
+
+jobs:
+  draft_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: 'main'
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+      - uses: ./.github/actions/yarn-install
+
+      - name: Bump version
+        run: |
+          cd apps/web
+          yarn version ${{ inputs.next_version }}
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "chore: release v${{ inputs.next_version }}"
+          git push
+
+      - name: Draft release
+        run: gh release create v$VERSION --generate-notes --draft
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.next_version }}

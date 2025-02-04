@@ -39,7 +39,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         {...props}
         sideOffset={sideOffset}
         className={classNames(
-          "shadow-dropdown w-50 bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
+          "shadow-dropdown bg-default border-subtle relative z-10 ml-1.5 origin-top-right rounded-md border text-sm",
           "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1",
           props.className
         )}

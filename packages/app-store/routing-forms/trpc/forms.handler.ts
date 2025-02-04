@@ -31,7 +31,7 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
         position: "desc",
       },
       {
-        createdAt: "asc",
+        createdAt: "desc",
       },
     ],
     include: {

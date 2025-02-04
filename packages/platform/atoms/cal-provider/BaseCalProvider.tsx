@@ -154,6 +154,7 @@ export function BaseCalProvider({
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
         organizationId: organizationId || stateOrgId || me?.data.organizationId || 0,
         userId: me?.data.id,
+        isEmbed,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
@@ -173,6 +174,7 @@ export function BaseCalProvider({
         isRefreshing: false,
         ...translations,
         organizationId: 0,
+        isEmbed: false,
       }}>
       <>
         <TooltipProvider>{children}</TooltipProvider>

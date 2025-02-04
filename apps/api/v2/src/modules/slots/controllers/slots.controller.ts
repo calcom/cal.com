@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { SlotsOutputService } from "@/modules/slots/services/slots-output.service";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags, ApiCreatedResponse, ApiOkResponse, ApiOperation } from "@nestjs/swagger";
@@ -16,7 +17,10 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 })
 @DocsTags("Slots")
 export class SlotsController {
-  constructor(private readonly slotsService: SlotsService) {}
+  constructor(
+    private readonly slotsService: SlotsService,
+    private readonly slotsOutputService: SlotsOutputService
+  ) {}
 
   @Post("/reserve")
   @ApiCreatedResponse({
@@ -89,9 +93,31 @@ export class SlotsController {
                 type: "array",
                 items: {
                   type: "object",
-                  properties: {
-                    time: { type: "string", format: "date-time", example: "2024-09-25T08:00:00.000Z" },
-                  },
+                  oneOf: [
+                    {
+                      properties: {
+                        time: {
+                          type: "string",
+                          format: "date-time",
+                          example: "2024-09-25T08:00:00.000Z",
+                        },
+                      },
+                    },
+                    {
+                      properties: {
+                        startTime: {
+                          type: "string",
+                          format: "date-time",
+                          example: "2024-09-25T08:00:00.000Z",
+                        },
+                        endTime: {
+                          type: "string",
+                          format: "date-time",
+                          example: "2024-09-25T08:30:00.000Z",
+                        },
+                      },
+                    },
+                  ],
                 },
               },
             },
@@ -102,11 +128,18 @@ export class SlotsController {
         status: "success",
         data: {
           slots: {
+            // Default format (when slotFormat is 'time' or not provided)
             "2024-09-25": [{ time: "2024-09-25T08:00:00.000Z" }, { time: "2024-09-25T08:15:00.000Z" }],
+            // Alternative format (when slotFormat is 'range')
             "2024-09-26": [
-              { time: "2024-09-26T08:00:00.000Z" },
-              { time: "2024-09-26T08:15:00.000Z" },
-              { time: "2024-09-26T08:30:00.000Z" },
+              {
+                startTime: "2024-09-26T08:00:00.000Z",
+                endTime: "2024-09-26T08:30:00.000Z",
+              },
+              {
+                startTime: "2024-09-26T08:15:00.000Z",
+                endTime: "2024-09-26T08:45:00.000Z",
+              },
             ],
           },
         },
@@ -129,8 +162,18 @@ export class SlotsController {
       },
     });
 
+    const { slots } = await this.slotsOutputService.getOutputSlots(
+      availableSlots,
+      query.duration,
+      query.eventTypeId,
+      query.slotFormat,
+      query.timeZone
+    );
+
     return {
-      data: availableSlots,
+      data: {
+        slots,
+      },
       status: SUCCESS_STATUS,
     };
   }

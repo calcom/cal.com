@@ -5,7 +5,7 @@ import { MarkAbsentBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/out
 import { ReassignBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reassign-booking.output";
 import { RescheduleBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/reschedule-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
-import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
+import { VERSION_2024_08_13_VALUE, VERSION_2024_08_13 } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -65,6 +65,7 @@ import {
 @ApiHeader({
   name: "cal-api-version",
   description: `Must be set to \`2024-08-13\``,
+  example: VERSION_2024_08_13,
   required: true,
 })
 export class BookingsController_2024_08_13 {
@@ -191,7 +192,12 @@ export class BookingsController_2024_08_13 {
   @Post("/:bookingUid/cancel")
   @UseGuards(BookingUidGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Cancel a booking" })
+  @ApiOperation({
+    summary: "Cancel a booking",
+    description: `:bookingUid can be :bookingUid of an usual booking, individual recurrence or recurring booking to cancel all recurrences.
+    For seated bookings to cancel one individual booking provide :bookingUid and :seatUid in the request body. For recurring seated bookings it is not possible to cancel all of them with 1 call
+    like with non-seated recurring bookings by providing recurring bookind uid - you have to cancel each recurrence booking by its bookingUid + seatUid.`,
+  })
   async cancelBooking(
     @Req() request: Request,
     @Param("bookingUid") bookingUid: string,

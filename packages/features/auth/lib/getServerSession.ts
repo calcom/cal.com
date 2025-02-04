@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
+import type { GetServerSidePropsContext, NextApiRequest } from "next";
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
@@ -30,7 +30,6 @@ const CACHE = new LRUCache<string, Session>({ max: 1000 });
  */
 export async function getServerSession(options: {
   req: NextApiRequest | GetServerSidePropsContext["req"];
-  res?: NextApiResponse | GetServerSidePropsContext["res"];
   authOptions?: AuthOptions;
 }) {
   const { req, authOptions: { secret } = {} } = options;
@@ -54,10 +53,10 @@ export async function getServerSession(options: {
     return cachedSession;
   }
 
+  const email = token.email.toLowerCase();
+
   const userFromDb = await prisma.user.findUnique({
-    where: {
-      email: token.email.toLowerCase(),
-    },
+    where: { email },
   });
 
   if (!userFromDb) {

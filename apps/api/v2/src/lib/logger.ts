@@ -1,6 +1,6 @@
 import { WinstonTransport as AxiomTransport } from "@axiomhq/winston";
 import type { LoggerOptions } from "winston";
-import { format, transports as Transports } from "winston";
+import { format, transports as Transports, config } from "winston";
 import type Transport from "winston-transport";
 
 const formattedTimestamp = format.timestamp({
@@ -8,14 +8,7 @@ const formattedTimestamp = format.timestamp({
 });
 
 const colorizer = format.colorize({
-  colors: {
-    fatal: "red",
-    error: "red",
-    warn: "yellow",
-    info: "blue",
-    debug: "white",
-    trace: "grey",
-  },
+  colors: config.npm.colors,
 });
 
 const WINSTON_DEV_FORMAT = format.combine(
@@ -26,14 +19,7 @@ const WINSTON_DEV_FORMAT = format.combine(
 );
 const WINSTON_PROD_FORMAT = format.combine(format.errors({ stack: true }), formattedTimestamp, format.json());
 
-export const logLevels = {
-  fatal: 0,
-  error: 1,
-  warn: 2,
-  info: 3,
-  debug: 4,
-  trace: 5,
-} as const;
+export const logLevels = config.npm.levels;
 
 export const loggerConfig = (): LoggerOptions => {
   const isProduction = process.env.NODE_ENV === "production";
