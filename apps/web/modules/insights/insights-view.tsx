@@ -19,7 +19,6 @@ import {
   HighestRatedMembersTable,
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
@@ -28,13 +27,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage() {
   return (
-    <FiltersProvider>
-      <DataTableProvider>
-        <InsightsOrgTeamsProvider>
-          <InsightsPageContent />
-        </InsightsOrgTeamsProvider>
-      </DataTableProvider>
-    </FiltersProvider>
+    <DataTableProvider>
+      <InsightsOrgTeamsProvider>
+        <InsightsPageContent />
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
   );
 }
 

@@ -14,19 +14,16 @@ import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
 
 export type OrgTeamsType = "org" | "team" | "yours";
 
-// This is a clone of TeamAndSelfList, but without useFilterContext().
-// It's meant to be used in the RoutingFormResponsesTable.
 export const OrgTeamsFilter = () => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
-  const currentUserId = session.data?.user.id;
   const currentUserName = session.data?.user.name;
 
   const [query, setQuery] = useState<string>("");
 
-  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
+  const { data } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
     trpc: {
