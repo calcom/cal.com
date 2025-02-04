@@ -108,6 +108,7 @@
   "accept_license": "Godkänn licens",
   "still_waiting_for_approval": "En bokning väntar fortfarande på godkännande",
   "event_is_still_waiting": "Bokningsförfrågan väntar fortfarande: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Inga resultat hittades för \"{{searchTerm}}\"",
   "no_more_results": "Inga fler resultat",
   "no_results": "Inga resultat",
   "load_more_results": "Hämta fler resultat",
