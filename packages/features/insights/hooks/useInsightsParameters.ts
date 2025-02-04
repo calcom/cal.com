@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-import dayjs from "@calcom/dayjs";
 import {
   useFilterValue,
   useColumnFilters,
@@ -8,6 +7,12 @@ import {
   ZSingleSelectFilterValue,
   ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
+import {
+  getDefaultStartDate,
+  getDefaultEndDate,
+  CUSTOM_PRESET_VALUE,
+  type PresetOptionValue,
+} from "@calcom/features/data-table/lib/dateRange";
 
 import { useInsightsOrgTeams } from "./useInsightsOrgTeams";
 
@@ -17,16 +22,21 @@ export function useInsightsParameters() {
   const memberUserIds = useFilterValue("bookingUserId", ZMultiSelectFilterValue)?.data as
     | number[]
     | undefined;
+  const memberUserId = useFilterValue("bookingUserId", ZSingleSelectFilterValue)?.data as number | undefined;
   const routingFormId = useFilterValue("formId", ZSingleSelectFilterValue)?.data as string | undefined;
   const createdAtRange = useFilterValue("createdAt", ZDateRangeFilterValue)?.data;
   const startDate = useMemo(
-    () => createdAtRange?.startDate ?? dayjs().subtract(1, "week").startOf("day").toISOString(),
+    () => createdAtRange?.startDate ?? getDefaultStartDate().toISOString(),
     [createdAtRange?.startDate]
   );
   const endDate = useMemo(
-    () => createdAtRange?.endDate ?? dayjs().endOf("day").toISOString(),
+    () => createdAtRange?.endDate ?? getDefaultEndDate().toISOString(),
     [createdAtRange?.endDate]
   );
+  const dateRangePreset = useMemo<PresetOptionValue>(() => {
+    return (createdAtRange?.preset as PresetOptionValue) ?? CUSTOM_PRESET_VALUE;
+  }, [createdAtRange?.preset]);
+
   const columnFilters = useColumnFilters({ exclude: ["bookingUserId", "formId", "createdAt"] });
 
   return {
@@ -34,9 +44,11 @@ export function useInsightsParameters() {
     teamId,
     userId,
     memberUserIds,
+    memberUserId,
     routingFormId,
     startDate,
     endDate,
+    dateRangePreset,
     columnFilters,
   };
 }

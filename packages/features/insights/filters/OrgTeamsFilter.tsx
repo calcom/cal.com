@@ -16,7 +16,7 @@ export type OrgTeamsType = "org" | "team" | "yours";
 
 // This is a clone of TeamAndSelfList, but without useFilterContext().
 // It's meant to be used in the RoutingFormResponsesTable.
-export const OrgTeamsFilter = ({ showOrg }: { showOrg: boolean }) => {
+export const OrgTeamsFilter = () => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
   const session = useSession();

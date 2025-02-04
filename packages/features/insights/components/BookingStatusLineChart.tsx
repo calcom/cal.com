@@ -1,10 +1,10 @@
 import { Title } from "@tremor/react";
+import { useMemo } from "react";
 
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
 import { LineChart } from "./LineChart";
@@ -12,21 +12,17 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const BookingStatusLineChart = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
-  const {
-    selectedTeamId,
-    selectedUserId,
-    selectedTimeView = "week",
-    dateRange,
-    selectedEventTypeId,
-    isAll,
-    initialConfig,
-  } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const [startDate, endDate] = dateRange;
+  const { isAll, teamId, userId, startDate, endDate, dateRangePreset } = useInsightsParameters();
 
-  if (!startDate || !endDate) return null;
+  const selectedTimeView = useMemo(() => {
+    if (dateRangePreset === "tdy") return "day";
+    else if (dateRangePreset === "w") return "week";
+    else if (dateRangePreset === "m") return "month";
+    else if (dateRangePreset === "y") return "year";
+    else return "week";
+  }, [dateRangePreset]);
 
+  // TODO: Add eventTypeId
   const {
     data: eventsTimeLine,
     isSuccess,
@@ -34,11 +30,11 @@ export const BookingStatusLineChart = () => {
   } = trpc.viewer.insights.eventsTimeline.useQuery(
     {
       timeView: selectedTimeView,
-      startDate: dayjs.utc(startDate).toISOString(),
-      endDate: dayjs.utc(endDate).toISOString(),
-      teamId: selectedTeamId ?? undefined,
-      eventTypeId: selectedEventTypeId ?? undefined,
-      userId: selectedUserId ?? undefined,
+      startDate,
+      endDate,
+      teamId,
+      eventTypeId: undefined,
+      userId,
       isAll,
     },
     {
@@ -46,7 +42,6 @@ export const BookingStatusLineChart = () => {
       trpc: {
         context: { skipBatch: true },
       },
-      enabled: initialConfigIsReady,
     }
   );
 

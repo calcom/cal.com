@@ -4,29 +4,24 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { CardInsights } from "./Card";
 import { KPICard } from "./KPICard";
 
 export const BookingKPICards = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
+  const { startDate, endDate, teamId, userId, isAll, memberUserId } = useInsightsParameters();
 
-  const { dateRange, selectedEventTypeId, selectedUserId, selectedMemberUserId, isAll, initialConfig } =
-    filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const [startDate, endDate] = dateRange;
-
-  const { selectedTeamId: teamId } = filter;
-
+  // TODO: eventTypeId is missing
+  // TODO: support multiple member user ids
   const { data, isSuccess, isPending } = trpc.viewer.insights.eventsByStatus.useQuery(
     {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       teamId,
-      eventTypeId: selectedEventTypeId ?? undefined,
-      memberUserId: selectedMemberUserId ?? undefined,
-      userId: selectedUserId ?? undefined,
+      eventTypeId: undefined,
+      memberUserId,
+      userId,
       isAll,
     },
     {
@@ -34,7 +29,6 @@ export const BookingKPICards = () => {
       trpc: {
         context: { skipBatch: true },
       },
-      enabled: initialConfigIsReady,
     }
   );
 
@@ -88,7 +82,7 @@ export const BookingKPICards = () => {
     return <LoadingKPICards categories={categories} />;
   }
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
+  if (!isSuccess || !data) return null;
 
   return (
     <>

@@ -995,10 +995,6 @@ export const insightsRouter = router({
       const user = ctx.user;
       const { teamId, isAll } = input;
 
-      if (!teamId) {
-        return [];
-      }
-
       if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
           where: {
@@ -1014,6 +1010,10 @@ export const insightsRouter = router({
           distinct: ["userId"],
         });
         return usersInTeam.map((membership) => membership.user);
+      }
+
+      if (!teamId) {
+        return [];
       }
 
       const membership = await ctx.insightsDb.membership.findFirst({
