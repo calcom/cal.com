@@ -27,11 +27,10 @@ export const Router = React.memo(
     onExternalRedirect,
     onDisplayBookerEmbed,
     renderMessage,
-    bookerBannerUrl,
-    bookerCustomClassNames,
     onSubmitFormStart,
     onSubmitFormEnd,
     renderLoader,
+    bookerProps,
   }: {
     formId: string;
     formResponsesURLParams?: URLSearchParams;
@@ -40,9 +39,25 @@ export const Router = React.memo(
     onSubmitFormStart?: () => void;
     onSubmitFormEnd?: () => void;
     renderMessage?: (message?: string) => ReactElement | ReactElement[];
+    bookerProps?: Pick<
+      BookerPlatformWrapperAtomPropsForTeam,
+      | "customClassNames"
+      | "bannerUrl"
+      | "onCreateBookingSuccess"
+      | "onCreateBookingError"
+      | "onCreateRecurringBookingSuccess"
+      | "onCreateRecurringBookingError"
+      | "onReserveSlotSuccess"
+      | "onReserveSlotError"
+      | "onDeleteSlotSuccess"
+      | "onDeleteSlotError"
+      | "view"
+      | "onDryRunSuccess"
+      | "hostsLimit"
+      | "metadata"
+      | "handleCreateBooking"
+    >;
     renderLoader?: (isLoading?: boolean) => ReactElement | ReactElement[];
-    bookerBannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
-    bookerCustomClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
   }) => {
     const [isLoading, setIsLoading] = useState<boolean>();
     const [routerUrl, setRouterUrl] = useState<string>();
@@ -103,13 +118,7 @@ export const Router = React.memo(
       if (redirectParams.get("cal.action") === "eventTypeRedirectUrl") {
         // display booker with redirect URL
         onDisplayBookerEmbed?.();
-        return (
-          <BookerEmbed
-            routingFormUrl={routerUrl}
-            customClassNames={bookerCustomClassNames}
-            bannerUrl={bookerBannerUrl}
-          />
-        );
+        return <BookerEmbed routingFormUrl={routerUrl} {...bookerProps} />;
       } else if (redirectParams.get("cal.action") === "externalRedirectUrl") {
         onExternalRedirect?.();
         window.location.href = routerUrl;
