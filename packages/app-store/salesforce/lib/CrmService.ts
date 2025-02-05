@@ -187,7 +187,7 @@ export default class SalesforceCRMService implements CRM {
     const writeToEventRecord = await this.generateWriteToEventBody(event);
     log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
-    let ownerId = null;
+    let ownerId: string | null = null;
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
