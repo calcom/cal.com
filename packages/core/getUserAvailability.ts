@@ -22,7 +22,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimitUnit } from "@calcom/types/Calendar";
 import type { TimeRange } from "@calcom/types/schedule";
@@ -541,7 +542,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       },
     }));
 
-  const datesOutOfOffice: IOutOfOfficeData = await calculateOutOfOfficeRanges(outOfOfficeDays, availability);
+  const datesOutOfOffice: IOutOfOfficeData = calculateOutOfOfficeRanges(outOfOfficeDays, availability);
 
   const { dateRanges, oooExcludedDateRanges } = buildDateRanges({
     dateFrom,
@@ -628,17 +629,15 @@ export interface IOutOfOfficeData {
   };
 }
 
-const calculateOutOfOfficeRanges = async (
+const calculateOutOfOfficeRanges = (
   outOfOfficeDays: GetUserAvailabilityInitialData["outOfOfficeDays"],
   availability: GetUserAvailabilityParamsDTO["availability"]
-): Promise<IOutOfOfficeData> => {
+): IOutOfOfficeData => {
   if (!outOfOfficeDays || outOfOfficeDays.length === 0) {
     return {};
   }
 
-  const acc: IOutOfOfficeData = {};
-
-  for (const { start, end, toUser, user, reason } of outOfOfficeDays) {
+  return outOfOfficeDays.reduce((acc: IOutOfOfficeData, { start, end, toUser, user, reason }) => {
     // here we should use startDate or today if start is before today
     // consider timezone in start and end date range
     const startDateRange = dayjs(start).utc().isBefore(dayjs().startOf("day").utc())
@@ -659,27 +658,19 @@ const calculateOutOfOfficeRanges = async (
         continue; // Skip to the next iteration if day not found in flattenDays
       }
 
-      const enrichedToUser = toUser ? await UserRepository.enrichUserWithItsProfile({ user: toUser }) : null;
-
       acc[date.format("YYYY-MM-DD")] = {
         // @TODO:  would be good having start and end availability time here, but for now should be good
         // you can obtain that from user availability defined outside of here
         fromUser: { id: user.id, displayName: user.name },
         // optional chaining destructuring toUser
-        ...(!!enrichedToUser && {
-          toUser: {
-            id: enrichedToUser.id,
-            username: enrichedToUser.username,
-            displayName: enrichedToUser.name,
-          },
-        }),
+        toUser: !!toUser ? { id: toUser.id, displayName: toUser.name, username: toUser.username } : null,
         reason: !!reason ? reason.reason : null,
         emoji: !!reason ? reason.emoji : null,
       };
     }
-  }
 
-  return acc;
+    return acc;
+  }, {});
 };
 
 type GetUsersAvailabilityProps = {
