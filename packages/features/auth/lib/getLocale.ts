@@ -5,6 +5,8 @@ import { getToken } from "next-auth/jwt";
 import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { type ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore Disabled as the following does not correctly infer the type.
 import { i18n } from "@calcom/config/next-i18next.config";
 
 /**
