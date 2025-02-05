@@ -35,14 +35,6 @@ type UserWithSelectedCalendars<TSelectedCalendar extends { eventTypeId: number |
   allSelectedCalendars: TSelectedCalendar[];
 };
 
-const safeEventTypeSelect = {
-  id: true,
-  minimumBookingNotice: true,
-  periodType: true,
-  periodDays: true,
-  periodStartDate: true,
-};
-
 type HostWithLegacySelectedCalendars<
   TSelectedCalendar extends { eventTypeId: number | null },
   THost,
