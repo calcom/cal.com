@@ -14,6 +14,7 @@ import logger from "@calcom/lib/logger";
 import { usernameHandler, type RequestWithUsernameStatus } from "@calcom/lib/server/username";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import { prisma } from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
@@ -199,6 +200,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
           stripeCustomerId: customer.id,
           checkoutSessionId,
         },
+        creationSource: CreationSource.WEBAPP,
       },
     });
     if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
