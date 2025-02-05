@@ -233,7 +233,7 @@ export default function NavigationItemDemo() {
                 icon: "clock",
               }}
             />
-            <div className="mt-8" />
+            <div className="mt-auto" />
             <NavigationItem
               item={{
                 name: "Help",
