@@ -2952,5 +2952,9 @@
   "desc": "Zostupne",
   "verify_email": "Overiť email",
   "verify_email_change": "Overiť zmenu e-mailu",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Odstrániť históriu rezervácií",
+  "delete_history_description": "Ste si istí, že to chcete odstrániť z histórie rezervácií?",
+  "unable_to_delete_booking": "Nie je možné odstrániť rezerváciu",
+  "booking_delete_successfully": "Rezervácia bola úspešne odstránená"
 }

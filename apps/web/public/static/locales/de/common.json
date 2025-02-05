@@ -2952,5 +2952,9 @@
   "desc": "Absteigend",
   "verify_email": "E-Mail verifizieren",
   "verify_email_change": "E-Mail-Änderung bestätigen",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Buchungshistorie löschen",
+  "delete_history_description": "Sind Sie sicher, dass Sie dies aus Ihrer Buchungshistorie löschen möchten?",
+  "unable_to_delete_booking": "Buchung konnte nicht gelöscht werden",
+  "booking_delete_successfully": "Buchung erfolgreich gelöscht"
 }

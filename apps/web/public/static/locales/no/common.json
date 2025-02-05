@@ -2952,5 +2952,9 @@
   "desc": "Synkende",
   "verify_email": "Bekreft e-post",
   "verify_email_change": "Bekreft endring av e-post",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Slett bestillingshistorikk",
+  "delete_history_description": "Er du sikker på at du vil slette dette fra din bestillingshistorikk?",
+  "unable_to_delete_booking": "Kan ikke slette bestillingen",
+  "booking_delete_successfully": "Bestillingen ble slettet"
 }

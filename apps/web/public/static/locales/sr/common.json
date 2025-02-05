@@ -2952,5 +2952,9 @@
   "desc": "Opadajuće",
   "verify_email": "Potvrdi email",
   "verify_email_change": "Potvrdi promenu email adrese",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Избришите историју резервација",
+  "delete_history_description": "Да ли сте сигурни да желите да избришете ово из своје историје резервација?",
+  "unable_to_delete_booking": "Nije moguće obrisati rezervaciju",
+  "booking_delete_successfully": "Rezervacija je uspešno obrisana"
 }

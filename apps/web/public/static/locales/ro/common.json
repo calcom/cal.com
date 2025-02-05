@@ -2952,5 +2952,9 @@
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
   "verify_email_change": "Verifică schimbarea adresei de email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Șterge istoricul rezervărilor",
+  "delete_history_description": "Ești sigur că vrei să ștergi acest lucru din istoricul tău de rezervări?",
+  "unable_to_delete_booking": "Nu s-a putut șterge rezervarea",
+  "booking_delete_successfully": "Rezervarea a fost ștearsă cu succes"
 }

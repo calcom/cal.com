@@ -2952,5 +2952,10 @@
   "desc": "降順",
   "verify_email": "メールアドレスを確認",
   "verify_email_change": "メールアドレスの変更を確認",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "予約履歴を削除",
+  "delete_history_description": "予約履歴からこれを削除してもよろしいですか？",
+  "unable_to_delete_booking": "予約を削除できません",
+  "booking_delete_successfully": "予約が正常に削除されました"
+
 }

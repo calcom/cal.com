@@ -2952,5 +2952,9 @@
   "desc": "Aflopend",
   "verify_email": "E-mail verifiëren",
   "verify_email_change": "Verifieer e-mailwijziging",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Boekingsgeschiedenis verwijderen",
+  "delete_history_description": "Weet je zeker dat je dit uit je boekingsgeschiedenis wilt verwijderen?",
+  "unable_to_delete_booking": "Kan reservering niet verwijderen",
+  "booking_delete_successfully": "Reservering succesvol verwijderd"
 }

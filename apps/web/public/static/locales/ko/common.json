@@ -2952,5 +2952,9 @@
   "desc": "내림차순",
   "verify_email": "이메일 인증",
   "verify_email_change": "이메일 변경 확인",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "예약 기록 삭제",
+  "delete_history_description": "예약 기록에서 이것을 삭제하시겠습니까?",
+  "unable_to_delete_booking": "예약을 삭제할 수 없습니다",
+  "booking_delete_successfully": "예약이 성공적으로 삭제되었습니다"
 }

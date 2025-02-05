@@ -2952,5 +2952,9 @@
   "desc": "Sestupně",
   "verify_email": "Ověřit e-mail",
   "verify_email_change": "Ověřit změnu e-mailu",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Smazat historii rezervací",
+  "delete_history_description": "Jste si jistý, že to chcete smazat ze své historie rezervací?",
+  "unable_to_delete_booking": "Nelze smazat rezervaci",
+  "booking_delete_successfully": "Rezervace byla úspěšně smazána"
 }

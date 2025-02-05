@@ -2952,5 +2952,9 @@
   "desc": "За спаданням",
   "verify_email": "Підтвердити email",
   "verify_email_change": "Підтвердити зміну електронної пошти",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Видалити історію бронювань",
+  "delete_history_description": "Ви впевнені, що хочете видалити це з історії бронювань?",
+  "unable_to_delete_booking": "Не вдалося видалити бронювання",
+  "booking_delete_successfully": "Бронювання успішно видалено"
 }

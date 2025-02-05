@@ -2952,5 +2952,9 @@
   "desc": "Csökkenő",
   "verify_email": "E-mail megerősítése",
   "verify_email_change": "E-mail-cím módosításának megerősítése",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Foglalási előzmények törlése",
+  "delete_history_description": "Biztosan törölni szeretné ezt a foglalási előzményeiből?",
+  "unable_to_delete_booking": "Nem sikerült törölni a foglalást",
+  "booking_delete_successfully": "A foglalás sikeresen törölve"
 }

@@ -2952,5 +2952,9 @@
   "desc": "Kahanev",
   "verify_email": "Kinnita e-post",
   "verify_email_change": "Kinnita e-posti aadressi muutmine",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Kustuta broneeringute ajalugu",
+  "delete_history_description": "Kas olete kindel, et soovite selle oma broneeringu ajaloost kustutada?",
+  "unable_to_delete_booking": "Broneeringu kustutamine ebaõnnestus",
+  "booking_delete_successfully": "Broneering on edukalt kustutatud"
 }

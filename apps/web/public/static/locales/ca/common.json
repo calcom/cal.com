@@ -2952,5 +2952,9 @@
   "desc": "Desc",
   "verify_email": "Verifica el correu",
   "verify_email_change": "Verifica el canvi de correu electrònic",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Esborrar historial de reserves",
+  "delete_history_description": "Estàs segur que vols eliminar això del teu historial de reserves?",
+  "unable_to_delete_booking": "No es pot eliminar la reserva",
+  "booking_delete_successfully": "Reserva eliminada amb èxit"
 }

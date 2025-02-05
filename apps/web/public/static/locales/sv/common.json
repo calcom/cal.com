@@ -2952,5 +2952,9 @@
   "desc": "Fallande",
   "verify_email": "Verifiera e-post",
   "verify_email_change": "Verifiera ändring av e-postadress",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Radera bokningshistorik",
+  "delete_history_description": "Är du säker på att du vill radera detta från din bokningshistorik?",
+  "unable_to_delete_booking": "Det går inte att ta bort bokningen",
+  "booking_delete_successfully": "Bokningen har tagits bort"
 }

@@ -2952,5 +2952,9 @@
   "desc": "По убыванию",
   "verify_email": "Подтвердить email",
   "verify_email_change": "Подтвердить изменение email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Удалить историю бронирований",
+  "delete_history_description": "Вы уверены, что хотите удалить это из своей истории бронирований?",
+  "unable_to_delete_booking": "Не удалось удалить бронирование",
+  "booking_delete_successfully": "Бронирование успешно удалено"
 }

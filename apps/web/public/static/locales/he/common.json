@@ -2952,5 +2952,10 @@
   "desc": "סדר יורד",
   "verify_email": "אימות אימייל",
   "verify_email_change": "אימות שינוי כתובת דוא\"ל",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "מחיקת היסטוריית הזמנות",
+  "delete_history_description": "האם אתה בטוח שברצונך למחוק זאת מהיסטוריית ההזמנות שלך?",
+  "unable_to_delete_booking": "לא ניתן למחוק את ההזמנה",
+  "booking_delete_successfully": "ההזמנה נמחקה בהצלחה"
+
 }

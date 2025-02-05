@@ -2952,5 +2952,9 @@
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
   "verify_email_change": "Потвърди промяната на имейл",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_history_title": "Изтриване на историята на резервации",
+  "delete_history_description": "Сигурни ли сте, че искате да изтриете това от вашата история на резервации?",
+  "unable_to_delete_booking": "Неуспешно изтриване на резервацията",
+  "booking_delete_successfully": "Резервацията е изтрита успешно"
 }
