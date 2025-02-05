@@ -421,8 +421,7 @@ export const getOptions = ({
   /** so we can extract the Dub cookie in both pages and app routers */
   getDubId: () => string | undefined;
 }): AuthOptions => ({
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error TODO: calcomAdapter misses properties, but obviously it works so.. ?
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
@@ -755,8 +754,7 @@ export const getOptions = ({
       }
       if (account?.provider) {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore-error TODO validate email_verified key on profile
+        // @ts-expect-error TODO validate email_verified key on profile
         user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
