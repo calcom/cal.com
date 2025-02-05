@@ -1,15 +1,18 @@
 import { cva } from "class-variance-authority";
-import Link from "next/link";
 import { Fragment } from "react";
 
 import { classNames } from "@calcom/lib";
 
+import { ButtonOrLink } from "../dropdown";
 import { Icon } from "../icon";
 import type { IconName } from "../icon";
 
 export type NavigationItemType = {
+  isLastChild?: boolean;
+  isExpanded?: boolean;
+  onToggle?: () => void;
   name: string;
-  href: string;
+  href?: string;
   isLoading?: boolean;
   badge?: React.ReactNode;
   icon?: IconName;
@@ -25,11 +28,11 @@ const navigationItemStyles = cva(
   {
     variants: {
       isChild: {
-        true: "[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 ml-16 lg:flex lg:ml-10 relative before:absolute before:left-[-24px] before:top-[-0.5rem] before:h-[calc(100%+0.5rem)] before:w-0.5 before:bg-subtle before:content-['']",
+        true: "[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 ml-16 lg:flex lg:ml-10 relative before:absolute before:left-[-24px] before:top-[-0.5rem] before:h-[calc(100%+0.5rem)] before:w-0.5 before:bg-subtle before:content-[''] [&:first-child]:before:rounded-t-full [&:last-child]:before:rounded-b-full",
         false: "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
       },
       hasChild: {
-        true: "[&[aria-current='page']]:!bg-transparent relative after:absolute after:left-[-24px] after:top-[1.75rem] after:h-[calc(100%-1.75rem)] after:w-0.5 after:bg-subtle after:content-['']",
+        true: "[&[aria-current='page']]:!bg-transparent relative after:absolute after:left-[-24px] after:top-[1.5rem] after:h-[calc(100%-1.5rem)] after:w-0.5 after:bg-subtle after:content-[''] [&:first-child]:after:rounded-t-full [&:last-child]:after:rounded-b-full",
         false: "[&[aria-current='page']]:bg-subtle",
       },
       isFirstChild: {
@@ -60,7 +63,7 @@ const NavigationItemComponent = ({
 }) => {
   return (
     <Fragment>
-      <Link
+      <ButtonOrLink
         data-test-id={item.name}
         href={item.href}
         className={navigationItemStyles({
@@ -68,7 +71,8 @@ const NavigationItemComponent = ({
           hasChild: !!item.child,
           isFirstChild: isChild && index === 0,
         })}
-        aria-current={item.isCurrent ? "page" : undefined}>
+        aria-current={item.isCurrent ? "page" : undefined}
+        onClick={item.onToggle}>
         {item.icon && (
           <Icon
             name={item.isLoading ? "rotate-cw" : item.icon}
@@ -84,9 +88,9 @@ const NavigationItemComponent = ({
           {item.name}
           {item.badge && item.badge}
         </span>
-      </Link>
+      </ButtonOrLink>
       {item.child &&
-        item.isCurrent &&
+        item.isExpanded &&
         item.child.map((childItem, childIndex) => (
           <NavigationItem key={childItem.name} item={childItem} isChild index={childIndex} />
         ))}
