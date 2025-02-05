@@ -187,7 +187,7 @@ export default class SalesforceCRMService implements CRM {
     const writeToEventRecord = await this.generateWriteToEventBody(event);
     log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
-    let ownerId: string | null = null;
+    let ownerId: string | undefined = undefined;
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
@@ -812,36 +812,44 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
 
-    if (!appOptions?.createEventOn) {
+    this.log.info(`Changing owner for record ${id}`);
+
+    const recordType = this.determineRecordTypeById(id);
+
+    if (!appOptions?.onBookingChangeRecordOwnerName) {
       this.log.warn(
-        `No appOptions.createEventOn found for ${this.integrationName} on checkRecordOwnerNameFromRecordId`
+        `No appOptions.onBookingChangeRecordOwnerName found for ${this.integrationName} on checkRecordOwnerNameFromRecordId`
       );
       return;
     }
 
     // Get the associated record that the event was created on
     const recordQuery = (await conn.query(
-      `SELECT OwnerId FROM ${appOptions.createEventOn} WHERE Id = '${id}'`
-    )) as { records: { OwnerId: string }[] };
+      `SELECT OwnerId, Owner.Name FROM ${recordType} WHERE Id = '${id}'`
+    )) as { records: { OwnerId: string; Owner: { Name: string } }[] };
 
-    if (!recordQuery || !recordQuery.records.length) return;
+    if (!recordQuery || !recordQuery.records.length) {
+      this.log.warn(`Could not find record for id ${id} and type ${recordType}`);
+    }
 
-    const ownerId = recordQuery.records[0].OwnerId;
+    const owner = recordQuery.records[0].Owner;
 
-    const ownerQuery = await this.getSalesforceUserFromUserId(ownerId);
+    if (!appOptions.onBookingChangeRecordOwnerName.includes(owner?.Name)) {
+      this.log.warn(
+        `Current owner name ${owner?.Name} for record ${id} does not match the option ${appOptions.onBookingChangeRecordOwnerName}`
+      );
+    }
 
-    if (!ownerQuery || !ownerQuery.records.length) return;
-
-    const owner = ownerQuery.records[0] as { Name: string };
-
-    // Check that the owner name matches the names where we need to change the organizer
-    if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
-      await conn.sobject(appOptions?.createEventOn).update({
+    await conn
+      .sobject(appOptions?.createEventOn)
+      .update({
         // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
+      })
+      .catch((error) => {
+        this.log.warn(`Error changing owner name with error ${JSON.stringify(error)}`);
       });
-    }
   }
 
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
