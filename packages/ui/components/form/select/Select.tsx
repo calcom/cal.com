@@ -14,7 +14,11 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
+> = Props<Option, IsMulti, Group> & {
+  variant?: "default" | "checkbox";
+  "data-testid"?: string;
+  size?: "sm" | "md";
+};
 
 export const Select = <
   Option,
@@ -23,6 +27,7 @@ export const Select = <
 >({
   components,
   variant = "default",
+  size = "md",
   ...props
 }: SelectProps<Option, IsMulti, Group> & {
   innerClassNames?: {
@@ -55,8 +60,8 @@ export const Select = <
       styles={{
         control: (base) => ({
           ...base,
-          minHeight: "36px",
-          height: "36px",
+          minHeight: size === "sm" ? "28px" : "36px",
+          height: size === "sm" ? "28px" : "36px",
         }),
       }}
       classNames={{
@@ -73,13 +78,15 @@ export const Select = <
         dropdownIndicator: () => "text-default",
         control: (state) =>
           cx(
-            inputStyles({ size: "md" }),
+            inputStyles({ size }),
             state.isMulti
               ? variant === "checkbox"
                 ? "px-3 h-fit"
                 : state.hasValue
                 ? "p-1 h-fit"
                 : "px-3 h-fit"
+              : size === "sm"
+              ? "h-7 px-2"
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-lg",

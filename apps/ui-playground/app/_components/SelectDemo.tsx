@@ -92,6 +92,15 @@ export default function SelectDemo() {
             onChange={(newValue) => setSingleValue(newValue)}
             isClearable
             placeholder="Choose a flavor..."
+            size="md"
+          />
+          <Select
+            options={options}
+            value={singleValue}
+            onChange={(newValue) => setSingleValue(newValue)}
+            isClearable
+            placeholder="Small size select... (small)"
+            size="sm"
           />
         </div>
       </DemoSubSection>
@@ -106,6 +115,15 @@ export default function SelectDemo() {
             isMulti
             isClearable
             placeholder="Choose multiple flavors..."
+          />
+          <Select
+            options={options}
+            value={multiValue}
+            onChange={(newValue) => setMultiValue(newValue as { value: string; label: string }[])}
+            isMulti
+            isClearable
+            placeholder="Choose multiple flavors... (small)"
+            size="sm"
           />
         </div>
       </DemoSubSection>
@@ -137,6 +155,26 @@ export default function SelectDemo() {
 
           <SelectField label="With Error" options={options} />
         </div>
+        <div className="mt-4 space-y-4 md:w-80">
+          <SelectField
+            label="Flavor"
+            options={options}
+            onChange={handleValueChange}
+            placeholder="Choose a flavor... (small)"
+            size="sm"
+          />
+
+          <SelectField
+            label="Required Field"
+            options={options}
+            required
+            onChange={handleValueChange}
+            placeholder="This field is required... (small)"
+            size="sm"
+          />
+
+          <SelectField label="With Error (small)" options={options} size="sm" />
+        </div>
       </DemoSubSection>
 
       {/* Async Select with Debounced Search */}
@@ -155,6 +193,21 @@ export default function SelectDemo() {
               inputValue ? "No countries found" : "Start typing to search..."
             }
             onChange={handleValueChange}
+          />
+          <Select
+            options={asyncOptions}
+            onInputChange={(value) => {
+              if (value) {
+                loadOptions(value);
+              }
+            }}
+            isLoading={isLoading}
+            placeholder="Search for a country... (small)"
+            noOptionsMessage={({ inputValue }) =>
+              inputValue ? "No countries found" : "Start typing to search..."
+            }
+            onChange={handleValueChange}
+            size="sm"
           />
         </div>
       </DemoSubSection>
