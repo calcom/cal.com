@@ -21,9 +21,15 @@ const inputBookingFieldTypes = [
   "boolean",
 ] as const;
 
-export class NameFieldInput_2024_06_14 {
+const inputBookingFieldSlugs = ["name", "email", "title", "notes", "guests"] as const;
+
+export class NameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty({ example: "name", description: "only allowed value for type is `name`" })
+  @DocsProperty({
+    example: "name",
+    description:
+      "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
+  })
   type!: "name";
 
   @IsString()
@@ -48,15 +54,69 @@ export class NameFieldInput_2024_06_14 {
   disableOnPrefill?: boolean;
 }
 
-export class EmailFieldInput_2024_06_14 {
+export class SplitNameDefaultFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
-  @DocsProperty({ example: "email", description: "only allowed value for type is `email`" })
+  @DocsProperty({
+    example: "splitName",
+    description:
+      "only allowed value for type is `splitName`. Used to have 2 booking fields - 1 for first name and 1 for last name.",
+  })
+  type!: "splitName";
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  firstNameLabel?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  firstNamePlaceholder?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  lastNameLabel?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  lastNamePlaceholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({ description: "First name field is required but last name field is not by default." })
+  lastNameRequired?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&firstName=bob&lastName=jones`,\
+      the first name and last name fields will be prefilled with this value and disabled. In case of Booker atom need to pass firstName and lastName to defaultFormValues prop or pass name prop but as a string containing name and surname.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class EmailDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldTypes)
+  @DocsProperty({
+    example: "email",
+    description: "only allowed value for type is `email`",
+  })
   type!: "email";
 
   @IsString()
   @IsOptional()
   @DocsProperty()
   label?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty()
+  required = true;
 
   @IsString()
   @IsOptional()
@@ -74,6 +134,170 @@ export class EmailFieldInput_2024_06_14 {
   })
   disableOnPrefill?: boolean;
 }
+
+export class TitleDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "title", description: "only allowed value for type is `title`" })
+  slug!: "title";
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&title=journey`,\
+      the title field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class NotesDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "notes", description: "only allowed value for type is `notes`" })
+  slug!: "notes";
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&notes=journey`,\
+      the notes field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class GuestsDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({ example: "guests", description: "only allowed value for type is `guests`" })
+  slug!: "guests";
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&guests=bob@cal.com`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
+export class RescheduleReasonDefaultFieldInput_2024_06_14 {
+  @IsIn(inputBookingFieldSlugs)
+  @DocsProperty({
+    example: "rescheduleReason",
+    description: "only allowed value for type is `rescheduleReason`",
+  })
+  slug!: "rescheduleReason";
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional()
+  required?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsPropertyOptional()
+  placeholder?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsPropertyOptional({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&rescheduleReason=travel`,\
+      the rescheduleReason field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill?: boolean;
+}
+
 export class PhoneFieldInput_2024_06_14 {
   @IsIn(inputBookingFieldTypes)
   @DocsProperty({ example: "phone", description: "only allowed value for type is `phone`" })
@@ -110,6 +334,14 @@ export class PhoneFieldInput_2024_06_14 {
       the phone field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class AddressFieldInput_2024_06_14 {
@@ -149,6 +381,14 @@ export class AddressFieldInput_2024_06_14 {
       the address field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class TextFieldInput_2024_06_14 {
@@ -188,6 +428,14 @@ export class TextFieldInput_2024_06_14 {
       the text field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class NumberFieldInput_2024_06_14 {
@@ -227,6 +475,14 @@ export class NumberFieldInput_2024_06_14 {
       the number field will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class TextAreaFieldInput_2024_06_14 {
@@ -266,6 +522,14 @@ export class TextAreaFieldInput_2024_06_14 {
       the text area will be prefilled with this value and disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class SelectFieldInput_2024_06_14 {
@@ -309,6 +573,14 @@ export class SelectFieldInput_2024_06_14 {
       the 'italian' will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class MultiSelectFieldInput_2024_06_14 {
@@ -346,6 +618,14 @@ export class MultiSelectFieldInput_2024_06_14 {
       the 'en' and 'it' will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class MultiEmailFieldInput_2024_06_14 {
@@ -385,6 +665,14 @@ export class MultiEmailFieldInput_2024_06_14 {
       the these emails will be added and none more can be added.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class CheckboxGroupFieldInput_2024_06_14 {
@@ -422,6 +710,14 @@ export class CheckboxGroupFieldInput_2024_06_14 {
       the checkbox will be selected and the checkbox field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class RadioGroupFieldInput_2024_06_14 {
@@ -459,6 +755,14 @@ export class RadioGroupFieldInput_2024_06_14 {
       the 'italian' radio buttom will be selected and the select field will be disabled.",
   })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
 export class BooleanFieldInput_2024_06_14 {
@@ -486,11 +790,27 @@ export class BooleanFieldInput_2024_06_14 {
   @IsOptional()
   @DocsPropertyOptional({ type: Boolean })
   disableOnPrefill?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden?: boolean;
 }
 
+type InputDefaultField_2024_06_14 =
+  | NameDefaultFieldInput_2024_06_14
+  | SplitNameDefaultFieldInput_2024_06_14
+  | EmailDefaultFieldInput_2024_06_14
+  | TitleDefaultFieldInput_2024_06_14
+  | NotesDefaultFieldInput_2024_06_14
+  | GuestsDefaultFieldInput_2024_06_14
+  | RescheduleReasonDefaultFieldInput_2024_06_14;
+
 export type InputBookingField_2024_06_14 =
-  | NameFieldInput_2024_06_14
-  | EmailFieldInput_2024_06_14
+  | InputDefaultField_2024_06_14
   | PhoneFieldInput_2024_06_14
   | AddressFieldInput_2024_06_14
   | TextFieldInput_2024_06_14
@@ -505,9 +825,14 @@ export type InputBookingField_2024_06_14 =
 
 @ValidatorConstraint({ async: true })
 class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
-  private classTypeMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
-    name: NameFieldInput_2024_06_14,
-    email: EmailFieldInput_2024_06_14,
+  private classMap: { [key: string]: new () => InputBookingField_2024_06_14 } = {
+    name: NameDefaultFieldInput_2024_06_14,
+    splitName: SplitNameDefaultFieldInput_2024_06_14,
+    email: EmailDefaultFieldInput_2024_06_14,
+    title: TitleDefaultFieldInput_2024_06_14,
+    notes: NotesDefaultFieldInput_2024_06_14,
+    guests: GuestsDefaultFieldInput_2024_06_14,
+    rescheduleReason: RescheduleReasonDefaultFieldInput_2024_06_14,
     phone: PhoneFieldInput_2024_06_14,
     address: AddressFieldInput_2024_06_14,
     text: TextFieldInput_2024_06_14,
@@ -521,8 +846,6 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     boolean: BooleanFieldInput_2024_06_14,
   };
 
-  private reservedSystemSlugs = ["location", "rescheduleReason", "attendeePhoneNumber"];
-
   async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
       throw new BadRequestException(`'bookingFields' must be an array.`);
@@ -535,20 +858,19 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
     const slugs: string[] = [];
     for (const field of bookingFields) {
       const { type, slug } = field;
-      if (!type) {
-        throw new BadRequestException(`Each booking field must have a 'type' property.`);
-      }
+      const fieldNeedsType =
+        slug !== "title" && slug !== "notes" && slug !== "guests" && slug !== "rescheduleReason";
 
-      const notSystemEditableField = type !== "name" && type !== "email";
-      if (notSystemEditableField && !slug) {
-        throw new BadRequestException(`Each booking field must have a 'slug' property.`);
-      }
-
-      if (this.reservedSystemSlugs.includes(slug)) {
+      if (fieldNeedsType && !type) {
         throw new BadRequestException(
-          `The slug '${slug}' is reserved and cannot be used, because it is a slug of a default booking field. Reserved slugs are: ${this.reservedSystemSlugs.join(
-            ", "
-          )}`
+          `All booking fields except ones with slug equal to title, notes, guests and rescheduleReason must have a 'type' property.`
+        );
+      }
+
+      const fieldNeedsSlug = type !== "name" && type !== "splitName" && type !== "email";
+      if (fieldNeedsSlug && !slug) {
+        throw new BadRequestException(
+          `Each booking field except ones with type equal to name and email must have a 'slug' property.`
         );
       }
 
@@ -557,13 +879,15 @@ class InputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterf
           `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
         );
       }
-      if (notSystemEditableField) {
+      if (fieldNeedsSlug) {
         slugs.push(slug);
       }
 
-      const ClassType = this.classTypeMap[type];
+      const ClassType = type ? this.classMap[type] : this.classMap[slug];
       if (!ClassType) {
-        throw new BadRequestException(`Unsupported booking field type '${type}'.`);
+        throw new BadRequestException(
+          type ? `Unsupported booking field type '${type}'.` : `Unsupported booking field slug '${slug}'.`
+        );
       }
 
       const instance = plainToInstance(ClassType, field);
@@ -593,4 +917,52 @@ export function ValidateInputBookingFields_2024_06_14(validationOptions?: Valida
       validator: new InputBookingFieldValidator_2024_06_14(),
     });
   };
+}
+
+function isDefaultField(field: InputBookingField_2024_06_14): field is InputDefaultField_2024_06_14 {
+  if (
+    isDefaultNameField(field) ||
+    isDefaultEmailField(field) ||
+    isDefaultTitleField(field) ||
+    isDefaultNotesField(field) ||
+    isDefaultGuestsField(field) ||
+    isDefaultRescheduleReasonField(field)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function isDefaultNameField(field: InputBookingField_2024_06_14): field is NameDefaultFieldInput_2024_06_14 {
+  return ("type" in field && field.type === "name") || ("slug" in field && field.slug === "name");
+}
+
+function isDefaultEmailField(
+  field: InputBookingField_2024_06_14
+): field is EmailDefaultFieldInput_2024_06_14 {
+  return ("type" in field && field.type === "email") || ("slug" in field && field.slug === "email");
+}
+
+function isDefaultTitleField(
+  field: InputBookingField_2024_06_14
+): field is TitleDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "title";
+}
+
+function isDefaultNotesField(
+  field: InputBookingField_2024_06_14
+): field is NotesDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "notes";
+}
+
+function isDefaultGuestsField(
+  field: InputBookingField_2024_06_14
+): field is GuestsDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "guests";
+}
+
+function isDefaultRescheduleReasonField(
+  field: InputBookingField_2024_06_14
+): field is RescheduleReasonDefaultFieldInput_2024_06_14 {
+  return "slug" in field && field.slug === "rescheduleReason";
 }

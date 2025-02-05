@@ -1,6 +1,5 @@
 import { CreatePhoneCallInput } from "@/ee/event-types/event-types_2024_06_14/inputs/create-phone-call.input";
 import { CreatePhoneCallOutput } from "@/ee/event-types/event-types_2024_06_14/outputs/create-phone-call.output";
-import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -11,15 +10,15 @@ import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-a
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { CreateTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/create-team-event-type.output";
-import { DeleteTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/delete-team-event-type.output";
-import { GetTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-type.output";
-import { GetTeamEventTypesOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/get-team-event-types.output";
-import { UpdateTeamEventTypeOutput } from "@/modules/organizations/controllers/event-types/outputs/teams/update-team-event-type.output";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { DatabaseTeamEventType } from "@/modules/organizations/services/event-types/output.service";
+import { CreateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/create-team-event-type.output";
+import { DeleteTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/delete-team-event-type.output";
+import { GetTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/get-team-event-type.output";
+import { GetTeamEventTypesOutput } from "@/modules/teams/event-types/outputs/get-team-event-types.output";
+import { UpdateTeamEventTypeOutput } from "@/modules/teams/event-types/outputs/update-team-event-type.output";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -62,7 +61,6 @@ export class OrganizationsEventTypesController {
   constructor(
     private readonly organizationsEventTypesService: OrganizationsEventTypesService,
     private readonly inputService: InputOrganizationsEventTypesService,
-    private readonly inputUserEventTypesService: InputEventTypesService_2024_06_14,
     private readonly outputTeamEventTypesResponsePipe: OutputTeamEventTypesResponsePipe
   ) {}
 
@@ -151,10 +149,14 @@ export class OrganizationsEventTypesController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
-    const { eventSlug } = queryParams;
+    const { eventSlug, hostsLimit } = queryParams;
 
     if (eventSlug) {
-      const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+      const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(
+        teamId,
+        eventSlug,
+        hostsLimit
+      );
 
       return {
         status: SUCCESS_STATUS,
@@ -180,7 +182,11 @@ export class OrganizationsEventTypesController {
     @Query() queryParams: SkipTakePagination
   ): Promise<GetTeamEventTypesOutput> {
     const { skip, take } = queryParams;
-    const eventTypes = await this.organizationsEventTypesService.getTeamsEventTypes(orgId, skip, take);
+    const eventTypes = await this.organizationsEventTypesService.getOrganizationsTeamsEventTypes(
+      orgId,
+      skip,
+      take
+    );
 
     return {
       status: SUCCESS_STATUS,

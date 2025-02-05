@@ -1,8 +1,8 @@
 import { makeWhereClause } from "@calcom/features/data-table/lib/server";
+import { ColumnFilterType } from "@calcom/features/data-table/lib/types";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -16,9 +16,25 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
+const isAllString = (array: (string | number)[]): array is string[] => {
+  return array.every((value) => typeof value === "string");
+};
+function getUserConditions(oAuthClientId?: string) {
+  if (!!oAuthClientId) {
+    return {
+      platformOAuthClients: {
+        some: { id: oAuthClientId },
+      },
+      isPlatformManaged: true,
+    };
+  }
+  return { isPlatformManaged: false };
+}
+
 export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
   const organizationId = ctx.user.organizationId ?? ctx.user.profiles[0].organizationId;
   const searchTerm = input.searchTerm;
+  const oAuthClientId = input.oAuthClientId;
   const expand = input.expand;
   const filters = input.filters || [];
 
@@ -63,13 +79,16 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
 
   const getTotalMembers = await prisma.membership.count({
     where: {
+      user: {
+        ...getUserConditions(oAuthClientId),
+      },
       teamId: organizationId,
     },
   });
 
-  const whereClause = {
+  let whereClause: Prisma.MembershipWhereInput = {
     user: {
-      isPlatformManaged: false,
+      ...getUserConditions(oAuthClientId),
     },
     teamId: organizationId,
     ...(searchTerm && {
@@ -77,31 +96,36 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
         OR: [{ email: { contains: searchTerm } }, { username: { contains: searchTerm } }],
       },
     }),
-  } as Prisma.MembershipWhereInput;
+  };
 
   filters.forEach((filter) => {
     switch (filter.id) {
       case "role":
-        whereClause.role = { in: filter.value as MembershipRole[] };
+        whereClause = {
+          ...whereClause,
+          ...makeWhereClause({
+            columnName: "role",
+            filterValue: filter.value,
+          }),
+        };
         break;
       case "teams":
         whereClause.user = {
           teams: {
             some: {
-              team: {
-                name: {
-                  in: filter.value as string[],
-                },
-              },
+              team: makeWhereClause({
+                columnName: "name",
+                filterValue: filter.value,
+              }),
             },
           },
         };
         break;
       // We assume that if the filter is not one of the above, it must be an attribute filter
       default:
-        const attributeOptionValues: string[] = [];
-        if (filter.value instanceof Array) {
-          filter.value.forEach((filterValueItem) => {
+        if (filter.value.type === ColumnFilterType.MULTI_SELECT && isAllString(filter.value.data)) {
+          const attributeOptionValues: string[] = [];
+          filter.value.data.forEach((filterValueItem) => {
             attributeOptionValues.push(filterValueItem);
             groupOptionsWithContainsOptionValues.forEach((groupOption) => {
               if (groupOption.contains.find(({ value: containValue }) => containValue === filterValueItem)) {
@@ -109,6 +133,8 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               }
             });
           });
+
+          filter.value.data = attributeOptionValues;
         }
 
         whereClause.AttributeToUser = {
@@ -117,10 +143,10 @@ export const listMembersHandler = async ({ ctx, input }: GetOptions) => {
               attribute: {
                 id: filter.id,
               },
-              ...makeWhereClause(
-                "value",
-                attributeOptionValues.length > 0 ? attributeOptionValues : filter.value
-              ),
+              ...makeWhereClause({
+                columnName: "value",
+                filterValue: filter.value,
+              }),
             },
           },
         };

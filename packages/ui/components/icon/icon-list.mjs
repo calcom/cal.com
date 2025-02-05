@@ -13,6 +13,7 @@ export const lucideIconList = new Set([
   "badge-check",
   "ban",
   "bell",
+  "binary",
   "blocks",
   "bold",
   "book-open-check",
@@ -54,6 +55,7 @@ export const lucideIconList = new Set([
   "corner-down-left",
   "corner-down-right",
   "credit-card",
+  "disc",
   "dot",
   "download",
   "ellipsis-vertical",
@@ -139,4 +141,7 @@ export const lucideIconList = new Set([
   "zap",
   "waypoints",
   "chevrons-down-up",
+  "chevrons-up-down",
+  "sliders-horizontal",
+  "calendar-range",
 ]);

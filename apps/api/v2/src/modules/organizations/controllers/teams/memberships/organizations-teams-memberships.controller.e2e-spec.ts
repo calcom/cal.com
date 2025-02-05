@@ -17,6 +17,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -44,11 +45,10 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let membership2: Membership;
     let membershipCreatedViaApi: OrgTeamMembershipOutputDto;
 
-    const userEmail = "org-admin-membership-teams-controller-e2e@api.com";
-    const userEmail2 = "org-member-membership-teams-controller-e2e@api.com";
-    const nonOrgUserEmail = "non-org-member-membership-teams-controller-e2e@api.com";
-
-    const invitedUserEmail = "org-member-invited-membership-teams-controller-e2e@api.com";
+    const userEmail = `organizations-teams-memberships-admin-${randomString()}@api.com`;
+    const userEmail2 = `organizations-teams-memberships-member-${randomString()}@api.com`;
+    const nonOrgUserEmail = `organizations-teams-memberships-non-org-${randomString()}@api.com`;
+    const invitedUserEmail = `organizations-teams-memberships-invited-${randomString()}@api.com`;
 
     let user: User;
     let user2: User;
@@ -92,12 +92,12 @@ describe("Organizations Teams Memberships Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-memberships-organization-${randomString()}`,
         isOrganization: true,
       });
 
       orgTeam = await teamsRepositoryFixture.create({
-        name: "Org Team",
+        name: `organizations-teams-memberships-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -129,7 +129,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       });
 
       nonOrgTeam = await teamsRepositoryFixture.create({
-        name: "Non Org Team",
+        name: `organizations-teams-memberships-non-org-team-${randomString()}`,
         isOrganization: false,
       });
 

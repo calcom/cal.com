@@ -1,35 +1,22 @@
 "use client";
 
+import { DataTableProvider } from "@calcom/features/data-table";
 import {
-  FailedBookingsByField,
   RoutingFormResponsesTable,
-  RoutingKPICards,
+  FailedBookingsByField,
   RoutedToPerPeriod,
 } from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
-import { RoutingInsightsFilters } from "@calcom/features/insights/filters/routing/FilterBar";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import InsightsLayout from "./layout";
-
-export default function InsightsPage() {
+export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
 
   return (
-    <InsightsLayout>
-      <FiltersProvider>
+    <DataTableProvider>
+      <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
-          <RoutingFormResponsesTable>
-            {/* We now render the "filters and KPI as a children of the table but we still need to pass the table instance to it so we can access column status in the toolbar.*/}
-            {(table) => (
-              <div className="header mb-4">
-                <div className="flex items-center justify-between">
-                  <RoutingInsightsFilters table={table} />
-                </div>
-                <RoutingKPICards />
-              </div>
-            )}
-          </RoutingFormResponsesTable>
+          <RoutingFormResponsesTable />
 
           <RoutedToPerPeriod />
 
@@ -45,7 +32,7 @@ export default function InsightsPage() {
             </a>
           </small>
         </div>
-      </FiltersProvider>
-    </InsightsLayout>
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
   );
 }

@@ -485,6 +485,15 @@ Don't code but still want to contribute? Join our [Discussions](https://github.c
 
 - Set CSP_POLICY="non-strict" env variable, which enables [Strict CSP](https://web.dev/strict-csp/) except for unsafe-inline in style-src . If you have some custom changes in your instance, you might have to make some code change to make your instance CSP compatible. Right now it enables strict CSP only on login page and on other SSR pages it is enabled in Report only mode to detect possible issues. On, SSG pages it is still not supported.
 
+## Single Org Mode
+If you want to have booker.yourcompany.com to be the domain used for both dashboard(e.g. https://booker.yourcompany.com/event-types) and booking pages(e.g. https://booker.yourcompany.com/john.joe/15min).
+- Set the `NEXT_PUBLIC_SINGLE_ORG_SLUG` environment variable to the slug of the organization you want to use. `NEXT_PUBLIC_SINGLE_ORG_SLUG=booker`
+- Set the `NEXT_PUBLIC_WEBAPP_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBAPP_URL=https://booker.yourcompany.com`.
+- Set the `NEXT_PUBLIC_WEBSITE_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXT_PUBLIC_WEBSITE_URL=https://booker.yourcompany.com`.
+- Set the `NEXTAUTH_URL` environment variable to the URL of the Cal.com self-hosted instance e.g. `NEXTAUTH_URL=https://booker.yourcompany.com`.
+
+Note: It causes root to serve the dashboard and not the organization profile page which shows all bookable users in the organization.
+
 ## Integrations
 
 ### Obtaining the Google API Credentials

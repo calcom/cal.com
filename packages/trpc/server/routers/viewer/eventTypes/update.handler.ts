@@ -15,6 +15,7 @@ import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType, EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
+import { eventTypeAppMetadataOptionalSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,7 +36,7 @@ type User = {
   profile: {
     id: SessionUser["profile"]["id"] | null;
   };
-  selectedCalendars: SessionUser["selectedCalendars"];
+  userLevelSelectedCalendars: SessionUser["userLevelSelectedCalendars"];
   organizationId: number | null;
   locale: string;
 };
@@ -382,8 +383,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  for (const appKey in input.metadata?.apps) {
-    const app = input.metadata?.apps[appKey as keyof typeof appDataSchemas];
+  const apps = eventTypeAppMetadataOptionalSchema.parse(input.metadata?.apps);
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof appDataSchemas];
     // There should only be one enabled payment app in the metadata
     if (app.enabled && app.price && app.currency) {
       data.price = app.price;

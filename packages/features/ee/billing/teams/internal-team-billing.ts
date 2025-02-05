@@ -161,4 +161,10 @@ export class InternalTeamBilling implements TeamBilling {
       paymentRequired: false,
     };
   }
+  /** Used to check if the current team plan is active */
+  async checkIfTeamHasActivePlan() {
+    const { subscriptionId } = this.team.metadata;
+    if (!subscriptionId) return false;
+    return await billing.checkIfTeamHasActivePlan(subscriptionId);
+  }
 }
