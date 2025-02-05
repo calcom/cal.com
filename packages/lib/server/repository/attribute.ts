@@ -1,37 +1,6 @@
 import prisma from "@calcom/prisma";
 
 export class AttributeRepository {
-  static async getAttributeWithEnabledWeights({ organizationId }: { organizationId: number }) {
-    return await prisma.attribute.findFirst({
-      where: {
-        teamId: organizationId,
-        isWeightsEnabled: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        type: true,
-        options: {
-          select: {
-            id: true,
-            value: true,
-            slug: true,
-            assignedUsers: {
-              select: {
-                member: {
-                  select: {
-                    userId: true,
-                  },
-                },
-                weight: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
   static async findManyByNamesAndOrgIdIncludeOptions({
     attributeNames,
     orgId,
