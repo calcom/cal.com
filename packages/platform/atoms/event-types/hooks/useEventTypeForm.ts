@@ -20,7 +20,6 @@ import { validateIntervalLimitOrder } from "@calcom/lib";
 import { locationsResolver } from "@calcom/lib/event-types/utils/locationsResolver";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
-import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields as eventTypeBookingFieldsSchema } from "@calcom/prisma/zod-utils";
 
 type Fields = z.infer<typeof eventTypeBookingFieldsSchema>;
@@ -63,6 +62,7 @@ export const useEventTypeForm = ({
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
+      instantMeetingParameters: eventType.instantMeetingParameters || [],
       instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
@@ -87,8 +87,10 @@ export const useEventTypeForm = ({
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
       requiresConfirmationWillBlockSlot: eventType.requiresConfirmationWillBlockSlot,
+      requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      allowReschedulingPastBookings: eventType.allowReschedulingPastBookings,
       metadata: eventType.metadata,
       hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
@@ -109,8 +111,11 @@ export const useEventTypeForm = ({
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      autoTranslateDescriptionEnabled: eventType.autoTranslateDescriptionEnabled,
       rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      assignRRMembersUsingSegment: eventType.assignRRMembersUsingSegment,
+      rrSegmentQueryValue: eventType.rrSegmentQueryValue,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
         enabled: eventType.aiPhoneCallConfig?.enabled,
@@ -124,6 +129,8 @@ export const useEventTypeForm = ({
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+      maxLeadThreshold: eventType.maxLeadThreshold,
+      useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
     };
   }, [eventType, periodDates]);
 
@@ -183,6 +190,7 @@ export const useEventTypeForm = ({
   };
 
   const getDirtyFields = (values: FormValues): Partial<FormValues> => {
+    console.log("🚀 ~ getDirtyFields ~ values:", values);
     if (!isFormDirty) {
       return {};
     }
@@ -317,8 +325,7 @@ export const useEventTypeForm = ({
 
     // Prevent two payment apps to be enabled
     // Ok to cast type here because this metadata will be updated as the event type metadata
-    if (checkForMultiplePaymentApps(metadata as z.infer<typeof EventTypeMetaDataSchema>))
-      throw new Error(t("event_setup_multiple_payment_apps_error"));
+    if (checkForMultiplePaymentApps(metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
 
     if (metadata?.apps?.stripe?.paymentOption === "HOLD" && seatsPerTimeSlot) {
       throw new Error(t("seats_and_no_show_fee_error"));
@@ -363,6 +370,7 @@ export const useEventTypeForm = ({
     }, {}) as EventTypeUpdateInput;
 
     if (dirtyFieldExists) {
+      console.log("🚀 ~ handleSubmit ~ filteredPayload:", filteredPayload);
       onSubmit({ ...filteredPayload, id: eventType.id });
     }
   };

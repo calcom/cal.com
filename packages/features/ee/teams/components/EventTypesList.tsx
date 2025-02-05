@@ -1,7 +1,8 @@
 import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -93,7 +94,7 @@ export function EventTypesList({ table, teamId }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="link">{t("add_to_event_type")}</Button>
+          <DataTableSelectionBar.Button icon="link">{t("add_to_event_type")}</DataTableSelectionBar.Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>
@@ -108,7 +109,7 @@ export function EventTypesList({ table, teamId }: Props) {
 
                     if (events.length === 0 || !teamId) return null;
                     return (
-                      <>
+                      <Fragment key={teamId}>
                         {events.map((event) => {
                           const hosts = event.hosts;
                           const areAllUsersHostForEventType = selectedUsers.every((user) =>
@@ -143,7 +144,7 @@ export function EventTypesList({ table, teamId }: Props) {
                             />
                           );
                         })}
-                      </>
+                      </Fragment>
                     );
                   })}
               </CommandGroup>

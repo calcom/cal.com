@@ -17,11 +17,13 @@ export const RedirectToInstantMeetingModal = ({
   onGoBack,
   expiryTime,
   instantVideoMeetingUrl,
+  orgName,
 }: {
   bookingId: number;
   onGoBack: () => void;
   expiryTime?: Date;
   instantVideoMeetingUrl?: string;
+  orgName?: string | null;
 }) => {
   const { t } = useLocale();
   const [timeRemaining, setTimeRemaining] = useState(calculateTimeRemaining());
@@ -88,12 +90,12 @@ export const RedirectToInstantMeetingModal = ({
                   onGoBack();
                 }}
                 color="primary">
-                {t("go_back")}
+                {t("schedule_instead")}
               </Button>
             </div>
           ) : (
             <div className="text-center">
-              <p className="font-medium">{t("connecting_you_to_someone")}</p>
+              <p className="font-medium">{t("connecting_you_to_someone", { orgName })}</p>
               <p className="font-bold">{t("please_do_not_close_this_tab")}</p>
               <p className="mt-2 font-medium">
                 {t("please_schedule_future_call", {

@@ -5,6 +5,8 @@ import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunc
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { scheduleEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
 import { scheduleSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
+import emailRatingTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailRatingTemplate";
+import emailReminderTemplate from "@calcom/ee/workflows/lib/reminders/templates/emailReminderTemplate";
 import { scheduleWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
@@ -23,6 +25,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
+import { WorkflowTemplates } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus, MembershipRole, WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -848,3 +851,28 @@ export const getEventTypeWorkflows = async (
 
   return workflows.map((workflow) => ({ workflow }));
 };
+
+export function getEmailTemplateText(
+  template: WorkflowTemplates,
+  params: { locale: string; action: WorkflowActions; timeFormat: number | null }
+) {
+  const { locale, action } = params;
+
+  const timeFormat = getTimeFormatStringFromUserTimeFormat(params.timeFormat);
+
+  let { emailBody, emailSubject } = emailReminderTemplate(true, locale, action, timeFormat);
+
+  if (template === WorkflowTemplates.RATING) {
+    const ratingTemplate = emailRatingTemplate({
+      isEditingMode: true,
+      locale,
+      action,
+      timeFormat,
+    });
+
+    emailBody = ratingTemplate.emailBody;
+    emailSubject = ratingTemplate.emailSubject;
+  }
+
+  return { emailBody, emailSubject };
+}

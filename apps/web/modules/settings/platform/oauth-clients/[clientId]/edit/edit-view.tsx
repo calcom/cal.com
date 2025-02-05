@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
@@ -30,6 +31,7 @@ import {
 } from "../../../../../../../../packages/platform/utils/permissions";
 
 export default function EditOAuthClient() {
+  const { t } = useLocale();
   const router = useRouter();
   const params = useParams<{ clientId: string }>();
   const clientId = params?.clientId || "";
@@ -78,15 +80,15 @@ export default function EditOAuthClient() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title="OAuth client updation form" isPlatformUser={true}>
+        <Shell withoutSeo={true} title={t("oAuth_client_updation_form")} isPlatformUser={true}>
           <div className="m-2 md:mx-14 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
                 <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  OAuth client updation form
+                  {t("oAuth_client_updation_form")}
                 </h1>
                 <p className="text-default text-sm ltr:mr-4 rtl:ml-4">
-                  This is the form to edit an existing OAuth client
+                  {t("oAuth_client_updation_form_description")}
                 </p>
               </div>
             </div>
@@ -125,7 +127,12 @@ export default function EditOAuthClient() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell
+        withoutSeo={true}
+        isPlatformUser={true}
+        hideHeadingOnMobile
+        withoutMain={false}
+        SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

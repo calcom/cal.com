@@ -9,7 +9,7 @@ import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
 import type { Prisma } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
@@ -45,9 +45,11 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
   const eventEmitter = new EventEmitter();
   const requestList: Request[] = [];
 
-  const waitForRequestCount = (count: number) =>
-    new Promise<void>((resolve) => {
+  const waitForRequestCount = (count: number) => {
+    let resolved = false;
+    return new Promise<void>((resolve, reject) => {
       if (requestList.length === count) {
+        resolved = true;
         resolve();
         return;
       }
@@ -57,11 +59,18 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
           return;
         }
         eventEmitter.off("push", pushHandler);
+        resolved = true;
         resolve();
       };
 
       eventEmitter.on("push", pushHandler);
+      setTimeout(() => {
+        if (resolved) return;
+        // Timeout after 5 seconds
+        reject(new Error("Timeout waiting for webhook"));
+      }, 5000);
     });
+  };
 
   const server = createServer((req, res) => {
     const buffer: unknown[] = [];
@@ -139,7 +148,13 @@ export async function bookFirstEvent(page: Page) {
 
 export const bookTimeSlot = async (
   page: Page,
-  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+  opts?: {
+    name?: string;
+    email?: string;
+    title?: string;
+    attendeePhoneNumber?: string;
+    expectedStatusCode?: number;
+  }
 ) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
@@ -150,7 +165,10 @@ export const bookTimeSlot = async (
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
-  await page.press('[name="email"]', "Enter");
+  await submitAndWaitForResponse(page, "/api/book/event", {
+    action: () => page.locator('[name="email"]').press("Enter"),
+    expectedStatusCode: opts?.expectedStatusCode,
+  });
 };
 
 // Provide an standalone localize utility not managed by next-i18n
@@ -175,9 +193,35 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
   });
 };
 
+export async function setupManagedEvent({
+  users,
+  unlockedFields,
+}: {
+  users: Fixtures["users"];
+  unlockedFields?: Record<string, boolean>;
+}) {
+  const teamMateName = "teammate-1";
+  const teamEventTitle = "Managed";
+  const adminUser = await users.create(null, {
+    hasTeam: true,
+    teammates: [{ name: teamMateName }],
+    teamEventTitle,
+    teamEventSlug: "managed",
+    schedulingType: "MANAGED",
+    addManagedEventToTeamMates: true,
+    managedEventUnlockedFields: unlockedFields,
+  });
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const memberUser = users.get().find((u) => u.name === teamMateName)!;
+  const { team } = await adminUser.getFirstTeamMembership();
+  const managedEvent = await adminUser.getFirstTeamEvent(team.id, SchedulingType.MANAGED);
+  return { adminUser, memberUser, managedEvent, teamMateName, teamEventTitle, teamId: team.id };
+}
+
 export const createNewSeatedEventType = async (page: Page, args: { eventTitle: string }) => {
   const eventTitle = args.eventTitle;
   await createNewEventType(page, { eventTitle });
+  await page.waitForSelector('[data-testid="event-title"]');
   await page.locator('[data-testid="vertical-tab-event_advanced_tab_title"]').click();
   await page.locator('[data-testid="offer-seats-toggle"]').click();
   await page.locator('[data-testid="update-eventtype"]').click();
@@ -463,4 +507,58 @@ export async function confirmReschedule(page: Page, url = "/api/book/event") {
   await submitAndWaitForResponse(page, url, {
     action: () => page.locator('[data-testid="confirm-reschedule-button"]').click(),
   });
+}
+export async function confirmBooking(page: Page, url = "/api/book/event") {
+  await submitAndWaitForResponse(page, url, {
+    action: () => page.locator('[data-testid="confirm-book-button"]').click(),
+  });
+}
+
+export async function bookTeamEvent({
+  page,
+  team,
+  event,
+  teamMatesObj,
+  opts,
+}: {
+  page: Page;
+  team: {
+    slug: string | null;
+    name: string | null;
+  };
+  event: { slug: string; title: string; schedulingType: SchedulingType | null };
+  teamMatesObj?: { name: string }[];
+  opts?: { attendeePhoneNumber?: string };
+}) {
+  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
+  // So, we are using /team in the URL to access the team booking
+  // There are separate tests to verify that the next.config.js rewrites are working
+  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
+  await page.goto(`/team/${team.slug}/${event.slug}`);
+
+  await selectFirstAvailableTimeSlotNextMonth(page);
+  await bookTimeSlot(page, opts);
+  await expect(page.getByTestId("success-page")).toBeVisible();
+
+  // The title of the booking
+  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+
+    const isMatch = teamMatesObj?.some((teamMate) => {
+      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
+      return expectedTitle.trim() === bookingTitle?.trim();
+    });
+
+    expect(isMatch).toBe(true);
+  } else {
+    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
+    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
+  }
+  // The booker should be in the attendee list
+  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
+}
+
+export async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
+  await page.goto(`${url}`);
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }

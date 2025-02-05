@@ -9,8 +9,10 @@ import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
 import {
+  bookTeamEvent,
   bookTimeSlot,
   doOnOrgDomain,
+  expectPageToBeNotFound,
   selectFirstAvailableTimeSlotNextMonth,
   submitAndWaitForResponse,
   testName,
@@ -28,6 +30,8 @@ function getOrgOrigin(orgSlug: string | null) {
   orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
   return orgOrigin;
 }
+
+test.describe.configure({ mode: "parallel" });
 
 test.describe("Bookings", () => {
   test.afterEach(async ({ orgs, users, page }) => {
@@ -385,7 +389,7 @@ test.describe("Bookings", () => {
       });
     });
 
-    test("check SSR and OG ", async ({ page, users, orgs }) => {
+    test("check SSR and OG", async ({ page, users, orgs }) => {
       const name = "Test User";
       const org = await orgs.create({
         name: "TestOrg",
@@ -429,7 +433,7 @@ test.describe("Bookings", () => {
             "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
           );
           // Verify Organizer Name in the URL
-          expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+          expect(ogImage).toContain("meetingProfileName%3DTest%2BUser");
         }
       );
     });
@@ -527,6 +531,7 @@ test.describe("Bookings", () => {
       const { invitedUserEmail } = await inviteExistingUserToOrganization({
         page,
         organizationId: org.id,
+        organizationSlug: org.slug,
         user: userOutsideOrganization,
         usersFixture: users,
       });
@@ -602,55 +607,6 @@ async function bookUserEvent({
   await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
   // The booker should be in the attendee list
   await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
-}
-
-async function bookTeamEvent({
-  page,
-  team,
-  event,
-  teamMatesObj,
-  opts,
-}: {
-  page: Page;
-  team: {
-    slug: string | null;
-    name: string | null;
-  };
-  event: { slug: string; title: string; schedulingType: SchedulingType | null };
-  teamMatesObj?: { name: string }[];
-  opts?: { attendeePhoneNumber?: string };
-}) {
-  // Note that even though the default way to access a team booking in an organization is to not use /team in the URL, but it isn't testable with playwright as the rewrite is taken care of by Next.js config which can't handle on the fly org slug's handling
-  // So, we are using /team in the URL to access the team booking
-  // There are separate tests to verify that the next.config.js rewrites are working
-  // Also there are additional checkly tests that verify absolute e2e flow. They are in __checks__/organization.spec.ts
-  await page.goto(`/team/${team.slug}/${event.slug}`);
-
-  await selectFirstAvailableTimeSlotNextMonth(page);
-  await bookTimeSlot(page, opts);
-  await expect(page.getByTestId("success-page")).toBeVisible();
-
-  // The title of the booking
-  if (event.schedulingType === SchedulingType.ROUND_ROBIN && teamMatesObj) {
-    const bookingTitle = await page.getByTestId("booking-title").textContent();
-
-    const isMatch = teamMatesObj?.some((teamMate) => {
-      const expectedTitle = `${event.title} between ${teamMate.name} and ${testName}`;
-      return expectedTitle.trim() === bookingTitle?.trim();
-    });
-
-    expect(isMatch).toBe(true);
-  } else {
-    const BookingTitle = `${event.title} between ${team.name} and ${testName}`;
-    await expect(page.getByTestId("booking-title")).toHaveText(BookingTitle);
-  }
-  // The booker should be in the attendee list
-  await expect(page.getByTestId(`attendee-name-${testName}`)).toHaveText(testName);
-}
-
-async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
-  await page.goto(`${url}`);
-  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
 
 const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: number) => {

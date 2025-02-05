@@ -8,6 +8,7 @@ import type {
   ProviderProps,
 } from "react-awesome-query-builder";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button as CalButton, TextField, TextArea } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
@@ -224,6 +225,7 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
 }
 
 function Button({ config, type, label, onClick, readonly }: ButtonProps) {
+  const { t } = useLocale();
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
@@ -233,10 +235,10 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   let dataTestId = "";
   if (type === "addRule") {
-    label = config?.operators.__calReporting ? "Add Filter" : "Add rule";
+    label = config?.operators.__calReporting ? t("add_filter") : t("add_rule");
     dataTestId = "add-rule";
   } else if (type == "addGroup") {
-    label = "Add rule group";
+    label = t("add_rule_group");
     dataTestId = "add-rule-group";
   }
   return (

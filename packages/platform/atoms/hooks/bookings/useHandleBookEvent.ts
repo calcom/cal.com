@@ -1,12 +1,11 @@
+import { useBookerTime } from "@calcom/features/bookings/Booker/components/hooks/useBookerTime";
 import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import {
-  useTimePreferences,
-  mapBookingToMutationInput,
-  mapRecurringBookingToMutationInput,
-} from "@calcom/features/bookings/lib";
+import { setLastBookingResponse } from "@calcom/features/bookings/Booker/utils/lastBookingResponse";
+import { mapBookingToMutationInput, mapRecurringBookingToMutationInput } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import type { BookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import type { UseCreateBookingInput } from "./useCreateBooking";
@@ -25,6 +24,7 @@ type UseHandleBookingProps = {
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
   locationUrl?: string;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const useHandleBookEvent = ({
@@ -36,11 +36,12 @@ export const useHandleBookEvent = ({
   handleInstantBooking,
   handleRecBooking,
   locationUrl,
+  routingFormSearchParams,
 }: UseHandleBookingProps) => {
   const setFormValues = useBookerStore((state) => state.setFormValues);
-  const timeslot = useBookerStore((state) => state.selectedTimeslot);
+  const storeTimeSlot = useBookerStore((state) => state.selectedTimeslot);
   const duration = useBookerStore((state) => state.selectedDuration);
-  const { timezone } = useTimePreferences();
+  const { timezone } = useBookerTime();
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
   const rescheduledBy = useBookerStore((state) => state.rescheduledBy);
   const { t, i18n } = useLocale();
@@ -51,9 +52,12 @@ export const useHandleBookEvent = ({
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
   const orgSlug = useBookerStore((state) => state.org);
   const teamMemberEmail = useBookerStore((state) => state.teamMemberEmail);
+  const crmOwnerRecordType = useBookerStore((state) => state.crmOwnerRecordType);
+  const crmAppSlug = useBookerStore((state) => state.crmAppSlug);
 
-  const handleBookEvent = () => {
+  const handleBookEvent = (inputTimeSlot?: string) => {
     const values = bookingForm.getValues();
+    const timeslot = inputTimeSlot ?? storeTimeSlot;
     if (timeslot) {
       // Clears form values stored in store, so old values won't stick around.
       setFormValues({});
@@ -74,6 +78,8 @@ export const useHandleBookEvent = ({
         ? duration
         : event.data.length;
 
+      setLastBookingResponse(values.responses);
+
       const bookingInput = {
         values,
         duration: validDuration,
@@ -88,7 +94,10 @@ export const useHandleBookEvent = ({
         metadata: metadata,
         hashedLink,
         teamMemberEmail,
+        crmOwnerRecordType,
+        crmAppSlug,
         orgSlug: orgSlug ? orgSlug : undefined,
+        routingFormSearchParams,
       };
 
       if (isInstantMeeting) {

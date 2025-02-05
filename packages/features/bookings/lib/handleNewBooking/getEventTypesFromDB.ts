@@ -2,9 +2,14 @@ import type { LocationObject } from "@calcom/app-store/locations";
 import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
+import { withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, customInputSchema } from "@calcom/prisma/zod-utils";
+import {
+  EventTypeMetaDataSchema,
+  customInputSchema,
+  rrSegmentQueryValueSchema,
+} from "@calcom/prisma/zod-utils";
 
 export const getEventTypesFromDB = async (eventTypeId: number) => {
   const eventType = await prisma.eventType.findUniqueOrThrow({
@@ -52,7 +57,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       periodCountCalendarDays: true,
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
+      requiresConfirmationForFreeEmail: true,
       requiresBookerEmailVerification: true,
+      maxLeadThreshold: true,
       minimumBookingNotice: true,
       userId: true,
       price: true,
@@ -70,6 +77,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       isRRWeightsEnabled: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
       parentId: true,
       parent: {
         select: {
@@ -110,7 +119,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           priority: true,
           weight: true,
-          weightAdjustment: true,
+          createdAt: true,
           user: {
             select: {
               credentials: {
@@ -150,19 +159,32 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           email: true,
         },
       },
+      assignRRMembersUsingSegment: true,
+      rrSegmentQueryValue: true,
+      useEventLevelSelectedCalendars: true,
     },
   });
 
-  const { profile, ...restEventType } = eventType;
+  const { profile, hosts, users, ...restEventType } = eventType;
   const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
+
+  const hostsWithSelectedCalendars = hosts.map((host) => ({
+    ...host,
+    user: withSelectedCalendars(host.user),
+  }));
+
+  const usersWithSelectedCalendars = users.map((user) => withSelectedCalendars(user));
 
   return {
     ...restEventType,
+    hosts: hostsWithSelectedCalendars,
+    users: usersWithSelectedCalendars,
     metadata: EventTypeMetaDataSchema.parse(eventType?.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType?.recurringEvent),
     customInputs: customInputSchema.array().parse(eventType?.customInputs || []),
     locations: (eventType?.locations ?? []) as LocationObject[],
     bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent } || {}),
+    rrSegmentQueryValue: rrSegmentQueryValueSchema.parse(eventType.rrSegmentQueryValue) ?? null,
     isDynamic: false,
   };
 };

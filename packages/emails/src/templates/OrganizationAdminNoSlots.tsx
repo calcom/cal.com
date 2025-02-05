@@ -11,7 +11,9 @@ export type OrganizationAdminNoSlotsEmailInput = {
   user: string;
   slug: string;
   startTime: string;
+  endTime: string;
   editLink: string;
+  teamSlug: string;
 };
 
 export const OrganizationAdminNoSlotsEmail = (
@@ -33,14 +35,19 @@ export const OrganizationAdminNoSlotsEmail = (
           <br />
           <br />
           Please note: It has been brought to our attention that {props.user} has not had any availability
-          when a user has visited {props.user}/{props.slug}
+          when a user has visited {props.teamSlug}/{props.slug}.
+          <br />
+          Start time: {props.startTime}
+          <br />
+          End time: {props.endTime}
           <br />
           <br />
-          There’s a few reasons why this could be happening
+          There’s a few reasons why this could be happening:
           <br />
-          The user does not have any calendars connected
-          <br />
-          Their schedules attached to this event are not enabled
+          <ul>
+            <li>The user does not have any calendars connected</li>
+            <li>Their schedules attached to this event are not enabled</li>
+          </ul>
         </Trans>
       </p>
       <div style={{ marginTop: "3rem", marginBottom: "0.75rem" }}>

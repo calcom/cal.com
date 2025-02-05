@@ -43,29 +43,4 @@ export class GoogleMeetService {
 
     return googleMeetCredential;
   }
-
-  async disconnectGoogleMeetApp(userId: number) {
-    const googleMeet = await this.conferencingRepository.findGoogleMeet(userId);
-
-    if (!googleMeet) {
-      throw new BadRequestException("Google Meet is not connected.");
-    }
-
-    const googleMeetCredential = await this.credentialsRepository.deleteUserCredentialById(
-      userId,
-      googleMeet.id
-    );
-
-    return googleMeetCredential;
-  }
-
-  async setDefault(userId: number) {
-    const user = await this.usersRepository.setDefaultConferencingApp(userId, GOOGLE_MEET);
-    const metadata = user.metadata as { defaultConferencingApp?: { appSlug?: string } };
-
-    if (metadata?.defaultConferencingApp?.appSlug !== GOOGLE_MEET) {
-      throw new InternalServerErrorException("Could not set Google Meet as default conferencing app");
-    }
-    return true;
-  }
 }

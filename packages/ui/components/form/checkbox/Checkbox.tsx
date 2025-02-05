@@ -4,6 +4,7 @@ import type { InputHTMLAttributes } from "react";
 import React, { forwardRef } from "react";
 
 import classNames from "@calcom/lib/classNames";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 
 import { Icon } from "../../icon";
 
@@ -94,8 +95,9 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                 {descriptionAsSafeHtml ? (
                   <span
                     className={classNames("text-sm", rest.descriptionClassName)}
+                    // eslint-disable-next-line react/no-danger
                     dangerouslySetInnerHTML={{
-                      __html: descriptionAsSafeHtml,
+                      __html: markdownToSafeHTML(descriptionAsSafeHtml),
                     }}
                   />
                 ) : (

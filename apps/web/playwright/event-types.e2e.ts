@@ -5,7 +5,6 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
-import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookTimeSlot,
   createNewEventType,
@@ -18,8 +17,8 @@ import {
 
 test.describe.configure({ mode: "parallel" });
 
-testBothFutureAndLegacyRoutes.describe("Event Types A/B tests", () => {
-  test("should render the /future/event-types page", async ({ page, users }) => {
+test.describe("Event Types tests", () => {
+  test("should render the /event-types page", async ({ page, users }) => {
     const user = await users.create();
 
     await user.apiLogin();
@@ -32,7 +31,7 @@ testBothFutureAndLegacyRoutes.describe("Event Types A/B tests", () => {
   });
 });
 
-testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
+test.describe("Event Types tests", () => {
   test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create();
@@ -61,10 +60,23 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       await expect(page.locator(`text='${eventTitle}'`)).toBeVisible();
     });
 
+    test("new event type appears first in the list", async ({ page }) => {
+      const nonce = randomString(3);
+      const eventTitle = `hello ${nonce}`;
+      await createNewEventType(page, { eventTitle });
+      await page.goto("/event-types");
+      const firstEvent = page.locator("[data-testid=event-types] > li a").first();
+      const firstEventTitle = await firstEvent.getAttribute("title");
+      await expect(firstEventTitle).toBe(eventTitle);
+    });
+
     test("enabling recurring event comes with default options", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
+
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(1000); // waits for 1 second
 
       await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeHidden();

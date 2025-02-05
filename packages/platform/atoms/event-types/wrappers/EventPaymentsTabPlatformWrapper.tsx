@@ -29,7 +29,7 @@ const EventPaymentsTabPlatformWrapper = ({ eventType }: { eventType: EventTypeSe
         <EmptyScreen
           Icon="grid-3x3"
           headline="Stripe not connected"
-          description="You need to connect Stripe to use this feature. Pleae click on the button below to connect."
+          description="You need to connect Stripe to use this feature. Please click on the button below to connect."
           buttonRaw={
             <StripeConnect
               teamId={eventType.teamId}

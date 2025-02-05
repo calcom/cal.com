@@ -15,7 +15,7 @@ export type BookerEventQuery = {
 };
 
 type BookerEventUser = Pick<
-  PublicEvent["users"][number],
+  PublicEvent["subsetOfUsers"][number],
   "name" | "username" | "avatarUrl" | "weekStart" | "profile"
 > & {
   metadata?: undefined;
@@ -47,11 +47,17 @@ export type BookerEvent = Pick<
   | "description"
   | "forwardParamsSuccessRedirect"
   | "successRedirectUrl"
-  | "hosts"
+  | "subsetOfHosts"
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
-> & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
+  | "instantMeetingParameters"
+  | "fieldTranslations"
+  | "autoTranslateDescriptionEnabled"
+> & {
+  subsetOfUsers: BookerEventUser[];
+  showInstantEventConnectNowModal: boolean;
+} & { profile: BookerEventProfile };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 

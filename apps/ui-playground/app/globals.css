@@ -1,0 +1,485 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/**
+* Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
+*/
+:root {
+  /* background */
+
+  --cal-bg-emphasis: hsla(220,13%,91%,1);
+  --cal-bg: hsla(0,0%,100%,1);
+  --cal-bg-subtle: hsla(220, 14%, 96%,1);
+  --cal-bg-muted: hsla(210,20%,98%,1);
+  --cal-bg-inverted: hsla(0,0%,6%,1);
+
+  /* background -> components*/
+  --cal-bg-info: hsla(218,83%,98%,1);
+  --cal-bg-success: hsla(134,76%,94%,1);
+  --cal-bg-attention: hsla(37, 86%, 92%, 1);
+  --cal-bg-error: hsla(3,66%,93%,1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+
+  /* Borders */
+  --cal-border-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-border: hsla(216, 12%, 84%, 1);
+  --cal-border-subtle: hsla(220, 13%, 91%, 1);
+  --cal-border-booker: #e5e7eb;
+  --cal-border-muted: hsla(220, 14%, 96%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 10%, 1);
+
+  /* Content/Text */
+  --cal-text-emphasis: hsla(217, 19%, 27%, 1);
+  --cal-text: hsla(217, 19%, 27%, 1);
+  --cal-text-subtle: hsla(220, 9%, 46%, 1);
+  --cal-text-muted: hsla(218, 11%, 65%, 1);
+  --cal-text-inverted: hsla(0, 0%, 100%, 1);
+
+  /* Content/Text -> components */
+  --cal-text-info: hsla(228, 56%, 33%, 1);
+  --cal-text-success: hsla(133, 34%, 24%, 1);
+  --cal-text-attention: hsla(16, 62%, 28%, 1);
+  --cal-text-error: hsla(2, 55%, 30%, 1);
+
+  /* Brand shinanigans
+      -> These will be computed for the users theme at runtime.
+    */
+  --cal-brand: hsla(221, 39%, 11%, 1);
+  --cal-brand-emphasis: hsla(0, 0%, 6%, 1);
+  --cal-brand-text: hsla(0, 0%, 100%, 1);
+}
+.dark {
+  /* background */
+
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1);
+  --cal-bg: hsla(0, 0%, 10%, 1);
+  --cal-bg-subtle: hsla(0, 0%, 18%, 1);
+  --cal-bg-muted: hsla(0, 0%, 12%, 1);
+  --cal-bg-inverted: hsla(220, 14%, 96%, 1);
+
+  /* background -> components*/
+  --cal-bg-info: hsla(228, 56%, 33%, 1);
+  --cal-bg-success: hsla(133, 34%, 24%, 1);
+  --cal-bg-attention: hsla(16, 62%, 28%, 1);
+  --cal-bg-error: hsla(2, 55%, 30%, 1);
+  --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
+
+  /* Borders */
+  --cal-border-emphasis: hsla(0, 0%, 46%, 1);
+  --cal-border: hsla(0, 0%, 34%, 1);
+  --cal-border-subtle: hsla(0, 0%, 22%, 1);
+  --cal-border-booker: hsla(0, 0%, 22%, 1);
+  --cal-border-muted: hsla(0, 0%, 18%, 1);
+  --cal-border-error: hsla(4, 63%, 41%, 1);
+  --cal-border-focus: hsla(0, 0%, 100%, 1);
+
+  /* Content/Text */
+  --cal-text-emphasis: hsla(240, 20%, 99%, 1);
+  --cal-text: hsla(0, 0%, 84%, 1);
+  --cal-text-subtle: hsla(0, 0%, 65%, 1);
+  --cal-text-muted: hsla(0, 0%, 34%, 1);
+  --cal-text-inverted: hsla(0, 0%, 10%, 1);
+
+  /* Content/Text -> components */
+  --cal-text-info: hsla(218, 83%, 93%, 1);
+  --cal-text-success: hsla(134, 76%, 94%, 1);
+  --cal-text-attention: hsla(37, 86%, 92%, 1);
+  --cal-text-error: hsla(3, 66%, 93%, 1);
+
+  /* Brand shenanigans
+      -> These will be computed for the users theme at runtime.
+    */
+  --cal-brand: hsla(0, 0%, 100%, 1);
+  --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
+  --cal-brand-text: hsla(0, 0%, 0%,1);
+}
+
+@layer base {
+  * {
+    @apply border-default
+  }
+}
+
+::-moz-selection {
+  color: var(--cal-brand-text);
+  background: var(--cal-brand);
+}
+
+::selection {
+  color: var(--cal-brand-text);
+  background: var(--cal-brand);
+}
+
+body  {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+  Desktop App specific CSS
+    https://docs.todesktop.com/
+*/
+
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+  background: inherit !important;
+}
+
+/* disable user selection on buttons, links and images on desktop app */
+html.todesktop button,
+html.todesktop a,
+html.todesktop img,
+html.todesktop header {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default !important;
+}
+
+html.todesktop,
+html.todesktop div {
+  cursor: default !important;
+}
+
+/* make header draggable on desktop app */
+html.todesktop header {
+  -webkit-app-region: drag;
+}
+
+html.todesktop header button,
+html.todesktop header a {
+  -webkit-app-region: no-drag;
+}
+
+html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
+  background: transparent !important;
+}
+
+html.todesktop-platform-darwin.dark main.bg-default {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.todesktop-platform-darwin.light main.bg-default {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.todesktop.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
+}
+
+html.todesktop.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+}
+
+/*
+  Adds Utility to hide scrollbar to tailwind
+    https://github.com/tailwindlabs/tailwindcss/discussions/2394
+    https://github.com/tailwindlabs/tailwindcss/pull/5732
+*/
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/*
+ * Override the default tailwindcss-forms styling (default is: 'colors.blue.600')
+ * @see: https://github.com/tailwindlabs/tailwindcss-forms/issues/14#issuecomment-1005376006
+ */
+[type="text"]:focus,
+[type="email"]:focus,
+[type="url"]:focus,
+[type="password"]:focus,
+[type="number"]:focus,
+[type="date"]:focus,
+[type="datetime-local"]:focus,
+[type="month"]:focus,
+[type="search"]:focus,
+[type="tel"]:focus,
+[type="checkbox"]:focus,
+[type="radio"]:focus,
+[type="time"]:focus,
+[type="week"]:focus,
+[multiple]:focus,
+textarea:focus,
+select:focus {
+  --tw-ring-color: var(--brand-color);
+  border-color: var(--brand-color);
+}
+
+@layer components {
+  .scroll-bar {
+    @apply scrollbar-thin scrollbar-thumb-rounded-md dark:scrollbar-thumb-darkgray-300 scrollbar-thumb-gray-300 scrollbar-track-transparent;
+  }
+}
+
+/* TODO: avoid global specific css */
+/* button[role="switch"][data-state="checked"] span {
+  transform: translateX(16px);
+} */
+
+@layer components {
+  /* slider */
+  .slider {
+    @apply relative flex h-4 w-40 select-none items-center;
+  }
+
+  .slider > .slider-track {
+    @apply relative h-1 flex-grow rounded-md bg-gray-400;
+  }
+
+  .slider .slider-range {
+    @apply absolute h-full rounded-full bg-gray-700;
+  }
+
+  .slider .slider-thumb {
+    @apply block h-3 w-3 cursor-pointer rounded-full bg-gray-700 transition-all;
+  }
+
+  .slider .slider-thumb:hover {
+    @apply bg-gray-600;
+  }
+
+  .slider .slider-thumb:focus {
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* hide chat bubble on mobile */
+@media only screen and (max-width: 768px) {
+  /* Intercom FAB*/
+  #launcher {
+    display: none !important;
+  }
+
+  /* Zendesk FAB*/
+  div[role="presentation"] > iframe {
+    display: none !important;
+  }
+
+  /* Helpscout FAB*/
+  .BeaconFabButtonFrame {
+    margin-left: -30px;
+    left: 50%;
+    bottom: 28px !important;
+    z-index: 1058 !important;
+  }
+}
+
+/* TODO: implement styling for react-multi-email */
+
+/* !important to override react-dates */
+.DateRangePickerInput__withBorder {
+  border: 0 !important;
+}
+.DateInput_input {
+  border: 1px solid #d1d5db !important;
+  border-radius: 2px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: #000;
+  padding: 11px ​11px 9px !important;
+  line-height: 16px !important;
+}
+
+.DateInput_input__focused {
+  border: 2px solid #000 !important;
+  border-radius: 2px !important;
+  box-shadow: none !important;
+  padding: 10px ​10px 9px !important;
+}
+
+.DateRangePickerInput_arrow {
+  padding: 0px 10px;
+}
+
+.loader {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 60px auto;
+  position: relative;
+  border-width: 4px;
+  border-style: solid;
+  animation: loader 2s infinite ease;
+}
+
+.loader-inner {
+  vertical-align: top;
+  display: inline-block;
+  width: 100%;
+  animation: loader-inner 2s infinite ease-in;
+}
+
+.no-ring-inset {
+  --tw-ring-inset: unset;
+}
+
+@keyframes loader {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(180deg);
+  }
+
+  50% {
+    transform: rotate(180deg);
+  }
+
+  75% {
+    transform: rotate(360deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loader-inner {
+  0% {
+    height: 0%;
+  }
+
+  25% {
+    height: 0%;
+  }
+
+  50% {
+    height: 100%;
+  }
+
+  75% {
+    height: 100%;
+  }
+
+  100% {
+    height: 0%;
+  }
+}
+
+.text-inverted-important {
+  color: white !important;
+}
+
+@layer utilities {
+  .transition-max-width {
+    -webkit-transition-property: max-width;
+    transition-property: max-width;
+  }
+}
+
+#timeZone input:focus {
+  box-shadow: none;
+}
+
+/* react-date-picker forces a border upon us, cast it away */
+.react-date-picker__wrapper {
+  border: none !important;
+}
+
+.react-date-picker__inputGroup__input {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* animations */
+.slideInBottom {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-name: slideInBottom;
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30%);
+    pointer-events: none;
+  }
+  to {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* animations */
+.slideInTop {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-name: slideInTop;
+}
+
+@keyframes slideInTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20%);
+    pointer-events: none;
+  }
+  to {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0%);
+  }
+}
+
+.fadeIn {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+  animation-name: fadeIn;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/**
+ * Makes sure h-screen works on mobile Safari. By default h-screen
+ * does not take into account the height of the address bar, causing
+ * weird behaviour when scrolling — sometimes the height will be correct
+ * and sometimes it won't, depending on whether the address bar is
+ * in 'collapsed' state or not.
+ * @see: https://benborgers.com/posts/tailwind-h-screen
+ */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+}
+
+::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
+
+.react-tel-input .country-list .country:hover,
+.react-tel-input .country-list .country.highlight {
+  @apply !bg-emphasis;
+}
+
+.react-tel-input .flag-dropdown .selected-flag,
+.react-tel-input .flag-dropdown.open .selected-flag {
+  @apply !bg-default;
+}
+
+.react-tel-input .flag-dropdown {
+  @apply !border-r-default left-0.5 !border-y-0 !border-l-0;
+}
+
+.intercom-lightweight-app  {
+  @apply z-40 !important;
+}

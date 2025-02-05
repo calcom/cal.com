@@ -1,5 +1,7 @@
+import { calendar_v3 } from "@googleapis/calendar";
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { OAuth2Client } from "googleapis-common";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -8,13 +10,20 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
+import { updateProfilePhotoGoogle } from "@calcom/app-store/_utils/oauth/updateProfilePhotoGoogle";
+import GoogleCalendarService from "@calcom/app-store/googlecalendar/lib/CalendarService";
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
+import {
+  GOOGLE_CALENDAR_SCOPES,
+  GOOGLE_OAUTH_SCOPES,
+  HOSTED_CAL_FEATURES,
+  IS_CALCOM,
+} from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -22,10 +31,13 @@ import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -46,20 +58,7 @@ const ORGANIZATIONS_AUTOLINK =
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
-const getVerifiedOrganizationByAutoAcceptEmailDomain = async (domain: string) => {
-  const existingOrg = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: domain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  return existingOrg?.id;
-};
+
 const loginWithTotp = async (email: string) =>
   `/auth/login?totp=${await (await import("./signJwt")).default({ email })}`;
 
@@ -250,6 +249,13 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
       clientId: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          scope: [...GOOGLE_OAUTH_SCOPES, ...GOOGLE_CALENDAR_SCOPES].join(" "),
+          access_type: "offline",
+          prompt: "consent",
+        },
+      },
     })
   );
 }
@@ -351,15 +357,17 @@ if (isSAMLLoginEnabled) {
           const hostedCal = Boolean(HOSTED_CAL_FEATURES);
           if (hostedCal && email) {
             const domain = getDomainFromEmail(email);
-            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
-            if (organizationId) {
+            const org = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
+            if (org) {
               const createUsersAndConnectToOrgProps = {
                 emailsToCreate: [email],
-                organizationId,
                 identityProvider: IdentityProvider.SAML,
                 identityProviderId: email,
               };
-              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+              await createUsersAndConnectToOrg({
+                createUsersAndConnectToOrgProps,
+                org,
+              });
               user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
                 email: email,
               });
@@ -563,7 +571,7 @@ export const getOptions = ({
       if (account.type === "credentials") {
         // return token if credentials,saml-idp
         if (account.provider === "saml-idp") {
-          return token;
+          return { ...token, upId: user.profile?.upId ?? token.upId ?? null } as JWT;
         }
         // any other credentials, add user info
         return {
@@ -607,6 +615,63 @@ export const getOptions = ({
           return await autoMergeIdentities();
         }
 
+        const grantedScopes = account.scope?.split(" ") ?? [];
+        if (
+          account.provider === "google" &&
+          !(await CredentialRepository.findFirstByAppIdAndUserId({
+            userId: user.id as number,
+            appId: "google-calendar",
+          })) &&
+          GOOGLE_CALENDAR_SCOPES.every((scope) => grantedScopes.includes(scope))
+        ) {
+          // Installing Google Calendar by default
+          const credentialkey = {
+            access_token: account.access_token,
+            refresh_token: account.refresh_token,
+            id_token: account.id_token,
+            token_type: account.token_type,
+            expires_at: account.expires_at,
+          };
+          const gcalCredential = await CredentialRepository.create({
+            userId: user.id as number,
+            key: credentialkey,
+            appId: "google-calendar",
+            type: "google_calendar",
+          });
+          const gCalService = new GoogleCalendarService({
+            ...gcalCredential,
+            user: null,
+          });
+
+          if (
+            !(await CredentialRepository.findFirstByUserIdAndType({
+              userId: user.id as number,
+              type: "google_video",
+            }))
+          ) {
+            await CredentialRepository.create({
+              type: "google_video",
+              key: {},
+              userId: user.id as number,
+              appId: "google-meet",
+            });
+          }
+
+          const oAuth2Client = new OAuth2Client(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET);
+          oAuth2Client.setCredentials(credentialkey);
+          const calendar = new calendar_v3.Calendar({
+            auth: oAuth2Client,
+          });
+          const primaryCal = await gCalService.getPrimaryCalendar(calendar);
+          if (primaryCal?.id) {
+            await gCalService.createSelectedCalendar({
+              externalId: primaryCal.id,
+              userId: user.id as number,
+            });
+          }
+          await updateProfilePhotoGoogle(oAuth2Client, user.id as number);
+        }
+
         return {
           ...token,
           id: existingUser.id,
@@ -631,7 +696,6 @@ export const getOptions = ({
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
       const licenseKeyService = await LicenseKeySingleton.getInstance();
       const hasValidLicense = await licenseKeyService.checkLicense();
-
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
@@ -906,6 +970,7 @@ export const getOptions = ({
                 create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
               },
             }),
+            creationSource: CreationSource.WEBAPP,
           },
         });
 
@@ -947,23 +1012,25 @@ export const getOptions = ({
       // this is a workaround – in the future once we move to use the Account model in the DB
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdDate) > new Date(Date.now() - 10 * 60 * 1000);
-      if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
-        const clickId = getDubId();
-        // check if there's a clickId (dub_id) cookie set by @dub/analytics
-        if (clickId) {
-          // here we use waitUntil – meaning this code will run async to not block the main thread
-          waitUntil(
-            // if so, send a lead event to Dub
-            // @see https://d.to/conversions/next-auth
-            dub.track.lead({
-              clickId,
-              eventName: "Sign Up",
-              customerId: user.id.toString(),
-              customerName: user.name,
-              customerEmail: user.email,
-              customerAvatar: user.image,
-            })
-          );
+      if ((isENVDev || IS_CALCOM) && isNewUser) {
+        if (process.env.DUB_API_KEY) {
+          const clickId = getDubId();
+          // check if there's a clickId (dub_id) cookie set by @dub/analytics
+          if (clickId) {
+            // here we use waitUntil – meaning this code will run async to not block the main thread
+            waitUntil(
+              // if so, send a lead event to Dub
+              // @see https://d.to/conversions/next-auth
+              dub.track.lead({
+                clickId,
+                eventName: "Sign Up",
+                customerId: user.id.toString(),
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.image,
+              })
+            );
+          }
         }
       }
     },

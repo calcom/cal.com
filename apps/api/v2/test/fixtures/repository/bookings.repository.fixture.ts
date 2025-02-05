@@ -22,6 +22,14 @@ export class BookingsRepositoryFixture {
     return this.prismaReadClient.booking.findUnique({ where: { uid: bookingUid } });
   }
 
+  async getByRecurringBookingUid(recurringBookingUid: string) {
+    return this.prismaReadClient.booking.findMany({
+      where: {
+        recurringEventId: recurringBookingUid,
+      },
+    });
+  }
+
   async create(booking: Prisma.BookingCreateInput) {
     return this.prismaWriteClient.booking.create({ data: booking });
   }

@@ -2,6 +2,7 @@ import type { Table } from "@tanstack/react-table";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
+import { DataTableSelectionBar } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -86,7 +87,7 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="users">{t("add_to_team")}</Button>
+          <DataTableSelectionBar.Button icon="users">{t("add_to_team")}</DataTableSelectionBar.Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>

@@ -11,7 +11,9 @@ import { useLocalSet } from "@calcom/features/bookings/Booker/components/hooks/u
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
+import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
+import { localStorage } from "@calcom/lib/webstorage";
 import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import type { BookingResponse } from "@calcom/platform-libraries";
 import type {
@@ -19,6 +21,7 @@ import type {
   ApiSuccessResponse,
   ApiSuccessResponseWithoutData,
 } from "@calcom/platform-types";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import {
@@ -76,6 +79,9 @@ export type BookerPlatformWrapperAtomProps = Omit<
   locationUrl?: string;
   view?: VIEW_TYPE;
   metadata?: Record<string, string>;
+  bannerUrl?: string;
+  onDryRunSuccess?: () => void;
+  hostsLimit?: number;
 };
 
 type VIEW_TYPE = keyof typeof BookerLayouts;
@@ -83,18 +89,20 @@ type VIEW_TYPE = keyof typeof BookerLayouts;
 export type BookerPlatformWrapperAtomPropsForIndividual = BookerPlatformWrapperAtomProps & {
   username: string | string[];
   isTeamEvent?: false;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export type BookerPlatformWrapperAtomPropsForTeam = BookerPlatformWrapperAtomProps & {
   username?: string | string[];
   isTeamEvent: true;
   teamId: number;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const BookerPlatformWrapper = (
   props: BookerPlatformWrapperAtomPropsForIndividual | BookerPlatformWrapperAtomPropsForTeam
 ) => {
-  const { view = "MONTH_VIEW" } = props;
+  const { view = "MONTH_VIEW", bannerUrl, routingFormSearchParams } = props;
   const layout = BookerLayouts[view];
 
   const { clientId } = useAtomsContext();
@@ -126,8 +134,13 @@ export const BookerPlatformWrapper = (
     return "";
   }, [props.username]);
 
-  setSelectedDuration(props.duration ?? null);
-  setOrg(props.entity?.orgSlug ?? null);
+  useEffect(() => {
+    setSelectedDuration(props.duration ?? null);
+  }, [props.duration]);
+
+  useEffect(() => {
+    setOrg(props.entity?.orgSlug ?? null);
+  }, [props.entity?.orgSlug]);
 
   const isDynamic = useMemo(() => {
     return getUsernameList(username ?? "").length > 1;
@@ -139,7 +152,7 @@ export const BookerPlatformWrapper = (
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamEventTypeData,
-  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent);
+  } = useTeamEventType(teamId, props.eventSlug, props.isTeamEvent, props.hostsLimit);
 
   const event = useMemo(() => {
     if (props.isTeamEvent && !isTeamPending && teamId && teamEventTypeData && teamEventTypeData.length > 0) {
@@ -149,7 +162,12 @@ export const BookerPlatformWrapper = (
         isPending: isTeamPending,
         data:
           teamEventTypeData && teamEventTypeData.length > 0
-            ? transformApiTeamEventTypeForAtom(teamEventTypeData[0], props.entity, props.defaultFormValues)
+            ? transformApiTeamEventTypeForAtom(
+                teamEventTypeData[0],
+                props.entity,
+                props.defaultFormValues,
+                !!props.hostsLimit
+              )
             : undefined,
       };
     }
@@ -160,7 +178,7 @@ export const BookerPlatformWrapper = (
       isPending,
       data:
         data && data.length > 0
-          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues)
+          ? transformApiEventTypeForAtom(data[0], props.entity, props.defaultFormValues, !!props.hostsLimit)
           : undefined,
     };
   }, [
@@ -175,6 +193,7 @@ export const BookerPlatformWrapper = (
     isTeamPending,
     isTeamSuccess,
     isTeamError,
+    props.hostsLimit,
   ]);
 
   if (isDynamic && props.duration && event.data) {
@@ -205,9 +224,20 @@ export const BookerPlatformWrapper = (
   const { data: session } = useMe();
   const hasSession = !!session;
   const { name: defaultName, guests: defaultGuests, ...restFormValues } = props.defaultFormValues ?? {};
+
+  const prefillFormParamName = useMemo(() => {
+    if (defaultName) {
+      return defaultName;
+    }
+    if (restFormValues.firstName) {
+      return `${restFormValues.firstName} ${restFormValues.lastName}`;
+    }
+    return null;
+  }, [defaultName, restFormValues]);
+
   const prefillFormParams = useMemo(() => {
     return {
-      name: defaultName ?? null,
+      name: prefillFormParamName,
       guests: defaultGuests ?? [],
     };
   }, [defaultName, defaultGuests]);
@@ -241,12 +271,38 @@ export const BookerPlatformWrapper = (
     selectedDate,
   });
 
+  const [routingParams, setRoutingParams] = useState<{
+    routedTeamMemberIds?: number[];
+    shouldServeCache?: boolean;
+    skipContactOwner?: boolean;
+    isBookingDryRun?: boolean;
+  }>({});
+
+  useEffect(() => {
+    const searchParams = routingFormSearchParams
+      ? new URLSearchParams(routingFormSearchParams)
+      : new URLSearchParams(window.location.search);
+
+    const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
+    const skipContactOwner = searchParams.get("cal.skipContactOwner") === "true";
+
+    const _cacheParam = searchParams?.get("cal.cache");
+    const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
+    const isBookingDryRun = searchParams?.get("cal.isBookingDryRun")?.toLowerCase() === "true";
+    setRoutingParams({
+      ...(skipContactOwner ? { skipContactOwner } : {}),
+      ...(routedTeamMemberIds ? { routedTeamMemberIds } : {}),
+      ...(shouldServeCache ? { shouldServeCache } : {}),
+      ...(isBookingDryRun ? { isBookingDryRun } : {}),
+    });
+  }, [routingFormSearchParams]);
+
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
-    timeZone: session?.data?.timeZone,
+    timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     ...(props.isTeamEvent
@@ -263,6 +319,7 @@ export const BookerPlatformWrapper = (
       Boolean(event?.data?.id),
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
+    ...routingParams,
   });
 
   const bookerForm = useBookingForm({
@@ -284,8 +341,15 @@ export const BookerPlatformWrapper = (
     isError: isCreateBookingError,
   } = useCreateBooking({
     onSuccess: (data) => {
+      if (data?.data?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateBookingSuccess?.(data);
+
+      if (!!event.data?.successRedirectUrl) {
+        window.location.href = event.data.successRedirectUrl;
+      }
     },
     onError: props.onCreateBookingError,
   });
@@ -297,8 +361,15 @@ export const BookerPlatformWrapper = (
     isError: isCreateRecBookingError,
   } = useCreateRecurringBooking({
     onSuccess: (data) => {
+      if (data?.data?.[0]?.isDryRun) {
+        props?.onDryRunSuccess?.();
+      }
       schedule.refetch();
       props.onCreateRecurringBookingSuccess?.(data);
+
+      if (!!event.data?.successRedirectUrl) {
+        window.location.href = event.data.successRedirectUrl;
+      }
     },
     onError: props.onCreateRecurringBookingError,
   });
@@ -315,7 +386,12 @@ export const BookerPlatformWrapper = (
     onError: props.onCreateInstantBookingError,
   });
 
-  const slots = useSlots(event);
+  const slots = useSlots(event, {
+    onReserveSlotSuccess: props.onReserveSlotSuccess,
+    onReserveSlotError: props.onReserveSlotError,
+    onDeleteSlotSuccess: props.onDeleteSlotSuccess,
+    onDeleteSlotError: props.onDeleteSlotError,
+  });
 
   const { data: connectedCalendars, isPending: fetchingConnectedCalendars } = useConnectedCalendars({
     enabled: hasSession,
@@ -333,7 +409,7 @@ export const BookerPlatformWrapper = (
     }))
   );
   const { data: overlayBusyDates } = useCalendarsBusyTimes({
-    loggedInUsersTz: session?.data?.timeZone || "Europe/London",
+    loggedInUsersTz: timezone,
     dateFrom: selectedDate,
     dateTo: selectedDate,
     calendarsToLoad: latestCalendarsToLoad,
@@ -352,15 +428,16 @@ export const BookerPlatformWrapper = (
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
+    routingFormSearchParams,
   });
 
   const onOverlaySwitchStateChange = useCallback(
     (state: boolean) => {
       setIsOverlayCalendarEnabled(state);
       if (state) {
-        localStorage.setItem("overlayCalendarSwitchDefault", "true");
+        localStorage?.setItem("overlayCalendarSwitchDefault", "true");
       } else {
-        localStorage.removeItem("overlayCalendarSwitchDefault");
+        localStorage?.removeItem("overlayCalendarSwitchDefault");
       }
     },
     [setIsOverlayCalendarEnabled]
@@ -391,7 +468,7 @@ export const BookerPlatformWrapper = (
 
   useEffect(() => {
     if (isOverlayCalendarEnabled && view === "MONTH_VIEW") {
-      localStorage.removeItem("overlayCalendarSwitchDefault");
+      localStorage?.removeItem("overlayCalendarSwitchDefault");
     }
     setIsOverlayCalendarEnabled(Boolean(localStorage?.getItem?.("overlayCalendarSwitchDefault")));
   }, [view, isOverlayCalendarEnabled]);
@@ -478,9 +555,12 @@ export const BookerPlatformWrapper = (
         bookerForm={bookerForm}
         event={event}
         schedule={schedule}
+        orgBannerUrl={bannerUrl ?? event.data?.bannerUrl}
         bookerLayout={bookerLayout}
         verifyCode={undefined}
         isPlatform
+        hasValidLicense={true}
+        isBookingDryRun={routingParams?.isBookingDryRun}
       />
     </AtomsWrapper>
   );
