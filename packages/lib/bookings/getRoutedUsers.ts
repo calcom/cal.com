@@ -114,6 +114,8 @@ export function getNormalizedHosts<User extends BaseUser, Host extends BaseHost<
   }
 }
 
+// We don't allow fixed hosts when segment matching is enabled
+// If this ever changes, we need to update this function and return fixed hosts
 export async function findMatchingHostsWithEventSegment<User extends BaseUser>({
   eventType,
   hosts,
