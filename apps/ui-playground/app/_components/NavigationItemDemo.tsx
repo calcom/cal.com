@@ -158,6 +158,91 @@ export default function NavigationItemDemo() {
           />
         </div>
       </DemoSubSection>
+
+      {/* Full Navigation Example with Labels */}
+      <DemoSubSection id="navigation-full" title="Full Navigation Example">
+        <div className="bg-muted border-muted flex w-60 flex-col border p-3">
+          <NavigationItem
+            item={{
+              name: "Event types",
+              href: "#event-types",
+              icon: "link",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Bookings",
+              href: "#bookings",
+              icon: "users",
+              isCurrent: true,
+              child: [
+                { name: "Label", href: "#label-1" },
+                { name: "Label", href: "#label-2" },
+                { name: "Label", href: "#label-3" },
+                { name: "Label", href: "#label-4" },
+              ],
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Insights",
+              href: "#insights",
+              icon: "chart-line",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Routing forms",
+              href: "#routing-forms",
+              icon: "shuffle",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Workflows",
+              href: "#workflows",
+              icon: "zap",
+            }}
+          />
+          <div className="text-subtle mt-4 px-2 text-sm">Manage</div>
+          <NavigationItem
+            item={{
+              name: "Members",
+              href: "#members",
+              icon: "users",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Apps",
+              href: "#apps",
+              icon: "grid-3x3",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Availability",
+              href: "#availability",
+              icon: "clock",
+            }}
+          />
+          <div className="mt-8" />
+          <NavigationItem
+            item={{
+              name: "Help",
+              href: "#help",
+              icon: "circle-help",
+            }}
+          />
+          <NavigationItem
+            item={{
+              name: "Settings",
+              href: "#settings",
+              icon: "settings",
+            }}
+          />
+        </div>
+      </DemoSubSection>
     </DemoSection>
   );
 }

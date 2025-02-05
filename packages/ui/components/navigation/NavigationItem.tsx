@@ -45,7 +45,11 @@ const navigationItemStyles = cva(
   }
 );
 
-export const NavigationItem = ({
+const Label = ({ children }: { children: React.ReactNode }) => {
+  return <span className="text-default ml-3">{children}</span>;
+};
+
+const NavigationItemComponent = ({
   item,
   isChild,
   index,
@@ -89,3 +93,5 @@ export const NavigationItem = ({
     </Fragment>
   );
 };
+
+export const NavigationItem = Object.assign(NavigationItemComponent, { Label });
