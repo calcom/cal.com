@@ -3067,5 +3067,9 @@
   "picklist": "Picklist",
   "name_or_email": "Name or Email",
   "salesforce_round_robin_skip_fallback_to_lead_owner": "If no contact is found, fallback to lead owner if it exists",
+  "delete_booking": "Delete",
+  "delete_booking_dialog_title": "Delete booking?",
+  "confirm_delete_booking": "Confirm",
+  "delete_booking_description":"This action will delete booking from your history.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
