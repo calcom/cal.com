@@ -108,6 +108,7 @@
   "accept_license": "Lisansı Kabul Et",
   "still_waiting_for_approval": "Bir etkinlik hâlâ onay bekliyor",
   "event_is_still_waiting": "Etkinlik isteği hâlâ beklemede: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "\"{{searchTerm}}\" için sonuç bulunamadı",
   "no_more_results": "Başka sonuç yok",
   "no_results": "Sonuç yok",
   "load_more_results": "Daha fazla sonuç yükle",
