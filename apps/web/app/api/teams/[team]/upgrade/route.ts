@@ -1,5 +1,4 @@
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
@@ -95,7 +94,7 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
       ? `${WEBAPP_URL}/settings/organizations/profile?upgraded=true`
       : `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`;
 
-    return redirect(redirectUrl);
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     if (error instanceof HttpError) {
       throw error;
