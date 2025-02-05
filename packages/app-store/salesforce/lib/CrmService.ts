@@ -233,8 +233,16 @@ export default class SalesforceCRMService implements CRM {
           WhoId: firstContact,
         }).catch((reason) => Promise.reject(reason));
       }
-      log.error(JSON.stringify(reason));
-      return Promise.reject(reason);
+      log.error(`Error creating event: ${JSON.stringify(reason)}`);
+
+      // Try creating a simple object without additional records
+      await this.salesforceCreateEventApiCall(event, {
+        EventWhoIds: eventWhoIds,
+        ...(ownerId && { OwnerId: ownerId }),
+      }).catch((reason) => {
+        log.error(`Error creating simple event: ${JSON.stringify(reason)}`);
+        Promise.reject(reason);
+      });
     });
     // Check to see if we also need to change the record owner
     if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
