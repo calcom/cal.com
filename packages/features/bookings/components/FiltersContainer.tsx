@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useSearchParams } from "next/navigation";
 
 import { PeopleFilter } from "@calcom/features/bookings/components/PeopleFilter";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
@@ -17,6 +18,8 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const { removeAllQueryParams } = useFilterQuery();
   const { t } = useLocale();
+  const searchParams = useSearchParams();
+  const hasQueryString = searchParams.toString().length > 0;
 
   return (
     <div ref={animationParentRef}>
@@ -27,12 +30,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <TeamsFilter />
           <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
-            <Button
-              color="secondary"
-              type="button"
-              onClick={() => {
-                removeAllQueryParams();
-              }}>
+            <Button disabled={!hasQueryString} color="secondary" type="button" onClick={removeAllQueryParams}>
               {t("remove_filters")}
             </Button>
           </Tooltip>
