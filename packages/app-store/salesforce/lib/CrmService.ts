@@ -245,9 +245,15 @@ export default class SalesforceCRMService implements CRM {
       });
     });
     // Check to see if we also need to change the record owner
-    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
-      // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
-      await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
+    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName) {
+      if (ownerId) {
+        // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
+        await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
+      } else {
+        this.log.warn(
+          `Could not find owner with email ${event.organizer.email} to change record ${firstContact.id} ownership to`
+        );
+      }
     }
     if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
       await this.writeToPersonRecord(
