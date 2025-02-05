@@ -108,6 +108,7 @@
   "accept_license": "Accepta la llicència",
   "still_waiting_for_approval": "Un esdeveniment encara està pendent d'aprovació",
   "event_is_still_waiting": "La sol·licitud d'esdeveniment encara està pendent: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "No s'han trobat resultats per a \"{{searchTerm}}\"",
   "no_more_results": "No hi ha més resultats",
   "no_results": "No hi ha resultats",
   "load_more_results": "Carrega més resultats",

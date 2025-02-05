@@ -108,6 +108,7 @@
   "accept_license": "اقبل الترخيص",
   "still_waiting_for_approval": "يوجد حدث لا يزال في انتظار الموافقة",
   "event_is_still_waiting": "لا يزال طلب الحدث في الانتظار: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "لا توجد نتائج لـ \"{{searchTerm}}\"",
   "no_more_results": "لا يوجد مزيد من النتائج",
   "no_results": "لا نتائج",
   "load_more_results": "تحميل المزيد من النتائج",

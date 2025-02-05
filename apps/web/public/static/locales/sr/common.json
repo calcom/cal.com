@@ -108,6 +108,7 @@
   "accept_license": "Prihvati Licencu",
   "still_waiting_for_approval": "Dogadjaj još čeka na odobrenje",
   "event_is_still_waiting": "Zahtev na dogadjaj još čeka: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Nema rezultata za \"{{searchTerm}}\"",
   "no_more_results": "Nema više rezultata",
   "no_results": "Nema rezultata",
   "load_more_results": "Učitaj više rezultata",

@@ -108,6 +108,7 @@
   "accept_license": "אישור הרישיון",
   "still_waiting_for_approval": "אירוע עדיין ממתין לאישור",
   "event_is_still_waiting": "בקשת האירוע עדיין בהמתנה: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "לא נמצאו תוצאות עבור \"{{searchTerm}}\"",
   "no_more_results": "אין יותר תוצאות",
   "no_results": "אין תוצאות",
   "load_more_results": "לטעון תוצאות נוספות",

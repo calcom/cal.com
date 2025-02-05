@@ -108,6 +108,7 @@
   "accept_license": "Godta lisens",
   "still_waiting_for_approval": "En hendelse venter fremdeles på godkjenning",
   "event_is_still_waiting": "Hendelsesforespørsel venter fortsatt: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Ingen resultater funnet for \"{{searchTerm}}\"",
   "no_more_results": "Ingen flere resultater",
   "no_results": "Ingen resultater",
   "load_more_results": "Last inn flere resultater",

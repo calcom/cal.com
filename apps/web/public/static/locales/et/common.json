@@ -108,6 +108,7 @@
   "accept_license": "Nõustu litsentsiga",
   "still_waiting_for_approval": "Üritus ootab endiselt heakskiitu",
   "event_is_still_waiting": "Ürituse taotlus on endiselt ootel: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Otsingusõnale \"{{searchTerm}}\" ei leitud ühtegi tulemust",
   "no_more_results": "Enam tulemusi pole",
   "no_results": "Tulemused puuduvad",
   "load_more_results": "Lae rohkem tulemusi",

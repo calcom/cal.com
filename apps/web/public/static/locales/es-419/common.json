@@ -108,6 +108,7 @@
   "accept_license": "Aceptar licencia",
   "still_waiting_for_approval": "Un evento aún está esperando aprobación",
   "event_is_still_waiting": "La solicitud de evento aún está esperando: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "No se encontraron resultados para \"{{searchTerm}}\"",
   "no_more_results": "No hay más resultados",
   "no_results": "No hay resultados",
   "load_more_results": "Cargar más resultados",

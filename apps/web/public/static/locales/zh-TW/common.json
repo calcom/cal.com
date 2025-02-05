@@ -108,6 +108,7 @@
   "accept_license": "接受授權",
   "still_waiting_for_approval": "活動還在等待核准",
   "event_is_still_waiting": "活動請求還在等待中：{{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "找不到與「{{searchTerm}}」相關的結果",
   "no_more_results": "沒有更多結果",
   "no_results": "沒有任何結果",
   "load_more_results": "讀取更多結果",

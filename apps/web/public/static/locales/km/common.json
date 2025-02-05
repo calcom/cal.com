@@ -108,6 +108,7 @@
   "accept_license": "ទទួលយកអាជ្ញាប័ណ្ណ",
   "still_waiting_for_approval": "ព្រឹត្តិការណ៍មួយនៅតែរង់ចាំការយល់ព្រម",
   "event_is_still_waiting": "សំណើព្រឹត្តិការណ៍កំពុងរង់ចាំ៖ {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "មិនមានលទ្ធផលសម្រាប់ \"{{searchTerm}}\" ទេ",
   "no_more_results": "មិនមានលទ្ធផលទៀតទេ",
   "no_results": "គ្មាន​លទ្ធផល",
   "load_more_results": "ផ្ទុកលទ្ធផលបន្ថែមទៀត",

@@ -108,6 +108,7 @@
   "accept_license": "Acceptér Licens",
   "still_waiting_for_approval": "En begivenhed venter stadig på godkendelse",
   "event_is_still_waiting": "Begivenhedsforespørgsel venter stadig: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Ingen resultater fundet for \"{{searchTerm}}\"",
   "no_more_results": "Ikke flere resultater",
   "no_results": "Ingen resultater",
   "load_more_results": "Indlæs flere resultater",

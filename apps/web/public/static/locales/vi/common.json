@@ -108,6 +108,7 @@
   "accept_license": "Chấp nhận giấy phép",
   "still_waiting_for_approval": "Một sự kiện vẫn đang chờ được chấp thuận",
   "event_is_still_waiting": "Lời mời sự kiện vẫn đang chờ: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Không tìm thấy kết quả nào cho \"{{searchTerm}}\"",
   "no_more_results": "Không còn kết quả",
   "no_results": "Không có kết quả",
   "load_more_results": "Tải thêm kết quả",

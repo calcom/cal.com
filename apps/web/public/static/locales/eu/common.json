@@ -108,6 +108,7 @@
   "accept_license": "Onart Lizentzia",
   "still_waiting_for_approval": "Gertaera bat onarpenaren zain dago",
   "event_is_still_waiting": "Gertaera-eskaera oraindik zain dago: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Ez da emaitzarik aurkitu \"{{searchTerm}}\" bilaketarako",
   "no_more_results": "Emaitza gehiagorik ez",
   "no_results": "Emaitzarik ez",
   "load_more_results": "Kargatu emaitza gehiago",
