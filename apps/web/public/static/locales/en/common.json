@@ -3071,6 +3071,7 @@
   "delete_booking_dialog_title": "Delete booking?",
   "confirm_delete_booking": "Confirm",
   "delete_booking_description":"This action will delete booking from your history.",
+  "booking_deleted_successfully": "Your booking was deleted.",
   "delete_past_bookings": "Delete Past Bookings",
   "confirm_delete_past_bookings": "Are you sure you want to delete all past bookings? This action cannot be undone.",
   "past_bookings_deleted_successfully": "Past bookings deleted successfully",
