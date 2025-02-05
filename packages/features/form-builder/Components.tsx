@@ -7,19 +7,7 @@ import type {
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Button,
-  CheckboxField,
-  EmailField,
-  Group,
-  Icon,
-  InfoBadge,
-  InputField,
-  Label,
-  PhoneInput,
-  RadioField,
-  Tooltip,
-} from "@calcom/ui";
+import { Button, EmailField, Icon, InfoBadge, InputField, Label, PhoneInput, Tooltip } from "@calcom/ui";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -326,57 +314,23 @@ export const Components: Record<FieldType, Component> = {
   },
   checkbox: {
     propsType: propsTypes.checkbox,
-    factory: ({ options, readOnly, setValue, value }) => {
-      value = value || [];
-      return (
-        <div>
-          {options.map((option, i) => {
-            return (
-              <label key={i} className="block">
-                <input
-                  type="checkbox"
-                  disabled={readOnly}
-                  onChange={(e) => {
-                    const newValue = value.filter((v) => v !== option.value);
-                    if (e.target.checked) {
-                      newValue.push(option.value);
-                    }
-                    setValue(newValue);
-                  }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
-                  value={option.value}
-                  checked={value.includes(option.value)}
-                />
-                <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
-              </label>
-            );
-          })}
-        </div>
-      );
+    factory: (props) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+
+      return <Widgets.CheckboxWidget id={props.name} {...newProps} />;
     },
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options, readOnly }) => {
-      return (
-        <Group
-          disabled={readOnly}
-          value={value}
-          onValueChange={(e) => {
-            setValue(e);
-          }}>
-          <>
-            {options.map((option, i) => (
-              <RadioField
-                label={option.label}
-                key={`option.${i}.radio`}
-                value={option.label}
-                id={`${name}.option.${i}.radio`}
-              />
-            ))}
-          </>
-        </Group>
-      );
+    factory: (props) => {
+      const newProps = {
+        ...props,
+        listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
+      };
+      return <Widgets.RadioWidget id={props.name} {...newProps} />;
     },
   },
   radioInput: {
@@ -509,28 +463,7 @@ export const Components: Record<FieldType, Component> = {
   },
   boolean: {
     propsType: propsTypes.boolean,
-    factory: ({ readOnly, name, label, value, setValue }) => {
-      return (
-        <div className="flex">
-          <CheckboxField
-            name={name}
-            onChange={(e) => {
-              if (e.target.checked) {
-                setValue(true);
-              } else {
-                setValue(false);
-              }
-            }}
-            placeholder=""
-            checked={value}
-            disabled={readOnly}
-            description=""
-            // Form Builder ensures that it would be safe HTML in here if the field type supports it. So, we can safely use label value in `descriptionAsSafeHtml`
-            descriptionAsSafeHtml={label ?? ""}
-          />
-        </div>
-      );
-    },
+    factory: (props) => <Widgets.BooleanWidget {...props} />,
   },
   url: {
     propsType: propsTypes.url,
