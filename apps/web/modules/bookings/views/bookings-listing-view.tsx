@@ -26,6 +26,7 @@ import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
+import { DeletePastBookingsSection } from "@components/booking/DeletePastBookingsSection";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
@@ -96,7 +97,6 @@ type RowData =
 
 function BookingsContent({ status }: BookingsProps) {
   const { data: filterQuery } = useFilterQuery();
-
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
@@ -155,7 +155,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status]);
+  }, [user, status, t]);
 
   const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
@@ -242,9 +242,19 @@ function BookingsContent({ status }: BookingsProps) {
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-row flex-wrap justify-between">
+      <div className="flex items-center justify-between border-b">
         <HorizontalTabs tabs={tabs} />
-        <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
+        <div className="flex items-center gap-1">
+          {status === "past" && (
+            <DeletePastBookingsSection
+              bookingsCount={flatData.length}
+              bookingIds={flatData
+                .map((item) => (item.type === "data" ? item.booking.id : null))
+                .filter((id): id is number => id !== null)}
+            />
+          )}
+          <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
+        </div>
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />
       <main className="w-full">

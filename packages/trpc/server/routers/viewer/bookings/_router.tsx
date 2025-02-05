@@ -4,6 +4,7 @@ import { router } from "../../../trpc";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
+import { ZDeletePastBookingsSchema } from "./deletePastBookings.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
@@ -22,6 +23,7 @@ type BookingsRouterHandlerCache = {
   find?: typeof import("./find.handler").getHandler;
   getInstantBookingLocation?: typeof import("./getInstantBookingLocation.handler").getHandler;
   delete?: typeof import("./delete.handler").deleteHandler;
+  deletePastBookings?: typeof import("./deletePastBookings.handler").deletePastBookingsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: BookingsRouterHandlerCache = {};
@@ -178,6 +180,23 @@ export const bookingsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.delete({
+      ctx,
+      input,
+    });
+  }),
+
+  deletePastBookings: authedProcedure.input(ZDeletePastBookingsSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.deletePastBookings) {
+      UNSTABLE_HANDLER_CACHE.deletePastBookings = await import("./deletePastBookings.handler").then(
+        (mod) => mod.deletePastBookingsHandler
+      );
+    }
+
+    if (!UNSTABLE_HANDLER_CACHE.deletePastBookings) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.deletePastBookings({
       ctx,
       input,
     });
