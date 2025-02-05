@@ -7,7 +7,7 @@ import type {
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, EmailField, Icon, InfoBadge, InputField, Label, PhoneInput, Tooltip } from "@calcom/ui";
+import { Button, EmailField, Icon, InfoBadge, InputField, Label, Tooltip } from "@calcom/ui";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
@@ -176,21 +176,7 @@ export const Components: Record<FieldType, Component> = {
   },
   phone: {
     propsType: propsTypes.phone,
-    factory: ({ setValue, readOnly, ...props }) => {
-      if (!props) {
-        return <div />;
-      }
-
-      return (
-        <PhoneInput
-          disabled={readOnly}
-          onChange={(val: string) => {
-            setValue(val);
-          }}
-          {...props}
-        />
-      );
-    },
+    factory: (props) => <Widgets.PhoneWidget {...props} />,
   },
   email: {
     propsType: propsTypes.email,

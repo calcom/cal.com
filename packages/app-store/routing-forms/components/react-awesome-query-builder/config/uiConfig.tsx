@@ -26,6 +26,7 @@ const {
   TextAreaWidget,
   MultiSelectWidget,
   SelectWidget,
+  PhoneWidget,
   NumberWidget,
   FieldSelect,
   RadioWidget,
@@ -80,12 +81,7 @@ const SelectFactory = (
     | undefined
 ) => renderComponent(props, SelectWidget);
 
-const PhoneFactory = (props: WidgetProps | undefined) => {
-  if (!props) {
-    return <div />;
-  }
-  return <TextWidget type="tel" {...props} />;
-};
+const PhoneFactory = (props: WidgetProps | undefined) => renderComponent(props, PhoneWidget);
 
 const EmailFactory = (props: WidgetProps | undefined) => {
   if (!props) {

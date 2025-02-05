@@ -9,7 +9,14 @@ import type {
 } from "react-awesome-query-builder";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button as CalButton, TextField, TextArea, AddressInput, CheckboxField } from "@calcom/ui";
+import {
+  Button as CalButton,
+  TextField,
+  TextArea,
+  AddressInput,
+  PhoneInput,
+  CheckboxField,
+} from "@calcom/ui";
 import { Icon, Group, RadioField } from "@calcom/ui";
 
 const Select = dynamic(
@@ -483,6 +490,18 @@ function BooleanWidget({ name, label, value, setValue, readOnly }: TextLikeCompo
   );
 }
 
+function PhoneWidget(props: TextLikeComponentPropsRAQB) {
+  return (
+    <PhoneInput
+      disabled={props.readOnly}
+      onChange={(val: string) => {
+        props.setValue(val);
+      }}
+      {...props}
+    />
+  );
+}
+
 const Provider = ({ children }: ProviderProps) => children;
 
 const widgets = {
@@ -493,6 +512,7 @@ const widgets = {
   MultiSelectWidget,
   AddressWidget,
   CheckboxWidget,
+  PhoneWidget,
   BooleanWidget,
   UrlWidget,
   FieldSelect,
