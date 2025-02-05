@@ -153,6 +153,6 @@ export async function loadAndValidateUsers({
   return {
     qualifiedRRUsers,
     fallbackRRUsers, // without qualified
-    fixedUsers,
+    fixedUsers: !qualifiedRRUsers.length && !fixedUsers.length ? users : fixedUsers,
   };
 }
