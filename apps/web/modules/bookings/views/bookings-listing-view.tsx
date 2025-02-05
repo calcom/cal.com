@@ -29,6 +29,7 @@ import type { VerticalTabItemProps } from "@calcom/ui/components/navigation";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import BookingListItem from "@components/booking/BookingListItem";
+import { DeletePastBookingsSection } from "@components/booking/DeletePastBookingsSection";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
@@ -351,6 +352,16 @@ function BookingsContent({ status }: BookingsProps) {
             name: t(tab.name),
           }))}
         />
+        <div className="flex items-center gap-1">
+          {status === "past" && (
+            <DeletePastBookingsSection
+              bookingsCount={flatData.length}
+              bookingIds={flatData
+                .map((item) => (item.type === "data" ? item.booking.id : null))
+                .filter((id): id is number => id !== null)}
+            />
+          )}
+        </div>
       </div>
       <main className="w-full">
         <div className="flex w-full flex-col">
