@@ -122,7 +122,7 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
       name: profile.name,
       eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
     },
-    eventTypes: profileEventTypes,
+    eventTypes: profileEventTypes as EventType[],
   });
 
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
