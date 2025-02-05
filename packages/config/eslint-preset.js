@@ -18,7 +18,14 @@ module.exports = {
       rootDir: ["apps/*/", "packages/*/"],
     },
   },
-  ignorePatterns: ["**/node_modules/**", "**/dist/**", "**/build/**", "**/coverage/**", "**/.turbo/**"],
+  ignorePatterns: [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/.next/**",
+  ],
   rules: {
     "@next/next/no-img-element": "off",
     "@next/next/no-html-link-for-pages": "off",
