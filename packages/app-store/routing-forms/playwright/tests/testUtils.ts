@@ -83,8 +83,6 @@ export async function verifySelectOptions(
   page: Page,
   expectedOptions?: string[]
 ) {
-  await page.click('[data-testid="add-field"]');
-
   if (!expectedOptions) {
     expectedOptions = Object.values(fieldTypesConfigMap)
       .filter((field) => !field.systemOnly)
@@ -103,8 +101,6 @@ export async function verifySelectOptions(
   const sortedExpectedOptions = [...expectedOptions].sort();
   expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
 
-  await page.locator('[data-testid="dialog-rejection"]').click();
-
   // Get all fields by value. This is necessary because data-testid of the option
   // uses values, not label.
   // i.e [data-testid="select-option-textarea"] not [data-testid="select-option-Long Text]
@@ -114,5 +110,6 @@ export async function verifySelectOptions(
 
   return {
     optionsInUi: optionsByValue,
+    optionsByLabel: selectOptions,
   };
 }

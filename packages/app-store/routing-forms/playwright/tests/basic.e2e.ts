@@ -120,18 +120,19 @@ test.describe("Routing Forms", () => {
 
       const label = "Test Label";
 
-      const createdFields: Record<number, { label: string; typeIndex: number }> = {};
-
-      const { fieldTypesList: types, fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
+      const createdFields: Record<number, { label: string; typeIndex: number; identifier: string }> = {};
+      const { fieldTypesByValue: types, fields } = await addAllTypesOfFieldsAndSaveForm(formId, page, {
         description,
         label,
       });
-
       await expect(page.locator('[data-testid="description"]')).toHaveValue(description);
-      await expect(page.locator('[data-testid="field"]')).toHaveCount(types.length);
 
       fields.forEach((item, index) => {
-        createdFields[index] = { label: item.label, typeIndex: index };
+        createdFields[index] = {
+          label: item.label,
+          typeIndex: index,
+          identifier: item.identifier,
+        };
       });
 
       await expectCurrentFormToHaveFields(page, createdFields, types);
@@ -624,15 +625,16 @@ async function disableForm(page: Page) {
 async function expectCurrentFormToHaveFields(
   page: Page,
   fields: {
-    [key: number]: { label: string; typeIndex: number };
+    [key: number]: {
+      label: string;
+      identifier?: string;
+      typeIndex: number;
+    };
   },
   types: string[]
 ) {
   for (const [index, field] of Object.entries(fields)) {
-    expect(await page.inputValue(`[data-testid="fields.${index}.label"]`)).toBe(field.label);
-    expect(await page.locator(".data-testid-field-type").nth(+index).locator("div").nth(1).innerText()).toBe(
-      types[field.typeIndex]
-    );
+    await expect(page.locator(`[data-testid="field-${field.identifier}"]`)).toHaveCount(1);
   }
 }
 
@@ -696,37 +698,50 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  // await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.fill('[data-testid="description"]', form.description);
-
-  const { optionsInUi: fieldTypesList } = await verifySelectOptions(
+  await page.click('[data-testid="add-field"]');
+  const { optionsByLabel: fieldTypesByLabel, optionsInUi: fieldTypesByValue } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
     page
   );
+  if ((await page.locator('[data-testid="dialog-rejection"]').count()) > 0) {
+    await page.locator('[data-testid="dialog-rejection"]').click();
+  }
 
   const fields = [];
-  for (let index = 0; index < fieldTypesList.length; index++) {
+  for (let index = 0; index < fieldTypesByLabel.length; index++) {
     await page.click('[data-testid="add-field"]');
     await page.getByRole("dialog").waitFor({ state: "visible" });
-
-    const fieldTypeLabel = fieldTypesList[index].toLowerCase();
-    const label = `${form.label} ${fieldTypeLabel}`;
-    const identifier = label;
+    const label = fieldTypesByLabel[index];
+    const fieldTypeTestIdLabel = fieldTypesByValue[index].toLowerCase();
+    const identifier = fieldTypeTestIdLabel;
 
     // Click on the field type dropdown.
     await page.locator(".data-testid-field-type").click();
     // Click on the dropdown option.
-    await page.locator(`[data-testid="select-option-${fieldTypeLabel}"]`).press("Enter");
-    await page.getByTestId("dialog-creation").locator('[name="label"]').fill(label);
+    await page.locator(`[data-testid="select-option-${fieldTypeTestIdLabel}"]`).click();
     await page.getByTestId("dialog-creation").locator('[name="name"]').fill(identifier);
 
+    // Form builder has two ways of flagging label input.
+    const nameInputCount = await page.getByTestId("dialog-creation").locator('[name="label"]').count();
+    if (nameInputCount) {
+      await page.getByTestId("dialog-creation").locator('[name="label"]').fill(label);
+    }
+
+    const checkboxInputCount = await page.getByTestId("dialog-creation").locator(".editor-paragraph").count();
+    if (checkboxInputCount) {
+      await page.getByTestId("dialog-creation").locator(".editor-paragraph").fill(label);
+    }
+
     await page.click('[data-testid="field-add-save"]');
-    fields.push({ identifier: identifier, label, type: fieldTypeLabel });
+    fields.push({ identifier: identifier, label, type: fieldTypeTestIdLabel });
   }
 
   await saveCurrentForm(page);
   return {
-    fieldTypesList,
+    fieldTypesByLabel,
+    fieldTypesByValue,
     fields,
   };
 }

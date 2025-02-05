@@ -2,7 +2,7 @@ import type { App_RoutingForms_Form, Team } from "@prisma/client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -456,6 +456,10 @@ export const TestForm = ({
   const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
 
+  const { fields } = useFieldArray({
+    name: "fields",
+  });
+
   const resetMembersMatchResult = () => {
     setMembersMatchResult(null);
   };
@@ -752,6 +756,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             if (!field.id) {
               return {
                 ...field,
+                identifier: field.name,
                 id: uuidv4(),
               };
             }
