@@ -1,3 +1,5 @@
+import prismaMock from "../../../tests/libs/__mocks__/prismaMock";
+
 import { vi, it, describe, expect, afterEach } from "vitest";
 import type { Mock } from "vitest";
 
@@ -327,9 +329,80 @@ describe("findQualifiedHosts", async () => {
     });
   });
 
-  // it("if it's a reschedule with same host, it should only return this host and the fixed hosts", async ()=> {
+  it("if it's a reschedule with same host, it should only return this host and the fixed hosts", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-  // });
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: true,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+      },
+    };
+    prismaMock.booking.findFirst.mockResolvedValue({ userId: 2 });
+
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [],
+      rescheduleUid: "recheduleUid",
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    expect(result).toEqual({
+      qualifiedRRHosts: [hosts[1]],
+      fixedHosts: [hosts[2]],
+    });
+  });
 
   it("should return early if segment matching results in only one host", async () => {
     const oneYearAgo = new Date();
@@ -391,9 +464,7 @@ describe("findQualifiedHosts", async () => {
       },
     };
 
-    const mockFunction = vi
-      .spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment")
-      .mockImplementation(async () => [hosts[0]]);
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [hosts[0]]);
 
     const filterSpy = vi.spyOn(Array.prototype, "filter");
 
