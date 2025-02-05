@@ -160,7 +160,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       if (!booking.eventType?.canSendCalVideoTranscriptionEmails) {
         return res.status(200).json({
-          message: `Transcription emails are disabled for this event type ${booking.eventType?.id}`,
+          message: `Transcription emails are disabled for this event type ${booking.eventTypeId}`,
         });
       }
 
