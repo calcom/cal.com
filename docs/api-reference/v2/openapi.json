@@ -1189,6 +1189,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -5582,6 +5591,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7868,7 +7886,7 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
+        "required": ["lengthInMinutes", "title", "slug"]
       },
       "OutputAddressLocation_2024_06_14": {
         "type": "object",
@@ -10928,7 +10946,7 @@
             "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
