@@ -19,6 +19,7 @@ import {
   HighestRatedMembersTable,
   LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
+import "@calcom/features/insights/components/tremor.css";
 import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
