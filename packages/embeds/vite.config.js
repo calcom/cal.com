@@ -35,6 +35,7 @@ export const embedCoreEnvVars = {
   EMBED_PUBLIC_EMBED_VERSION: process.env.EMBED_PUBLIC_EMBED_VERSION ?? "",
   EMBED_PUBLIC_VERCEL_URL: process.env.EMBED_PUBLIC_VERCEL_URL ?? "http://localhost:3000",
   EMBED_PUBLIC_EMBED_LIB_URL: process.env.EMBED_PUBLIC_EMBED_LIB_URL ?? "",
+  NEXT_PUBLIC_IS_E2E: process.env.NEXT_PUBLIC_IS_E2E ?? "",
   EMBED_PUBLIC_WEBAPP_URL:
     process.env.EMBED_PUBLIC_WEBAPP_URL ??
     (process.env.EMBED_PUBLIC_VERCEL_URL
