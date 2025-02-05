@@ -487,15 +487,184 @@ describe("findQualifiedHosts", async () => {
     });
   });
 
-  // it("should filter for segment matching a routed team member ids", async () => {
+  it("should filter for segment matching and routed team member ids", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-  // });
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
 
-  // it("should filter for fairness an return fallback", async () => {
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+      },
+    };
 
-  // });
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
+      hosts[0],
+      hosts[1],
+    ]);
 
-  // it("should filter for fairness an return fallback", async () => {
+    // Call the function under test
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [2, 3],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
 
-  // });
+    // Verify the result
+    expect(result).toEqual({
+      qualifiedRRHosts: [hosts[1]],
+      fixedHosts: [],
+    });
+  });
+
+  it("should filter for fairness and return fallback with segment filtering and routed team member ids", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+      },
+    };
+
+    vi.spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment").mockImplementation(async () => [
+      hosts[0],
+      hosts[1],
+      hosts[2],
+    ]);
+
+    const rrHostsAfterFairness = [hosts[2]];
+
+    // Configure the mock return value
+    (filterHostsByLeadThreshold as Mock).mockResolvedValue(rrHostsAfterFairness);
+
+    // Call the function under test
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [2, 3],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // Verify the result
+    expect(result).toEqual({
+      qualifiedRRHosts: [hosts[2]],
+      fallbackRRHosts: [hosts[1], hosts[2]],
+      fixedHosts: [],
+    });
+  });
 });
