@@ -7,8 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import type { ReactElement } from "react";
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -18,7 +17,6 @@ import { FiltersContainer } from "@calcom/features/bookings/components/FiltersCo
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -87,10 +85,16 @@ export default function Bookings(props: BookingsProps) {
   );
 }
 
-type RowData = {
-  booking: BookingOutput;
-  recurringInfo?: RecurringInfo;
-};
+type RowData =
+  | {
+      type: "data";
+      booking: BookingOutput;
+      isToday: boolean;
+      recurringInfo?: RecurringInfo;
+    }
+  | {
+      type: "today" | "next";
+    };
 
 function BookingsContent({ status }: BookingsProps) {
   const { data: filterQuery } = useFilterQuery();
@@ -124,30 +128,45 @@ function BookingsContent({ status }: BookingsProps) {
       columnHelper.display({
         id: "custom-view",
         cell: (props) => {
-          const { booking, recurringInfo } = props.row.original;
-          return (
-            <BookingListItem
-              key={booking.id}
-              loggedInUser={{
-                userId: user?.id,
-                userTimeZone: user?.timeZone,
-                userTimeFormat: user?.timeFormat,
-                userEmail: user?.email,
-              }}
-              listingStatus={status}
-              recurringInfo={recurringInfo}
-              bookingListFilters={bookingListFilters}
-              {...booking}
-            />
-          );
+          if (props.row.original.type === "data") {
+            const { booking, recurringInfo, isToday } = props.row.original;
+            return (
+              <BookingListItem
+                key={booking.id}
+                isToday={isToday}
+                loggedInUser={{
+                  userId: user?.id,
+                  userTimeZone: user?.timeZone,
+                  userTimeFormat: user?.timeFormat,
+                  userEmail: user?.email,
+                }}
+                listingStatus={status}
+                recurringInfo={recurringInfo}
+                bookingListFilters={bookingListFilters}
+                {...booking}
+              />
+            );
+          } else if (props.row.original.type === "today") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("today")}
+              </p>
+            );
+          } else if (props.row.original.type === "next") {
+            return (
+              <p className="text-subtle bg-subtle w-full py-4 pl-6 text-xs font-semibold uppercase leading-4">
+                {t("next")}
+              </p>
+            );
+          }
         },
       }),
     ];
-  }, [user, status, bookingListFilters]);
+  }, [user, status, bookingListFilters, t]);
 
-  const isEmpty = !query.data?.pages[0]?.bookings.length;
+  const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
-  const flatData = useMemo(() => {
+  const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
     const filterBookings = (booking: BookingOutput) => {
       if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
@@ -174,38 +193,59 @@ function BookingsContent({ status }: BookingsProps) {
     return (
       query.data?.pages.flatMap((page) =>
         page.bookings.filter(filterBookings).map((booking) => ({
+          type: "data",
           booking,
           recurringInfo: page.recurringInfo.find(
             (info) => info.recurringEventId === booking.recurringEventId
           ),
+          isToday: false,
         }))
       ) || []
     );
   }, [query.data, status, user]);
 
+  const bookingsToday = useMemo<RowData[]>(() => {
+    return (
+      query.data?.pages.map((page) =>
+        page.bookings
+          .filter(
+            (booking: BookingOutput) =>
+              dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
+              dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
+          )
+          .map((booking) => ({
+            type: "data" as const,
+            booking,
+            recurringInfo: page.recurringInfo.find(
+              (info) => info.recurringEventId === booking.recurringEventId
+            ),
+            isToday: true,
+          }))
+      )[0] || []
+    );
+  }, [query.data, user?.timeZone]);
+
+  const finalData = useMemo<RowData[]>(() => {
+    if (bookingsToday.length > 0 && status === "upcoming") {
+      const merged: RowData[] = [
+        { type: "today" as const },
+        ...bookingsToday,
+        { type: "next" as const },
+        ...flatData,
+      ];
+      return merged;
+    } else {
+      return flatData;
+    }
+  }, [bookingsToday, flatData, status]);
+
   const table = useReactTable<RowData>({
-    data: flatData,
+    data: finalData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
-
-  let recurringInfoToday: RecurringInfo | undefined;
-
-  const bookingsToday =
-    query.data?.pages.map((page) =>
-      page.bookings.filter((booking: BookingOutput) => {
-        recurringInfoToday = page.recurringInfo.find(
-          (info) => info.recurringEventId === booking.recurringEventId
-        );
-
-        return (
-          dayjs(booking.startTime).tz(user?.timeZone).format("YYYY-MM-DD") ===
-          dayjs().tz(user?.timeZone).format("YYYY-MM-DD")
-        );
-      })
-    )[0] || [];
 
   return (
     <div className="flex flex-col">
@@ -223,35 +263,8 @@ function BookingsContent({ status }: BookingsProps) {
           {query.status === "success" && !isEmpty && (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
-                <div className="mb-6 pt-2 xl:pt-0">
-                  <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-                  <p className="text-subtle mb-2 text-xs font-medium uppercase leading-4">{t("today")}</p>
-                  <div className="border-subtle overflow-hidden rounded-md border">
-                    <div
-                      className="bg-default divide-subtle w-full max-w-full divide-y"
-                      data-testid="today-bookings">
-                      <Fragment>
-                        {bookingsToday.map((booking: BookingOutput) => (
-                          <BookingListItem
-                            key={booking.id}
-                            loggedInUser={{
-                              userId: user?.id,
-                              userTimeZone: user?.timeZone,
-                              userTimeFormat: user?.timeFormat,
-                              userEmail: user?.email,
-                            }}
-                            listingStatus={status}
-                            recurringInfo={recurringInfoToday}
-                            bookingListFilters={bookingListFilters}
-                            {...booking}
-                          />
-                        ))}
-                      </Fragment>
-                    </div>
-                  </div>
-                </div>
+                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
-
               <DataTableWrapper
                 table={table}
                 testId={`${status}-bookings`}
@@ -282,21 +295,3 @@ function BookingsContent({ status }: BookingsProps) {
     </div>
   );
 }
-
-function BookingsStatusLayout({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
-  return (
-    <Shell
-      withoutMain={false}
-      withoutSeo={true}
-      hideHeadingOnMobile
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      title={t("bookings")}
-      description={t("bookings_description")}>
-      {children}
-    </Shell>
-  );
-}
-
-export const getLayout = (page: ReactElement) => <BookingsStatusLayout>{page}</BookingsStatusLayout>;

@@ -254,7 +254,7 @@ export const Components: Record<FieldType, Component> = {
                       value={value[index]}
                       className={inputClassName}
                       onChange={(e) => {
-                        value[index] = e.target.value;
+                        value[index] = e.target.value.toLowerCase();
                         setValue(value);
                       }}
                       placeholder={placeholder}

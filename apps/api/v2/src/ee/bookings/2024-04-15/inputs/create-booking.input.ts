@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional, ApiHideProperty } from "@nestjs/swagger";
 import { Transform, Type } from "class-transformer";
 import {
   IsBoolean,
@@ -126,4 +126,47 @@ export class CreateBookingInput_2024_04_15 {
   @IsOptional()
   @ApiPropertyOptional()
   locationUrl?: string;
+
+  // note(rajiv): after going through getUrlSearchParamsToForward.ts we found out
+  // that the below properties were not being included inside of handleNewBooking :- cc @morgan
+  // cal.salesforce.rrSkipToAccountLookupField, cal.rerouting & cal.isTestPreviewLink
+  // hence no input values have been setup for them in CreateBookingInput_2024_04_15
+  @IsArray()
+  @Type(() => Number)
+  @IsOptional()
+  @ApiHideProperty()
+  routedTeamMemberIds?: number[];
+
+  @IsNumber()
+  @IsOptional()
+  @ApiHideProperty()
+  routingFormResponseId?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  skipContactOwner?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _shouldServeCache?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _isDryRun?: boolean;
+
+  // reroutingFormResponses is similar to rescheduling which can only be done by the organiser
+  // won't really be necessary here in our usecase though :- cc @Hariom
+  @IsObject()
+  @IsOptional()
+  @ApiHideProperty()
+  reroutingFormResponses?: Record<
+    string,
+    {
+      value: (string | number | string[]) & (string | number | string[] | undefined);
+      label?: string | undefined;
+    }
+  >;
 }

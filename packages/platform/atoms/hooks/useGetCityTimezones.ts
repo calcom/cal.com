@@ -9,12 +9,12 @@ type Timezones = { city: string; timezone: string }[];
 const useGetCityTimezones = () => {
   const pathname = `/timezones`;
 
-  const { isLoading, data } = useQuery<ApiResponse<Timezones>>({
+  const { isLoading, data } = useQuery<Timezones>({
     queryKey: ["city-timezones"],
     queryFn: () => {
       return http?.get<ApiResponse<Timezones>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return res.data;
+          return res.data.data;
         }
         throw new Error(res.data.error.message);
       });
