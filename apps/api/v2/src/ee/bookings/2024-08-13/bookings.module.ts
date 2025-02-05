@@ -32,5 +32,6 @@ import { Module } from "@nestjs/common";
     ApiKeyRepository,
   ],
   controllers: [BookingsController_2024_08_13],
+  exports: [InputBookingsService_2024_08_13, OutputBookingsService_2024_08_13, BookingsService_2024_08_13],
 })
 export class BookingsModule_2024_08_13 {}
