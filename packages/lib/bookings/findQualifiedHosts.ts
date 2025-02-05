@@ -193,7 +193,7 @@ export const findQualifiedHosts = async <
     qualifiedRRHosts: hostsAfterFairnessMatching,
     // only if fairness filtering is active
     fallbackRRHosts:
-      hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.lenght
+      hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.length
         ? hostsAfterRoutedTeamMemberIdsMatching
         : undefined,
     fixedHosts,
