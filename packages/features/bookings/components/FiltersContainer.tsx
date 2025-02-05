@@ -19,7 +19,9 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   const { removeAllQueryParams } = useFilterQuery();
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const hasQueryString = searchParams.toString().length > 0;
+
+  const validFilterKeys = ["userIds", "eventTypeIds", "upIds", "teamIds", "afterStartDate", "beforeEndDate"];
+  const hasValidQueryParams = Array.from(searchParams.keys()).some((key) => validFilterKeys.includes(key));
 
   return (
     <div ref={animationParentRef}>
@@ -30,7 +32,11 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <TeamsFilter />
           <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
-            <Button disabled={!hasQueryString} color="secondary" type="button" onClick={removeAllQueryParams}>
+            <Button
+              disabled={!hasValidQueryParams}
+              color="secondary"
+              type="button"
+              onClick={removeAllQueryParams}>
               {t("remove_filters")}
             </Button>
           </Tooltip>
