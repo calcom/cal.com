@@ -3246,5 +3246,15 @@ describe("handleNewBooking", () => {
     });
   });
 
+  describe("Blocked users", () => {
+    test("user is locked", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+    });
+  });
+
   test.todo("CRM calendar events creation verification");
 });
