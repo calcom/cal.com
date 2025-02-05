@@ -50,14 +50,15 @@ export const StartTimeFilters = () => {
       setAfterStartDate(getQueryDate("afterStartDate"));
       setBeforeEndDate(getQueryDate("beforeEndDate"));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
-    //when clear filter is clicked
-    if (Object.keys(query).length === 1 && afterStartDate && beforeEndDate) {
+    if (Object.keys(query).length === 1 && "status" in query && afterStartDate && beforeEndDate) {
       setAfterStartDate(undefined);
       setBeforeEndDate(undefined);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   return (
