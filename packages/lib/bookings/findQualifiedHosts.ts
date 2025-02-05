@@ -39,6 +39,10 @@ const isRoundRobinHost = <T extends { isFixed: boolean }>(host: T): host is T & 
   return host.isFixed === false;
 };
 
+const isFixedHost = <T extends { isFixed: boolean }>(host: T): host is T & { isFixed: false } => {
+  return host.isFixed;
+};
+
 export const findQualifiedHosts = async <
   T extends {
     email: string;
@@ -81,6 +85,7 @@ export const findQualifiedHosts = async <
     weight?: number | null;
     user: T;
   }[];
+  // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
   fallbackRRHosts?: {
     isFixed: boolean;
     createdAt: Date | null;
@@ -92,12 +97,12 @@ export const findQualifiedHosts = async <
   const { hosts: normalizedHosts, fallbackHosts: fallbackUsers } = getNormalizedHosts({ eventType });
   // not a team event type, or some other reason - segment matching isn't necessary.
   if (!normalizedHosts) {
-    const fixedHosts = fallbackUsers.filter((host) => host.isFixed);
+    const fixedHosts = fallbackUsers.filter(isFixedHost);
     const roundRobinHosts = fallbackUsers.filter(isRoundRobinHost);
     return { qualifiedRRHosts: roundRobinHosts, fixedHosts };
   }
 
-  const fixedHosts = normalizedHosts.filter((host) => host.isFixed);
+  const fixedHosts = normalizedHosts.filter(isFixedHost);
   const roundRobinHosts = normalizedHosts.filter(isRoundRobinHost);
 
   // If it is rerouting, we should not force reschedule with same host.
@@ -186,7 +191,11 @@ export const findQualifiedHosts = async <
 
   return {
     qualifiedRRHosts: hostsAfterFairnessMatching,
-    fallbackRRHosts: hostsAfterRoutedTeamMemberIdsMatching, // if fairness causes no availability for at least 2 weeks
+    // only if fairness filtering is active
+    fallbackRRHosts:
+      hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.lenght
+        ? hostsAfterRoutedTeamMemberIdsMatching
+        : undefined,
     fixedHosts,
   };
 };

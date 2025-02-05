@@ -5,6 +5,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { filterHostsByLeadThreshold } from "./filterHostsByLeadThreshold";
 import { findQualifiedHosts } from "./findQualifiedHosts";
+import * as getRoutedUsers from "./getRoutedUsers";
 
 // Mock the filterHostsByLeadThreshold function
 vi.mock("./filterHostsByLeadThreshold", () => {
@@ -158,7 +159,7 @@ describe("findQualifiedHosts", async () => {
     expect(filterHostsByLeadThreshold).not.toHaveBeenCalled();
   });
 
-  it("should return only the crm contact owner match & other users as fallback", async () => {
+  it("should return only the crm contact owner match & other users + contact owner as fallback ", async () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
@@ -242,7 +243,11 @@ describe("findQualifiedHosts", async () => {
     });
   });
 
-  it("should return only routed members as fallback for crm contact owner match", async () => {
+  // it("should return only the crm contact owner match & other users + contact owner as fallback (with routing and segment filtering)", async () => {
+
+  // });
+
+  it("should return only routed members + contact owner as fallback for crm contact owner match", async () => {
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
@@ -322,7 +327,104 @@ describe("findQualifiedHosts", async () => {
     });
   });
 
-  // todo: add test for segment filtering
+  // it("if it's a reschedule with same host, it should only return this host and the fixed hosts", async ()=> {
 
-  // todo: add test for fairness filtering
+  // });
+
+  it("should return early if segment matching results in only one host", async () => {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+    const hosts = [
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello1@gmail.com",
+          id: 1,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello2@gmail.com",
+          id: 2,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+      {
+        isFixed: false,
+        createdAt: oneYearAgo,
+        weight: undefined,
+        priority: undefined,
+        user: {
+          email: "hello3@gmail.com",
+          id: 3,
+          credentials: [],
+          userLevelSelectedCalendars: [],
+        },
+      },
+    ];
+
+    const eventType = {
+      id: 1,
+      hosts,
+      users: [],
+      schedulingType: SchedulingType.ROUND_ROBIN,
+      maxLeadThreshold: null,
+      rescheduleWithSameRoundRobinHost: true,
+      assignAllTeamMembers: true,
+      assignRRMembersUsingSegment: false,
+      rrSegmentQueryValue: null,
+      isRRWeightsEnabled: false,
+      team: {
+        id: 1,
+        parentId: null,
+      },
+    };
+
+    const mockFunction = vi
+      .spyOn(getRoutedUsers, "findMatchingHostsWithEventSegment")
+      .mockImplementation(async () => [hosts[0]]);
+
+    const filterSpy = vi.spyOn(Array.prototype, "filter");
+
+    // Call the function under test
+    const result = await findQualifiedHosts({
+      eventType,
+      routedTeamMemberIds: [0, 1, 2],
+      rescheduleUid: null,
+      contactOwnerEmail: null,
+      routingFormResponse: null,
+    });
+
+    // check if we returned early after segment matching only returned one host
+    expect(filterSpy).toHaveBeenCalledTimes(2);
+
+    // Verify the result
+    expect(result).toEqual({
+      qualifiedRRHosts: [hosts[0]],
+      fixedHosts: [],
+    });
+  });
+
+  // it("should filter for segment matching a routed team member ids", async () => {
+
+  // });
+
+  // it("should filter for fairness an return fallback", async () => {
+
+  // });
+
+  // it("should filter for fairness an return fallback", async () => {
+
+  // });
 });
