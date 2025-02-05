@@ -311,7 +311,7 @@ describe("getSchedule", () => {
         }
       );
     });
-    test.skip("correctly get slots for event with only round robin hosts - When no availability is found", async () => {
+    test("correctly get slots for event with only round robin hosts - When no availability is found", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
