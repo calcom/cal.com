@@ -12,10 +12,11 @@ import type { BookerPlatformWrapperAtomPropsForTeam } from "../booker/BookerPlat
  * <Router
  *   formId="1a1a1a1a-2b2b-3c3c-4d4d-5e5e5e5e5e5e"
  *   formResponsesURLParams={new URLSearchParams({ Territory: "Europe" })}
- *   bookerBannerUrl="https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1"
- *   bookerCustomClassNames={{
- *     bookerWrapper: "dark",
- *   }}
+ *   bookerProps={{
+ *    customClassNames: { bookerWrapper: "dark" },
+ *    bannerUrl: "https://i0.wp.com/mahala.co.uk/wp-content/uploads/2014/12/img_banner-thin_mountains.jpg?fit=800%2C258&ssl=1",
+ *    onCreateBookingSuccess: (data) => console.log(data),
+ *    onCreateBookingError: (err) => console.error(err)
  * />
  * ```
  */
@@ -40,7 +41,7 @@ export const Router = React.memo(
     onSubmitFormEnd?: () => void;
     renderMessage?: (message?: string) => ReactElement | ReactElement[];
     bookerProps?: Pick<
-      BookerPlatformWrapperAtomPropsForTeam,
+      Partial<BookerPlatformWrapperAtomPropsForTeam>,
       | "customClassNames"
       | "bannerUrl"
       | "onCreateBookingSuccess"

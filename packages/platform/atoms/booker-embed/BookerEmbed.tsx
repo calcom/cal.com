@@ -12,19 +12,19 @@ export const BookerEmbed = (
         routingFormUrl: string;
         bannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
         customClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
-        onCreateBookingSuccess: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingSuccess"];
-        onCreateBookingError: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingError"];
-        onCreateRecurringBookingSuccess: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingSuccess"];
-        onCreateRecurringBookingError: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingError"];
-        onReserveSlotSuccess: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotSuccess"];
-        onReserveSlotError: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotError"];
-        onDeleteSlotSuccess: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotSuccess"];
-        onDeleteSlotError: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotError"];
-        view: BookerPlatformWrapperAtomPropsForTeam["view"];
-        onDryRunSuccess: BookerPlatformWrapperAtomPropsForTeam["onDryRunSuccess"];
-        hostsLimit: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
-        metadata: BookerPlatformWrapperAtomPropsForTeam["metadata"];
-        handleCreateBooking: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
+        onCreateBookingSuccess?: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingSuccess"];
+        onCreateBookingError?: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingError"];
+        onCreateRecurringBookingSuccess?: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingSuccess"];
+        onCreateRecurringBookingError?: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingError"];
+        onReserveSlotSuccess?: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotSuccess"];
+        onReserveSlotError?: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotError"];
+        onDeleteSlotSuccess?: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotSuccess"];
+        onDeleteSlotError?: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotError"];
+        view?: BookerPlatformWrapperAtomPropsForTeam["view"];
+        onDryRunSuccess?: BookerPlatformWrapperAtomPropsForTeam["onDryRunSuccess"];
+        hostsLimit?: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
+        metadata?: BookerPlatformWrapperAtomPropsForTeam["metadata"];
+        handleCreateBooking?: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
         organizationId?: undefined;
