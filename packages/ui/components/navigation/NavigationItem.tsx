@@ -1,2 +1,91 @@
-/* TODO: Implement NavigationItem */
-export {};
+import { cva } from "class-variance-authority";
+import Link from "next/link";
+import { Fragment } from "react";
+
+import { classNames } from "@calcom/lib";
+
+import { Icon } from "../icon";
+import type { IconName } from "../icon";
+
+export type NavigationItemType = {
+  name: string;
+  href: string;
+  isLoading?: boolean;
+  badge?: React.ReactNode;
+  icon?: IconName;
+  child?: NavigationItemType[];
+  onlyMobile?: boolean;
+  onlyDesktop?: boolean;
+  moreOnMobile?: boolean;
+  isCurrent?: boolean;
+};
+
+const navigationItemStyles = cva(
+  "text-default group flex items-center rounded-[10px] p-2 text-sm font-medium transition hover:bg-subtle hover:text-emphasis",
+  {
+    variants: {
+      isChild: {
+        true: "[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 ml-16 lg:flex lg:ml-10 relative before:absolute before:left-[-24px] before:top-[-0.5rem] before:h-[calc(100%+0.5rem)] before:w-0.5 before:bg-subtle before:content-['']",
+        false: "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
+      },
+      hasChild: {
+        true: "[&[aria-current='page']]:!bg-transparent relative after:absolute after:left-[-24px] after:top-[1.75rem] after:h-[calc(100%-1.75rem)] after:w-0.5 after:bg-subtle after:content-['']",
+        false: "[&[aria-current='page']]:bg-subtle",
+      },
+      isFirstChild: {
+        true: "mt-0",
+        false: "mt-px",
+      },
+    },
+    defaultVariants: {
+      isChild: false,
+      hasChild: false,
+      isFirstChild: false,
+    },
+  }
+);
+
+export const NavigationItem = ({
+  item,
+  isChild,
+  index,
+}: {
+  item: NavigationItemType;
+  isChild?: boolean;
+  index?: number;
+}) => {
+  return (
+    <Fragment>
+      <Link
+        data-test-id={item.name}
+        href={item.href}
+        className={navigationItemStyles({
+          isChild,
+          hasChild: !!item.child,
+          isFirstChild: isChild && index === 0,
+        })}
+        aria-current={item.isCurrent ? "page" : undefined}>
+        {item.icon && (
+          <Icon
+            name={item.isLoading ? "rotate-cw" : item.icon}
+            className={classNames(
+              "text-subtle mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2",
+              item.isLoading && "animate-spin"
+            )}
+            aria-hidden="true"
+            aria-current={item.isCurrent ? "page" : undefined}
+          />
+        )}
+        <span className="text-emphasis hidden w-full justify-between truncate text-ellipsis lg:flex">
+          {item.name}
+          {item.badge && item.badge}
+        </span>
+      </Link>
+      {item.child &&
+        item.isCurrent &&
+        item.child.map((childItem, childIndex) => (
+          <NavigationItem key={childItem.name} item={childItem} isChild index={childIndex} />
+        ))}
+    </Fragment>
+  );
+};

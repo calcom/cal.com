@@ -14,6 +14,7 @@ import DropdownDemo from "./DropdownDemo";
 import EmptyScreenDemo from "./EmptyScreenDemo";
 import FormDemo from "./FormDemo";
 import InputDemo from "./InputDemo";
+import NavigationItemDemo from "./NavigationItemDemo";
 import RadioDemo from "./RadioDemo";
 import RangeSliderDemo from "./RangeSliderDemo";
 import RangeSliderPopoverDemo from "./RangeSliderPopoverDemo";
@@ -96,6 +97,10 @@ export default function PageContent() {
 
             <section id="form" className="space-y-6">
               <FormDemo />
+            </section>
+
+            <section id="navigation-item" className="space-y-6">
+              <NavigationItemDemo />
             </section>
 
             <section id="textfield" className="space-y-6">

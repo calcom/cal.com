@@ -123,7 +123,7 @@ export type { DialogProps, ConfirmationDialogContentProps } from "./components/d
 export { AppListCard } from "./components/app-list-card";
 export { DisconnectIntegrationComponent } from "./components/disconnect-calendar-integration";
 export { CalendarSwitchComponent } from "./components/calendar-switch";
-export { showToast, DefaultToast, ErrorToast, SuccessToast, WarningToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
+export { showToast, ErrorToast, SuccessToast, WarningToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
 export { Meta, MetaProvider, useMeta } from "./components/meta";
 export { ShellSubHeading } from "./components/layout";
 
@@ -178,3 +178,5 @@ export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";
 
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
+
+export { NavigationItem } from "./components/navigation/NavigationItem";
