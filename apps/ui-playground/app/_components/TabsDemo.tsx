@@ -139,24 +139,6 @@ export default function TabsDemo() {
               />
             </div>
           </div>
-
-          <div>
-            <h3 className="text-emphasis mb-2 text-sm font-medium">With Sticky Header</h3>
-            <div className="h-96 overflow-auto rounded-md border">
-              <VerticalTabs
-                sticky
-                tabs={verticalTabItems.map((item) => ({
-                  ...item,
-                  onClick: () => setActiveTab(item.name),
-                  isActive: activeTab === item.name,
-                }))}
-              />
-              <div className="p-4">
-                <div className="bg-subtle h-96 rounded-md p-4">Scrollable content area</div>
-                <div className="bg-subtle mt-4 h-96 rounded-md p-4">More scrollable content</div>
-              </div>
-            </div>
-          </div>
         </div>
       </DemoSubSection>
     </DemoSection>
