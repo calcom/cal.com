@@ -32,6 +32,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   recurringEvent: true,
   lockTimeZoneToggleOnBookingPage: true,
   requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
   requiresBookerEmailVerification: true,
   metadata: true,
   periodCountCalendarDays: true,
