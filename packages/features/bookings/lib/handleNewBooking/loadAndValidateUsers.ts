@@ -146,15 +146,13 @@ export async function loadAndValidateUsers({
     })
   );
 
-  qualifiedRRUsers = qualifiedRRUsers.length ? qualifiedRRUsers : users;
-
   fallbackRRUsers = fallbackRRUsers.filter((fallbackUser) =>
     qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id == fallbackUser.id)
   );
 
   return {
     qualifiedRRUsers,
-    fallbackRRUsers, //without qualified
+    fallbackRRUsers, // without qualified
     fixedUsers,
   };
 }
