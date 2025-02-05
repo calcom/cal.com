@@ -108,7 +108,6 @@
     "prismock": "^1.33.4",
     "resize-observer-polyfill": "^1.5.1",
     "tsc-absolute": "^1.0.0",
-    "typescript": "^4.9.4",
     "vitest": "^2.1.1",
     "vitest-fetch-mock": "^0.3.0",
     "vitest-mock-extended": "^2.0.2"
@@ -118,7 +117,6 @@
     "@next/third-parties": "^14.2.5",
     "@vercel/functions": "^1.4.0",
     "city-timezones": "^1.2.1",
-    "eslint": "^8.34.0",
     "turbo": "^1.10.1"
   },
   "resolutions": {

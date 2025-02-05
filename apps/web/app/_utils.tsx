@@ -8,7 +8,7 @@ import { constructAppImage, constructGenericImage, constructMeetingImage } from 
 import { IS_CALCOM, WEBAPP_URL, APP_NAME, SEO_IMG_OGIMG, CAL_URL } from "@calcom/lib/constants";
 import { buildCanonical } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
-//@ts-expect-error no type definitions
+// @ts-expect-error no type definitions
 import config from "@calcom/web/next-i18next.config";
 
 const i18nInstanceCache: Record<string, any> = {};

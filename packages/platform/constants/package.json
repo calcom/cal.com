@@ -7,5 +7,8 @@
     "build": "tsc --build --force tsconfig.json",
     "build:watch": "tsc --build --force ./tsconfig.json --watch",
     "post-install": "yarn build"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
   }
 }
