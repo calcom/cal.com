@@ -180,9 +180,12 @@ export default class SalesforceCRMService implements CRM {
   };
 
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
+    const log = logger.getSubLogger({ prefix: [`[salesforceCreateEvent]:${event.uid}`] });
+
     const appOptions = this.getAppOptions();
 
     const writeToEventRecord = await this.generateWriteToEventBody(event);
+    log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
     let ownerId = null;
     if (event?.organizer?.email) {
@@ -201,8 +204,20 @@ export default class SalesforceCRMService implements CRM {
       this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
     }
 
+    const eventWhoIds = contacts.reduce((contactIds, contact) => {
+      if (contact?.id) {
+        contactIds.push(contact.id);
+      }
+
+      return contactIds;
+    }, [] as string[]);
+
+    if (eventWhoIds.length !== contacts.length) {
+      log.warn(`Not all contacts contain ids ${contacts}`);
+    }
+
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
-      EventWhoIds: contacts.map((contact) => contact.id),
+      EventWhoIds: eventWhoIds,
       ...writeToEventRecord,
       ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
@@ -218,6 +233,7 @@ export default class SalesforceCRMService implements CRM {
           WhoId: firstContact,
         }).catch((reason) => Promise.reject(reason));
       }
+      log.error(JSON.stringify(reason));
       return Promise.reject(reason);
     });
     // Check to see if we also need to change the record owner
@@ -472,6 +488,7 @@ export default class SalesforceCRMService implements CRM {
 
     if (!contactsToCreate[0]?.email) {
       this.log.warn(`createContact: no attendee email found `, contactsToCreate);
+      return [];
     }
 
     if (createEventOn === SalesforceRecordEnum.LEAD) {
@@ -901,9 +918,9 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
-    const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
+    const { onBookingWriteToRecordFields = {} } = this.getAppOptions();
     // Determine record type (Contact or Lead)
-    const personRecordType = this.determinePersonRecordType(createEventOn);
+    const personRecordType = this.determineRecordTypeById(contactId);
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
@@ -931,7 +948,9 @@ export default class SalesforceCRMService implements CRM {
       calEventResponses,
     });
 
-    this.log.info(`Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)}`);
+    this.log.info(
+      `Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)} for record ${contactId}`
+    );
 
     // Update the person record
     await conn
@@ -970,7 +989,7 @@ export default class SalesforceCRMService implements CRM {
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
         this.log.info(
-          `Writing to field ${field.name} on contactId ${personRecord?.id} with value ${
+          `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
             personRecord[field.name]
           }`
         );
@@ -1341,5 +1360,22 @@ export default class SalesforceCRMService implements CRM {
         }`;
         throw new Error(errorMessage);
       });
+  }
+
+  /** All salesforce ids have a 3 character prefix associated with the record type
+   * https://help.salesforce.com/s/articleView?id=000385203&type=1
+   */
+  private determineRecordTypeById(id: string) {
+    switch (id.substring(0, 3)) {
+      case "003":
+        return SalesforceRecordEnum.CONTACT;
+      case "001":
+        return SalesforceRecordEnum.ACCOUNT;
+      case "00Q":
+        return SalesforceRecordEnum.LEAD;
+      default:
+        this.log.warn(`Unhandled record id type ${id}`);
+        return SalesforceRecordEnum.CONTACT;
+    }
   }
 }
