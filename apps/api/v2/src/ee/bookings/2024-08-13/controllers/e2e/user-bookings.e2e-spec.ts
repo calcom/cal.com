@@ -396,6 +396,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
               expect(data.metadata).toEqual(body.metadata);
               createdBooking = data;
             } else {

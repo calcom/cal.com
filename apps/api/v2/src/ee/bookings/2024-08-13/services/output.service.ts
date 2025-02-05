@@ -130,6 +130,7 @@ export class OutputBookingsService_2024_08_13 {
       meetingUrl: location,
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
+      updatedAt: databaseBooking.updatedAt,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -221,6 +222,7 @@ export class OutputBookingsService_2024_08_13 {
       absentHost: !!databaseBooking.noShowHost,
       bookingFieldsResponses: databaseBooking.responses,
       createdAt: databaseBooking.createdAt,
+      updatedAt: databaseBooking.updatedAt,
     };
 
     const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
@@ -267,6 +269,7 @@ export class OutputBookingsService_2024_08_13 {
       meetingUrl: location,
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
+      updatedAt: databaseBooking.updatedAt,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -372,6 +375,7 @@ export class OutputBookingsService_2024_08_13 {
       recurringBookingUid: databaseBooking.recurringEventId,
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
+      updatedAt: databaseBooking.updatedAt,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {
