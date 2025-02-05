@@ -62,21 +62,19 @@ export const StartTimeFilters = () => {
   }, [query]);
 
   return (
-    <div>
-      <DateRangePicker
-        minDate={null}
-        dates={{ startDate: startValue, endDate: endValue }}
-        onDatesChange={(values) => {
-          const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
-          const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
-          setAfterStartDate(newAfterStartDate);
-          setBeforeEndDate(newBeforeEndDate);
+    <DateRangePicker
+      minDate={null}
+      dates={{ startDate: startValue, endDate: endValue }}
+      onDatesChange={(values) => {
+        const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
+        const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
+        setAfterStartDate(newAfterStartDate);
+        setBeforeEndDate(newBeforeEndDate);
 
-          if (newAfterStartDate && newBeforeEndDate) {
-            updateUrlParams(newAfterStartDate, newBeforeEndDate);
-          }
-        }}
-      />
-    </div>
+        if (newAfterStartDate && newBeforeEndDate) {
+          updateUrlParams(newAfterStartDate, newBeforeEndDate);
+        }
+      }}
+    />
   );
 };
