@@ -120,9 +120,8 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   return (
     <div>
       <TextField
-        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+        className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        addOnClassname="!border-muted"
         containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
         type="search"
         value={searchTerm}
