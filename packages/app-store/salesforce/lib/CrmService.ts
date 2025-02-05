@@ -1168,14 +1168,6 @@ export default class SalesforceCRMService implements CRM {
     return null;
   }
 
-  private determinePersonRecordType(createEventOn: string): SalesforceRecordEnum {
-    return createEventOn === SalesforceRecordEnum.LEAD &&
-      this.appOptions.createEventOnLeadCheckForContact &&
-      this.getFallbackToContact()
-      ? SalesforceRecordEnum.CONTACT
-      : this.appOptions.createEventOn;
-  }
-
   private async fetchPersonRecord(
     contactId: string,
     existingFields: Field[],
