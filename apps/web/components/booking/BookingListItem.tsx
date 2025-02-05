@@ -26,6 +26,7 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
+  ConfirmationDialogContent,
   Dialog,
   DialogClose,
   DialogContent,
@@ -118,6 +119,7 @@ function BookingListItem(booking: BookingItemProps) {
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const [isNoShowDialogOpen, setIsNoShowDialogOpen] = useState<boolean>(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
@@ -289,6 +291,17 @@ function BookingListItem(booking: BookingItemProps) {
     });
   }
 
+  if (isBookingInPast) {
+    editBookingActions.push({
+      id: "delete",
+      label: t("delete_booking"),
+      onClick: () => {
+        setDeleteDialogOpen(true);
+      },
+      icon: "trash",
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -431,6 +444,22 @@ function BookingListItem(booking: BookingItemProps) {
     };
   });
 
+  const deleteMutation = trpc.viewer.bookings.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("booking_deleted_successfully"), "success");
+      setDeleteDialogOpen(false);
+      // Invalidate the bookings query to refresh the list
+      utils.viewer.bookings.invalidate();
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const deleteBookingHandler = (id: number) => {
+    deleteMutation.mutate({ id });
+  };
+
   return (
     <>
       <RescheduleDialog
@@ -512,6 +541,22 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t("delete_booking_dialog_title")}
+          confirmBtnText={t("confirm_delete_booking")}
+          loadingText={t("confirm_delete_booking")}
+          isPending={deleteMutation.isPending}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteBookingHandler(booking.id);
+          }}>
+          <p className="mt-5">{t("delete_booking_description")}</p>
+        </ConfirmationDialogContent>
+      </Dialog>
+
       <div
         data-testid="booking-item"
         data-today={String(booking.isToday)}

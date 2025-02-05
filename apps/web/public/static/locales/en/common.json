@@ -2953,5 +2953,9 @@
   "desc": "Desc",
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "delete_booking": "Delete",
+  "delete_booking_dialog_title": "Delete booking?",
+  "confirm_delete_booking": "Confirm",
+  "delete_booking_description":"This action will delete booking from your history."
 }
