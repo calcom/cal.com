@@ -368,3 +368,5 @@ const Wrapper = ({
     </Tooltip>
   );
 };
+
+Button.displayName = "Button";

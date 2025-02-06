@@ -1,20 +1,14 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import type { Metadata } from "next";
-import { Inter, Geist_Mono } from "next/font/google";
+import { RootProvider } from "fumadocs-ui/provider";
+import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Suspense } from "react";
-import { Toaster } from "react-hot-toast";
 
-import "./globals.css";
+import "./global.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-});
-
-const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-geist-mono",
 });
 
 const calFont = localFont({
@@ -25,20 +19,16 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const metadata: Metadata = {
-  title: "UI Playground",
-  description: "A playground for Cal.com UI components",
-};
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistMono.variable} ${calFont.variable} bg-default font-[family-name:var(--font-inter)] antialiased`}>
-        <TooltipProvider>
-          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
-        </TooltipProvider>
-        <Toaster position="bottom-right" />
+        className={`${inter.variable} ${calFont.variable} bg-default font-[family-name:var(--font-inter)] antialiased`}>
+        <RootProvider>
+          <TooltipProvider>
+            <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+          </TooltipProvider>
+        </RootProvider>
       </body>
     </html>
   );

@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
