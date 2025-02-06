@@ -23,6 +23,8 @@ import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
+type Slot = Slots[string][number] & { showConfirmButton?: boolean };
+
 type TOnTimeSelect = (
   time: string,
   attendees: number,
@@ -34,10 +36,10 @@ export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
   showTimeFormatToggle?: boolean;
   className?: string;
-} & Omit<SlotItemProps, "slot">;
+} & Omit<SlotItemProps, "slot" | "handleSlotClick">;
 
 type SlotItemProps = {
-  slot: Slots[string][number];
+  slot: Slot;
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
   onTimeSelect: TOnTimeSelect;
@@ -52,6 +54,7 @@ type SlotItemProps = {
   skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
+  handleSlotClick: (slot: Slot, isOverlapping: boolean) => void;
 };
 
 const SlotItem = ({
@@ -68,6 +71,7 @@ const SlotItem = ({
   skipConfirmStep,
   shouldRenderCaptcha,
   watchedCfToken,
+  handleSlotClick,
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -106,26 +110,6 @@ const SlotItem = ({
     offset,
   });
 
-  const [showConfirm, setShowConfirm] = useState(false);
-
-  const onButtonClick = useCallback(() => {
-    if (!showConfirm && ((overlayCalendarToggled && isOverlapping) || skipConfirmStep)) {
-      setShowConfirm(true);
-      return;
-    }
-    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-  }, [
-    overlayCalendarToggled,
-    isOverlapping,
-    showConfirm,
-    onTimeSelect,
-    slot.time,
-    slot?.attendees,
-    slot.bookingUid,
-    seatsPerTimeSlot,
-    skipConfirmStep,
-  ]);
-
   return (
     <AnimatePresence>
       <div className="flex gap-2">
@@ -143,7 +127,7 @@ const SlotItem = ({
           data-testid="time"
           data-disabled={bookingFull}
           data-time={slot.time}
-          onClick={onButtonClick}
+          onClick={() => handleSlotClick(slot, isOverlapping)}
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
@@ -176,47 +160,40 @@ const SlotItem = ({
             </p>
           )}
         </Button>
-        {showConfirm && (
+        {!!slot.showConfirmButton && (
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
-              <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
-                {skipConfirmStep ? (
-                  <Button
-                    type="button"
-                    onClick={() =>
-                      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-                    }
-                    data-testid="skip-confirm-book-button"
-                    disabled={
-                      (!!shouldRenderCaptcha && !watchedCfToken) ||
-                      loadingStates?.creatingBooking ||
-                      loadingStates?.creatingRecurringBooking ||
-                      isVerificationCodeSending ||
-                      loadingStates?.creatingInstantBooking
-                    }
-                    color="primary"
-                    loading={
-                      (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
-                      loadingStates?.creatingRecurringBooking ||
-                      isVerificationCodeSending ||
-                      loadingStates?.creatingInstantBooking
-                    }>
-                    {renderConfirmNotVerifyEmailButtonCond
-                      ? isPaidEvent
-                        ? t("pay_and_book")
-                        : t("confirm")
-                      : t("verify_email_email_button")}
-                  </Button>
-                ) : (
-                  <Button
-                    variant={layout === "column_view" ? "icon" : "button"}
-                    StartIcon={layout === "column_view" ? "chevron-right" : undefined}
-                    onClick={() =>
-                      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
-                    }>
-                    {layout !== "column_view" && t("confirm")}
-                  </Button>
-                )}
+              <m.div key={slot.time} initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+                <Button
+                  variant={layout === "column_view" ? "icon" : "button"}
+                  StartIcon={layout === "column_view" ? "chevron-right" : undefined}
+                  type="button"
+                  onClick={() =>
+                    onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                  }
+                  data-testid="skip-confirm-book-button"
+                  disabled={
+                    (!!shouldRenderCaptcha && !watchedCfToken) ||
+                    loadingStates?.creatingBooking ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking
+                  }
+                  color="primary"
+                  loading={
+                    (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking
+                  }>
+                  {layout == "column_view"
+                    ? ""
+                    : renderConfirmNotVerifyEmailButtonCond
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_email_button")}
+                </Button>
               </m.div>
             </HoverCard.Trigger>
             {isOverlapping && (
@@ -241,12 +218,41 @@ const SlotItem = ({
 };
 
 export const AvailableTimes = ({
-  slots,
+  slots: Incomingslots,
   showTimeFormatToggle = true,
   className,
+  seatsPerTimeSlot,
+  skipConfirmStep,
+  onTimeSelect,
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
+
+  const [slots, setSlots] = useState(Incomingslots);
+
+  const overlayCalendarToggled =
+    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
+
+  const handleSlotClick = useCallback(
+    (selectedSlot: Slot, isOverlapping: boolean) => {
+      if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
+        setSlots((prevSlots) =>
+          prevSlots.map((slot) => ({
+            ...slot,
+            showConfirmButton: slot.time === selectedSlot.time ? !selectedSlot?.showConfirmButton : false,
+          }))
+        );
+        return;
+      }
+      onTimeSelect(
+        selectedSlot.time,
+        selectedSlot?.attendees || 0,
+        seatsPerTimeSlot,
+        selectedSlot.bookingUid
+      );
+    },
+    [overlayCalendarToggled, onTimeSelect, seatsPerTimeSlot, skipConfirmStep]
+  );
 
   const oooAllDay = slots.every((slot) => slot.away);
   if (oooAllDay) {
@@ -273,7 +279,17 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return <SlotItem key={slot.time} slot={slot} {...props} />;
+          return (
+            <SlotItem
+              key={slot.time}
+              slot={slot}
+              {...props}
+              handleSlotClick={handleSlotClick}
+              seatsPerTimeSlot={seatsPerTimeSlot}
+              skipConfirmStep={skipConfirmStep}
+              onTimeSelect={onTimeSelect}
+            />
+          );
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>
