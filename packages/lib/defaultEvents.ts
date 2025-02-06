@@ -55,6 +55,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   allowDynamicBooking: true,
   timeFormat: 12,
   travelSchedules: [],
+  locked: false,
 };
 
 const customInputs: CustomInputSchema[] = [];
