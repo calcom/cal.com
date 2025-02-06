@@ -38,86 +38,65 @@ async function authMiddleware() {
 
 // TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
 export async function GET() {
-  try {
-    const user = await authMiddleware();
+  const user = await authMiddleware();
 
-    const selectedCalendarIds = await SelectedCalendarRepository.findMany({
-      where: { userId: user.id },
-      select: { externalId: true },
-    });
-    // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials);
-    // get all the connected integrations' calendars (from third party)
-    const { connectedCalendars } = await getConnectedCalendars(
-      calendarCredentials,
-      user.userLevelSelectedCalendars
-    );
+  const selectedCalendarIds = await SelectedCalendarRepository.findMany({
+    where: { userId: user.id },
+    select: { externalId: true },
+  });
+  // get user's credentials + their connected integrations
+  const calendarCredentials = getCalendarCredentials(user.credentials);
+  // get all the connected integrations' calendars (from third party)
+  const { connectedCalendars } = await getConnectedCalendars(
+    calendarCredentials,
+    user.userLevelSelectedCalendars
+  );
 
-    const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
-    const selectableCalendars = calendars.map((cal) => {
-      return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
-    });
+  const calendars = connectedCalendars.flatMap((c) => c.calendars).filter(notEmpty);
+  const selectableCalendars = calendars.map((cal) => {
+    return { selected: selectedCalendarIds.findIndex((s) => s.externalId === cal.externalId) > -1, ...cal };
+  });
 
-    return NextResponse.json(selectableCalendars);
-  } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
-    }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+  return NextResponse.json(selectableCalendars);
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const user = await authMiddleware();
-    const body = await req.json();
-    const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(body);
+  const user = await authMiddleware();
+  const body = await req.json();
+  const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(body);
 
-    await SelectedCalendarRepository.upsert({
-      userId: user.id,
-      integration,
-      externalId,
-      credentialId,
-      eventTypeId: eventTypeId ?? null,
-    });
+  await SelectedCalendarRepository.upsert({
+    userId: user.id,
+    integration,
+    externalId,
+    credentialId,
+    eventTypeId: eventTypeId ?? null,
+  });
 
-    return NextResponse.json({ message: "Calendar Selection Saved" });
-  } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
-    }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+  return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
 export async function DELETE(req: NextRequest) {
-  try {
-    const user = await authMiddleware();
-    const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
+  const user = await authMiddleware();
+  const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
-    const { integration, externalId, credentialId, eventTypeId } =
-      selectedCalendarSelectSchema.parse(searchParams);
+  const { integration, externalId, credentialId, eventTypeId } =
+    selectedCalendarSelectSchema.parse(searchParams);
 
-    const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
-    await calendarCacheRepository.unwatchCalendar({
-      calendarId: externalId,
-      eventTypeIds: [eventTypeId ?? null],
-    });
+  const calendarCacheRepository = await CalendarCache.initFromCredentialId(credentialId);
+  await calendarCacheRepository.unwatchCalendar({
+    calendarId: externalId,
+    eventTypeIds: [eventTypeId ?? null],
+  });
 
-    await SelectedCalendarRepository.delete({
-      where: {
-        userId: user.id,
-        externalId,
-        integration,
-        eventTypeId: eventTypeId ?? null,
-      },
-    });
+  await SelectedCalendarRepository.delete({
+    where: {
+      userId: user.id,
+      externalId,
+      integration,
+      eventTypeId: eventTypeId ?? null,
+    },
+  });
 
-    return NextResponse.json({ message: "Calendar Selection Saved" });
-  } catch (error) {
-    if (error instanceof HttpError) {
-      throw error;
-    }
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+  return NextResponse.json({ message: "Calendar Selection Saved" });
 }
