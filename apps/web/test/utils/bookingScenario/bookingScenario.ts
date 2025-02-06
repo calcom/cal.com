@@ -1148,7 +1148,12 @@ export const TestData = {
       const [year, month] = monthYear.split("-").map(Number); // Expecting format 'YYYY-MM'
       const startOfMonth = new Date(year, month - 1, 1);
       const endOfMonth = new Date(year, month, 0);
-      const availability = [
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
         {
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T18:00:00.000Z"),
@@ -1177,7 +1182,12 @@ export const TestData = {
     },
     IstWorkHoursWithFirstTwoWeeksUnavailable: (dateString: string) => {
       const date = new Date(dateString);
-      const availability = [
+      const availability: {
+        days: number[];
+        startTime: Date;
+        endTime: Date;
+        date: string | null;
+      }[] = [
         {
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T18:00:00.000Z"),
