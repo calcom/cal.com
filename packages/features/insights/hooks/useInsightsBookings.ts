@@ -4,7 +4,6 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  type ColumnDef,
 } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -16,11 +15,12 @@ import type { RoutingFormTableRow } from "../lib/types";
 import { useInsightsFacetedUniqueValues } from "./useInsightsFacetedUniqueValues";
 import { useInsightsParameters } from "./useInsightsParameters";
 
-type FakeTableRow = RoutingFormTableRow & {
-  eventTypeId: number;
+type DummyTableRow = {
+  bookingUserId: RoutingFormTableRow["bookingUserId"];
+  eventTypeId: number | null;
 };
 
-const emptyData: FakeTableRow[] = [];
+const emptyData: DummyTableRow[] = [];
 
 export const useInsightsBookings = () => {
   const { t } = useLocale();
@@ -37,7 +37,7 @@ export const useInsightsBookings = () => {
   const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
 
   const columns = useMemo(() => {
-    const columnHelper = createColumnHelper<FakeTableRow>();
+    const columnHelper = createColumnHelper<DummyTableRow>();
     return [
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
@@ -64,10 +64,10 @@ export const useInsightsBookings = () => {
         enableSorting: false,
         cell: () => null,
       }),
-    ] as ColumnDef<FakeTableRow>[];
-  });
+    ];
+  }, [t]);
 
-  const table = useReactTable<FakeTableRow>({
+  const table = useReactTable<DummyTableRow>({
     data: emptyData,
     columns,
     getCoreRowModel: getCoreRowModel(),
