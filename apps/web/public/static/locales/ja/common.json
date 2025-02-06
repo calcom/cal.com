@@ -633,7 +633,7 @@
   "booking_fail": "ミーティングを予約できませんでした。",
   "reschedule_fail": "会議を再スケジュールできませんでした。",
   "share_additional_notes": "会議の準備に役立つものを何でもシェアしてください。",
-  "booking_confirmation": "{{profileName}} の{{eventTypeTitle}} を確認",
+  "booking_confirmation": "{{profileName}} の{{eventTypeTitle}} を確定",
   "booking_reschedule_confirmation": "{{profileName}} の {{eventTypeTitle}} をスケジュール変更する",
   "in_person_meeting": "リンクまたは対面ミーティング",
   "in_person": "対面（主催者のアドレス）",
