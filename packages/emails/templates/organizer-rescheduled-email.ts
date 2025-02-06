@@ -22,15 +22,20 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await this.getHtml({ ...this.calEvent, attendeeSeatId: undefined }, this.calEvent.organizer),
+      html: await this.getHtml(
+        { ...this.calEvent, attendeeSeatId: undefined },
+        this.calEvent.organizer,
+        this.teamMember
+      ),
       text: this.getTextBody("event_has_been_rescheduled"),
     };
   }
 
-  async getHtml(calEvent: CalendarEvent, attendee: Person) {
+  async getHtml(calEvent: CalendarEvent, attendee: Person, teamMember?: Person) {
     return await renderEmail("OrganizerRescheduledEmail", {
       calEvent,
       attendee,
+      teamMember,
     });
   }
 }

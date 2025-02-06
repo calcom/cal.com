@@ -54,6 +54,8 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   });
 
   const [response, setResponse] = usePrefilledResponse(form);
+  const pageSearchParams = useCompatSearchParams();
+  const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
@@ -79,6 +81,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       formFillerId,
       response: response,
       chosenRouteId: chosenRoute.id,
+      isPreview: isBookingDryRun,
     });
 
     chosenRouteWithFormResponseRef.current = {
@@ -92,7 +95,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
-  const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
+  const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
     onSuccess: async (data) => {
       const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;

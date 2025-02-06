@@ -179,7 +179,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
     if (origin && !isOriginAllowed(origin, client.redirectUris)) {
       throw new UnauthorizedException(
-        `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${origin}' to the 'Redirect uris' of your OAuth client.`
+        `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${origin}' to the 'Redirect uris' of your OAuth client with ID '${client.id}'`
       );
     }
 

@@ -19,6 +19,7 @@ import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -46,6 +47,7 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  isPrivateLink,
   classNames,
   locale,
 }: {
@@ -54,7 +56,7 @@ export const EventMeta = ({
     | "lockTimeZoneToggleOnBookingPage"
     | "schedule"
     | "seatsPerTimeSlot"
-    | "users"
+    | "subsetOfUsers"
     | "length"
     | "schedulingType"
     | "profile"
@@ -72,6 +74,7 @@ export const EventMeta = ({
     | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
+  isPrivateLink: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
@@ -80,7 +83,9 @@ export const EventMeta = ({
   };
   locale?: string | null;
 }) => {
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -147,9 +152,10 @@ export const EventMeta = ({
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
-            users={event.users}
+            users={event.subsetOfUsers}
             profile={event.profile}
             entity={event.entity}
+            isPrivateLink={isPrivateLink}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
@@ -214,7 +220,10 @@ export const EventMeta = ({
                       container: () => "max-w-full",
                     }}
                     value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

@@ -72,6 +72,7 @@ type DatabaseBooking = Booking & {
     email: string;
     timeZone: string;
     locale: string | null;
+    phoneNumber?: string | null;
     noShow: boolean | null;
     bookingSeat?: BookingSeat | null;
   }[];
@@ -107,7 +108,9 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
+      cancelledByEmail: databaseBooking.cancelledBy || undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
+      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
@@ -121,6 +124,7 @@ export class OutputBookingsService_2024_08_13 {
         timeZone: attendee.timeZone,
         language: attendee.locale,
         absent: !!attendee.noShow,
+        phoneNumber: attendee.phoneNumber ?? undefined,
       })),
       guests: bookingResponses.guests,
       location,
@@ -196,7 +200,9 @@ export class OutputBookingsService_2024_08_13 {
       hosts: [this.getHost(databaseBooking.user)],
       status: databaseBooking.status.toLowerCase(),
       cancellationReason: databaseBooking.cancellationReason || undefined,
+      cancelledByEmail: databaseBooking.cancelledBy || undefined,
       reschedulingReason: bookingResponses?.rescheduledReason,
+      rescheduledByEmail: databaseBooking.rescheduledBy || undefined,
       rescheduledFromUid: databaseBooking.fromReschedule || undefined,
       start: databaseBooking.startTime,
       end: databaseBooking.endTime,
