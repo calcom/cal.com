@@ -1523,11 +1523,11 @@
           {
             "in": "query",
             "name": "cancellationReason",
-            "required": false,
+            "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "The reason for cancellation of the booking"
+            "description": "The reason for cancellation of the booking, not required except for hosts"
           }
         ],
         "tags": ["Bookings"],

@@ -19,6 +19,7 @@ import {
   isMultiSelectFilterValue,
   singleSelectFilter,
   multiSelectFilter,
+  ColumnFilterType,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -184,12 +185,12 @@ function UserListTableContent() {
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
-            ? "number"
+            ? ColumnFilterType.NUMBER
             : isText
-            ? "text"
+            ? ColumnFilterType.TEXT
             : isSingleSelect
-            ? "single_select"
-            : "multi_select";
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -288,9 +289,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: () => {
-          return `Members`;
-        },
+        header: "Members",
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -436,7 +435,6 @@ function UserListTableContent() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
@@ -450,7 +448,6 @@ function UserListTableContent() {
       size: 150,
     },
     state: {
-      columnFilters,
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
