@@ -57,13 +57,6 @@ export const BookerI18nextProvider = ({
   );
 };
 
-export const useBookerI18n = (): BookerI18nContextType => {
-  const context = useContext(BookerI18nContext);
-  if (!context) {
-    throw new Error("useBookerI18n must be used within BookerI18nextProvider");
-  }
-  if (!context.isLocaleReady) {
-    throw new Error("useBookerI18n called before locale is ready.");
-  }
-  return context;
+export const useBookerI18n = (): BookerI18nContextType | null => {
+  return useContext(BookerI18nContext);
 };

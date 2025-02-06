@@ -7,12 +7,10 @@ export const useLocale = (namespace: Parameters<typeof useTranslation>[0] = "com
   const { i18n, t } = useTranslation(namespace);
   const isLocaleReady = Object.keys(i18n).length > 0;
 
-  try {
-    const bookerContext = useBookerI18n();
-    if (bookerContext.isLocaleReady) {
-      return bookerContext;
-    }
-  } catch {}
+  const bookerContext = useBookerI18n();
+  if (bookerContext?.isLocaleReady) {
+    return bookerContext;
+  }
 
   if (context?.clientId) {
     return {
