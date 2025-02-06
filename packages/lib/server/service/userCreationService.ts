@@ -1,7 +1,12 @@
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
-import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import type {
+  CreationSource,
+  UserPermissionRole,
+  IdentityProvider,
+  MembershipRole,
+} from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
@@ -20,17 +25,22 @@ interface CreateUserInput {
   timeFormat?: number;
   locale?: string;
   avatar?: string;
-  organizationId?: number | null;
   creationSource: CreationSource;
   role?: UserPermissionRole;
   emailVerified?: Date;
   identityProvider?: IdentityProvider;
 }
 
+interface OrgData {
+  id: number;
+  role: MembershipRole;
+  accepted: boolean;
+}
+
 const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
-  static async createUser({ data }: { data: CreateUserInput }) {
+  static async createUser({ data, orgData }: { data: CreateUserInput; orgData?: OrgData }) {
     const { email, password, username } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
@@ -38,11 +48,13 @@ export class UserCreationService {
     const hashedPassword = password ? await hashPassword(password) : null;
 
     const user = await UserRepository.create({
-      ...data,
-      username: slugify(username),
-      ...(hashedPassword && { hashedPassword }),
-      organizationId: data?.organizationId ?? null,
-      locked: shouldLockByDefault,
+      data: {
+        ...data,
+        username: slugify(username),
+        ...(hashedPassword && { hashedPassword }),
+        locked: shouldLockByDefault,
+      },
+      ...(orgData ? orgData : {}),
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
