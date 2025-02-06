@@ -50,36 +50,12 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   defaultScheduleId: true,
 });
 
-const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-  id: true,
-  title: true,
-  description: true,
-  interfaceLanguage: true,
-  eventName: true,
-  slug: true,
-  isInstantEvent: true,
-  instantMeetingParameters: true,
-  aiPhoneCallConfig: true,
-  schedulingType: true,
-  length: true,
-  locations: true,
-  customInputs: true,
-  disableGuests: true,
-  metadata: true,
-  lockTimeZoneToggleOnBookingPage: true,
-  requiresConfirmation: true,
-  autoTranslateDescriptionEnabled: true,
-  fieldTranslations: {
-    select: {
-      translatedText: true,
-      targetLocale: true,
-      field: true,
-
 const getPublicEventSelect = (fetchAllUsers: boolean) => {
   return Prisma.validator<Prisma.EventTypeSelect>()({
     id: true,
     title: true,
     description: true,
+    interfaceLanguage: true,
     eventName: true,
     slug: true,
     isInstantEvent: true,

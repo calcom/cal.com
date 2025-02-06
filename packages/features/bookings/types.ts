@@ -55,7 +55,6 @@ export type BookerEvent = Pick<
   | "fieldTranslations"
   | "autoTranslateDescriptionEnabled"
   | "interfaceLanguage"
-> & { users: BookerEventUser[]; showInstantEventConnectNowModal: boolean } & { profile: BookerEventProfile };
 > & {
   subsetOfUsers: BookerEventUser[];
   showInstantEventConnectNowModal: boolean;
