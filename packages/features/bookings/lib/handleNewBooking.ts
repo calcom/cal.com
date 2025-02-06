@@ -644,7 +644,7 @@ async function handler(
             "Qualified users not available, check for fallback users",
             safeStringify({
               qualifiedRRUsers: qualifiedRRUsers.map((user) => user.id),
-              fallbackRRUsers: fallbackRRUsers.map((user) => user.id),
+              additionalFallbackRRUsers: additionalFallbackRRUsers.map((user) => user.id),
             })
           );
           // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
