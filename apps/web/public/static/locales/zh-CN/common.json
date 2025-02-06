@@ -108,6 +108,7 @@
   "accept_license": "接受许可协议",
   "still_waiting_for_approval": "有活动正在等待您的批准",
   "event_is_still_waiting": "活动请求仍在等待中: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "未找到与\"{{searchTerm}}\"相关的结果",
   "no_more_results": "无更多结果",
   "no_results": "无结果",
   "load_more_results": "加载更多结果",

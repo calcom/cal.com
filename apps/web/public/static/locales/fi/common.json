@@ -108,6 +108,7 @@
   "accept_license": "Hyväksy lisenssi",
   "still_waiting_for_approval": "Tapahtuma odottaa edelleen hyväksyntää",
   "event_is_still_waiting": "Tapahtumapyyntö odottaa edelleen: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Ei tuloksia hakusanalle \"{{searchTerm}}\"",
   "no_more_results": "Ei enempää tuloksia",
   "no_results": "Ei tuloksia",
   "load_more_results": "Lataa lisää tuloksia",

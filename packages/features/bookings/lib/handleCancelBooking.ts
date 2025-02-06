@@ -184,7 +184,7 @@ async function handler(req: CustomRequest) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
-  if (!cancellationReason && req.bookingToDelete.userId == userId) {
+  if (!platformClientId && !cancellationReason && req.bookingToDelete.userId == userId) {
     throw new HttpError({
       statusCode: 400,
       message: "Cancellation reason is required when you are the host",
