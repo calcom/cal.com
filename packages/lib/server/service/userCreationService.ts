@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import type { CreationSource } from "@calcom/prisma/enums";
 
+import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
 
 interface CreateUserInput {
@@ -24,7 +25,7 @@ interface CreateUserInput {
 
 export class UserCreationService {
   static async createUser(data: CreateUserInput) {
-    const { email, password } = data;
+    const { email, password, username } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
 
@@ -33,6 +34,7 @@ export class UserCreationService {
 
     const user = await UserRepository.create({
       ...data,
+      username: slugify(username),
       hashedPassword,
       organizationId: data?.organizationId ?? null,
       locked: shouldLockByDefault,

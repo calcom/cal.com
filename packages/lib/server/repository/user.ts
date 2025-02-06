@@ -13,7 +13,6 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
-import slugify from "../../slugify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
@@ -596,7 +595,7 @@ export class UserRepository {
 
     return await prisma.user.create({
       data: {
-        username: slugify(username),
+        username,
         email: email,
         password: { create: { hash: hashedPassword } },
         // Default schedule
@@ -620,7 +619,7 @@ export class UserRepository {
               organizationId: organizationId,
               profiles: {
                 create: {
-                  username: slugify(username),
+                  username,
                   organizationId: organizationId,
                   uid: ProfileRepository.generateProfileUid(),
                 },
