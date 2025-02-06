@@ -100,7 +100,7 @@ describe("findQualifiedHosts", async () => {
     expect(result).toStrictEqual({
       qualifiedRRHosts: rrHostsAfterFairness,
       fixedHosts,
-      fallbackRRHosts: rrHosts,
+      allFallbackRRHosts: rrHosts,
     });
   });
 
@@ -240,7 +240,7 @@ describe("findQualifiedHosts", async () => {
           ...hosts[0],
         },
       ],
-      fallbackRRHosts: hosts,
+      allFallbackRRHosts: hosts,
       fixedHosts: [],
     });
   });
@@ -324,7 +324,7 @@ describe("findQualifiedHosts", async () => {
     // Verify the result
     expect(result).toEqual({
       qualifiedRRHosts: [hosts[2]],
-      fallbackRRHosts: [hosts[0], hosts[2]],
+      allFallbackRRHosts: [hosts[0], hosts[2]],
       fixedHosts: [],
     });
   });
@@ -663,7 +663,7 @@ describe("findQualifiedHosts", async () => {
     // Verify the result
     expect(result).toEqual({
       qualifiedRRHosts: [hosts[2]],
-      fallbackRRHosts: [hosts[1], hosts[2]],
+      allFallbackRRHosts: [hosts[1], hosts[2]],
       fixedHosts: [],
     });
   });

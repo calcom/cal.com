@@ -353,7 +353,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     });
   }
 
-  const { qualifiedRRHosts, fallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
     findQualifiedHosts<GetAvailabilityUser>,
     {
       eventType,
@@ -384,7 +384,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       shouldServeCache,
     });
   // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
-  if (fallbackRRHosts && fallbackRRHosts.length > 0) {
+  if (allFallbackRRHosts && allFallbackRRHosts.length > 0) {
     let diff = 0;
     if (startTime.isBefore(twoWeeksFromNow)) {
       //check if first two week have availability
@@ -397,7 +397,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         const firstTwoWeeksAvailabilities = await calculateHostsAndAvailabilities({
           input,
           eventType,
-          hosts: [...fallbackRRHosts, ...fixedHosts],
+          hosts: [...allFallbackRRHosts, ...fixedHosts],
           contactOwnerEmail,
           loggerWithEventDetails,
           startTime: dayjs(),
@@ -416,7 +416,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       const fallbackAvailabilities = await calculateHostsAndAvailabilities({
         input,
         eventType,
-        hosts: [...fallbackRRHosts, ...fixedHosts],
+        hosts: [...allFallbackRRHosts, ...fixedHosts],
         contactOwnerEmail,
         loggerWithEventDetails,
         startTime,

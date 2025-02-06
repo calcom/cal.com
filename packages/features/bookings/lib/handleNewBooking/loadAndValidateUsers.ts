@@ -59,7 +59,7 @@ export async function loadAndValidateUsers({
   contactOwnerEmail,
   isSameHostReschedule,
   routingFormResponse,
-}: InputProps): Promise<{ qualifiedRRUsers: Users; fallbackRRUsers: Users; fixedUsers: Users }> {
+}: InputProps): Promise<{ qualifiedRRUsers: Users; additionalFallbackRRUsers: Users; fixedUsers: Users }> {
   let users: Users = await loadUsers({
     eventType,
     dynamicUserList,
@@ -108,7 +108,7 @@ export async function loadAndValidateUsers({
         ? false
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
-  const { qualifiedRRHosts, fallbackRRHosts, fixedHosts } = await findQualifiedHosts({
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHosts({
     eventType: {
       ...eventType,
       rescheduleWithSameRoundRobinHost: isSameHostReschedule,
@@ -120,7 +120,7 @@ export async function loadAndValidateUsers({
   });
 
   let qualifiedRRUsers: Users = [];
-  let fallbackRRUsers: Users = [];
+  let allFallbackRRUsers: Users = [];
   let fixedUsers: Users = [];
 
   if (qualifiedRRHosts.length) {
@@ -129,9 +129,9 @@ export async function loadAndValidateUsers({
     qualifiedRRUsers = users.filter((user) => qualifiedHostIds.has(user.id));
   }
 
-  if (fallbackRRHosts?.length) {
-    const fallbackHostIds = new Set(fallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
-    fallbackRRUsers = users.filter((user) => fallbackHostIds.has(user.id));
+  if (allFallbackRRHosts?.length) {
+    const fallbackHostIds = new Set(allFallbackRRHosts.map((fallbackHost) => fallbackHost.user.id));
+    allFallbackRRUsers = users.filter((user) => fallbackHostIds.has(user.id));
   }
 
   if (fixedHosts?.length) {
@@ -146,13 +146,13 @@ export async function loadAndValidateUsers({
     })
   );
 
-  fallbackRRUsers = fallbackRRUsers.filter(
+  const additionalFallbackRRUsers = allFallbackRRUsers.filter(
     (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
   );
 
   return {
     qualifiedRRUsers,
-    fallbackRRUsers, // without qualified
+    additionalFallbackRRUsers, // without qualified
     fixedUsers: !qualifiedRRUsers.length && !fixedUsers.length ? users : fixedUsers,
   };
 }

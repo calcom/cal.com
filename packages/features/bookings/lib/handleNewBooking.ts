@@ -511,20 +511,23 @@ async function handler(
     });
   }
 
-  const { qualifiedRRUsers, fallbackRRUsers, fixedUsers } = await monitorCallbackAsync(loadAndValidateUsers, {
-    req,
-    eventType,
-    eventTypeId,
-    dynamicUserList,
-    logger: loggerWithEventDetails,
-    routedTeamMemberIds: routedTeamMemberIds ?? null,
-    contactOwnerEmail,
-    isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
-    routingFormResponse,
-  });
+  const { qualifiedRRUsers, additionalFallbackRRUsers, fixedUsers } = await monitorCallbackAsync(
+    loadAndValidateUsers,
+    {
+      req,
+      eventType,
+      eventTypeId,
+      dynamicUserList,
+      logger: loggerWithEventDetails,
+      routedTeamMemberIds: routedTeamMemberIds ?? null,
+      contactOwnerEmail,
+      isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
+      routingFormResponse,
+    }
+  );
 
   // We filter out users but ensure allHostUsers remain same.
-  let users = [...qualifiedRRUsers, ...fallbackRRUsers, ...fixedUsers];
+  let users = [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers];
 
   let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
     dynamicUserList,
@@ -636,7 +639,7 @@ async function handler(
           shouldServeCache
         );
       } catch {
-        if (fallbackRRUsers.length) {
+        if (additionalFallbackRRUsers.length) {
           loggerWithEventDetails.debug(
             "Qualified users not available, check for fallback users",
             safeStringify({
@@ -647,7 +650,10 @@ async function handler(
           // can happen when contact owner not available for 2 weeks or fairness would block at least 2 weeks
           // use fallback instead
           availableUsers = await ensureAvailableUsers(
-            { ...eventTypeWithUsers, users: [...fallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[] },
+            {
+              ...eventTypeWithUsers,
+              users: [...additionalFallbackRRUsers, ...fixedUsers] as IsFixedAwareUser[],
+            },
             {
               dateFrom: dayjs(reqBody.start).tz(reqBody.timeZone).format(),
               dateTo: dayjs(reqBody.end).tz(reqBody.timeZone).format(),
@@ -1300,7 +1306,7 @@ async function handler(
         endTime: reqBody.end,
         contactOwnerFromReq,
         contactOwnerEmail,
-        allHostUsers: [...qualifiedRRUsers, ...fallbackRRUsers, ...fixedUsers],
+        allHostUsers: [...qualifiedRRUsers, ...additionalFallbackRRUsers, ...fixedUsers],
         isManagedEventType,
       });
       booking = dryRunBooking;

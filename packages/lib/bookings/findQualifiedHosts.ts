@@ -86,7 +86,7 @@ export const findQualifiedHosts = async <
     user: T;
   }[];
   // all hosts we want to fallback to including the qualifiedRRHosts (fairness + crm contact owner)
-  fallbackRRHosts?: {
+  allFallbackRRHosts?: {
     isFixed: boolean;
     createdAt: Date | null;
     priority?: number | null;
@@ -155,7 +155,7 @@ export const findQualifiedHosts = async <
     if (hostsAfterContactOwnerMatching.length === 1) {
       return {
         qualifiedRRHosts: hostsAfterContactOwnerMatching,
-        fallbackRRHosts: getFallBackWithContactOwner(
+        allFallbackRRHosts: getFallBackWithContactOwner(
           hostsAfterRoutedTeamMemberIdsMatching,
           hostsAfterContactOwnerMatching[0]
         ),
@@ -181,7 +181,7 @@ export const findQualifiedHosts = async <
   if (hostsAfterContactOwnerMatching.length === 1) {
     return {
       qualifiedRRHosts: hostsAfterContactOwnerMatching,
-      fallbackRRHosts: getFallBackWithContactOwner(
+      allFallbackRRHosts: getFallBackWithContactOwner(
         hostsAfterFairnessMatching,
         hostsAfterContactOwnerMatching[0]
       ),
@@ -192,7 +192,7 @@ export const findQualifiedHosts = async <
   return {
     qualifiedRRHosts: hostsAfterFairnessMatching,
     // only if fairness filtering is active
-    fallbackRRHosts:
+    allFallbackRRHosts:
       hostsAfterFairnessMatching.length !== hostsAfterRoutedTeamMemberIdsMatching.length
         ? hostsAfterRoutedTeamMemberIdsMatching
         : undefined,
