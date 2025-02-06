@@ -2,6 +2,7 @@ import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getO
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { UserCreationService } from "@calcom/lib/server/service/UserCreationService";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
@@ -9,7 +10,6 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
-import { UserRepository } from "./user";
 
 const orgSelect = {
   id: true,
@@ -86,19 +86,16 @@ export class OrganizationRepository {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
-    const ownerInDb = await UserRepository.create({
-      email: owner.email,
-      username: ownerUsernameInOrg,
-      organizationId: organization.id,
-      creationSource,
-    });
-
-    await prisma.membership.create({
+    const ownerInDb = await UserCreationService.createUser({
       data: {
-        userId: ownerInDb.id,
+        email: owner.email,
+        username: ownerUsernameInOrg,
+        creationSource,
+      },
+      orgData: {
+        id: organization.id,
         role: MembershipRole.OWNER,
         accepted: true,
-        teamId: organization.id,
       },
     });
 
