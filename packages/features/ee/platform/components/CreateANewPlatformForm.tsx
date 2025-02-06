@@ -92,7 +92,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
             createOrganizationMutation.mutate({
               ...v,
               slug: `${v.name.toLocaleLowerCase()}-platform-${uuid().substring(0, 20)}`,
-              creationSource: CreationSource.API_V2,
+              creationSource: CreationSource.API_V2_NEW_ORG,
             });
           }
         }}>

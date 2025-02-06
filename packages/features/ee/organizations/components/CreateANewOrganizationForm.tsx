@@ -108,7 +108,7 @@ const CreateANewOrganizationFormChild = ({
         handleSubmit={(v) => {
           if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
-            createOrganizationMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
+            createOrganizationMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP_NEW_ORG });
           }
         }}>
         <div>
