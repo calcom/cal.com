@@ -27,6 +27,7 @@
     "react-dom": "^18.3.1",
     "react-element-to-jsx-string": "^15.0.0",
     "react-hook-form": "^7.43.3",
+    "react-hot-toast": "^2.5.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
