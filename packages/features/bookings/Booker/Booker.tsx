@@ -161,7 +161,7 @@ const BookerComponent = ({
     }
   };
 
-  const skipConfirmStep = useSkipConfirmStep(bookingForm, event?.data?.bookingFields);
+  const skipConfirmStep = useSkipConfirmStep(bookingForm, bookerState, event?.data?.bookingFields);
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
