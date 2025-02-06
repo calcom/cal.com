@@ -353,7 +353,7 @@ function BookingsContent({ status }: BookingsProps) {
           }))}
         />
         <div className="flex items-center gap-1">
-          {status === "past" && (
+          {status === "past" && flatData.length > 0 && (
             <DeletePastBookingsSection
               bookingsCount={flatData.length}
               bookingIds={flatData
