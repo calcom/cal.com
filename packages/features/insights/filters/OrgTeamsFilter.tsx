@@ -43,7 +43,7 @@ export const OrgTeamsFilter = () => {
 
   const getPopoverProps = () => {
     if (orgTeamsType === "org") {
-      return { text: t("all"), placeholder: undefined, imageUrl: data?.[0].logoUrl };
+      return { text: t("all"), placeholder: undefined, imageUrl: data?.[0]?.logoUrl };
     } else if (orgTeamsType === "yours") {
       return { text: t("yours"), placeholder: currentUserName, imageUrl: session.data?.user.avatarUrl };
     } else if (orgTeamsType === "team") {

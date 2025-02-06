@@ -8726,7 +8726,6 @@
         },
         "required": [
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug"
         ]
@@ -12220,7 +12219,6 @@
         },
         "required": [
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug",
           "schedulingType",
