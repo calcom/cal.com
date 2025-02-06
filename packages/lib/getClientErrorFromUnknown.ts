@@ -1,4 +1,4 @@
-import { TRPCClientError } from "@trpc/client";
+import { TRPCClientError } from "@calcom/trpc/client";
 
 import { HttpError } from "./http-error";
 

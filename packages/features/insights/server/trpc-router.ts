@@ -10,10 +10,9 @@ import {
 import { randomString } from "@calcom/lib/random";
 import type { readonlyPrisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { TRPCError } from "@calcom/trpc/server";
 import authedProcedure from "@calcom/trpc/server/procedures/authedProcedure";
 import { router } from "@calcom/trpc/server/trpc";
-
-import { TRPCError } from "@trpc/server";
 
 import { EventsInsights } from "./events";
 import { RoutingEventsInsights } from "./routing-events";

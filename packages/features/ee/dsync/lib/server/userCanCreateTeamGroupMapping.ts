@@ -1,8 +1,7 @@
 import { canAccess } from "@calcom/features/ee/sso/lib/saml";
 import prisma from "@calcom/prisma";
+import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
-import { TRPCError } from "@trpc/server";
 
 const userCanCreateTeamGroupMapping = async (
   user: NonNullable<TrpcSessionUser>,

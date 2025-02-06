@@ -12,8 +12,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import { customInputSchema, eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/trpc/server";
 
 import { WEBSITE_URL } from "../constants";
 import { getBookerBaseUrl } from "../getBookerUrl/server";

@@ -4,8 +4,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 import { TeamBilling } from "@calcom/features/ee/billing/teams";
 
-import { TRPCError } from "@trpc/server";
-
 import { TeamRepository } from "./team";
 
 vi.mock("@calcom/features/ee/billing/teams", () => ({
@@ -105,7 +103,7 @@ describe("TeamRepository", () => {
   describe("inviteMemberByToken", () => {
     it("should throw error if verification token is not found", async () => {
       prismaMock.verificationToken.findFirst.mockResolvedValue(null);
-      await expect(TeamRepository.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(TRPCError);
+      await expect(TeamRepository.inviteMemberByToken("invalid-token", 1)).rejects.toThrow(Error);
     });
 
     it("should create membership and update billing", async () => {

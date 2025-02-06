@@ -6,8 +6,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/trpc/server";
 
 import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validations/team";

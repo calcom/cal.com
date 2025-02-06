@@ -5,8 +5,7 @@ import type { TCreatePhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zo
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/trpc/server";
 
 export const handleCreatePhoneCall = async ({
   user,

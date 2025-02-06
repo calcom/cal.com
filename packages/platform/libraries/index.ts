@@ -113,7 +113,7 @@ export { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 export { cityTimezonesHandler } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 export type { CityTimezones } from "@calcom/features/cityTimezones/cityTimezonesHandler";
 
-export { TRPCError } from "@trpc/server";
+export { TRPCError } from "@calcom/trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 export type { TUpdateInputSchema as TUpdateEventTypeInputSchema } from "@calcom/trpc/server/routers/viewer/eventTypes/update.schema";
 export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
