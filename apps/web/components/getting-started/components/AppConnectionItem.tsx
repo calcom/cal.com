@@ -55,10 +55,11 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
         render={(buttonProps) => (
           <Button
             {...buttonProps}
+            className="min-w-24"
             color="secondary"
             disabled={installed || !!dependency}
             type="button"
-            loading={isInstalling || buttonProps?.loading}
+            loading={isInstalling}
             tooltip={
               dependency ? (
                 <div className="items-start space-x-2.5">
@@ -99,7 +100,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
               buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
               setInstalling(true);
             }}>
-            {installed ? t("installed") : t("connect")}
+            {!isInstalling && <>{installed ? t("installed") : t("connect")}</>}
           </Button>
         )}
       />

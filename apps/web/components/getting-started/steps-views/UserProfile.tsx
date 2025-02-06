@@ -8,7 +8,7 @@ import { md } from "@calcom/lib/markdownIt";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import turndown from "@calcom/lib/turndownService";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, showToast, Icon } from "@calcom/ui";
 import { UserAvatar } from "@calcom/ui";
 
 type FormData = {
@@ -144,12 +144,13 @@ const UserProfile = () => {
         />
         <p className="text-default mt-2 font-sans text-sm font-normal">{t("few_sentences_about_yourself")}</p>
       </fieldset>
-      <Button
-        loading={mutation.isPending}
-        EndIcon="arrow-right"
-        type="submit"
-        className="mt-8 w-full items-center justify-center">
-        {t("finish")}
+      <Button loading={mutation.isPending} type="submit" className="mt-8 w-full items-center justify-center">
+        {!mutation.isPending && (
+          <>
+            {t("finish")}
+            <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+          </>
+        )}
       </Button>
     </form>
   );
