@@ -35,6 +35,7 @@ import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -952,10 +953,8 @@ export const getOptions = ({
         // Associate with organization if enabled by flag and idP is Google (for now)
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
-        const newUser = await prisma.user.create({
+        const newUser = await UserCreationService.createUser({
           data: {
-            // Slugify the incoming name and append a few random characters to
-            // prevent conflicts for users with the same name.
             username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
             emailVerified: new Date(Date.now()),
             name: user.name,
@@ -963,15 +962,18 @@ export const getOptions = ({
             email: user.email,
             identityProvider: idP,
             identityProviderId: account.providerAccountId,
-            ...(orgId && {
-              verified: true,
-              organization: { connect: { id: orgId } },
-              teams: {
-                create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
-              },
-            }),
-            creationSource: CreationSource.WEBAPP,
+            creationSource: idP === "GOOGLE" ? CreationSource.GOOGLE : CreationSource.SAML,
+            ...(orgId ? { verified: true } : {}),
           },
+          ...(orgId
+            ? {
+                orgData: {
+                  id: orgId,
+                  role: MembershipRole.MEMBER,
+                  accepted: true,
+                },
+              }
+            : {}),
         });
 
         const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
