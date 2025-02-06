@@ -1,7 +1,4 @@
-import { createHash } from "crypto";
-
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -581,20 +578,19 @@ export class UserRepository {
     });
   }
 
-  static async create({
-    email,
-    username,
-    organizationId,
-    creationSource,
-  }: {
-    email: string;
-    username: string;
-    organizationId: number | null;
-    creationSource: CreationSource;
-  }) {
+  static async create(
+    data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+      username: string;
+      hashedPassword: string;
+      organizationId: number | null;
+      creationSource: CreationSource;
+      locked: boolean;
+    }
+  ) {
+    const organizationId = data.organizationId;
+    const { email, username, hashedPassword, creationSource, ...rest } = data;
+
     console.log("create user", { email, username, organizationId });
-    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
-    const hashedPassword = await hashPassword(password);
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -618,17 +614,20 @@ export class UserRepository {
             },
           },
         },
-        organizationId: organizationId,
-        profiles: organizationId
+        creationSource,
+        ...(!!organizationId
           ? {
-              create: {
-                username: slugify(username),
-                organizationId: organizationId,
-                uid: ProfileRepository.generateProfileUid(),
+              organizationId: organizationId,
+              profiles: {
+                create: {
+                  username: slugify(username),
+                  organizationId: organizationId,
+                  uid: ProfileRepository.generateProfileUid(),
+                },
               },
             }
-          : undefined,
-        creationSource,
+          : {}),
+        ...rest,
       },
     });
   }
