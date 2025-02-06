@@ -108,6 +108,7 @@
   "accept_license": "Îmi dau acordul pentru Licență",
   "still_waiting_for_approval": "Un eveniment încă așteaptă aprobare",
   "event_is_still_waiting": "Solicitarea evenimentului este încă în așteptare: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Nu s-au găsit rezultate pentru \"{{searchTerm}}\"",
   "no_more_results": "Nu mai există rezultate",
   "no_results": "Niciun rezultat",
   "load_more_results": "Încărcați mai multe rezultate",

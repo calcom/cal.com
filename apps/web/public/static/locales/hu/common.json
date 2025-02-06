@@ -108,6 +108,7 @@
   "accept_license": "Licensz elfogadása",
   "still_waiting_for_approval": "Egy esemény még jóváhagyásra vár",
   "event_is_still_waiting": "Még mindig függőben lévő kérés: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Nincs találat a következőre: \"{{searchTerm}}\"",
   "no_more_results": "Nincs több eredmény",
   "no_results": "Nincs eredmény",
   "load_more_results": "További eredmények betöltése",

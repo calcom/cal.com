@@ -108,6 +108,7 @@
   "accept_license": "Licentie accepteren",
   "still_waiting_for_approval": "Er is nog een openstaande goedkeuring voor een evenement",
   "event_is_still_waiting": "Openstaand verzoek voor evenement: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Geen resultaten gevonden voor \"{{searchTerm}}\"",
   "no_more_results": "Geen verdere resultaten",
   "no_results": "Geen resultaten",
   "load_more_results": "Meer resultaten laden",
