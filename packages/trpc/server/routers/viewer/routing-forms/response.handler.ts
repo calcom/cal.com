@@ -12,6 +12,8 @@ interface ResponseHandlerOptions {
   input: TResponseInputSchema;
 }
 export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) => {
+  //  This api route is only used in headed mode.
+  const isHeadlessMode = false;
   const { prisma } = ctx;
   const { formId, response, formFillerId, chosenRouteId = null, isPreview = false } = input;
   const form = await prisma.app_RoutingForms_Form.findFirst({
@@ -49,7 +51,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
     formFillerId,
     chosenRouteId,
     isPreview,
-    isHeadlessMode: false,
+    isHeadlessMode,
   });
 };
 
