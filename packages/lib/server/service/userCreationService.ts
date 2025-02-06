@@ -1,7 +1,6 @@
-import { createHash } from "crypto";
-
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
-import type { CreationSource } from "@calcom/prisma/enums";
+import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
@@ -9,6 +8,7 @@ import { UserRepository } from "../repository/user";
 interface CreateUserInput {
   email: string;
   username: string;
+  name?: string;
   password?: string;
   brandColor?: string;
   darkBrandColor?: string;
@@ -21,6 +21,9 @@ interface CreateUserInput {
   avatar?: string;
   organizationId?: number | null;
   creationSource: CreationSource;
+  role?: UserPermissionRole;
+  emailVerified?: Date;
+  identityProvider?: IdentityProvider;
 }
 
 export class UserCreationService {
@@ -29,13 +32,12 @@ export class UserCreationService {
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
 
-    const hashedPassword =
-      password ?? createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
+    const hashedPassword = password ? await hashPassword(password) : null;
 
     const user = await UserRepository.create({
       ...data,
       username: slugify(username),
-      hashedPassword,
+      ...(hashedPassword && { hashedPassword }),
       organizationId: data?.organizationId ?? null,
       locked: shouldLockByDefault,
     });
