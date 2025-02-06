@@ -47,6 +47,8 @@ enum CreationSource {
   API_V2           @map("api_v2")
   WEBAPP           @map("webapp")
   SELF_SERVE_ADMIN @map("self_serve_admin")
+  WEBAPP_NEW_ORG   @map("webapp_new_org")
+  API_V2_NEW_ORG   @map("api_v2_new_org")
 }
 
 model Host {
