@@ -2,12 +2,13 @@ import * as Popover from "@radix-ui/react-popover";
 import React from "react";
 
 import { classNames } from "@calcom/lib";
-import { Tooltip } from "@calcom/ui";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
+import { Tooltip } from "../tooltip";
 
 export const AnimatedPopover = ({
   text,
+  PrefixComponent,
   count,
   popoverTriggerClassNames,
   children,
@@ -16,6 +17,7 @@ export const AnimatedPopover = ({
   prefix,
 }: {
   text: string;
+  PrefixComponent?: React.ReactNode;
   count?: number;
   children: React.ReactNode;
   popoverTriggerClassNames?: string;
@@ -60,8 +62,9 @@ export const AnimatedPopover = ({
             Trigger
           ) : (
             <div className="max-w-36 flex items-center">
-              <Tooltip content={`${prefix}${text}`}>
+              <Tooltip content={prefix ? `${prefix}${text}` : text}>
                 <div className="flex select-none truncate font-medium">
+                  {PrefixComponent ? PrefixComponent : null}
                   {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
                   {text}
                   {count && count > 0 && (

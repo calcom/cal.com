@@ -4,10 +4,9 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/con
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { Locales } from "@/lib/enums/locales";
-import {
-  CreateUserResponse,
-  UserReturned,
-} from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
+import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
+import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
+import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
@@ -17,11 +16,13 @@ import { Test } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
@@ -80,13 +81,14 @@ describe("OAuth Client Users Endpoints", () => {
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
     let profilesRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
-    let postResponseData: CreateUserResponse;
+    let postResponseData: CreateManagedUserOutput["data"];
 
-    const platformAdminEmail = "platform-sensei@mail.com";
+    const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = "oauth-client-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -104,24 +106,31 @@ describe("OAuth Client Users Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
-      organization = await teamRepositoryFixture.create({ name: "organization" });
+      organization = await teamRepositoryFixture.create({
+        name: `oauth-client-users-organization-${randomString()}`,
+        isPlatform: true,
+        isOrganization: true,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       await profilesRepositoryFixture.create({
-        uid: "asd-asd",
+        uid: "asd1qwwqeqw-asddsadasd",
         username: platformAdminEmail,
         organization: { connect: { id: organization.id } },
-        movedFromUser: {
-          connect: {
-            id: platformAdmin.id,
-          },
-        },
         user: {
           connect: { id: platformAdmin.id },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: platformAdmin.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       await app.init();
@@ -150,6 +159,23 @@ describe("OAuth Client Users Endpoints", () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: "incorrect-time-zone",
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(400);
+    });
+
+    it(`should fail /POST with incorrect timeFormat`, async () => {
+      const requestBody = {
+        email: userEmail,
+        timeZone: userTimeZone,
+        name: "Alice Smith",
+        timeFormat: 100,
       };
 
       await request(app.getHttpServer())
@@ -166,6 +192,8 @@ describe("OAuth Client Users Endpoints", () => {
         weekStart: "Monday",
         timeFormat: 24,
         locale: Locales.FR,
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       const response = await request(app.getHttpServer())
@@ -174,11 +202,7 @@ describe("OAuth Client Users Endpoints", () => {
         .send(requestBody)
         .expect(201);
 
-      const responseBody: ApiSuccessResponse<{
-        user: Omit<User, "password">;
-        accessToken: string;
-        refreshToken: string;
-      }> = response.body;
+      const responseBody: CreateManagedUserOutput = response.body;
 
       postResponseData = responseBody.data;
 
@@ -186,15 +210,18 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.user.email).toEqual(getOAuthUserEmail(oAuthClient.id, requestBody.email));
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -235,6 +262,36 @@ describe("OAuth Client Users Endpoints", () => {
       expect(schedule?.userId).toEqual(userId);
     }
 
+    async function userHasOnlyOneSchedule(userId: number) {
+      const schedules = await schedulesRepositoryFixture.getByUserId(userId);
+      expect(schedules?.length).toEqual(1);
+    }
+
+    it(`should fail /POST using already used managed user email`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
+        timeZone: userTimeZone,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(409);
+
+      const responseBody: CreateManagedUserOutput = response.body;
+      const error = responseBody.error;
+      expect(error).toBeDefined();
+      expect(error?.message).toEqual(
+        `User with the provided e-mail already exists. Existing user ID=${postResponseData.user.id}`
+      );
+    });
+
     it(`/GET: return list of managed users`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/oauth-clients/${oAuthClient.id}/users?limit=10&offset=0`)
@@ -242,12 +299,13 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<UserReturned[]> = response.body;
+      const responseBody: GetManagedUsersOutput = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data?.length).toBeGreaterThan(0);
       expect(responseBody.data[0].email).toEqual(postResponseData.user.email);
+      expect(responseBody.data[0].name).toEqual(postResponseData.user.name);
     });
 
     it(`/GET/:id`, async () => {
@@ -257,7 +315,7 @@ describe("OAuth Client Users Endpoints", () => {
         .set("Origin", `${CLIENT_REDIRECT_URI}`)
         .expect(200);
 
-      const responseBody: ApiSuccessResponse<UserReturned> = response.body;
+      const responseBody: GetManagedUserOutput = response.body;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
@@ -332,10 +390,10 @@ describe("OAuth Client Users Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let postResponseData: CreateManagedUserOutput["data"];
 
-    let postResponseData: CreateUserResponse;
-
-    const userEmail = "oauth-client-users-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -352,21 +410,22 @@ describe("OAuth Client Users Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
-
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
-        name: "Testy Organization",
+        name: `oauth-client-users-organization-${randomString()}`,
+        isPlatform: true,
         isOrganization: true,
       });
 
       owner = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
+        email: `oauth-client-users-admin-${randomString()}@api.com`,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: { connect: { id: organization.id } },
       });
 
       await profileRepositoryFixture.create({
         uid: `usr-${owner.id}`,
-        username: userEmail,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: {
           connect: {
             id: organization.id,
@@ -377,6 +436,13 @@ describe("OAuth Client Users Endpoints", () => {
             id: owner.id,
           },
         },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "OWNER",
+        user: { connect: { id: owner.id } },
+        team: { connect: { id: organization.id } },
+        accepted: true,
       });
 
       oAuthClient1 = await createOAuthClient(organization.id);
@@ -472,13 +538,15 @@ describe("OAuth Client Users Endpoints", () => {
       expect(oAuthClient1).toBeDefined();
     });
 
-    it(`should create managed user and update team event-types of OAuthClient marked as assignAllTeamMembers: true`, async () => {
+    it(`should create managed user and update team event-types`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
         weekStart: "Monday",
         timeFormat: 24,
         locale: Locales.FR,
+        name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       const response = await request(app.getHttpServer())
@@ -487,58 +555,19 @@ describe("OAuth Client Users Endpoints", () => {
         .send(requestBody)
         .expect(201);
 
-      const responseBody: ApiSuccessResponse<{
-        user: Omit<User, "password">;
-        accessToken: string;
-        refreshToken: string;
-      }> = response.body;
-
+      const responseBody: CreateManagedUserOutput = response.body;
       postResponseData = responseBody.data;
 
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
 
-      await userHasCorrectEventTypes(responseBody.data.user.id);
       await teamHasCorrectEventTypes(team1.id);
+      expect(responseBody.data.user.name).toEqual(requestBody.name);
     });
-
-    async function userHasCorrectEventTypes(userId: number) {
-      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
-
-      expect(eventTypes?.length).toEqual(5);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): default event types
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
-      ).toBeTruthy();
-      expect(
-        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
-      ).toBeTruthy();
-    }
 
     async function teamHasCorrectEventTypes(teamId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
-
       expect(eventTypes?.length).toEqual(2);
-
-      // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
-
-      // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
-      const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
-      expect(collective).toBeTruthy();
-      expect(collective?.hosts).toBeDefined();
-      expect(collective?.hosts?.length).toEqual(1);
-      expect(collective?.hosts[0].userId).toEqual(postResponseData.user.id);
     }
 
     afterAll(async () => {

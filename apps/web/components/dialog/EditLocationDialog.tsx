@@ -1,9 +1,7 @@
 import { ErrorMessage } from "@hookform/error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { Trans } from "next-i18next";
-import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,26 +10,30 @@ import {
   getEventLocationType,
   getHumanReadableLocationValue,
   getMessageForOrganizer,
+  isAttendeeInputRequired,
   LocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
+import type { LocationOption } from "@calcom/features/form/components/LocationSelect";
+import LocationSelect from "@calcom/features/form/components/LocationSelect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Input, Dialog, DialogContent, DialogFooter, Form, PhoneInput } from "@calcom/ui";
 
-import { QueryCell } from "@lib/QueryCell";
-
-import CheckboxField from "@components/ui/form/CheckboxField";
-import type { LocationOption } from "@components/ui/form/LocationSelect";
-import LocationSelect from "@components/ui/form/LocationSelect";
-
-type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
+import { QueryCell } from "../../lib/QueryCell";
 
 interface ISetLocationDialog {
-  saveLocation: (newLocationType: EventLocationType["type"], details: { [key: string]: string }) => void;
+  saveLocation: ({
+    newLocation,
+    credentialId,
+  }: {
+    newLocation: string;
+    credentialId: number | null;
+  }) => Promise<void>;
   selection?: LocationOption;
-  booking?: BookingItem;
+  booking: {
+    location: string | null;
+  };
   defaultValues?: LocationObject[];
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
@@ -101,8 +103,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     locationType: z.string(),
     phone: z.string().optional().nullable(),
     locationAddress: z.string().optional(),
-    credentialId: z.number().optional(),
-    teamName: z.string().optional(),
+    credentialId: z.number().nullable().optional(),
     locationLink: z
       .string()
       .optional()
@@ -135,7 +136,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         }
         return;
       }),
-    displayLocationPublicly: z.boolean().optional(),
     locationPhoneNumber: z
       .string()
       .nullable()
@@ -145,6 +145,8 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       })
       .optional(),
   });
+
+  const [isLocationUpdating, setIsLocationUpdating] = useState(false);
 
   const locationFormMethods = useForm({
     mode: "onSubmit",
@@ -173,7 +175,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     }
   );
 
-  const LocationOptions = (() => {
+  /**
+   * Depending on the location type that is selected, we show different input types or no input at all.
+   */
+  const SelectedLocationInput = (() => {
     if (eventLocationType && eventLocationType.organizerInputType && LocationInput) {
       if (!eventLocationType.variable) {
         console.error("eventLocationType.variable can't be undefined");
@@ -204,25 +209,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               as="p"
             />
           </div>
-          {!booking && (
-            <div className="mt-3">
-              <Controller
-                name="displayLocationPublicly"
-                control={locationFormMethods.control}
-                render={() => (
-                  <CheckboxField
-                    data-testid="display-location"
-                    defaultChecked={defaultLocation?.displayLocationPublicly}
-                    description={t("display_location_label")}
-                    onChange={(e) =>
-                      locationFormMethods.setValue("displayLocationPublicly", e.target.checked)
-                    }
-                    informationIconText={t("display_location_info_badge")}
-                  />
-                )}
-              />
-            </div>
-          )}
         </div>
       );
     } else {
@@ -242,91 +228,51 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
                 {t("edit_location")}
               </h3>
-              {!booking && (
-                <p className="text-default text-sm">
-                  <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
-                    Can&apos;t find the right conferencing app? Visit our
-                    <Link
-                      className="cursor-pointer text-blue-500 underline"
-                      href="/apps/categories/conferencing">
-                      App Store
-                    </Link>
-                    .
-                  </Trans>
-                </p>
-              )}
             </div>
             <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
-            {booking && (
-              <>
-                <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
-                <p className="text-emphasis mb-2 ml-1 text-sm">
-                  {getHumanReadableLocationValue(booking.location, t)}
-                </p>
-              </>
-            )}
+            <p className="text-emphasis mb-2 ml-1 mt-6 text-sm font-bold">{t("current_location")}:</p>
+            <p className="text-emphasis mb-2 ml-1 break-all text-sm">
+              {getHumanReadableLocationValue(booking.location, t)}
+            </p>
             <Form
               form={locationFormMethods}
               handleSubmit={async (values) => {
-                const { locationType: newLocation, displayLocationPublicly } = values;
-
-                let details = {};
-                if (newLocation === LocationType.InPerson) {
-                  details = {
-                    address: values.locationAddress,
-                  };
-                }
-                const eventLocationType = getEventLocationType(newLocation);
-
-                // TODO: There can be a property that tells if it is to be saved in `link`
-                if (
-                  newLocation === LocationType.Link ||
-                  (!eventLocationType?.default && eventLocationType?.linkType === "static")
-                ) {
-                  details = { link: values.locationLink };
-                }
-
-                if (newLocation === LocationType.UserPhone) {
-                  details = { hostPhoneNumber: values.locationPhoneNumber };
-                }
-
+                const { locationType: newLocationType } = values;
+                let newLocation;
+                // For the locations that require organizer to type-in some values, we need the value
                 if (eventLocationType?.organizerInputType) {
-                  details = {
-                    ...details,
-                    displayLocationPublicly,
-                  };
+                  newLocation = values[eventLocationType.variable];
+                } else {
+                  // locationType itself can be used here e.g. For zoom we use the type itself which is "integrations:zoom". For Organizer's Default Conferencing App, it is OrganizerDefaultConferencingAppType constant
+                  newLocation = newLocationType;
                 }
 
-                if (values.credentialId) {
-                  details = {
-                    ...details,
-                    credentialId: values.credentialId,
-                  };
+                setIsLocationUpdating(true);
+                try {
+                  await saveLocation({
+                    newLocation,
+                    credentialId: values.credentialId ?? null,
+                  });
+                  setIsLocationUpdating(false);
+                  setShowLocationModal(false);
+                  setSelectedLocation?.(undefined);
+                  locationFormMethods.unregister([
+                    "locationType",
+                    "locationLink",
+                    "locationAddress",
+                    "locationPhoneNumber",
+                  ]);
+                } catch (error) {
+                  // Let the user retry
+                  setIsLocationUpdating(false);
                 }
-
-                if (values.teamName) {
-                  details = {
-                    ...details,
-                    teamName: values.teamName,
-                  };
-                }
-
-                saveLocation(newLocation, details);
-                setShowLocationModal(false);
-                setSelectedLocation?.(undefined);
-                locationFormMethods.unregister([
-                  "locationType",
-                  "locationLink",
-                  "locationAddress",
-                  "locationPhoneNumber",
-                ]);
               }}>
               <QueryCell
                 query={locationsQuery}
                 success={({ data }) => {
                   if (!data.length) return null;
-                  const locationOptions = [...data].map((option) => {
+                  let locationOptions = [...data].map((option) => {
                     if (teamId) {
                       // Let host's Default conferencing App option show for Team Event
                       return option;
@@ -336,11 +282,11 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       options: option.options.filter((o) => o.value !== OrganizerDefaultConferencingAppType),
                     };
                   });
-                  if (booking) {
-                    locationOptions.map((location) =>
-                      location.options.filter((l) => !["phone", "attendeeInPerson"].includes(l.value))
-                    );
-                  }
+
+                  locationOptions = locationOptions.map((locationOption) =>
+                    filterLocationOptionsForBooking(locationOption)
+                  );
+
                   return (
                     <Controller
                       name="locationType"
@@ -356,11 +302,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                             onChange={(val) => {
                               if (val) {
                                 locationFormMethods.setValue("locationType", val.value);
-                                if (!!val.credentialId) {
-                                  locationFormMethods.setValue("credentialId", val.credentialId);
-                                  locationFormMethods.setValue("teamName", val.teamName);
-                                }
-
+                                locationFormMethods.setValue("credentialId", val.credentialId);
                                 locationFormMethods.unregister([
                                   "locationLink",
                                   "locationAddress",
@@ -381,7 +323,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   );
                 }}
               />
-              {selectedLocation && LocationOptions}
+              {selectedLocation && SelectedLocationInput}
               <DialogFooter className="relative">
                 <Button
                   onClick={() => {
@@ -395,7 +337,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   {t("cancel")}
                 </Button>
 
-                <Button data-testid="update-location" type="submit">
+                <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
                   {t("update")}
                 </Button>
               </DialogFooter>
@@ -406,3 +348,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     </Dialog>
   );
 };
+
+function filterLocationOptionsForBooking<T extends { options: { value: string }[] }>(locationOption: T) {
+  return {
+    ...locationOption,
+    options: locationOption.options.filter((o) => !isAttendeeInputRequired(o.value)),
+  };
+}

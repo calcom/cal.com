@@ -5,6 +5,7 @@ import { MembershipRole } from "@calcom/prisma/client";
 import { test } from "./lib/fixtures";
 import {
   bookTimeSlot,
+  confirmReschedule,
   doOnOrgDomain,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
@@ -42,7 +43,7 @@ test("dynamic booking", async ({ page, users }) => {
     await selectSecondAvailableTimeSlotNextMonth(page);
 
     // No need to fill fields since they should be already filled
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
@@ -55,6 +56,7 @@ test("dynamic booking", async ({ page, users }) => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
     await page.locator('[data-testid="confirm_cancel"]').click();
 
     const cancelledHeadline = page.locator('[data-testid="cancelled-headline"]');
@@ -69,8 +71,6 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   let duration = 15;
   const free = await users.create({ username: "free.example" });
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
-
-  await page.waitForLoadState("networkidle");
 
   const listItemByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
 
@@ -96,8 +96,8 @@ test.skip("it contains the right event details", async ({ page }) => {
   const response = await page.goto(`http://acme.cal.local:3000/owner1+member1`);
   expect(response?.status()).toBe(200);
 
-  expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
-  expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain("Acme Inc");
+  await expect(page.locator('[data-testid="event-title"]')).toHaveText("Group Meeting");
+  await expect(page.locator('[data-testid="event-meta"]')).toContainText("Acme Inc");
 
   expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
 });

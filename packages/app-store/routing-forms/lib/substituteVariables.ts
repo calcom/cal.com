@@ -1,10 +1,10 @@
 import slugify from "@calcom/lib/slugify";
 
-import type { FormResponse, Route, Field } from "../types/types";
+import type { FormResponse, NonRouterRoute, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 
 export const substituteVariables = (
-  routeValue: Route["action"]["value"],
+  routeValue: NonRouterRoute["action"]["value"],
   response: FormResponse,
   fields: Field[]
 ) => {

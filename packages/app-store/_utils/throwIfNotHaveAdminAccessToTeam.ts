@@ -11,7 +11,8 @@ export const throwIfNotHaveAdminAccessToTeam = async ({
   if (!teamId) {
     return;
   }
-  const teamsUserHasAdminAccessFor = await UserRepository.getUserAdminTeams(userId);
+  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
+  const teamsUserHasAdminAccessFor = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
   const hasAdminAccessToTeam = teamsUserHasAdminAccessFor.some((id) => id === teamId);
 
   if (!hasAdminAccessToTeam) {

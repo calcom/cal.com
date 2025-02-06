@@ -9,8 +9,6 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
   const token = symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "");
   //TODO: We should switch to using org domain if available
   const actionHref = `${WEBAPP_URL}/api/link/?token=${encodeURIComponent(token)}`;
-  const rejectLink = new URL(`${props.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${props.calEvent.uid}`);
-  rejectLink.searchParams.append("reject", "true");
   return (
     <OrganizerScheduledEmail
       title={
@@ -31,7 +29,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           <Separator />
           <CallToAction
             label={props.calEvent.organizer.language.translate("reject")}
-            href={rejectLink.toString()}
+            href={`${actionHref}&action=reject`}
             startIconName="rejectIcon"
             secondary
           />

@@ -1,9 +1,10 @@
 import type { NextApiRequest } from "next";
 
 import type { UserWithCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
-import { getConnectedDestinationCalendars } from "@calcom/lib/getConnectedDestinationCalendars";
+import { getConnectedDestinationCalendarsAndEnsureDefaultsInDb } from "@calcom/lib/getConnectedDestinationCalendars";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 
 import { extractUserIdsFromQuery } from "~/lib/utils/extractUserIdsFromQuery";
@@ -104,12 +105,8 @@ async function getHandler(req: NextApiRequest) {
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 
-  const usersWithCalendars = await prisma.user.findMany({
-    where: { id: { in: userIds } },
-    include: {
-      selectedCalendars: true,
-      destinationCalendar: true,
-    },
+  const usersWithCalendars = await UserRepository.findManyByIdsIncludeDestinationAndSelectedCalendars({
+    ids: userIds,
   });
 
   return await getConnectedCalendars(usersWithCalendars);
@@ -117,11 +114,12 @@ async function getHandler(req: NextApiRequest) {
 
 async function getConnectedCalendars(users: UserWithCalendars[]) {
   const connectedDestinationCalendarsPromises = users.map((user) =>
-    getConnectedDestinationCalendars(user, false, prisma).then((connectedCalendarsResult) =>
-      connectedCalendarsResult.connectedCalendars.map((calendar) => ({
-        userId: user.id,
-        ...calendar,
-      }))
+    getConnectedDestinationCalendarsAndEnsureDefaultsInDb({ user, onboarding: false, prisma }).then(
+      (connectedCalendarsResult) =>
+        connectedCalendarsResult.connectedCalendars.map((calendar) => ({
+          userId: user.id,
+          ...calendar,
+        }))
     )
   );
   const connectedDestinationCalendars = await Promise.all(connectedDestinationCalendarsPromises);

@@ -39,6 +39,7 @@ async function seedAppData() {
     return;
   }
 
+  const multiSelectLegacyFieldId = "d2292635-9f12-17b1-9153-c3a854649182";
   await prisma.app_RoutingForms_Form.create({
     data: {
       id: seededForm.id,
@@ -53,7 +54,7 @@ async function seedAppData() {
               "8988bbb8-0123-4456-b89a-b1823f70c5ff": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["event-routing"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -73,7 +74,7 @@ async function seedAppData() {
               "b99b8a89-89ab-4cde-b012-31823f718ff5": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["custom-page"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -85,7 +86,7 @@ async function seedAppData() {
         },
         {
           id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-          action: { type: "externalRedirectUrl", value: "https://google.com" },
+          action: { type: "externalRedirectUrl", value: "https://cal.com" },
           queryValue: {
             id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
             type: "group",
@@ -93,7 +94,7 @@ async function seedAppData() {
               "998b9b9a-0123-4456-b89a-b1823f7232b9": {
                 type: "rule",
                 properties: {
-                  field: "c4296635-9f12-47b1-8153-c3a854649182",
+                  field: "c1296635-9f12-47b1-8153-c3a854649182",
                   value: ["external-redirect"],
                   operator: "equal",
                   valueSrc: ["value"],
@@ -113,7 +114,7 @@ async function seedAppData() {
               "b98a8abb-cdef-4012-b456-718262343d27": {
                 type: "rule",
                 properties: {
-                  field: "d4292635-9f12-17b1-9153-c3a854649182",
+                  field: multiSelectLegacyFieldId,
                   value: [["Option-2"]],
                   operator: "multiselect_equals",
                   valueSrc: ["value"],
@@ -131,9 +132,9 @@ async function seedAppData() {
         },
       ],
       fields: [
-        { id: "c4296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
+        { id: "c1296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
         {
-          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          id: multiSelectLegacyFieldId,
           type: "multiselect",
           label: "Multi Select(with legacy `selectText`)",
           identifier: "multi",
@@ -141,7 +142,7 @@ async function seedAppData() {
           required: false,
         },
         {
-          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          id: "d3292635-9f12-17b1-9153-c3a854649182",
           type: "multiselect",
           label: "Multi Select",
           identifier: "multi",
@@ -358,7 +359,12 @@ export default async function main() {
   await createApp("make", "make", ["automation"], "make_automation", {
     invite_link: "https://make.com/en/hq/app-invitation/6cb2772b61966508dd8f414ba3b44510",
   });
-  await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video");
+
+  if (process.env.HUDDLE01_API_TOKEN) {
+    await createApp("huddle01", "huddle01video", ["conferencing"], "huddle01_video", {
+      apiKey: process.env.HUDDLE01_API_TOKEN,
+    });
+  }
 
   // Payment apps
   if (
@@ -376,6 +382,13 @@ export default async function main() {
       payment_fee_percentage: Number(process.env.PAYMENT_FEE_PERCENTAGE),
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    });
+  }
+
+  if (process.env.CLOSECOM_CLIENT_ID && process.env.CLOSECOM_CLIENT_SECRET) {
+    await createApp("closecom", "closecom", ["crm"], "closecom_crm", {
+      client_id: process.env.CLOSECOM_CLIENT_ID,
+      client_secret: process.env.CLOSECOM_CLIENT_SECRET,
     });
   }
 

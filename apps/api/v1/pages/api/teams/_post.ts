@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { getDubCustomer } from "@calcom/features/auth/lib/dub";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
@@ -123,9 +124,11 @@ async function postHandler(req: NextApiRequest) {
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
+    bookingLimits: NonNullable<typeof data.bookingLimits> | undefined;
   } = {
     ...data,
     smsLockReviewedByAdmin: false,
+    bookingLimits: data.bookingLimits === null ? {} : data.bookingLimits || undefined,
     metadata: data.metadata === null ? {} : data.metadata || undefined,
   };
 
@@ -190,11 +193,26 @@ const generateTeamCheckoutSession = async ({
   pendingPaymentTeamId: number;
   ownerId: number;
 }) => {
-  const customer = await getStripeCustomerIdFromUserId(ownerId);
+  const [customer, dubCustomer] = await Promise.all([
+    getStripeCustomerIdFromUserId(ownerId),
+    getDubCustomer(ownerId.toString()),
+  ]);
+
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
-    allow_promotion_codes: true,
+    ...(dubCustomer?.discount?.couponId
+      ? {
+          discounts: [
+            {
+              coupon:
+                process.env.NODE_ENV !== "production" && dubCustomer.discount.couponTestId
+                  ? dubCustomer.discount.couponTestId
+                  : dubCustomer.discount.couponId,
+            },
+          ],
+        }
+      : { allow_promotion_codes: true }),
     success_url: `${WEBAPP_URL}/api/teams/api/create?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
@@ -215,6 +233,7 @@ const generateTeamCheckoutSession = async ({
     metadata: {
       pendingPaymentTeamId,
       ownerId,
+      dubCustomerId: ownerId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
 

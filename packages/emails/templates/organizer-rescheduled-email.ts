@@ -1,4 +1,5 @@
 import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
@@ -11,8 +12,6 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("event_type_has_been_rescheduled"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         role: GenerateIcsRole.ORGANIZER,
         status: "CONFIRMED",
       }),
@@ -23,11 +22,20 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("OrganizerRescheduledEmail", {
-        calEvent: { ...this.calEvent, attendeeSeatId: undefined },
-        attendee: this.calEvent.organizer,
-      }),
+      html: await this.getHtml(
+        { ...this.calEvent, attendeeSeatId: undefined },
+        this.calEvent.organizer,
+        this.teamMember
+      ),
       text: this.getTextBody("event_has_been_rescheduled"),
     };
+  }
+
+  async getHtml(calEvent: CalendarEvent, attendee: Person, teamMember?: Person) {
+    return await renderEmail("OrganizerRescheduledEmail", {
+      calEvent,
+      attendee,
+      teamMember,
+    });
   }
 }

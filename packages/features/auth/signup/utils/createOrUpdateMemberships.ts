@@ -12,7 +12,7 @@ export const createOrUpdateMemberships = async ({
 }: {
   user: Pick<User, "id">;
   team: Pick<Team, "id" | "parentId" | "isOrganization"> & {
-    organizationSettings: OrganizationSettings | null;
+    organizationSettings?: Pick<OrganizationSettings, "orgAutoAcceptEmail"> | null;
   };
 }) => {
   return await prisma.$transaction(async (tx) => {

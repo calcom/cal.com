@@ -29,9 +29,12 @@ declare namespace NodeJS {
     readonly STRIPE_CLIENT_ID: string | undefined;
     readonly STRIPE_WEBHOOK_SECRET: string | undefined;
     readonly STRIPE_WEBHOOK_SECRET_APPS: string | undefined;
+    readonly STRIPE_TEAM_PRODUCT_ID: `prod_${string}` | undefined;
     readonly PAYMENT_FEE_PERCENTAGE: number | undefined;
     readonly PAYMENT_FEE_FIXED: number | undefined;
     readonly NEXT_PUBLIC_INTERCOM_APP_ID: string | undefined;
+    readonly NEXT_PUBLIC_POSTHOG_KEY: string | undefined;
+    readonly NEXT_PUBLIC_POSTHOG_HOST: string | undefined;
     readonly TANDEM_CLIENT_ID: string | undefined;
     readonly TANDEM_CLIENT_SECRET: string | undefined;
     readonly TANDEM_BASE_URL: string | undefined;

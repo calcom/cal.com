@@ -1,3 +1,5 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { useSession } from "next-auth/react";
@@ -8,8 +10,8 @@ import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { HttpError } from "@calcom/lib/http-error";
+import type { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import type { TimeUnit, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -22,7 +24,7 @@ import LicenseRequired from "../../common/components/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { isSMSAction, isSMSOrWhatsappAction } from "../lib/actionHelperFunctions";
-import { formSchema, querySchema } from "../lib/schema";
+import { formSchema } from "../lib/schema";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -35,10 +37,21 @@ export type FormValues = {
   selectAll: boolean;
 };
 
-function WorkflowPage() {
+type PageProps = {
+  workflow: number;
+  workflowData?: Awaited<ReturnType<typeof WorkflowRepository.getById>>;
+  verifiedNumbers?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedNumbers>>;
+  verifiedEmails?: Awaited<ReturnType<typeof WorkflowRepository.getVerifiedEmails>>;
+};
+
+function WorkflowPage({
+  workflow: workflowId,
+  workflowData: workflowDataProp,
+  verifiedNumbers: verifiedNumbersProp,
+  verifiedEmails: verifiedEmailsProp,
+}: PageProps) {
   const { t, i18n } = useLocale();
   const session = useSession();
-  const params = useParamsWithFallback();
 
   const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -49,34 +62,42 @@ function WorkflowPage() {
     resolver: zodResolver(formSchema),
   });
 
-  const { workflow: workflowId } = params ? querySchema.parse(params) : { workflow: -1 };
   const utils = trpc.useUtils();
 
   const userQuery = useMeQuery();
   const user = userQuery.data;
 
   const {
-    data: workflow,
-    isError,
+    data: workflowData,
+    isError: _isError,
     error,
-    isPending: isPendingWorkflow,
+    isPending: _isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
-      enabled: !!workflowId,
+      enabled: workflowDataProp ? false : !!workflowId,
     }
   );
 
-  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
+  const workflow = workflowDataProp || workflowData;
+  const isPendingWorkflow = workflowDataProp ? false : _isPendingWorkflow;
+  const isError = workflowDataProp ? false : _isError;
+
+  const { data: verifiedNumbersData } = trpc.viewer.workflows.getVerifiedNumbers.useQuery(
     { teamId: workflow?.team?.id },
     {
-      enabled: !!workflow?.id,
+      enabled: verifiedNumbersProp ? false : !!workflow?.id,
     }
   );
+  const verifiedNumbers = verifiedNumbersProp || verifiedNumbersData;
 
-  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
-    teamId: workflow?.team?.id,
-  });
+  const { data: verifiedEmailsData } = trpc.viewer.workflows.getVerifiedEmails.useQuery(
+    {
+      teamId: workflow?.team?.id,
+    },
+    { enabled: !verifiedEmailsProp }
+  );
+  const verifiedEmails = verifiedEmailsProp || verifiedEmailsData;
 
   const isOrg = workflow?.team?.isOrganization ?? false;
 
@@ -133,7 +154,7 @@ function WorkflowPage() {
           setSelectedOptions(activeOn || []);
         } else {
           setSelectedOptions(
-            workflowData.activeOn.flatMap((active) => {
+            workflowData.activeOn?.flatMap((active) => {
               if (workflowData.teamId && active.eventType.parentId) return [];
               return {
                 value: String(active.eventType.id),
@@ -150,7 +171,7 @@ function WorkflowPage() {
         }
       }
       //translate dynamic variables into local language
-      const steps = workflowData.steps.map((step) => {
+      const steps = workflowData.steps?.map((step) => {
         const updatedStep = {
           ...step,
           senderName: step.sender,
@@ -204,7 +225,7 @@ function WorkflowPage() {
   });
 
   return session.data ? (
-    <Shell withoutMain backPath="/workflows">
+    <Shell withoutSeo={true} withoutMain backPath="/workflows">
       <LicenseRequired>
         <Form
           form={form}
@@ -340,7 +361,7 @@ function WorkflowPage() {
                 )}
               </>
             ) : (
-              <Alert severity="error" title="Something went wrong" message={error.message} />
+              <Alert severity="error" title="Something went wrong" message={error?.message ?? ""} />
             )}
           </ShellMain>
         </Form>

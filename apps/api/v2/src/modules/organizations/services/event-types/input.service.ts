@@ -1,8 +1,8 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
-import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
+import { TeamsEventTypesRepository } from "@/modules/teams/event-types/teams-event-types.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 
 import {
   CreateTeamEventTypeInput_2024_06_14,
@@ -15,41 +15,93 @@ import { SchedulingType } from "@calcom/prisma/client";
 export class InputOrganizationsEventTypesService {
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly teamsRepository: TeamsRepository,
     private readonly usersRepository: UsersRepository,
-    private readonly orgEventTypesRepository: OrganizationsEventTypesRepository
+    private readonly teamsEventTypesRepository: TeamsEventTypesRepository
   ) {}
+  async transformAndValidateCreateTeamEventTypeInput(
+    userId: number,
+    teamId: number,
+    inputEventType: CreateTeamEventTypeInput_2024_06_14
+  ) {
+    await this.validateHosts(teamId, inputEventType.hosts);
+
+    const transformedBody = await this.transformInputCreateTeamEventType(teamId, inputEventType);
+
+    await this.inputEventTypesService.validateEventTypeInputs({
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
+
+    transformedBody.destinationCalendar &&
+      (await this.inputEventTypesService.validateInputDestinationCalendar(
+        userId,
+        transformedBody.destinationCalendar
+      ));
+
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+
+    return transformedBody;
+  }
+
+  async transformAndValidateUpdateTeamEventTypeInput(
+    userId: number,
+    eventTypeId: number,
+    teamId: number,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+  ) {
+    await this.validateHosts(teamId, inputEventType.hosts);
+
+    const transformedBody = await this.transformInputUpdateTeamEventType(eventTypeId, teamId, inputEventType);
+
+    await this.inputEventTypesService.validateEventTypeInputs({
+      eventTypeId: eventTypeId,
+      seatsPerTimeSlot: transformedBody.seatsPerTimeSlot,
+      locations: transformedBody.locations,
+      requiresConfirmation: transformedBody.requiresConfirmation,
+      eventName: transformedBody.eventName,
+    });
+
+    transformedBody.destinationCalendar &&
+      (await this.inputEventTypesService.validateInputDestinationCalendar(
+        userId,
+        transformedBody.destinationCalendar
+      ));
+
+    transformedBody.useEventTypeDestinationCalendarEmail &&
+      (await this.inputEventTypesService.validateInputUseDestinationCalendarEmail(userId));
+
+    return transformedBody;
+  }
+
   async transformInputCreateTeamEventType(
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const {
-      hosts,
-      assignAllTeamMembers,
-      bookingLimitsCount,
-      bookingLimitsDuration,
-      bookingWindow,
-      bookingFields,
-      recurrence,
-      ...rest
-    } = inputEventType;
+    const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
+    const children = await this.getChildEventTypesForManagedEventType(null, inputEventType, teamId);
 
-    const metadata = rest.schedulingType === "MANAGED" ? { managedEventConfig: {} } : undefined;
+    const metadata =
+      rest.schedulingType === "MANAGED"
+        ? { managedEventConfig: {}, ...eventType.metadata }
+        : eventType.metadata;
 
     const teamEventType = {
       ...eventType,
-      hosts: assignAllTeamMembers
-        ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
-        : this.transformInputHosts(hosts, inputEventType.schedulingType),
+      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
+      hosts: !(rest.schedulingType === "MANAGED")
+        ? assignAllTeamMembers
+          ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
+          : this.transformInputHosts(hosts, inputEventType.schedulingType)
+        : undefined,
       assignAllTeamMembers,
-      bookingLimitsCount,
-      bookingLimitsDuration,
-      bookingWindow,
-      bookingFields,
-      recurrence,
       metadata,
+      children,
     };
 
     return teamEventType;
@@ -62,8 +114,8 @@ export class InputOrganizationsEventTypesService {
   ) {
     const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
-    const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
-    const dbEventType = await this.orgEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+    const eventType = await this.inputEventTypesService.transformInputUpdateEventType(rest, eventTypeId);
+    const dbEventType = await this.teamsEventTypesRepository.getTeamEventType(teamId, eventTypeId);
 
     if (!dbEventType) {
       throw new BadRequestException("Event type to update not found");
@@ -86,14 +138,16 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getChildEventTypesForManagedEventType(
-    eventTypeId: number,
+    eventTypeId: number | null,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14,
     teamId: number
   ) {
-    const eventType = await this.orgEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
-
-    if (!eventType || eventType.schedulingType !== "MANAGED") {
-      return undefined;
+    let eventType = null;
+    if (eventTypeId) {
+      eventType = await this.teamsEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
+      if (!eventType || eventType.schedulingType !== "MANAGED") {
+        return undefined;
+      }
     }
 
     const ownersIds = await this.getOwnersIdsForManagedEventType(teamId, inputEventType, eventType);
@@ -110,10 +164,10 @@ export class InputOrganizationsEventTypesService {
   async getOwnersIdsForManagedEventType(
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14,
-    eventType: { children: { userId: number | null }[] }
+    eventType: { children: { userId: number | null }[] } | null
   ) {
     if (inputEventType.assignAllTeamMembers) {
-      return await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+      return await this.teamsRepository.getTeamMembersIds(teamId);
     }
 
     // note(Lauris): when API user updates managed event type users
@@ -122,7 +176,7 @@ export class InputOrganizationsEventTypesService {
     }
 
     // note(Lauris): when API user DOES NOT update managed event type users, but we still need existing managed event type users to know which event-types to update
-    return eventType.children.map((child) => child.userId).filter((id) => !!id) as number[];
+    return eventType?.children.map((child) => child.userId).filter((id) => !!id) as number[];
   }
 
   async getOwnersForManagedEventType(userIds: number[]) {
@@ -141,7 +195,7 @@ export class InputOrganizationsEventTypesService {
   }
 
   async getAllTeamMembers(teamId: number, schedulingType: SchedulingType | null) {
-    const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+    const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
     const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
     return membersIds.map((id) => ({
@@ -169,6 +223,16 @@ export class InputOrganizationsEventTypesService {
         schedulingType === "COLLECTIVE" ? "medium" : host.priority || defaultPriority
       ),
     }));
+  }
+
+  async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
+    if (hosts && hosts.length) {
+      const membersIds = await this.teamsRepository.getTeamMembersIds(teamId);
+      const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
+      if (invalidHosts.length) {
+        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+      }
+    }
   }
 }
 

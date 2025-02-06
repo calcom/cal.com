@@ -131,7 +131,6 @@ test.describe("Organization", () => {
     const orgName = capitalize(`${orgOwnerUser.username}`);
     const orgSlug = `myOrg-${uuid()}`.toLowerCase();
     await page.goto("/settings/organizations/new");
-    await page.waitForLoadState("networkidle");
 
     await test.step("Basic info", async () => {
       // Check required fields
@@ -170,7 +169,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -192,7 +191,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -232,7 +230,6 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
@@ -268,7 +265,6 @@ test.describe("Organization", () => {
     });
 
     await page.goto("/settings/organizations/new");
-    await page.waitForLoadState("networkidle");
 
     await test.step("Basic info", async () => {
       // Check required fields
@@ -309,7 +305,6 @@ test.describe("Organization", () => {
     await orgOwnerUser.apiLogin();
     const orgName = capitalize(`${orgOwnerUsername}`);
     await page.goto("/settings/organizations/new");
-    await page.waitForLoadState("networkidle");
 
     await test.step("Basic info", async () => {
       // These values are infered due to an existing user being signed
@@ -320,7 +315,6 @@ test.describe("Organization", () => {
       await page.locator("input[name=slug]").fill(orgOwnerUsername);
 
       await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
     });
 
     await test.step("About the organization", async () => {
@@ -342,7 +336,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -364,7 +358,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -402,7 +395,6 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
@@ -455,7 +447,6 @@ test.describe("Organization", () => {
       await slugLocator.fill(`example-${stringUUID}`);
 
       await page.locator("button[type=submit]").click();
-      await page.waitForLoadState("networkidle");
     });
 
     await test.step("About the organization", async () => {
@@ -477,7 +468,7 @@ test.describe("Organization", () => {
 
     await test.step("On-board administrators", async () => {
       await page.waitForSelector('[data-testid="pending-member-list"]');
-      expect(await page.getByTestId("pending-member-item").count()).toBe(1);
+      await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
 
       const adminEmail = users.trackEmail({ username: "rick", domain: `example.com` });
 
@@ -499,7 +490,6 @@ test.describe("Organization", () => {
       await expect(page.getByTestId("pending-member-item")).toHaveCount(2);
       const lastRemoveMemberButton = page.getByTestId("remove-member-button").last();
       await lastRemoveMemberButton.click();
-      await page.waitForLoadState("networkidle");
       await expect(page.getByTestId("pending-member-item")).toHaveCount(1);
       await page.getByTestId("publish-button").click();
       // Waiting to be in next step URL
@@ -547,7 +537,6 @@ test.describe("Organization", () => {
       expect(url).toContain(expectedUrl);
 
       await fillStripeTestCheckout(page);
-      await page.waitForLoadState("networkidle");
 
       const upgradeButtonHidden = await page.getByTestId("upgrade_org_banner_button");
 
@@ -557,7 +546,6 @@ test.describe("Organization", () => {
     await test.step("Ensure correctnumberOfTeams are migrated", async () => {
       // eslint-disable-next-line playwright/no-skipped-test
       await page.goto("/teams");
-      await page.waitForLoadState("networkidle");
       const teamListItems = await page.getByTestId("team-list-item-link").all();
 
       // Number of teams migrated + the two created in the create teams step

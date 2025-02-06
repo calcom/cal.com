@@ -63,14 +63,14 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
-    .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`);
+    .replaceAll("{Event duration}", `${String(eventNameObj.eventDuration)} mins`)
+    .replaceAll(
+      "{Scheduler first name}",
+      attendeeName === eventNameObj.t("scheduler") ? "{Scheduler first name}" : attendeeName.split(" ")[0]
+    );
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};
-
-  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.firstName === "string") {
-    dynamicEventName = dynamicEventName.replaceAll("{Scheduler first name}", name.firstName.toString());
-  }
 
   if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
     dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());

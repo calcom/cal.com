@@ -310,7 +310,7 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n } = useLocale();
+  const { i18n, t } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
 
@@ -358,6 +358,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-left"
+              aria-label={t("view_previous_month")}
             />
             <Button
               className={classNames(
@@ -369,6 +370,7 @@ const DatePicker = ({
               color="minimal"
               variant="icon"
               StartIcon="chevron-right"
+              aria-label={t("view_next_month")}
             />
           </div>
         </div>

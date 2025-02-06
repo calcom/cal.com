@@ -31,7 +31,7 @@ test.describe("Namespacing", () => {
           case: "doubleInstallSnippetWithInlineEmbedWithNonDefaultNamespace",
         },
       });
-      expect(await page.locator("iframe").count()).toBe(1);
+      await expect(page.locator("iframe")).toHaveCount(1);
     });
 
     test("Double install Embed Snippet with inline embed without a namespace(i.e. default namespace)", async ({
@@ -48,7 +48,7 @@ test.describe("Namespacing", () => {
           case: "doubleInstallSnippetWithInlineEmbed",
         },
       });
-      expect(await page.locator("iframe").count()).toBe(1);
+      await expect(page.locator("iframe")).toHaveCount(1);
     });
   });
   test("Different namespaces can have different init configs", async ({ page, embeds }) => {

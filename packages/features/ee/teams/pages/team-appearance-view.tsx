@@ -14,17 +14,16 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 type BrandColorsFormValues = {
   brandColor: string;
   darkBrandColor: string;
 };
 
-type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["getMinimal"] };
+type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
@@ -80,19 +79,14 @@ const ProfileView = ({ team }: ProfileViewProps) => {
 
   return (
     <>
-      <Meta
-        title={t("booking_appearance")}
-        description={t("appearance_team_description")}
-        borderInShellHeader={false}
-      />
       {isAdmin ? (
         <>
           <Form
             form={themeForm}
-            handleSubmit={(values) => {
+            handleSubmit={({ theme }) => {
               mutation.mutate({
                 id: team.id,
-                theme: values.theme === "" ? null : values.theme,
+                theme: theme === "light" || theme === "dark" ? theme : null,
               });
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
@@ -104,7 +98,7 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
               <ThemeLabel
                 variant="system"
-                value={null}
+                value="system"
                 label={t("theme_system")}
                 defaultChecked={team.theme === null}
                 register={themeForm.register}
@@ -192,7 +186,7 @@ const ProfileViewWrapper = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.getMinimal.useQuery(
+  } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(params.id) },
     {
       enabled: !!Number(params.id),
@@ -208,16 +202,11 @@ const ProfileViewWrapper = () => {
     [error]
   );
 
-  if (isPending)
-    return (
-      <AppearanceSkeletonLoader title={t("appearance")} description={t("appearance_team_description")} />
-    );
+  if (isPending) return <AppearanceSkeletonLoader />;
 
   if (!team) return null;
 
   return <ProfileView team={team} />;
 };
-
-ProfileViewWrapper.getLayout = getLayout;
 
 export default ProfileViewWrapper;

@@ -2,7 +2,7 @@ import classNames from "classnames";
 import type { ToastOptions, Toast } from "react-hot-toast";
 import toast from "react-hot-toast";
 
-import { Icon } from "../..";
+import { Icon } from "../icon";
 
 type IToast = {
   message: string;

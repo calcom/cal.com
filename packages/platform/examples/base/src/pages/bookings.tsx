@@ -3,22 +3,22 @@ import { Inter } from "next/font/google";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
 
-import { useGetBookings } from "@calcom/atoms";
+import { useBookings } from "@calcom/atoms";
 import dayjs from "@calcom/dayjs";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Bookings(props: { calUsername: string; calEmail: string }) {
-  const { isLoading: isLoadingUpcomingBookings, data: upcomingBookings } = useGetBookings({
-    limit: 50,
-    cursor: 0,
-    filters: { status: "upcoming" },
+  const { isLoading: isLoadingUpcomingBookings, data: upcomingBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["upcoming"],
   });
 
-  const { isLoading: isLoadingPastBookings, data: pastBookings } = useGetBookings({
-    limit: 50,
-    cursor: 0,
-    filters: { status: "past" },
+  const { isLoading: isLoadingPastBookings, data: pastBookings } = useBookings({
+    take: 50,
+    skip: 0,
+    status: ["past"],
   });
   const isLoading = isLoadingUpcomingBookings || isLoadingPastBookings;
   const router = useRouter();
@@ -30,13 +30,13 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
       <h1 className="my-4 text-2xl font-semibold">{props.calUsername} Bookings</h1>
       {isLoading && <p>Loading...</p>}
       {!isLoading &&
-        pastBookings?.bookings &&
-        upcomingBookings?.bookings &&
-        (Boolean(upcomingBookings?.bookings.length) || Boolean(pastBookings?.bookings.length)) &&
-        [...pastBookings?.bookings, ...upcomingBookings?.bookings].map((booking) => {
-          const date = dayjs(booking.startTime).toDate();
-          const startTime = dayjs(booking?.startTime).format(12 === 12 ? "h:mma" : "HH:mm");
-          const endTime = dayjs(booking?.endTime).format(12 === 12 ? "h:mma" : "HH:mm");
+        pastBookings &&
+        upcomingBookings &&
+        (Boolean(upcomingBookings?.length) || Boolean(pastBookings?.length)) &&
+        [...pastBookings, ...upcomingBookings].map((booking) => {
+          const date = dayjs(booking.start).toDate();
+          const startTime = dayjs(booking?.start).format(12 === 12 ? "h:mma" : "HH:mm");
+          const endTime = dayjs(booking?.end).format(12 === 12 ? "h:mma" : "HH:mm");
           const day = dayjs(date).format("dddd");
           const month = dayjs(date).format("MMMM");
 
@@ -48,7 +48,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 router.push(`/${booking.uid}`);
               }}>
               <div>
-                <div className="px-6">{`${day}, ${dayjs(booking.startTime).date()} ${month}`}</div>
+                <div className="px-6">{`${day}, ${dayjs(booking.start).date()} ${month}`}</div>
                 <div className="px-6">
                   <p>
                     {startTime} - {endTime}
@@ -64,7 +64,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 </div>
                 <div className="px-6">
                   <p>
-                    {booking?.user?.name} and {booking.attendees[0].name}
+                    {booking?.hosts?.[0]?.name} and {booking.attendees[0].name}
                   </p>{" "}
                   <p />
                 </div>

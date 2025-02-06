@@ -1,4 +1,5 @@
 import { isTeamMember } from "@calcom/lib/server/queries";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -40,7 +41,13 @@ export const getAllActiveWorkflowsHandler = async ({ input, ctx }: GetAllActiveW
     if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
-  const allActiveWorkflows = await getAllWorkflowsFromEventType(completeEventType, eventType.userId);
+  const allActiveWorkflows = await getAllWorkflowsFromEventType(
+    {
+      ...completeEventType,
+      metadata: eventTypeMetaDataSchemaWithTypedApps.parse(eventType.metadata),
+    },
+    eventType.userId
+  );
 
   return allActiveWorkflows;
 };

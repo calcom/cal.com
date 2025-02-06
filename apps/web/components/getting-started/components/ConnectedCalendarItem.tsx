@@ -1,4 +1,4 @@
-import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
+import { UserCalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 
 interface IConnectedCalendarItem {
   name: string;
@@ -52,7 +52,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
       <div>
         <ul className="p-4">
           {calendars?.map((calendar, i) => (
-            <CalendarSwitch
+            <UserCalendarSwitch
               credentialId={calendar.credentialId}
               key={calendar.externalId}
               externalId={calendar.externalId}

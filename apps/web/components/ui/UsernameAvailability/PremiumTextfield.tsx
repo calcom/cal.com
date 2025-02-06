@@ -212,7 +212,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "border-l-1 mb-0 mt-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
+              "border-l-1 my-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
               isInputUsernamePremium
                 ? "border border-orange-400 focus:border focus:border-orange-400"
                 : "border focus:border",
@@ -262,7 +262,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         )}
       </div>
       {paymentMsg}
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
       <Dialog open={openDialogSaveUsername}>
         <DialogContent

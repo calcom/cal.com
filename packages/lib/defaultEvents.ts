@@ -1,14 +1,18 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, SelectedCalendar } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { eventTypeMetaDataSchemaWithTypedApps } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars"> & {
+  allSelectedCalendars: SelectedCalendar[];
+  userLevelSelectedCalendars: SelectedCalendar[];
+};
 
 type UsernameSlugLinkProps = {
   users: {
@@ -37,7 +41,8 @@ const user: User & { credentials: CredentialPayload[] } = {
   id: 0,
   startTime: 0,
   endTime: 0,
-  selectedCalendars: [],
+  allSelectedCalendars: [],
+  userLevelSelectedCalendars: [],
   schedules: [],
   defaultScheduleId: null,
   locale: "en",
@@ -83,13 +88,16 @@ const commons = {
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
   onlyShowFirstAvailableSlot: false,
+  allowReschedulingPastBookings: false,
   id: 0,
   hideCalendarNotes: false,
+  hideCalendarEventDetails: false,
   recurringEvent: null,
   destinationCalendar: null,
   team: null,
   lockTimeZoneToggleOnBookingPage: false,
   requiresConfirmation: false,
+  requiresConfirmationForFreeEmail: false,
   requiresBookerEmailVerification: false,
   bookingLimits: null,
   durationLimits: null,
@@ -101,14 +109,21 @@ const commons = {
   workflows: [],
   users: [user],
   hosts: [],
+  subsetOfHosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
+  assignRRMembersUsingSegment: false,
+  rrSegmentQueryValue: null,
   isRRWeightsEnabled: false,
   rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
   secondaryEmail: null,
+  autoTranslateDescriptionEnabled: false,
+  fieldTranslations: [],
+  maxLeadThreshold: null,
+  useEventLevelSelectedCalendars: false,
 };
 
 export const dynamicEvent = {
@@ -120,7 +135,7 @@ export const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
-  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
+  metadata: eventTypeMetaDataSchemaWithTypedApps.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
 export const defaultEvents = [dynamicEvent];
@@ -165,10 +180,10 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users = arrayCast(users);
 
-  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/g, "+").split("+")).flat();
+  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/gi, "+").split("+")).flat();
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
 export default defaultEvents;
 
-export type AwaitedGetDefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;
+export type DefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;

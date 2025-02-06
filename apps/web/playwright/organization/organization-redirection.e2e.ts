@@ -147,9 +147,11 @@ test.describe("Unpublished Organization Redirection", () => {
         },
         data: {
           hashedLink: {
-            create: {
-              link: generateHashedLink(eventType.id),
-            },
+            create: [
+              {
+                link: generateHashedLink(eventType.id),
+              },
+            ],
           },
         },
         include: {
@@ -158,7 +160,7 @@ test.describe("Unpublished Organization Redirection", () => {
       });
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}`);
+        await page.goto(`/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}`);
 
         // Expect the empty screen, indicating the event is inaccessible.
         await expect(page.getByTestId("empty-screen")).toBeVisible();
@@ -180,9 +182,11 @@ test.describe("Unpublished Organization Redirection", () => {
         },
         data: {
           hashedLink: {
-            create: {
-              link: generateHashedLink(eventType.id),
-            },
+            create: [
+              {
+                link: generateHashedLink(eventType.id),
+              },
+            ],
           },
         },
         include: {
@@ -191,7 +195,7 @@ test.describe("Unpublished Organization Redirection", () => {
       });
 
       await doOnOrgDomain({ page, orgSlug }, async () => {
-        await page.goto(`/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}?orgRedirection=true`);
+        await page.goto(`/d/${privateEvent.hashedLink[0]?.link}/${privateEvent.slug}?orgRedirection=true`);
 
         // Verify that the event page is visible.
         await expect(page.getByTestId("event-title")).toBeVisible();

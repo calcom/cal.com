@@ -35,14 +35,28 @@ export const getFieldWithOptions = <T extends Field>(field: T) => {
   }
   return {
     ...field,
-  };
+  } as typeof field & z.BRAND<"FIELD_WITH_OPTIONS">;
 };
 
+export function areSelectOptionsInLegacyFormat(
+  field: Pick<Field, "options"> & z.BRAND<"FIELD_WITH_OPTIONS">
+) {
+  const options = field.options || [];
+  return !!options.find((option) => !option.id);
+}
+
 export function getUIOptionsForSelect(field: Field) {
-  return getFieldWithOptions(field).options?.map((option) => {
+  const fieldWithOptions = getFieldWithOptions(field);
+  const options = fieldWithOptions.options || [];
+  const areOptionsInLegacyFormat = areSelectOptionsInLegacyFormat(
+    fieldWithOptions as typeof fieldWithOptions & z.BRAND<"FIELD_WITH_OPTIONS">
+  );
+  // Because for legacy saved options, routes must have labels in them instead of ids
+  const shouldUseLabelAsValue = areOptionsInLegacyFormat;
+  return options.map((option) => {
     // We prefer option.id as that doesn't change when we change the option text/label.
     // Fallback to option.label for fields saved in DB in old format which didn't have `options`
-    const value = option.id ?? option.label;
+    const value = shouldUseLabelAsValue ? option.label : option.id ?? option.label;
     return {
       value,
       title: option.label,

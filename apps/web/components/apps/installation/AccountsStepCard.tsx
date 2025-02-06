@@ -4,14 +4,27 @@ import React, { useState } from "react";
 import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { Team, User } from "@calcom/prisma/client";
-import { Avatar, StepCard } from "@calcom/ui";
+import type { User } from "@calcom/prisma/client";
+import { StepCard } from "@calcom/ui";
+import { Avatar } from "@calcom/ui";
+
+import type { TTeams } from "~/apps/installation/[[...step]]/step-view";
+
+export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
+
+type AccountStepCardProps = {
+  teams?: TTeams;
+  personalAccount: PersonalAccountProps;
+  onSelect: (id?: number) => void;
+  loading: boolean;
+  installableOnTeams: boolean;
+};
 
 type AccountSelectorProps = {
   avatar?: string;
   name: string;
   alreadyInstalled: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   loading: boolean;
   testId: string;
 };
@@ -29,13 +42,13 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   return (
     <div
       className={classNames(
-        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1 transition",
+        "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
         (alreadyInstalled || loading) && "cursor-not-allowed",
         selected && loading && "bg-muted animate-pulse"
       )}
       data-testid={testId}
       onClick={() => {
-        if (!alreadyInstalled && !loading) {
+        if (!alreadyInstalled && !loading && onClick) {
           setSelected(true);
           onClick();
         }
@@ -45,26 +58,12 @@ const AccountSelector: FC<AccountSelectorProps> = ({
         imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar
         size="sm"
       />
-      <div className="text-md pt-0.5 font-medium text-gray-500">
+      <div className="text-md text-subtle pt-0.5 font-medium">
         {name}
-        {alreadyInstalled ? <span className="ml-1 text-sm text-gray-400">{t("already_installed")}</span> : ""}
+        {alreadyInstalled ? <span className="text-subtle ml-2 text-sm">({t("already_installed")})</span> : ""}
       </div>
     </div>
   );
-};
-
-export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
-
-export type TeamsProp = (Pick<Team, "id" | "name" | "logoUrl"> & {
-  alreadyInstalled: boolean;
-})[];
-
-type AccountStepCardProps = {
-  teams?: TeamsProp;
-  personalAccount: PersonalAccountProps;
-  onSelect: (id?: number) => void;
-  loading: boolean;
-  installableOnTeams: boolean;
 };
 
 export const AccountsStepCard: FC<AccountStepCardProps> = ({
@@ -77,7 +76,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
   const { t } = useLocale();
   return (
     <StepCard>
-      <div className="text-sm font-medium text-gray-400">{t("install_app_on")}</div>
+      <div className="text-subtle text-sm font-medium">{t("install_app_on")}</div>
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
           testId="install-app-button-personal"

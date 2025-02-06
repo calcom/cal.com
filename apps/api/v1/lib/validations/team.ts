@@ -10,6 +10,8 @@ export const schemaTeamBaseBodyParams = Team.omit({ id: true, createdAt: true })
   isPlatform: true,
   smsLockState: true,
   smsLockReviewedByAdmin: true,
+  bookingLimits: true,
+  includeManagedEventsInLimits: true,
 });
 
 const schemaTeamRequiredParams = z.object({

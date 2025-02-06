@@ -6,7 +6,7 @@ import {
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/core/videoClient";
-import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
+import { getAllTranscriptsAccessLinkFromMeetingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -153,15 +153,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
 
-      const { room } = meetingEndedResponse.data.payload;
+      const { room, meeting_id } = meetingEndedResponse.data.payload;
 
       const bookingReference = await getBookingReference(room);
       const booking = await getBooking(bookingReference.bookingId as number);
 
-      const transcripts = await getAllTranscriptsAccessLinkFromRoomName(room);
+      const transcripts = await getAllTranscriptsAccessLinkFromMeetingId(meeting_id);
 
       if (!transcripts || !transcripts.length)
-        return res.status(200).json({ message: `No Transcripts found for room name ${room}` });
+        return res
+          .status(200)
+          .json({ message: `No Transcripts found for room name ${room} and meeting id ${meeting_id}` });
 
       const evt = await getCalendarEvent(booking);
       await sendDailyVideoTranscriptEmails(evt, transcripts);

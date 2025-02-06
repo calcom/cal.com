@@ -7,9 +7,11 @@ import { BookingStatus } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import {
+  confirmReschedule,
   createNewSeatedEventType,
-  selectFirstAvailableTimeSlotNextMonth,
   createUserWithSeatedEventAndAttendees,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
@@ -104,7 +106,8 @@ test.describe("Booking with Seats", () => {
 
     // confirm cancellation
     await page.locator('[data-testid="confirm_cancel"]').click();
-    await page.waitForLoadState("networkidle");
+
+    await expect(page.locator("text=This event is canceled")).toBeVisible();
 
     const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },
@@ -159,9 +162,9 @@ test.describe("Reschedule for booking with seats", () => {
       `/booking/${references[0].referenceUid}?cancel=true&seatReferenceUid=${references[0].referenceUid}`
     );
 
-    await page.locator('[data-testid="confirm_cancel"]').click();
-
-    await page.waitForResponse((res) => res.url().includes("api/cancel") && res.status() === 200);
+    await submitAndWaitForResponse(page, "/api/cancel", {
+      action: () => page.locator('[data-testid="confirm_cancel"]').click(),
+    });
 
     const oldBooking = await prisma.booking.findFirst({
       where: { uid: booking.uid },
@@ -180,7 +183,7 @@ test.describe("Reschedule for booking with seats", () => {
     await page.locator('[data-testid="day"][data-disabled="false"]').nth(1).click();
 
     // Validate that the number of seats its 10
-    expect(await page.locator("text=9 / 10 Seats available").count()).toEqual(0);
+    await expect(page.locator("text=9 / 10 Seats available")).toHaveCount(0);
   });
 
   test("Should cancel with seats but event should be still accessible and with one less attendee/seat", async ({
@@ -225,22 +228,22 @@ test.describe("Reschedule for booking with seats", () => {
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[0].referenceUid}`
     );
 
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
+
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    await page.waitForLoadState("networkidle");
-
-    await expect(page).toHaveURL(/\/booking\/.*/);
+    await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
 
     await page.goto(
       `/booking/${booking.uid}?cancel=true&allRemainingBookings=false&seatReferenceUid=${bookingSeats[1].referenceUid}`
     );
 
+    await page.locator('[data-testid="cancel_reason"]').fill("Test reason");
+
     // Page should not be 404
     await page.locator('[data-testid="confirm_cancel"]').click();
 
-    await page.waitForLoadState("networkidle");
-
-    await expect(page).toHaveURL(/\/booking\/.*/);
+    await expect(page.locator("text=You are no longer attending this event")).toBeVisible();
   });
 
   test("Should book with seats and hide attendees info from showAttendees true", async ({
@@ -399,14 +402,12 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(reasonElement).toBeVisible();
 
     // expect to be redirected to reschedule page
-    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+    await confirmReschedule(page);
 
     // should wait for URL but that path starts with booking/
     await page.waitForURL(/\/booking\/.*/);
 
     await expect(page).toHaveURL(/\/booking\/.*/);
-
-    await page.waitForLoadState("networkidle");
 
     const updatedBooking = await prisma.booking.findFirst({
       where: { id: booking.id },

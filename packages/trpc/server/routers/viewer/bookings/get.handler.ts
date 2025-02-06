@@ -1,9 +1,14 @@
+import { Prisma as PrismaClientType } from "@prisma/client";
+
+import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import { MembershipRole, type BookingStatus } from "@calcom/prisma/enums";
+import { type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -17,13 +22,16 @@ type GetOptions = {
   input: TGetInputSchema;
 };
 
+const log = logger.getSubLogger({ prefix: ["bookings.get"] });
+
 export const getHandler = async ({ ctx, input }: GetOptions) => {
   // using offset actually because cursor pagination requires a unique column
   // for orderBy, but we don't use a unique column in our orderBy
   const take = input.limit ?? 10;
   const skip = input.cursor ?? 0;
   const { prisma, user } = ctx;
-  const bookingListingByStatus = input.filters.status;
+  const defaultStatus = "upcoming";
+  const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
     ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
@@ -68,37 +76,33 @@ export async function getBookings({
   take: number;
   skip: number;
 }) {
-  // TODO: Fix record typing
-  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
-    teamIds: {
+  const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+
+  if (filters?.teamIds && filters.teamIds.length > 0) {
+    bookingWhereInputFilters.teamIds = {
       AND: [
         {
           OR: [
             {
               eventType: {
-                team: {
-                  id: {
-                    in: filters?.teamIds,
-                  },
-                },
+                teamId: { in: filters.teamIds },
               },
             },
             {
               eventType: {
                 parent: {
-                  team: {
-                    id: {
-                      in: filters?.teamIds,
-                    },
-                  },
+                  teamId: { in: filters.teamIds },
                 },
               },
             },
           ],
         },
       ],
-    },
-    userIds: {
+    };
+  }
+
+  if (filters?.userIds && filters.userIds.length > 0) {
+    bookingWhereInputFilters.userIds = {
       AND: [
         {
           OR: [
@@ -107,15 +111,16 @@ export async function getBookings({
                 hosts: {
                   some: {
                     userId: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
+                    isFixed: true,
                   },
                 },
               },
             },
             {
               userId: {
-                in: filters?.userIds,
+                in: filters.userIds,
               },
             },
             {
@@ -123,7 +128,7 @@ export async function getBookings({
                 users: {
                   some: {
                     id: {
-                      in: filters?.userIds,
+                      in: filters.userIds,
                     },
                   },
                 },
@@ -132,21 +137,24 @@ export async function getBookings({
           ],
         },
       ],
-    },
-    eventTypeIds: {
+    };
+  }
+
+  if (filters?.eventTypeIds && filters.eventTypeIds.length > 0) {
+    bookingWhereInputFilters.eventTypeIds = {
       AND: [
         {
           OR: [
             {
               eventTypeId: {
-                in: filters?.eventTypeIds,
+                in: filters.eventTypeIds,
               },
             },
             {
               eventType: {
                 parent: {
                   id: {
-                    in: filters?.eventTypeIds,
+                    in: filters.eventTypeIds,
                   },
                 },
               },
@@ -154,8 +162,44 @@ export async function getBookings({
           ],
         },
       ],
-    },
-  };
+    };
+  }
+
+  if (filters?.attendeeEmail) {
+    bookingWhereInputFilters.attendeeEmail = {
+      attendees: {
+        some: {
+          email: filters.attendeeEmail.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.attendeeName) {
+    bookingWhereInputFilters.attendeeName = {
+      attendees: {
+        some: {
+          name: filters.attendeeName.trim(),
+        },
+      },
+    };
+  }
+
+  if (filters?.afterStartDate) {
+    bookingWhereInputFilters.afterStartDate = {
+      startTime: {
+        gte: dayjs.utc(filters.afterStartDate).toDate(),
+      },
+    };
+  }
+
+  if (filters?.beforeEndDate) {
+    bookingWhereInputFilters.beforeEndDate = {
+      endTime: {
+        lte: dayjs.utc(filters.beforeEndDate).toDate(),
+      },
+    };
+  }
 
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
@@ -163,15 +207,27 @@ export async function getBookings({
         .map((key) => bookingWhereInputFilters[key])
         // On prisma 5.4.2 passing undefined to where "AND" causes an error
         .filter(Boolean);
+
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
+    responses: true,
+    /**
+     * Who uses it -
+     * 1. We need to be able to decide which booking can have a 'Reroute' action
+     */
+    routedFromRoutingFormReponse: {
+      select: {
+        id: true,
+      },
+    },
     recurringEventId: true,
     location: true,
     eventType: {
       select: {
         slug: true,
         id: true,
+        title: true,
         eventName: true,
         price: true,
         recurringEvent: true,
@@ -180,19 +236,20 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        allowReschedulingPastBookings: true,
         schedulingType: true,
+        length: true,
         team: {
           select: {
             id: true,
             name: true,
-            members: true,
+            slug: true,
           },
         },
       },
     },
     status: true,
     paid: true,
-
     payment: {
       select: {
         paymentOption: true,
@@ -226,6 +283,30 @@ export async function getBookings({
         },
       },
     },
+    assignmentReason: {
+      orderBy: { createdAt: PrismaClientType.SortOrder.desc },
+      take: 1,
+    },
+  };
+
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
   };
 
   const [
@@ -234,6 +315,8 @@ export async function getBookings({
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryManagedEvents,
+    bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
 
@@ -277,12 +360,42 @@ export async function getBookings({
           {
             eventType: {
               team: {
-                members: {
-                  some: {
-                    userId: user.id,
-                    role: {
-                      in: ["ADMIN", "OWNER"],
-                    },
+                members: membershipConditionWhereUserIsAdminOwner,
+              },
+            },
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        eventType: {
+          parent: {
+            team: {
+              members: membershipConditionWhereUserIsAdminOwner,
+            },
+          },
+        },
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    isOrganization: true,
+                    members: membershipConditionWhereUserIsAdminOwner,
                   },
                 },
               },
@@ -379,46 +492,59 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryManagedEvents)
+      .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const bookings = (
-    await prisma.booking.findMany({
-      where: {
-        id: {
-          in: plainBookings.map((booking) => booking.id),
-        },
-      },
-      select: bookingSelect,
-      // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
+
+  log.info(
+    `fetching all bookings for ${user.id}`,
+    safeStringify({
+      ids: plainBookings.map((booking) => booking.id),
       orderBy,
+      filtersCombined,
+      take,
+      skip,
     })
-  ).map((booking) => {
-    // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
-    if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
-      booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
-    }
+  );
 
-    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
-    const isUserTeamAdminOrOwner =
-      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+  const bookings = await Promise.all(
+    (
+      await prisma.booking.findMany({
+        where: {
+          id: {
+            in: plainBookings
+              .sort((a, b) => a.startTime.getTime() - b.startTime.getTime())
+              .map((booking) => booking.id),
+          },
+        },
+        select: bookingSelect,
+        // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
+        orderBy,
+      })
+    ).map(async (booking) => {
+      // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
+      if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
+        booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
+      }
 
-    return {
-      ...booking,
-      eventType: {
-        ...booking.eventType,
-        recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
-        eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
-        price: booking.eventType?.price || 0,
-        currency: booking.eventType?.currency || "usd",
-        metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
-      },
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      isUserTeamAdminOrOwner,
-    };
-  });
+      return {
+        ...booking,
+        eventType: {
+          ...booking.eventType,
+          recurringEvent: parseRecurringEvent(booking.eventType?.recurringEvent),
+          eventTypeColor: parseEventTypeColor(booking.eventType?.eventTypeColor),
+          price: booking.eventType?.price || 0,
+          currency: booking.eventType?.currency || "usd",
+          metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
+        },
+        startTime: booking.startTime.toISOString(),
+        endTime: booking.endTime.toISOString(),
+      };
+    })
+  );
   return { bookings, recurringInfo };
 }

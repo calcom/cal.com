@@ -1,6 +1,6 @@
 interface ThemeLabelProps {
   variant: "light" | "dark" | "system";
-  value?: "light" | "dark" | null;
+  value: "light" | "dark" | "system";
   label: string;
   defaultChecked?: boolean;
   register: any;

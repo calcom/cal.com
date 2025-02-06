@@ -11,8 +11,6 @@ export default class OrganizerAddGuestsEmail extends OrganizerScheduledEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("new_guests_added"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         role: GenerateIcsRole.ORGANIZER,
         status: "CONFIRMED",
       }),

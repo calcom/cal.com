@@ -3,10 +3,13 @@ import { useEffect, useState } from "react";
 import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
+import { ZodError } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import { md } from "@calcom/lib/markdownIt";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
   BooleanToggleGroupField,
@@ -24,12 +27,13 @@ import {
   Label,
   SelectField,
   showToast,
+  Editor,
   Switch,
 } from "@calcom/ui";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import type { fieldsSchema } from "./schema";
+import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -150,7 +154,7 @@ export const FormBuilder = function FormBuilder({
             }
 
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
-              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTMLClient(field.label ?? "") };
             }
             const numOptions = options?.length ?? 0;
             const firstOptionInput =
@@ -421,6 +425,27 @@ function Options({
   );
 }
 
+const CheckboxFieldLabel = ({ fieldForm }: { fieldForm: UseFormReturn<RhfFormField> }) => {
+  const { t } = useLocale();
+  const [firstRender, setFirstRender] = useState(true);
+  return (
+    <div className="mt-6">
+      <Label>{t("label")}</Label>
+      <Editor
+        getText={() => md.render(fieldForm.getValues("label") || "")}
+        setText={(value: string) => {
+          fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+        }}
+        excludedToolbarItems={["blockType", "bold", "italic"]}
+        disableLists
+        firstRender={firstRender}
+        setFirstRender={setFirstRender}
+        placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+      />
+    </div>
+  );
+};
+
 function FieldEditDialog({
   dialog,
   onOpenChange,
@@ -435,21 +460,24 @@ function FieldEditDialog({
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
     defaultValues: dialog.data || {},
-    // resolver: zodResolver(fieldSchema),
+    //resolver: zodResolver(fieldSchema),
   });
+  const formFieldType = fieldForm.getValues("type");
+
   useEffect(() => {
-    if (!fieldForm.getValues("type")) {
+    if (!formFieldType) {
       return;
     }
 
     const variantsConfig = getVariantsConfig({
-      type: fieldForm.getValues("type"),
+      type: formFieldType,
       variantsConfig: fieldForm.getValues("variantsConfig"),
     });
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
   }, [fieldForm]);
+
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
 
@@ -458,8 +486,11 @@ function FieldEditDialog({
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent
+        className="max-h-none p-0"
+        data-testid="edit-field-dialog"
+        forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
@@ -478,7 +509,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+              value={fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -505,16 +536,22 @@ function FieldEditDialog({
                       description={t("disable_input_if_prefilled")}
                       {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
-                    <InputField
-                      {...fieldForm.register("label")}
-                      // System fields have a defaultLabel, so there a label is not required
-                      required={
-                        !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                      }
-                      placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                      containerClassName="mt-6"
-                      label={t("label")}
-                    />
+                    <div>
+                      {formFieldType === "boolean" ? (
+                        <CheckboxFieldLabel fieldForm={fieldForm} />
+                      ) : (
+                        <InputField
+                          {...fieldForm.register("label")}
+                          // System fields have a defaultLabel, so there a label is not required
+                          required={
+                            !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                          }
+                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                          containerClassName="mt-6"
+                          label={t("label")}
+                        />
+                      )}
+                    </div>
 
                     {fieldType?.isTextType ? (
                       <InputField
@@ -536,6 +573,48 @@ function FieldEditDialog({
                     {!!fieldType?.supportsLengthCheck ? (
                       <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
                     ) : null}
+
+                    {formFieldType === "email" && (
+                      <InputField
+                        {...fieldForm.register("requireEmails")}
+                        containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("requireEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("requireEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
+                        label={t("require_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {formFieldType === "email" && (
+                      <InputField
+                        {...fieldForm.register("excludeEmails")}
+                        containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("excludeEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("excludeEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
+                        label={t("exclude_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
 
                     <Controller
                       name="required"
@@ -654,9 +733,10 @@ function FieldLabel({ field }: { field: RhfFormField }) {
     if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
       return (
         <span
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             // Derive from field.label because label might change in b/w and field.labelAsSafeHtml will not be updated.
-            __html: markdownToSafeHTML(field.label || "") || t(field.defaultLabel || ""),
+            __html: markdownToSafeHTMLClient(field.label || t(field.defaultLabel || "") || ""),
           }}
         />
       );

@@ -9,16 +9,26 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/calendar-cache/cron",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/tasks/cleanup",
       "schedule": "0 0 * * *"
     }
   ],
   "functions": {
-    "pages/api/trpc/public/[trpc].ts": {
-      "memory": 768
+    "pages/api/trpc/highPerf/[trpc].ts": {
+      "memory": 3008
     },
-    "pages/api/trpc/slots/[trpc].ts": {
-      "memory": 768
+    "pages/api/trpc/appRoutingForms/[trpc].ts": {
+      "memory": 2048
+    },
+    "pages/router/embed.tsx": {
+      "memory": 2048
+    },
+    "pages/api/book/event.ts": {
+      "memory": 2048
     }
   }
 }

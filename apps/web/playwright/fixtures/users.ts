@@ -1,4 +1,4 @@
-import type { Page, WorkerInfo } from "@playwright/test";
+import type { Browser, Page, WorkerInfo } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
@@ -7,6 +7,7 @@ import { hashSync as hash } from "bcryptjs";
 import { uuid } from "short-uuid";
 import { v4 } from "uuid";
 
+import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -27,6 +28,8 @@ export function hashPassword(password: string) {
 }
 
 type UserFixture = ReturnType<typeof createUserFixture>;
+
+export type CreateUsersFixture = ReturnType<typeof createUsersFixture>;
 
 const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   eventTypes: true,
@@ -92,6 +95,8 @@ const createTeamEventType = async (
     teamEventSlug?: string;
     teamEventLength?: number;
     seatsPerTimeSlot?: number;
+    managedEventUnlockedFields?: Record<string, boolean>;
+    assignAllTeamMembers?: boolean;
   }
 ) => {
   return await prisma.eventType.create({
@@ -122,6 +127,21 @@ const createTeamEventType = async (
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
       seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
+      locations: [{ type: "integrations:daily" }],
+      metadata:
+        scenario?.schedulingType === SchedulingType.MANAGED
+          ? {
+              managedEventConfig: {
+                unlockedFields: {
+                  locations: true,
+                  scheduleId: true,
+                  destinationCalendar: true,
+                  ...scenario?.managedEventUnlockedFields,
+                },
+              },
+            }
+          : undefined,
+      assignAllTeamMembers: scenario?.assignAllTeamMembers,
     },
   });
 };
@@ -137,6 +157,8 @@ const createTeamAndAddUser = async (
     isDnsSetup,
     index,
     orgRequestedSlug,
+    schedulingType,
+    assignAllTeamMembersForSubTeamEvents,
   }: {
     user: { id: number; email: string; username: string | null; role?: MembershipRole };
     isUnpublished?: boolean;
@@ -147,6 +169,8 @@ const createTeamAndAddUser = async (
     organizationId?: number | null;
     index?: number;
     orgRequestedSlug?: string;
+    schedulingType?: SchedulingType;
+    assignAllTeamMembersForSubTeamEvents?: boolean;
   },
   workerInfo: WorkerInfo
 ) => {
@@ -173,7 +197,10 @@ const createTeamAndAddUser = async (
   data.slug = !isUnpublished ? slug : undefined;
   if (isOrg && hasSubteam) {
     const team = await createTeamAndAddUser({ user }, workerInfo);
-    await createTeamEventType(user, team);
+    await createTeamEventType(user, team, {
+      schedulingType: schedulingType,
+      assignAllTeamMembers: assignAllTeamMembersForSubTeamEvents,
+    });
     await createTeamWorkflow(user, team);
     data.children = { connect: [{ id: team.id }] };
   }
@@ -219,7 +246,7 @@ export const createUsersFixture = (
   const store = { users: [], trackedEmails: [], page, teams: [] } as {
     users: UserFixture[];
     trackedEmails: { email: string }[];
-    page: typeof page;
+    page: Page;
     teams: Team[];
   };
   return {
@@ -259,7 +286,11 @@ export const createUsersFixture = (
         hasSubteam?: true;
         isUnpublished?: true;
         seatsPerTimeSlot?: number;
+        addManagedEventToTeamMates?: boolean;
+        managedEventUnlockedFields?: Record<string, boolean>;
         orgRequestedSlug?: string;
+        assignAllTeamMembers?: boolean;
+        assignAllTeamMembersForSubTeamEvents?: boolean;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -274,6 +305,12 @@ export const createUsersFixture = (
         { title: "Paid", slug: "paid", length: 30, price: 1000 },
         { title: "Opt in", slug: "opt-in", requiresConfirmation: true, length: 30 },
         { title: "Seated", slug: "seated", seatsPerTimeSlot: 2, length: 30 },
+        {
+          title: "Multiple duration",
+          slug: "multiple-duration",
+          length: 30,
+          metadata: { multipleDuration: [30, 60, 90] },
+        },
       ];
 
       if (opts?.eventTypes) defaultEventTypes = defaultEventTypes.concat(opts.eventTypes);
@@ -301,10 +338,14 @@ export const createUsersFixture = (
       }
 
       if (scenario.seedRoutingForms) {
-        const option2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
-        const option1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const multiSelectOption1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const selectOption1Uuid = "d0292635-9f12-17b1-9153-c3a854649182";
+        const selectOption2Uuid = "d0302635-9f12-17b1-9153-c3a854649182";
         const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
         const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
+        const selectFieldUuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const legacySelectFieldUuid = "f0292635-9f12-17b1-9153-c3a854649182";
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -350,7 +391,7 @@ export const createUsersFixture = (
               },
               {
                 id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
-                action: { type: "externalRedirectUrl", value: "https://google.com" },
+                action: { type: "externalRedirectUrl", value: "https://cal.com" },
                 queryValue: {
                   id: "a8ba9aab-4567-489a-bcde-f1823f71b4ad",
                   type: "group",
@@ -399,7 +440,7 @@ export const createUsersFixture = (
                       type: "rule",
                       properties: {
                         field: multiSelectFieldUuid,
-                        value: [[option2Uuid]],
+                        value: [[multiSelectOption2Uuid]],
                         operator: "multiselect_equals",
                         valueSrc: ["value"],
                         valueType: ["multiselect"],
@@ -437,11 +478,36 @@ export const createUsersFixture = (
                 identifier: "multi-new-format",
                 options: [
                   {
-                    id: option1Uuid,
+                    id: multiSelectOption1Uuid,
                     label: "Option-1",
                   },
                   {
-                    id: option2Uuid,
+                    id: multiSelectOption2Uuid,
+                    label: "Option-2",
+                  },
+                ],
+                required: false,
+              },
+              {
+                id: legacySelectFieldUuid,
+                type: "select",
+                label: "Legacy Select",
+                identifier: "test-select",
+                selectText: "Option-1\nOption-2",
+                required: false,
+              },
+              {
+                id: selectFieldUuid,
+                type: "select",
+                label: "Select",
+                identifier: "test-select-new-format",
+                options: [
+                  {
+                    id: selectOption1Uuid,
+                    label: "Option-1",
+                  },
+                  {
+                    id: selectOption2Uuid,
                     label: "Option-2",
                   },
                 ],
@@ -479,6 +545,8 @@ export const createUsersFixture = (
               hasSubteam: scenario.hasSubteam,
               organizationId: opts?.organizationId,
               orgRequestedSlug: scenario.orgRequestedSlug,
+              schedulingType: scenario.schedulingType,
+              assignAllTeamMembersForSubTeamEvents: scenario.assignAllTeamMembersForSubTeamEvents,
             },
             workerInfo
           );
@@ -520,6 +588,29 @@ export const createUsersFixture = (
               );
               teamMates.push(teamUser);
               store.users.push(teammateFixture);
+            }
+            // If the teamEvent is a managed one, we add the team mates to it.
+            if (scenario.schedulingType === SchedulingType.MANAGED && scenario.addManagedEventToTeamMates) {
+              await updateChildrenEventTypes({
+                eventTypeId: teamEvent.id,
+                currentUserId: user.id,
+                oldEventType: {
+                  team: null,
+                },
+                updatedEventType: teamEvent,
+                children: teamMates.map((tm) => ({
+                  hidden: false,
+                  owner: {
+                    id: tm.id,
+                    name: tm.name || tm.username || "Nameless",
+                    email: tm.email,
+                    eventTypeSlugs: [],
+                  },
+                })),
+                profileId: null,
+                prisma,
+                updatedValues: {},
+              });
             }
             // Add Teammates to OrgUsers
             if (scenario.isOrg) {
@@ -660,6 +751,14 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     self,
     apiLogin: async (password?: string) =>
       apiLogin({ ...(await self()), password: password || user.username }, store.page),
+    /** Don't forget to close context at the end */
+    apiLoginOnNewBrowser: async (browser: Browser, password?: string) => {
+      const newContext = await browser.newContext();
+      const newPage = await newContext.newPage();
+      await apiLogin({ ...(await self()), password: password || user.username }, newPage);
+      // Don't forget to: newContext.close();
+      return [newContext, newPage] as const;
+    },
     /**
      * @deprecated use apiLogin instead
      */
@@ -730,10 +829,11 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
           userId: user.id,
         },
       }),
-    getFirstTeamEvent: async (teamId: number) => {
+    getFirstTeamEvent: async (teamId: number, schedulingType?: SchedulingType) => {
       return prisma.eventType.findFirstOrThrow({
         where: {
           teamId,
+          schedulingType,
         },
       });
     },
@@ -780,7 +880,8 @@ type CustomUserOptsKeys =
   | "organizationId"
   | "twoFactorEnabled"
   | "disableImpersonation"
-  | "role";
+  | "role"
+  | "identityProvider";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   timeZone?: TimeZoneEnum;
   eventTypes?: SupportedTestEventTypes[];
@@ -846,6 +947,7 @@ const createUser = (
             },
           }
         : undefined,
+    identityProvider: opts?.identityProvider,
   };
 
   function getOrganizationRelatedProps({
@@ -941,10 +1043,11 @@ export async function login(
   await emailLocator.fill(user.email ?? `${user.username}@example.com`);
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   await passwordLocator.fill(user.password ?? user.username!);
-  await signInLocator.click();
 
   // waiting for specific login request to resolve
-  await page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  const responsePromise = page.waitForResponse(/\/api\/auth\/callback\/credentials/);
+  await signInLocator.click();
+  await responsePromise;
 }
 
 export async function apiLogin(

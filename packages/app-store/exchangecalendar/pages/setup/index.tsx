@@ -5,8 +5,9 @@ import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, EmailField, Form, PasswordField, SelectField, Switch, TextField } from "@calcom/ui";
+import { Alert, Button, EmailField, Form, PasswordField, SelectField, TextField } from "@calcom/ui";
 
 import { ExchangeAuthentication, ExchangeVersion } from "../../enums";
 
@@ -22,7 +23,7 @@ interface IFormData {
 const schema = z
   .object({
     url: z.string().url(),
-    username: z.string().email(),
+    username: emailSchema,
     password: z.string(),
     authenticationMethod: z.number().default(ExchangeAuthentication.STANDARD),
     exchangeVersion: z.number().default(ExchangeVersion.Exchange2016),
@@ -36,11 +37,12 @@ export default function ExchangeSetup() {
   const [errorMessage, setErrorMessage] = useState("");
   const form = useForm<IFormData>({
     defaultValues: {
-      authenticationMethod: ExchangeAuthentication.STANDARD,
+      authenticationMethod: ExchangeAuthentication.NTLM,
       exchangeVersion: ExchangeVersion.Exchange2016,
     },
     resolver: zodResolver(schema),
   });
+  const authenticationMethod = form.watch("authenticationMethod");
   const authenticationMethods = [
     { value: ExchangeAuthentication.STANDARD, label: t("exchange_authentication_standard") },
     { value: ExchangeAuthentication.NTLM, label: t("exchange_authentication_ntlm") },
@@ -115,44 +117,49 @@ export default function ExchangeSetup() {
                     <Controller
                       name="authenticationMethod"
                       control={form.control}
-                      render={({ field: { onChange } }) => (
-                        <SelectField
-                          label={t("exchange_authentication")}
-                          options={authenticationMethods}
-                          defaultValue={authenticationMethods[0]}
-                          onChange={async (authentication) => {
-                            if (authentication) {
-                              onChange(authentication.value);
-                              form.setValue("authenticationMethod", authentication.value);
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="exchangeVersion"
-                      control={form.control}
-                      render={({ field: { onChange } }) => (
-                        <SelectField
-                          label={t("exchange_version")}
-                          options={exchangeVersions}
-                          defaultValue={exchangeVersions[7]}
-                          onChange={async (version) => {
-                            onChange(version?.value);
-                            if (version) {
-                              form.setValue("exchangeVersion", version.value);
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                    <Switch
-                      label={t("exchange_compression")}
-                      name="useCompression"
-                      onCheckedChange={async (alt) => {
-                        form.setValue("useCompression", alt);
+                      render={({ field: { onChange } }) => {
+                        const ntlmAuthenticationMethod = authenticationMethods.find(
+                          (method) => method.value === ExchangeAuthentication.NTLM
+                        );
+                        return (
+                          <SelectField
+                            label={t("exchange_authentication")}
+                            options={authenticationMethods}
+                            defaultValue={ntlmAuthenticationMethod}
+                            onChange={(authentication) => {
+                              if (authentication) {
+                                onChange(authentication.value);
+                                form.setValue("authenticationMethod", authentication.value);
+                              }
+                            }}
+                          />
+                        );
                       }}
                     />
+                    {authenticationMethod === ExchangeAuthentication.STANDARD ? (
+                      <Controller
+                        name="exchangeVersion"
+                        control={form.control}
+                        render={({ field: { onChange } }) => {
+                          const exchangeVersion2016 = exchangeVersions.find(
+                            (exchangeVersion) => exchangeVersion.value === ExchangeVersion.Exchange2016
+                          );
+                          return (
+                            <SelectField
+                              label={t("exchange_version")}
+                              options={exchangeVersions}
+                              defaultValue={exchangeVersion2016}
+                              onChange={(version) => {
+                                onChange(version?.value);
+                                if (version) {
+                                  form.setValue("exchangeVersion", version.value);
+                                }
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    ) : null}
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
                   <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">

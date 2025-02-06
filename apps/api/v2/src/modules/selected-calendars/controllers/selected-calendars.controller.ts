@@ -14,7 +14,7 @@ import {
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
-import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -23,7 +23,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   path: "/v2/selected-calendars",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Selected-Calendars")
+@DocsTags("Selected Calendars")
 export class SelectedCalendarsController {
   constructor(
     private readonly calendarsRepository: CalendarsRepository,
@@ -33,6 +33,7 @@ export class SelectedCalendarsController {
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Add a selected calendar" })
   async addSelectedCalendar(
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
@@ -55,6 +56,7 @@ export class SelectedCalendarsController {
 
   @Delete("/")
   @UseGuards(ApiAuthGuard)
+  @ApiOperation({ summary: "Delete a selected calendar" })
   async removeSelectedCalendar(
     @Query() queryParams: SelectedCalendarsQueryParamsInputDto,
     @GetUser() user: UserWithProfile

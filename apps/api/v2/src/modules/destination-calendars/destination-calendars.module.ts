@@ -6,6 +6,7 @@ import { DestinationCalendarsController } from "@/modules/destination-calendars/
 import { DestinationCalendarsRepository } from "@/modules/destination-calendars/destination-calendars.repository";
 import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
@@ -19,6 +20,7 @@ import { Module } from "@nestjs/common";
     UsersRepository,
     CredentialsRepository,
     AppsRepository,
+    SelectedCalendarsRepository,
   ],
   controllers: [DestinationCalendarsController],
   exports: [DestinationCalendarsRepository],

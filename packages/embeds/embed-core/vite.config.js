@@ -16,13 +16,16 @@ module.exports = defineConfig((configEnv) => {
         EMBED_PUBLIC_EMBED_VERSION: embedCoreEnvVars.EMBED_PUBLIC_EMBED_VERSION,
         EMBED_PUBLIC_VERCEL_URL: embedCoreEnvVars.EMBED_PUBLIC_VERCEL_URL,
         EMBED_PUBLIC_WEBAPP_URL: embedCoreEnvVars.EMBED_PUBLIC_WEBAPP_URL,
+        EMBED_PUBLIC_EMBED_LIB_URL: embedCoreEnvVars.EMBED_PUBLIC_EMBED_LIB_URL,
+        NEXT_PUBLIC_IS_E2E: embedCoreEnvVars.NEXT_PUBLIC_IS_E2E,
       }),
       ...(process.argv.includes("--https") ? [basicSsl()] : []),
     ],
     server: {
       // Helps us to test that embed works with these headers
       headers: {
-        "Cross-Origin-Embedder-Policy": "require-corp",
+        // TODO: https://github.com/calcom/cal.com/issues/16571
+        // "Cross-Origin-Embedder-Policy": "require-corp",
       },
     },
     build: {

@@ -5,6 +5,7 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import isSmsCalEmail from "@calcom/lib/isSmsCalEmail";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
 import prisma from "@calcom/prisma";
@@ -51,6 +52,11 @@ export default class BaseEmail {
 
     const from = "from" in payload ? (payload.from as string) : "";
     const to = "to" in payload ? (payload.to as string) : "";
+
+    if (isSmsCalEmail(to)) {
+      console.log(`Skipped Sending Email to faux email: ${to}`);
+      return new Promise((r) => r(`Skipped Sending Email to faux email: ${to}`));
+    }
 
     const sanitizedFrom = sanitizeDisplayName(from);
     const sanitizedTo = sanitizeDisplayName(to);

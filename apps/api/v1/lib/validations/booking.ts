@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-import { _AttendeeModel, _BookingModel as Booking, _PaymentModel, _UserModel } from "@calcom/prisma/zod";
+import {
+  _AttendeeModel,
+  _BookingModel as Booking,
+  _EventTypeModel,
+  _PaymentModel,
+  _TeamModel,
+  _UserModel,
+} from "@calcom/prisma/zod";
 import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
@@ -16,6 +23,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   status: true,
   rescheduledBy: true,
   cancelledBy: true,
+  createdAt: true,
 }).partial();
 
 export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
@@ -29,6 +37,23 @@ export const schemaBookingGetParams = z.object({
 });
 
 export type Status = z.infer<typeof schemaBookingGetParams>["status"];
+
+export const bookingCancelSchema = z.object({
+  id: z.number(),
+  allRemainingBookings: z.boolean().optional(),
+  cancelSubsequentBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional().default("Not Provided"),
+  seatReferenceUid: z.string().optional(),
+  cancelledBy: z.string().email({ message: "Invalid email" }).optional(),
+  internalNote: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      cancellationReason: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
+});
 
 const schemaBookingEditParams = z
   .object({
@@ -46,10 +71,27 @@ export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
   .omit({ uid: true });
 
+const teamSchema = _TeamModel.pick({
+  name: true,
+  slug: true,
+});
+
 export const schemaBookingReadPublic = Booking.extend({
+  eventType: _EventTypeModel
+    .pick({
+      title: true,
+      slug: true,
+    })
+    .merge(
+      z.object({
+        team: teamSchema.nullish(),
+      })
+    )
+    .nullish(),
   attendees: z
     .array(
       _AttendeeModel.pick({
+        id: true,
         email: true,
         name: true,
         timeZone: true,
@@ -87,6 +129,7 @@ export const schemaBookingReadPublic = Booking.extend({
   timeZone: true,
   attendees: true,
   user: true,
+  eventType: true,
   payment: true,
   metadata: true,
   status: true,
@@ -94,4 +137,5 @@ export const schemaBookingReadPublic = Booking.extend({
   fromReschedule: true,
   cancelledBy: true,
   rescheduledBy: true,
+  createdAt: true,
 });

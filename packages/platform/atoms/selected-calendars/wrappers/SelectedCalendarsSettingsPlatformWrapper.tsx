@@ -11,22 +11,39 @@ import {
   List,
   DisconnectIntegrationComponent,
   Alert,
+  Button,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from "@calcom/ui";
 
+import { AppleConnect } from "../../connect/apple/AppleConnect";
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
 import { useRemoveSelectedCalendar } from "../../hooks/calendars/useRemoveSelectedCalendar";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
+import { Connect } from "../../index";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
 import { SelectedCalendarsSettings } from "../SelectedCalendarsSettings";
 
+export type CalendarRedirectUrls = {
+  google?: string;
+  outlook?: string;
+};
+
+type SelectedCalendarsSettingsPlatformWrapperProps = {
+  classNames?: string;
+  calendarRedirectUrls?: CalendarRedirectUrls;
+  allowDelete?: boolean;
+};
+
 export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
-}: {
-  classNames?: string;
-}) => {
+  calendarRedirectUrls,
+  allowDelete,
+}: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
 
@@ -39,12 +56,17 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
             const destinationCalendarId = data.destinationCalendar.externalId;
 
             if (!data.connectedCalendars.length) {
-              return null;
+              return (
+                <SelectedCalendarsSettings classNames={classNames}>
+                  <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
+                  <h1 className="px-6 py-4 text-base leading-5">No connected calendars found.</h1>
+                </SelectedCalendarsSettings>
+              );
             }
 
             return (
               <SelectedCalendarsSettings classNames={classNames}>
-                <SelectedCalendarsSettingsHeading />
+                <SelectedCalendarsSettingsHeading calendarRedirectUrls={calendarRedirectUrls} />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
                     if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
@@ -61,12 +83,14 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              <PlatformDisconnectIntegration
-                                credentialId={connectedCalendar.credentialId}
-                                trashIcon
-                                buttonProps={{ className: "border border-default" }}
-                                slug={connectedCalendar.integration.slug}
-                              />
+                              {allowDelete && (
+                                <PlatformDisconnectIntegration
+                                  credentialId={connectedCalendar.credentialId}
+                                  trashIcon
+                                  buttonProps={{ className: "border border-default" }}
+                                  slug={connectedCalendar.integration.slug}
+                                />
+                              )}
                             </div>
                           }>
                           <div className="border-subtle border-t">
@@ -121,7 +145,11 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
   );
 };
 
-const SelectedCalendarsSettingsHeading = () => {
+const SelectedCalendarsSettingsHeading = ({
+  calendarRedirectUrls,
+}: {
+  calendarRedirectUrls?: CalendarRedirectUrls;
+}) => {
   const { t } = useLocale();
 
   return (
@@ -130,6 +158,11 @@ const SelectedCalendarsSettingsHeading = () => {
         <div>
           <h4 className="text-emphasis text-base font-semibold leading-5">{t("check_for_conflicts")}</h4>
           <p className="text-default text-sm leading-tight">{t("select_calendars")}</p>
+        </div>
+        <div className="flex flex-col xl:flex-row xl:space-x-5">
+          <div className="flex items-center">
+            <PlatformAdditionalCalendarSelector calendarRedirectUrls={calendarRedirectUrls} />
+          </div>
         </div>
       </div>
     </div>
@@ -242,5 +275,64 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
         }}
       />
     </CalendarSwitchComponent>
+  );
+};
+
+const PlatformAdditionalCalendarSelector = ({
+  calendarRedirectUrls,
+}: {
+  calendarRedirectUrls?: CalendarRedirectUrls;
+}) => {
+  const { t } = useLocale();
+  const { refetch } = useConnectedCalendars({});
+
+  return (
+    <Dropdown modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button StartIcon="plus" color="secondary">
+          {t("add")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <div>
+          <div>
+            <Connect.GoogleCalendar
+              isMultiCalendar={true}
+              isClickable={true}
+              tooltip={<></>}
+              redir={calendarRedirectUrls?.google ?? window.location.href}
+              label={t("add_calendar_label", { calendar: "Google" })}
+              loadingLabel={t("add_calendar_label", { calendar: "Google" })}
+              alreadyConnectedLabel={t("add_calendar_label", { calendar: "Google" })}
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+            />
+          </div>
+          <div>
+            <Connect.OutlookCalendar
+              isMultiCalendar={true}
+              isClickable={true}
+              tooltip={<></>}
+              redir={calendarRedirectUrls?.outlook ?? window.location.href}
+              label={t("add_calendar_label", { calendar: "Outlook" })}
+              loadingLabel={t("add_calendar_label", { calendar: "Outlook" })}
+              alreadyConnectedLabel={t("add_calendar_label", { calendar: "Outlook" })}
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+            />
+          </div>
+          <div>
+            <AppleConnect
+              onSuccess={refetch}
+              isClickable={true}
+              isMultiCalendar={true}
+              tooltip={<></>}
+              label={t("add_calendar_label", { calendar: "Apple" })}
+              loadingLabel={t("add_calendar_label", { calendar: "Apple" })}
+              alreadyConnectedLabel={t("add_calendar_label", { calendar: "Apple" })}
+              className="hover:bg-subtle hover:text-default cursor-pointer border-none bg-inherit text-inherit"
+            />
+          </div>
+        </div>
+      </DropdownMenuContent>
+    </Dropdown>
   );
 };

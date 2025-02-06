@@ -1677,6 +1677,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.body.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 
@@ -1817,6 +1818,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.body.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 
@@ -2664,6 +2666,7 @@ describe("handleSeats", () => {
 
         const mockBookingData = getMockRequestDataForBooking({
           data: {
+            id: firstBookingId,
             eventTypeId: 1,
             responses: {
               email: booker.email,
@@ -2681,6 +2684,7 @@ describe("handleSeats", () => {
         });
 
         req.userId = organizer.id;
+        req.body.cancellationReason = "test cancellation reason";
 
         await handleCancelBooking(req);
 

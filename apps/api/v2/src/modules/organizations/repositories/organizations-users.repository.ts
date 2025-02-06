@@ -3,6 +3,7 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/upda
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
+import { CreationSource } from "@prisma/client";
 
 @Injectable()
 export class OrganizationsUsersRepository {
@@ -24,6 +25,13 @@ export class OrganizationsUsersRepository {
         ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
       },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
       skip,
       take,
     });
@@ -35,6 +43,13 @@ export class OrganizationsUsersRepository {
         username,
         ...this.filterOnOrgMembership(orgId),
       },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
     });
   }
 
@@ -44,12 +59,19 @@ export class OrganizationsUsersRepository {
         email,
         ...this.filterOnOrgMembership(orgId),
       },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
     });
   }
 
   async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
     const createdUser = await this.dbWrite.prisma.user.create({
-      data: createUserBody,
+      data: { ...createUserBody, creationSource: CreationSource.API_V2 },
     });
 
     return createdUser;
@@ -62,6 +84,13 @@ export class OrganizationsUsersRepository {
         organizationId: orgId,
       },
       data: updateUserBody,
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
+      },
     });
   }
 
@@ -70,6 +99,13 @@ export class OrganizationsUsersRepository {
       where: {
         id: userId,
         organizationId: orgId,
+      },
+      include: {
+        profiles: {
+          where: {
+            organizationId: orgId,
+          },
+        },
       },
     });
   }

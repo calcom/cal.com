@@ -7,8 +7,6 @@ export default class AttendeeAddGuestsEmail extends AttendeeScheduledEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("new_guests_added"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         role: GenerateIcsRole.ATTENDEE,
         status: "CONFIRMED",
       }),

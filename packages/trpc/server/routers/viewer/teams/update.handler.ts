@@ -1,13 +1,14 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { validateIntervalLimitOrder } from "@calcom/lib";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -47,6 +48,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
 
+  if (input.bookingLimits) {
+    const isValid = validateIntervalLimitOrder(input.bookingLimits);
+    if (!isValid)
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+  }
+
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
     bio: input.bio,
@@ -56,6 +63,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     brandColor: input.brandColor,
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
+    bookingLimits: input.bookingLimits ?? undefined,
+    includeManagedEventsInLimits: input.includeManagedEventsInLimits ?? undefined,
   };
 
   if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
@@ -126,9 +135,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  // Sync Services: Close.com
-  if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
-
   return {
     logoUrl: updatedTeam.logoUrl,
     name: updatedTeam.name,
@@ -137,6 +143,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     theme: updatedTeam.theme,
     brandColor: updatedTeam.brandColor,
     darkBrandColor: updatedTeam.darkBrandColor,
+    bookingLimits: updatedTeam.bookingLimits as IntervalLimit,
+    includeManagedEventsInLimits: updatedTeam.includeManagedEventsInLimits,
   };
 };
 

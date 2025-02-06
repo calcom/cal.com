@@ -1,5 +1,6 @@
 import dayjs from "@calcom/dayjs";
-import { SENDER_ID } from "@calcom/lib/constants";
+import { bulkShortenLinks } from "@calcom/ee/workflows/lib/reminders/utils";
+import { SENDER_ID, WEBSITE_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -29,13 +30,14 @@ export type AttendeeInBookingInfo = {
   firstName?: string;
   lastName?: string;
   email: string;
+  phoneNumber?: string | null;
   timeZone: string;
   language: { locale: string };
 };
 
 export type BookingInfo = {
   uid?: string | null;
-  bookerUrl?: string;
+  bookerUrl: string;
   attendees: AttendeeInBookingInfo[];
   organizer: {
     language: { locale: string };
@@ -45,8 +47,8 @@ export type BookingInfo = {
     timeFormat?: TimeFormat;
     username?: string;
   };
-  eventType: {
-    slug?: string;
+  eventType?: {
+    slug: string;
     recurringEvent?: RecurringEvent | null;
   };
   startTime: string;
@@ -56,6 +58,8 @@ export type BookingInfo = {
   additionalNotes?: string | null;
   responses?: CalEventResponses | null;
   metadata?: Prisma.JsonValue;
+  cancellationReason?: string | null;
+  rescheduleReason?: string | null;
 };
 
 export type ScheduleTextReminderAction = Extract<
@@ -143,6 +147,15 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   let smsMessage = message;
 
   if (smsMessage) {
+    const urls = {
+      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl || "",
+      cancelLink: `${evt.bookerUrl ?? WEBSITE_URL}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${evt.bookerUrl ?? WEBSITE_URL}/reschedule/${evt.uid}`,
+    };
+
+    const [{ shortLink: meetingUrl }, { shortLink: cancelLink }, { shortLink: rescheduleLink }] =
+      await bulkShortenLinks([urls.meetingUrl, urls.cancelLink, urls.rescheduleLink]);
+
     const variables: VariablesType = {
       eventName: evt.title,
       organizerName: evt.organizer.name,
@@ -156,9 +169,14 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
       location: evt.location,
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
-      meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
+      meetingUrl,
+      cancelLink,
+      rescheduleLink,
+      cancelReason: evt.cancellationReason,
+      rescheduleReason: evt.rescheduleReason,
+      attendeeTimezone: evt.attendees[0].timeZone,
+      eventTimeInAttendeeTimezone: dayjs(evt.startTime).tz(evt.attendees[0].timeZone),
+      eventEndTimeInAttendeeTimezone: dayjs(evt.endTime).tz(evt.attendees[0].timeZone),
     };
     const customMessage = customTemplate(smsMessage, variables, locale, evt.organizer.timeFormat);
     smsMessage = customMessage.text;
@@ -166,6 +184,7 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
     smsMessage =
       smsReminderTemplate(
         false,
+        evt.organizer.language.locale,
         action,
         evt.organizer.timeFormat,
         evt.startTime,

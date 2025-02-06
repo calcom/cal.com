@@ -28,7 +28,7 @@ const userSelect = Prisma.validator<Prisma.UserArgs>()({
   },
 });
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Omit<Prisma.UserGetPayload<typeof userSelect>, "selectedCalendars">;
 type PersonAttendeeCommonFields = Pick<User, "id" | "email" | "name" | "locale" | "timeZone" | "username">;
 interface ICalendarEventBuilder {
   calendarEvent: CalendarEventClass;
@@ -146,6 +146,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
           metadata: true,
           destinationCalendar: true,
           hideCalendarNotes: true,
+          hideCalendarEventDetails: true,
         },
       });
     } catch (error) {
@@ -204,6 +205,12 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
   public setHideCalendarNotes(hideCalendarNotes: CalendarEventClass["hideCalendarNotes"]) {
     this.calendarEvent.hideCalendarNotes = hideCalendarNotes;
+  }
+
+  public setHideCalendarEventDetails(
+    hideCalendarEventDetails: CalendarEventClass["hideCalendarEventDetails"]
+  ) {
+    this.calendarEvent.hideCalendarEventDetails = hideCalendarEventDetails;
   }
 
   public setDescription(description: CalendarEventClass["description"]) {

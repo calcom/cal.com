@@ -4,8 +4,9 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
-import { Icon, type IconName } from "../../..";
 import { Avatar } from "../../avatar";
+import { Icon } from "../../icon";
+import type { IconName } from "../../icon";
 import { SkeletonText } from "../../skeleton";
 
 export type HorizontalTabItemProps = {
@@ -18,6 +19,8 @@ export type HorizontalTabItemProps = {
   linkScroll?: boolean;
   icon?: IconName;
   avatar?: string;
+  onClick?: (name: string) => void;
+  isActive?: boolean;
 };
 
 const HorizontalTabItem = function ({
@@ -30,10 +33,16 @@ const HorizontalTabItem = function ({
 }: HorizontalTabItemProps) {
   const { t, isLocaleReady } = useLocale();
 
-  const isCurrent = useUrlMatchesCurrentUrl(href);
+  const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
     <Link
+      onClick={(e) => {
+        if (props.onClick) {
+          e.preventDefault();
+          props.onClick(name);
+        }
+      }}
       key={name}
       href={href}
       shallow={linkShallow}

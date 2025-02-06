@@ -90,10 +90,10 @@ test.describe("Popup Tests", () => {
     });
 
     await test.step("Reschedule the booking", async () => {
-      await addEmbedListeners("popupReschedule");
-      await page.goto(`/?popupRescheduleId=${booking.uid}`);
-      await page.click('[data-cal-namespace="popupReschedule"]');
-      const calNamespace = "popupReschedule";
+      const calNamespace = "popupRescheduleWithReschedulePath";
+      await addEmbedListeners(calNamespace);
+      await page.goto(`/?popupRescheduleUid=${booking.uid}`);
+      await page.click(`[data-cal-namespace="${calNamespace}"]`);
       const embedIframe = await getEmbedIframe({ calNamespace, page, pathname: booking.eventSlug });
       if (!embedIframe) {
         throw new Error("Embed iframe not found");
@@ -113,16 +113,10 @@ test.describe("Popup Tests", () => {
     const calNamespace = "routingFormAuto";
     await addEmbedListeners(calNamespace);
     await page.goto("/?only=prerender-test");
-    let embedIframe = await getEmbedIframe({
-      calNamespace,
-      page,
-      pathname: "/forms/948ae412-d995-4865-875a-48302588de03",
-    });
-    expect(embedIframe).toBeFalsy();
     await page.click(
       `[data-cal-namespace=${calNamespace}][data-cal-link="forms/948ae412-d995-4865-875a-48302588de03"]`
     );
-    embedIframe = await getEmbedIframe({
+    const embedIframe = await getEmbedIframe({
       calNamespace,
       page,
       pathname: "/forms/948ae412-d995-4865-875a-48302588de03",

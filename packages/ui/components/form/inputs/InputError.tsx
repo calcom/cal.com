@@ -1,4 +1,4 @@
-import { Icon } from "../../..";
+import { Icon } from "../../icon";
 
 type InputErrorProp = {
   message: string;

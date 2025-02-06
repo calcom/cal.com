@@ -3,6 +3,7 @@ import type z from "zod";
 
 import { SystemField } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponsesDbSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
+import { contructEmailFromPhoneNumber } from "@calcom/lib/contructEmailFromPhoneNumber";
 import { getBookingWithResponses } from "@calcom/lib/getBooking";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -38,6 +39,16 @@ export const getCalEventResponses = ({
     responses ?? (booking ? getBookingWithResponses(booking).responses : null);
   if (!backwardCompatibleResponses) throw new Error("Couldn't get responses");
 
+  // To set placeholder email for the booking
+  if (!!!backwardCompatibleResponses.email) {
+    if (typeof backwardCompatibleResponses["attendeePhoneNumber"] !== "string")
+      throw new Error("Both Phone and Email are missing");
+
+    backwardCompatibleResponses.email = contructEmailFromPhoneNumber(
+      backwardCompatibleResponses["attendeePhoneNumber"]
+    );
+  }
+
   if (parsedBookingFields) {
     parsedBookingFields.forEach((field) => {
       const label = field.label || field.defaultLabel;
@@ -58,6 +69,7 @@ export const getCalEventResponses = ({
           isHidden: !!field.hidden,
         };
       }
+
       calEventResponses[field.name] = {
         label,
         value: backwardCompatibleResponses[field.name],

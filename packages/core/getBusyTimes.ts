@@ -1,4 +1,6 @@
 import type { Booking, EventType } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import * as Sentry from "@sentry/nextjs";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 import dayjs from "@calcom/dayjs";
@@ -8,7 +10,7 @@ import logger from "@calcom/lib/logger";
 import { getPiiFreeBooking } from "@calcom/lib/piiFreeData";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
-import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
+import type { SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
@@ -41,6 +43,8 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  bypassBusyCalendarTimes: boolean;
+  shouldServeCache?: boolean;
 }) {
   const {
     credentials,
@@ -56,6 +60,8 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    bypassBusyCalendarTimes = false,
+    shouldServeCache,
   } = params;
 
   logger.silly(
@@ -106,63 +112,83 @@ export async function getBusyTimes(params: {
   // Will keep support for retrieving a user's bookings if the caller does not already supply them.
   // This function is called from multiple places but we aren't refactoring all of them at this moment
   // to avoid potential side effects.
-  const bookings = params.currentBookings
-    ? params.currentBookings
-    : await prisma.booking.findMany({
-        where: {
-          OR: [
-            // User is primary host (individual events, or primary organizer)
-            {
-              ...sharedQuery,
-              userId,
-            },
-            // The current user has a different booking at this time he/she attends
-            {
-              ...sharedQuery,
-              attendees: {
-                some: {
-                  email: userEmail,
-                },
-              },
-            },
-            {
-              startTime: { lte: endTimeDate },
-              endTime: { gte: startTimeDate },
-              eventType: {
-                id: eventTypeId,
-                requiresConfirmation: true,
-                requiresConfirmationWillBlockSlot: true,
-              },
-              status: {
-                in: [BookingStatus.PENDING],
-              },
-            },
-          ],
-        },
+  let bookings = params.currentBookings;
+
+  if (!bookings) {
+    const getBookingsForBusyTimesSpan = Sentry.startInactiveSpan({ name: "getBookingsForBusyTimes" });
+    const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
+      id: true,
+      uid: true,
+      userId: true,
+      startTime: true,
+      endTime: true,
+      title: true,
+      eventType: {
         select: {
           id: true,
-          uid: true,
-          userId: true,
-          startTime: true,
-          endTime: true,
-          title: true,
-          eventType: {
-            select: {
-              id: true,
-              afterEventBuffer: true,
-              beforeEventBuffer: true,
-              seatsPerTimeSlot: true,
+          afterEventBuffer: true,
+          beforeEventBuffer: true,
+          seatsPerTimeSlot: true,
+        },
+      },
+      ...(seatedEvent && {
+        _count: {
+          select: {
+            seatsReferences: true,
+          },
+        },
+      }),
+    });
+
+    const currentBookingsAllUsersQueryOne = prisma.booking.findMany({
+      where: {
+        // User is primary host (individual events, or primary organizer)
+        ...sharedQuery,
+        userId,
+      },
+      select: bookingsSelect,
+    });
+
+    const currentBookingsAllUsersQueryTwo = prisma.booking.findMany({
+      where: {
+        ...sharedQuery,
+        attendees: {
+          some: {
+            email: userEmail,
+          },
+        },
+      },
+      select: bookingsSelect,
+    });
+
+    const unconfirmedBookingsBlockingSlots = eventTypeId
+      ? prisma.booking.findMany({
+          where: {
+            startTime: { lte: endTimeDate },
+            endTime: { gte: startTimeDate },
+            eventType: {
+              id: eventTypeId,
+              requiresConfirmation: true,
+              requiresConfirmationWillBlockSlot: true,
+            },
+            status: {
+              in: [BookingStatus.PENDING],
             },
           },
-          ...(seatedEvent && {
-            _count: {
-              select: {
-                seatsReferences: true,
-              },
-            },
-          }),
-        },
-      });
+          select: bookingsSelect,
+        })
+      : null;
+
+    const [resultOne, resultTwo, resultThree] = await Promise.all([
+      currentBookingsAllUsersQueryOne,
+      currentBookingsAllUsersQueryTwo,
+      unconfirmedBookingsBlockingSlots,
+    ]);
+
+    bookings = [...resultOne, ...resultTwo, ...(resultThree ?? [])];
+
+    getBookingsForBusyTimesSpan.end();
+  }
 
   const bookingSeatCountMap: { [x: string]: number } = {};
   const busyTimes = bookings.reduce(
@@ -212,14 +238,14 @@ export async function getBusyTimes(params: {
   );
   performance.mark("prismaBookingGetEnd");
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
-  if (credentials?.length > 0) {
+  if (credentials?.length > 0 && !bypassBusyCalendarTimes) {
     const startConnectedCalendarsGet = performance.now();
     const calendarBusyTimes = await getBusyCalendarTimes(
-      username,
       credentials,
       startTime,
       endTime,
-      selectedCalendars
+      selectedCalendars,
+      shouldServeCache
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
@@ -283,26 +309,14 @@ export async function getBusyTimes(params: {
   return busyTimes;
 }
 
-export async function getBusyTimesForLimitChecks(params: {
-  userIds: number[];
-  eventTypeId: number;
-  startDate: string;
-  endDate: string;
-  rescheduleUid?: string | null;
-  bookingLimits?: IntervalLimit | null;
-  durationLimits?: IntervalLimit | null;
-}) {
-  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+export function getStartEndDateforLimitCheck(
+  startDate: string,
+  endDate: string,
+  bookingLimits?: IntervalLimit | null,
+  durationLimits?: IntervalLimit | null
+) {
   const startTimeAsDayJs = stringToDayjs(startDate);
   const endTimeAsDayJs = stringToDayjs(endDate);
-
-  performance.mark("getBusyTimesForLimitChecksStart");
-
-  let busyTimes: EventBusyDetails[] = [];
-
-  if (!bookingLimits && !durationLimits) {
-    return busyTimes;
-  }
 
   let limitDateFrom = stringToDayjs(startDate);
   let limitDateTo = stringToDayjs(endDate);
@@ -316,6 +330,36 @@ export async function getBusyTimesForLimitChecks(params: {
       limitDateTo = dayjs.max(limitDateTo, endTimeAsDayJs.endOf(unit));
     }
   }
+
+  return { limitDateFrom, limitDateTo };
+}
+
+export async function getBusyTimesForLimitChecks(params: {
+  userIds: number[];
+  eventTypeId: number;
+  startDate: string;
+  endDate: string;
+  rescheduleUid?: string | null;
+  bookingLimits?: IntervalLimit | null;
+  durationLimits?: IntervalLimit | null;
+}) {
+  const { userIds, eventTypeId, startDate, endDate, rescheduleUid, bookingLimits, durationLimits } = params;
+
+  performance.mark("getBusyTimesForLimitChecksStart");
+
+  let busyTimes: EventBusyDetails[] = [];
+
+  if (!bookingLimits && !durationLimits) {
+    return busyTimes;
+  }
+
+  const { limitDateFrom, limitDateTo } = getStartEndDateforLimitCheck(
+    startDate,
+    endDate,
+    bookingLimits,
+    durationLimits
+  );
+
   logger.silly(
     `Fetch limit checks bookings in range ${limitDateFrom} to ${limitDateTo} for input ${JSON.stringify({
       eventTypeId,

@@ -33,10 +33,14 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
       id: true,
       name: true,
       type: true,
+      isLocked: true,
+      isWeightsEnabled: true,
       options: {
         select: {
           id: true,
           value: true,
+          contains: true,
+          isGroup: true,
           _count: {
             select: {
               assignedUsers: true,
@@ -61,9 +65,17 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
   const attrReturnValue = z.object({
     id: z.string(),
     name: z.string(),
+    isLocked: z.boolean().optional(),
+    isWeightsEnabled: z.boolean().optional(),
     type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
     options: z.array(
-      z.object({ value: z.string(), id: z.string().optional(), assignedUsers: z.number().optional() })
+      z.object({
+        value: z.string(),
+        id: z.string().optional(),
+        isGroup: z.boolean().optional(),
+        assignedUsers: z.number().optional(),
+        contains: z.array(z.string()).optional(),
+      })
     ),
   });
 

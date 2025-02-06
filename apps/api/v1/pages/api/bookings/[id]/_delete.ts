@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import { defaultResponder } from "@calcom/lib/server";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 
+import { bookingCancelSchema } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
@@ -65,11 +65,12 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  */
 async function handler(req: NextApiRequest) {
   const { id, allRemainingBookings, cancellationReason } = schemaQueryIdParseInt
-    .merge(schemaBookingCancelParams.pick({ allRemainingBookings: true, cancellationReason: true }))
+    .merge(bookingCancelSchema.pick({ allRemainingBookings: true, cancellationReason: true }))
     .parse({
       ...req.query,
       allRemainingBookings: req.query.allRemainingBookings === "true",
     });
+
   // Normalizing for universal handler
   req.body = { id, allRemainingBookings, cancellationReason };
   return await handleCancelBooking(req);

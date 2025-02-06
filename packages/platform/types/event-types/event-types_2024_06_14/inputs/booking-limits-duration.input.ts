@@ -1,12 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiPropertyOptional } from "@nestjs/swagger";
 import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
-import { IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
-export class BookingLimitsDuration_2024_06_14 {
+import type { Disabled_2024_06_14 } from "./disabled.input";
+
+export class BaseBookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per day (must be a multiple of 15)",
     example: 60,
   })
@@ -15,7 +17,7 @@ export class BookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per week (must be a multiple of 15)",
     example: 120,
   })
@@ -24,7 +26,7 @@ export class BookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per month (must be a multiple of 15)",
     example: 180,
   })
@@ -33,13 +35,18 @@ export class BookingLimitsDuration_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(15)
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "The duration of bookings per year (must be a multiple of 15)",
     example: 240,
   })
   year?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }
 
+export type BookingLimitsDuration_2024_06_14 = BaseBookingLimitsDuration_2024_06_14 | Disabled_2024_06_14;
 @ValidatorConstraint({ name: "BookingLimitsDurationValidator", async: false })
 class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
   private errorDetails: {
@@ -48,6 +55,9 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
   } = {};
   validate(value: BookingLimitsDuration_2024_06_14) {
     if (!value) return false;
+    if ("disabled" in value) {
+      return true;
+    }
 
     const { day, week, month, year } = value;
 
@@ -77,7 +87,10 @@ class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
 
   defaultMessage() {
     const { invalidLimit, comparedLimit } = this.errorDetails;
-    return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+    if (invalidLimit && comparedLimit) {
+      return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+    }
+    return `Invalid booking durations structure`;
   }
 }
 

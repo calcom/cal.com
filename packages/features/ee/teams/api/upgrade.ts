@@ -8,7 +8,6 @@ import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -42,14 +41,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
     if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
 
-    if (!metadata.data?.requestedSlug) {
-      throw new HttpError({
-        statusCode: 400,
-        message: "Can't publish team/org without `requestedSlug`",
-      });
-    }
-
-    const { requestedSlug, ...newMetadata } = metadata.data;
+    const { requestedSlug, ...newMetadata } = metadata.data || {};
     /** We save the metadata first to prevent duplicate payments */
     team = await prisma.team.update({
       where: { id },
@@ -73,9 +65,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(statusCode).json({ message });
       }
     }
-
-    // Sync Services: Close.com
-    closeComUpdateTeam(prevTeam, team);
   }
 
   if (!metadata) {
@@ -83,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
   }
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session) return { message: "Team upgraded successfully" };
 

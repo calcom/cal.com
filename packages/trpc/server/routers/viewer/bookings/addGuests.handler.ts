@@ -44,7 +44,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   if (!booking) throw new TRPCError({ code: "NOT_FOUND", message: "booking_not_found" });
 
   const isTeamAdminOrOwner =
-    (await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0)) &&
+    (await isTeamAdmin(user.id, booking.eventType?.teamId ?? 0)) ||
     (await isTeamOwner(user.id, booking.eventType?.teamId ?? 0));
 
   const isOrganizer = booking.userId === user.id;

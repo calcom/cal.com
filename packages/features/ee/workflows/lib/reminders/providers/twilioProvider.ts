@@ -9,7 +9,7 @@ import { SMSLockState } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
 
-const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
+const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE || process.env.IS_E2E;
 
 function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
@@ -38,6 +38,8 @@ export const sendSMS = async (
   teamId?: number | null,
   whatsapp = false
 ) => {
+  log.silly("sendSMS", JSON.stringify({ phoneNumber, body, sender, userId, teamId }));
+
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {

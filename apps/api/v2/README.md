@@ -44,8 +44,8 @@ Copy `.env.example` to `.env` and fill values.
 
 ## Add license Key to deployments table in DB
 
-id, logo  theme licenseKey                              agreedLicenseAt
-1,  null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
+id, logo theme licenseKey agreedLicenseAt
+1, null, null, 'c4234812-12ab-42s6-a1e3-55bedd4a5bb7', '2023-05-15 21:39:47.611'
 
 your CALCOM_LICENSE_KEY env var need to contain the same value
 

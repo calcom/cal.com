@@ -1,8 +1,6 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
-const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 export class AppRepository {
   static async seedApp(dirName: string, keys?: any) {
     const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
@@ -20,5 +18,9 @@ export class AppRepository {
         enabled: true,
       },
     });
+  }
+
+  static async findAppStore() {
+    return await prisma.app.findMany({ select: { slug: true } });
   }
 }

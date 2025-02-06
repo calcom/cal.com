@@ -1,112 +1,126 @@
 "use client";
 
+import type { ManipulateType as DayjsManipulateType } from "dayjs";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
+import { showToast, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 
-const TimezoneChangeDialogContent = ({
-  onAction,
-  browserTimezone,
-}: {
-  browserTimezone: string;
-  onAction: (action?: "update" | "cancel") => void;
-}) => {
-  const { t } = useLocale();
+function hideDialogFor(hideFor: [number, DayjsManipulateType], toastContent: string) {
+  document.cookie = `calcom-timezone-dialog=1;max-age=${
+    dayjs().add(hideFor[0], hideFor[1]).unix() - dayjs().unix()
+  }`;
+  if (toastContent) showToast(toastContent, "success");
+}
+
+const TimezoneChangeDialogContent = () => {
+  const { t, isLocaleReady } = useLocale();
+  if (!isLocaleReady) return null;
+
   const utils = trpc.useUtils();
-  const formattedCurrentTz = browserTimezone.replace("_", " ");
 
-  // save cookie to not show again
-  function onCancel(hideFor: [number, dayjs.ManipulateType], toast: boolean) {
-    onAction("cancel");
-    document.cookie = `calcom-timezone-dialog=1;max-age=${
-      dayjs().add(hideFor[0], hideFor[1]).unix() - dayjs().unix()
-    }`;
-    toast && showToast(t("we_wont_show_again"), "success");
-  }
+  const formattedCurrentTz = CURRENT_TIMEZONE.replace("_", " ");
 
-  const onSuccessMutation = async () => {
+  const onMutationSuccess = async () => {
     showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
     await utils.viewer.me.invalidate();
   };
 
-  const onErrorMutation = () => {
+  const onMutationError = () => {
     showToast(t("couldnt_update_timezone"), "error");
   };
 
   // update timezone in db
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: onSuccessMutation,
-    onError: onErrorMutation,
+    onSuccess: onMutationSuccess,
+    onError: onMutationError,
   });
 
-  function updateTimezone() {
-    onAction("update");
+  const updateTimezone = () => {
     mutation.mutate({
-      timeZone: browserTimezone,
+      timeZone: CURRENT_TIMEZONE,
     });
-  }
+  };
 
   return (
-    <DialogContent
-      title={t("update_timezone_question")}
-      description={t("update_timezone_description", { formattedCurrentTz })}
-      type="creation"
-      onInteractOutside={() => onCancel([1, "day"], false) /* 1 day expire */}>
+    <>
+      <DialogHeader
+        title={t("update_timezone_question")}
+        subtitle={t("update_timezone_description", { formattedCurrentTz })}
+      />
       {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
         <Checkbox description="Always update timezone" />
         */}
       <div className="mb-8" />
       <DialogFooter showDivider>
-        <DialogClose onClick={() => onCancel([3, "months"], true)} color="secondary">
+        <DialogClose onClick={() => hideDialogFor([3, "months"], t("we_wont_show_again"))} color="secondary">
           {t("dont_update")}
         </DialogClose>
         <DialogClose onClick={() => updateTimezone()} color="primary">
           {t("update_timezone")}
         </DialogClose>
       </DialogFooter>
-    </DialogContent>
+    </>
   );
 };
 
 export function useOpenTimezoneDialog() {
   const { data: user } = trpc.viewer.me.useQuery();
   const [showDialog, setShowDialog] = useState(false);
-  const browserTimezone = dayjs.tz.guess() || "Europe/London";
-  const { isLocaleReady } = useLocale();
   const { data: userSession, status } = useSession();
 
   useEffect(() => {
-    if (
-      !isLocaleReady ||
-      !user?.timeZone ||
-      status !== "authenticated" ||
-      userSession?.user?.impersonatedBy
-    ) {
+    if (!user?.timeZone || status !== "authenticated" || userSession?.user?.impersonatedBy) {
       return;
     }
-    const cookie = document.cookie
-      .split(";")
-      .find((cookie) => cookie.trim().startsWith("calcom-timezone-dialog"));
+
     if (
-      !cookie &&
-      dayjs.tz(undefined, browserTimezone).utcOffset() !== dayjs.tz(undefined, user.timeZone).utcOffset()
+      dayjs.tz(undefined, CURRENT_TIMEZONE).utcOffset() !== dayjs.tz(undefined, user.timeZone).utcOffset()
     ) {
       setShowDialog(true);
     }
-  }, [user, isLocaleReady, status, browserTimezone, userSession?.user?.impersonatedBy]);
+  }, [user?.timeZone, status, userSession?.user?.impersonatedBy]);
 
-  return { open: showDialog, setOpen: setShowDialog, browserTimezone };
+  return { open: showDialog, setOpen: setShowDialog };
+}
+
+function TimezoneChangeDialogContainer() {
+  const { open, setOpen } = useOpenTimezoneDialog();
+  const { t } = useLocale();
+
+  const handleInteractOutside = () => {
+    hideDialogFor([1, "day"], t("we_wont_show_again"));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {/* Dismiss dialog for a day on outside interaction */}
+      <DialogContent type="creation" onInteractOutside={handleInteractOutside}>
+        <TimezoneChangeDialogContent />
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default function TimezoneChangeDialog() {
-  const { open, setOpen, browserTimezone } = useOpenTimezoneDialog();
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <TimezoneChangeDialogContent browserTimezone={browserTimezone} onAction={() => setOpen(false)} />
-    </Dialog>
-  );
+  const [renderDialog, setRenderDialog] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && document) {
+      const cookie = document.cookie
+        .split(";")
+        .find((cookie) => cookie.trim().startsWith("calcom-timezone-dialog"));
+      if (!cookie) {
+        setRenderDialog(true);
+      }
+    }
+  }, []);
+  // bail if the cookie exists or window/document is not available
+  if (!renderDialog) {
+    return null;
+  }
+  return <TimezoneChangeDialogContainer />;
 }

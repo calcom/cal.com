@@ -1,11 +1,12 @@
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsTeamsRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async findOrgTeam(organizationId: number, teamId: number) {
     return this.dbRead.prisma.team.findUnique({
@@ -26,7 +27,7 @@ export class OrganizationsTeamsRepository {
   }
 
   async deleteOrgTeam(organizationId: number, teamId: number) {
-    return this.dbRead.prisma.team.delete({
+    return this.dbWrite.prisma.team.delete({
       where: {
         id: teamId,
         isOrganization: false,
@@ -36,13 +37,13 @@ export class OrganizationsTeamsRepository {
   }
 
   async createOrgTeam(organizationId: number, data: CreateOrgTeamDto) {
-    return this.dbRead.prisma.team.create({
+    return this.dbWrite.prisma.team.create({
       data: { ...data, parentId: organizationId },
     });
   }
 
   async createPlatformOrgTeam(organizationId: number, oAuthClientId: string, data: CreateOrgTeamDto) {
-    return this.dbRead.prisma.team.create({
+    return this.dbWrite.prisma.team.create({
       data: {
         ...data,
         parentId: organizationId,
@@ -61,7 +62,7 @@ export class OrganizationsTeamsRepository {
   }
 
   async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
-    return this.dbRead.prisma.team.update({
+    return this.dbWrite.prisma.team.update({
       data: { ...data },
       where: { id: teamId, parentId: organizationId, isOrganization: false },
     });
@@ -88,26 +89,10 @@ export class OrganizationsTeamsRepository {
         },
       },
       include: {
-        members: { select: { accepted: true, userId: true } },
+        members: { select: { accepted: true, userId: true, role: true } },
       },
       skip,
       take,
     });
-  }
-
-  async getTeamMembersIds(teamId: number) {
-    const team = await this.dbRead.prisma.team.findUnique({
-      where: {
-        id: teamId,
-      },
-      include: {
-        members: true,
-      },
-    });
-    if (!team) {
-      return [];
-    }
-
-    return team.members.map((member) => member.userId);
   }
 }

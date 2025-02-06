@@ -6,10 +6,11 @@ import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
 import { classNames } from "@calcom/lib";
-import { IS_TEAM_BILLING_ENABLED, MAX_NB_INVITES } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED_CLIENT, MAX_NB_INVITES } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
 import { isEmail } from "@calcom/trpc/server/routers/viewer/teams/util";
@@ -206,7 +207,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         type="creation"
         title={t("invite_team_member")}
         description={
-          IS_TEAM_BILLING_ENABLED ? (
+          IS_TEAM_BILLING_ENABLED_CLIENT && !currentOrg ? (
             <span className="text-subtle text-sm leading-tight">
               <Trans i18nKey="invite_new_member_description">
                 Note: This will <span className="text-emphasis font-medium">cost an extra seat ($15/m)</span>{" "}
@@ -215,12 +216,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </span>
           ) : null
         }>
-        <div className="max-h-9">
+        <div className="sm:max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
           </Label>
           <ToggleGroup
             isFullWidth={true}
+            className="flex-col sm:flex-row"
             onValueChange={(val) => {
               setModalInputMode(val as ModalMode);
               newMemberFormMethods.clearErrors();
@@ -469,7 +471,8 @@ export const MemberInvitationModalWithoutMembers = ({
   teamId,
   token,
   onSettingsOpen,
-}: {
+  ...props
+}: Partial<MemberInvitationModalProps> & {
   hideInvitationModal: () => void;
   showMemberInvitationModal: boolean;
   teamId: number;
@@ -495,6 +498,7 @@ export const MemberInvitationModalWithoutMembers = ({
 
   return (
     <MemberInvitationModal
+      {...props}
       isPending={inviteMemberMutation.isPending || isOrgListLoading}
       isOpen={showMemberInvitationModal}
       orgMembers={orgMembersNotInThisTeam}
@@ -509,11 +513,12 @@ export const MemberInvitationModalWithoutMembers = ({
             language: i18n.language,
             role: values.role,
             usernameOrEmail: values.emailOrUsername,
+            creationSource: CreationSource.WEBAPP,
           },
           {
             onSuccess: async (data) => {
               await utils.viewer.teams.get.invalidate();
-              await utils.viewer.teams.lazyLoadMembers.invalidate();
+              await utils.viewer.teams.listMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
               hideInvitationModal();
 

@@ -1,6 +1,8 @@
 import { fireEvent, waitFor, screen, within } from "@testing-library/react";
 import { vi } from "vitest";
 
+import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
+
 import type { FormBuilder } from "./FormBuilder";
 
 export interface FieldProps {
@@ -19,6 +21,22 @@ export const mockProps: FormBuilderProps = {
   disabled: false,
   LockedIcon: false,
   dataStore: { options: {} },
+};
+export const getLocationBookingField = () => {
+  const bookingFields = getBookingFieldsWithSystemFields({
+    bookingFields: [],
+    disableGuests: false,
+    disableBookingTitle: false,
+    customInputs: [],
+    metadata: {},
+    workflows: [],
+  });
+
+  const locationBookingField = bookingFields.find((field) => field.name === "location");
+  if (!locationBookingField) {
+    throw new Error("location booking field not found");
+  }
+  return locationBookingField;
 };
 
 export const setMockMatchMedia = () => {
@@ -127,8 +145,18 @@ export const pageObject = {
     }) => {
       fireEvent.change(dialog.getAllByRole("textbox")[0], { target: { value: identifier } });
     },
-    fillInFieldLabel: ({ dialog, label }: { dialog: TestingLibraryElement; label: string }) => {
-      fireEvent.change(dialog.getAllByRole("textbox")[1], { target: { value: label } });
+    fillInFieldLabel: ({
+      dialog,
+      label,
+      fieldType,
+    }: {
+      dialog: TestingLibraryElement;
+      label: string;
+      fieldType: string;
+    }) => {
+      if (fieldType !== "boolean") {
+        fireEvent.change(dialog.getAllByRole("textbox")[1], { target: { value: label } });
+      }
     },
     close: ({ dialog }: { dialog: TestingLibraryElement }) => {
       fireEvent.click(dialog.getByTestId("dialog-rejection"));
@@ -165,7 +193,7 @@ export const verifier = {
     const dialog = pageObject.openAddFieldDialog();
     pageObject.dialog.selectFieldType({ dialog, fieldType: props.fieldType });
     pageObject.dialog.fillInFieldIdentifier({ dialog, identifier: props.identifier });
-    pageObject.dialog.fillInFieldLabel({ dialog, label: props.label });
+    pageObject.dialog.fillInFieldLabel({ dialog, label: props.label, fieldType: props.fieldType });
     pageObject.dialog.saveField({ dialog: getEditDialogForm() });
 
     await waitFor(() => {
@@ -197,8 +225,7 @@ export const verifier = {
     });
   },
   verifyThatFieldCanBeMarkedOptional: async ({ identifier }: { identifier: string }) => {
-    const field = getFieldInTheList({ identifier });
-    expect(field.getByTestId("required")).toBeInTheDocument();
+    expectScenario.toHaveRequiredBadge({ identifier });
     const editDialogForm = pageObject.openEditFieldDialog({ identifier });
     pageObject.dialog.makeFieldOptional({ dialog: editDialogForm });
     pageObject.dialog.saveField({ dialog: editDialogForm });
@@ -222,13 +249,27 @@ export const expectScenario = {
     expect(identifierInput.disabled).toBe(true);
   },
   toHaveRequirablityToggleDisabled: ({ dialog }: { dialog: TestingLibraryElement }) => {
-    const no = within(dialog.getByTestId("field-required")).getByText("No");
-    const yes = within(dialog.getByTestId("field-required")).getByText("Yes");
+    const no = within(dialog.getByTestId("field-required")).getByText("No") as HTMLButtonElement;
+    const yes = within(dialog.getByTestId("field-required")).getByText("Yes") as HTMLButtonElement;
     expect(no.disabled).toBe(true);
     expect(yes.disabled).toBe(true);
   },
   toHaveLabelChangeAllowed: ({ dialog }: { dialog: TestingLibraryElement }) => {
     const labelInput = dialog.getByLabelText("label");
     expect(labelInput.disabled).toBe(false);
+  },
+  toNotHaveDeleteButton: ({ identifier }: { identifier: string }) => {
+    expect(pageObject.queryDeleteButton({ identifier })).toBeNull();
+  },
+  toNotHaveToggleButton: ({ identifier }: { identifier: string }) => {
+    expect(pageObject.queryToggleButton({ identifier })).toBeNull();
+  },
+  toHaveSourceBadge: ({ identifier, sourceLabel }: { identifier: string; sourceLabel: string }) => {
+    const field = getFieldInTheList({ identifier });
+    expect(field.getByText(sourceLabel)).not.toBeNull();
+  },
+  toHaveRequiredBadge: ({ identifier }: { identifier: string }) => {
+    const field = getFieldInTheList({ identifier });
+    expect(field.getByText("required")).not.toBeNull();
   },
 };

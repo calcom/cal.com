@@ -27,6 +27,7 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import { FieldTypes } from "../../lib/FieldTypes";
 
 export { getServerSideProps };
 type SelectOption = { label: string; id: string | null };
@@ -49,37 +50,6 @@ const appendArray = <T,>({
 };
 
 const PASTE_OPTIONS_SEPARATOR_REGEX = /\n+/;
-
-export const FieldTypes = [
-  {
-    label: "Short Text",
-    value: "text",
-  },
-  {
-    label: "Number",
-    value: "number",
-  },
-  {
-    label: "Long Text",
-    value: "textarea",
-  },
-  {
-    label: "Single Selection",
-    value: "select",
-  },
-  {
-    label: "Multiple Selection",
-    value: "multiselect",
-  },
-  {
-    label: "Phone",
-    value: "phone",
-  },
-  {
-    label: "Email",
-    value: "email",
-  },
-];
 
 function Field({
   hookForm,
@@ -121,7 +91,7 @@ function Field({
     }) || [];
 
   const setOptions = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions, { shouldDirty: true });
   };
 
   const handleRemoveOptions = (index: number) => {
@@ -236,6 +206,9 @@ function Field({
               defaultValue={label || routerField?.label || ""}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
+              onChange={(e) => {
+                hookForm.setValue(`${hookFieldNamespace}.label`, e.target.value, { shouldDirty: true });
+              }}
             />
           </div>
           <div className="mb-6 w-full">
@@ -250,7 +223,7 @@ function Field({
               // The identifier field will have the same value as the label field until it is changed
               value={identifier || routerField?.identifier || label || routerField?.label || ""}
               onChange={(e) => {
-                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value);
+                hookForm.setValue(`${hookFieldNamespace}.identifier`, e.target.value, { shouldDirty: true });
               }}
             />
           </div>
@@ -298,7 +271,8 @@ function Field({
               <ul ref={animationRef}>
                 {watchedOptions.map((option, index) => (
                   <li
-                    key={`select-option-${option.id}`}
+                    // We can't use option.id here as it is undefined and would make keys non-unique causing duplicate items
+                    key={`select-option-${index}`}
                     className="group mt-2 flex items-center gap-2"
                     onPaste={(event: ClipboardEvent) =>
                       handlePasteInOptionAtIndex({ event, optionIndex: index })
@@ -494,12 +468,12 @@ const FormEdit = ({
 };
 
 export default function FormEditPage({
-  form,
   appUrl,
+  ...props
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   return (
     <SingleForm
-      form={form}
+      {...props}
       appUrl={appUrl}
       Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
     />

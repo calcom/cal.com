@@ -1,7 +1,7 @@
 import type { FieldValues } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
-import { Icon } from "../../..";
+import { Icon } from "../../icon";
 import { InputError } from "./InputError";
 
 type hintsOrErrorsProps = {

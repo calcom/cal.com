@@ -2,12 +2,12 @@
 import { cloneDeep } from "lodash";
 
 import type EventManager from "@calcom/core/EventManager";
-import { sendRescheduledEmails } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvent } from "../../../handleNewBooking";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { Booking } from "../../../handleNewBooking/types";
@@ -48,7 +48,7 @@ const moveSeatedBookingToNewTimeSlot = async (
     },
   });
 
-  evt = addVideoCallDataToEvent(newBooking.references, evt);
+  evt = { ...addVideoCallDataToEvent(newBooking.references, evt), bookerUrl: evt.bookerUrl };
 
   const copyEvent = cloneDeep(evt);
 
@@ -90,7 +90,7 @@ const moveSeatedBookingToNewTimeSlot = async (
   if (noEmail !== true && isConfirmedByDefault) {
     const copyEvent = cloneDeep(evt);
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-    await sendRescheduledEmails(
+    await sendRescheduledEmailsAndSMS(
       {
         ...copyEvent,
         additionalNotes, // Resets back to the additionalNote input and not the override value

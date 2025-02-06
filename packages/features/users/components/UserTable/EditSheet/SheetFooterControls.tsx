@@ -13,13 +13,14 @@ function EditModeFooter() {
       <Button
         color="secondary"
         type="button"
+        className="justify-center"
         onClick={() => {
           setEditMode(false);
         }}>
         {t("cancel")}
       </Button>
 
-      <Button type="submit" className="w-fit" form="edit-user-form" loading={isPending}>
+      <Button type="submit" loading={isPending} className="justify-center">
         {t("update")}
       </Button>
     </>
@@ -39,6 +40,7 @@ function MoreInfoFooter() {
       </SheetClose>
       <Button
         type="button"
+        className="justify-center"
         onClick={() => {
           setEditMode(true);
         }}

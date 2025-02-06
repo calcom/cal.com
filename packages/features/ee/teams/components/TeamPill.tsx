@@ -14,7 +14,7 @@ export default function TeamPill(props: Props) {
   const { color, text, ...rest } = props;
   return (
     <div
-      className={classNames("text-medium self-center rounded-md px-1 py-0.5 text-xs ltr:mr-1 rtl:ml-1", {
+      className={classNames("text-medium self-center rounded-md px-1.5 py-1 text-xs ltr:mr-1 rtl:ml-1", {
         " bg-subtle text-emphasis": !color,
         " bg-info text-info": color === "blue",
         " bg-error text-error ": color === "red",

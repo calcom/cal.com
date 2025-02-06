@@ -10,6 +10,8 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
+import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
 const calFont = localFont({
@@ -20,15 +22,7 @@ const calFont = localFont({
   weight: "600",
 });
 
-export const generateMetadata = () =>
-  prepareRootMetadata({
-    twitterCreator: "@calcom",
-    twitterSite: "@calcom",
-    robots: {
-      index: false,
-      follow: false,
-    },
-  });
+export const generateMetadata = () => prepareRootMetadata();
 
 const getInitialProps = async (url: string) => {
   const { pathname, searchParams } = new URL(url);
@@ -67,24 +61,65 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       dir={direction}
       style={embedColorScheme ? { colorScheme: embedColorScheme as string } : undefined}
+      suppressHydrationWarning
       data-nextjs-router="app">
       <head nonce={nonce}>
         {!!process.env.NEXT_PUBLIC_HEAD_SCRIPTS && (
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_HEAD_SCRIPTS,
             }}
           />
         )}
+        <script
+          nonce={nonce}
+          id="headScript"
+          // eslint-disable-next-line react/no-danger
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.calNewLocale = "${locale}";
+              (function applyTheme() {
+                try {
+                  const appTheme = localStorage.getItem('app-theme');
+                  if (!appTheme) return;
+
+                  let bookingTheme, username;
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key.startsWith('booking-theme:')) {
+                      bookingTheme = localStorage.getItem(key);
+                      username = key.split("booking-theme:")[1];
+                      break;
+                    }
+                  }
+
+                  const onReady = () => {
+                    const isBookingPage = username && window.location.pathname.slice(1).startsWith(username);
+
+                    if (document.body) {
+                      document.body.classList.add(isBookingPage ? bookingTheme : appTheme);
+                    } else {
+                      requestAnimationFrame(onReady);
+                    }
+                  };
+
+                  requestAnimationFrame(onReady);
+                } catch (e) {
+                  console.error('Error applying theme:', e);
+                }
+              })();
+            `,
+          }}
+        />
         <style>{`
           :root {
             --font-inter: ${interFont.style.fontFamily.replace(/\'/g, "")};
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
         className="dark:bg-darkgray-50 bg-subtle antialiased"
@@ -100,16 +135,31 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
             id="injected-head-scripts"
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: process.env.NEXT_PUBLIC_BODY_SCRIPTS,
             }}
           />
         )}
-        {children}
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

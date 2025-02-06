@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsEnum } from "class-validator";
+import { IsInt, IsEnum, IsOptional, IsBoolean } from "class-validator";
 
 import { FrequencyInput } from "@calcom/platform-enums";
 
@@ -21,4 +21,8 @@ export class Recurrence_2024_06_14 {
   @IsEnum(FrequencyInput)
   @ApiProperty({ enum: FrequencyInput })
   frequency!: FrequencyInput;
+
+  @IsOptional()
+  @IsBoolean()
+  disabled?: boolean = false;
 }

@@ -1,3 +1,5 @@
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+
 import { renderEmail } from "../";
 import generateIcsFile, { GenerateIcsRole } from "../lib/generateIcsFile";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
@@ -7,8 +9,6 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
     return {
       icalEvent: generateIcsFile({
         calEvent: this.calEvent,
-        title: this.t("event_request_cancelled"),
-        subtitle: this.t("emailed_you_and_any_other_attendees"),
         role: GenerateIcsRole.ATTENDEE,
         status: "CANCELLED",
       }),
@@ -19,11 +19,15 @@ export default class AttendeeCancelledEmail extends AttendeeScheduledEmail {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: await renderEmail("AttendeeCancelledEmail", {
-        calEvent: this.calEvent,
-        attendee: this.attendee,
-      }),
+      html: await this.getHtml(this.calEvent, this.attendee),
       text: this.getTextBody("event_request_cancelled", "emailed_you_and_any_other_attendees"),
     };
+  }
+
+  async getHtml(calEvent: CalendarEvent, attendee: Person) {
+    return await renderEmail("AttendeeCancelledEmail", {
+      calEvent,
+      attendee,
+    });
   }
 }

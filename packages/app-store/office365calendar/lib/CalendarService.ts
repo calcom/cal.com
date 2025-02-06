@@ -1,4 +1,4 @@
-import type { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
+import type { Calendar as OfficeCalendar, User, Event } from "@microsoft/microsoft-graph-types-beta";
 import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
@@ -174,10 +174,13 @@ export default class Office365CalendarService implements Calendar {
     const calendarSelectParams = "$select=showAs,start,end";
 
     try {
-      const selectedCalendarIds = selectedCalendars
-        .filter((e) => e.integration === this.integrationName)
-        .map((e) => e.externalId)
-        .filter(Boolean);
+      const selectedCalendarIds = selectedCalendars.reduce((calendarIds, calendar) => {
+        if (calendar.integration === this.integrationName && calendar.externalId)
+          calendarIds.push(calendar.externalId);
+
+        return calendarIds;
+      }, [] as string[]);
+
       if (selectedCalendarIds.length === 0 && selectedCalendars.length > 0) {
         // Only calendars of other integrations selected
         return Promise.resolve([]);
@@ -263,7 +266,7 @@ export default class Office365CalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarEvent) => {
-    return {
+    const office365Event: Event = {
       subject: event.title,
       body: {
         contentType: "text",
@@ -277,6 +280,7 @@ export default class Office365CalendarService implements Calendar {
         dateTime: dayjs(event.endTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
         timeZone: event.organizer.timeZone,
       },
+      hideAttendees: !event.seatsPerTimeSlot ? false : !event.seatsShowAttendees,
       organizer: {
         emailAddress: {
           address: event.destinationCalendar
@@ -292,7 +296,7 @@ export default class Office365CalendarService implements Calendar {
             address: attendee.email,
             name: attendee.name,
           },
-          type: "required",
+          type: "required" as const,
         })),
         ...(event.team?.members
           ? event.team?.members
@@ -306,13 +310,17 @@ export default class Office365CalendarService implements Calendar {
                     address: destinationCalendar?.externalId ?? member.email,
                     name: member.name,
                   },
-                  type: "required",
+                  type: "required" as const,
                 };
               })
           : []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
+    if (event.hideCalendarEventDetails) {
+      office365Event.sensitivity = "private";
+    }
+    return office365Event;
   };
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
@@ -373,6 +381,7 @@ export default class Office365CalendarService implements Calendar {
     maxRetries: number,
     retryCount = 0
   ): Promise<IBatchResponse> => {
+    const getRandomness = () => Number(Math.random().toFixed(3));
     let retryAfterTimeout = 0;
     if (retryCount >= maxRetries) {
       return { responses: settledPromises };
@@ -394,7 +403,7 @@ export default class Office365CalendarService implements Calendar {
     }
 
     // Await certain time from retry-after header
-    await new Promise((r) => setTimeout(r, retryAfterTimeout));
+    await new Promise((r) => setTimeout(r, retryAfterTimeout + getRandomness()));
 
     const newResponses = await this.apiGraphBatchCall(failedRequest);
     let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponses);
