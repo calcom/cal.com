@@ -208,48 +208,15 @@ export interface IGetAvailableSlots {
   troubleshooter?: any;
 }
 
-/**
- * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
- */
-export function getUsersWithCredentialsConsideringContactOwner({
-  contactOwnerEmail,
+export function getUsersWithCredentials({
   hosts,
 }: {
-  contactOwnerEmail: string | null | undefined;
   hosts: {
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
 }) {
-  const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
-  /**
-   * It could still have contact owner, if it was one of the assigned hosts of the event.
-   * In case of routedTeamMemberIds, hosts will only have the Routed Team Members and in that case, contact owner would be here only if it matches
-   */
-  const allHosts = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-
-  const contactOwnerExists = contactOwnerEmail && contactOwnerHost;
-
-  if (!contactOwnerExists) {
-    return allHosts;
-  }
-
-  if (contactOwnerHost?.isFixed) {
-    // If contact owner is a fixed host, we return all hosts which also includes contact owner
-    return allHosts;
-  }
-
-  const contactOwnerAndFixedHosts = hosts.reduce(
-    (usersArray: (GetAvailabilityUser & { isFixed?: boolean })[], host) => {
-      if (host.isFixed || host.user.email === contactOwnerEmail)
-        usersArray.push({ ...host.user, isFixed: host.isFixed });
-
-      return usersArray;
-    },
-    []
-  );
-
-  return contactOwnerAndFixedHosts;
+  return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 }
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
@@ -373,7 +340,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       input,
       eventType,
       hosts: allHosts,
-      contactOwnerEmail,
       loggerWithEventDetails,
       // adjust start time so we can check for available slots in the first two weeks
       startTime: startTime.isBefore(twoWeeksFromNow)
@@ -398,7 +364,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           input,
           eventType,
           hosts: [...qualifiedRRHosts, ...fixedHosts],
-          contactOwnerEmail,
           loggerWithEventDetails,
           startTime: dayjs(),
           endTime: twoWeeksFromNow,
@@ -418,7 +383,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           input,
           eventType,
           hosts: [...allFallbackRRHosts, ...fixedHosts],
-          contactOwnerEmail,
           loggerWithEventDetails,
           startTime,
           endTime,
@@ -733,7 +697,7 @@ async function getExistingBookings(
       in: "ACCEPTED"[];
     };
   },
-  usersWithCredentials: ReturnType<typeof getUsersWithCredentialsConsideringContactOwner>,
+  usersWithCredentials: ReturnType<typeof getUsersWithCredentials>,
   allUserIds: number[]
 ) {
   const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
@@ -904,7 +868,6 @@ const calculateHostsAndAvailabilities = async ({
   input,
   eventType,
   hosts,
-  contactOwnerEmail,
   loggerWithEventDetails,
   startTime,
   endTime,
@@ -917,15 +880,13 @@ const calculateHostsAndAvailabilities = async ({
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
-  contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
 }) => {
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
-    contactOwnerEmail,
+  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentials, {
     hosts,
   });
 
