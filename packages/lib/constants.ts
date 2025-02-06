@@ -201,3 +201,5 @@ export const GOOGLE_CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
 ];
 export const DIRECTORY_IDS_TO_LOG = process.env.DIRECTORY_IDS_TO_LOG?.split(",") || [];
+export const HEADLESS_ROUTER_NO_REQ_FIELDS_ORG_IDS: number[] =
+  process.env.HEADLESS_ROUTER_NO_REQ_FIELDS_ORG_IDS?.split(",")?.map(Number) || [];
