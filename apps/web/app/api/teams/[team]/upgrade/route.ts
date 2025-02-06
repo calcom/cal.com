@@ -31,12 +31,12 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
       expand: ["subscription"],
     });
     if (!checkoutSession) {
-      return NextResponse.json({ message: "Checkout session not found" }, { status: 404 });
+      throw new HttpError({ statusCode: 404, message: "Checkout session not found" });
     }
 
     const subscription = checkoutSession.subscription as Stripe.Subscription;
     if (checkoutSession.payment_status !== "paid") {
-      return NextResponse.json({ message: "Payment required" }, { status: 402 });
+      throw new HttpError({ statusCode: 402, message: "Payment required" });
     }
 
     let team = await prisma.team.findFirst({
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
 
       metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
       if (!metadata.success) {
-        return NextResponse.json({ message: "Invalid team metadata" }, { status: 400 });
+        throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data || {};
@@ -80,7 +80,7 @@ export async function GET(req: NextRequest, { params }: { params: { team: string
     if (!metadata) {
       metadata = teamMetadataSchema.safeParse(team.metadata);
       if (!metadata.success) {
-        return NextResponse.json({ message: "Invalid team metadata" }, { status: 400 });
+        throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
       }
     }
 
