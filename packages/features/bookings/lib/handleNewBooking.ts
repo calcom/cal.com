@@ -521,7 +521,7 @@ async function handler(
       logger: loggerWithEventDetails,
       routedTeamMemberIds: routedTeamMemberIds ?? null,
       contactOwnerEmail,
-      isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
+      rescheduleUid: reqBody.rescheduleUid || null,
       routingFormResponse,
     }
   );
@@ -703,30 +703,18 @@ async function handler(
         if (freeUsers.length === 0) break;
         assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too wih an assertion; the error will never be thrown.
         // freeUsers is ensured
-        const originalRescheduledBookingUserId =
-          originalRescheduledBooking && originalRescheduledBooking.userId;
-
-        const shouldUseSameRRHost =
-          !!originalRescheduledBookingUserId &&
-          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-          eventType.rescheduleWithSameRoundRobinHost &&
-          // If it is rerouting, we should not force reschedule with same host.
-          // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-          !isReroutingCase;
 
         const userIdsSet = new Set(users.map((user) => user.id));
 
-        const newLuckyUser = shouldUseSameRRHost
-          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
-          : await getLuckyUser({
-              // find a lucky user that is not already in the luckyUsers array
-              availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter(
-                (host) => !host.isFixed && userIdsSet.has(host.user.id)
-              ), // users part of virtual queue
-              eventType,
-              routingFormResponse,
-            });
+        const newLuckyUser = await getLuckyUser({
+          // find a lucky user that is not already in the luckyUsers array
+          availableUsers: freeUsers,
+          allRRHosts: eventTypeWithUsers.hosts.filter(
+            (host) => !host.isFixed && userIdsSet.has(host.user.id)
+          ), // users part of virtual queue
+          eventType,
+          routingFormResponse,
+        });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }

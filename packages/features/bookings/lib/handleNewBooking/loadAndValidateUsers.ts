@@ -35,6 +35,7 @@ type EventType = Pick<
   | "assignRRMembersUsingSegment"
   | "rrSegmentQueryValue"
   | "isRRWeightsEnabled"
+  | "rescheduleWithSameRoundRobinHost"
 >;
 
 type InputProps = {
@@ -45,7 +46,7 @@ type InputProps = {
   logger: Logger<unknown>;
   routedTeamMemberIds: number[] | null;
   contactOwnerEmail: string | null;
-  isSameHostReschedule: boolean;
+  rescheduleUid: string | null;
   routingFormResponse: RoutingFormResponse | null;
 };
 
@@ -57,7 +58,7 @@ export async function loadAndValidateUsers({
   logger,
   routedTeamMemberIds,
   contactOwnerEmail,
-  isSameHostReschedule,
+  rescheduleUid,
   routingFormResponse,
 }: InputProps): Promise<{ qualifiedRRUsers: Users; additionalFallbackRRUsers: Users; fixedUsers: Users }> {
   let users: Users = await loadUsers({
@@ -109,12 +110,9 @@ export async function loadAndValidateUsers({
         : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
   const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await findQualifiedHosts({
-    eventType: {
-      ...eventType,
-      rescheduleWithSameRoundRobinHost: isSameHostReschedule,
-    },
+    eventType,
     routedTeamMemberIds: routedTeamMemberIds || [],
-    rescheduleUid: null,
+    rescheduleUid,
     contactOwnerEmail,
     routingFormResponse,
   });
