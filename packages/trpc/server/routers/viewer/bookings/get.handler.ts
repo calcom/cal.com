@@ -188,7 +188,7 @@ export async function getBookings({
   if (filters?.afterStartDate) {
     bookingWhereInputFilters.afterStartDate = {
       startTime: {
-        gte: dayjs(filters.afterStartDate).utc().endOf("day").toDate(),
+        gte: dayjs.utc(filters.afterStartDate).toDate(),
       },
     };
   }
@@ -196,7 +196,7 @@ export async function getBookings({
   if (filters?.beforeEndDate) {
     bookingWhereInputFilters.beforeEndDate = {
       endTime: {
-        lte: dayjs(filters.beforeEndDate).utc().startOf("day").toDate(),
+        lte: dayjs.utc(filters.beforeEndDate).toDate(),
       },
     };
   }
@@ -236,6 +236,7 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColor: true,
+        allowReschedulingPastBookings: true,
         schedulingType: true,
         length: true,
         team: {

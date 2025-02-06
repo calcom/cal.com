@@ -3,7 +3,8 @@ import { WithLayout } from "app/layoutHOC";
 
 import LegacyPage from "@calcom/features/ee/organizations/pages/members";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
-import SettingsLayoutAppDir from "@calcom/features/settings/appDir/SettingsLayoutAppDir";
+
+import SettingsLayoutAppDir from "../../(settings-layout)/SettingsLayoutAppDir";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

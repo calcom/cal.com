@@ -5,8 +5,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { BookingStatus, RedirectType } from "@calcom/prisma/client";
@@ -188,7 +188,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     eventData,
   });
 
-  const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
+  const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
 
   if (!eventData) {

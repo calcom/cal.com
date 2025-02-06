@@ -14,6 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -34,12 +35,12 @@ describe("Organizations User OOO Endpoints", () => {
     let falseTestOrg: Team;
     let falseTestTeam: Team;
 
-    const userEmail = "org-admin-ooo-controller-e222e@api.com";
+    const userEmail = `organizations-users-ooo-admin-${randomString()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = "teammate111ooo@team.com";
-    const teammate2Email = "teammate221ooo@team.com";
-    const falseTestUserEmail = "false-user-ooo@false-team.com";
+    const teammate1Email = `organizations-users-ooo-member1-${randomString()}@api.com`;
+    const teammate2Email = `organizations-users-ooo-member2-${randomString()}@api.com`;
+    const falseTestUserEmail = `organizations-users-ooo-false-user-${randomString()}@api.com`;
     let teammate1: User;
     let teammate2: User;
     let falseTestUser: User;
@@ -80,23 +81,23 @@ describe("Organizations User OOO Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization ooo",
+        name: `organizations-users-ooo-organization-${randomString()}`,
         isOrganization: true,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
-        name: "False test org ooo",
+        name: `organizations-users-ooo-false-org-${randomString()}`,
         isOrganization: true,
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team ooo",
+        name: `organizations-users-ooo-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: "Outside org team ooo",
+        name: `organizations-users-ooo-false-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: falseTestOrg.id } },
       });
@@ -363,6 +364,30 @@ describe("Organizations User OOO Endpoints", () => {
           expect(data.userId).toEqual(teammate1.id);
           expect(data.start).toEqual("2025-06-01T00:00:00.000Z");
           expect(data.end).toEqual("2025-06-10T23:59:59.999Z");
+        });
+    });
+
+    it("should get 2 ooo entries", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/ooo?sortEnd=desc&email=${teammate1Email}`)
+        .expect(200)
+        .then((response) => {
+          const responseBody = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data as UserOooOutputDto[];
+          expect(data.length).toEqual(2);
+          const oooUno = data.find((ooo) => ooo.id === oooCreatedViaApiId);
+          expect(oooUno).toBeDefined();
+          if (oooUno) {
+            expect(oooUno.reason).toEqual("vacation");
+            expect(oooUno.toUserId).toEqual(teammate2.id);
+            expect(oooUno.userId).toEqual(teammate1.id);
+            expect(oooUno.start).toEqual("2025-06-01T00:00:00.000Z");
+            expect(oooUno.end).toEqual("2025-06-10T23:59:59.999Z");
+          }
+          // test sort
+          expect(data[1].id).toEqual(oooCreatedViaApiId);
         });
     });
 

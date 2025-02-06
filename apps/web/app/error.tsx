@@ -1,5 +1,6 @@
 "use client";
 
+import { captureException } from "@sentry/nextjs";
 import React from "react";
 
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -11,14 +12,17 @@ import { ErrorPage } from "@components/error/error-page";
 
 const log = logger.getSubLogger({ prefix: ["[error]"] });
 
-type ErrorProps = {
+export type ErrorProps = {
   error: Error;
-  reset: () => void;
+  reset?: () => void;
 };
 
-export default function Error({ error, reset }: ErrorProps) {
+export default function Error({ error }: ErrorProps) {
   React.useEffect(() => {
     log.error(error);
+
+    // Log the error to Sentry
+    captureException(error);
   }, [error]);
 
   const processedError = React.useMemo(() => {

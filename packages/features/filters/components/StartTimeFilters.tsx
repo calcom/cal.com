@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
@@ -11,45 +11,70 @@ import { DateRangePicker } from "@calcom/ui";
 export const StartTimeFilters = () => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { data: query } = useFilterQuery();
 
-  const [afterStartDate, setAfterStartDate] = useState<Dayjs | undefined>(undefined);
-  const [beforeEndDate, setBeforeEndDate] = useState<Dayjs | undefined>(undefined);
+  const getQueryDate = (param: string) =>
+    searchParams.get(param) ? dayjs(searchParams.get(param)) : undefined;
+
+  const [afterStartDate, setAfterStartDate] = useState<Dayjs | undefined>(() =>
+    getQueryDate("afterStartDate")
+  );
+  const [beforeEndDate, setBeforeEndDate] = useState<Dayjs | undefined>(() => getQueryDate("beforeEndDate"));
 
   const startValue = afterStartDate?.toDate();
   const endValue = beforeEndDate?.toDate();
 
-  const updatedUrlParams = (newStartDate: Dayjs, newEndDate: Dayjs) => {
-    const search = new URLSearchParams();
+  const updateUrlParams = (newStartDate: Dayjs, newEndDate: Dayjs) => {
+    const search = new URLSearchParams(searchParams.toString());
+
     Object.entries(query).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        search.set(key, value.join(","));
-      } else if (value) {
+      if (key !== "afterStartDate" && key !== "beforeEndDate") {
         search.set(key, String(value));
       }
     });
 
-    search.set("afterStartDate", newStartDate.subtract(1, "day").format("YYYY-MM-DD"));
-    search.set("beforeEndDate", newEndDate.add(1, "day").format("YYYY-MM-DD"));
+    if (newStartDate) {
+      search.set("afterStartDate", newStartDate.startOf("day").format("YYYY-MM-DDTHH:mm:ss"));
+    }
+    if (newEndDate) {
+      search.set("beforeEndDate", newEndDate.endOf("day").format("YYYY-MM-DDTHH:mm:ss"));
+    }
+
     router.replace(`${pathname}?${search.toString()}`);
   };
 
-  return (
-    <div>
-      <DateRangePicker
-        minDate={null}
-        dates={{ startDate: startValue, endDate: endValue }}
-        onDatesChange={(values) => {
-          const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
-          const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
-          setAfterStartDate(newAfterStartDate);
-          setBeforeEndDate(newBeforeEndDate);
+  useEffect(() => {
+    //if params has date range
+    if (searchParams.has("afterStartDate") && searchParams.has("beforeEndDate")) {
+      setAfterStartDate(getQueryDate("afterStartDate"));
+      setBeforeEndDate(getQueryDate("beforeEndDate"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
-          if (newAfterStartDate && newBeforeEndDate) {
-            updatedUrlParams(newAfterStartDate, newBeforeEndDate);
-          }
-        }}
-      />
-    </div>
+  useEffect(() => {
+    if (Object.keys(query).length === 1 && "status" in query && afterStartDate && beforeEndDate) {
+      setAfterStartDate(undefined);
+      setBeforeEndDate(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  return (
+    <DateRangePicker
+      minDate={null}
+      dates={{ startDate: startValue, endDate: endValue }}
+      onDatesChange={(values) => {
+        const newAfterStartDate = values.startDate ? dayjs(values.startDate) : undefined;
+        const newBeforeEndDate = values.endDate ? dayjs(values.endDate) : undefined;
+        setAfterStartDate(newAfterStartDate);
+        setBeforeEndDate(newBeforeEndDate);
+
+        if (newAfterStartDate && newBeforeEndDate) {
+          updateUrlParams(newAfterStartDate, newBeforeEndDate);
+        }
+      }}
+    />
   );
 };

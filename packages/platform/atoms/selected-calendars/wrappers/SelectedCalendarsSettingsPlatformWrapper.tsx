@@ -36,11 +36,13 @@ export type CalendarRedirectUrls = {
 type SelectedCalendarsSettingsPlatformWrapperProps = {
   classNames?: string;
   calendarRedirectUrls?: CalendarRedirectUrls;
+  allowDelete?: boolean;
 };
 
 export const SelectedCalendarsSettingsPlatformWrapper = ({
   classNames = "mx-5 mb-6",
   calendarRedirectUrls,
+  allowDelete,
 }: SelectedCalendarsSettingsPlatformWrapperProps) => {
   const { t } = useLocale();
   const query = useConnectedCalendars({});
@@ -81,12 +83,14 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              <PlatformDisconnectIntegration
-                                credentialId={connectedCalendar.credentialId}
-                                trashIcon
-                                buttonProps={{ className: "border border-default" }}
-                                slug={connectedCalendar.integration.slug}
-                              />
+                              {allowDelete && (
+                                <PlatformDisconnectIntegration
+                                  credentialId={connectedCalendar.credentialId}
+                                  trashIcon
+                                  buttonProps={{ className: "border border-default" }}
+                                  slug={connectedCalendar.integration.slug}
+                                />
+                              )}
                             </div>
                           }>
                           <div className="border-subtle border-t">
