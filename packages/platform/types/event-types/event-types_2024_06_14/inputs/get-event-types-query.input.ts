@@ -55,6 +55,15 @@ export class GetTeamEventTypesQuery_2024_06_14 {
     description: "Slug of team event type to return.",
   })
   eventSlug?: string;
+
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  @IsNumber()
+  @ApiPropertyOptional({
+    description:
+      "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+  })
+  hostsLimit?: number;
 }
 
 function TransformUsernames() {

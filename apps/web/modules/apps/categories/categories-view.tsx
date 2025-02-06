@@ -15,7 +15,13 @@ export default function Apps({ categories }: PageProps) {
   const { t, isLocaleReady } = useLocale();
 
   return (
-    <Shell isPublic large hideHeadingOnMobile title={t("app_store")} description={t("app_store_description")}>
+    <Shell
+      isPublic
+      large
+      hideHeadingOnMobile
+      title={t("app_store")}
+      description={t("app_store_description")}
+      withoutSeo>
       <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-normal md:px-8 lg:px-0 lg:pt-0">
         <Link
           href="/apps"
