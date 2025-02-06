@@ -418,7 +418,7 @@ export function RoutingFormResponsesTable() {
             filter: { type: filterType },
           },
           filterFn: (row, id, filterValue) => {
-            const cellValue = row.original.response[id].value;
+            const cellValue = row.original.response[id]?.value;
             return dataTableFilter(cellValue, filterValue);
           },
         });

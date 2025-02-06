@@ -108,6 +108,7 @@
   "accept_license": "Lisenziyanı qəbul edin",
   "still_waiting_for_approval": "Tədbir hələ də təsdiq gözləyir",
   "event_is_still_waiting": "Tədbir sorğusu hələ də gözləyir: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "\"{{searchTerm}}\" üçün heç bir nəticə tapılmadı",
   "no_more_results": "Daha çox nəticə yoxdur",
   "no_results": "Nəticə yoxdur",
   "load_more_results": "Daha çox nəticə yüklə",
