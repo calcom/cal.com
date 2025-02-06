@@ -53,10 +53,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { createWatchlistEntry } from "@calcom/features/watchlist/lib/testUtils";
 import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { resetTestEmails } from "@calcom/lib/testEmails";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, WatchlistSeverity, WatchlistType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -3253,6 +3254,239 @@ describe("handleNewBooking", () => {
         email: "booker@example.com",
         name: "Booker",
       });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "user@lockeduser.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        locked: true,
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+    });
+
+    test("username is critical in watchlist", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        username: "spammer",
+        email: "spam@spammer.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        locked: true,
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      await createWatchlistEntry({
+        type: WatchlistType.USERNAME,
+        severity: WatchlistSeverity.CRITICAL,
+        value: organizer.username,
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+    });
+
+    test("domain is critical in watchlist", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        username: "spammer",
+        email: "spam@spammer.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        locked: true,
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      await createWatchlistEntry({
+        type: WatchlistType.DOMAIN,
+        severity: WatchlistSeverity.CRITICAL,
+        value: "spammer.com",
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
+    });
+
+    test("domain is critical in watchlist", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        username: "spammer",
+        email: "spam@spammer.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+        locked: true,
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      await createWatchlistEntry({
+        type: WatchlistType.EMAIL,
+        severity: WatchlistSeverity.CRITICAL,
+        value: "spam@spammer.com",
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      await expect(async () => await handleNewBooking(req)).rejects.toThrowError("eventTypeUser.notFound");
     });
   });
 
