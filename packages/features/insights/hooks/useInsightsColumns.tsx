@@ -54,7 +54,7 @@ export const useInsightsColumns = ({
       }),
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
-        header: t("people"),
+        header: t("user"),
         enableColumnFilter: true,
         enableSorting: false,
         meta: {

@@ -9,9 +9,8 @@ import { useMemo } from "react";
 
 import { ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 
-import type { RoutingFormTableRow } from "../lib/types";
+import type { HeaderRow, RoutingFormTableRow } from "../lib/types";
 import { useInsightsFacetedUniqueValues } from "./useInsightsFacetedUniqueValues";
 import { useInsightsParameters } from "./useInsightsParameters";
 
@@ -21,27 +20,25 @@ type DummyTableRow = {
 };
 
 const emptyData: DummyTableRow[] = [];
+const dummyHeaders: HeaderRow[] = [];
 
 export const useInsightsBookings = () => {
   const { t } = useLocale();
-  const { isAll, teamId, userId, routingFormId } = useInsightsParameters();
+  const { isAll, teamId, userId } = useInsightsParameters();
 
-  const { data: headers, isSuccess: isHeadersSuccess } =
-    trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
-      userId,
-      teamId,
-      isAll,
-      routingFormId,
-    });
-
-  const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({ headers, userId, teamId, isAll });
+  const getInsightsFacetedUniqueValues = useInsightsFacetedUniqueValues({
+    headers: dummyHeaders,
+    userId,
+    teamId,
+    isAll,
+  });
 
   const columns = useMemo(() => {
     const columnHelper = createColumnHelper<DummyTableRow>();
     return [
       columnHelper.accessor("bookingUserId", {
         id: "bookingUserId",
-        header: t("people"),
+        header: t("user"),
         enableColumnFilter: true,
         enableSorting: false,
         meta: {

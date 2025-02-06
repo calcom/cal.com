@@ -44,7 +44,7 @@ export const useInsightsFacetedUniqueValues = ({
   });
 
   return useCallback(
-    (_: Table<any>, columnId: string) => () => {
+    (_: Table<any>, columnId: string) => {
       if (!headers) {
         return new Map();
       }
@@ -94,6 +94,6 @@ export const useInsightsFacetedUniqueValues = ({
       }
       return new Map();
     },
-    [headers, forms, users]
+    [headers, forms, users, eventTypes]
   );
 };

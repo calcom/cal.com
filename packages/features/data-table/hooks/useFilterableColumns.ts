@@ -10,6 +10,7 @@ import { ColumnFilterType } from "../lib/types";
 export function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(
     () => table.getAllColumns().filter((column) => column.getCanFilter()),
+
     [table.getAllColumns()]
   );
 
@@ -25,8 +26,17 @@ export function useFilterableColumns<TData>(table: Table<TData>) {
             type,
           };
           if (type === ColumnFilterType.MULTI_SELECT || type === ColumnFilterType.SINGLE_SELECT) {
-            const values = column.getFacetedUniqueValues();
-            const options = Array.from(values.keys()).map((option) => {
+            // `column.getFacetedUniqueValues` gets out of sync
+            // when we pass a new `getFacetedUniqueValues` to
+            // `useReactTable({ ... })`.
+            //
+            // So we use `table.options.getFacetedUniqueValues` instead.
+            let values = table.options?.getFacetedUniqueValues?.(table, column.id);
+            if (typeof values === "function") {
+              values = values();
+            }
+
+            const options = Array.from(values instanceof Map ? values.keys() : []).map((option) => {
               if (typeof option === "string") {
                 return {
                   label: option,
@@ -50,7 +60,10 @@ export function useFilterableColumns<TData>(table: Table<TData>) {
           }
         })
         .filter((column): column is FilterableColumn => Boolean(column)),
-    [columns]
+
+    // re-calculate this when the `getFacetedUniqueValues` changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [columns, table.options.getFacetedUniqueValues]
   );
 
   return filterableColumns;

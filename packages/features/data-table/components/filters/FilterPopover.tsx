@@ -57,7 +57,10 @@ export function FilterPopover({ column }: FilterPopoverProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="items-center">
+        <Button
+          color="secondary"
+          className="items-center"
+          data-testid={`filter-popover-trigger-${column.id}`}>
           <Icon name={icon} className="mr-2 h-4 w-4" />
           <span>{startCase(column.title)}</span>
           {text && <span className="bg-subtle ml-2 rounded-md px-2">{text}</span>}

@@ -24,6 +24,7 @@ import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/Insi
 import { Download } from "@calcom/features/insights/filters/Download";
 import { OrgTeamsFilter } from "@calcom/features/insights/filters/OrgTeamsFilter";
 import { useInsightsBookings } from "@calcom/features/insights/hooks/useInsightsBookings";
+import { useInsightsOrgTeams } from "@calcom/features/insights/hooks/useInsightsOrgTeams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export default function InsightsPage() {
@@ -45,10 +46,13 @@ const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_R
 function InsightsPageContent() {
   const { t } = useLocale();
   const { table } = useInsightsBookings();
+  const { isAll, teamId, userId } = useInsightsOrgTeams();
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-2">
+      <div
+        className="flex flex-wrap items-center gap-2"
+        data-testid={`insights-filters-${isAll}-${teamId}-${userId}`}>
         <OrgTeamsFilter />
         <DataTableFilters.AddFilterButton table={table} />
         <DataTableFilters.ActiveFilters table={table} />
