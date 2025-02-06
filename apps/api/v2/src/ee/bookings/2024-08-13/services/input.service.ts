@@ -473,7 +473,7 @@ export class InputBookingsService_2024_08_13 {
       !queryParams.sortStart &&
       !queryParams.sortEnd &&
       !queryParams.sortCreated &&
-      !queryParams.sortUpdated
+      !queryParams.sortUpdatedAt
     ) {
       return undefined;
     }
@@ -482,7 +482,7 @@ export class InputBookingsService_2024_08_13 {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
-      sortUpdated: queryParams.sortUpdated,
+      sortUpdated: queryParams.sortUpdatedAt,
     };
   }
 

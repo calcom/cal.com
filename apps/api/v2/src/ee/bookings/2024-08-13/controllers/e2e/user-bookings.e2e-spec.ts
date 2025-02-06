@@ -1069,7 +1069,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should sort bookings by updated in descending order", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdated=desc`)
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=desc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -1089,7 +1089,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should sort bookings by updated in ascending order", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdated=asc`)
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=asc`)
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {

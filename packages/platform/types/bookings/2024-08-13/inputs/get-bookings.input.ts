@@ -221,7 +221,7 @@ export class GetBookingsInput_2024_08_13 {
     example: "?sortUpdated=asc OR ?sortUpdated=desc",
     enum: SortOrder,
   })
-  sortUpdated?: SortOrderType;
+  sortUpdatedAt?: SortOrderType;
 
   // note(Lauris): pagination
   @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
