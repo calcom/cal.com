@@ -108,6 +108,7 @@
   "accept_license": "Принять лицензию",
   "still_waiting_for_approval": "Событие все еще ждет одобрения",
   "event_is_still_waiting": "Запрос встречи все еще ожидает: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Ничего не найдено по запросу \"{{searchTerm}}\"",
   "no_more_results": "Ничего не найдено",
   "no_results": "Нет результатов",
   "load_more_results": "Загрузить больше результатов",
