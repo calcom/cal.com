@@ -37,7 +37,7 @@ async function authMiddleware() {
 }
 
 // TODO: It doesn't seem to be used from within the app. It is possible that someone outside Cal.com is using this GET endpoint
-export async function GET() {
+async function getHandler() {
   const user = await authMiddleware();
 
   const selectedCalendarIds = await SelectedCalendarRepository.findMany({
@@ -60,7 +60,7 @@ export async function GET() {
   return NextResponse.json(selectableCalendars);
 }
 
-export async function POST(req: NextRequest) {
+async function postHandler(req: NextRequest) {
   const user = await authMiddleware();
   const body = await req.json();
   const { integration, externalId, credentialId, eventTypeId } = selectedCalendarSelectSchema.parse(body);
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
 
-export async function DELETE(req: NextRequest) {
+async function deleteHandler(req: NextRequest) {
   const user = await authMiddleware();
   const searchParams = Object.fromEntries(req.nextUrl.searchParams.entries());
 
@@ -100,3 +100,5 @@ export async function DELETE(req: NextRequest) {
 
   return NextResponse.json({ message: "Calendar Selection Saved" });
 }
+
+export { deleteHandler as DELETE, postHandler as POST, getHandler as GET };

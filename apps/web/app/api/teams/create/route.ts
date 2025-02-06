@@ -22,7 +22,7 @@ const generateRandomString = () => {
   return Math.random().toString(36).substring(2, 10);
 };
 
-export async function GET(req: NextRequest) {
+async function getHandler(req: NextRequest) {
   const searchParams = req.nextUrl.searchParams;
   const { session_id } = querySchema.parse({
     session_id: searchParams.get("session_id"),
@@ -89,3 +89,5 @@ export async function GET(req: NextRequest) {
     { status: 302 }
   );
 }
+
+export { getHandler as GET };

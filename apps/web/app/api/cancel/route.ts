@@ -25,10 +25,7 @@ async function handler(req: NextRequest) {
   return NextResponse.json(result, { status: statusCode });
 }
 
-export async function DELETE(req: NextRequest) {
-  return handler(req);
-}
+const deleteHandler = (req: NextRequest) => handler(req);
+const postHandler = (req: NextRequest) => handler(req);
 
-export async function POST(req: NextRequest) {
-  return handler(req);
-}
+export { deleteHandler as DELETE, postHandler as POST };
