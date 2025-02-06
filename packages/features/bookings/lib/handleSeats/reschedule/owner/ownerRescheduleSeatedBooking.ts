@@ -68,7 +68,6 @@ const ownerRescheduleSeatedBooking = async (
         bypassBusyCalendarTimes: false,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        eventTypeId: rescheduleSeatedBookingObject.eventType.id,
       });
 
       // Check if the new time slot conflicts with booker's availability
