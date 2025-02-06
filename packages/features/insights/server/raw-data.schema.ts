@@ -25,7 +25,7 @@ export const routingFormResponsesInputSchema = z.object({
   cursor: z.number().optional(),
   limit: z.number().optional(),
   columnFilters: z.array(ZColumnFilter),
-  sorting: z.array(ZSorting),
+  sorting: z.array(ZSorting).optional(),
 });
 
 export type RoutingFormResponsesInput = z.infer<typeof routingFormResponsesInputSchema>;
