@@ -146,8 +146,8 @@ export async function loadAndValidateUsers({
     })
   );
 
-  fallbackRRUsers = fallbackRRUsers.filter((fallbackUser) =>
-    qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id == fallbackUser.id)
+  fallbackRRUsers = fallbackRRUsers.filter(
+    (fallbackUser) => !qualifiedRRUsers.find((qualifiedUser) => qualifiedUser.id === fallbackUser.id)
   );
 
   return {
