@@ -397,7 +397,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         const firstTwoWeeksAvailabilities = await calculateHostsAndAvailabilities({
           input,
           eventType,
-          hosts: [...allFallbackRRHosts, ...fixedHosts],
+          hosts: [...qualifiedRRHosts, ...fixedHosts],
           contactOwnerEmail,
           loggerWithEventDetails,
           startTime: dayjs(),
@@ -413,23 +413,18 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
     if (diff > 0) {
       // if the first available slot is more than 2 weeks from now, round robin as normal
-      const fallbackAvailabilities = await calculateHostsAndAvailabilities({
-        input,
-        eventType,
-        hosts: [...allFallbackRRHosts, ...fixedHosts],
-        contactOwnerEmail,
-        loggerWithEventDetails,
-        startTime,
-        endTime,
-        bypassBusyCalendarTimes,
-        shouldServeCache,
-      });
-
-      // Merge qualified availability with fallback availabilities
-      aggregatedAvailability = [...aggregatedAvailability, ...fallbackAvailabilities.aggregatedAvailability];
-      allUsersAvailability = { ...allUsersAvailability, ...fallbackAvailabilities.allUsersAvailability };
-      usersWithCredentials = [...usersWithCredentials, ...fallbackAvailabilities.usersWithCredentials];
-      currentSeats = [...(currentSeats || []), ...(fallbackAvailabilities.currentSeats || [])];
+      ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
+        await calculateHostsAndAvailabilities({
+          input,
+          eventType,
+          hosts: [...allFallbackRRHosts, ...fixedHosts],
+          contactOwnerEmail,
+          loggerWithEventDetails,
+          startTime,
+          endTime,
+          bypassBusyCalendarTimes,
+          shouldServeCache,
+        }));
     }
   }
 
