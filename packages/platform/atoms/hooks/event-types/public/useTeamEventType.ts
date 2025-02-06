@@ -24,7 +24,7 @@ export const useTeamEventType = (teamId: number | undefined, eventSlug: string, 
   if (hostsLimit !== undefined) {
     pathname += `&hostsLimit=${hostsLimit}`;
   }
-  
+
   const event = useQuery({
     queryKey: [QUERY_KEY, eventSlug, organizationId, teamId],
     queryFn: async () => {
