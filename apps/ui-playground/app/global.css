@@ -617,3 +617,7 @@ select:focus {
 .intercom-lightweight-app  {
   @apply z-40 !important;
 }
+
+.prose :where(a:not([data-card])):not(:where([class~="not-prose"] *)) {
+  text-decoration: none;
+}
