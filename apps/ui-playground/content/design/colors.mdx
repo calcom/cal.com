@@ -8,282 +8,137 @@ import { TypeTable } from '@/components/ui/TypeTable';
 export const backgroundTokens = {
   title: 'Background Tokens',
   colors: [
-    { name: 'bg.default', value: 'white / stone-900', className: 'bg-default' },
-    { name: 'bg.muted', value: 'gray-50 / stone-800', className: 'bg-muted' },
-    { name: 'bg.subtle', value: 'gray-100 / stone-700', className: 'bg-subtle' },
-    { name: 'bg.emphasis', value: 'gray-200 / stone-600', className: 'bg-emphasis' },
-    { name: 'bg.inverted', value: 'gray-900 / stone-50', className: 'bg-inverted' },
+    { name: 'emphasis', value: 'var(--cal-bg-emphasis)', className: 'bg-emphasis' },
+    { name: 'default', value: 'var(--cal-bg, white)', className: 'bg-default' },
+    { name: 'subtle', value: 'var(--cal-bg-subtle)', className: 'bg-subtle' },
+    { name: 'muted', value: 'var(--cal-bg-muted)', className: 'bg-muted' },
+    { name: 'inverted', value: 'var(--cal-bg-inverted)', className: 'bg-inverted' },
   ],
 };
 
-export const semanticBackgroundTokens = {
-  title: 'Semantic Background Tokens',
+export const primaryBackgroundTokens = {
+  title: 'Primary Background Tokens',
   colors: [
-    { name: 'bg.semantic.info.subtle', value: 'blue-100 / blue-800', className: 'bg-blue-100 dark:bg-blue-800' },
-    { name: 'bg.semantic.info.emphasis', value: 'blue-500', className: 'bg-blue-500' },
-    { name: 'bg.semantic.success.subtle', value: 'green-100 / green-800', className: 'bg-green-100 dark:bg-green-800' },
-    { name: 'bg.semantic.success.emphasis', value: 'green-500', className: 'bg-green-500' },
-    { name: 'bg.semantic.attention.subtle', value: 'orange-100 / orange-800', className: 'bg-orange-100 dark:bg-orange-800' },
-    { name: 'bg.semantic.attention.emphasis', value: 'orange-500', className: 'bg-orange-500' },
-    { name: 'bg.semantic.error.subtle', value: 'red-100 / red-800', className: 'bg-red-100 dark:bg-red-800' },
-    { name: 'bg.semantic.error.emphasis', value: 'red-500', className: 'bg-red-500' },
-  ],
-};
-
-export const borderTokens = {
-  title: 'Border Tokens',
-  colors: [
-    { name: 'border.default', value: 'gray-300 / stone-600', className: 'bg-gray-300 dark:bg-stone-600' },
-    { name: 'border.muted', value: 'gray-100 / stone-500', className: 'bg-gray-100 dark:bg-stone-500' },
-    { name: 'border.subtle', value: 'gray-200 / stone-700', className: 'bg-gray-200 dark:bg-stone-700' },
-    { name: 'border.emphasis', value: 'gray-400 / stone-800', className: 'bg-gray-400 dark:bg-stone-800' },
-  ],
-};
-
-export const textTokens = {
-  title: 'Text Tokens',
-  description: 'Text colors shown on white/dark background for contrast',
-  colors: [
-    { name: 'text.emphasis', value: 'gray-900 / stone-50', className: 'bg-gray-900 dark:bg-stone-50' },
-    { name: 'text.default', value: 'gray-700 / stone-300', className: 'bg-gray-700 dark:bg-stone-300' },
-    { name: 'text.subtle', value: 'gray-500 / stone-400', className: 'bg-gray-500 dark:bg-stone-400' },
-    { name: 'text.muted', value: 'gray-400 / stone-400', className: 'bg-gray-400 dark:bg-stone-400' },
-    { name: 'text.inverted', value: 'white / black', className: 'bg-white dark:bg-black' },
+    { name: 'primary.default', value: 'var(--cal-bg-primary)', className: 'bg-primary-default' },
+    { name: 'primary.emphasis', value: 'var(--cal-bg-primary-emphasis)', className: 'bg-primary-emphasis' },
+    { name: 'primary.muted', value: 'var(--cal-bg-primary-muted)', className: 'bg-primary-muted' },
   ],
 };
 
 export const brandTokens = {
   title: 'Brand Colors',
   colors: [
-    { name: 'brand.default', value: '#111827', className: 'bg-[#111827]' },
-    { name: 'brand.emphasis', value: '#101010', className: 'bg-[#101010]' },
-    { name: 'brand.subtle', value: '#9CA3AF', className: 'bg-[#9CA3AF]' },
-    { name: 'brand.accent', value: 'white', className: 'bg-white' },
+    { name: 'brand.default', value: 'var(--cal-brand,#111827)', className: 'bg-brand-default' },
+    { name: 'brand.emphasis', value: 'var(--cal-brand-emphasis,#101010)', className: 'bg-brand-emphasis' },
+    { name: 'brand.subtle', value: 'var(--cal-brand-subtle,#9CA3AF)', className: 'bg-brand-subtle' },
+    { name: 'brand.accent', value: 'var(--cal-brand-accent,white)', className: 'bg-brand-accent' },
+  ],
+};
+
+export const semanticBackgroundTokens = {
+  title: 'Semantic Background Tokens',
+  colors: [
+    { name: 'semantic.info.subtle', value: 'var(--cal-bg-semantic-info-subtle)', className: 'bg-semantic-info-subtle' },
+    { name: 'semantic.info.emphasis', value: 'var(--cal-bg-semantic-info-emphasis)', className: 'bg-semantic-info-emphasis' },
+    { name: 'semantic.success.subtle', value: 'var(--cal-bg-semantic-success-subtle)', className: 'bg-semantic-success-subtle' },
+    { name: 'semantic.success.emphasis', value: 'var(--cal-bg-semantic-success-emphasis)', className: 'bg-semantic-success-emphasis' },
+    { name: 'semantic.attention.subtle', value: 'var(--cal-bg-semantic-attention-subtle)', className: 'bg-semantic-attention-subtle' },
+    { name: 'semantic.attention.emphasis', value: 'var(--cal-bg-semantic-attention-emphasis)', className: 'bg-semantic-attention-emphasis' },
+    { name: 'semantic.error.subtle', value: 'var(--cal-bg-semantic-error-subtle)', className: 'bg-semantic-error-subtle' },
+    { name: 'semantic.error.emphasis', value: 'var(--cal-bg-semantic-error-emphasis)', className: 'bg-semantic-error-emphasis' },
+  ],
+};
+
+export const borderTokens = {
+  title: 'Border Tokens',
+  colors: [
+    { name: 'border.emphasis', value: 'var(--cal-border-emphasis)', className: 'border-emphasis' },
+    { name: 'border.default', value: 'var(--cal-border)', className: 'border-default' },
+    { name: 'border.subtle', value: 'var(--cal-border-subtle)', className: 'border-subtle' },
+    { name: 'border.muted', value: 'var(--cal-border-muted)', className: 'border-muted' },
+    { name: 'border.semantic.error', value: 'var(--cal-border-semantic-error)', className: 'border-semantic-error' },
+  ],
+};
+
+export const textTokens = {
+  title: 'Text Tokens',
+  description: 'Semantic text colors for various purposes',
+  colors: [
+    { name: 'text.emphasis', value: 'var(--cal-text-emphasis)', className: 'text-emphasis' },
+    { name: 'text.default', value: 'var(--cal-text)', className: 'text-default' },
+    { name: 'text.subtle', value: 'var(--cal-text-subtle)', className: 'text-subtle' },
+    { name: 'text.muted', value: 'var(--cal-text-muted)', className: 'text-muted' },
+    { name: 'text.inverted', value: 'var(--cal-text-inverted)', className: 'text-inverted' },
   ],
 };
 
 # Color System
 
-Our color system follows the Tailwind color system with some modifications to match our brand. The system is organized into three main categories:
+Our color system is built on semantic tokens that provide consistent theming across light and dark modes. The system is organized into five main categories:
 
-1. Core Colors
-2. Light Mode Semantic Tokens
-3. Dark Mode Semantic Tokens
-
-<TypeTable sections={[backgroundTokens, semanticBackgroundTokens, borderTokens, textTokens, brandTokens]} />
-
-## Core Colors
-
-These are our primitive color values that serve as the foundation for our design system.
-
-### Gray (Modified for Brand)
-| Shade | Value |
-|-------|--------|
-| 50  | bg.muted (Light) |
-| 100 | bg.subtle |
-| 200 | bg.emphasis |
-| ... | ... |
-| 900 | bg.inverted |
-
-### Brand Colors
-| Color | Usage |
-|-------|--------|
-| Default | #111827 |
-| Emphasis | #101010 |
-| Subtle | #9CA3AF |
-| Accent | white |
-
-### Standard Colors
-- Red (50-900)
-- Orange (50-900)
-- Yellow (50-900)
-- Green (50-900)
-- Blue (50-900)
-- Purple (50-900)
-- Pink (50-900)
-
-## Light Mode Semantic Tokens
-
-### Background Tokens
-| Token | Maps To |
-|-------|---------|
-| bg.default | white |
-| bg.muted | gray-50 |
-| bg.subtle | gray-100 |
-| bg.emphasis | gray-200 |
-| bg.inverted | gray-900 |
-
-### Semantic Background
-| Token | Maps To |
-|-------|---------|
-| bg.semantic.info.subtle | blue-100 |
-| bg.semantic.info.emphasis | blue-500 |
-| bg.semantic.success.subtle | green-100 |
-| bg.semantic.success.emphasis | green-500 |
-| bg.semantic.attention.subtle | orange-100 |
-| bg.semantic.attention.emphasis | orange-500 |
-| bg.semantic.error.subtle | red-100 |
-| bg.semantic.error.emphasis | red-500 |
-
-### Border Tokens
-| Token | Maps To |
-|-------|---------|
-| border.default | gray-300 |
-| border.muted | gray-100 |
-| border.subtle | gray-200 |
-| border.emphasis | gray-400 |
-
-### Content/Text Tokens
-| Token | Maps To |
-|-------|---------|
-| text.emphasis | gray-900 |
-| text.default | gray-700 |
-| text.subtle | gray-500 |
-| text.muted | gray-400 |
-| text.inverted | white |
-
-## Dark Mode Semantic Tokens
-
-### Background Tokens
-| Token | Maps To |
-|-------|---------|
-| bg.default | stone-900 |
-| bg.muted | stone-800 |
-| bg.subtle | stone-700 |
-| bg.emphasis | stone-600 |
-| bg.inverted | stone-50 |
-
-### Semantic Background
-| Token | Maps To |
-|-------|---------|
-| bg.semantic.info.subtle | blue-800 |
-| bg.semantic.info.emphasis | blue-500 |
-| bg.semantic.success.subtle | green-800 |
-| bg.semantic.success.emphasis | green-500 |
-| bg.semantic.attention.subtle | orange-800 |
-| bg.semantic.attention.emphasis | orange-500 |
-| bg.semantic.error.subtle | red-800 |
-| bg.semantic.error.emphasis | red-500 |
-
-### Border Tokens
-| Token | Maps To |
-|-------|---------|
-| border.default | stone-600 |
-| border.muted | stone-500 |
-| border.subtle | stone-700 |
-| border.emphasis | stone-800 |
-
-### Content/Text Tokens
-| Token | Maps To |
-|-------|---------|
-| text.emphasis | stone-50 |
-| text.default | stone-300 |
-| text.subtle | stone-400 |
-| text.muted | stone-400 |
-| text.inverted | black |
+1. Background Colors
+2. Primary Colors
+3. Brand Colors
+4. Semantic Colors
+5. Text & Border Colors
 
 ## Usage Guidelines
 
-1. Always use semantic tokens instead of direct color values
-2. Dark mode is handled automatically through our token system
-3. For custom components, follow the semantic token naming convention
-4. Use visualization tokens for data visualization and charts
-5. Brand colors should be used sparingly and primarily for brand elements
+1. **Use Semantic Tokens**: Always prefer semantic tokens over direct color values to maintain consistency and theme support.
+2. **Dark Mode Support**: Our semantic tokens automatically handle dark mode transitions.
+3. **Component Design**: When creating new components, follow the semantic token system:
+   - Use `bg-*` tokens for backgrounds
+   - Use `text-*` tokens for text content
+   - Use `border-*` tokens for borders
+4. **Semantic States**: Use semantic color variations to convey meaning:
+   - Info: For informational UI elements
+   - Success: For successful actions and positive states
+   - Attention: For warnings and important notices
+   - Error: For error states and destructive actions
+5. **Brand Colors**: Use brand colors sparingly and primarily for:
+   - Primary CTAs
+   - Brand identity elements
+   - Key interactive components
 
 
-## gray
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-gray-1"/>
-  <div className="rounded-lg aspect-square bg-gray-2"/>
-  <div className="rounded-lg aspect-square bg-gray-3"/>
-  <div className="rounded-lg aspect-square bg-gray-4"/>
-  <div className="rounded-lg aspect-square bg-gray-5"/>
-  <div className="rounded-lg aspect-square bg-gray-6"/>
-  <div className="rounded-lg aspect-square bg-gray-7"/>
-  <div className="rounded-lg aspect-square bg-gray-8"/>
-  <div className="rounded-lg aspect-square bg-gray-9"/>
-  <div className="rounded-lg aspect-square bg-gray-10"/>
-  <div className="rounded-lg aspect-square bg-gray-11"/>
-  <div className="rounded-lg aspect-square bg-gray-12"/>
-</div>
+## Using Semantic Tokens
 
-## success
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-success-1"/>
-  <div className="rounded-lg aspect-square bg-success-2"/>
-  <div className="rounded-lg aspect-square bg-success-3"/>
-  <div className="rounded-lg aspect-square bg-success-4"/>
-  <div className="rounded-lg aspect-square bg-success-5"/>
-  <div className="rounded-lg aspect-square bg-success-6"/>
-  <div className="rounded-lg aspect-square bg-success-7"/>
-  <div className="rounded-lg aspect-square bg-success-8"/>
-  <div className="rounded-lg aspect-square bg-success-9"/>
-  <div className="rounded-lg aspect-square bg-success-10"/>
-  <div className="rounded-lg aspect-square bg-success-11"/>
-  <div className="rounded-lg aspect-square bg-success-12"/>
-</div>
+Our color tokens are CSS variables that automatically handle light and dark mode transitions. Here's how to use them:
 
-## info
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-info-1"/>
-  <div className="rounded-lg aspect-square bg-info-2"/>
-  <div className="rounded-lg aspect-square bg-info-3"/>
-  <div className="rounded-lg aspect-square bg-info-4"/>
-  <div className="rounded-lg aspect-square bg-info-5"/>
-  <div className="rounded-lg aspect-square bg-info-6"/>
-  <div className="rounded-lg aspect-square bg-info-7"/>
-  <div className="rounded-lg aspect-square bg-info-8"/>
-  <div className="rounded-lg aspect-square bg-info-9"/>
-  <div className="rounded-lg aspect-square bg-info-10"/>
-  <div className="rounded-lg aspect-square bg-info-11"/>
-  <div className="rounded-lg aspect-square bg-info-12"/>
-</div>
+### Background Colors
+```tsx
+// Basic backgrounds
+<div className="bg-default">Default background</div>
+<div className="bg-subtle">Subtle background</div>
+<div className="bg-emphasis">Emphasis background</div>
 
+// Primary backgrounds
+<div className="bg-primary-default">Primary background</div>
+<div className="bg-primary-emphasis">Primary emphasis</div>
+```
 
-## warning
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-warning-1"/>
-  <div className="rounded-lg aspect-square bg-warning-2"/>
-  <div className="rounded-lg aspect-square bg-warning-3"/>
-  <div className="rounded-lg aspect-square bg-warning-4"/>
-  <div className="rounded-lg aspect-square bg-warning-5"/>
-  <div className="rounded-lg aspect-square bg-warning-6"/>
-  <div className="rounded-lg aspect-square bg-warning-7"/>
-  <div className="rounded-lg aspect-square bg-warning-8"/>
-  <div className="rounded-lg aspect-square bg-warning-9"/>
-  <div className="rounded-lg aspect-square bg-warning-10"/>
-  <div className="rounded-lg aspect-square bg-warning-11"/>
-  <div className="rounded-lg aspect-square bg-warning-12"/>
-</div>
+### Semantic Colors
+```tsx
+// Info states
+<div className="bg-semantic-info-subtle">Info subtle</div>
+<div className="bg-semantic-info-emphasis">Info emphasis</div>
 
-## error
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-error-1"/>
-  <div className="rounded-lg aspect-square bg-error-2"/>
-  <div className="rounded-lg aspect-square bg-error-3"/>
-  <div className="rounded-lg aspect-square bg-error-4"/>
-  <div className="rounded-lg aspect-square bg-error-5"/>
-  <div className="rounded-lg aspect-square bg-error-6"/>
-  <div className="rounded-lg aspect-square bg-error-7"/>
-  <div className="rounded-lg aspect-square bg-error-8"/>
-  <div className="rounded-lg aspect-square bg-error-9"/>
-  <div className="rounded-lg aspect-square bg-error-10"/>
-  <div className="rounded-lg aspect-square bg-error-11"/>
-  <div className="rounded-lg aspect-square bg-error-12"/>
-</div>
+// Success states
+<div className="bg-semantic-success-subtle">Success subtle</div>
+<div className="bg-semantic-success-emphasis">Success emphasis</div>
 
-## feature
-<div className="grid grid-cols-12 gap-2">
-  <div className="rounded-lg aspect-square bg-feature-1"/>
-  <div className="rounded-lg aspect-square bg-feature-2"/>
-  <div className="rounded-lg aspect-square bg-feature-3"/>
-  <div className="rounded-lg aspect-square bg-feature-4"/>
-  <div className="rounded-lg aspect-square bg-feature-5"/>
-  <div className="rounded-lg aspect-square bg-feature-6"/>
-  <div className="rounded-lg aspect-square bg-feature-7"/>
-  <div className="rounded-lg aspect-square bg-feature-8"/>
-  <div className="rounded-lg aspect-square bg-feature-9"/>
-  <div className="rounded-lg aspect-square bg-feature-10"/>
-  <div className="rounded-lg aspect-square bg-feature-11"/>
-  <div className="rounded-lg aspect-square bg-feature-12"/>
-</div>
+// Error states
+<div className="bg-semantic-error-subtle">Error subtle</div>
+<div className="bg-semantic-error-emphasis">Error emphasis</div>
+```
+
+### Text Colors
+```tsx
+<p className="text-emphasis">High emphasis text</p>
+<p className="text-default">Default text</p>
+<p className="text-subtle">Subtle text</p>
+<p className="text-muted">Muted text</p>
+```
+
+<TypeTable sections={[backgroundTokens, primaryBackgroundTokens, brandTokens, semanticBackgroundTokens, borderTokens, textTokens]} />
+
