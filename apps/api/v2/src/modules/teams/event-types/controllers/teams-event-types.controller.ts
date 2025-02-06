@@ -137,10 +137,14 @@ export class TeamsEventTypesController {
     @Param("teamId", ParseIntPipe) teamId: number,
     @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
   ): Promise<GetTeamEventTypesOutput> {
-    const { eventSlug } = queryParams;
+    const { eventSlug, hostsLimit } = queryParams;
 
     if (eventSlug) {
-      const eventType = await this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+      const eventType = await this.teamsEventTypesService.getTeamEventTypeBySlug(
+        teamId,
+        eventSlug,
+        hostsLimit
+      );
 
       return {
         status: SUCCESS_STATUS,

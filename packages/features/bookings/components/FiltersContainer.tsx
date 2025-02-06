@@ -21,7 +21,9 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   const searchParams = useSearchParams();
 
   const validFilterKeys = ["userIds", "eventTypeIds", "upIds", "teamIds", "afterStartDate", "beforeEndDate"];
-  const hasValidQueryParams = Array.from(searchParams.keys()).some((key) => validFilterKeys.includes(key));
+  const hasValidQueryParams = Array.from(searchParams?.keys() ?? []).some((key) =>
+    validFilterKeys.includes(key)
+  );
 
   return (
     <div ref={animationParentRef}>
