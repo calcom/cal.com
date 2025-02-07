@@ -13,7 +13,7 @@ import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import LegacyPage from "~/apps/[slug]/[...pages]/pages-view";
 
 const paramsSchema = z.object({
-  slug: z.string(),
+  slug: z.literal("routing-forms").or(z.literal("typeform")),
   pages: z.array(z.string()),
 });
 
@@ -21,10 +21,6 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
   const p = paramsSchema.safeParse(params);
 
   if (!p.success) {
-    return notFound();
-  }
-
-  if (p.data.slug !== "routing-forms" && p.data.slug !== "typeform") {
     return notFound();
   }
 
@@ -45,9 +41,6 @@ const getData = withAppDirSsr<any>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
   const p = paramsSchema.safeParse(params);
   if (!p.success) {
-    return notFound();
-  }
-  if (p.data.slug !== "routing-forms" && p.data.slug !== "typeform") {
     return notFound();
   }
 

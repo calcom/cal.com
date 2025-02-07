@@ -41,7 +41,7 @@ function getRoute(pages: string[]) {
 }
 
 const paramsSchema = z.object({
-  slug: z.string(),
+  slug: z.literal("routing-forms").or(z.literal("typeform")),
   pages: z.array(z.string()),
 });
 
