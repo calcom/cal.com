@@ -224,7 +224,7 @@ export async function handler(req: NextApiRequest) {
     ? [queryFilterForAttendeeEmails.attendeeEmail]
     : [];
   const filterByAttendeeEmails = attendeeEmails.length > 0;
-  let userEmailsToFilterBy = [];
+  let userEmailsToFilterBy: string[] = [];
 
   /** Only admins can query other users */
   if (isSystemWideAdmin) {
