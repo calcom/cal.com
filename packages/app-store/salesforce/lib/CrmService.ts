@@ -230,14 +230,14 @@ export default class SalesforceCRMService implements CRM {
         // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
         // proceeding to create the event using just the first attendee as the primary WhoId
         return await this.salesforceCreateEventApiCall(event, {
-          WhoId: firstContact,
+          WhoId: firstContact.id,
         }).catch((reason) => Promise.reject(reason));
       }
       log.error(`Error creating event: ${JSON.stringify(reason)}`);
 
       // Try creating a simple object without additional records
       return await this.salesforceCreateEventApiCall(event, {
-        EventWhoIds: eventWhoIds,
+        WhoId: firstContact.id,
         ...(ownerId && { OwnerId: ownerId }),
       }).catch((reason) => {
         log.error(`Error creating simple event: ${JSON.stringify(reason)}`);
