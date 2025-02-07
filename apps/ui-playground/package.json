@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^2.9.7",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "airtable": "^0.12.2",
     "fumadocs-core": "14.4.0",
     "fumadocs-mdx": "11.1.1",
     "fumadocs-openapi": "^5.7.5",

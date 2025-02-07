@@ -19643,6 +19643,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"abortcontroller-polyfill@npm:^1.4.0":
+  version: 1.7.8
+  resolution: "abortcontroller-polyfill@npm:1.7.8"
+  checksum: 0d270890d8d145a5373dcdf26ac7b512f41536a1804482c332e52a31cefcb1fd6ea082cc3b946a34ad23dea7d740b071e8efa935c667fe52b48d42b6f8388f10
+  languageName: node
+  linkType: hard
+
 "abstract-leveldown@npm:~0.12.0, abstract-leveldown@npm:~0.12.1":
   version: 0.12.4
   resolution: "abstract-leveldown@npm:0.12.4"
@@ -19851,6 +19858,19 @@ __metadata:
     clean-stack: ^2.0.0
     indent-string: ^4.0.0
   checksum: 1101a33f21baa27a2fa8e04b698271e64616b886795fd43c31068c07533c7b3facfcaf4e9e0cab3624bd88f729a592f1c901a1a229c9e490eafce411a8644b79
+  languageName: node
+  linkType: hard
+
+"airtable@npm:^0.12.2":
+  version: 0.12.2
+  resolution: "airtable@npm:0.12.2"
+  dependencies:
+    "@types/node": ">=8.0.0 <15"
+    abort-controller: ^3.0.0
+    abortcontroller-polyfill: ^1.4.0
+    lodash: ^4.17.21
+    node-fetch: ^2.6.7
+  checksum: 72e2e0d8e5e088dbb073f9fd1e7794e55af3b7d1074aefaffe537179f071e13be525d5e1c3bc59195d8dee2b4069ee34bd7f0ca765ad561d59ec28a76c097ef7
   languageName: node
   linkType: hard
 
@@ -47598,6 +47618,7 @@ __metadata:
     "@types/node": 22.5.4
     "@types/react": ^18.3.11
     "@types/react-dom": ^18.3.0
+    airtable: ^0.12.2
     autoprefixer: ^10.4.20
     fumadocs-core: 14.4.0
     fumadocs-mdx: 11.1.1
