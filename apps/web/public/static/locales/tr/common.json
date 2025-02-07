@@ -24,6 +24,8 @@
   "verify_email_email_header": "E-posta adresinizi doğrulayın",
   "verify_email_email_button": "E-postayı doğrula",
   "cal_ai_assistant": "Cal AI Asistanı",
+  "send_cal_video_transcription_emails": "Cal Video transkript e-postaları gönder",
+  "description_send_cal_video_transcription_emails": "Toplantı sona erdikten sonra Cal Video transkriptini içeren e-postalar gönder. (Ücretli plan gerektirir)",
   "verify_email_change_description": "{{appName}} hesabınıza giriş yapmak için kullandığınız e-posta adresini değiştirme talebinde bulundunuz. Yeni e-posta adresinizi onaylamak için lütfen aşağıdaki butona tıklayın.",
   "verify_email_change_success_toast": "E-posta adresiniz {{email}} olarak güncellendi",
   "verify_email_change_failure_toast": "E-posta güncellenemedi.",
