@@ -87,7 +87,6 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
-              className="mx-5"
               type="button"
               variant="icon"
               color="secondary"
@@ -96,8 +95,8 @@ export function ScheduleListItem({
           </DropdownMenuTrigger>
           {!isPending && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                {!schedule.isDefault && (
+              {!schedule.isDefault && (
+                <DropdownMenuItem className="min-w-40 focus:ring-muted">
                   <DropdownItem
                     type="button"
                     StartIcon="star"
@@ -109,8 +108,8 @@ export function ScheduleListItem({
                     }}>
                     {t("set_as_default")}
                   </DropdownItem>
-                )}
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem className="outline-none">
                 <DropdownItem
                   type="button"
