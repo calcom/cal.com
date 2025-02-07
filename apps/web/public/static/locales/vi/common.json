@@ -24,6 +24,8 @@
   "verify_email_email_header": "Xác minh địa chỉ email của bạn",
   "verify_email_email_button": "Xác minh email",
   "cal_ai_assistant": "Trợ lý AI của Cal",
+  "send_cal_video_transcription_emails": "Gửi email bản ghi Cal Video",
+  "description_send_cal_video_transcription_emails": "Gửi email kèm bản ghi của Cal Video sau khi cuộc họp kết thúc. (Yêu cầu gói trả phí)",
   "verify_email_change_description": "Bạn đã yêu cầu thay đổi địa chỉ email mà bạn sử dụng để đăng nhập vào tài khoản {{appName}} của mình. Vui lòng nhấp vào nút bên dưới để xác nhận địa chỉ email mới của bạn.",
   "verify_email_change_success_toast": "Đã cập nhật email của bạn thành {{email}}",
   "verify_email_change_failure_toast": "Không thể cập nhật email.",
