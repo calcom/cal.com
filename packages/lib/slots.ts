@@ -208,20 +208,19 @@ function buildSlotsWithDateRanges({
     let result = iterator.next();
 
     while (!result.done) {
+      const utcResultValue = dayjs.utc(result.value);
       // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
       if (
-        dayjs.utc(result.value).isBefore(slotStartTime) &&
-        dayjs
-          .utc(result.value)
-          .add(frequency + (offsetStart ?? 0), "minutes")
-          .isAfter(slotStartTime)
+        utcResultValue.isBefore(slotStartTime) &&
+        utcResultValue.add(frequency + (offsetStart ?? 0), "minutes").isAfter(slotStartTime)
       ) {
-        // it is between, if possible floor down to the start of the existing slot, keeping timezone intact
-        slotStartTime = dayjs.utc(result.value);
         // however, the slot can now be before the start of this date range.
-        // if so, we need to ceil up to the next slot.
-        if (slotStartTime.isBefore(range.start)) {
-          slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+        if (!utcResultValue.isBefore(range.start)) {
+          // it is between, if possible floor down to the start of the existing slot
+          slotStartTime = utcResultValue;
+        } else {
+          // if not possible to floor, we need to ceil up to the next slot.
+          slotStartTime = utcResultValue.add(frequency + (offsetStart ?? 0), "minutes");
         }
         // and then convert to the correct timezone - UTC mode is just for performance.
         slotStartTime = slotStartTime.tz(timeZone);
