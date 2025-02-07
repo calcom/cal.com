@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import { serverSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
+import { routingServerSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
@@ -30,7 +30,7 @@ type NotFound = {
 
 function getRoute(pages: string[]) {
   const mainPage = pages[0];
-  const getServerSideProps = serverSidePropsConfig[mainPage];
+  const getServerSideProps = routingServerSidePropsConfig[mainPage];
 
   if (!getServerSideProps) {
     return {
