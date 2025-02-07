@@ -189,32 +189,32 @@ function getNavigation({
 
   return [
     {
-      name: "event_setup_tab_title",
+      name: t("event_setup_tab_title"),
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
-      name: "event_limit_tab_title",
+      name: t("event_limit_tab_title"),
       href: `/event-types/${id}?tabName=limits`,
       icon: "clock",
       info: `event_limit_tab_description`,
     },
     {
-      name: "event_advanced_tab_title",
+      name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
       info: `event_advanced_tab_description`,
     },
     {
-      name: "apps",
+      name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
       icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
-      name: "workflows",
+      name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,

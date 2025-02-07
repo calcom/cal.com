@@ -146,7 +146,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
   const tabsNavigation: VerticalTabItemProps[] = [];
   tabs.includes("setup") &&
     tabsNavigation.push({
-      name: "event_setup_tab_title",
+      name: t("event_setup_tab_title"),
       onClick: () => onClick("setup"),
       isActive: currentTab === "setup",
       href: `${url}?tabName=setup`,
@@ -155,7 +155,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     });
   tabs.includes("limits") &&
     tabsNavigation.push({
-      name: "event_limit_tab_title",
+      name: t("event_limit_tab_title"),
       onClick: () => onClick("limits"),
       isActive: currentTab === "limits",
       href: `${url}?tabName=limits`,
@@ -165,7 +165,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
 
   tabs.includes("advanced") &&
     tabsNavigation.push({
-      name: "event_advanced_tab_title",
+      name: t("event_advanced_tab_title"),
       onClick: () => onClick("advanced"),
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
@@ -174,7 +174,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
-      name: "event_payments_tab_title",
+      name: t("event_payments_tab_title"),
       onClick: () => onClick("payments"),
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,

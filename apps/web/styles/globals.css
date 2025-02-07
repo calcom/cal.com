@@ -618,5 +618,8 @@ select:focus {
   @apply z-40 !important;
 }
 
+[data-radix-popper-content-wrapper] {
+  border: none;
+}
 
 @import "./raqb.css";

@@ -150,6 +150,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           className={classNames(
             inputStyles({ size }),
             "group relative mb-1 flex items-center gap-1",
+            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             inputIsFullWidth && "w-full"
           )}>
           {addOnLeading && (
@@ -157,15 +158,17 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               {addOnLeading}
             </Addon>
           )}
-          <input
+          <Input
             data-testid={dataTestid ? `${dataTestid}-input` : "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}
             className={classNames(
               "w-full border-0 bg-transparent focus:outline-none focus:ring-0",
-              "text-default text-sm font-medium leading-none",
-              "placeholder:text-muted",
+              "text-default rounded-lg text-sm font-medium leading-none",
+              "placeholder:text-muted disabled:bg-subtle disabled:cursor-not-allowed",
+              addOnLeading && "pr-0",
+              addOnSuffix && "pl-0",
               className
             )}
             {...passThrough}
