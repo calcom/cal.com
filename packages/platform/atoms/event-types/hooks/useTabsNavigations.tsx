@@ -86,7 +86,7 @@ export const useTabsNavigations = ({
         name: "recurring",
         href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
         icon: "repeat",
-        info: `recurring_event_tab_description`,
+        info: t(`recurring_event_tab_description`),
       });
     }
     navigation.splice(1, 0, {
@@ -96,15 +96,15 @@ export const useTabsNavigations = ({
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
-            ? "members_default_schedule"
+            ? t("members_default_schedule")
             : isChildrenManagedEventType
             ? `${
                 formMethods.getValues("scheduleName")
                   ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                  : `default_schedule_name`
+                  : t(`default_schedule_name`)
               }`
-            : formMethods.getValues("scheduleName") ?? `default_schedule_name`
-          : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
+            : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
+          : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
@@ -124,7 +124,7 @@ export const useTabsNavigations = ({
           name: "instant_tab_title",
           href: `/event-types/${eventType.id}?tabName=instant`,
           icon: "phone-call",
-          info: `instant_event_tab_description`,
+          info: t(`instant_event_tab_description`),
         });
       }
     }
@@ -140,7 +140,7 @@ export const useTabsNavigations = ({
         name: "Cal.ai",
         href: `/event-types/${eventType.id}?tabName=ai`,
         icon: "sparkles",
-        info: "cal_ai_event_tab_description", // todo `cal_ai_event_tab_description`,
+        info: t("cal_ai_event_tab_description"), // todo `cal_ai_event_tab_description`,
       });
     }
     return navigation;
@@ -198,13 +198,13 @@ function getNavigation({
       name: t("event_limit_tab_title"),
       href: `/event-types/${id}?tabName=limits`,
       icon: "clock",
-      info: `event_limit_tab_description`,
+      info: t(`event_limit_tab_description`),
     },
     {
       name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
-      info: `event_advanced_tab_description`,
+      info: t(`event_advanced_tab_description`),
     },
     {
       name: t("apps"),
