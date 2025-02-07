@@ -191,7 +191,7 @@ export default class SalesforceCRMService implements CRM {
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
-      this.log.warn("salesforceCreateEvent: No organizer email found for event", event.uid, event?.organizer);
+      log.warn("No organizer email found for event", event?.organizer);
     }
 
     /**
@@ -201,7 +201,7 @@ export default class SalesforceCRMService implements CRM {
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
+      log.warn("No contacts found for event", contacts);
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -250,7 +250,7 @@ export default class SalesforceCRMService implements CRM {
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
       } else {
-        this.log.warn(
+        log.warn(
           `Could not find owner with email ${event.organizer.email} to change record ${firstContact.id} ownership to`
         );
       }
