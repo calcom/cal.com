@@ -1,4 +1,3 @@
-/*elint-disable*/
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
@@ -7,6 +6,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import type { Props, States } from "@calcom/features/ee/payments/components/Payment";
 import { PaymentFormComponent } from "@calcom/features/ee/payments/components/Payment";
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const StripePaymentComponent = (
@@ -64,8 +64,9 @@ const StripePaymentComponent = (
           payload = await stripe.confirmPayment({
             elements,
             redirect: "if_required",
-            // return_url: `${window.location.origin}/payment-success`, // adjust this URL as needed
-            return_url: "https://app.cal.com", // Redirect users to app.cal.com after payment
+            confirmParams: {
+              return_url: WEBAPP_URL,
+            },
           });
           if (payload.paymentIntent) {
             params.payment_intent = payload.paymentIntent.id;
