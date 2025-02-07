@@ -1,3 +1,4 @@
+/*elint-disable*/
 import type { EventType, Payment } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeElementLocale, StripeElements, StripePaymentElementOptions } from "@stripe/stripe-js";
@@ -178,6 +179,7 @@ const PaymentForm = (props: Props) => {
       payload = await stripe.confirmPayment({
         elements,
         redirect: "if_required",
+        return_url: "https://app.cal.com", // Redirect users to app.cal.com after payment
       });
       if (payload.paymentIntent) {
         params.payment_intent = payload.paymentIntent.id;

@@ -1,3 +1,4 @@
+/*elint-disable*/
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
 import { useEffect, useState } from "react";
 import type { SyntheticEvent } from "react";
@@ -63,6 +64,8 @@ const StripePaymentComponent = (
           payload = await stripe.confirmPayment({
             elements,
             redirect: "if_required",
+            // return_url: `${window.location.origin}/payment-success`, // adjust this URL as needed
+            return_url: "https://app.cal.com", // Redirect users to app.cal.com after payment
           });
           if (payload.paymentIntent) {
             params.payment_intent = payload.paymentIntent.id;
