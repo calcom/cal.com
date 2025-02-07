@@ -435,7 +435,26 @@ function BookingListItem(booking: BookingItemProps) {
   );
 
   const noShowMutation = trpc.viewer.markNoShow.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async (data, variables) => {
+      const attendees = variables.attendees || [];
+      if (!attendees.length) {
+        showToast("No attendees found in the variables.", "error");
+        return;
+      }
+
+      const updatedEmail = attendees[0]?.email;
+      const updatedNoShow = attendees[0]?.noShow;
+
+      if (!updatedEmail || updatedNoShow === undefined) {
+        showToast("Invalid attendee data. Email or noShow is missing.", "error");
+        return;
+      }
+
+      setAttendeeList((prev) =>
+        prev.map((attendee) =>
+          attendee.email === updatedEmail ? { ...attendee, noShow: updatedNoShow } : attendee
+        )
+      );
       showToast(data.message, "success");
     },
     onError: (error) => {
@@ -448,9 +467,6 @@ function BookingListItem(booking: BookingItemProps) {
       bookingUid: booking.uid,
       attendees: [{ email, noShow }],
     });
-    setAttendeeList((prev) =>
-      prev.map((attendee) => (attendee.email === email ? { ...attendee, noShow } : attendee))
-    );
   };
 
   return (
