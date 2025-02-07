@@ -141,21 +141,6 @@ function buildSlots({
   return slots;
 }
 
-const adjustDateRanges = (dateRanges: DateRange[], frequency: number) => {
-  if (dateRanges.length === 0) return;
-
-  for (let i = 0; i < dateRanges.length; i++) {
-    const adjustedStart = dateRanges[i].start
-      .clone()
-      .startOf("hour")
-      .add(Math.ceil(dateRanges[i].start.minute() / frequency) * frequency, "minutes");
-    // Modify the start time directly in the original array
-    dateRanges[i].start = adjustedStart;
-  }
-
-  return dateRanges;
-};
-
 function buildSlotsWithDateRanges({
   dateRanges,
   frequency,
@@ -203,10 +188,6 @@ function buildSlotsWithDateRanges({
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-  // to stay consistent with past behaviour we need to adjust the dateRanges according to frequency.
-  // this prevents slots appearing as 11:00, 11:15, 11:45, 12:00, .. etc.
-  adjustDateRanges(dateRanges, frequency);
-
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
@@ -221,6 +202,33 @@ function buildSlotsWithDateRanges({
 
     slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
 
+    // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
+    // but that adjusted startTime must be legal.
+    const iterator = slots.keys();
+    let result = iterator.next();
+
+    while (!result.done) {
+      // if the slotStartTime is between an existing slot, we need to adjust to the begin of the existing slot
+      if (
+        dayjs.utc(result.value).isBefore(slotStartTime) &&
+        dayjs
+          .utc(result.value)
+          .add(frequency + (offsetStart ?? 0), "minutes")
+          .isAfter(slotStartTime)
+      ) {
+        // it is between, if possible floor down to the start of the existing slot, keeping timezone intact
+        slotStartTime = dayjs.utc(result.value).tz(timeZone);
+        // however, the slot can now be before the start of this date range.
+        // if so, we need to ceil up to the next slot.
+        if (slotStartTime.isBefore(range.start)) {
+          slotStartTime = dayjs
+            .utc(result.value)
+            .add(frequency + (offsetStart ?? 0), "minutes")
+            .tz(timeZone);
+        }
+      }
+      result = iterator.next();
+    }
     while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(range.end)) {
       const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
       let slotData: {
