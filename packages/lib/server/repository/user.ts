@@ -586,18 +586,18 @@ export class UserRepository {
       locked: boolean;
     }
   ) {
-    const organizationId = data.organizationId;
-    const { email, username, creationSource, ...rest } = data;
+    const organizationIdValue = data.organizationId;
+    const { email, username, creationSource, hashedPassword, organizationId, ...rest } = data;
 
-    console.log("create user", { email, username, organizationId });
+    console.log("create user", { email, username, organizationIdValue });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
-    return await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         username,
         email: email,
-        ...(data.hashedPassword && { password: { create: { hash: hashedPassword } } }),
+        ...(data.hashedPassword && { password: { create: { hash: data.hashedPassword } } }),
         // Default schedule
         schedules: {
           create: {
@@ -614,13 +614,13 @@ export class UserRepository {
           },
         },
         creationSource,
-        ...(!!organizationId
+        ...(organizationIdValue
           ? {
-              organizationId: organizationId,
+              organizationId: organizationIdValue,
               profiles: {
                 create: {
                   username,
-                  organizationId: organizationId,
+                  organizationId: organizationIdValue,
                   uid: ProfileRepository.generateProfileUid(),
                 },
               },
@@ -629,6 +629,9 @@ export class UserRepository {
         ...rest,
       },
     });
+    console.log("🚀 ~ UserRepository ~ user:", user);
+
+    return user;
   }
   static async getUserAdminTeams(userId: number) {
     return prisma.user.findFirst({
