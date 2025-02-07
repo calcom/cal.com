@@ -24,6 +24,8 @@
   "verify_email_email_header": "تأكيد عنوان بريدك الإلكتروني",
   "verify_email_email_button": "تأكيد البريد الإلكتروني",
   "cal_ai_assistant": "مساعد Cal AI",
+  "send_cal_video_transcription_emails": "إرسال رسائل البريد الإلكتروني لنصوص فيديو Cal",
+  "description_send_cal_video_transcription_emails": "إرسال رسائل بريد إلكتروني تحتوي على النص المكتوب لفيديو Cal بعد انتهاء الاجتماع. (يتطلب خطة مدفوعة)",
   "verify_email_change_description": "لقد طلبت تغيير البريد الإلكتروني المستخدم لحسابك في {{appName}}. الرجاء النقر على الزر أدناه لتأكيد بريدك الإلكتروني الجديد.",
   "verify_email_change_success_toast": "تم تحديث بريدك الإلكتروني إلى {{email}}",
   "verify_email_change_failure_toast": "فشل تحديث البريد الإلكتروني.",

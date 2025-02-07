@@ -24,6 +24,8 @@
   "verify_email_email_header": "Verificați-vă adresa de e-mail",
   "verify_email_email_button": "Verificare e-mail",
   "cal_ai_assistant": "Asistentul AI Cal",
+  "send_cal_video_transcription_emails": "Trimite e-mailuri cu transcrierea video Cal",
+  "description_send_cal_video_transcription_emails": "Trimite e-mailuri cu transcrierea înregistrării video Cal după încheierea întâlnirii. (Necesită un abonament plătit)",
   "verify_email_change_description": "Ai solicitat recent schimbarea adresei de email pe care o folosești pentru a te conecta la contul tău {{appName}}. Te rugăm să faci clic pe butonul de mai jos pentru a confirma noua adresă de email.",
   "verify_email_change_success_toast": "Adresa ta de email a fost actualizată la {{email}}",
   "verify_email_change_failure_toast": "Nu s-a putut actualiza adresa de email.",
