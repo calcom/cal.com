@@ -847,14 +847,18 @@ export default class SalesforceCRMService implements CRM {
     }
 
     await conn
-      .sobject(appOptions?.createEventOn)
+      .sobject(recordType)
       .update({
         // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
       })
       .catch((error) => {
-        this.log.warn(`Error changing owner name with error ${JSON.stringify(error)}`);
+        this.log.warn(
+          `Error changing record ${id} of type ${recordType} owner to ${newOwnerId} with error ${JSON.stringify(
+            error
+          )}`
+        );
       });
   }
 
