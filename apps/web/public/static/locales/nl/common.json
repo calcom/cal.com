@@ -24,6 +24,8 @@
   "verify_email_email_header": "Verifieer uw e-mailadres",
   "verify_email_email_button": "E-mailadres verifiëren",
   "cal_ai_assistant": "Cal AI Assistent",
+  "send_cal_video_transcription_emails": "Cal Video transcriptie-e-mails versturen",
+  "description_send_cal_video_transcription_emails": "Verstuur e-mails met de transcriptie van de Cal Video na afloop van de meeting. (Vereist een betaald abonnement)",
   "verify_email_change_description": "Je hebt onlangs verzocht om het e-mailadres te wijzigen dat je gebruikt om in te loggen op je {{appName}}-account. Klik op de onderstaande knop om je nieuwe e-mailadres te bevestigen.",
   "verify_email_change_success_toast": "Je e-mailadres is bijgewerkt naar {{email}}",
   "verify_email_change_failure_toast": "Het bijwerken van het e-mailadres is mislukt.",

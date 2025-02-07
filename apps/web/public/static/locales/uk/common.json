@@ -24,6 +24,8 @@
   "verify_email_email_header": "Підтвердьте свою електронну адресу",
   "verify_email_email_button": "Підтвердити ел. адресу",
   "cal_ai_assistant": "Cal AI Асистент",
+  "send_cal_video_transcription_emails": "Надсилати розшифровки відеозустрічей Cal",
+  "description_send_cal_video_transcription_emails": "Надсилати електронні листи з розшифровкою відеозустрічі Cal після її завершення. (Потрібен платний тариф)",
   "verify_email_change_description": "Ви нещодавно просили змінити адресу електронної пошти, яку ви використовуєте для входу в обліковий запис {{appName}}. Будь ласка, натисніть на кнопку нижче, щоб підтвердити нову електронну адресу.",
   "verify_email_change_success_toast": "Оновлено вашу електронну пошту до {{email}}",
   "verify_email_change_failure_toast": "Не вдалося оновити адресу електронної пошти.",
