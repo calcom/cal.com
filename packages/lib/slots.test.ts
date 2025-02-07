@@ -167,9 +167,28 @@ describe("Tests the date-range slot logic", () => {
       offsetStart: 0,
     });
 
-    console.log(result);
-
     expect(result).toHaveLength(2);
+    /*
+
+TODO FIX:
+    // also check for order independency.
+    const dateRangesInverseOrder = [
+      // 11:15-13:00
+      dateRanges[1],
+      // 11:00-13:00
+      dateRanges[0],
+    ];
+
+    const resultInverseOrder = getSlots({
+      inviteeDate: nextDay,
+      frequency: 45,
+      minimumBookingNotice: 0,
+      dateRanges: dateRangesInverseOrder,
+      eventLength: 45,
+      offsetStart: 0,
+    });
+
+    expect(resultInverseOrder).toHaveLength(2);*/
   });
 
   it("finds correct slots over the span of multiple days", async () => {
@@ -313,7 +332,6 @@ describe("Tests the date-range slot logic", () => {
      * 2023-07-13T07:38:00.000Z
      * 2023-07-13T07:46:00.000Z
      */
-    console.log(slots);
     expect(slots).toHaveLength(4);
   });
 });
