@@ -31,7 +31,9 @@ export function useFilterableColumns<TData>(table: Table<TData>) {
             // `useReactTable({ ... })`.
             //
             // So we use `table.options.getFacetedUniqueValues` instead.
-            let values = table.options?.getFacetedUniqueValues?.(table, column.id);
+            type FacetedValue = string | { label: string; value: string | number };
+            let values: Map<FacetedValue, number> | (() => Map<FacetedValue, number>) | undefined =
+              table.options?.getFacetedUniqueValues?.(table, column.id);
             if (typeof values === "function") {
               values = values();
             }

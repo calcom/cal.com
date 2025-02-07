@@ -15,6 +15,11 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.REJECTED]: 5,
 };
 
+type FacetedValue = {
+  label: string;
+  value: string | number;
+};
+
 export const useInsightsFacetedUniqueValues = ({
   headers,
   userId,
@@ -44,13 +49,15 @@ export const useInsightsFacetedUniqueValues = ({
   });
 
   return useCallback(
-    (_: Table<any>, columnId: string) => {
+    (_: Table<any>, columnId: string): Map<FacetedValue, number> => {
       if (!headers) {
-        return new Map();
+        return new Map<FacetedValue, number>();
       }
 
-      const fromArrayToMap = (array: { label: string; value: string | number }[]) => {
-        return new Map(array.map((option) => [{ label: option.label, value: option.value }, 1]));
+      const fromArrayToMap = (array: FacetedValue[]) => {
+        return new Map<FacetedValue, number>(
+          array.map((option) => [{ label: option.label, value: option.value }, 1])
+        );
       };
 
       const fieldHeader = headers.find((h) => h.id === columnId);
@@ -92,7 +99,7 @@ export const useInsightsFacetedUniqueValues = ({
           })) ?? []
         );
       }
-      return new Map();
+      return new Map<FacetedValue, number>();
     },
     [headers, forms, users, eventTypes]
   );
