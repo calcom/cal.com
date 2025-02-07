@@ -496,8 +496,8 @@ async function selectToAndFromDates(page: Page, fromDate: string, toDate: string
 
   await page.locator(`button[name="${month}-month"]`).click();
 
-  await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
-  await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
 }
 
 async function selectDateAndCreateOOO(
@@ -509,8 +509,8 @@ async function selectDateAndCreateOOO(
 ) {
   const t = await localize("en");
   await page.locator(`button[name="next-month"]`).click();
-  await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
-  await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
   await page.locator(`text=${t("create_an_out_of_office")}`).click();
   await page.getByTestId("reason_select").click();
   await page.getByTestId("select-option-4").click();

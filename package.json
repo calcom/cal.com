@@ -65,7 +65,7 @@
     "tdd": "vitest watch",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
-    "e2e:embed": "QUICK=true yarn playwright test --project=@calcom/embed-core",
+    "e2e:embed": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/embed-core",
     "e2e:embed-react": "QUICK=true yarn playwright test --project=@calcom/embed-react",
     "test-e2e": "yarn db-seed && yarn e2e",
     "test-e2e:app-store": "yarn db-seed && yarn e2e:app-store",

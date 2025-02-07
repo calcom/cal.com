@@ -140,6 +140,7 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/",
     "/403",
     "/500",
     "/icons",
@@ -154,17 +155,8 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    "/auth/logout",
-    "/auth/error",
-    "/auth/signin",
-    "/auth/oauth2/authorize",
-    "/auth/platform/authorize",
-    "/auth/verify-email-change",
-    "/auth/verify-email",
-    "/auth/verify",
-    "/auth/setup",
     "/apps/:path*",
+    "/auth/:path*",
     "/event-types/:path*",
     "/workflows/:path*",
     "/getting-started/:path*",
