@@ -1,3 +1,5 @@
+import type z from "zod";
+
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
@@ -7,6 +9,7 @@ import type {
   IdentityProvider,
   MembershipRole,
 } from "@calcom/prisma/enums";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
@@ -14,7 +17,7 @@ import { UserRepository } from "../repository/user";
 interface CreateUserInput {
   email: string;
   username: string;
-  name?: string | null;
+  name?: string;
   password?: string;
   brandColor?: string;
   darkBrandColor?: string;
@@ -30,6 +33,7 @@ interface CreateUserInput {
   emailVerified?: Date;
   identityProvider?: IdentityProvider;
   identityProviderId?: string;
+  metadata?: z.infer<typeof userMetadata>;
 }
 
 interface OrgData {
@@ -42,7 +46,7 @@ const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
   static async createUser({ data, orgData }: { data: CreateUserInput; orgData?: OrgData }) {
-    const { email, password, username } = data;
+    const { email, password, username, metadata, ...restUserInput } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
 
@@ -50,10 +54,12 @@ export class UserCreationService {
 
     const user = await UserRepository.create({
       data: {
-        ...data,
+        ...restUserInput,
         username: slugify(username),
+        email,
         ...(hashedPassword && { hashedPassword }),
         locked: shouldLockByDefault,
+        ...(!!metadata && { metadata }),
       },
       ...(orgData ? orgData : {}),
     });
