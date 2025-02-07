@@ -15,17 +15,15 @@ import { useMemo, useId } from "react";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import type { ExternalFilter } from "@calcom/features/data-table";
 import {
   DataTableWrapper,
   DataTableFilters,
-  DataTableProvider,
   DataTableSkeleton,
-  useColumnFilters,
-  multiSelectFilter,
-  textFilter,
   dataTableFilter,
   useDataTable,
+  DateRangeFilter,
+  ColumnFilterType,
+  type FilterableColumn,
 } from "@calcom/features/data-table";
 import classNames from "@calcom/lib/classNames";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -44,13 +42,9 @@ import {
   HoverCardPortal,
 } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
-import { ClearFilters } from "../filters/ClearFilters";
-import { DateSelect } from "../filters/DateSelect";
 import { RoutingFormResponsesDownload } from "../filters/Download";
-import { RoutingFormFilterList } from "../filters/RoutingFormFilterList";
-import { TeamAndSelfList } from "../filters/TeamAndSelfList";
-import { UserListInTeam } from "../filters/UserListInTeam";
+import { OrgTeamsFilter } from "../filters/OrgTeamsFilter";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import {
   ZResponseMultipleValues,
   ZResponseSingleValue,
@@ -251,65 +245,51 @@ function BookingAtCell({
 
 export type RoutingFormTableType = ReturnType<typeof useReactTable<RoutingFormTableRow>>;
 
+const createdAtColumn: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }> = {
+  id: "createdAt",
+  title: "createdAt",
+  type: ColumnFilterType.DATE_RANGE,
+};
+
 export function RoutingFormResponsesTable() {
-  return (
-    <DataTableProvider>
-      <RoutingFormResponsesTableContent />
-    </DataTableProvider>
-  );
-}
-
-export function RoutingFormResponsesTableContent() {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
   const { copyToClipboard } = useCopy();
-
-  const {
-    dateRange,
-    selectedTeamId,
-    isAll,
-    initialConfig,
-    selectedRoutingFormId,
-    selectedMemberUserId,
-    selectedUserId,
-  } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-  const [startDate, endDate] = dateRange;
-
-  const columnFilters = useColumnFilters();
-
-  const teamId = selectedTeamId ?? undefined;
-  const userId = selectedUserId ?? undefined;
-  const memberUserId = selectedMemberUserId ?? undefined;
-  const routingFormId = selectedRoutingFormId ?? undefined;
+  const { isAll, teamId, userId, memberUserIds, routingFormId, startDate, endDate, columnFilters } =
+    useInsightsParameters();
 
   const {
     data: headers,
     isLoading: isHeadersLoading,
     isSuccess: isHeadersSuccess,
-  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery(
-    {
-      userId,
-      teamId,
-      isAll: isAll ?? false,
-      routingFormId,
-    },
-    {
-      enabled: initialConfigIsReady,
-    }
-  );
+  } = trpc.viewer.insights.routingFormResponsesHeaders.useQuery({
+    userId,
+    teamId,
+    isAll,
+    routingFormId,
+  });
 
-  const { removeDisplayedExternalFilter, sorting, setSorting } = useDataTable();
+  const { data: forms } = trpc.viewer.insights.getRoutingFormsForFilters.useQuery({
+    userId,
+    teamId,
+    isAll,
+  });
+
+  const { data: users } = trpc.viewer.insights.userList.useQuery({
+    teamId: teamId ?? -1,
+    isAll,
+  });
+
+  const { sorting } = useDataTable();
 
   const { data, fetchNextPage, isFetching, hasNextPage, isLoading } =
     trpc.viewer.insights.routingFormResponses.useInfiniteQuery(
       {
         teamId,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate,
+        endDate,
         userId,
-        memberUserId,
-        isAll: isAll ?? false,
+        memberUserIds,
+        isAll,
         routingFormId,
         columnFilters,
         sorting,
@@ -321,7 +301,6 @@ export function RoutingFormResponsesTableContent() {
         trpc: {
           context: { skipBatch: true },
         },
-        enabled: initialConfigIsReady,
       }
     );
 
@@ -337,6 +316,34 @@ export function RoutingFormResponsesTableContent() {
       return [];
     }
     return [
+      columnHelper.accessor("formId", {
+        id: "formId",
+        header: t("routing_forms"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: { type: ColumnFilterType.SINGLE_SELECT },
+        },
+        cell: () => null,
+        filterFn: (row, id, filterValue) => {
+          const cellValue = row.original.formId;
+          return dataTableFilter(cellValue, filterValue);
+        },
+      }),
+      columnHelper.accessor("bookingUserId", {
+        id: "bookingUserId",
+        header: t("people"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        meta: {
+          filter: { type: ColumnFilterType.MULTI_SELECT },
+        },
+        cell: () => null,
+        filterFn: (row, id, filterValue) => {
+          const cellValue = row.original.bookingUserId;
+          return dataTableFilter(cellValue, filterValue);
+        },
+      }),
       columnHelper.accessor("bookingAttendees", {
         id: "bookingAttendees",
         header: t("routing_form_insights_booked_by"),
@@ -362,12 +369,12 @@ export function RoutingFormResponsesTableContent() {
         const isMultiSelect = fieldHeader.type === RoutingFormFieldType.MULTI_SELECT;
 
         const filterType = isSingleSelect
-          ? "single_select"
+          ? ColumnFilterType.SINGLE_SELECT
           : isNumber
-          ? "number"
+          ? ColumnFilterType.NUMBER
           : isText
-          ? "text"
-          : "multi_select";
+          ? ColumnFilterType.TEXT
+          : ColumnFilterType.MULTI_SELECT;
 
         const optionMap =
           fieldHeader.options?.reduce((acc, option) => {
@@ -411,7 +418,7 @@ export function RoutingFormResponsesTableContent() {
             filter: { type: filterType },
           },
           filterFn: (row, id, filterValue) => {
-            const cellValue = row.original.response[id].value;
+            const cellValue = row.original.response[id]?.value;
             return dataTableFilter(cellValue, filterValue);
           },
         });
@@ -426,10 +433,11 @@ export function RoutingFormResponsesTableContent() {
           </div>
         ),
         meta: {
-          filter: { type: "multi_select", icon: "circle" },
+          filter: { type: ColumnFilterType.MULTI_SELECT, icon: "circle" },
         },
         filterFn: (row, id, filterValue) => {
-          return multiSelectFilter(row.original.bookingStatusOrder, filterValue);
+          const cellValue = row.original.bookingStatusOrder;
+          return dataTableFilter(cellValue, filterValue);
         },
         sortingFn: (rowA, rowB) => {
           const statusA = rowA.original.bookingStatusOrder ?? 6; // put it at the end if bookingStatusOrder is null
@@ -465,9 +473,10 @@ export function RoutingFormResponsesTableContent() {
       columnHelper.accessor("bookingAssignmentReason", {
         id: "bookingAssignmentReason",
         header: t("routing_form_insights_assignment_reason"),
+        enableColumnFilter: true,
         enableSorting: false,
         meta: {
-          filter: { type: "text" },
+          filter: { type: ColumnFilterType.TEXT },
         },
         cell: (info) => {
           const assignmentReason = info.getValue();
@@ -475,18 +484,24 @@ export function RoutingFormResponsesTableContent() {
         },
         filterFn: (row, id, filterValue) => {
           const reason = row.original.bookingAssignmentReason;
-          return textFilter(reason, filterValue);
+          return dataTableFilter(reason, filterValue);
         },
       }),
       columnHelper.accessor("createdAt", {
         id: "createdAt",
         header: t("routing_form_insights_submitted_at"),
+        // exclude from "Filters" component
+        // because we already have a DateRangeFilter component
         enableColumnFilter: false,
         cell: (info) => (
           <div className="whitespace-nowrap">
             <Badge variant="gray">{dayjs(info.getValue()).format("MMM D, YYYY HH:mm")}</Badge>
           </div>
         ),
+        filterFn: (row, id, filterValue) => {
+          const createdAt = row.original.createdAt;
+          return dataTableFilter(createdAt, filterValue);
+        },
       }),
     ];
   }, [isHeadersSuccess, headers, t, copyToClipboard]);
@@ -500,90 +515,88 @@ export function RoutingFormResponsesTableContent() {
     defaultColumn: {
       size: 150,
     },
-    state: {
-      sorting,
-      columnFilters,
+    initialState: {
+      columnVisibility: {
+        formId: false,
+        bookingUserId: false,
+      },
     },
-    onSortingChange: setSorting,
     getFacetedUniqueValues: (_, columnId) => () => {
       if (!headers) {
         return new Map();
       }
 
+      const fromArrayToMap = (array: { label: string; value: string | number }[]) => {
+        return new Map(array.map((option) => [{ label: option.label, value: option.value }, 1]));
+      };
+
       const fieldHeader = headers.find((h) => h.id === columnId);
       if (fieldHeader?.options) {
-        return new Map(fieldHeader.options.map((option) => [{ label: option.label, value: option.id }, 1]));
+        return fromArrayToMap(
+          fieldHeader.options
+            .filter((option): option is { id: string; label: string } => option.id !== null)
+            .map((option) => ({
+              label: option.label,
+              value: option.id,
+            }))
+        );
       } else if (columnId === "bookingStatusOrder") {
-        return new Map(
-          Object.keys(statusOrder).map((status) => [
-            {
-              value: statusOrder[status as BookingStatus],
-              label: bookingStatusToText(status as BookingStatus),
-            },
-            1,
-          ])
+        return fromArrayToMap(
+          Object.keys(statusOrder).map((status) => ({
+            value: statusOrder[status as BookingStatus],
+            label: bookingStatusToText(status as BookingStatus),
+          }))
+        );
+      } else if (columnId === "formId") {
+        return fromArrayToMap(
+          forms?.map((form) => ({
+            label: form.name,
+            value: form.id,
+          })) ?? []
+        );
+      } else if (columnId === "bookingUserId") {
+        return fromArrayToMap(
+          users?.map((user) => ({
+            label: user.name ?? user.email,
+            value: user.id,
+          })) ?? []
         );
       }
       return new Map();
     },
   });
 
-  const externalFilters = useMemo<ExternalFilter[]>(
-    () => [
-      {
-        key: "memberUserId",
-        titleKey: "people",
-        component: () => (
-          <UserListInTeam
-            showOnlyWhenSelectedInContext={false}
-            onClear={() => removeDisplayedExternalFilter("memberUserId")}
-          />
-        ),
-      },
-    ],
-    [removeDisplayedExternalFilter]
-  );
-
-  if (isHeadersLoading || ((isFetching || isLoading) && !data)) {
+  if ((isHeadersLoading && !headers) || ((isFetching || isLoading) && !data)) {
     return <DataTableSkeleton columns={4} columnWidths={[200, 200, 250, 250]} />;
   }
 
   return (
-    <div className="flex-1">
-      <DataTableWrapper
-        table={table}
-        isPending={isFetching && !data}
-        hasNextPage={hasNextPage}
-        fetchNextPage={fetchNextPage}
-        isFetching={isFetching}
-        ToolbarLeft={
-          <>
-            <TeamAndSelfList omitOrg={true} className="mb-0" />
-            <DataTableFilters.AddFilterButton table={table} externalFilters={externalFilters} />
-            <RoutingFormFilterList showOnlyWhenSelectedInContext={false} />
-            <DataTableFilters.ActiveFilters table={table} externalFilters={externalFilters} />
-            <ClearFilters />
-          </>
-        }
-        ToolbarRight={
-          <>
-            <DateSelect />
-            <RoutingFormResponsesDownload
-              startDate={startDate}
-              endDate={endDate}
-              teamId={teamId}
-              userId={userId}
-              isAll={isAll ?? false}
-              memberUserId={memberUserId}
-              routingFormId={routingFormId}
-              columnFilters={columnFilters}
-              sorting={sorting}
-            />
-            <DataTableFilters.ColumnVisibilityButton table={table} />
-          </>
-        }>
-        <RoutingKPICards />
-      </DataTableWrapper>
-    </div>
+    <>
+      <div className="flex-1">
+        <DataTableWrapper
+          table={table}
+          isPending={isFetching && !data}
+          hasNextPage={hasNextPage}
+          fetchNextPage={fetchNextPage}
+          isFetching={isFetching}
+          ToolbarLeft={
+            <>
+              <OrgTeamsFilter />
+              <DataTableFilters.AddFilterButton table={table} />
+              <DataTableFilters.ActiveFilters table={table} />
+              <DataTableFilters.ClearFiltersButton exclude={["createdAt"]} />
+            </>
+          }
+          ToolbarRight={
+            <>
+              <DateRangeFilter column={createdAtColumn} />
+              <RoutingFormResponsesDownload sorting={sorting} />
+              <DataTableFilters.ColumnVisibilityButton table={table} />
+            </>
+          }>
+          <RoutingKPICards />
+        </DataTableWrapper>
+      </div>
+    </>
   );
 }
