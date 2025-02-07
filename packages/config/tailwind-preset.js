@@ -280,6 +280,7 @@ module.exports = {
       },
       boxShadow: {
         dropdown: "0px 5px 20px 0px rgba(0, 0, 0, 0.10), 0px 10px 40px 0px rgba(0, 0, 0, 0.03)",
+        "switch-thumb": "0px 0.8px 0.8px 0px rgba(0, 0, 0, 0.10), 0px 0.8px 3.2px 0px rgba(0, 0, 0, 0.08)",
         "solid-gray-rested":
           "0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.16) inset, 0px -1.5px 2px 0px rgba(0, 0, 0, 0.40) inset",
         "solid-gray-hover":

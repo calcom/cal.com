@@ -1,4 +1,5 @@
 import { componentSource } from "@/app/source";
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { DocsLayout } from "fumadocs-ui/layouts/notebook";
 import type { ReactNode } from "react";
 
@@ -10,7 +11,7 @@ export default function Layout({ children }: { children: ReactNode }) {
   return (
     // @ts-expect-error weird type check
     <DocsLayout tree={componentSource.pageTree} {...baseOptions}>
-      {children}
+      <TooltipProvider>{children}</TooltipProvider>
       <IconSprites />
     </DocsLayout>
   );
