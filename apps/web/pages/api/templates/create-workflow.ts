@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -17,7 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { workflowId, slug } = req.body;
-    console.log("User ID:", session.user.id);
 
     if (!workflowId && !slug) {
       return res

@@ -3,7 +3,6 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import type { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypes } from "@calcom/web/lib/templates/event-types";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -37,13 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         slug: templateEventType.template.slug,
         description: templateEventType.template.description,
         length: templateEventType.template.length,
-        requiresConfirmation: templateEventType.template.requiresConfirmation,
-        disableGuests: templateEventType.template.disableGuests,
-        minimumBookingNotice: templateEventType.template.minimumBookingNotice,
-        schedulingType: templateEventType.template.schedulingType as SchedulingType,
-        seatsPerTimeSlot: templateEventType.template.seatsPerTimeSlot,
-        seatsShowAttendees: templateEventType.template.seatsShowAttendees,
-        seatsShowAvailabilityCount: templateEventType.template.seatsShowAvailabilityCount,
         userId: session.user.id,
         users: {
           connect: {

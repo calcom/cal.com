@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
@@ -17,7 +18,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { templateId, slug } = req.body;
-    console.log(session.user.id);
 
     if (!templateId || !slug) {
       return res.status(400).json({ message: "Missing required field: templateId or slug" });
