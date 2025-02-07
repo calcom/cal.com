@@ -188,7 +188,8 @@ function buildSlotsWithDateRanges({
 
   const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-  dateRanges.forEach((range) => {
+  const orderedDateRanges = dateRanges.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+  orderedDateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)

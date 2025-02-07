@@ -168,15 +168,21 @@ describe("Tests the date-range slot logic", () => {
     });
 
     expect(result).toHaveLength(2);
-    /*
+  });
+  it("finds correct slots when two unequal date ranges are given (inverse)", async () => {
+    const nextDay = dayjs.utc().add(1, "day").startOf("day");
 
-TODO FIX:
-    // also check for order independency.
     const dateRangesInverseOrder = [
       // 11:15-13:00
-      dateRanges[1],
+      {
+        start: nextDay.hour(11).minute(15),
+        end: nextDay.hour(13),
+      },
       // 11:00-13:00
-      dateRanges[0],
+      {
+        start: nextDay.hour(11),
+        end: nextDay.hour(13),
+      },
     ];
 
     const resultInverseOrder = getSlots({
@@ -188,7 +194,7 @@ TODO FIX:
       offsetStart: 0,
     });
 
-    expect(resultInverseOrder).toHaveLength(2);*/
+    expect(resultInverseOrder).toHaveLength(2);
   });
 
   it("finds correct slots over the span of multiple days", async () => {
