@@ -91,7 +91,7 @@ export const OrgTeamsFilter = () => {
         {isOrgDataAvailable && (
           <FilterCheckboxField
             id="all"
-            data-testid="org-teams-filter-item"
+            testId="org-teams-filter-item"
             icon={<Icon name="layers" className="h-4 w-4" />}
             checked={orgTeamsType === "org"}
             onChange={(e) => {
@@ -107,7 +107,7 @@ export const OrgTeamsFilter = () => {
 
         <FilterCheckboxField
           id="yours"
-          data-testid="org-teams-filter-item"
+          testId="org-teams-filter-item"
           icon={
             <Avatar
               alt={`${currentUserName} avatar`}
@@ -133,7 +133,7 @@ export const OrgTeamsFilter = () => {
           .map((team) => {
             return (
               <FilterCheckboxField
-                data-testid="org-teams-filter-item"
+                testId="org-teams-filter-item"
                 key={team.id}
                 id={team.name || ""}
                 label={team.name || ""}
