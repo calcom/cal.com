@@ -39,11 +39,6 @@ function getRoute(appName: string, pages: string[]) {
     AppPageType
   >;
 
-  if (!routingConfig) {
-    return {
-      notFound: true,
-    } as NotFound;
-  }
   const mainPage = pages[0];
   const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
   if (!appPage) {
@@ -59,16 +54,21 @@ function AppPage(props: PageProps) {
   const appName = props.appName;
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
+
+  if (appName !== "routing-forms" && appName !== "typeform") {
+    throw new Error("slug should be routing-forms or typeform");
+  }
+
   const route = getRoute(appName, pages);
+
+  if (!route || route.notFound) {
+    throw new Error("Route can't be undefined");
+  }
 
   const componentProps = {
     ...props,
     pages: pages.slice(1),
   };
-
-  if (!route || route.notFound) {
-    throw new Error("Route can't be undefined");
-  }
   const component = <route.Component {...componentProps} />;
 
   if (appName === "routing-forms") {

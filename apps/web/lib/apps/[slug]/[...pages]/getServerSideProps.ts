@@ -2,8 +2,7 @@ import type { GetServerSidePropsContext, GetServerSidePropsResult } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
-import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
-import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
+import { serverSidePropsConfig } from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import prisma from "@calcom/prisma";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
@@ -22,7 +21,6 @@ type AppPageType = {
 
 type Found = {
   notFound: false;
-  Component: AppPageType["default"];
   getServerSideProps: AppPageType["getServerSideProps"];
 };
 
@@ -30,28 +28,16 @@ type NotFound = {
   notFound: true;
 };
 
-// TODO: It is a candidate for apps.*.generated.*
-const AppsRouting = {
-  "routing-forms": RoutingFormsRoutingConfig,
-  typeform: TypeformRoutingConfig,
-};
-
-function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
-
-  if (!routingConfig) {
-    return {
-      notFound: true,
-    } as NotFound;
-  }
+function getRoute(pages: string[]) {
   const mainPage = pages[0];
-  const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
-  if (!appPage) {
+  const getServerSideProps = serverSidePropsConfig[mainPage];
+
+  if (!getServerSideProps) {
     return {
       notFound: true,
     } as NotFound;
   }
-  return { notFound: false, Component: appPage.default, ...appPage } as Found;
+  return { notFound: false, getServerSideProps } as Found;
 }
 
 const paramsSchema = z.object({
@@ -77,8 +63,19 @@ export async function getServerSideProps(
   }
 
   const appName = parsedParams.data.slug;
+  if (appName !== "routing-forms" && appName !== "typeform") {
+    return { notFound: true };
+  }
+  if (appName === "typeform") {
+    return {
+      props: {
+        appName,
+      },
+    };
+  }
+
   const pages = parsedParams.data.pages;
-  const route = getRoute(appName, pages);
+  const route = getRoute(pages);
 
   if (route.notFound) {
     return { notFound: true };
