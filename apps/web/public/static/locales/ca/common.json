@@ -24,6 +24,8 @@
   "verify_email_email_header": "Verifica la teva adreça de correu",
   "verify_email_email_button": "Verifica el correu",
   "cal_ai_assistant": "Assistent IA de Cal",
+  "send_cal_video_transcription_emails": "Envia correus amb la transcripció del vídeo de Cal",
+  "description_send_cal_video_transcription_emails": "Envia correus amb la transcripció del vídeo de Cal després que finalitzi la reunió. (Requereix un pla de pagament)",
   "verify_email_change_description": "Has sol·licitat recentment canviar l'adreça de correu que utilitzes per iniciar sessió al teu compte de {{appName}}. Si us plau, fes clic al botó següent per confirmar la nova adreça.",
   "verify_email_change_success_toast": "S'ha actualitzat el teu correu a {{email}}",
   "verify_email_change_failure_toast": "No s'ha pogut actualitzar el correu.",

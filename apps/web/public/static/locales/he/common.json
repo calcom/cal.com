@@ -24,6 +24,8 @@
   "verify_email_email_header": "יש לאמת את כתובת הדוא״ל שלך",
   "verify_email_email_button": "אימות כתובת דוא״ל",
   "cal_ai_assistant": "מסייע בינה מלאכותית ל־Cal",
+  "send_cal_video_transcription_emails": "שלח תמלולי וידאו של Cal במייל",
+  "description_send_cal_video_transcription_emails": "שליחת מיילים עם תמלול הווידאו של Cal לאחר סיום הפגישה. (נדרשת חבילה בתשלום)",
   "verify_email_change_description": "בדקות האחרונות ביקשת לשנות את כתובת הדוא״ל שמשמשת אותך לכניסה לחשבון שלך אצל {{appName}}. נא ללחוץ על הכפתור להלן כדי לאשר את כתובת הדוא״ל החדשה שלך.",
   "verify_email_change_success_toast": "כתובת הדוא״ל שלך עודכנה ל־{{email}}",
   "verify_email_change_failure_toast": "עדכון כתובת הדוא״ל נכשל.",
