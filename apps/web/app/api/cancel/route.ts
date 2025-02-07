@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
+import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
@@ -25,7 +26,7 @@ async function handler(req: NextRequest) {
   return NextResponse.json(result, { status: statusCode });
 }
 
-const deleteHandler = (req: NextRequest) => handler(req);
-const postHandler = (req: NextRequest) => handler(req);
+const deleteHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
+const postHandler = apiRouteMiddleware((req: NextRequest) => handler(req));
 
 export { deleteHandler as DELETE, postHandler as POST };
