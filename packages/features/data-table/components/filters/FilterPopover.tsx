@@ -90,15 +90,13 @@ function AppliedSelectFilterValue({ column, filterValue }: SelectedLabelsProps) 
     moreCount = filterValue.data.length - 1;
   }
 
-  if (!text && !moreCount) return null;
+  if (!text) return null;
 
   return (
     <>
-      {text && (
-        <Badge variant="gray" className="ml-2">
-          {text}
-        </Badge>
-      )}
+      <Badge variant="gray" className="ml-2">
+        {text}
+      </Badge>
       {moreCount > 0 && (
         <Badge variant="gray" className="ml-2">
           +{moreCount}
