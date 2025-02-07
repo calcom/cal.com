@@ -21,7 +21,7 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
     <span className="mt-0.5">
       <Icon name="check" className="h-4 w-4" />
     </span>
-    <p data-testid="toast-success" className="w-full text-left">
+    <p data-testid="toast-success" className="m-0 w-full text-left">
       {message}
     </p>
     <span className="mt-0.5">
@@ -40,7 +40,7 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) 
     <span className="mt-0.5">
       <Icon name="info" className="text-semantic-error h-4 w-4" />
     </span>
-    <p data-testid="toast-error" className="w-full text-left">
+    <p data-testid="toast-error" className="m-0 w-full text-left">
       {message}
     </p>
     <span className="mt-0.5">
@@ -59,7 +59,7 @@ export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast
     <span className="mt-0.5">
       <Icon name="info" className="text-semantic-attention h-4 w-4" />
     </span>
-    <p data-testid="toast-warning" className="w-full text-left">
+    <p data-testid="toast-warning" className="m-0 w-full text-left">
       {message}
     </p>
     <span className="mt-0.5">

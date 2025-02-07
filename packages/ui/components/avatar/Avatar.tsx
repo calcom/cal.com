@@ -41,7 +41,7 @@ export function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
       className={classNames(
-        "bg-emphasis item-center border-1 border-default relative inline-flex aspect-square justify-center rounded-full align-top",
+        "bg-emphasis border-1 border-default relative inline-flex aspect-square items-center justify-center rounded-full align-top",
         indicator ? "overflow-visible" : "overflow-hidden",
         props.className,
         sizesPropsBySize[size]

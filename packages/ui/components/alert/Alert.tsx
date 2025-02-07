@@ -47,7 +47,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             />
           </div>
         ) : (
-          <div className="mr-2 flex-shrink-0">
+          <div className={classNames("mr-2 flex-shrink-0", props.title ? "" : "mt-0.5")}>
             {severity === "error" && (
               <Icon
                 name="circle-x"
@@ -83,9 +83,9 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
           </div>
         )}
         <div className="flex flex-grow flex-col sm:flex-row">
-          <div className="ltr:ml-3 rtl:mr-3">
-            <h3 className="text-sm font-medium leading-none">{props.title}</h3>
-            <div className="mt-1 text-sm leading-5">{props.message}</div>
+          <div className="space-y-1 ltr:ml-3 rtl:mr-3">
+            {props.title && <h3 className="text-sm font-medium leading-none">{props.title}</h3>}
+            {props.message && <div className="text-sm leading-5">{props.message}</div>}
           </div>
           {props.actions && (
             <div className="ml-auto mt-auto text-sm sm:mt-0 md:relative">{props.actions}</div>
