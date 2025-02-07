@@ -35,7 +35,6 @@ const verticalTabItems = [
     name: "Notifications",
     href: "#",
     icon: "bell",
-    info: "3 unread notifications",
   },
   {
     name: "Documentation",
@@ -56,18 +55,16 @@ export const VerticalExample: React.FC = () => {
 
   return (
     <RenderComponentWithSnippet>
-      <div className="space-y-6">
+      <div className="max-w-xs space-y-6">
         <div>
           <h3 className="text-emphasis mb-2 text-sm font-medium">Basic</h3>
-          <div className="rounded-md border">
-            <VerticalTabs
-              tabs={verticalTabItems.map((item) => ({
-                ...item,
-                onClick: () => setActiveTab(item.name),
-                isActive: activeTab === item.name,
-              }))}
-            />
-          </div>
+          <VerticalTabs
+            tabs={verticalTabItems.map((item) => ({
+              ...item,
+              onClick: () => setActiveTab(item.name),
+              isActive: activeTab === item.name,
+            }))}
+          />
         </div>
       </div>
     </RenderComponentWithSnippet>
