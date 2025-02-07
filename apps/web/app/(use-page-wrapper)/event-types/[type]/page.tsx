@@ -34,7 +34,6 @@ export const generateMetadata = async ({ params }: _PageProps) => {
 
   const data = await EventTypeRepository.findTitleById({
     id: parsed.data.type,
-    userId: session?.user?.id,
   });
 
   return await _generateMetadata(
