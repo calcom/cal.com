@@ -32,15 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "Template not found" });
     }
 
-    console.log("Template found:", templateForm); // Debug log
-    console.log("Creating form with data:", {
-      // Debug log
-      name: `${templateForm.name}`,
-      userId: session.user.id,
-      fields: Array.isArray(templateForm.template.fields) ? templateForm.template.fields : [],
-      routes: Array.isArray(templateForm.template.routes) ? templateForm.template.routes : [],
-    });
-
     const newForm = await prisma.app_RoutingForms_Form.create({
       data: {
         name: `${templateForm.name}`,

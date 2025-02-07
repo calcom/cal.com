@@ -38,17 +38,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "Template workflow not found" });
     }
 
-    // Enhanced debug logging
-    console.log("Template found:", templateWorkflow);
-    console.log("Creating workflow with exact data:", {
-      name: templateWorkflow.name,
-      userId: session.user.id,
-      steps: templateWorkflow.template.steps,
-      trigger: templateWorkflow.template.trigger,
-      time: templateWorkflow.template.time || 0,
-      timeUnit: templateWorkflow.template.timeUnit || null,
-    });
-
     const newWorkflow = await prisma.workflow.create({
       data: {
         name: templateWorkflow.name,
