@@ -24,6 +24,8 @@
   "verify_email_email_header": "이메일 주소 인증",
   "verify_email_email_button": "이메일 인증",
   "cal_ai_assistant": "Cal AI 어시스턴트",
+  "send_cal_video_transcription_emails": "Cal 영상 녹취록 이메일 전송",
+  "description_send_cal_video_transcription_emails": "미팅 종료 후 Cal 영상의 녹취록을 이메일로 전송합니다. (유료 플랜 필요)",
   "verify_email_change_description": "최근에 {{appName}} 계정에 로그인하는 이메일 주소를 변경하셨습니다. 아래 버튼을 클릭하여 새 이메일 주소를 확인해 주세요.",
   "verify_email_change_success_toast": "이메일이 {{email}}(으)로 업데이트되었습니다.",
   "verify_email_change_failure_toast": "이메일 업데이트에 실패했습니다.",

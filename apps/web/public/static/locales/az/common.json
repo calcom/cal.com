@@ -24,6 +24,8 @@
   "verify_email_email_header": "E-poçt ünvanınızı təsdiqləyin",
   "verify_email_email_button": "E-poçtu təsdiqləyin",
   "cal_ai_assistant": "Cal AI Köməkçisi",
+  "send_cal_video_transcription_emails": "Cal Video transkript e-poçtları göndər",
+  "description_send_cal_video_transcription_emails": "Görüş bitdikdən sonra Cal Video transkripti ilə e-poçtlar göndər. (Ödənişli plan tələb olunur)",
   "verify_email_change_description": "Son zamanlarda {{appName}} hesabınıza daxil olmaq üçün istifadə etdiyiniz e-poçt ünvanını dəyişdirmək istədiyinizi bildirdiniz. Yeni e-poçt ünvanınızı təsdiqləmək üçün aşağıdakı düyməni basın.",
   "verify_email_change_success_toast": "E-poçt ünvanınız {{email}} olaraq yeniləndi",
   "verify_email_change_failure_toast": "E-poçt ünvanını yeniləmək mümkün olmadı.",

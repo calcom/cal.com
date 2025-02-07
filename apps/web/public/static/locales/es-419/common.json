@@ -24,6 +24,8 @@
   "verify_email_email_header": "Verifica tu dirección de correo electrónico",
   "verify_email_email_button": "Verificar correo electrónico",
   "cal_ai_assistant": "Asistente de IA de Cal",
+  "send_cal_video_transcription_emails": "Enviar correos con transcripción de Cal Video",
+  "description_send_cal_video_transcription_emails": "Enviar correos con la transcripción del Cal Video después de que finalice la reunión. (Requiere un plan de pago)",
   "verify_email_change_description": "Recientemente has solicitado cambiar la dirección de correo electrónico que usas para iniciar sesión en tu cuenta de {{appName}}. Por favor, haz clic en el botón de abajo para confirmar tu nueva dirección de correo electrónico.",
   "verify_email_change_success_toast": "Actualizaste tu correo electrónico a {{email}}",
   "verify_email_change_failure_toast": "No se pudo actualizar el correo electrónico.",

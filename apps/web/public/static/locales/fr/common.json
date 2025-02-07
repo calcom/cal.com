@@ -24,6 +24,8 @@
   "verify_email_email_header": "Vérifiez votre adresse e-mail",
   "verify_email_email_button": "Vérifier l'adresse e-mail",
   "cal_ai_assistant": "Assistant Cal AI",
+  "send_cal_video_transcription_emails": "Envoyer les e-mails de transcription vidéo Cal",
+  "description_send_cal_video_transcription_emails": "Envoyer des e-mails contenant la transcription de la vidéo Cal après la fin de la réunion. (Nécessite un abonnement payant)",
   "verify_email_change_description": "Vous avez récemment demandé à changer l'adresse e-mail que vous utilisez pour vous connecter à votre compte {{appName}}. Veuillez cliquer sur le bouton ci-dessous pour confirmer votre nouvelle adresse e-mail.",
   "verify_email_change_success_toast": "Mise à jour de votre adresse e-mail. Nouvelle : {{email}}",
   "verify_email_change_failure_toast": "Échec de la mise à jour de l'adresse e-mail.",
