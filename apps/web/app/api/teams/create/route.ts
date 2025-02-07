@@ -1,10 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { z } from "zod";
 
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -22,8 +22,11 @@ const generateRandomString = () => {
   return Math.random().toString(36).substring(2, 10);
 };
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { session_id } = querySchema.parse(req.query);
+async function getHandler(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+  const { session_id } = querySchema.parse({
+    session_id: searchParams.get("session_id"),
+  });
 
   const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
     expand: ["subscription"],
@@ -81,9 +84,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   // redirect to team screen
-  res.redirect(302, `/settings/teams/${team.id}/onboard-members?event=team_created`);
+  return NextResponse.redirect(
+    new URL(`/settings/teams/${team.id}/onboard-members?event=team_created`, req.nextUrl.origin),
+    { status: 302 }
+  );
 }
 
-export default defaultHandler({
-  GET: Promise.resolve({ default: defaultResponder(handler) }),
-});
+export { getHandler as GET };
