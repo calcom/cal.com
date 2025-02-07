@@ -49,7 +49,7 @@ export const useInsightsFacetedUniqueValues = ({
   });
 
   return useCallback(
-    (_: Table<any>, columnId: string): Map<FacetedValue, number> => {
+    (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
       if (!headers) {
         return new Map<FacetedValue, number>();
       }

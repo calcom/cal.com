@@ -454,7 +454,7 @@ function UserListTableContent() {
     getSortedRowModel: getSortedRowModel(),
     onRowSelectionChange: setRowSelection,
     getRowId: (row) => `${row.id}`,
-    getFacetedUniqueValues: (_, columnId) => {
+    getFacetedUniqueValues: (_, columnId) => () => {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
