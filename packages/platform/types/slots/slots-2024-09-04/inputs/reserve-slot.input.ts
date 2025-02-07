@@ -26,8 +26,9 @@ export class ReserveSlotInput_2024_09_04 {
   @IsOptional()
   @ApiPropertyOptional({
     example: 5,
-    description:
-      "For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time.",
+    description: `ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).
+      
+      For how many minutes the slot should be reserved - for this long time noone else can book this event type at \`start\` time. If not provided, defaults to 5 minutes.`,
   })
-  reservationDuration = 5;
+  reservationDuration?: number;
 }

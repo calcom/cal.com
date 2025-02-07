@@ -17,6 +17,7 @@ import { EventType, Profile, User } from "@prisma/client";
 import { advanceTo, clear } from "jest-date-mock";
 import { DateTime } from "luxon";
 import * as request from "supertest";
+import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { AttendeeRepositoryFixture } from "test/fixtures/repository/attendee.repository.fixture";
 import { BookingSeatRepositoryFixture } from "test/fixtures/repository/booking-seat.repository.fixture";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
@@ -260,6 +261,8 @@ describe("Slots Endpoints", () => {
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
     let bookingSeatsRepositoryFixture: BookingSeatRepositoryFixture;
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let apiKeyString: string;
 
     const userEmail = `slots-2024-09-04-user-${randomString()}@example.com`;
     let user: User;
@@ -273,19 +276,16 @@ describe("Slots Endpoints", () => {
     let reservedSlot: ReserveSlotOutputData_2024_09_04;
 
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [
-            AppModule,
-            PrismaModule,
-            UsersModule,
-            TokensModule,
-            SchedulesModule_2024_06_11,
-            SlotsModule_2024_09_04,
-          ],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        imports: [
+          AppModule,
+          PrismaModule,
+          UsersModule,
+          TokensModule,
+          SchedulesModule_2024_06_11,
+          SlotsModule_2024_09_04,
+        ],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -299,12 +299,16 @@ describe("Slots Endpoints", () => {
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
         name: userEmail,
         username: userEmail,
       });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
+      apiKeyString = keyString;
 
       const userSchedule: CreateScheduleInput_2024_06_11 = {
         name: `slots-2024-09-04-schedule-${randomString()}`,
@@ -720,6 +724,24 @@ describe("Slots Endpoints", () => {
       expect(slots).toEqual({ ...expectedSlotsUTC });
     });
 
+    it("should not be able reserve a slot with custom duration if no auth is provided", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(400);
+    });
+
     it("should reserve a slot with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       const now = "2049-09-05T12:00:00.000Z";
@@ -729,6 +751,7 @@ describe("Slots Endpoints", () => {
       const slotStartTime = "2050-09-05T10:00:00.000Z";
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
         .send({
           eventTypeId,
           slotStart: slotStartTime,
@@ -1868,7 +1891,6 @@ describe("Slots Endpoints", () => {
           .then(async (response) => {
             const responseBody: GetSlotsOutput_2024_09_04 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            console.log("asap data", JSON.stringify(responseBody.data, null, 2));
             const slots = responseBody.data;
 
             expect(slots).toBeDefined();
@@ -1888,7 +1910,6 @@ describe("Slots Endpoints", () => {
           .then(async (response) => {
             const responseBody: GetSlotsOutput_2024_09_04 = response.body;
             expect(responseBody.status).toEqual(SUCCESS_STATUS);
-            console.log("asap data", JSON.stringify(responseBody.data, null, 2));
             const slots = responseBody.data;
 
             expect(slots).toBeDefined();

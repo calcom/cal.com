@@ -19,6 +19,8 @@ const eventTypeMetadataSchema = z.object({
   multipleDuration: z.number().array().optional(),
 });
 
+const DEFAULT_RESERVATION_DURATION = 5;
+
 @Injectable()
 export class SlotsService_2024_09_04 {
   constructor(
@@ -100,6 +102,8 @@ export class SlotsService_2024_09_04 {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
     if (eventType.userId) {
       const slot = await this.slotsRepository.createSlot(
         eventType.userId,
@@ -107,9 +111,9 @@ export class SlotsService_2024_09_04 {
         startDate.toISO(),
         endDate.toISO(),
         eventType.seatsPerTimeSlot !== null,
-        input.reservationDuration
+        reservationDuration
       );
-      return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
+      return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
     }
 
     const host = eventType.hosts[0];
@@ -119,10 +123,10 @@ export class SlotsService_2024_09_04 {
       startDate.toISO(),
       endDate.toISO(),
       eventType.seatsPerTimeSlot !== null,
-      input.reservationDuration
+      reservationDuration
     );
 
-    return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
+    return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
   }
 
   async getReservedSlot(uid: string) {
@@ -189,15 +193,17 @@ export class SlotsService_2024_09_04 {
       throw new UnprocessableEntityException(`Can't reserve a slot if the event is already booked.`);
     }
 
+    const reservationDuration = input.reservationDuration ?? DEFAULT_RESERVATION_DURATION;
+
     const slot = await this.slotsRepository.updateSlot(
       eventType.id,
       startDate.toISO(),
       endDate.toISO(),
       dbSlot.id,
-      input.reservationDuration
+      reservationDuration
     );
 
-    return this.slotsOutputService.getReservationSlotCreated(slot, input.reservationDuration);
+    return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
   }
 
   async deleteReservedSlot(uid: string) {
