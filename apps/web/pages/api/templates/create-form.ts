@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Find the template either by ID or slug
-    const templateForm = routingForms.find((form: any) =>
+    const templateForm = routingForms.find((form) =>
       templateId ? form.id === templateId : slugify(form.name) === slug
     );
 
@@ -32,14 +32,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(404).json({ message: "Template not found" });
     }
 
+    // Validate template data before creating
+    if (!templateForm.template || !templateForm.name) {
+      return res.status(400).json({ message: "Invalid template data" });
+    }
+
     const newForm = await prisma.app_RoutingForms_Form.create({
       data: {
-        name: `${templateForm.name}`,
+        name: templateForm.name,
         description: templateForm.description || "",
         disabled: false,
         userId: session.user.id,
-        fields: Array.isArray(templateForm.template.fields) ? templateForm.template.fields : [],
-        routes: Array.isArray(templateForm.template.routes) ? templateForm.template.routes : [],
+        fields: templateForm.template.fields || [],
+        routes: templateForm.template.routes || [],
         position: 0,
         settings: { emailOwnerOnSubmission: true },
         createdAt: new Date(),
