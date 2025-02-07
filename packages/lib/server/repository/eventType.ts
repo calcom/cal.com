@@ -441,6 +441,44 @@ export class EventTypeRepository {
     });
   }
 
+  static async findTitleById({ id, userId }: { id: number; userId: number }) {
+    return await prisma.eventType.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
+                },
+              },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              {
+                userId: userId,
+              },
+            ],
+          },
+          {
+            id,
+          },
+        ],
+      },
+      select: {
+        title: true,
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -477,6 +515,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,

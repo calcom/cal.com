@@ -1189,6 +1189,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -5741,6 +5750,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7289,7 +7307,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -7897,7 +7915,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -8027,7 +8045,7 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
+        "required": ["lengthInMinutes", "title", "slug"]
       },
       "OutputAddressLocation_2024_06_14": {
         "type": "object",
@@ -8948,7 +8966,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9589,7 +9607,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10944,7 +10962,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -11087,7 +11105,7 @@
             "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -11715,7 +11733,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -15241,7 +15259,7 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
           }
         },
         "required": ["integration", "externalId"]
