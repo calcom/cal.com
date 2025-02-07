@@ -1,4 +1,4 @@
-import { BadRequestException } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { ApiProperty, ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsBoolean, IsOptional, IsString } from "class-validator";
@@ -17,11 +17,16 @@ import {
   CheckboxGroupFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
-  NameFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
 } from "../inputs";
 
-export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14 {
+export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -47,7 +52,29 @@ export class NameDefaultFieldOutput_2024_06_14 extends NameFieldInput_2024_06_14
   required!: boolean;
 }
 
-export class EmailDefaultFieldOutput_2024_06_14 extends EmailFieldInput_2024_06_14 {
+export class SplitNameDefaultFieldOutput_2024_06_14 extends SplitNameDefaultFieldInput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
+  isDefault = true;
+
+  @IsString()
+  @DocsProperty({
+    default: "splitName",
+  })
+  slug!: "splitName";
+
+  @IsString()
+  @DocsProperty({
+    default: "splitName",
+  })
+  type!: "splitName";
+}
+
+export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -108,7 +135,7 @@ export class LocationDefaultFieldOutput_2024_06_14 {
   hidden!: boolean;
 }
 
-export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
+export class RescheduleReasonDefaultFieldOutput_2024_06_14 extends RescheduleReasonDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -161,7 +188,7 @@ export class RescheduleReasonDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class TitleDefaultFieldOutput_2024_06_14 {
+export class TitleDefaultFieldOutput_2024_06_14 extends TitleDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -214,7 +241,7 @@ export class TitleDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class NotesDefaultFieldOutput_2024_06_14 {
+export class NotesDefaultFieldOutput_2024_06_14 extends NotesDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -267,7 +294,7 @@ export class NotesDefaultFieldOutput_2024_06_14 {
   disableOnPrefill!: boolean;
 }
 
-export class GuestsDefaultFieldOutput_2024_06_14 {
+export class GuestsDefaultFieldOutput_2024_06_14 extends GuestsDefaultFieldInput_2024_06_14 {
   @IsBoolean()
   @DocsProperty({
     description: "This property is always true because it's a default field",
@@ -344,6 +371,33 @@ export class PhoneDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @ApiProperty({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill!: boolean;
 }
 
 export class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
@@ -546,6 +600,7 @@ export class OutputUnknownBookingField_2024_06_14 {
 
 export type DefaultFieldOutput_2024_06_14 =
   | NameDefaultFieldOutput_2024_06_14
+  | SplitNameDefaultFieldOutput_2024_06_14
   | EmailDefaultFieldOutput_2024_06_14
   | LocationDefaultFieldOutput_2024_06_14
   | RescheduleReasonDefaultFieldOutput_2024_06_14
@@ -567,6 +622,8 @@ export type CustomFieldOutput_2024_06_14 =
   | RadioGroupFieldOutput_2024_06_14
   | BooleanFieldOutput_2024_06_14;
 
+export type KnownBookingField_2024_06_14 = DefaultFieldOutput_2024_06_14 | CustomFieldOutput_2024_06_14;
+
 export type OutputBookingField_2024_06_14 =
   | DefaultFieldOutput_2024_06_14
   | CustomFieldOutput_2024_06_14
@@ -574,8 +631,11 @@ export type OutputBookingField_2024_06_14 =
 
 @ValidatorConstraint({ async: true })
 class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
+  private readonly logger = new Logger("OutputBookingFieldValidator_2024_06_14");
+
   private defaultOutputNameMap: { [key: string]: new () => DefaultFieldOutput_2024_06_14 } = {
     name: NameDefaultFieldOutput_2024_06_14,
+    splitName: SplitNameDefaultFieldOutput_2024_06_14,
     email: EmailDefaultFieldOutput_2024_06_14,
     location: LocationDefaultFieldOutput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldOutput_2024_06_14,
@@ -600,34 +660,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
   };
 
   async validate(bookingFields: OutputBookingField_2024_06_14[]) {
-    if (!Array.isArray(bookingFields)) {
-      throw new BadRequestException(`'bookingFields' must be an array.`);
-    }
-
-    if (!bookingFields.length) {
-      throw new BadRequestException(`'bookingFields' must contain at least 1 booking field.`);
-    }
-
-    const slugs: string[] = [];
     for (const field of bookingFields) {
-      const { type, slug } = field;
-      if (!type) {
-        throw new BadRequestException(`Each booking field must have a 'type' property.`);
-      }
-
-      if (!slug) {
-        throw new BadRequestException(`Each booking field must have a 'slug' property.`);
-      }
-
-      if (slugs.includes(slug)) {
-        throw new BadRequestException(
-          `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
-        );
-      }
-      if (slug !== "unknown") {
-        slugs.push(slug);
-      }
-
       if (this.isUnknownField(field)) {
         await this.validateUnknownField(field);
       } else if (this.isDefaultField(field)) {
@@ -653,35 +686,45 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-      throw new BadRequestException(`Validation failed for ${field.slug} booking field: ${message}`);
+      this.logger.error(
+        `OutputBookingFieldValidator_2024_06_14: Validation failed for unknown booking field: ${message}`
+      );
     }
   }
 
   async validateDefaultField(field: DefaultFieldOutput_2024_06_14) {
     const ClassType = this.defaultOutputNameMap[field.slug];
     if (!ClassType) {
-      throw new BadRequestException(`Unsupported default booking field slug '${field.slug}'.`);
+      this.logger.error(
+        `OutputBookingFieldValidator_2024_06_14: Unsupported default booking field slug '${field.slug}'.`
+      );
     }
 
     const instance = plainToInstance(ClassType, field);
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-      throw new BadRequestException(`Validation failed for ${field.slug} booking field: ${message}`);
+      this.logger.error(
+        `OutputBookingFieldValidator_2024_06_14: Validation failed for ${field.slug} booking field: ${message}`
+      );
     }
   }
 
   async validateCustomField(field: CustomFieldOutput_2024_06_14) {
     const ClassType = this.customOutputTypeMap[field.type];
     if (!ClassType) {
-      throw new BadRequestException(`Unsupported booking field type '${field.type}'.`);
+      this.logger.error(
+        `OutputBookingFieldValidator_2024_06_14: Unsupported custom booking field type '${field.type}'.`
+      );
     }
 
     const instance = plainToInstance(ClassType, field);
     const errors = await validate(instance);
     if (errors.length > 0) {
       const message = errors.flatMap((error) => Object.values(error.constraints || {})).join(", ");
-      throw new BadRequestException(`Validation failed for ${field.type} booking field: ${message}`);
+      this.logger.error(
+        `OutputBookingFieldValidator_2024_06_14: Validation failed for ${field.type} booking field: ${message}`
+      );
     }
   }
 

@@ -11,6 +11,7 @@ import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWr
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
@@ -46,60 +47,6 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-
-export const checkIfIsAvailable = ({
-  time,
-  busy,
-  eventLength,
-  currentSeats,
-}: {
-  time: Dayjs;
-  busy: EventBusyDate[];
-  eventLength: number;
-  currentSeats?: CurrentSeats;
-}): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
-  const slotStartDate = time.utc().toDate();
-  const slotEndDate = time.add(eventLength, "minutes").utc().toDate();
-
-  return busy.every((busyTime) => {
-    const busyStartDate = dayjs.utc(busyTime.start).toDate();
-    const busyEndDate = dayjs.utc(busyTime.end).toDate();
-
-    // First check if there's any overlap at all
-    // If busy period ends before slot starts or starts after slot ends, there's no overlap
-    if (busyEndDate <= slotStartDate || busyStartDate >= slotEndDate) {
-      return true;
-    }
-
-    // Now check all possible overlap scenarios:
-
-    // 1. Slot start falls within busy period (inclusive start, exclusive end)
-    if (slotStartDate >= busyStartDate && slotStartDate < busyEndDate) {
-      return false;
-    }
-
-    // 2. Slot end falls within busy period (exclusive start, inclusive end)
-    if (slotEndDate > busyStartDate && slotEndDate <= busyEndDate) {
-      return false;
-    }
-
-    // 3. Busy period completely contained within slot
-    if (busyStartDate >= slotStartDate && busyEndDate <= slotEndDate) {
-      return false;
-    }
-
-    // 4. Slot completely contained within busy period
-    if (busyStartDate <= slotStartDate && busyEndDate >= slotEndDate) {
-      return false;
-    }
-
-    return true;
-  });
-};
 
 async function getEventTypeId({
   slug,
@@ -529,7 +476,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         }, []);
 
         if (
-          checkIfIsAvailable({
+          !checkForConflicts({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
@@ -769,6 +716,7 @@ async function getExistingBookings(
         seatsPerTimeSlot: true,
         requiresConfirmationWillBlockSlot: true,
         requiresConfirmation: true,
+        allowReschedulingPastBookings: true,
       },
     },
     ...(!!eventType?.seatsPerTimeSlot && {

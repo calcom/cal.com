@@ -1,12 +1,10 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps } from "app/_types";
-import {
-  generateTeamProfilePageMetadata,
-  generateUserProfilePageMetadata,
-} from "app/generateBookingPageMetadata";
+import { generateMeetingMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -26,35 +24,60 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
 
   if ((props as TeamPageProps)?.team) {
     const { team, markdownStrippedBio, isSEOIndexable, currentOrgDomain } = props as TeamPageProps;
-    return await generateTeamProfilePageMetadata({
+    const meeting = {
+      title: markdownStrippedBio ?? "",
       profile: {
-        teamName: team.name,
+        name: `${team.name}`,
         image: getOrgOrTeamAvatar(team),
-        markdownStrippedBio: markdownStrippedBio,
       },
-      event: null,
-      hideBranding: false,
-      orgSlug: currentOrgDomain ?? null,
-      isSEOIndexable: !!isSEOIndexable,
-    });
+    };
+
+    return {
+      ...(await generateMeetingMetadata(
+        meeting,
+        (t) => team.name ?? t("nameless_team"),
+        (t) => team.name ?? t("nameless_team"),
+        false,
+        getOrgFullOrigin(currentOrgDomain ?? null)
+      )),
+      robots: {
+        index: isSEOIndexable,
+        follow: isSEOIndexable,
+      },
+    };
   } else {
     const { profile, markdownStrippedBio, isOrgSEOIndexable, entity } = props as UserPageProps;
 
+    const meeting = {
+      title: markdownStrippedBio,
+      profile: { name: `${profile.name}`, image: profile.image },
+      users: [
+        {
+          username: `${profile.username ?? ""}`,
+          name: `${profile.name ?? ""}`,
+        },
+      ],
+    };
     const isOrg = !!profile?.organization;
     const allowSEOIndexing =
       (!isOrg && profile.allowSEOIndexing) || (isOrg && isOrgSEOIndexable && profile.allowSEOIndexing);
-
-    return await generateUserProfilePageMetadata({
-      profile: { name: profile.name, username: profile.username, image: profile.image, markdownStrippedBio },
-      hideBranding: false,
-      orgSlug: entity.orgSlug ?? null,
-      isSEOIndexable: !!allowSEOIndexing,
-      event: null,
-    });
+    return {
+      ...(await generateMeetingMetadata(
+        meeting,
+        () => profile.name,
+        () => markdownStrippedBio,
+        false,
+        getOrgFullOrigin(entity.orgSlug ?? null)
+      )),
+      robots: {
+        index: allowSEOIndexing,
+        follow: allowSEOIndexing,
+      },
+    };
   }
 };
 
-export const Page = async (props: OrgPageProps) => {
+const Page = async (props: OrgPageProps) => {
   if ((props as TeamPageProps)?.team) {
     return <TeamPage {...(props as TeamPageProps)} />;
   }

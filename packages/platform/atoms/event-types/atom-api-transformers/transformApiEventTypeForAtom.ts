@@ -2,7 +2,7 @@ import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
   transformLocationsApiToInternal,
-  transformBookingFieldsApiResponseToInternal,
+  transformBookingFieldsApiToInternal,
   systemBeforeFieldName,
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
@@ -16,10 +16,10 @@ import {
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type {
-  CustomFieldOutput_2024_06_14,
   EmailDefaultFieldOutput_2024_06_14,
   EventTypeOutput_2024_06_14,
   InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
   NameDefaultFieldOutput_2024_06_14,
   TeamEventTypeOutput_2024_06_14,
 } from "@calcom/platform-types";
@@ -29,6 +29,7 @@ import {
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
+  EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
 import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
@@ -36,7 +37,8 @@ import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatform
 export function transformApiEventTypeForAtom(
   eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
-  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -68,6 +70,26 @@ export function transformApiEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  const usersTransformed = users.map((user) => ({
+    ...user,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
+    profile: {
+      username: user.username || "",
+      name: user.name,
+      weekStart: user.weekStart,
+      image: "",
+      brandColor: user.brandColor,
+      darkBrandColor: user.darkBrandColor,
+      theme: null,
+      organization: null,
+      id: user.id,
+      organizationId: null,
+      userId: user.id,
+      upId: `usr-${user.id}`,
+    },
+  }));
 
   return {
     ...rest,
@@ -104,31 +126,16 @@ export function transformApiEventTypeForAtom(
           logoUrl: undefined,
         },
     hosts: [],
-    users: users.map((user) => ({
-      ...user,
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: user.username || "",
-        name: user.name,
-        weekStart: user.weekStart,
-        image: "",
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-        theme: null,
-        organization: null,
-        id: user.id,
-        organizationId: null,
-        userId: user.id,
-        upId: `usr-${user.id}`,
-      },
-    })),
+    subsetOfHosts: [],
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
     durationLimits: bookingLimitsDuration
       ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
@@ -150,7 +157,8 @@ export function transformApiEventTypeForAtom(
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
   entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
-  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
   const {
     lengthInMinutes,
@@ -171,6 +179,8 @@ export function transformApiTeamEventTypeForAtom(
     ...rest
   } = eventType;
 
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
   const isDefault = isDefaultEvent(rest.title);
 
   const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
@@ -182,6 +192,40 @@ export function transformApiTeamEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+
+  const hostTransformed = hosts.map((host) => ({
+    user: {
+      id: host.userId,
+      avatarUrl: null,
+      name: host.name,
+      username: "",
+      metadata: {},
+      darkBrandColor: null,
+      brandColor: null,
+      theme: null,
+      weekStart: "Sunday",
+    },
+  }));
+
+  const usersTransformed = hosts.map((host) => ({
+    ...host,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
+    profile: {
+      username: "",
+      name: host.name,
+      weekStart: "Sunday",
+      image: "",
+      brandColor: null,
+      darkBrandColor: null,
+      theme: null,
+      organization: null,
+      id: host.userId,
+      organizationId: null,
+      userId: host.userId,
+      upId: `usr-${host.userId}`,
+    },
+  }));
 
   return {
     ...rest,
@@ -218,38 +262,10 @@ export function transformApiTeamEventTypeForAtom(
           name: team?.name,
           logoUrl: team?.logoUrl,
         },
-    hosts: hosts.map((host) => ({
-      user: {
-        id: host.userId,
-        avatarUrl: null,
-        name: host.name,
-        username: "",
-        metadata: {},
-        darkBrandColor: null,
-        brandColor: null,
-        theme: null,
-        weekStart: "Sunday",
-      },
-    })),
-    users: hosts.map((host) => ({
-      ...host,
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: "",
-        name: host.name,
-        weekStart: "Sunday",
-        image: "",
-        brandColor: null,
-        darkBrandColor: null,
-        theme: null,
-        organization: null,
-        id: host.userId,
-        organizationId: null,
-        userId: host.userId,
-        upId: `usr-${host.userId}`,
-      },
-    })),
+    hosts: !limitHosts ? hostTransformed : undefined,
+    subsetOfHosts: hostTransformed,
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
     recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
     bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
     durationLimits: bookingLimitsDuration
@@ -257,6 +273,7 @@ export function transformApiTeamEventTypeForAtom(
       : undefined,
 
     metadata: {
+      ...metadata,
       requiresConfirmationThreshold:
         confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
       multipleDuration: lengthInMinutesOptions,
@@ -329,7 +346,9 @@ function getBookingFields(
   bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
   defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
 ) {
-  const transformedBookingFields = transformBookingFieldsApiResponseToInternal(bookingFields);
+  const transformedBookingFields = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isKnownField(field))
+  );
 
   const hasNameField = transformedBookingFields.some((field) => field.name === "name");
   const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
@@ -369,10 +388,10 @@ function getBookingFields(
   return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(fieldsWithSystem);
 }
 
-function isCustomField(
+function isKnownField(
   field: EventTypeOutput_2024_06_14["bookingFields"][number]
-): field is CustomFieldOutput_2024_06_14 {
-  return field.type !== "unknown" && !field.isDefault;
+): field is KnownBookingField_2024_06_14 {
+  return field.type !== "unknown";
 }
 
 function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {

@@ -3,19 +3,14 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
-import type { OrganizationSettings } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
-type MinimumOrganizationSettings = Pick<
-  OrganizationSettings,
-  "orgAutoAcceptEmail" | "orgProfileRedirectsToVerifiedDomain" | "allowSEOIndexing"
->;
-type SEOOrganizationSettings = Pick<OrganizationSettings, "allowSEOIndexing">;
 const orgSelect = {
   id: true,
   name: true,
@@ -70,6 +65,7 @@ export class OrganizationRepository {
   static async createWithNonExistentOwner({
     orgData,
     owner,
+    creationSource,
   }: {
     orgData: {
       name: string;
@@ -85,6 +81,7 @@ export class OrganizationRepository {
     owner: {
       email: string;
     };
+    creationSource: CreationSource;
   }) {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
     const organization = await this.create(orgData);
@@ -93,6 +90,7 @@ export class OrganizationRepository {
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
+      creationSource,
     });
 
     await prisma.membership.create({
@@ -412,4 +410,22 @@ export class OrganizationRepository {
       return settings.orgAutoAcceptEmail;
     },
   };
+  static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
+    return await prisma.team.findFirst({
+      where: {
+        organizationSettings: {
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: domain,
+        },
+      },
+      select: {
+        id: true,
+        organizationSettings: {
+          select: {
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+  }
 }

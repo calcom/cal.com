@@ -12,6 +12,7 @@ import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.se
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
 import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
@@ -97,10 +98,14 @@ export class InputBookingsService_2024_08_13 {
 
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        creationSource: CreationSource.API_V2,
+      };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false };
+      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
     return newRequest as unknown as BookingRequest;
@@ -146,6 +151,8 @@ export class InputBookingsService_2024_08_13 {
     );
     const endTime = startTime.plus({ minutes: lengthInMinutes });
 
+    const guests = inputBooking.guests;
+
     return {
       start: startTime.toISO(),
       end: endTime.toISO(),
@@ -154,15 +161,22 @@ export class InputBookingsService_2024_08_13 {
       language: inputBooking.attendee.language || "en",
       metadata: inputBooking.metadata || {},
       hasHashedBookingLink: false,
-      guests: inputBooking.guests,
+      guests,
       // note(Lauris): responses with name and email are required by the handleNewBooking
       responses: inputBooking.bookingFieldsResponses
         ? {
             ...inputBooking.bookingFieldsResponses,
             name: inputBooking.attendee.name,
-            email: inputBooking.attendee.email,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
           }
-        : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        : {
+            name: inputBooking.attendee.name,
+            email: inputBooking.attendee.email ?? "",
+            attendeePhoneNumber: inputBooking.attendee.phoneNumber,
+            guests,
+          },
     };
   }
 
@@ -211,6 +225,7 @@ export class InputBookingsService_2024_08_13 {
 
     newRequest.body = bodyTransformed.map((event) => ({
       ...event,
+      creationSource: CreationSource.API_V2,
     }));
 
     return newRequest as unknown as BookingRequest;
@@ -246,6 +261,8 @@ export class InputBookingsService_2024_08_13 {
       inputBooking.attendee.timeZone
     );
 
+    const guests = inputBooking.guests;
+
     for (let i = 0; i < repeatsTimes; i++) {
       const endTime = startTime.plus({ minutes: eventType.length });
 
@@ -258,15 +275,16 @@ export class InputBookingsService_2024_08_13 {
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},
         hasHashedBookingLink: false,
-        guests: inputBooking.guests,
+        guests,
         // note(Lauris): responses with name and email are required by the handleNewBooking
         responses: inputBooking.bookingFieldsResponses
           ? {
               ...inputBooking.bookingFieldsResponses,
               name: inputBooking.attendee.name,
               email: inputBooking.attendee.email,
+              guests,
             }
-          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email, guests },
         schedulingType: eventType.schedulingType,
       });
 
@@ -305,10 +323,14 @@ export class InputBookingsService_2024_08_13 {
     const location = await this.getRescheduleBookingLocation(bookingUid);
     if (oAuthClientParams) {
       Object.assign(newRequest, { userId, ...oAuthClientParams, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: !oAuthClientParams.arePlatformEmailsEnabled };
+      newRequest.body = {
+        ...bodyTransformed,
+        noEmail: !oAuthClientParams.arePlatformEmailsEnabled,
+        creationSource: CreationSource.API_V2,
+      };
     } else {
       Object.assign(newRequest, { userId, platformBookingLocation: location });
-      newRequest.body = { ...bodyTransformed, noEmail: false };
+      newRequest.body = { ...bodyTransformed, noEmail: false, creationSource: CreationSource.API_V2 };
     }
 
     return newRequest as unknown as BookingRequest;

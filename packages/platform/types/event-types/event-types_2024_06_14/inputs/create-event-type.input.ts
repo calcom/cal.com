@@ -26,16 +26,20 @@ import {
   AddressFieldInput_2024_06_14,
   BooleanFieldInput_2024_06_14,
   CheckboxGroupFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
   MultiEmailFieldInput_2024_06_14,
   MultiSelectFieldInput_2024_06_14,
-  NameFieldInput_2024_06_14,
+  NameDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
   NumberFieldInput_2024_06_14,
   PhoneFieldInput_2024_06_14,
   RadioGroupFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14,
   SelectFieldInput_2024_06_14,
   TextAreaFieldInput_2024_06_14,
   TextFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
 } from "./booking-fields.input";
 import type { InputBookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateInputBookingFields_2024_06_14 } from "./booking-fields.input";
@@ -106,8 +110,12 @@ export const CREATE_EVENT_SLUG_EXAMPLE = "learn-the-secrets-of-masterchief";
   InputAttendeeAddressLocation_2024_06_14,
   InputAttendeePhoneLocation_2024_06_14,
   InputAttendeeDefinedLocation_2024_06_14,
-  NameFieldInput_2024_06_14,
-  EmailFieldInput_2024_06_14
+  NameDefaultFieldInput_2024_06_14,
+  EmailDefaultFieldInput_2024_06_14,
+  TitleDefaultFieldInput_2024_06_14,
+  NotesDefaultFieldInput_2024_06_14,
+  GuestsDefaultFieldInput_2024_06_14,
+  RescheduleReasonDefaultFieldInput_2024_06_14
 )
 export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
@@ -121,7 +129,7 @@ export class CreateEventTypeInput_2024_06_14 {
   @ArrayUnique()
   @IsInt({ each: true })
   @Min(1, { each: true })
-  @DocsProperty({
+  @DocsPropertyOptional({
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",
@@ -166,8 +174,12 @@ export class CreateEventTypeInput_2024_06_14 {
     description:
       "Custom fields that can be added to the booking form when the event is booked by someone. By default booking form has name and email field.",
     oneOf: [
-      { $ref: getSchemaPath(NameFieldInput_2024_06_14) },
-      { $ref: getSchemaPath(EmailFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NameDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(EmailDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(TitleDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(NotesDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(GuestsDefaultFieldInput_2024_06_14) },
+      { $ref: getSchemaPath(RescheduleReasonDefaultFieldInput_2024_06_14) },
       { $ref: getSchemaPath(PhoneFieldInput_2024_06_14) },
       { $ref: getSchemaPath(AddressFieldInput_2024_06_14) },
       { $ref: getSchemaPath(TextFieldInput_2024_06_14) },

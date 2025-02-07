@@ -38,4 +38,5 @@ export interface BillingService {
     nickname?: string;
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
+  checkIfTeamHasActivePlan(subscriptionId: string): Promise<boolean>;
 }

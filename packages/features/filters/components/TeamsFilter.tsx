@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import type { InputHTMLAttributes, ReactNode } from "react";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
@@ -8,7 +8,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover, Avatar, Divider, Icon, Tooltip, VerticalDivider } from "@calcom/ui";
+import {
+  FilterSearchField,
+  AnimatedPopover,
+  Avatar,
+  Divider,
+  Icon,
+  Tooltip,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { filterQuerySchema } from "../lib/getTeamsFiltersFromQuery";
 
@@ -31,6 +39,7 @@ export const TeamsFilter = ({
 }) => {
   const { t } = useLocale();
   const session = useSession();
+  const [search, setSearch] = useState("");
 
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeAllQueryParams } = useFilterQuery();
 
@@ -72,6 +81,12 @@ export const TeamsFilter = ({
         popoverTriggerClassNames={popoverTriggerClassNames}
         prefix={`${t("teams")}: `}>
         <FilterCheckboxFieldsContainer>
+          <FilterSearchField
+            placeholder={t("search")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
           <FilterCheckboxField
             id="all"
             icon={<Icon name="layers" className="h-4 w-4" />}
@@ -98,6 +113,7 @@ export const TeamsFilter = ({
           <Divider />
           {teams
             ?.filter((team) => !team?.isOrganization)
+            .filter((team) => team.name.toLowerCase().includes(search.toLowerCase()))
             .map((team) => (
               <FilterCheckboxField
                 key={team.id}
