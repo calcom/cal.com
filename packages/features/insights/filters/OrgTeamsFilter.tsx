@@ -10,19 +10,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { AnimatedPopover, Avatar, Divider, Icon, FilterSearchField } from "@calcom/ui";
 
+import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
+
 export type OrgTeamsType = "org" | "team" | "yours";
 
 // This is a clone of TeamAndSelfList, but without useFilterContext().
 // It's meant to be used in the RoutingFormResponsesTable.
-export const OrgTeamsFilter = ({
-  selectedType,
-  selectedTeamId,
-  onSelected,
-}: {
-  selectedType: OrgTeamsType;
-  selectedTeamId?: number;
-  onSelected: (params: { type: OrgTeamsType; teamId?: number }) => void;
-}) => {
+export const OrgTeamsFilter = () => {
+  const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
@@ -41,12 +36,17 @@ export const OrgTeamsFilter = ({
     },
   });
 
+  const onSelected = (params: { type: OrgTeamsType; teamId?: number }) => {
+    setOrgTeamsType(params.type);
+    setSelectedTeamId(params.teamId);
+  };
+
   const getPopoverProps = () => {
-    if (selectedType === "org") {
-      return { text: t("all"), placeholder: undefined, imageUrl: data?.[0].logoUrl };
-    } else if (selectedType === "yours") {
+    if (orgTeamsType === "org") {
+      return { text: t("all"), placeholder: undefined, imageUrl: data?.[0]?.logoUrl };
+    } else if (orgTeamsType === "yours") {
       return { text: t("yours"), placeholder: currentUserName, imageUrl: session.data?.user.avatarUrl };
-    } else if (selectedType === "team") {
+    } else if (orgTeamsType === "team") {
       const selectedTeam = data?.find((item) => {
         return item.id === selectedTeamId;
       });
@@ -64,7 +64,7 @@ export const OrgTeamsFilter = ({
   const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
 
   const PrefixComponent =
-    selectedType !== undefined && (imageUrl || placeholder) ? (
+    orgTeamsType !== undefined && (imageUrl || placeholder) ? (
       <Avatar
         alt={`${placeholder} logo`}
         imageSrc={getPlaceholderAvatar(imageUrl, placeholder)}
@@ -87,7 +87,7 @@ export const OrgTeamsFilter = ({
           <FilterCheckboxField
             id="all"
             icon={<Icon name="layers" className="h-4 w-4" />}
-            checked={selectedType === "org"}
+            checked={orgTeamsType === "org"}
             onChange={(e) => {
               onSelected({ type: "org", teamId: undefined });
             }}
@@ -104,7 +104,7 @@ export const OrgTeamsFilter = ({
               size="xsm"
             />
           }
-          checked={selectedType === "yours"}
+          checked={orgTeamsType === "yours"}
           onChange={(e) => {
             if (e.target.checked) {
               onSelected({ type: "yours", teamId: undefined });
@@ -125,7 +125,7 @@ export const OrgTeamsFilter = ({
                 key={team.id}
                 id={team.name || ""}
                 label={team.name || ""}
-                checked={selectedTeamId === team.id && selectedType === "team"}
+                checked={selectedTeamId === team.id && orgTeamsType === "team"}
                 onChange={(e) => {
                   if (e.target.checked) {
                     onSelected({ type: "team", teamId: team.id });

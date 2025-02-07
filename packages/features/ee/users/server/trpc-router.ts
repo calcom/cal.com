@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { CreationSource } from "@calcom/prisma/enums";
 import { RedirectType } from "@calcom/prisma/enums";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import type { inferRouterOutputs } from "@calcom/trpc";
@@ -63,7 +64,7 @@ export const userAdminRouter = router({
   }),
   add: authedAdminProcedure.input(userBodySchema).mutation(async ({ ctx, input }) => {
     const { prisma } = ctx;
-    const user = await prisma.user.create({ data: input });
+    const user = await prisma.user.create({ data: { ...input, creationSource: CreationSource.WEBAPP } });
     return { user, message: `User with id: ${user.id} added successfully` };
   }),
   update: authedAdminProcedureWithRequestedUser
