@@ -1,4 +1,4 @@
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.respository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, InternalServerErrorException, Logger } from "@nestjs/common";
