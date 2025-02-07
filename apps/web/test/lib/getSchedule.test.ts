@@ -556,7 +556,7 @@ describe("getSchedule", () => {
   });
 
   describe("User Event", () => {
-    test.only("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
+    test("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
@@ -1747,6 +1747,77 @@ describe("getSchedule", () => {
           `10:15:00.000Z`,
           `11:00:00.000Z`,
           `11:45:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("Edge Case: Same day OOO entries that could accidentally be considered in past shouldn't crash the getSchedule", async () => {
+      // Set a fixed date for testing
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: todayDateString } = getDate({ dateIncrement: 0 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            outOfOffice: {
+              dateRanges: [
+                {
+                  start: `${todayDateString}T00:00:00.000Z`,
+                  end: `${todayDateString}T23:59:59.999Z`,
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      // Verify that we get slots for the requested dates
+      expect(schedule).toHaveTimeSlots(
+        [
+          "04:00:00.000Z",
+          "04:45:00.000Z",
+          "05:30:00.000Z",
+          "06:15:00.000Z",
+          "07:00:00.000Z",
+          "07:45:00.000Z",
+          "08:30:00.000Z",
+          "09:15:00.000Z",
+          "10:00:00.000Z",
+          "10:45:00.000Z",
+          "11:30:00.000Z",
         ],
         {
           dateString: plus2DateString,
