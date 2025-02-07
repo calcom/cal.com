@@ -18,7 +18,7 @@ function getNewSearchParams(args: {
     if (value === null || value === undefined) {
       return;
     }
-    newSearchParams.set(key, String(value)); // use set() instead of append()
+    newSearchParams.set(key, String(value));
   });
   return newSearchParams;
 }
