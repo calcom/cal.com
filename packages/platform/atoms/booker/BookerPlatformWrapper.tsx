@@ -296,7 +296,6 @@ export const BookerPlatformWrapper = (
       ...(isBookingDryRun ? { isBookingDryRun } : {}),
     });
   }, [routingFormSearchParams]);
-
   const schedule = useAvailableSlots({
     usernameList: getUsernameList(username),
     eventTypeId: event?.data?.id ?? 0,
@@ -305,6 +304,7 @@ export const BookerPlatformWrapper = (
     timeZone: timezone,
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
+    teamMemberEmail: props.teamMemberEmail ?? undefined,
     ...(props.isTeamEvent
       ? {
           isTeamEvent: props.isTeamEvent,

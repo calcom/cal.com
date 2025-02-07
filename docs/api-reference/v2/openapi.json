@@ -5216,6 +5216,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "description": "CRM team member email",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -7307,7 +7316,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -7915,7 +7924,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -8966,7 +8975,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9607,7 +9616,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10962,7 +10971,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -11733,7 +11742,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -13824,9 +13833,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -13951,9 +13968,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14174,9 +14199,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14291,9 +14324,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14447,9 +14488,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14559,9 +14608,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15259,7 +15316,7 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
           }
         },
         "required": ["integration", "externalId"]

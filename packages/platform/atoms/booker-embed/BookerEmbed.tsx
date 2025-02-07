@@ -41,6 +41,9 @@ export const BookerEmbed = (
       eventTypeSlug,
       username,
       defaultFormValues,
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
       ...routingFormSearchParams
     } = routingFormUrlProps;
     const { onDryRunSuccess, ...rest } = props;
@@ -59,6 +62,9 @@ export const BookerEmbed = (
                 isTeamEvent: true,
                 teamId: routingTeamId || 0,
                 username: "",
+                teamMemberEmail,
+                crmOwnerRecordType,
+                crmAppSlug,
               }
             : {
                 eventSlug: eventTypeSlug,

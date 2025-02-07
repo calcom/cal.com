@@ -5513,6 +5513,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "description": "CRM team member email",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -15370,9 +15379,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15505,9 +15522,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15743,9 +15768,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15865,9 +15898,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -16032,9 +16073,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -16149,9 +16198,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
