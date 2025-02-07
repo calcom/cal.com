@@ -6,12 +6,6 @@ import { FUTURE_ROUTES_ENABLED_COOKIE_NAME, FUTURE_ROUTES_OVERRIDE_COOKIE_NAME }
 
 const ROUTES: [URLPattern, boolean][] = [
   ["/apps/:slug/setup", process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED === "1"] as const,
-  ["/auth/forgot-password/:path*", process.env.APP_ROUTER_AUTH_FORGOT_PASSWORD_ENABLED === "1"] as const,
-  ["/auth/login", process.env.APP_ROUTER_AUTH_LOGIN_ENABLED === "1"] as const,
-  ["/auth/logout", process.env.APP_ROUTER_AUTH_LOGOUT_ENABLED === "1"] as const,
-  ["/auth/saml-idp", process.env.APP_ROUTER_AUTH_SAML_ENABLED === "1"] as const,
-  ["/auth/platform/:path*", process.env.APP_ROUTER_AUTH_PLATFORM_ENABLED === "1"] as const,
-  ["/auth/oauth2/:path*", process.env.APP_ROUTER_AUTH_OAUTH2_ENABLED === "1"] as const,
   ["/team", process.env.APP_ROUTER_TEAM_ENABLED === "1"] as const,
 ].map(([pathname, enabled]) => [
   new URLPattern({
