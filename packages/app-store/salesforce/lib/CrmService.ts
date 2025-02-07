@@ -191,7 +191,7 @@ export default class SalesforceCRMService implements CRM {
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
-      this.log.warn("salesforceCreateEvent: No organizer email found for event", event.uid, event?.organizer);
+      log.warn("No organizer email found for event", event?.organizer);
     }
 
     /**
@@ -201,7 +201,7 @@ export default class SalesforceCRMService implements CRM {
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
+      log.warn("No contacts found for event", contacts);
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -230,14 +230,14 @@ export default class SalesforceCRMService implements CRM {
         // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
         // proceeding to create the event using just the first attendee as the primary WhoId
         return await this.salesforceCreateEventApiCall(event, {
-          WhoId: firstContact,
+          WhoId: firstContact.id,
         }).catch((reason) => Promise.reject(reason));
       }
       log.error(`Error creating event: ${JSON.stringify(reason)}`);
 
       // Try creating a simple object without additional records
       return await this.salesforceCreateEventApiCall(event, {
-        EventWhoIds: eventWhoIds,
+        WhoId: firstContact.id,
         ...(ownerId && { OwnerId: ownerId }),
       }).catch((reason) => {
         log.error(`Error creating simple event: ${JSON.stringify(reason)}`);
@@ -250,7 +250,7 @@ export default class SalesforceCRMService implements CRM {
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
       } else {
-        this.log.warn(
+        log.warn(
           `Could not find owner with email ${event.organizer.email} to change record ${firstContact.id} ownership to`
         );
       }
@@ -847,14 +847,18 @@ export default class SalesforceCRMService implements CRM {
     }
 
     await conn
-      .sobject(appOptions?.createEventOn)
+      .sobject(recordType)
       .update({
         // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
       })
       .catch((error) => {
-        this.log.warn(`Error changing owner name with error ${JSON.stringify(error)}`);
+        this.log.warn(
+          `Error changing record ${id} of type ${recordType} owner to ${newOwnerId} with error ${JSON.stringify(
+            error
+          )}`
+        );
       });
   }
 
