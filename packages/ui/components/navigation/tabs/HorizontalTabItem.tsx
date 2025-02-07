@@ -1,9 +1,9 @@
+import Link from "next/link";
+
 import classNames from "@calcom/lib/classNames";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useUrlMatchesCurrentUrl } from "@calcom/lib/hooks/useUrlMatchesCurrentUrl";
 
 import { Avatar } from "../../avatar";
-import { Button } from "../../button";
 import { Icon } from "../../icon";
 import type { IconName } from "../../icon";
 
@@ -29,20 +29,10 @@ const HorizontalTabItem = function ({
   avatar,
   ...props
 }: HorizontalTabItemProps) {
-  const { t, isLocaleReady } = useLocale();
-
   const isCurrent = useUrlMatchesCurrentUrl(href) || props?.isActive;
 
   return (
-    <Button
-      color={isCurrent ? "secondary" : "minimal"}
-      className={classNames(
-        props.icon ? "p-1.5" : "p-2",
-        props.disabled && "pointer-events-none !opacity-30",
-        props.className
-      )}
-      href={href}
-      shallow={linkShallow}
+    <Link
       onClick={(e) => {
         if (props.onClick) {
           e.preventDefault();
@@ -50,14 +40,27 @@ const HorizontalTabItem = function ({
         }
       }}
       key={name}
-      target={props.target}
+      href={href}
+      shallow={linkShallow}
+      scroll={linkScroll}
+      className={classNames(
+        isCurrent ? "bg-subtle text-emphasis" : "hover:bg-muted hover:text-default text-subtle",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-md p-2 text-sm font-medium leading-none transition md:mb-0",
+        props.disabled && "pointer-events-none !opacity-30",
+        props.className
+      )}
+      target={props.target ? props.target : undefined}
       data-testid={`horizontal-tab-${name}`}
-      aria-current={isCurrent ? "page" : undefined}
-      CustomStartIcon={props.icon && <Icon name={props.icon} className="text-subtle h-[14px] w-[14px]" />}>
-      <div className="text-emphasis flex items-center gap-x-2 text-sm font-medium leading-none">
-        {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" />} {t(name)}
-      </div>
-    </Button>
+      aria-current={isCurrent ? "page" : undefined}>
+      {props.icon && (
+        <Icon
+          name={props.icon}
+          className={classNames("-ml-0.5 me-2 hidden h-4 w-4 text-inherit sm:inline-block")}
+          aria-hidden="true"
+        />
+      )}
+      {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-2 h-4 w-4" />} {name}
+    </Link>
   );
 };
 
