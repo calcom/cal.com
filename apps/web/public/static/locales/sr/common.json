@@ -24,6 +24,8 @@
   "verify_email_email_header": "Potvrdite svoju adresu e-pošte",
   "verify_email_email_button": "Potvrdi adresu e-pošte",
   "cal_ai_assistant": "Cal AI Asistent",
+  "send_cal_video_transcription_emails": "Slanje transkripata Cal Video sastanaka",
+  "description_send_cal_video_transcription_emails": "Šalje mejlove sa transkriptom Cal Video snimka nakon završetka sastanka. (Zahteva plaćeni plan)",
   "verify_email_change_description": "Nedavno ste zatražili promenu email adrese koju koristite za prijavu na vaš {{appName}} nalog. Molimo kliknite na dugme ispod da potvrdite vašu novu email adresu.",
   "verify_email_change_success_toast": "Vaša email adresa je ažurirana na {{email}}",
   "verify_email_change_failure_toast": "Nije uspelo ažuriranje email adrese.",

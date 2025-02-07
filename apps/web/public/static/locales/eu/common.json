@@ -24,6 +24,8 @@
   "verify_email_email_header": "Egiaztatu zure email helbidea",
   "verify_email_email_button": "Egiaztatu emaila",
   "cal_ai_assistant": "Cal AI laguntzailea",
+  "send_cal_video_transcription_emails": "Cal Video transkripzio emailak bidali",
+  "description_send_cal_video_transcription_emails": "Bilera amaitu ondoren Cal Video-ren transkripzioa duten emailak bidali. (Ordainpeko plana behar da)",
   "verify_email_change_description": "Berriki eskatu duzu {{appName}} kontuan saioa hasteko erabiltzen duzun posta elektronikoa aldatzea. Mesedez, egin klik beheko botoian zure posta elektroniko berria baieztatzeko.",
   "verify_email_change_success_toast": "Zure posta elektronikoa {{email}}-ra eguneratu da",
   "verify_email_change_failure_toast": "Ezin izan da posta elektronikoa eguneratu.",
