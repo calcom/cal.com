@@ -63,9 +63,6 @@ export async function getServerSideProps(
   }
 
   const appName = parsedParams.data.slug;
-  if (appName !== "routing-forms" && appName !== "typeform") {
-    return { notFound: true };
-  }
   if (appName === "typeform") {
     return {
       props: {

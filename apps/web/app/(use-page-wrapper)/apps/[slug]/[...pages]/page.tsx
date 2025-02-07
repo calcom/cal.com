@@ -24,11 +24,12 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
     return notFound();
   }
 
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const data = await getData(legacyContext);
-  if (data.appName !== "routing-forms" && data.appName !== "typeform") {
+  if (p.data.slug !== "routing-forms" && p.data.slug !== "typeform") {
     return notFound();
   }
+
+  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
   const formName = form?.name;
   const formDescription = form?.description;
@@ -42,12 +43,16 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
 const getData = withAppDirSsr<any>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
-
-  const props = await getData(context);
-  if (props.appName !== "routing-forms" && props.appName !== "typeform") {
+  const p = paramsSchema.safeParse(params);
+  if (!p.success) {
     return notFound();
   }
+  if (p.data.slug !== "routing-forms" && p.data.slug !== "typeform") {
+    return notFound();
+  }
+
+  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const props = await getData(context);
   if (props.appName === "routing-forms") {
     return (
       <Shell backPath="/apps/routing-forms/forms" withoutMain withoutSeo>
