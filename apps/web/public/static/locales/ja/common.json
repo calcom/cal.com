@@ -24,6 +24,8 @@
   "verify_email_email_header": "メールアドレスをご確認ください",
   "verify_email_email_button": "メールを確認する",
   "cal_ai_assistant": "Cal AIアシスタント",
+  "send_cal_video_transcription_emails": "Cal Video文字起こしメールを送信",
+  "description_send_cal_video_transcription_emails": "ミーティング終了後、Cal Videoの文字起こしをメールで送信します。（有料プランが必要です）",
   "verify_email_change_description": "最近、{{appName}}アカウントにログインするためのメールアドレスの変更をリクエストされました。新しいメールアドレスを確認するには、以下のボタンをクリックしてください。",
   "verify_email_change_success_toast": "メールアドレスを{{email}}に更新しました",
   "verify_email_change_failure_toast": "メールアドレスの更新に失敗しました。",

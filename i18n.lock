@@ -26,6 +26,8 @@ checksums:
     verify_email_email_header: 5c96f738bd6153ee07b72094cdfd2b98
     verify_email_email_button: 42dcab68d931f9145d9b6d76740a5c66
     cal_ai_assistant: b015d2022d06f05133b6fd6de0e04de7
+    send_cal_video_transcription_emails: 72bb1e50955446a1a3e69be24193578d
+    description_send_cal_video_transcription_emails: c91f20c86fbaa270441badcb2b04edd9
     verify_email_change_description: 21e50aab7ae115057a90847a36cf79ac
     verify_email_change_success_toast: e7e1e80adcf69038b6fc4cd8cad1ab6a
     verify_email_change_failure_toast: b75e83b28d79a0879eea5bf10f7334a2

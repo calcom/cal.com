@@ -24,6 +24,8 @@
   "verify_email_email_header": "ផ្ទៀងផ្ទាត់អាសយដ្ឋានអ៊ីមែលរបស់អ្នក។",
   "verify_email_email_button": "ផ្ទៀងផ្ទាត់អ៊ីមែល",
   "cal_ai_assistant": "Cal AI Assistant",
+  "send_cal_video_transcription_emails": "ផ្ញើអ៊ីមែលចម្លងវីដេអូ Cal",
+  "description_send_cal_video_transcription_emails": "ផ្ញើអ៊ីមែលជាមួយនឹងការចម្លងវីដេអូ Cal បន្ទាប់ពីការប្រជុំបានបញ្ចប់។ (តម្រូវឱ្យមានគម្រោងបង់ប្រាក់)",
   "verify_email_change_description": "អ្នកបានស្នើសុំផ្លាស់ប្តូរអាសយដ្ឋានអ៊ីមែលដែលអ្នកប្រើដើម្បីចូលទៅក្នុងគណនី {{appName}} របស់អ្នក។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីបញ្ជាក់អាសយដ្ឋានអ៊ីមែលថ្មីរបស់អ្នក។",
   "verify_email_change_success_toast": "បានធ្វើបច្ចុប្បន្នភាពអ៊ីមែលរបស់អ្នកទៅ {{email}}",
   "verify_email_change_failure_toast": "បរាជ័យក្នុងការធ្វើបច្ចុប្បន្នភាពអ៊ីមែល។",

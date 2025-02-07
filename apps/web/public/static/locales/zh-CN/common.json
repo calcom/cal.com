@@ -24,6 +24,8 @@
   "verify_email_email_header": "验证您的电子邮件地址",
   "verify_email_email_button": "验证电子邮件",
   "cal_ai_assistant": "Cal AI 助手",
+  "send_cal_video_transcription_emails": "发送 Cal 视频转录邮件",
+  "description_send_cal_video_transcription_emails": "会议结束后发送包含 Cal 视频转录内容的邮件。（需要付费计划）",
   "verify_email_change_description": "您最近更改了登陆您的帐户 {{appName}} 时所使用的电子邮箱地址。请点击下方按钮以确认您的新邮箱地址。",
   "verify_email_change_success_toast": "将您的电子邮箱地址变更为 {{email}}",
   "verify_email_change_failure_toast": "更新电子邮箱地址时出现了错误。",
