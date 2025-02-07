@@ -1189,6 +1189,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -2095,6 +2104,165 @@
           }
         },
         "tags": ["Orgs / Teams"]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "OrganizationsTeamsBookingsController_getAllOrgTeamBookings",
+        "summary": "Get organization team bookings",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the team.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Teams / Bookings"]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
@@ -5644,6 +5812,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -7192,7 +7369,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -7800,7 +7977,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -7930,7 +8107,7 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
+        "required": ["lengthInMinutes", "title", "slug"]
       },
       "OutputAddressLocation_2024_06_14": {
         "type": "object",
@@ -8851,7 +9028,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9492,7 +9669,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10847,7 +11024,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10990,7 +11167,7 @@
             "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -11618,7 +11795,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be pre-pended before an event to give more time before it."
+            "description": "Time spaces that can be prepended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -15227,7 +15404,7 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
           }
         },
         "required": ["integration", "externalId"]
