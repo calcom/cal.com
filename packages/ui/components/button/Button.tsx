@@ -277,6 +277,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 data-name="start-icon"
                 name={StartIcon}
                 className={classNames(
+                  loading ? "invisible" : "visible",
                   "button-icon group-active:translate-y-[0.5px]",
                   variant === "icon" && "h-4 w-4",
                   variant === "button" && "h-4 w-4 stroke-[1.5px] "
@@ -323,6 +324,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
             <Icon
               name={EndIcon}
               className={classNames(
+                loading ? "invisible" : "visible",
                 "group-active:translate-y-[0.5px]",
                 variant === "icon" && "h-4 w-4",
                 variant === "button" && "h-4 w-4 stroke-[1.5px] "
