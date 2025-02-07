@@ -8,7 +8,7 @@ import { UserRepository } from "../repository/user";
 interface CreateUserInput {
   email: string;
   username: string;
-  name?: string;
+  name?: string | null;
   password?: string;
   brandColor?: string;
   darkBrandColor?: string;
@@ -27,7 +27,7 @@ interface CreateUserInput {
 }
 
 export class UserCreationService {
-  static async createUser(data: CreateUserInput) {
+  static async createUser({ data }: { data: CreateUserInput }) {
     const { email, password, username } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
