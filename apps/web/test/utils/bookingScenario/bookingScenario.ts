@@ -681,7 +681,6 @@ export async function addUsersToDb(users: InputUser[]) {
             },
           },
         });
-        console.log("OutOfOfficeEntry created:", { dateRange, userId: user.id });
       }
     }
   }
