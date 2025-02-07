@@ -7,7 +7,6 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import type { ReactElement } from "react";
 import { useMemo, useState } from "react";
 import type { z } from "zod";
 
@@ -18,7 +17,6 @@ import { FiltersContainer } from "@calcom/features/bookings/components/FiltersCo
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -201,7 +199,7 @@ function BookingsContent({ status }: BookingsProps) {
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
-      query.data?.pages.map((page) =>
+      query.data?.pages.flatMap((page) =>
         page.bookings
           .filter(
             (booking: BookingOutput) =>
@@ -216,7 +214,7 @@ function BookingsContent({ status }: BookingsProps) {
             ),
             isToday: true,
           }))
-      )[0] || []
+      ) || []
     );
   }, [query.data]);
 
@@ -290,21 +288,3 @@ function BookingsContent({ status }: BookingsProps) {
     </div>
   );
 }
-
-function BookingsStatusLayout({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
-  return (
-    <Shell
-      withoutMain={false}
-      withoutSeo={true}
-      hideHeadingOnMobile
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      title={t("bookings")}
-      description={t("bookings_description")}>
-      {children}
-    </Shell>
-  );
-}
-
-export const getLayout = (page: ReactElement) => <BookingsStatusLayout>{page}</BookingsStatusLayout>;

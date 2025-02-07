@@ -21,6 +21,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import {
@@ -58,12 +59,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `user-bookings-user-${randomString()}@api.com`;
     let user: User;
 
     let eventTypeId: number;
-    const eventTypeSlug = "peer-coding";
+    const eventTypeSlug = `user-bookings-event-type-${randomString()}`;
     let recurringEventTypeId: number;
+    const recurringEventTypeSlug = `user-bookings-event-type-${randomString()}`;
 
     let createdBooking: BookingOutput_2024_08_13;
     let rescheduledBooking: BookingOutput_2024_08_13;
@@ -91,12 +93,14 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `user-bookings-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
-        username: `bob-${Math.floor(Math.random() * 1000)}@gmail.com`,
+        username: userEmail,
         platformOAuthClients: {
           connect: {
             id: oAuthClient.id,
@@ -105,13 +109,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `user-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
+
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: eventTypeSlug, length: 60 },
+        {
+          title: `user-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: eventTypeSlug,
+          length: 60,
+        },
         user.id
       );
       eventTypeId = event.id;
@@ -120,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
           title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          slug: recurringEventTypeSlug,
           length: 60,
           recurringEvent: { freq: 2, count: 3, interval: 1 },
         },
@@ -354,6 +363,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toBeDefined();
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual("accepted");
               expect(data.start).toEqual(body.start);
               expect(data.end).toEqual(new Date(Date.UTC(2030, 0, 8, 14, 0, 0)).toISOString());
@@ -518,6 +528,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.uid).toEqual(createdBooking.uid);
               expect(data.hosts[0].id).toEqual(user.id);
               expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdBooking.status);
               expect(data.start).toEqual(createdBooking.start);
               expect(data.end).toEqual(createdBooking.end);
@@ -552,6 +563,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.id).toEqual(createdRecurringBooking[0].id);
               expect(data.uid).toEqual(createdRecurringBooking[0].uid);
               expect(data.hosts[0].id).toEqual(user.id);
+              expect(data.hosts[0].username).toEqual(user.username);
+              expect(data.hosts[0].email).toEqual(user.email);
               expect(data.status).toEqual(createdRecurringBooking[0].status);
               expect(data.start).toEqual(createdRecurringBooking[0].start);
               expect(data.end).toEqual(createdRecurringBooking[0].end);
@@ -1021,6 +1034,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdBooking.status);
             expect(data.duration).toEqual(createdBooking.duration);
             expect(data.eventTypeId).toEqual(createdBooking.eventTypeId);
@@ -1078,6 +1093,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(createdRecurringBooking[0].status);
             expect(data.start).toEqual(body.start);
             expect(data.end).toEqual(new Date(Date.UTC(2035, 0, 9, 15, 0, 0)).toISOString());
@@ -1158,6 +1175,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1190,6 +1209,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toEqual(booking.id);
             expect(data.uid).toEqual(booking.uid);
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual(booking.status);
             expect(data.start).toEqual(booking.start);
             expect(data.end).toEqual(booking.end);
@@ -1228,6 +1249,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.id).toBeDefined();
             expect(data.uid).toBeDefined();
             expect(data.hosts[0].id).toEqual(user.id);
+            expect(data.hosts[0].username).toEqual(user.username);
+            expect(data.hosts[0].email).toEqual(user.email);
             expect(data.status).toEqual("cancelled");
             expect(data.cancellationReason).toEqual(body.cancellationReason);
             expect(data.start).toEqual(rescheduledBooking.start);
@@ -1279,6 +1302,108 @@ describe("Bookings Endpoints 2024-08-13", () => {
             } else {
               throw new Error(
                 "Invalid response data - expected recurring booking but received non array response"
+              );
+            }
+          });
+      });
+    });
+
+    describe("who cancelled and rescheduled a booking", () => {
+      it("should return who cancelled a booking", async () => {
+        const cancelledByEmail = `user-bookings-canceller-${randomString()}@canceller.com`;
+        const cancelledBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: "2050-09-05T11:00:00.000Z",
+          endTime: "2050-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "CANCELLED",
+          cancelledBy: cancelledByEmail,
+          metadata: {},
+          responses: {
+            name: "tester",
+            email: "tester@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${cancelledBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            await bookingsRepositoryFixture.deleteById(cancelledBooking.id);
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.uid).toEqual(cancelledBooking.uid);
+              expect(data.cancelledByEmail).toEqual(cancelledByEmail);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should return who rescheduled a booking", async () => {
+        const rescheduledByEmail = `user-bookings-rescheduler-${randomString()}@rescheduler.com`;
+        const rescheduledBooking = await bookingsRepositoryFixture.create({
+          uid: `booking-uid-${eventTypeId}`,
+          title: "booking title",
+          startTime: "2050-09-05T11:00:00.000Z",
+          endTime: "2050-09-05T12:00:00.000Z",
+          eventType: {
+            connect: {
+              id: eventTypeId,
+            },
+          },
+          status: "CANCELLED",
+          rescheduledBy: rescheduledByEmail,
+          metadata: {},
+          responses: {
+            name: "tester",
+            email: "tester@example.com",
+            guests: [],
+          },
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+        });
+
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${rescheduledBooking.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            await bookingsRepositoryFixture.deleteById(rescheduledBooking.id);
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.uid).toEqual(rescheduledBooking.uid);
+              expect(data.rescheduledByEmail).toEqual(rescheduledByEmail);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
               );
             }
           });

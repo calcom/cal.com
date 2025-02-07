@@ -441,6 +441,44 @@ export class EventTypeRepository {
     });
   }
 
+  static async findTitleById({ id, userId }: { id: number; userId: number }) {
+    return await prisma.eventType.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
+                },
+              },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              {
+                userId: userId,
+              },
+            ],
+          },
+          {
+            id,
+          },
+        ],
+      },
+      select: {
+        title: true,
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -501,6 +539,7 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      allowReschedulingPastBookings: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
@@ -784,6 +823,7 @@ export class EventTypeRepository {
         periodStartDate: true,
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
+        allowReschedulingPastBookings: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,
         periodDays: true,
