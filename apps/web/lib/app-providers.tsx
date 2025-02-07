@@ -49,7 +49,7 @@ export type AppProps = Omit<
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: ({ children }: { children: React.ReactNode }) => ReactNode;
+    getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 

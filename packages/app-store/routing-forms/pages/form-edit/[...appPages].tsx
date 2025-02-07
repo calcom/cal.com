@@ -6,7 +6,6 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
-import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -479,11 +478,3 @@ export default function FormEditPage({
     />
   );
 }
-
-FormEditPage.getLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
-      {children}
-    </Shell>
-  );
-};

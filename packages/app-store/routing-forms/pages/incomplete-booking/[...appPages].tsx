@@ -6,7 +6,6 @@ import type z from "zod";
 import { WhenToWriteToRecord, SalesforceFieldType } from "@calcom/app-store/salesforce/lib/enums";
 import type { writeToRecordDataSchema as salesforceWriteToRecordDataSchema } from "@calcom/app-store/salesforce/zod";
 import { routingFormIncompleteBookingDataSchema as salesforceRoutingFormIncompleteBookingDataSchema } from "@calcom/app-store/salesforce/zod";
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IncompleteBookingActionType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -319,13 +318,5 @@ export default function IncompleteBookingPage({
     />
   );
 }
-
-IncompleteBookingPage.getLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
-      {children}
-    </Shell>
-  );
-};
 
 export { getServerSideProps };

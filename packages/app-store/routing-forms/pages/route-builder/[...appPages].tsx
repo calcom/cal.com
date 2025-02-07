@@ -9,7 +9,6 @@ import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-bu
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
 
-import Shell from "@calcom/features/shell/Shell";
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
@@ -1242,13 +1241,5 @@ export default function RouteBuilder({
     />
   );
 }
-
-RouteBuilder.getLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true} withoutSeo>
-      {children}
-    </Shell>
-  );
-};
 
 export { getServerSideProps };

@@ -9,7 +9,7 @@ import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/Skeleto
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
@@ -341,13 +341,5 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-RoutingForms.getLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Shell withoutSeo withoutMain={true} hideHeadingOnMobile>
-      {children}
-    </Shell>
-  );
-};
 
 export { getServerSideProps };

@@ -2,6 +2,7 @@
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
+import Shell from "@calcom/features/shell/Shell";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -13,8 +14,7 @@ type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  default: ((props: any) => JSX.Element) &
-    Pick<AppProps["Component"], "isBookingPage" | "getLayout" | "PageWrapper">;
+  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isBookingPage" | "PageWrapper">;
 };
 
 type Found = {
@@ -70,10 +70,15 @@ function AppPage(props: PageProps) {
     throw new Error("Route can't be undefined");
   }
   const component = <route.Component {...componentProps} />;
-  if (!route.Component.getLayout) {
-    return component;
+
+  if (appName === "routing-forms") {
+    return (
+      <Shell backPath="/apps/routing-forms/forms" withoutMain withoutSeo>
+        {component}
+      </Shell>
+    );
   }
-  return route.Component.getLayout({ children: component });
+  return component;
 }
 
 export default AppPage;
