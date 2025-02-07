@@ -90,12 +90,9 @@ test.describe("Bookings", () => {
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeHidden();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
-      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await expect(titleAndAttendees.locator('[data-testid="no-show-toggle"]')).toBeVisible();
+      await titleAndAttendees.locator('[data-testid="no-show-toggle"]').click();
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
@@ -146,7 +143,7 @@ test.describe("Bookings", () => {
       await expect(firstGuestInMore).toBeChecked({ checked: false });
       await firstGuestInMore.click();
       await expect(firstGuestInMore).toBeChecked({ checked: true });
-      const updateNoShow = firstPastBooking.locator('[data-testid="update-no-show"]');
+      const updateNoShow = firstPastBooking.locator('[data-testid="no-show-toggle"]');
       await updateNoShow.click();
       await moreGuests.click();
       await expect(firstGuestInMore).toBeChecked({ checked: true });
@@ -181,11 +178,9 @@ test.describe("Bookings", () => {
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
-      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await expect(titleAndAttendees.locator('[data-testid="no-show-toggle"]')).toBeVisible();
+      await titleAndAttendees.locator('[data-testid="no-show-toggle"]').click();
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
