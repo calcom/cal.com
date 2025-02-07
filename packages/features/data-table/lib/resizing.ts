@@ -148,6 +148,7 @@ export function usePersistentColumnResizing<TData>({
   );
 
   const debouncedContainerWidth = useDebouncedWidth(tableContainerRef);
+  const visibleColumnCount = table.getVisibleFlatColumns().length;
 
   useEffect(() => {
     if (!enabled || !identifier || !initialized.current) return;
@@ -164,7 +165,7 @@ export function usePersistentColumnResizing<TData>({
       ...old,
       columnSizing: newColumnSizing,
     }));
-  }, [debouncedContainerWidth]);
+  }, [debouncedContainerWidth, visibleColumnCount]);
 
   useEffect(() => {
     if (!enabled || !identifier) return;
