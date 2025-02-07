@@ -17,7 +17,7 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      - uses: replexica/replexica@main
+      - uses: lingodotdev/lingo.dev@main
         env:
           GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
         with:

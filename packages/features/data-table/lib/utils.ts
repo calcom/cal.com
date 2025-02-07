@@ -6,12 +6,14 @@ import type {
   TextFilterValue,
   FilterValue,
   NumberFilterValue,
+  DateRangeFilterValue,
 } from "./types";
 import {
   ZNumberFilterValue,
   ZSingleSelectFilterValue,
   ZMultiSelectFilterValue,
   ZTextFilterValue,
+  ZDateRangeFilterValue,
 } from "./types";
 
 export const textFilter = (cellValue: unknown, filterValue: TextFilterValue) => {
@@ -109,8 +111,26 @@ export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue)
   return false;
 };
 
+export const dateRangeFilter = (cellValue: unknown, filterValue: DateRangeFilterValue) => {
+  if (!(cellValue instanceof Date)) {
+    return false;
+  }
+
+  if (!filterValue.data.startDate || !filterValue.data.endDate) {
+    return true;
+  }
+
+  const cellValueStr = cellValue.toISOString();
+
+  return filterValue.data.startDate <= cellValueStr && filterValue.data.endDate >= cellValueStr;
+};
+
 export const isNumberFilterValue = (filterValue: unknown): filterValue is NumberFilterValue => {
   return ZNumberFilterValue.safeParse(filterValue).success;
+};
+
+export const isDateRangeFilterValue = (filterValue: unknown): filterValue is DateRangeFilterValue => {
+  return ZDateRangeFilterValue.safeParse(filterValue).success;
 };
 
 export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) => {
@@ -122,6 +142,8 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
     return textFilter(cellValue, filterValue);
   } else if (isNumberFilterValue(filterValue)) {
     return numberFilter(cellValue, filterValue);
+  } else if (isDateRangeFilterValue(filterValue)) {
+    return dateRangeFilter(cellValue, filterValue);
   }
   return false;
 };
