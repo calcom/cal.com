@@ -2,7 +2,6 @@
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
-import Shell from "@calcom/features/shell/Shell";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import type { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -38,7 +37,6 @@ function getRoute(appName: string, pages: string[]) {
     string,
     AppPageType
   >;
-
   const mainPage = pages[0];
   const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
   if (!appPage) {
@@ -54,11 +52,6 @@ function AppPage(props: PageProps) {
   const appName = props.appName;
   const params = useParamsWithFallback();
   const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
-
-  if (appName !== "routing-forms" && appName !== "typeform") {
-    throw new Error("slug should be routing-forms or typeform");
-  }
-
   const route = getRoute(appName, pages);
 
   if (!route || route.notFound) {
@@ -69,16 +62,7 @@ function AppPage(props: PageProps) {
     ...props,
     pages: pages.slice(1),
   };
-  const component = <route.Component {...componentProps} />;
-
-  if (appName === "routing-forms") {
-    return (
-      <Shell backPath="/apps/routing-forms/forms" withoutMain withoutSeo>
-        {component}
-      </Shell>
-    );
-  }
-  return component;
+  return <route.Component {...componentProps} />;
 }
 
 export default AppPage;
