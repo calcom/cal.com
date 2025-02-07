@@ -1,8 +1,9 @@
 "use client";
 
 import { RenderComponentWithSnippet } from "@/app/components/render";
+import { useState } from "react";
 
-import { Button, showToast } from "@calcom/ui";
+import { Button, ErrorToast, showToast, SuccessToast, WarningToast } from "@calcom/ui";
 
 export const BasicExample: React.FC = () => (
   <RenderComponentWithSnippet>
@@ -30,3 +31,45 @@ export const BasicExample: React.FC = () => (
     </div>
   </RenderComponentWithSnippet>
 );
+
+export const RawToastComponents = () => {
+  const [toastVisible, setToastVisible] = useState(true);
+  const toastId = "123";
+  const onClose = () => {
+    setToastVisible(false);
+  };
+
+  const handleReplay = () => {
+    setToastVisible(true);
+  };
+
+  return (
+    <RenderComponentWithSnippet>
+      <div className="space-y-4">
+        <Button onClick={handleReplay} disabled={toastVisible}>
+          Replay Toasts
+        </Button>
+        <div className="flex flex-col gap-2">
+          <SuccessToast
+            message="This is a basic toast message"
+            toastVisible={toastVisible}
+            toastId={toastId}
+            onClose={onClose}
+          />
+          <ErrorToast
+            message="This is an error toast message"
+            toastVisible={toastVisible}
+            toastId={toastId}
+            onClose={onClose}
+          />
+          <WarningToast
+            message="This is a warning toast message"
+            toastVisible={toastVisible}
+            toastId={toastId}
+            onClose={onClose}
+          />
+        </div>
+      </div>
+    </RenderComponentWithSnippet>
+  );
+};
