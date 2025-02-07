@@ -151,6 +151,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             inputStyles({ size }),
             "group relative mb-1 flex items-center gap-1",
             "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
+            "[&:has(:disabled)]:bg-subtle [&:has(:disabled)]:hover:border-default [&:has(:disabled)]:cursor-not-allowed",
             inputIsFullWidth && "w-full"
           )}>
           {addOnLeading && (
@@ -166,7 +167,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             className={classNames(
               "w-full border-0 bg-transparent focus:outline-none focus:ring-0",
               "text-default rounded-lg text-sm font-medium leading-none",
-              "placeholder:text-muted disabled:bg-subtle disabled:cursor-not-allowed",
+              "placeholder:text-muted disabled:cursor-not-allowed disabled:bg-transparent",
               addOnLeading && "pr-0",
               addOnSuffix && "pl-0",
               className
