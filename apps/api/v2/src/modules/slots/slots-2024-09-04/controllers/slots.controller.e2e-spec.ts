@@ -1334,8 +1334,8 @@ describe("Slots Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
-    const userEmailOne = "slot-owner-one-e2e@api.com";
-    const userEmailTwo = "slot-owner-two-e2e@api.com";
+    const userEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
+    const userEmailTwo = `slots-2024-09-04-user-2-team-slots-${randomString()}`;
 
     let team: Team;
     let userOne: User;
@@ -1377,18 +1377,18 @@ describe("Slots Endpoints", () => {
 
       userOne = await userRepositoryFixture.create({
         email: userEmailOne,
-        name: "teammate one",
-        username: "teammate-one",
+        name: userEmailOne,
+        username: userEmailOne,
       });
 
       userTwo = await userRepositoryFixture.create({
         email: userEmailTwo,
-        name: "teammate two",
-        username: "teammate-two",
+        name: userEmailTwo,
+        username: userEmailTwo,
       });
 
       team = await teamRepositoryFixture.create({
-        name: "Testy org team",
+        name: `slots-2024-09-04-team-${randomString()}`,
         isOrganization: false,
       });
 
@@ -1412,7 +1412,7 @@ describe("Slots Endpoints", () => {
           connect: { id: team.id },
         },
         title: "Collective Event Type",
-        slug: "collective-event-type",
+        slug: `slots-2024-09-04-collective-event-type-${randomString()}`,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
@@ -1429,7 +1429,7 @@ describe("Slots Endpoints", () => {
           connect: { id: team.id },
         },
         title: "RR Event Type",
-        slug: "rr-event-type",
+        slug: `slots-2024-09-04-round-robin-event-type-${randomString()}`,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
@@ -1673,13 +1673,13 @@ describe("Slots Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
 
-    const sharedUsername = `slots-shared-username-${randomString()}`;
-    const sharedEventTypeSlug = `slots-shared-event-type-slug-${randomString()}`;
+    const sharedUsername = `slots-2024-09-04-shared-username-${randomString()}`;
+    const sharedEventTypeSlug = `slots-2024-09-04-shared-event-type-slug-${randomString()}`;
 
-    const orgUserEmailOne = "slot-owner-one-e2e@api.com";
-    const orgUserEmailTwo = "slot-owner-two-e2e@api.com";
+    const orgUserEmailOne = `slots-2024-09-04-org-user-one-${randomString()}@api.com`;
+    const orgUserEmailTwo = `slots-2024-09-04-org-user-two-${randomString()}@api.com`;
 
-    const nonOrgUserEmailOne = "slot-owner-one-non-org-e2e@api.com";
+    const nonOrgUserEmailOne = `slots-2024-09-04-non-org-user-one-${randomString()}@api.com`;
 
     let organization: Team;
     let team: Team;
@@ -1723,16 +1723,17 @@ describe("Slots Endpoints", () => {
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
 
+      const orgSlug = `slots-2024-09-04-organization-${randomString()}`;
       organization = await organizationsRepositoryFixture.create({
-        name: "Testy Organization",
+        name: orgSlug,
         isOrganization: true,
-        slug: `slots-2024-09-04-organization-${randomString()}`,
+        slug: orgSlug,
         timeZone: "Europe/Rome",
       });
 
       orgUserOne = await userRepositoryFixture.create({
         email: orgUserEmailOne,
-        name: "teammate one",
+        name: orgUserEmailOne,
         username: orgUserEmailOne,
       });
 
@@ -1743,13 +1744,13 @@ describe("Slots Endpoints", () => {
 
       orgUserTwo = await userRepositoryFixture.create({
         email: orgUserEmailTwo,
-        name: "teammate two",
-        username: "teammate-two",
+        name: orgUserEmailTwo,
+        username: orgUserEmailTwo,
       });
 
       nonOrgUser = await userRepositoryFixture.create({
         email: nonOrgUserEmailOne,
-        name: "teammate one",
+        name: nonOrgUserEmailOne,
         username: sharedUsername,
       });
 
@@ -1774,7 +1775,7 @@ describe("Slots Endpoints", () => {
       });
 
       team = await teamRepositoryFixture.create({
-        name: "Testy org team",
+        name: `slots-2024-09-04-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: organization.id } },
       });
@@ -1799,7 +1800,7 @@ describe("Slots Endpoints", () => {
           connect: { id: team.id },
         },
         title: "Collective Event Type",
-        slug: "collective-event-type",
+        slug: `slots-2024-09-04-org-collective-event-type-${randomString()}`,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
@@ -1816,7 +1817,7 @@ describe("Slots Endpoints", () => {
           connect: { id: team.id },
         },
         title: "RR Event Type",
-        slug: "rr-event-type",
+        slug: `slots-2024-09-04-org-round-robin-event-type-${randomString()}`,
         length: 60,
         assignAllTeamMembers: true,
         bookingFields: [],
@@ -2113,8 +2114,8 @@ describe("Slots Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmailOne = "slot-owner-one-e2e@api.com";
-    const userEmailTwo = "slot-owner-two-e2e@api.com";
+    const userEmailOne = `slots-2024-09-04-user-1-dynamic-slots-${randomString()}@api.com`;
+    const userEmailTwo = `slots-2024-09-04-user-2-dynamic-slots-${randomString()}@api.com`;
 
     let organization: Team;
     let userOne: User;
@@ -2147,22 +2148,23 @@ describe("Slots Endpoints", () => {
       organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
+      const orgSlug = `slots-2024-09-04-org-${randomString()}`;
       organization = await organizationsRepositoryFixture.create({
-        name: "Testy Organization",
+        name: orgSlug,
         isOrganization: true,
-        slug: "testy-org-0120122",
+        slug: orgSlug,
       });
 
       userOne = await userRepositoryFixture.create({
         email: userEmailOne,
-        name: "slots owner one",
-        username: "slots-owner-one",
+        name: userEmailOne,
+        username: userEmailOne,
       });
 
       userTwo = await userRepositoryFixture.create({
         email: userEmailTwo,
-        name: "slots owner two",
-        username: "slots-owner-two",
+        name: userEmailTwo,
+        username: userEmailTwo,
       });
 
       orgProfileOne = await profileRepositoryFixture.create({
