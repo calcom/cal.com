@@ -213,8 +213,6 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
   return <RoutingForm {...props} />;
 }
 
-RoutingLink.isBookingPage = true;
-
 export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
