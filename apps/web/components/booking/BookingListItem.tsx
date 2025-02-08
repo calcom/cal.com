@@ -444,6 +444,7 @@ function BookingListItem(booking: BookingItemProps) {
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingReroutable(parsedBooking)}
         />
       )}
       <EditLocationDialog
