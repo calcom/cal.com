@@ -108,6 +108,7 @@
   "accept_license": "Αποδοχή Άδειας",
   "still_waiting_for_approval": "Ένα συμβάν εξακολουθεί να περιμένει έγκριση",
   "event_is_still_waiting": "Το αίτημα εκδήλωσης εξακολουθεί να περιμένει: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Δεν βρέθηκαν αποτελέσματα για \"{{searchTerm}}\"",
   "no_more_results": "Δεν υπάρχουν άλλα αποτελέσματα",
   "no_results": "Δεν υπάρχουν αποτελέσματα",
   "load_more_results": "Φόρτωση περισσότερων αποτελεσμάτων",
