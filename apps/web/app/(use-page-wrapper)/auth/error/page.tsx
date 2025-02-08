@@ -23,7 +23,7 @@ const ServerPage = async ({ searchParams }: PageProps) => {
   const { error } = querySchema.parse({ error: searchParams?.error || undefined });
   const errorMsg = error || t("error_during_login");
   return (
-    <AuthContainer title="" description="" isAppDir={true}>
+    <AuthContainer>
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
           <Icon name="x" className="h-6 w-6 text-red-600" />
