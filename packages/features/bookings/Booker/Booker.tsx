@@ -36,6 +36,7 @@ import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from ".
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+import { isSlotEquivalent } from "./utils/isSlotEquivalent";
 
 const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
@@ -50,6 +51,7 @@ const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) =>
 
 /**
  * Checks if a given time slot is available in the schedule
+ * It should never give false negative, false positives are fine.
  * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
  * @returns boolean - true if the slot is available, false otherwise.
  */
@@ -83,8 +85,7 @@ const isTimeSlotAvailable = ({
 
   // Check if the exact time slot exists in the available slots
   return slotsForDateInIso.some((slot) => {
-    const slotTimeInIso = slot.time;
-    return slotTimeInIso === slotToCheckInIso;
+    return isSlotEquivalent({ slotTimeInIso: slot.time, slotToCheckInIso });
   });
 };
 
