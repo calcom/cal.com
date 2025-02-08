@@ -778,7 +778,7 @@ export const signupSchema = z.object({
   email: z.string().superRefine((email, ctx) => {
     if (email.length <= 1 || !email.includes('@')) return;
 
-    const [_, domain] = email.split('@');
+    const domain = email.split('@')[1];
     const tld = domain?.split('.').pop();
     
     if (!domain || 
