@@ -88,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userMetadataParsed = userMetadata.parse(user.metadata);
   // Attach the new email and verify
   if (userMetadataParsed?.emailChangeWaitingForVerification) {
-    // Ensure this email isnt in use
+    // Ensure this email isn't in use
     const existingUser = await prisma.user.findUnique({
       where: { email: userMetadataParsed?.emailChangeWaitingForVerification },
       select: {
