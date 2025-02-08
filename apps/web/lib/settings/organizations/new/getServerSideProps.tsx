@@ -13,7 +13,7 @@ export const getServerSideProps = async (
       notFound: true,
     } as const;
   }
-
+  // <ai_context> We might need to use querySlug but right now this getSErverSideProps fn simpply checks if feature is enabled or not </ai_context>
   const querySlug = context.query.slug as string;
 
   return {
