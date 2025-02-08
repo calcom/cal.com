@@ -185,6 +185,7 @@ export default function Signup({
   const [usernameTaken, setUsernameTaken] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [displayEmailForm, setDisplayEmailForm] = useState(token);
+  const [emailValue, setEmailValue] = useState("");
   const searchParams = useCompatSearchParams();
   const telemetry = useTelemetry();
   const { t, i18n } = useLocale();
@@ -294,6 +295,9 @@ export default function Signup({
         formMethods.setError("apiError", { message: err.message });
       });
   };
+
+  console.log("logging the email value", emailValue);
+  console.log("logging the register", register);
 
   return (
     <>
@@ -412,7 +416,10 @@ export default function Signup({
                   <TextField
                     {...register("email")}
                     label={t("email")}
-                    type="email"
+                    value={emailValue}
+                    onChange={(e) => setEmailValue(e.target.value)}
+                    //type="email"
+                    type={emailValue == "" ? "text" : "email"}
                     disabled={prepopulateFormValues?.email}
                     data-testid="signup-emailfield"
                   />
