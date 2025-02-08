@@ -181,6 +181,7 @@ export const config = {
     "/booking/:path*",
     "/payment/:path*",
     "/routing-forms/:path*",
+    "/router/:path*",
     "/team/:path*",
     "/org/:path*",
     "/:user/:type/",
