@@ -27,6 +27,11 @@ import {
   TextAreaField,
 } from "@calcom/ui";
 
+enum ReassignType {
+  ROUND_ROBIN = "round_robin",
+  TEAM_MEMBER = "team_member",
+}
+
 type ReassignDialog = {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
@@ -36,13 +41,13 @@ type ReassignDialog = {
 };
 
 type FormValues = {
-  reassignType: "round_robin" | "team_member";
+  reassignType: ReassignType.ROUND_ROBIN | ReassignType.TEAM_MEMBER;
   teamMemberId?: number;
   reassignReason?: string;
 };
 
 const formSchema = z.object({
-  reassignType: z.enum(["round_robin", "team_member"]),
+  reassignType: z.nativeEnum(ReassignType),
   teamMemberId: z.number().optional(),
   reassignReason: z
     .string()
@@ -108,7 +113,7 @@ export const ReassignDialog = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      reassignType: bookingFromRoutingForm ? "team_member" : "round_robin",
+      reassignType: bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN,
     },
   });
 
@@ -151,7 +156,7 @@ export const ReassignDialog = ({
   });
 
   const handleSubmit = (values: FormValues) => {
-    if (values.reassignType === "round_robin") {
+    if (values.reassignType === ReassignType.ROUND_ROBIN) {
       roundRobinReassignMutation.mutate({ teamId, bookingId });
     } else {
       if (values.teamMemberId) {
@@ -183,13 +188,13 @@ export const ReassignDialog = ({
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
-                form.setValue("reassignType", val as "team_member" | "round_robin");
+                form.setValue("reassignType", val as ReasonEnum);
               }}
-              defaultValue={bookingFromRoutingForm ? "team_member" : "round_robin"}
+              defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN}
               className="mt-1 flex flex-col gap-4">
               {!bookingFromRoutingForm ? (
                 <RadioArea.Item
-                  value="round_robin"
+                  value={ReassignType.ROUND_ROBIN}
                   className="w-full text-sm"
                   classNames={{ container: "w-full" }}
                   disabled={bookingFromRoutingForm}>
@@ -197,13 +202,16 @@ export const ReassignDialog = ({
                   <p>{t("round_robin_reassign_description")}</p>
                 </RadioArea.Item>
               ) : null}
-              <RadioArea.Item value="team_member" className="text-sm" classNames={{ container: "w-full" }}>
+              <RadioArea.Item
+                value={ReassignType.TEAM_MEMBER}
+                className="text-sm"
+                classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
                 <p>{t("team_member_round_robin_reassign_description")}</p>
               </RadioArea.Item>
             </RadioArea.Group>
 
-            {watchedReassignType === "team_member" && (
+            {watchedReassignType === ReassignType.TEAM_MEMBER && (
               <div className="mb-2">
                 <Label className="text-emphasis mt-6">{t("select_team_member")}</Label>
                 <div className="mt-2">
