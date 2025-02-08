@@ -124,6 +124,12 @@ export class GetAvailableSlotsInput {
   @IsNumber({}, { each: true })
   @ApiHideProperty()
   routedTeamMemberIds?: number[];
+
+  @Transform(({ value }) => value && value.toLowerCase() === "true")
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _isDryRun?: boolean;
 }
 
 export class RemoveSelectedSlotInput {
