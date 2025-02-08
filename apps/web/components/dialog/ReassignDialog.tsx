@@ -32,6 +32,7 @@ type ReassignDialog = {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   teamId: number;
   bookingId: number;
+  bookingFromRoutingForm: boolean;
 };
 
 type FormValues = {
@@ -57,7 +58,13 @@ interface TeamMemberOption {
   status: string;
 }
 
-export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingId }: ReassignDialog) => {
+export const ReassignDialog = ({
+  isOpenDialog,
+  setIsOpenDialog,
+  teamId,
+  bookingId,
+  bookingFromRoutingForm,
+}: ReassignDialog) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const [animationParentRef] = useAutoAnimate<HTMLFormElement>({
@@ -101,7 +108,7 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      reassignType: "round_robin",
+      reassignType: bookingFromRoutingForm ? "team_member" : "round_robin",
     },
   });
 
@@ -178,14 +185,18 @@ export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingI
               onValueChange={(val) => {
                 form.setValue("reassignType", val as "team_member" | "round_robin");
               }}
+              defaultValue={bookingFromRoutingForm ? "team_member" : "round_robin"}
               className="mt-1 flex flex-col gap-4">
-              <RadioArea.Item
-                value="round_robin"
-                className="w-full text-sm"
-                classNames={{ container: "w-full" }}>
-                <strong className="mb-1 block">{t("round_robin")}</strong>
-                <p>{t("round_robin_reassign_description")}</p>
-              </RadioArea.Item>
+              {!bookingFromRoutingForm ? (
+                <RadioArea.Item
+                  value="round_robin"
+                  className="w-full text-sm"
+                  classNames={{ container: "w-full" }}
+                  disabled={bookingFromRoutingForm}>
+                  <strong className="mb-1 block">{t("round_robin")}</strong>
+                  <p>{t("round_robin_reassign_description")}</p>
+                </RadioArea.Item>
+              ) : null}
               <RadioArea.Item value="team_member" className="text-sm" classNames={{ container: "w-full" }}>
                 <strong className="mb-1 block">{t("team_member_round_robin_reassign")}</strong>
                 <p>{t("team_member_round_robin_reassign_description")}</p>
