@@ -11,7 +11,7 @@ export function ShellMainAppDir(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "hidden items-center md:mb-6 md:mt-0 md:flex",
+            "flex items-center md:mb-6 md:mt-0",
             props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
@@ -20,7 +20,10 @@ export function ShellMainAppDir(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames(
+                  "hidden w-full truncate ltr:mr-4 rtl:ml-4 md:block",
+                  props.headerClassName
+                )}>
                 {props.heading && (
                   <h3
                     className={classNames(
