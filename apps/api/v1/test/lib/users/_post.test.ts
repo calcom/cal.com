@@ -87,4 +87,40 @@ describe("POST /api/users", () => {
       })
     );
   });
+
+  test("should auto lock user if email is in watchlist", async () => {
+    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {
+        email: "test@example.com",
+        username: "test",
+      },
+      prisma: prismock,
+    });
+    req.isSystemWideAdmin = true;
+
+    await prismock.watchlist.create({
+      data: {
+        type: "EMAIL",
+        value: "test@example.com",
+        severity: "CRITICAL",
+        createdById: 1,
+      },
+    });
+
+    await handler(req, res);
+
+    expect(res.statusCode).toBe(200);
+
+    const response = JSON.parse(res._getData());
+
+    expect(response.user).toEqual(
+      expect.objectContaining({
+        email: "test@example.com",
+        username: "test",
+        locked: true,
+        organizationId: null,
+      })
+    );
+  });
 });
