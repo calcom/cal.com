@@ -587,9 +587,9 @@ export class UserRepository {
     }
   ) {
     const organizationIdValue = data.organizationId;
-    const { email, username, creationSource, hashedPassword, organizationId, ...rest } = data;
+    const { email, username, creationSource, locked, ...rest } = data;
 
-    console.log("create user", { email, username, organizationIdValue });
+    console.log("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -629,7 +629,6 @@ export class UserRepository {
         ...rest,
       },
     });
-    console.log("🚀 ~ UserRepository ~ user:", user);
 
     return user;
   }
