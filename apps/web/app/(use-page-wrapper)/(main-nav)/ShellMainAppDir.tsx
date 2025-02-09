@@ -11,9 +11,8 @@ export function ShellMainAppDir(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+            "hidden items-center md:mb-6 md:mt-0 md:flex",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
           {props.heading && (
@@ -26,8 +25,7 @@ export function ShellMainAppDir(props: LayoutProps) {
                   <h3
                     className={classNames(
                       "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
+                      props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {props.heading}
                   </h3>
