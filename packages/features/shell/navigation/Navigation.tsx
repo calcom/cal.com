@@ -9,6 +9,7 @@ import {
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
+import { Badge } from "@calcom/ui";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -90,6 +91,8 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "routing",
     href: "/apps/routing-forms/forms",
     icon: "split",
+    badge: <Badge variant="green">NEW</Badge>,
+
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
     moreOnMobile: true,
   },
