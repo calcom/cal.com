@@ -90,34 +90,36 @@ model EventType {
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  team                                    Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                                  Int?
-  hashedLink                              HashedLink[]
-  bookings                                Booking[]
-  availability                            Availability[]
-  webhooks                                Webhook[]
-  destinationCalendar                     DestinationCalendar?
-  useEventLevelSelectedCalendars          Boolean                   @default(false)
-  eventName                               String?
-  customInputs                            EventTypeCustomInput[]
-  parentId                                Int?
-  parent                                  EventType?                @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                                EventType[]               @relation("managed_eventtype")
+  team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                             Int?
+  hashedLink                         HashedLink[]
+  bookings                           Booking[]
+  availability                       Availability[]
+  webhooks                           Webhook[]
+  destinationCalendar                DestinationCalendar?
+  useEventLevelSelectedCalendars     Boolean                @default(false)
+  eventName                          String?
+  customInputs                       EventTypeCustomInput[]
+  parentId                           Int?
+  parent                             EventType?             @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                           EventType[]            @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
-  bookingFields                           Json?
-  timeZone                                String?
-  periodType                              PeriodType                @default(UNLIMITED)
+  bookingFields                      Json?
+  timeZone                           String?
+  periodType                         PeriodType             @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
-  periodStartDate                         DateTime?
+  periodStartDate                    DateTime?
   /// @zod.custom(imports.coerceToDate)
-  periodEndDate                           DateTime?
-  periodDays                              Int?
-  periodCountCalendarDays                 Boolean?
-  lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
-  requiresConfirmation                    Boolean                   @default(false)
-  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
-  requiresConfirmationForFreeEmail        Boolean                   @default(false)
-  requiresBookerEmailVerification         Boolean                   @default(false)
+  periodEndDate                      DateTime?
+  periodDays                         Int?
+  periodCountCalendarDays            Boolean?
+  lockTimeZoneToggleOnBookingPage    Boolean                @default(false)
+  requiresConfirmation               Boolean                @default(false)
+  requiresConfirmationWillBlockSlot  Boolean                @default(false)
+  requiresConfirmationForFreeEmail   Boolean                @default(false)
+  requiresBookerEmailVerification    Boolean                @default(false)
+  canSendCalVideoTranscriptionEmails Boolean                @default(true)
+
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?

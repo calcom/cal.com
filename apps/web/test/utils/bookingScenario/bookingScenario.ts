@@ -277,7 +277,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
 export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
-    "users" | "worflows" | "destinationCalendar" | "schedule"
+    "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
