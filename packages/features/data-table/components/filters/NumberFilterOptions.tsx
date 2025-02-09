@@ -6,22 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
 import { useFilterValue, useDataTable } from "../../hooks";
-import type { FilterableColumn, NumberFilterOperator } from "../../lib/types";
+import type { FilterableColumn } from "../../lib/types";
 import { ZNumberFilterValue, ColumnFilterType } from "../../lib/types";
-
-export type NumberFilterOperatorOption = {
-  label: string;
-  value: NumberFilterOperator;
-};
-
-const numberFilterOperatorOptions: NumberFilterOperatorOption[] = [
-  { value: "eq", label: "=" },
-  { value: "neq", label: "≠" },
-  { value: "gt", label: ">" },
-  { value: "gte", label: "≥" },
-  { value: "lt", label: "<" },
-  { value: "lte", label: "≤" },
-];
+import { numberFilterOperatorOptions } from "./utils";
 
 export type NumberFilterOptionsProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.NUMBER }>;
