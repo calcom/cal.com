@@ -36,15 +36,17 @@ async function handler(req: NextApiRequest) {
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
   await UserCreationService.createUser({
-    username: parsedQuery.data.username.trim(),
-    email: userEmail,
-    password: parsedQuery.data.password,
-    role: "ADMIN",
-    name: parsedQuery.data.full_name,
-    emailVerified: new Date(),
-    locale: "en", // TODO: We should revisit this
-    identityProvider: IdentityProvider.CAL,
-    creationSource: CreationSource.SELF_SERVE_ADMIN,
+    data: {
+      username: parsedQuery.data.username.trim(),
+      email: userEmail,
+      password: parsedQuery.data.password,
+      role: "ADMIN",
+      name: parsedQuery.data.full_name,
+      emailVerified: new Date(),
+      locale: "en", // TODO: We should revisit this
+      identityProvider: IdentityProvider.CAL,
+      creationSource: CreationSource.SELF_SERVE_ADMIN,
+    },
   });
 
   return { message: "First admin user created successfully." };
