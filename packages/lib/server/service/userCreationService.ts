@@ -1,5 +1,6 @@
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import logger from "@calcom/lib/logger";
 import type { CreationSource, UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 
 import slugify from "../../slugify";
@@ -26,6 +27,8 @@ interface CreateUserInput {
   identityProvider?: IdentityProvider;
 }
 
+const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
+
 export class UserCreationService {
   static async createUser({ data }: { data: CreateUserInput }) {
     const { email, password, username } = data;
@@ -42,6 +45,10 @@ export class UserCreationService {
       locked: shouldLockByDefault,
     });
 
-    return user;
+    log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
+
+    const { locked, ...rest } = user;
+
+    return rest;
   }
 }
