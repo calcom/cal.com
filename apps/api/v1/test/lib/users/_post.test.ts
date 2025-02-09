@@ -76,9 +76,13 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(200);
 
-    const response = JSON.parse(res._getData());
+    const userQuery = await prismock.user.findFirst({
+      where: {
+        email: "test@example.com",
+      },
+    });
 
-    expect(response.user).toEqual(
+    expect(userQuery).toEqual(
       expect.objectContaining({
         email: "test@example.com",
         username: "test",
@@ -112,9 +116,13 @@ describe("POST /api/users", () => {
 
     expect(res.statusCode).toBe(200);
 
-    const response = JSON.parse(res._getData());
+    const userQuery = await prismock.user.findFirst({
+      where: {
+        email: "test@example.com",
+      },
+    });
 
-    expect(response.user).toEqual(
+    expect(userQuery).toEqual(
       expect.objectContaining({
         email: "test@example.com",
         username: "test",
