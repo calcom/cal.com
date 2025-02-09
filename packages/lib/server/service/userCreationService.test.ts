@@ -1,3 +1,5 @@
+import prismock from "../../../../tests/libs/__mocks__/prisma";
+
 import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -41,11 +43,18 @@ vi.stubEnv("CALCOM_LICENSE_KEY", undefined);
 
 describe("UserCreationService", () => {
   beforeEach(() => {
+    prismock;
     vi.clearAllMocks();
   });
 
   test("should create user with transformed fields", async () => {
-    await UserCreationService.createUser({ data: mockUserData });
+    vi.spyOn(UserRepository, "create").mockResolvedValue({
+      username: "test",
+      locked: false,
+      organizationId: null,
+    } as any);
+
+    const user = await UserCreationService.createUser({ data: mockUserData });
 
     expect(UserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -54,25 +63,29 @@ describe("UserCreationService", () => {
         organizationId: null,
       })
     );
+
+    expect(user).not.toHaveProperty("locked");
   });
 
   test("should lock user when email is in watchlist", async () => {
     vi.mocked(checkIfEmailIsBlockedInWatchlistController).mockResolvedValue(true);
 
-    await UserCreationService.createUser({ data: mockUserData });
+    const user = await UserCreationService.createUser({ data: mockUserData });
 
     expect(UserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         locked: true,
       })
     );
+
+    expect(user).not.toHaveProperty("locked");
   });
 
   test("should hash password when provided", async () => {
     const mockPassword = "password";
     vi.mocked(hashPassword).mockResolvedValue("hashed_password");
 
-    await UserCreationService.createUser({
+    const user = await UserCreationService.createUser({
       data: { ...mockUserData, password: mockPassword },
     });
 
@@ -82,5 +95,7 @@ describe("UserCreationService", () => {
         hashedPassword: "hashed_password",
       })
     );
+
+    expect(user).not.toHaveProperty("locked");
   });
 });

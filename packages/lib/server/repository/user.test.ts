@@ -58,7 +58,16 @@ describe("UserRepository", () => {
         locked: true,
       });
 
-      expect(user).toEqual(
+      const userQuery = await prismock.user.findUnique({
+        where: {
+          email: "test@example.com",
+        },
+        select: {
+          locked: true,
+        },
+      });
+
+      expect(userQuery).toEqual(
         expect.objectContaining({
           locked: true,
         })
