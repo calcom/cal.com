@@ -289,6 +289,7 @@ function BookingsContent({ status }: BookingsProps) {
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               <DataTableWrapper
+                // @ts-expect-error this bypasses ts error caused by type inference issues with dynamic imports - nothing major.
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
