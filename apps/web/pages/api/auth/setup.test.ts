@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, test, expect, vi } from "vitest";
 
+import { UserPermissionRole, CreationSource, IdentityProvider } from "@calcom/prisma/enums";
+
 import handler from "./setup";
 
 type CustomNextApiRequest = NextApiRequest & Request;
@@ -66,5 +68,23 @@ describe("setup", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(200);
+
+    const user = await prismock.user.findFirst({
+      where: {
+        email: "test@example.com",
+      },
+    });
+
+    expect(user).toEqual(
+      expect.objectContaining({
+        email: "test@example.com",
+        username: "test",
+        locked: false,
+        organizationId: null,
+        identityProvider: IdentityProvider.CAL,
+        role: UserPermissionRole.ADMIN,
+        creationSource: CreationSource.SELF_SERVE_ADMIN,
+      })
+    );
   });
 });
