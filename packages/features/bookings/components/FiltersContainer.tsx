@@ -10,11 +10,7 @@ import { Tooltip, Button } from "@calcom/ui";
 
 import { EventTypeFilter } from "./EventTypeFilter";
 
-export interface FiltersContainerProps {
-  isFiltersVisible: boolean;
-}
-
-export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
+export function FiltersContainer() {
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const { removeAllQueryParams } = useFilterQuery();
   const { t } = useLocale();
@@ -27,23 +23,21 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
 
   return (
     <div ref={animationParentRef}>
-      {isFiltersVisible ? (
-        <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
-          <PeopleFilter />
-          <EventTypeFilter />
-          <TeamsFilter />
-          <StartTimeFilters />
-          <Tooltip content={t("remove_filters")}>
-            <Button
-              disabled={!hasValidQueryParams}
-              color="secondary"
-              type="button"
-              onClick={removeAllQueryParams}>
-              {t("remove_filters")}
-            </Button>
-          </Tooltip>
-        </div>
-      ) : null}
+      <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
+        <PeopleFilter />
+        <EventTypeFilter />
+        <TeamsFilter />
+        <StartTimeFilters />
+        <Tooltip content={t("remove_filters")}>
+          <Button
+            disabled={!hasValidQueryParams}
+            color="secondary"
+            type="button"
+            onClick={removeAllQueryParams}>
+            {t("remove_filters")}
+          </Button>
+        </Tooltip>
+      </div>
     </div>
   );
 }

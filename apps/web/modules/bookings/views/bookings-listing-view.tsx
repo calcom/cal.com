@@ -7,28 +7,59 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import type { z } from "zod";
 
-import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
 import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
-import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
+import { DataTableProvider } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { Alert, EmptyScreen, HorizontalTabs } from "@calcom/ui";
+import { HorizontalTabs } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import type { validStatuses } from "~/bookings/lib/validStatuses";
+
+const Alert = dynamic(() => import("@calcom/ui").then((mod) => mod.Alert));
+
+const DataTableWrapper = dynamic(
+  () => import("@calcom/features/data-table").then((mod) => mod.DataTableWrapper),
+  {
+    ssr: false,
+    loading: () => <SkeletonLoader />,
+  }
+);
+
+const BookingListItem = dynamic(() => import("@components/booking/BookingListItem"), {
+  ssr: true,
+  loading: () => <div className="h-20 animate-pulse rounded-md bg-gray-100" />,
+});
+
+const EmptyScreen = dynamic(() => import("@calcom/ui").then((mod) => mod.EmptyScreen));
+
+const WipeMyCalActionButton = dynamic(
+  () => import("@calcom/app-store/wipemycalother/components").then((mod) => mod.WipeMyCalActionButton),
+  {
+    ssr: false,
+    loading: () => <Icon name="loader" className="animate-spin" />,
+  }
+);
+const FiltersContainer = dynamic(
+  () => import("@calcom/features/bookings/components/FiltersContainer").then((mod) => mod.FiltersContainer),
+  {
+    ssr: false,
+    loading: () => <Icon name="loader" className="animate-spin" />,
+  }
+);
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
@@ -157,8 +188,7 @@ function BookingsContent({ status }: BookingsProps) {
     ];
   }, [user, status]);
 
-  const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
-
+  const isEmpty = !query.data?.pages[0]?.bookings.length;
   const flatData = useMemo<RowData[]>(() => {
     const shownBookings: Record<string, BookingOutput[]> = {};
     const filterBookings = (booking: BookingOutput) => {
@@ -246,7 +276,7 @@ function BookingsContent({ status }: BookingsProps) {
         <HorizontalTabs tabs={tabs} />
         <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
-      <FiltersContainer isFiltersVisible={isFiltersVisible} />
+      {isFiltersVisible && <FiltersContainer />}
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.status === "error" && (
@@ -255,7 +285,7 @@ function BookingsContent({ status }: BookingsProps) {
           {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
           {query.status === "success" && !isEmpty && (
             <>
-              {!!bookingsToday.length && status === "upcoming" && (
+              {bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               <DataTableWrapper
