@@ -12,7 +12,9 @@ import {
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
-import AssignmentReasonRecorder from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -184,6 +186,7 @@ export const roundRobinManualReassignment = async ({
       bookingId,
       reassignReason,
       reassignById: reassignedById,
+      reassignmentType: RRReassignmentType.MANUAL,
     });
   } else if (currentRRHost) {
     // Update the round-robin host attendee
