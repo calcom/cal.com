@@ -14,6 +14,9 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking/types";
+import AssignmentReasonRecorder, {
+  RRReassignmentType,
+} from "@calcom/features/ee/round-robin/assignmentReason/AssignmentReasonRecorder";
 import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
@@ -253,6 +256,14 @@ export const roundRobinReassignment = async ({
       },
     });
   }
+
+  roundRobinReassignLogger.info(`Successfully reassigned to user ${reassignedRRHost.id}`);
+
+  await AssignmentReasonRecorder.roundRobinReassignment({
+    bookingId,
+    reassignById: reassignedById,
+    reassignmentType: RRReassignmentType.ROUND_ROBIN,
+  });
 
   const destinationCalendar = await getDestinationCalendar({
     eventType,
