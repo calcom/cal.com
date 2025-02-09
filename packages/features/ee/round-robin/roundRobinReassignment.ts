@@ -43,15 +43,19 @@ export const roundRobinReassignment = async ({
   orgId,
   emailsEnabled = true,
   platformClientParams,
+  reassignedById,
 }: {
   bookingId: number;
   orgId: number | null;
   emailsEnabled?: boolean;
   platformClientParams?: PlatformClientParams;
+  reassignedById: number;
 }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
+
+  roundRobinReassignLogger.info(`User ${reassignedById} initiating round robin reassignment`);
 
   let booking = await prisma.booking.findUnique({
     where: {
