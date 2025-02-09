@@ -65,6 +65,8 @@ export const roundRobinManualReassignment = async ({
     prefix: ["roundRobinManualReassign", `${bookingId}`],
   });
 
+  roundRobinReassignLogger.info(`User ${reassignedById} initiating manual reassignment to user ${newUserId}`);
+
   let booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     select: bookingSelect,
