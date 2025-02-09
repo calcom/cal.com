@@ -285,7 +285,7 @@ function BookingsContent({ status }: BookingsProps) {
           {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
           {query.status === "success" && !isEmpty && (
             <>
-              {bookingsToday.length && status === "upcoming" && (
+              {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               <DataTableWrapper
