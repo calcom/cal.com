@@ -614,6 +614,7 @@ export class UserRepository {
           },
         },
         creationSource,
+        locked,
         ...(organizationIdValue
           ? {
               organizationId: organizationIdValue,
