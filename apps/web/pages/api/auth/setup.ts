@@ -49,7 +49,7 @@ async function handler(req: NextApiRequest) {
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       identityProvider: IdentityProvider.CAL,
-      creationSource: CreationSource.WEBAPP,
+      creationSource: CreationSource.SELF_SERVE_ADMIN,
     },
   });
 
