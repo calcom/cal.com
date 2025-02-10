@@ -42,12 +42,6 @@ interface OrgData {
   accepted: boolean;
 }
 
-interface OrgData {
-  id: number;
-  role: MembershipRole;
-  accepted: boolean;
-}
-
 const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
