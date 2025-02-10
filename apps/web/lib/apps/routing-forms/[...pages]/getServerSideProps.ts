@@ -1,4 +1,4 @@
-import type { GetServerSidePropsResult } from "next";
+import type { GetServerSidePropsResult, GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
@@ -14,7 +14,7 @@ const paramsSchema = z.object({
 });
 
 export async function getServerSideProps(
-  context: AppGetServerSidePropsContext
+  context: GetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<any>> {
   const { params, req } = context;
 
@@ -43,7 +43,7 @@ export async function getServerSideProps(
     };
   }
 
-  const result = await getServerSideProps(context, prisma, user, ssrInit);
+  const result = await getServerSideProps(context as AppGetServerSidePropsContext, prisma, user, ssrInit);
 
   if (result.notFound) {
     return { notFound: true };
