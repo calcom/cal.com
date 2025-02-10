@@ -54,7 +54,7 @@ export class UserCreationService {
         ...(hashedPassword && { hashedPassword }),
         locked: shouldLockByDefault,
       },
-      ...(orgData ? orgData : {}),
+      ...(orgData ? { orgData } : {}),
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);

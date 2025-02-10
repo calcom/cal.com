@@ -579,6 +579,7 @@ export class UserRepository {
 
   static async create({
     data,
+    orgData,
   }: {
     data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
       username: string;
@@ -592,10 +593,9 @@ export class UserRepository {
       accepted: boolean;
     };
   }) {
-    // const organizationId = data.organizationId;
-    const { email, username, creationSource, ...rest } = data;
+    const { email, username, creationSource, locked, ...rest } = data;
 
-    console.log("create user", { email, username, organizationIdValue, locked });
+    console.log("create user", { email, username, orgId: orgData?.id, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
@@ -620,6 +620,7 @@ export class UserRepository {
           },
         },
         creationSource,
+        locked,
         ...(orgData
           ? {
               organizationId: orgData.id,
@@ -630,7 +631,7 @@ export class UserRepository {
                   uid: ProfileRepository.generateProfileUid(),
                 },
               },
-              memberships: {
+              teams: {
                 create: {
                   role: orgData.role,
                   accepted: orgData.accepted,
