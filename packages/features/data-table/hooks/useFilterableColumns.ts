@@ -4,7 +4,7 @@ import { type Table } from "@tanstack/react-table";
 // eslint-disable-next-line no-restricted-imports
 import { useMemo } from "react";
 
-import type { FilterableColumn } from "../lib/types";
+import type { FilterableColumn, FacetedValue } from "../lib/types";
 import { ColumnFilterType } from "../lib/types";
 import { convertMapToFacetedValues } from "../lib/utils";
 

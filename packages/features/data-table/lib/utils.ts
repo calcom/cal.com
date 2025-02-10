@@ -160,8 +160,8 @@ export const convertFacetedValuesToMap = (array: FacetedValue[]) => {
   );
 };
 
-export const convertMapToFacetedValues = (map: Map<FacetedValue, number>) => {
-  if (!(map instanceof Map)) {
+export const convertMapToFacetedValues = (map: Map<FacetedValue, number> | undefined) => {
+  if (!map || !(map instanceof Map)) {
     return [];
   }
   return Array.from(map.keys()).map((option) => {
