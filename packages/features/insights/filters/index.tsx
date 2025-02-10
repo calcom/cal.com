@@ -1,6 +1,6 @@
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Tooltip } from "@calcom/ui";
+import { Button, Tooltip } from "@calcom/ui";
 
 import { DateSelect } from "./DateSelect";
 import { Download } from "./Download";
@@ -19,15 +19,13 @@ const ClearFilters = () => {
   return (
     <Tooltip content={t("clear_filters")}>
       <Button
-        variant="icon"
-        color="secondary"
+        color="minimal"
         target="_blank"
         rel="noreferrer"
-        className="min-w-24 h-[38px] border-0"
+        StartIcon="x"
         onClick={() => {
           clearFilters();
         }}>
-        <Icon name="x" className="mr-1 h-4 w-4" />
         {t("clear")}
       </Button>
     </Tooltip>
@@ -35,18 +33,8 @@ const ClearFilters = () => {
 };
 
 export const Filters = () => {
-  const { filter } = useFilterContext();
-  const { selectedFilter } = filter;
-
-  // Get all filters that relate to the routing form
-  const routingFormFieldIds = selectedFilter
-    ? selectedFilter.map((filter) => {
-        if (filter.startsWith("rf_")) return filter.substring(3);
-      })
-    : [];
-
   return (
-    <div className="ml-auto mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
+    <div className="mb-2 ml-auto mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-between">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-nowrap sm:justify-start">
         <TeamAndSelfList omitOrg={false} />
 
@@ -82,9 +70,9 @@ export const Filters = () => {
           />
         </Tooltip>
       </ButtonGroup> */}
-      <div className="flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-between">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:flex-nowrap sm:justify-between">
         <Download />
-        <DateSelect className="me-2 ms-2" />
+        <DateSelect />
       </div>
     </div>
   );

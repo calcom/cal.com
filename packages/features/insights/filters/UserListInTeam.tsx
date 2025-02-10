@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Icon, Avatar, FilterSelect } from "@calcom/ui";
+import { Avatar, FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -44,7 +44,7 @@ export const UserListInTeam = ({ onClear }: { onClear?: () => void }) => {
           onClear?.();
         }
       }}
-      buttonIcon={<Icon name="users" className="mr-2 h-4 w-4" />}
+      buttonIcon="users"
       placeholder={t("search")}
       testId="people-filter"
     />

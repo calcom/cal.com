@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { Icon, FilterSelect } from "@calcom/ui";
+import { FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -42,7 +42,7 @@ export const BookingStatusFilter = () => {
       onChange={(value) => {
         setConfigFilters({ selectedBookingStatus: value as BookingStatus | "NO_BOOKING" });
       }}
-      buttonIcon={<Icon name="circle" className="mr-2 h-4 w-4" />}
+      buttonIcon="circle"
       placeholder={t("search")}
     />
   );

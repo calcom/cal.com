@@ -30,7 +30,8 @@ export const AnimatedPopover = ({
   const ref = React.useRef<HTMLButtonElement>(null);
   // calculate which aligment to open the popover with based on which half of the screen it is on (left or right)
   const [align, setAlign] = React.useState<"start" | "end">("start");
-  React.useEffect(() => {
+
+  React.useLayoutEffect(() => {
     const handleResize = () => {
       const halfWidth = window.innerWidth / 2;
       const { x } = ref?.current?.getBoundingClientRect() || {
@@ -66,7 +67,7 @@ export const AnimatedPopover = ({
           ) : (
             <div className="max-w-36 flex items-center">
               <Tooltip content={prefix ? `${prefix}${text}` : text}>
-                <div className="flex select-none truncate font-medium">
+                <div className="flex select-none truncate font-medium leading-none">
                   {PrefixComponent ? PrefixComponent : null}
                   {prefix && <span className="text-subtle">{prefix}&nbsp;</span>}
                   {text}

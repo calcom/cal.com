@@ -1,6 +1,6 @@
 import { useDataTable } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, Button, Tooltip } from "@calcom/ui";
+import { Button, Tooltip } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -34,13 +34,12 @@ export const ClearFilters = () => {
   return (
     <Tooltip content={t("clear_filters")}>
       <Button
-        variant="icon"
         color="secondary"
         target="_blank"
         rel="noreferrer"
-        className="min-w-24 h-[38px] border-0"
+        className="min-w-24 border-0"
+        StartIcon="x"
         onClick={clear}>
-        <Icon name="x" className="mr-1 h-4 w-4" />
         {t("clear")}
       </Button>
     </Tooltip>

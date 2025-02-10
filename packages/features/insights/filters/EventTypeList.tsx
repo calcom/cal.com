@@ -3,7 +3,7 @@ import { memo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Icon, FilterSelect } from "@calcom/ui";
+import { FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -38,7 +38,7 @@ export const EventTypeList = memo(() => {
       options={filterOptions}
       selectedValue={selectedEventTypeId}
       onChange={(value) => setConfigFilters({ selectedEventTypeId: value ? Number(value) : null })}
-      buttonIcon={<Icon name="calendar" className="mr-2 h-4 w-4" />}
+      buttonIcon="calendar"
       emptyText={t("no_options_available")}
     />
   );

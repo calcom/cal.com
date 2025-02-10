@@ -3,13 +3,13 @@ import { useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { IconName } from "@calcom/ui";
 import {
+  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   Icon,
-  Tooltip,
 } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
@@ -53,12 +53,9 @@ export const FilterType = () => {
   return (
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <div className="hover:border-emphasis border-default text-default hover:text-emphasis focus:border-subtle mb-4 flex h-9 max-h-72 items-center justify-between whitespace-nowrap rounded-md border px-3 py-2 text-sm hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1">
-          <Icon name="plus" className="mr-2 h-4 w-4" />
-          <Tooltip content={t("add_filter")}>
-            <div>{selectedFilter?.length ? `${selectedFilter.length} ${t("filters")}` : t("add_filter")}</div>
-          </Tooltip>
-        </div>
+        <Button tooltip={t("add_filter")} StartIcon="plus" color="secondary">
+          <div>{selectedFilter?.length ? `${selectedFilter.length} ${t("filters")}` : t("add_filter")}</div>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="z-50">
         {filterOptions?.map((option) => (

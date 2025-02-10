@@ -3,7 +3,7 @@ import { memo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Icon, FilterSelect } from "@calcom/ui";
+import { FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -43,7 +43,7 @@ export const RoutingFormFilterList = memo(() => {
       options={filterOptions}
       selectedValue={selectedRoutingFormId}
       onChange={(value) => setConfigFilters({ selectedRoutingFormId: value as string })}
-      buttonIcon={<Icon name="filter" className="mr-2 h-4 w-4" />}
+      buttonIcon="filter"
     />
   );
 });

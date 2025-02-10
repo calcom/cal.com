@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Icon, FilterSelect } from "@calcom/ui";
+import { FilterSelect } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -56,7 +56,7 @@ export const RoutingFormFieldFilter = ({ fieldId }: { fieldId: string }) => {
             });
           }
         }}
-        buttonIcon={<Icon name="layers" className="mr-2 h-4 w-4" />}
+        buttonIcon="layers"
         placeholder={t("search")}
       />
     </>

@@ -91,24 +91,26 @@ export const TeamAndSelfList = ({
     <AnimatedPopover text={text} popoverTriggerClassNames={className}>
       <FilterCheckboxFieldsContainer>
         {isOrgDataAvailable && (
-          <FilterCheckboxField
-            id="all"
-            icon={<Icon name="layers" className="h-4 w-4" />}
-            checked={isAll}
-            onChange={(e) => {
-              setConfigFilters({
-                selectedTeamId: data[0].id,
-                selectedUserId: null,
-                selectedTeamName: null,
-                selectedRoutingFormId: null,
-                isAll: true,
-              });
-            }}
-            label={t("all")}
-          />
+          <>
+            <FilterCheckboxField
+              id="all"
+              icon={<Icon name="layers" className="h-4 w-4" />}
+              checked={isAll}
+              onChange={(e) => {
+                setConfigFilters({
+                  selectedTeamId: data[0].id,
+                  selectedUserId: null,
+                  selectedTeamName: null,
+                  selectedRoutingFormId: null,
+                  isAll: true,
+                });
+              }}
+              label={t("all")}
+            />
+            <Divider />
+          </>
         )}
 
-        <Divider />
         {data?.map((team) => {
           if (omitOrg && team.id === currentOrgId) return null;
           return (
