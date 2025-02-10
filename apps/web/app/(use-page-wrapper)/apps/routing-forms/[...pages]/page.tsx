@@ -8,16 +8,10 @@ import LayoutHandler from "@calcom/app-store/routing-forms/pages/layout-handler/
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
-  const data = await getData(legacyContext);
-  const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
-  const formName = form?.name;
-  const formDescription = form?.description;
-
+export const generateMetadata = async () => {
   return await _generateMetadata(
-    (t) => formName ?? t("routing_forms"),
-    (t) => formDescription ?? t("routing_forms_description")
+    (t) => t("routing_forms"),
+    () => ""
   );
 };
 
