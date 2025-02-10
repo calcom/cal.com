@@ -1,6 +1,7 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
 import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
+
+import { ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS } from "./create-oauth-client.input";
 
 export class UpdateOAuthClientInput {
   @IsOptional()
@@ -41,12 +42,9 @@ export class UpdateOAuthClientInput {
 
   @IsOptional()
   @IsBoolean()
-  @Transform(({ value }) => value ?? false)
   @ApiPropertyOptional({
     type: Boolean,
-    description:
-      "By default false. If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
-    default: false,
+    description: ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS,
   })
-  areDefaultEventTypesEnabled = false;
+  areDefaultEventTypesEnabled?: boolean;
 }
