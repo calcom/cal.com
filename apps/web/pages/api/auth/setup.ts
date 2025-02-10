@@ -5,7 +5,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import slugify from "@calcom/lib/slugify";
+import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -33,7 +33,6 @@ async function handler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
 
-  const username = slugify(parsedQuery.data.username.trim());
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
   await UserCreationService.createUser({

@@ -3,12 +3,21 @@ import prismock from "../../../../tests/libs/__mocks__/prisma";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
 import type { Prisma } from "@calcom/prisma/client";
+import { CreationSource, MembershipRole, WatchlistSeverity } from "@calcom/prisma/enums";
 
 import { OrganizationRepository } from "./organization";
 
 vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,
 }));
+
+vi.mock("@calcom/lib/server/i18n", () => {
+  return {
+    getTranslation: (key: string) => {
+      return () => key;
+    },
+  };
+});
 
 async function createOrganization(
   data: Prisma.TeamCreateInput & {
@@ -149,5 +158,115 @@ describe("Organization.getVerifiedOrganizationByAutoAcceptEmailDomain", () => {
     const result = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain("cal.com");
 
     expect(result).toEqual(null);
+  });
+});
+
+describe("Organization.createWithNonExistentOwner", () => {
+  it("should create organization with non-existent owner", async () => {
+    const orgData = {
+      name: "Test Org",
+      slug: "test-org",
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: "test.com",
+      seats: 30,
+      pricePerSeat: 37,
+      isPlatform: false,
+    };
+
+    const createdOrg = await OrganizationRepository.createWithNonExistentOwner({
+      orgData,
+      owner: {
+        email: "test@test.com",
+      },
+      creationSource: CreationSource.WEBAPP_NEW_ORG,
+    });
+
+    expect(createdOrg)
+      .toHaveProperty("orgOwner")
+      .toHaveProperty("organization")
+      .toHaveProperty("ownerProfile");
+
+    const { orgOwner, organization } = createdOrg;
+
+    const user = await prismock.user.findFirst({
+      where: {
+        id: orgOwner.id,
+      },
+      include: {
+        profiles: true,
+        teams: true,
+      },
+    });
+
+    expect(user).toEqual(
+      expect.objectContaining({
+        locked: false,
+        creationSource: CreationSource.WEBAPP_NEW_ORG,
+      })
+    );
+
+    expect(user.profiles).toHaveLength(1);
+    expect(user.teams).toHaveLength(1);
+
+    const userProfile = user.profiles[0];
+    const userMembership = user.teams[0];
+
+    expect(userProfile).toEqual(
+      expect.objectContaining({
+        organizationId: organization.id,
+      })
+    );
+
+    expect(userMembership).toEqual(
+      expect.objectContaining({
+        teamId: organization.id,
+        accepted: true,
+        role: MembershipRole.OWNER,
+      })
+    );
+  });
+
+  it("should lock the organizer if they are on the watchlist", async () => {
+    const orgData = {
+      name: "Test Org",
+      slug: "test-org",
+      isOrganizationConfigured: true,
+      isOrganizationAdminReviewed: true,
+      autoAcceptEmail: "test.com",
+      seats: 30,
+      pricePerSeat: 37,
+      isPlatform: false,
+    };
+
+    await prismock.watchlist.create({
+      data: {
+        type: "EMAIL",
+        value: "test@test.com",
+        severity: WatchlistSeverity.CRITICAL,
+        createdById: 1,
+      },
+    });
+
+    await OrganizationRepository.createWithNonExistentOwner({
+      orgData,
+      owner: {
+        email: "test@test.com",
+      },
+      creationSource: CreationSource.WEBAPP_NEW_ORG,
+    });
+
+    const user = await prismock.user.findFirst({
+      where: {
+        email: "test@test.com",
+      },
+    });
+
+    expect(user).toEqual(
+      expect.objectContaining({
+        locked: true,
+        creationSource: CreationSource.WEBAPP_NEW_ORG,
+      })
+    );
   });
 });

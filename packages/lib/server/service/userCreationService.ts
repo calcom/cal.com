@@ -42,11 +42,17 @@ interface OrgData {
   accepted: boolean;
 }
 
+interface OrgData {
+  id: number;
+  role: MembershipRole;
+  accepted: boolean;
+}
+
 const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
   static async createUser({ data, orgData }: { data: CreateUserInput; orgData?: OrgData }) {
-    const { email, password, username, metadata, ...restUserInput } = data;
+    const { email, password, username } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
 
@@ -54,14 +60,12 @@ export class UserCreationService {
 
     const user = await UserRepository.create({
       data: {
-        ...restUserInput,
+        ...data,
         username: slugify(username),
-        email,
         ...(hashedPassword && { hashedPassword }),
         locked: shouldLockByDefault,
-        ...(!!metadata && { metadata }),
       },
-      ...(orgData ? orgData : {}),
+      ...(orgData ? { orgData } : {}),
     });
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
