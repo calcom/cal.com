@@ -6,6 +6,7 @@ import { useMemo } from "react";
 
 import type { FilterableColumn } from "../lib/types";
 import { ColumnFilterType } from "../lib/types";
+import { convertMapToFacetedValues } from "../lib/utils";
 
 export function useFilterableColumns<TData>(table: Table<TData>) {
   const columns = useMemo(
@@ -31,26 +32,13 @@ export function useFilterableColumns<TData>(table: Table<TData>) {
             // `useReactTable({ ... })`.
             //
             // So we use `table.options.getFacetedUniqueValues` instead.
-            type FacetedValue = string | { label: string; value: string | number };
             let values: Map<FacetedValue, number> | (() => Map<FacetedValue, number>) | undefined =
               table.options?.getFacetedUniqueValues?.(table, column.id);
             if (typeof values === "function") {
               values = values();
             }
 
-            const options = Array.from(values instanceof Map ? values.keys() : []).map((option) => {
-              if (typeof option === "string") {
-                return {
-                  label: option,
-                  value: option,
-                };
-              } else {
-                return {
-                  label: option.label as string,
-                  value: option.value as string | number,
-                };
-              }
-            });
+            const options = convertMapToFacetedValues(values);
             return {
               ...base,
               options,

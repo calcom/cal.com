@@ -7,6 +7,7 @@ import type {
   FilterValue,
   NumberFilterValue,
   DateRangeFilterValue,
+  FacetedValue,
 } from "./types";
 import {
   ZNumberFilterValue,
@@ -146,4 +147,27 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
     return dateRangeFilter(cellValue, filterValue);
   }
   return false;
+};
+
+export const convertFacetedValuesToMap = (array: FacetedValue[]) => {
+  return new Map<FacetedValue, number>(
+    array.map((option) => {
+      if (typeof option === "string") {
+        return [{ label: option, value: option }, 1];
+      }
+      return [{ label: option.label, value: option.value }, 1];
+    })
+  );
+};
+
+export const convertMapToFacetedValues = (map: Map<FacetedValue, number>) => {
+  if (!(map instanceof Map)) {
+    return [];
+  }
+  return Array.from(map.keys()).map((option) => {
+    if (typeof option === "string") {
+      return { label: option, value: option };
+    }
+    return { label: option.label as string, value: option.value as string | number };
+  });
 };

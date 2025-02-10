@@ -1,11 +1,12 @@
 import type { Table } from "@tanstack/react-table";
 import { useCallback } from "react";
 
+import { convertFacetedValuesToMap } from "@calcom/features/data-table/lib/utils";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 
 import { bookingStatusToText } from "../lib/bookingStatusToText";
-import type { HeaderRow } from "../lib/types";
+import type { HeaderRow, FacetedValue } from "../lib/types";
 
 const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.ACCEPTED]: 1,
@@ -13,11 +14,6 @@ const statusOrder: Record<BookingStatus, number> = {
   [BookingStatus.AWAITING_HOST]: 3,
   [BookingStatus.CANCELLED]: 4,
   [BookingStatus.REJECTED]: 5,
-};
-
-type FacetedValue = {
-  label: string;
-  value: string | number;
 };
 
 export const useInsightsFacetedUniqueValues = ({
@@ -54,15 +50,9 @@ export const useInsightsFacetedUniqueValues = ({
         return new Map<FacetedValue, number>();
       }
 
-      const fromArrayToMap = (array: FacetedValue[]) => {
-        return new Map<FacetedValue, number>(
-          array.map((option) => [{ label: option.label, value: option.value }, 1])
-        );
-      };
-
       const fieldHeader = headers.find((h) => h.id === columnId);
       if (fieldHeader?.options) {
-        return fromArrayToMap(
+        return convertFacetedValuesToMap(
           fieldHeader.options
             .filter((option): option is { id: string; label: string } => option.id !== null)
             .map((option) => ({
@@ -71,28 +61,28 @@ export const useInsightsFacetedUniqueValues = ({
             }))
         );
       } else if (columnId === "bookingStatusOrder") {
-        return fromArrayToMap(
+        return convertFacetedValuesToMap(
           Object.keys(statusOrder).map((status) => ({
             value: statusOrder[status as BookingStatus],
             label: bookingStatusToText(status as BookingStatus),
           }))
         );
       } else if (columnId === "formId") {
-        return fromArrayToMap(
+        return convertFacetedValuesToMap(
           forms?.map((form) => ({
             label: form.name,
             value: form.id,
           })) ?? []
         );
       } else if (columnId === "bookingUserId") {
-        return fromArrayToMap(
+        return convertFacetedValuesToMap(
           users?.map((user) => ({
             label: user.name ?? user.email,
             value: user.id,
           })) ?? []
         );
       } else if (columnId === "eventTypeId") {
-        return fromArrayToMap(
+        return convertFacetedValuesToMap(
           eventTypes?.map((eventType) => ({
             value: eventType.id,
             label: eventType.teamId ? `${eventType.title} (${eventType.team?.name})` : eventType.title,
