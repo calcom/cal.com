@@ -6729,11 +6729,15 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "description": "By default false. If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           }
         },
         "required": ["name", "redirectUris", "permissions"]
       },
-      "DataDto": {
+      "CreateOAuthClientOutput": {
         "type": "object",
         "properties": {
           "clientId": {
@@ -6762,7 +6766,7 @@
             },
             "allOf": [
               {
-                "$ref": "#/components/schemas/DataDto"
+                "$ref": "#/components/schemas/CreateOAuthClientOutput"
               }
             ]
           }
@@ -6789,8 +6793,7 @@
             "example": 3
           },
           "logo": {
-            "type": "string",
-            "nullable": true,
+            "type": "object",
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -6808,9 +6811,28 @@
             "format": "date-time",
             "type": "string",
             "example": "2024-03-23T08:33:21.851Z"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           }
         },
-        "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "secret",
+          "permissions",
+          "redirectUris",
+          "organizationId",
+          "createdAt",
+          "areEmailsEnabled",
+          "areDefaultEventTypesEnabled"
+        ]
       },
       "GetOAuthClientsResponseDto": {
         "type": "object",
@@ -6869,6 +6891,11 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "description": "By default false. If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
+            "default": false
           }
         }
       },
@@ -7307,7 +7334,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -7915,7 +7942,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -8966,7 +8993,7 @@
           },
           "disableOnPrefill": {
             "type": "boolean",
-            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio button will be selected and the select field will be disabled."
+            "description": "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.      For example, if the slug is `language` and options of this select field are ['english', 'italian'] and the URL contains query parameter `&language=italian`,      the 'italian' radio buttom will be selected and the select field will be disabled."
           },
           "hidden": {
             "type": "boolean",
@@ -9607,7 +9634,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -10962,7 +10989,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -11733,7 +11760,7 @@
           },
           "beforeEventBuffer": {
             "type": "number",
-            "description": "Time spaces that can be prepended before an event to give more time before it."
+            "description": "Time spaces that can be pre-pended before an event to give more time before it."
           },
           "afterEventBuffer": {
             "type": "number",
@@ -13824,9 +13851,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -13951,9 +13986,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14174,9 +14217,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14291,9 +14342,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14447,9 +14506,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14559,9 +14626,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15259,7 +15334,7 @@
           "externalId": {
             "type": "string",
             "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
-            "description": "Unique identifier used to represent the specific calendar, as returned by the /calendars endpoint"
+            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
           }
         },
         "required": ["integration", "externalId"]
