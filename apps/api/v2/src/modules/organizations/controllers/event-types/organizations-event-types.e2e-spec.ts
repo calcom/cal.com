@@ -14,6 +14,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -48,12 +49,12 @@ describe("Organizations Event Types Endpoints", () => {
     let falseTestOrg: Team;
     let falseTestTeam: Team;
 
-    const userEmail = "org-admin-event-types-controller-e222e@api.com";
+    const userEmail = `organizations-event-types-admin-${randomString()}@api.com`;
     let userAdmin: User;
 
-    const teammate1Email = "teammate111@team.com";
-    const teammate2Email = "teammate221@team.com";
-    const falseTestUserEmail = "false-user@false-team.com";
+    const teammate1Email = `organizations-event-types-teammate1-${randomString()}@api.com`;
+    const teammate2Email = `organizations-event-types-teammate2-${randomString()}@api.com`;
+    const falseTestUserEmail = `organizations-event-types-false-user-${randomString()}@api.com`;
     let teammate1: User;
     let teammate2: User;
     let falseTestUser: User;
@@ -98,23 +99,23 @@ describe("Organizations Event Types Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-event-types-organization-${randomString()}`,
         isOrganization: true,
       });
 
       falseTestOrg = await organizationsRepositoryFixture.create({
-        name: "False test org",
+        name: `organizations-event-types-false-org-${randomString()}`,
         isOrganization: true,
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `organizations-event-types-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       falseTestTeam = await teamsRepositoryFixture.create({
-        name: "Outside org team",
+        name: `organizations-event-types-false-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: falseTestOrg.id } },
       });
@@ -237,7 +238,7 @@ describe("Organizations Event Types Endpoints", () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         successRedirectUrl: "https://masterchief.com/argentina/flan/video/1234",
         title: "Coding consultation collective",
-        slug: "coding-consultation collective",
+        slug: `organizations-event-types-collective-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -343,7 +344,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should create a managed team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation managed",
-        slug: "coding-consultation-managed",
+        slug: `organizations-event-types-managed-${randomString()}`,
         description: "Our team will review your codebase.",
         lengthInMinutes: 60,
         locations: [
@@ -751,10 +752,10 @@ describe("Organizations Event Types Endpoints", () => {
     it("should return event type with default bookingFields if they are not defined", async () => {
       const eventTypeInput = {
         title: "unknown field event type two",
+        slug: `organizations-event-types-unknown-${randomString()}`,
         description: "unknown field event type description two",
         length: 40,
         hidden: false,
-        slug: "unknown-field-type-two",
         locations: [],
         schedulingType: SchedulingType.ROUND_ROBIN,
       };

@@ -2,7 +2,7 @@
 import startCase from "lodash/startCase";
 
 import type { IconName } from "@calcom/ui";
-import { Button, Icon, Popover, PopoverContent, PopoverTrigger } from "@calcom/ui";
+import { Button, Icon, Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
 
 import { useFilterValue } from "../../hooks";
 import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
@@ -13,6 +13,7 @@ import {
   isNumberFilterValue,
 } from "../../lib/utils";
 import { FilterOptions } from "./FilterOptions";
+import { numberFilterOperatorOptions, useTextFilterOperatorOptions } from "./utils";
 
 const FILTER_ICONS: Record<ColumnFilterType, IconName> = {
   [ColumnFilterType.TEXT]: "file-text",
@@ -26,47 +27,117 @@ type FilterPopoverProps = {
   column: FilterableColumn;
 };
 
-const useSelectedLabels = ({
+type SelectedLabelsProps = {
+  column: FilterableColumn;
+  filterValue?: FilterValue;
+};
+
+function Operator({ children }: { children: React.ReactNode }) {
+  return <span className="ml-2 text-sm lowercase opacity-75">{children}</span>;
+}
+
+function AppliedTextFilterValue({ filterValue }: SelectedLabelsProps) {
+  const textFilterOperatorOptions = useTextFilterOperatorOptions();
+  if (!isTextFilterValue(filterValue)) return null;
+
+  const operator = filterValue.data.operator;
+  const operatorOption = textFilterOperatorOptions.find((o) => o.value === operator);
+  if (!operatorOption) return null;
+
+  if (!operatorOption.requiresOperand) {
+    return <Operator>{operatorOption.label}</Operator>;
+  }
+
+  const operand = filterValue.data.operand;
+  return (
+    <>
+      <Operator>{operatorOption.label}</Operator>
+      <Badge variant="gray" className="ml-2">
+        {operand}
+      </Badge>
+    </>
+  );
+}
+
+function AppliedNumberFilterValue({ filterValue }: SelectedLabelsProps) {
+  if (!isNumberFilterValue(filterValue)) return null;
+
+  const operator = filterValue.data.operator;
+  const operatorOption = numberFilterOperatorOptions.find((o) => o.value === operator);
+  if (!operatorOption) return null;
+
+  return (
+    <>
+      <Operator>{operatorOption.label}</Operator>
+      <Badge variant="gray" className="ml-2">
+        {filterValue.data.operand}
+      </Badge>
+    </>
+  );
+}
+
+function AppliedSelectFilterValue({ column, filterValue }: SelectedLabelsProps) {
+  let text: string | undefined;
+  let moreCount = 0;
+
+  if (isSingleSelectFilterValue(filterValue)) {
+    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.SINGLE_SELECT }>).options;
+    text = options.find((opt) => opt.value === filterValue.data)?.label;
+    moreCount = 0;
+  } else if (isMultiSelectFilterValue(filterValue)) {
+    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>).options;
+    text = options.find((opt) => opt.value === filterValue.data[0])?.label;
+    moreCount = filterValue.data.length - 1;
+  }
+
+  if (!text) return null;
+
+  return (
+    <>
+      <Badge variant="gray" className="ml-2">
+        {text}
+      </Badge>
+      {moreCount > 0 && (
+        <Badge variant="gray" className="ml-2">
+          +{moreCount}
+        </Badge>
+      )}
+    </>
+  );
+}
+
+function AppliedFilterValue({
   column,
   filterValue,
 }: {
   column: FilterableColumn;
   filterValue?: FilterValue;
-}) => {
-  if (isTextFilterValue(filterValue)) {
-    return { text: filterValue.data.operand, moreCount: 0 };
-  } else if (isNumberFilterValue(filterValue)) {
-    return { text: filterValue.data.operand, moreCount: 0 };
-  } else if (isSingleSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.SINGLE_SELECT }>).options;
-    const text = options.find((opt) => opt.value === filterValue.data)?.label;
-    return { text, moreCount: 0 };
-  } else if (isMultiSelectFilterValue(filterValue)) {
-    const options = (column as Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>).options;
-    const text = options.find((opt) => opt.value === filterValue.data[0])?.label;
-    return { text, moreCount: filterValue.data.length - 1 };
+}) {
+  if (column.type === ColumnFilterType.TEXT) {
+    return <AppliedTextFilterValue column={column} filterValue={filterValue} />;
+  } else if (column.type === ColumnFilterType.NUMBER) {
+    return <AppliedNumberFilterValue column={column} filterValue={filterValue} />;
+  } else if (
+    column.type === ColumnFilterType.SINGLE_SELECT ||
+    column.type === ColumnFilterType.MULTI_SELECT
+  ) {
+    return <AppliedSelectFilterValue column={column} filterValue={filterValue} />;
   } else {
-    return { text: "", moreCount: 0 };
+    return null;
   }
-};
+}
 
 export function FilterPopover({ column }: FilterPopoverProps) {
   const icon = column.icon || FILTER_ICONS[column.type];
   const filterValue = useFilterValue(column.id, ZFilterValue);
-  const { text, moreCount } = useSelectedLabels({ column, filterValue });
-  console.log("💡 icon", {
-    icon: column.icon,
-    type: column.type,
-    FILTER_ICONS,
-  });
+
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button color="secondary" className="items-center">
           <Icon name={icon} className="mr-2 h-4 w-4" />
           <span>{startCase(column.title)}</span>
-          {text && <span className="bg-subtle ml-2 rounded-md px-2">{text}</span>}
-          {moreCount > 0 && <span className="bg-subtle ml-2 rounded-md px-2">+{moreCount}</span>}
+          <AppliedFilterValue column={column} filterValue={filterValue} />
           <Icon name="chevron-down" className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
