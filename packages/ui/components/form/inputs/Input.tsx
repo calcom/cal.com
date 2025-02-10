@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
-import { Input, InputField } from "../inputs/TextField";
+import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 
@@ -98,12 +98,9 @@ type TextAreaProps = JSX.IntrinsicElements["textarea"];
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
     <textarea
-      ref={ref}
       {...props}
-      className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle mb-2 block w-full rounded-md border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
-        props.className
-      )}
+      ref={ref}
+      className={classNames(inputStyles(), "min-h-[80px] w-full", props.className)}
     />
   );
 });
