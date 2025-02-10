@@ -64,7 +64,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/web/lib/getTeamMemberEmailFromCrm"
+    "@calcom/lib/server/getTeamMemberEmailFromCrm"
   );
   const {
     email: teamMemberEmail,
