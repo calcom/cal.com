@@ -249,6 +249,9 @@ export const ComponentForField = ({
       `Value ${value} is not valid for type ${componentConfig.propsType} for field ${field.name}`
     );
   }
+
+  console.log(componentConfig);
+
   if (componentConfig.propsType === "text") {
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
@@ -282,6 +285,7 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "textList") {
+    console.log(field);
     return (
       <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory

@@ -210,7 +210,8 @@ export const EventMeta = ({
                     menuPosition="absolute"
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
-                      control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
+                      control: () =>
+                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
                       menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",

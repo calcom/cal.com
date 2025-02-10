@@ -150,7 +150,6 @@ export function TimezoneSelectComponent({
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
             "rounded-[10px]",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             timezoneClassNames?.control && timezoneClassNames.control(state)
           ),
         singleValue: (state) =>
