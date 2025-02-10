@@ -56,6 +56,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "apps",
     href: "/apps",
     icon: "grid-3x3",
+    moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);

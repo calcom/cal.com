@@ -108,6 +108,7 @@
   "accept_license": "Приемам лиценза",
   "still_waiting_for_approval": "Все още има събитие, очакващо одобрение",
   "event_is_still_waiting": "Заявката за събитие все още чака: {{attendeeName}} - {{date}} - {{eventType}}",
+  "no_result_found_for": "Няма намерени резултати за \"{{searchTerm}}\"",
   "no_more_results": "Няма повече резултати",
   "no_results": "Няма резултати",
   "load_more_results": "Зареди още резултати",

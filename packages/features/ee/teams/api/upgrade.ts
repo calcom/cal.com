@@ -72,7 +72,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!metadata.success) throw new HttpError({ statusCode: 400, message: "Invalid team metadata" });
   }
 
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session) return { message: "Team upgraded successfully" };
 
