@@ -33,43 +33,56 @@ export class RouterController {
     }
 
     if (routedUrlData?.redirect?.destination) {
-      const routingUrl = new URL(routedUrlData?.redirect?.destination);
-      const routingSearchParams = routingUrl.searchParams;
-      if (
-        routingSearchParams.get("cal.action") === "eventTypeRedirectUrl" &&
-        Boolean(routingSearchParams.get("email")) &&
-        Boolean(routingSearchParams.get("cal.orgId")) &&
-        Boolean(routingSearchParams.get("cal.teamId"))
-      ) {
-        const pathNameParams = routingUrl.pathname.split("/");
-        const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
-        const eventTypeData = this.teamsEventTypesRepository.getTeamEventTypeBySlug(
-          Number(routingSearchParams.get("teamId")),
-          eventTypeSlug
-        );
-
-        // get salesforce related data
-        const {
-          email: teamMemberEmail,
-          recordType: crmOwnerRecordType,
-          crmAppSlug,
-        } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-          query: Object.fromEntries(routingSearchParams),
-          eventTypeData,
-        });
-        routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
-        routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
-        routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
-        return { status: "success", data: routingUrl.toString(), redirect: true };
-      }
-
-      return { status: "success", data: routedUrlData.redirect.destination, redirect: true };
+      return this.handleRedirect(routedUrlData.redirect.destination, request);
     }
 
     if (routedUrlData?.props) {
-      return { status: "success", data: { message: routedUrlData?.props?.message ?? "" }, redirect: false };
+      return { status: "success", data: { message: routedUrlData.props.message ?? "" }, redirect: false };
     }
 
     return { status: "success", data: { message: "No Route nor custom message found." }, redirect: false };
+  }
+
+  private async handleRedirect(
+    destination: string,
+    request: Request
+  ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
+    const routingUrl = new URL(destination);
+    const routingSearchParams = routingUrl.searchParams;
+
+    if (
+      routingSearchParams.get("cal.action") === "eventTypeRedirectUrl" &&
+      routingSearchParams.has("email") &&
+      routingSearchParams.has("cal.teamId")
+    ) {
+      return this.handleEventTypeRedirect(routingUrl, routingSearchParams);
+    }
+
+    return { status: "success", data: destination, redirect: true };
+  }
+
+  private async handleEventTypeRedirect(
+    routingUrl: URL,
+    routingSearchParams: URLSearchParams
+  ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
+    const pathNameParams = routingUrl.pathname.split("/");
+    const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
+    const teamId = Number(routingSearchParams.get("cal.teamId"));
+    const eventTypeData = this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug);
+
+    const {
+      email: teamMemberEmail,
+      recordType: crmOwnerRecordType,
+      crmAppSlug,
+    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+      query: Object.fromEntries(routingSearchParams),
+      eventTypeData,
+    });
+
+    routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
+    routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
+    routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
+
+    return { status: "success", data: routingUrl.toString(), redirect: true };
   }
 }
