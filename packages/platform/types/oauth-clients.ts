@@ -50,7 +50,7 @@ export class CreateOAuthClientInput {
     description:
       "By default false. If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
   })
-  areDefaultEventTypesEnabled = false;
+  areDefaultEventTypesEnabled? = false;
 }
 
 export class DeleteOAuthClientInput {
