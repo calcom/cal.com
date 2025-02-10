@@ -89,7 +89,8 @@ export const Select = <
               ? "h-7 px-2"
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
-            "rounded-lg",
+            "rounded-[10px]",
+            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
