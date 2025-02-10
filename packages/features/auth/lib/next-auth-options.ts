@@ -54,8 +54,6 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
   JSON.parse(GOOGLE_API_CREDENTIALS)?.web || {};
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
-const ORGANIZATIONS_AUTOLINK =
-  process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
 
 const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
@@ -79,23 +77,6 @@ export const checkIfUserBelongsToActiveTeam = <T extends UserTeams>(user: T) =>
 
     return metadata.success && metadata.data?.subscriptionId;
   });
-
-const checkIfUserShouldBelongToOrg = async (idP: IdentityProvider, email: string) => {
-  const [orgUsername, apexDomain] = email.split("@");
-  if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
-  const existingOrg = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: apexDomain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-  return { orgUsername, orgId: existingOrg?.id };
-};
 
 const providers: Provider[] = [
   CredentialsProvider({
@@ -949,9 +930,6 @@ export const getOptions = ({
 
           return "/auth/error?error=use-identity-login";
         }
-
-        // Associate with organization if enabled by flag and idP is Google (for now)
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
         const newUser = await UserCreationService.createUser({
           data: {
