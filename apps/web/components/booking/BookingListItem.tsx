@@ -916,11 +916,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="end"
+        align="start"
         side="right"
-        sideOffset={20}
-        alignOffset={-4}
-        className="text-emphasis shadow-dropdown absolute z-[9999] w-48 rounded-md bg-[#2d2d2d] dark:bg-[#1c1c1c]">
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
         {!isSmsCalEmail(email) && (
           <DropdownMenuItem className="focus:outline-`none">
             <DropdownItem
@@ -1038,11 +1037,10 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="end"
+        align="start"
         side="right"
-        sideOffset={20}
-        alignOffset={-4}
-        className="text-emphasis shadow-dropdown absolute z-[9999] w-48 rounded-md bg-[#2d2d2d] dark:bg-[#1c1c1c]">
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
         <DropdownMenuLabel className="text-xs font-medium uppercase">
           {t("mark_as_no_show_title")}
         </DropdownMenuLabel>
@@ -1173,11 +1171,10 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        align="end"
+        align="start"
         side="right"
-        sideOffset={20}
-        alignOffset={-4}
-        className="text-emphasis shadow-dropdown absolute z-[9999] w-48 rounded-md bg-[#2d2d2d] dark:bg-[#1c1c1c]">
+        sideOffset={5}
+        className="text-emphasis shadow-dropdown absolute w-48 rounded-md">
         <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
         {guests.slice(1).map((guest) => (
           <DropdownMenuItem key={guest.id}>
