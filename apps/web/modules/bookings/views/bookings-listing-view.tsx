@@ -20,8 +20,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { HorizontalTabItemProps, VerticalTabItemProps } from "@calcom/ui";
-import { HorizontalTabs } from "@calcom/ui";
-import { Icon } from "@calcom/ui";
+import { HorizontalTabs, Icon, SkeletonText } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -39,10 +38,7 @@ const DataTableWrapper = dynamic(
   }
 );
 
-const BookingListItem = dynamic(() => import("@components/booking/BookingListItem"), {
-  ssr: true,
-  loading: () => <div className="h-20 animate-pulse rounded-md bg-gray-100" />,
-});
+const BookingListItem = dynamic(() => import("@components/booking/BookingListItem"));
 
 const EmptyScreen = dynamic(() => import("@calcom/ui").then((mod) => mod.EmptyScreen));
 
@@ -57,7 +53,7 @@ const FiltersContainer = dynamic(
   () => import("@calcom/features/bookings/components/FiltersContainer").then((mod) => mod.FiltersContainer),
   {
     ssr: false,
-    loading: () => <Icon name="loader" className="animate-spin" />,
+    loading: () => <SkeletonText className="mb-3 h-4" />,
   }
 );
 
