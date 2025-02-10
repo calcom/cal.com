@@ -68,10 +68,6 @@ export async function getServerSideProps(
     return { notFound: true };
   }
 
-  // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
-  // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
-  // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-  params.appPages = pages.slice(1);
   const session = await getServerSession({ req });
   const user = session?.user;
   const app = await getAppWithMetadata({ slug: "routing-forms" });
