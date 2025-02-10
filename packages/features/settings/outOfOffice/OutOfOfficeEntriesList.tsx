@@ -20,6 +20,7 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 
@@ -53,6 +54,7 @@ export const OutOfOfficeEntriesList = () => {
         className="mt-6"
         headline={t("ooo_empty_title")}
         description={t("ooo_empty_description")}
+        buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
         customIcon={
           <div className="mt-4 h-[102px]">
             <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
@@ -121,7 +123,7 @@ export const OutOfOfficeEntriesList = () => {
                     <Button
                       className="self-center rounded-lg border"
                       type="button"
-                      color="minimal"
+                      color="secondary"
                       variant="icon"
                       data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                       StartIcon="pencil"
@@ -146,7 +148,7 @@ export const OutOfOfficeEntriesList = () => {
                     <Button
                       className="self-center rounded-lg border"
                       type="button"
-                      color="minimal"
+                      color="destructive"
                       variant="icon"
                       disabled={deleteOutOfOfficeEntryMutation.isPending}
                       StartIcon="trash-2"
