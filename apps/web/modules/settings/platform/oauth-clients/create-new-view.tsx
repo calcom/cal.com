@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
 
-import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useCreateOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";

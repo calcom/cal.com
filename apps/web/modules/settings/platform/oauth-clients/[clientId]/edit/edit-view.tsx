@@ -10,7 +10,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
 
 import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClient";
-import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
+import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useUpdateOAuthClient";
 
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
