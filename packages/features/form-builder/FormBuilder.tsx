@@ -774,7 +774,7 @@ function VariantFields({
   const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
-    throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
+    throw new Error("Configuration Issue: FieldType doesn't have `variantsConfig`");
   }
 
   const variantToggleLabel = t(fieldTypeConfigVariantsConfig.toggleLabel || "");

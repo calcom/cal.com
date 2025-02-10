@@ -42,7 +42,7 @@ export function TeamListBulkAction({ table }: Props) {
         "success"
       );
       // Optimistically update the data from query trpc cache listMembers
-      // We may need to set this data instread of invalidating. Will see how performance handles it
+      // We may need to set this data instead of invalidating. Will see how performance handles it
       utils.viewer.organizations.listMembers.invalidate();
 
       // Clear the selected values

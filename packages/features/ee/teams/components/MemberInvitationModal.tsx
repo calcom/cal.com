@@ -234,7 +234,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values, resetFields)}>
           <div className="mb-10 mt-6 space-y-6">
-            {/* Indivdual Invite */}
+            {/* Individual Invite */}
             {modalImportMode === "INDIVIDUAL" && (
               <Controller
                 name="emailOrUsername"

@@ -134,7 +134,7 @@ export type BookerStore = {
   initialize: (data: StoreInitializeType) => void;
   /**
    * Stored form state, used when user navigates back and
-   * forth between timeslots and form. Get's cleared on submit
+   * forth between timeslots and form. Gets cleared on submit
    * to prevent sticky data.
    */
   formValues: Record<string, any>;

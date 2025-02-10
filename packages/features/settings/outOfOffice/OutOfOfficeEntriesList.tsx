@@ -34,7 +34,7 @@ export const OutOfOfficeEntriesList = () => {
       useFormState;
     },
     onError: () => {
-      showToast(`An error ocurred`, "error");
+      showToast(`An error occurred`, "error");
     },
   });
 

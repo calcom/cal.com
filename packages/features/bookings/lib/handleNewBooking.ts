@@ -642,7 +642,7 @@ async function handler(
         );
         // no more freeUsers after subtracting notAvailableLuckyUsers from luckyUsers :(
         if (freeUsers.length === 0) break;
-        assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too wih an assertion; the error will never be thrown.
+        assertNonEmptyArray(freeUsers); // make sure TypeScript knows it too with an assertion; the error will never be thrown.
         // freeUsers is ensured
         const originalRescheduledBookingUserId =
           originalRescheduledBooking && originalRescheduledBooking.userId;
@@ -949,7 +949,7 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
-  //udpate cal event responses with latest location value , later used by webhook
+  //update cal event responses with latest location value , later used by webhook
   if (reqBody.calEventResponses)
     reqBody.calEventResponses["location"].value = {
       value: platformBookingLocation ?? bookingLocation,
