@@ -15,7 +15,7 @@ export const StartTimeFilters = () => {
   const { data: query } = useFilterQuery();
 
   const getQueryDate = (param: string) =>
-    searchParams.get(param) ? dayjs(searchParams.get(param)) : undefined;
+    searchParams?.get(param) ? dayjs(searchParams?.get(param)) : undefined;
 
   const [afterStartDate, setAfterStartDate] = useState<Dayjs | undefined>(() =>
     getQueryDate("afterStartDate")
@@ -26,7 +26,7 @@ export const StartTimeFilters = () => {
   const endValue = beforeEndDate?.toDate();
 
   const updateUrlParams = (newStartDate: Dayjs, newEndDate: Dayjs) => {
-    const search = new URLSearchParams(searchParams.toString());
+    const search = new URLSearchParams(searchParams?.toString());
 
     Object.entries(query).forEach(([key, value]) => {
       if (key !== "afterStartDate" && key !== "beforeEndDate") {
@@ -46,7 +46,7 @@ export const StartTimeFilters = () => {
 
   useEffect(() => {
     //if params has date range
-    if (searchParams.has("afterStartDate") && searchParams.has("beforeEndDate")) {
+    if (searchParams?.has("afterStartDate") && searchParams?.has("beforeEndDate")) {
       setAfterStartDate(getQueryDate("afterStartDate"));
       setBeforeEndDate(getQueryDate("beforeEndDate"));
     }
