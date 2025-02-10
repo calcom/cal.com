@@ -68,6 +68,14 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
+  const handleRemoveClick = (option: CheckedSelectOption) => {
+    let newOption: CheckedSelectOption[] = [];
+    if (isFixed && assignAllTeamMembers) {
+      newOption = [{ ...option, isFixed: false }];
+    }
+    onOptionChange([...value.filter((item) => item.value !== option.value), ...newOption]);
+  };
+
   return (
     <>
       <Select
@@ -162,13 +170,7 @@ export const CheckedTeamSelect = ({
 
                 <Icon
                   name="x"
-                  onClick={() => {
-                    let newOption: CheckedSelectOption[] = [];
-                    if (isFixed && assignAllTeamMembers) {
-                      newOption = [{ ...option, isFixed: false }];
-                    }
-                    onOptionChange([...value.filter((item) => item.value !== option.value), ...newOption]);
-                  }}
+                  onClick={() => handleRemoveClick(option)}
                   className={classNames(
                     "my-auto ml-2 h-4 w-4",
                     customClassNames?.selectedHostList?.listItem?.removeButton
