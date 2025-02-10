@@ -17,11 +17,6 @@ export async function getServerSideProps(
   context: AppGetServerSidePropsContext
 ): Promise<GetServerSidePropsResult<any>> {
   const { params, req } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
 
   const parsedParams = paramsSchema.safeParse(params);
   if (!parsedParams.success) {
