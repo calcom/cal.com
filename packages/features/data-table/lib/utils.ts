@@ -151,12 +151,7 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
 
 export const convertFacetedValuesToMap = (array: FacetedValue[]) => {
   return new Map<FacetedValue, number>(
-    array.map((option) => {
-      if (typeof option === "string") {
-        return [{ label: option, value: option }, 1];
-      }
-      return [{ label: option.label, value: option.value }, 1];
-    })
+    array.map((option) => [{ label: option.label, value: option.value }, 1])
   );
 };
 
