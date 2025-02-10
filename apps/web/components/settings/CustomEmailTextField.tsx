@@ -73,8 +73,8 @@ const CustomEmailTextField = ({
               <Button
                 StartIcon="ellipsis"
                 variant="icon"
-                size="sm"
-                color="secondary"
+                size="xs"
+                color="minimal"
                 className="ml-2 rounded-md"
                 data-testid="secondary-email-action-group-button"
               />

@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 
@@ -26,9 +26,10 @@ const CreateNewOutOfOfficeEntry = () => {
       <Button
         color="primary"
         className="flex items-center justify-between px-4"
+        StartIcon="plus"
         onClick={() => setOpenModal(true)}
         data-testid="add_entry_ooo">
-        <Icon name="plus" size={16} /> {t("add")}
+        {t("add")}
       </Button>
       {openModal && (
         <CreateOrEditOutOfOfficeEntryModal
