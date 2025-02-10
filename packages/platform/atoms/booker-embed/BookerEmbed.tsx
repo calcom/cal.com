@@ -62,9 +62,6 @@ export const BookerEmbed = (
                 isTeamEvent: true,
                 teamId: routingTeamId || 0,
                 username: "",
-                teamMemberEmail,
-                crmOwnerRecordType,
-                crmAppSlug,
               }
             : {
                 eventSlug: eventTypeSlug,
@@ -73,6 +70,9 @@ export const BookerEmbed = (
               })}
           routingFormSearchParams={routingFormSearchParams}
           defaultFormValues={defaultFormValues}
+          teamMemberEmail={teamMemberEmail}
+          crmOwnerRecordType={crmOwnerRecordType}
+          crmAppSlug={crmAppSlug}
           onDryRunSuccess={() => {
             if (onDryRunSuccess) {
               onDryRunSuccess();
