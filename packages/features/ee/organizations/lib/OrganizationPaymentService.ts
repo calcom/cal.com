@@ -5,17 +5,18 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import type { BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
+import { TRPCError } from "@calcom/trpc";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { IOrganizationPermissionService } from "./OrganizationPermissionService";
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
 type CreatePaymentIntentInput = {
   name: string;
   slug: string;
   orgOwnerEmail: string;
-  billingPeriod?: string;
+  billingPeriod?: BillingPeriod;
   seats?: number;
   pricePerSeat?: number;
   teams?: { id: number; isBeingMigrated: boolean; slug: string; name: string }[];
@@ -23,7 +24,7 @@ type CreatePaymentIntentInput = {
 };
 
 type PaymentConfig = {
-  billingPeriod: string;
+  billingPeriod: BillingPeriod;
   seats: number;
   pricePerSeat: number;
 };
@@ -35,10 +36,10 @@ type StripePrice = {
 
 export class OrganizationPaymentService {
   protected billingService: StripeBillingService;
-  protected permissionService: IOrganizationPermissionService;
+  protected permissionService: OrganizationPermissionService;
   protected user: NonNullable<TrpcSessionUser>;
 
-  constructor(user: NonNullable<TrpcSessionUser>, permissionService?: IOrganizationPermissionService) {
+  constructor(user: NonNullable<TrpcSessionUser>, permissionService?: OrganizationPermissionService) {
     this.billingService = new StripeBillingService();
     this.permissionService = permissionService || new OrganizationPermissionService(user);
     this.user = user;
@@ -113,7 +114,42 @@ export class OrganizationPaymentService {
       seats: Math.max(config.seats, uniqueMembersCount),
     };
 
-    return prisma.organizationOnboarding.create({
+    // Try to find an existing incomplete onboarding with matching slug
+    const existingOnboarding = await prisma.organizationOnboarding.findFirst({
+      where: {
+        orgOwnerEmail: input.orgOwnerEmail,
+        slug: input.slug,
+      },
+    });
+
+    if (existingOnboarding?.isComplete) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        // TODO: Consider redirecting to the organization settings page or maybe confirm if org exists and then redirect to the success page.
+        // If any error in creatng the organization, that must be shown there and user can fix that maybe
+        message: "Organization onboarding is already complete",
+      });
+    }
+
+    if (existingOnboarding) {
+      // Update the existing onboarding with new data
+      return await prisma.organizationOnboarding.update({
+        where: { id: existingOnboarding.id },
+        data: {
+          name: input.name,
+          billingPeriod: updatedConfig.billingPeriod,
+          pricePerSeat: updatedConfig.pricePerSeat,
+          seats: updatedConfig.seats,
+          stripeCustomerId,
+          invitedMembers: input.invitedMembers,
+          teams: teamsToMigrate,
+          updatedAt: new Date(),
+        },
+      });
+    }
+
+    // Create new onboarding record if none exists
+    return await prisma.organizationOnboarding.create({
       data: {
         name: input.name,
         slug: input.slug,
@@ -187,17 +223,12 @@ export class OrganizationPaymentService {
       billingPeriod: input.billingPeriod,
       seats: input.seats,
       pricePerSeat: input.pricePerSeat,
+      slug: input.slug,
     });
   }
 
   async createPaymentIntent(input: CreatePaymentIntentInput) {
-    await this.permissionService.validatePermissions({
-      orgOwnerEmail: input.orgOwnerEmail,
-      teams: input.teams,
-      billingPeriod: input.billingPeriod,
-      seats: input.seats,
-      pricePerSeat: input.pricePerSeat,
-    });
+    await this.permissionService.validatePermissions(input);
 
     const shouldCreateCustomPrice =
       this.permissionService.hasPermissionToModifyDefaultPayment() &&
@@ -226,11 +257,6 @@ export class OrganizationPaymentService {
       paymentConfig,
       organizationOnboarding.id
     );
-
-    await prisma.organizationOnboarding.update({
-      where: { id: organizationOnboarding.id },
-      data: { stripeCustomerId },
-    });
 
     return {
       organizationOnboarding,

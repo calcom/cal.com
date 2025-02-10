@@ -4,9 +4,9 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-export interface IOrganizationPermissionService {
+export interface validatePermissionsIOrganizationPermissionService {
   hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean>;
-  hasPendingOrganizations(email: string): Promise<boolean>;
+  hasPendingOrganizations(email: string, slug?: string): Promise<boolean>;
   hasPermissionToModifyDefaultPayment(): boolean;
   hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean>;
   hasModifiedDefaultPayment(input: {
@@ -16,21 +16,21 @@ export interface IOrganizationPermissionService {
   }): boolean;
 }
 
-export class OrganizationPermissionService implements IOrganizationPermissionService {
+export class OrganizationPermissionService {
   constructor(private readonly user: NonNullable<TrpcSessionUser>) {}
 
   async hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean> {
     return this.user.email === targetEmail || this.user.role === "ADMIN";
   }
 
-  async hasPendingOrganizations(email: string): Promise<boolean> {
-    const pendingOrg = await prisma.organizationOnboarding.findFirst({
+  async hasCompletedOnboarding(email: string): Promise<boolean> {
+    const orgOnboarding = await prisma.organizationOnboarding.findUnique({
       where: {
         orgOwnerEmail: email,
-        isComplete: false,
       },
     });
-    return !!pendingOrg;
+
+    return orgOnboarding && orgOnboarding.isComplete;
   }
 
   hasPermissionToModifyDefaultPayment(): boolean {
@@ -75,6 +75,7 @@ export class OrganizationPermissionService implements IOrganizationPermissionSer
     billingPeriod?: string;
     seats?: number;
     pricePerSeat?: number;
+    slug: string;
   }): Promise<boolean> {
     if (!(await this.hasPermissionToCreateForEmail(input.orgOwnerEmail))) {
       throw new TRPCError({
@@ -83,10 +84,11 @@ export class OrganizationPermissionService implements IOrganizationPermissionSer
       });
     }
 
-    if (await this.hasPendingOrganizations(input.orgOwnerEmail)) {
+    if (await this.hasCompletedOnboarding(input.orgOwnerEmail)) {
+      // TODO: Consider redirecting to success page
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "You already have a pending organization",
+        message: "Onboarding already completed",
       });
     }
 
@@ -97,12 +99,11 @@ export class OrganizationPermissionService implements IOrganizationPermissionSer
       });
     }
 
-    if (
-      input.teams &&
-      !(await this.hasPermissionToMigrateTeams(
-        input.teams.filter((team) => team.id > 0 && team.isBeingMigrated).map((team) => team.id)
-      ))
-    ) {
+    const teamsToMigrate = input.teams
+      ?.filter((team) => team.id > 0 && team.isBeingMigrated)
+      .map((team) => team.id);
+
+    if (teamsToMigrate && !(await this.hasPermissionToMigrateTeams(teamsToMigrate))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "You do not have permission to migrate these teams",

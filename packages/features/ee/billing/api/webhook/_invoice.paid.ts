@@ -9,7 +9,7 @@ const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const invoice = data.object;
-
+  console.log("invoice.paid webhook received", invoice);
   // Only handle subscription invoices
   if (!invoice.subscription) {
     console.log("Not a subscription invoice, skipping");
@@ -27,6 +27,11 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   }
 
   const handlerGetter = handlers[productId];
+  console.log("handlers", {
+    productId,
+    handlers,
+    handlerGetter,
+  });
   if (!handlerGetter) throw new HttpCode(202, `No product handler found for product: ${productId}`);
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.

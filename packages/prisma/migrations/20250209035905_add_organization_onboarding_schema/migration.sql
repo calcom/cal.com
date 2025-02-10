@@ -31,9 +31,3 @@ CREATE INDEX "OrganizationOnboarding_orgOwnerEmail_idx" ON "OrganizationOnboardi
 
 -- CreateIndex
 CREATE INDEX "OrganizationOnboarding_stripeCustomerId_idx" ON "OrganizationOnboarding"("stripeCustomerId");
-
--- CreateIndex
-CREATE INDEX "Impersonations_impersonatedUserId_idx" ON "Impersonations"("impersonatedUserId");
-
--- CreateIndex
-CREATE INDEX "Impersonations_impersonatedById_idx" ON "Impersonations"("impersonatedById");

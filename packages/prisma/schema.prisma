@@ -427,6 +427,8 @@ model Team {
   id                     Int                     @id @default(autoincrement())
   /// @zod.min(1)
   name                   String
+  // It is unique across teams and organizations. We don't have a strong reason for organization and team slug to be conflicting, could be fixed.
+  // Sub-teams could have same slug across different organizations but not within the same organization.
   /// @zod.min(1)
   slug                   String?
   logoUrl                String?
@@ -1845,7 +1847,7 @@ model OrganizationOnboarding {
   billingPeriod BillingPeriod
   pricePerSeat  Float
   seats         Int
-  orgOwnerEmail String
+  orgOwnerEmail String @unique
 
   // Organization info
   name String
@@ -1854,7 +1856,8 @@ model OrganizationOnboarding {
   bio  String?
 
   // Stripe info
-  stripeCustomerId     String?
+  stripeCustomerId     String @unique
+  // TODO: Can we make it required
   stripeSubscriptionId String?
 
   // Invited members - stored as JSON

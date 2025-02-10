@@ -34,17 +34,8 @@ const AddNewTeamMembers = () => {
 const useCheckout = () => {
   const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
     onSuccess: (data) => {
-      console.log(data);
       if (data.checkoutUrl) {
-        const width = 1000;
-        const height = 800;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-        window.open(
-          data.checkoutUrl,
-          "Stripe Checkout",
-          `width=${width},height=${height},left=${left},top=${top},toolbar=0,location=0,menubar=0,status=0`
-        );
+        window.location.href = data.checkoutUrl;
       }
     },
   });
@@ -173,6 +164,7 @@ export const AddNewTeamMembersForm = () => {
                     <Tooltip content={member.email}>
                       <span className="text-emphasis text-sm font-medium">{member.name || member.email}</span>
                     </Tooltip>
+                    {/* TODO: We should show the team name here instead of "migrating from team" */}
                     <Badge variant="green">{t("migrating_from_team")}</Badge>
                   </div>
                 </div>

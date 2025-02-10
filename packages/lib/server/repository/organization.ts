@@ -1,5 +1,4 @@
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
@@ -126,7 +125,7 @@ export class OrganizationRepository {
       data: {
         name: orgData.name,
         isOrganization: true,
-        ...(!IS_TEAM_BILLING_ENABLED ? { slug: orgData.slug } : {}),
+        slug: orgData.slug,
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,
@@ -136,11 +135,11 @@ export class OrganizationRepository {
           },
         },
         metadata: {
-          ...(IS_TEAM_BILLING_ENABLED ? { requestedSlug: orgData.slug } : {}),
-          orgSeats: orgData.seats,
-          orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
-          billingPeriod: orgData.billingPeriod,
+          // All this info is in the OrganizationOnboarding schema
+          // orgSeats: orgData.seats,
+          // orgPricePerSeat: orgData.pricePerSeat,
+          // billingPeriod: orgData.billingPeriod,
         },
         isPlatform: orgData.isPlatform,
       },
@@ -151,6 +150,17 @@ export class OrganizationRepository {
     return prisma.team.findUnique({
       where: {
         id,
+        isOrganization: true,
+      },
+      select: orgSelect,
+    });
+  }
+
+  static async findBySlug({ slug }: { slug: string }) {
+    // Slug is unique but could be null as well, so we can't use findUnique
+    return prisma.team.findFirst({
+      where: {
+        slug,
         isOrganization: true,
       },
       select: orgSelect,
@@ -355,10 +365,12 @@ export class OrganizationRepository {
     return org?.calVideoLogo;
   }
 
+  // TODO: Should be moved to OrganizationService
   static async checkSlugIsAvailable({ slug }: { slug: string }) {
     const org = await prisma.team.findFirst({
       where: {
-        isOrganization: true,
+        // Organization exists in Team domain, so slug is unique across teams and organizations
+        // isOrganization: true,
         slug,
       },
       select: {

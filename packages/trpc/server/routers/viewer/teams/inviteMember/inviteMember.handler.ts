@@ -9,7 +9,6 @@ import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
@@ -32,7 +31,18 @@ const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
 
 type InviteMemberOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: {
+      id: number;
+      organizationId: number | null;
+      profile: {
+        organization: {
+          id: number;
+          slug: string | null;
+          requestedSlug: string | null;
+        };
+      };
+      isOrgAdmin: boolean;
+    };
   };
   input: TInviteMemberInputSchema;
 };

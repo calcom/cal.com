@@ -1,11 +1,12 @@
 "use client";
 
-import { PaymentSuccessView } from "@calcom/features/ee/organizations/new/_components";
 import { WizardLayout } from "@calcom/ui";
+
+import PaymentSuccessView from "~/settings/organizations/new/_components/PaymentSuccessView";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={5}>
+    <WizardLayout currentStep={5} maxSteps={5}>
       {page}
     </WizardLayout>
   );
