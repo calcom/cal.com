@@ -55,13 +55,13 @@ export class RouterController {
       routingSearchParams.has("email") &&
       routingSearchParams.has("cal.teamId")
     ) {
-      return this.handleEventTypeRedirect(routingUrl, routingSearchParams);
+      return this.handleTeamEventTypeRedirect(routingUrl, routingSearchParams);
     }
 
     return { status: "success", data: destination, redirect: true };
   }
 
-  private async handleEventTypeRedirect(
+  private async handleTeamEventTypeRedirect(
     routingUrl: URL,
     routingSearchParams: URLSearchParams
   ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
