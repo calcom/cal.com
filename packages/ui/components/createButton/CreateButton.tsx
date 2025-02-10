@@ -79,6 +79,7 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams && !platform ? (
         <Button
+          size="sm"
           onClick={() =>
             !!CreateDialog
               ? openModal(options[0])
