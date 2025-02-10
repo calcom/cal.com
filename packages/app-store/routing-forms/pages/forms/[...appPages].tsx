@@ -150,7 +150,7 @@ export default function RoutingForms({
   return (
     <LicenseRequired>
       <ShellMain
-        heading={t("routing_forms")}
+        heading={t("routing")}
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
