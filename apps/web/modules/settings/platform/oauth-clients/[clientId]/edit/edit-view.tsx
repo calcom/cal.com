@@ -72,6 +72,7 @@ export default function EditOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
     });
   };
 
@@ -98,6 +99,7 @@ export default function EditOAuthClient() {
                 defaultValues={{
                   name: data?.name ?? "",
                   areEmailsEnabled: data.areEmailsEnabled ?? false,
+                  areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
                   redirectUris: data?.redirectUris?.map((uri) => ({ uri })) ?? [{ uri: "" }],
                   bookingRedirectUri: data?.bookingRedirectUri ?? "",
                   bookingCancelRedirectUri: data?.bookingCancelRedirectUri ?? "",

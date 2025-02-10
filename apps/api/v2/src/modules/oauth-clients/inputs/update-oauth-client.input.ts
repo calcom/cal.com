@@ -37,4 +37,9 @@ export class UpdateOAuthClientInput {
   @IsBoolean()
   @ApiPropertyOptional()
   areEmailsEnabled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional()
+  areDefaultEventTypesEnabled?: boolean;
 }
