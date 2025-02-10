@@ -3,17 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import type { ApiSuccessResponse } from "@calcom/platform-types";
 import type { PlatformOAuthClient } from "@calcom/prisma/client";
 
-export type ManagedUser = {
-  id: number;
-  email: string;
-  username: string | null;
-  timeZone: string;
-  weekStart: string;
-  createdDate: Date;
-  timeFormat: number | null;
-  defaultScheduleId: number | null;
-};
-
 export const useOAuthClients = () => {
   const query = useQuery<ApiSuccessResponse<PlatformOAuthClient[]>>({
     queryKey: ["oauth-clients"],
