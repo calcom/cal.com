@@ -75,7 +75,7 @@ export async function getServerSideProps(
   const session = await getServerSession({ req });
   const user = session?.user;
   const app = await getAppWithMetadata({ slug: "routing-forms" });
-  console.log("APPPPP", app);
+
   if (!app) {
     return {
       notFound: true,
