@@ -4,10 +4,11 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type {
   ApiResponse,
   CreateOAuthClientInput,
+  CreateOAuthClientOutput,
   DeleteOAuthClientInput,
+  PlatformOAuthClientDto,
   SubscribeTeamInput,
 } from "@calcom/platform-types";
-import type { OAuthClient } from "@calcom/prisma/client";
 
 interface IPersistOAuthClient {
   onSuccess?: () => void;
@@ -24,12 +25,8 @@ export const useCreateOAuthClient = (
     },
   }
 ) => {
-  return useMutation<
-    ApiResponse<{ clientId: string; clientSecret: string }>,
-    unknown,
-    CreateOAuthClientInput
-  >({
-    mutationFn: (data) => {
+  return useMutation<ApiResponse<CreateOAuthClientOutput>, unknown, CreateOAuthClientInput>({
+    mutationFn: async (data) => {
       return fetch("/api/v2/oauth-clients", {
         method: "post",
         headers: { "Content-type": "application/json" },
@@ -60,11 +57,11 @@ export const useUpdateOAuthClient = (
   }
 ) => {
   const mutation = useMutation<
-    ApiResponse<{ clientId: string; clientSecret: string }>,
+    ApiResponse<PlatformOAuthClientDto>,
     unknown,
     Omit<CreateOAuthClientInput, "permissions">
   >({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       return fetch(`/api/v2/oauth-clients/${clientId}`, {
         method: "PATCH",
         headers: { "Content-type": "application/json" },
@@ -96,8 +93,8 @@ export const useDeleteOAuthClient = (
     },
   }
 ) => {
-  const mutation = useMutation<ApiResponse<OAuthClient>, unknown, DeleteOAuthClientInput>({
-    mutationFn: (data) => {
+  const mutation = useMutation<ApiResponse<PlatformOAuthClientDto>, unknown, DeleteOAuthClientInput>({
+    mutationFn: async (data) => {
       const { id } = data;
       return fetch(`/api/v2/oauth-clients/${id}`, {
         method: "delete",
