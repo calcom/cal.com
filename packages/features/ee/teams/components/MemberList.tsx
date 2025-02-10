@@ -675,7 +675,6 @@ function MemberListContent(props: Props) {
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                className="rounded-md"
                 onClick={() => props.setShowMemberInvitationModal(true)}
                 data-testid="new-member-button">
                 {t("add")}
@@ -699,6 +698,7 @@ function MemberListContent(props: Props) {
             </p>
             {numberOfSelectedRows >= 2 && (
               <DataTableSelectionBar.Button
+                color="secondary"
                 onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                 icon="handshake">
                 {t("group_meeting")}
