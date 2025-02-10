@@ -129,7 +129,7 @@ export class CreateEventTypeInput_2024_06_14 {
   @ArrayUnique()
   @IsInt({ each: true })
   @Min(1, { each: true })
-  @DocsProperty({
+  @DocsPropertyOptional({
     example: [15, 30, 60],
     description:
       "If you want that user can choose between different lengths of the event you can specify them here. Must include the provided `lengthInMinutes`.",

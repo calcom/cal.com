@@ -1,11 +1,11 @@
 "use client";
 
-import type { SortingState, OnChangeFn } from "@tanstack/react-table";
+import type { SortingState, OnChangeFn, VisibilityState } from "@tanstack/react-table";
 import { useQueryState, parseAsArrayOf, parseAsJson } from "nuqs";
 import { createContext, useCallback } from "react";
 import { z } from "zod";
 
-import { type FilterValue, ZFilterValue, ZSorting } from "./types";
+import { type FilterValue, ZFilterValue, ZSorting, ZColumnVisibility } from "./types";
 
 const ZActiveFilter = z.object({
   f: z.string(),
@@ -23,6 +23,9 @@ export type DataTableContextType = {
 
   sorting: SortingState;
   setSorting: OnChangeFn<SortingState>;
+
+  columnVisibility: VisibilityState;
+  setColumnVisibility: OnChangeFn<VisibilityState>;
 };
 
 export const DataTableContext = createContext<DataTableContextType | null>(null);
@@ -35,6 +38,10 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
   const [sorting, setSorting] = useQueryState(
     "sorting",
     parseAsArrayOf(parseAsJson(ZSorting.parse)).withDefault([])
+  );
+  const [columnVisibility, setColumnVisibility] = useQueryState<VisibilityState>(
+    "cols",
+    parseAsJson(ZColumnVisibility.parse).withDefault({})
   );
 
   const clearAll = useCallback(
@@ -81,6 +88,8 @@ export function DataTableProvider({ children }: { children: React.ReactNode }) {
         removeFilter,
         sorting,
         setSorting,
+        columnVisibility,
+        setColumnVisibility,
       }}>
       {children}
     </DataTableContext.Provider>
