@@ -13,10 +13,10 @@ export const ClearFiltersButton = ({ exclude }: { exclude?: string[] }) => {
   return (
     <Tooltip content={t("clear_filters")}>
       <Button
-        color="secondary"
+        color="minimal"
         target="_blank"
         rel="noreferrer"
-        className="min-w-24 border-0"
+        className="min-w-24"
         StartIcon="x"
         onClick={() => clearAll(exclude)}>
         {t("clear")}

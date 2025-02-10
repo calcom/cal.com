@@ -16,7 +16,6 @@ import {
   CommandList,
   CommandEmpty,
   CommandItem,
-  Icon,
 } from "@calcom/ui";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
@@ -47,8 +46,12 @@ function AddFilterButtonComponent<TData>(
     <div className="flex items-center space-x-2">
       <Popover>
         <PopoverTrigger asChild>
-          <Button ref={ref} color="secondary" data-testid="add-filter-button">
-            <Icon name="sliders-horizontal" className="mr-2 h-4 w-4" />
+          <Button
+            ref={ref}
+            color="secondary"
+            data-testid="add-filter-button"
+            StartIcon="sliders-horizontal"
+            className="h-full">
             {t("filter")}
           </Button>
         </PopoverTrigger>

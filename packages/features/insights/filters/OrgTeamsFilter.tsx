@@ -68,7 +68,7 @@ export const OrgTeamsFilter = () => {
       <Avatar
         alt={`${placeholder} logo`}
         imageSrc={getPlaceholderAvatar(imageUrl, placeholder)}
-        size="xsm"
+        size="xs"
         className="mr-2"
       />
     ) : null;
