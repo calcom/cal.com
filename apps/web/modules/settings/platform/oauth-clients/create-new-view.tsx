@@ -56,6 +56,7 @@ export default function CreateOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
     });
   };
 

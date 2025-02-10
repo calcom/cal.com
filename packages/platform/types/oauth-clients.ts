@@ -40,6 +40,11 @@ export class CreateOAuthClientInput {
   @IsBoolean()
   @ApiPropertyOptional()
   areEmailsEnabled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional()
+  areDefaultEventTypesEnabled?: boolean;
 }
 
 export class DeleteOAuthClientInput {
