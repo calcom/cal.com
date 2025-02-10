@@ -67,7 +67,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 }: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/web/lib/getTeamMemberEmailFromCrm"
+    "@calcom/lib/server/getTeamMemberEmailFromCrm"
   );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
