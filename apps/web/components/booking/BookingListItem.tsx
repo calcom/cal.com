@@ -1,7 +1,6 @@
 import type { AssignmentReason } from "@prisma/client";
 import Link from "next/link";
 import { useState } from "react";
-import { createPortal } from "react-dom";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { getEventLocationValue } from "@calcom/app-store/locations";
@@ -39,6 +38,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
   Icon,
   MeetingTimeInTimezones,
   showToast,
@@ -96,10 +96,6 @@ function buildParsedBooking(booking: BookingItemProps) {
     metadata: bookingMetadata,
   };
 }
-
-const DropdownPortal = ({ children }: { children: React.ReactNode }) => {
-  return createPortal(children, document.body);
-};
 
 const isBookingReroutable = (booking: ParsedBooking): booking is ReroutableBooking => {
   // We support only team bookings for now for rerouting
@@ -920,7 +916,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownPortal>
+      <DropdownMenuPortal>
         <DropdownMenuContent>
           {!isSmsCalEmail(email) && (
             <DropdownMenuItem className="focus:outline-none">
@@ -978,7 +974,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>
-      </DropdownPortal>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
