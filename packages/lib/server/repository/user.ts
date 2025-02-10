@@ -589,7 +589,7 @@ export class UserRepository {
     const organizationIdValue = data.organizationId;
     const { email, username, creationSource, locked, ...rest } = data;
 
-    console.log("create user", { email, username, organizationIdValue, locked });
+    logger.info("create user", { email, username, organizationIdValue, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
