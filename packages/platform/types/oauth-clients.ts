@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsArray, IsNumber, IsOptional, IsBoolean, IsString } from "class-validator";
 import { z } from "zod";
 
@@ -43,8 +44,13 @@ export class CreateOAuthClientInput {
 
   @IsOptional()
   @IsBoolean()
-  @ApiPropertyOptional()
-  areDefaultEventTypesEnabled?: boolean;
+  @Transform(({ value }) => value ?? false)
+  @ApiPropertyOptional({
+    type: Boolean,
+    description:
+      "By default false. If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.",
+  })
+  areDefaultEventTypesEnabled = false;
 }
 
 export class DeleteOAuthClientInput {

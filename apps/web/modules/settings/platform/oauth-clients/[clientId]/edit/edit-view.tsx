@@ -72,7 +72,7 @@ export default function EditOAuthClient() {
       bookingCancelRedirectUri: data.bookingCancelRedirectUri,
       bookingRescheduleRedirectUri: data.bookingRescheduleRedirectUri,
       areEmailsEnabled: data.areEmailsEnabled,
-      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled ?? false,
+      areDefaultEventTypesEnabled: data.areDefaultEventTypesEnabled,
     });
   };
 
