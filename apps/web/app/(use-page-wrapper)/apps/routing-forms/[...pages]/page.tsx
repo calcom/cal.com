@@ -2,28 +2,13 @@ import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as ServerPageProps } from "app/_types";
 import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
-import { notFound } from "next/navigation";
-import z from "zod";
 
-import Shell from "@calcom/features/shell/Shell";
-
-import { getServerSideProps } from "@lib/apps/[slug]/[...pages]/getServerSideProps";
+import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
-import LegacyPage from "~/apps/[slug]/[...pages]/pages-view";
-
-const paramsSchema = z.object({
-  slug: z.literal("routing-forms").or(z.literal("typeform")),
-  pages: z.array(z.string()),
-});
+import LegacyPage from "~/apps/routing-forms/[...pages]/pages-view";
 
 export const generateMetadata = async ({ params, searchParams }: ServerPageProps) => {
-  const p = paramsSchema.safeParse(params);
-
-  if (!p.success) {
-    return notFound();
-  }
-
   const legacyContext = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const data = await getData(legacyContext);
   const form = "form" in data ? (data.form as { name?: string; description?: string }) : null;
@@ -39,20 +24,9 @@ export const generateMetadata = async ({ params, searchParams }: ServerPageProps
 const getData = withAppDirSsr<any>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
-  const p = paramsSchema.safeParse(params);
-  if (!p.success) {
-    return notFound();
-  }
-
   const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
   const props = await getData(context);
-  if (props.appName === "routing-forms") {
-    return (
-      <Shell backPath="/apps/routing-forms/forms" withoutMain withoutSeo>
-        <LegacyPage {...props} />
-      </Shell>
-    );
-  }
+
   return <LegacyPage {...props} />;
 };
 

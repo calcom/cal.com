@@ -41,7 +41,6 @@ function getRoute(pages: string[]) {
 }
 
 const paramsSchema = z.object({
-  slug: z.literal("routing-forms").or(z.literal("typeform")),
   pages: z.array(z.string()),
 });
 
@@ -62,68 +61,50 @@ export async function getServerSideProps(
     };
   }
 
-  const appName = parsedParams.data.slug;
-  if (appName === "typeform") {
-    return {
-      props: {
-        appName,
-      },
-    };
-  }
-
   const pages = parsedParams.data.pages;
   const route = getRoute(pages);
 
-  if (route.notFound) {
+  if (route.notFound || !route.getServerSideProps) {
     return { notFound: true };
   }
 
-  if (route.getServerSideProps) {
-    // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
-    // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
-    // We can write some validation logic later on that ensures that [...appPages].tsx file exists
-    params.appPages = pages.slice(1);
-    const session = await getServerSession({ req });
-    const user = session?.user;
-    const app = await getAppWithMetadata({ slug: appName });
-
-    if (!app) {
-      return {
-        notFound: true,
-      };
-    }
-
-    const result = await route.getServerSideProps(
-      context as GetServerSidePropsContext<{
-        slug: string;
-        pages: string[];
-        appPages: string[];
-      }>,
-      prisma,
-      user,
-      ssrInit
-    );
-
-    if (result.notFound) {
-      return { notFound: true };
-    }
-
-    if (result.redirect) {
-      return { redirect: result.redirect };
-    }
-
+  // TODO: Document somewhere that right now it is just a convention that filename should have appPages in it's name.
+  // appPages is actually hardcoded here and no matter the fileName the same variable would be used.
+  // We can write some validation logic later on that ensures that [...appPages].tsx file exists
+  params.appPages = pages.slice(1);
+  const session = await getServerSession({ req });
+  const user = session?.user;
+  const app = await getAppWithMetadata({ slug: "routing-forms" });
+  console.log("APPPPP", app);
+  if (!app) {
     return {
-      props: {
-        appName,
-        appUrl: app.simplePath || `/apps/${appName}`,
-        ...result.props,
-      },
-    };
-  } else {
-    return {
-      props: {
-        appName,
-      },
+      notFound: true,
     };
   }
+
+  const result = await route.getServerSideProps(
+    context as GetServerSidePropsContext<{
+      slug: string;
+      pages: string[];
+      appPages: string[];
+    }>,
+    prisma,
+    user,
+    ssrInit
+  );
+
+  if (result.notFound) {
+    return { notFound: true };
+  }
+
+  if (result.redirect) {
+    return { redirect: result.redirect };
+  }
+
+  return {
+    props: {
+      appUrl: app.simplePath || `/apps/routing-forms`,
+      ...result.props,
+    },
+  };
 }

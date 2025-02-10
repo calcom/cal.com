@@ -766,7 +766,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </div>
             }
             subtitle={form.description || ""}
-            backPath={`/${appUrl}/forms`}
+            backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
