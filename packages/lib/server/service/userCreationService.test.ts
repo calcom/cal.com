@@ -47,7 +47,7 @@ describe("UserCreationService", () => {
     vi.clearAllMocks();
   });
 
-  test("should create user with transformed fields", async () => {
+  test("should create user", async () => {
     vi.spyOn(UserRepository, "create").mockResolvedValue({
       username: "test",
       locked: false,
