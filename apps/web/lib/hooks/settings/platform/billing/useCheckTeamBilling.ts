@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
+
 export const useCheckTeamBilling = (teamId?: number | null, isPlatformTeam?: boolean | null) => {
   const QUERY_KEY = "check-team-billing";
   const isTeamBilledAlready = useQuery({
