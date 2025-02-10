@@ -56,12 +56,7 @@ export default function PlatformBillingUpgrade() {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell
-          withoutSeo={true}
-          isPlatformUser={true}
-          hideHeadingOnMobile
-          withoutMain={false}
-          SidebarContainer={<></>}>
+        <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -72,7 +67,6 @@ export default function PlatformBillingUpgrade() {
       <Shell
         heading={t("platform_billing")}
         title={t("platform_billing")}
-        hideHeadingOnMobile
         withoutMain={false}
         withoutSeo={true}
         subtitle={t("manage_billing_description")}
