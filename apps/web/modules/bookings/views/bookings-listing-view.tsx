@@ -206,7 +206,7 @@ function BookingsContent({ status }: BookingsProps) {
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
-      query.data?.pages.map((page) =>
+      query.data?.pages.flatMap((page) =>
         page.bookings
           .filter(
             (booking: BookingOutput) =>
@@ -221,7 +221,7 @@ function BookingsContent({ status }: BookingsProps) {
             ),
             isToday: true,
           }))
-      )[0] || []
+      ) || []
     );
   }, [query.data, user?.timeZone]);
 
