@@ -2,7 +2,6 @@ import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
-import type { TFunction } from "next-i18next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -44,7 +43,6 @@ import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -924,69 +922,7 @@ async function handler(
     });
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  // Get Guests added by organizer while rescheduling
-  const organizerAddedGuests: {
-    email: string;
-    name: string;
-    firstName: string;
-    lastName: string;
-    timeZone: string;
-    language: { translate: TFunction; locale: string };
-  }[] = [];
-
-  if (originalRescheduledBooking) {
-    const eventHosts = eventType.hosts.length
-      ? eventType.hosts
-      : eventType.users.map((user) => ({ user, isFixed: false }));
-
-    // For round-robin bookings, find the host from original rescheduled booking
-    const originalRoundRobinHost = eventHosts.find(
-      (host) =>
-        !host.isFixed &&
-        originalRescheduledBooking?.attendees.some((attendee) => attendee.email === host.user.email)
-    )?.user;
-
-    const isSameRRHost = !!originalRescheduledBooking?.userId && eventType.rescheduleWithSameRoundRobinHost;
-
-    // Get the list of team members for original rescheduled booking
-    const originalRescheduledBookingTeamMembers = (
-      isTeamEventType && eventType.schedulingType === SchedulingType.ROUND_ROBIN && !isSameRRHost
-        ? [...users.slice(0, -1), originalRoundRobinHost]
-        : [...users]
-    ).filter((user) => user?.email !== organizerUser.email);
-
-    // Get guests that were added by the booker in the original booking
-    const bookerAddedGuests = getSafe<string[]>(originalRescheduledBooking?.responses, ["guests"]) || [];
-
-    // Get all attendees from the original booking
-    const originalRescheduledBookingAttendees = originalRescheduledBooking?.attendees || [];
-
-    //  Filter out: Team members, booker and Guests added by the booker from the original rescheduled booking attendees to get the guests added by organizer
-    const emailsToExclude = new Set([
-      ...originalRescheduledBookingTeamMembers.map((user) => user?.email),
-      ...invitee.map((user) => user?.email),
-      ...bookerAddedGuests,
-    ]);
-
-    originalRescheduledBookingAttendees
-      .filter((attendee) => !emailsToExclude.has(attendee.email))
-      .forEach((guest) =>
-        organizerAddedGuests.push({
-          email: guest.email,
-          name: "",
-          firstName: "",
-          lastName: "",
-          timeZone: attendeeTimezone,
-          language: { translate: tGuests, locale: "en" },
-        })
-      );
-  }
-
-  // Combine all attendees for the new booking:
-  // 1. Booker
-  // 2. Current guests
-  // 3. Guests previously added by organizer
-  const attendeesList = [...invitee, ...guests, ...organizerAddedGuests];
+  const attendeesList = [...invitee, ...guests];
 
   const responses = reqBody.responses || null;
   const evtName = !eventType?.isDynamic ? eventType.eventName : responses?.title;
