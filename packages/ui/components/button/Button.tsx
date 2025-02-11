@@ -197,17 +197,17 @@ export const buttonClasses = cva(
       {
         variant: "icon",
         size: "xs",
-        className: "min-h-5 min-w-5 !p-1 rounded-md",
+        className: "h-5 w-5 !p-1 rounded-md",
       },
       {
         variant: "icon",
         size: "sm",
-        className: "min-h-6 min-w-6 !p-1 rounded-md",
+        className: "h-6 w-6 !p-1 rounded-md",
       },
       {
         variant: "icon",
         size: "lg",
-        className: "min-h-10 min-w-10 !p-1",
+        className: "h-10 w-10 !p-1",
       },
       {
         variant: "fab",
