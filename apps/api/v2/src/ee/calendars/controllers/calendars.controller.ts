@@ -86,18 +86,16 @@ export class CalendarsController {
 
   @UseGuards(ApiAuthGuard)
   @Get("/busy-times")
-  @ApiOperation({ summary: "Get busy times" })
+  @ApiOperation({
+    summary: "Get busy times",
+    description:
+      "Get busy times from a calendar. Example request URL is `https://api.cal.com/v2/calendars/busy-times?loggedInUsersTz=Europe%2FMadrid&dateFrom=2024-12-18&dateTo=2024-12-18&calendarsToLoad[0][credentialId]=135&calendarsToLoad[0][externalId]=skrauciz%40gmail.com`",
+  })
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
     @GetUser() user: UserWithProfile
   ): Promise<GetBusyTimesOutput> {
     const { loggedInUsersTz, dateFrom, dateTo, calendarsToLoad } = queryParams;
-    if (!dateFrom || !dateTo) {
-      return {
-        status: SUCCESS_STATUS,
-        data: [],
-      };
-    }
 
     const busyTimes = await this.calendarsService.getBusyTimes(
       calendarsToLoad,

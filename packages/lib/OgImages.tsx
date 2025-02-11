@@ -57,17 +57,22 @@ const makeAbsoluteUrl = (url: string) => (/^https?:\/\//.test(url) ? url : `${CA
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
 export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
-  const url = [
-    `?type=meeting`,
-    `&title=${encodeURIComponent(title)}`,
-    `&meetingProfileName=${encodeURIComponent(profile.name)}`,
-    profile.image && `&meetingImage=${encodeURIComponent(makeAbsoluteUrl(profile.image))}`,
-    `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
-    `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
-    // Joining a multiline string for readability.
-  ].join("");
+  const params = new URLSearchParams({
+    type: "meeting",
+    title,
+    meetingProfileName: profile.name,
+  });
 
-  return url;
+  if (profile.image) {
+    params.set("meetingImage", makeAbsoluteUrl(profile.image));
+  }
+
+  users.forEach((user) => {
+    params.append("names", user.name);
+    params.append("usernames", user.username);
+  });
+
+  return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
 /**
@@ -75,26 +80,22 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
 export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
-  const url = [
-    `?type=app`,
-    `&name=${encodeURIComponent(name)}`,
-    `&slug=${encodeURIComponent(slug)}`,
-    `&description=${encodeURIComponent(description)}`,
-    // Joining a multiline string for readability.
-  ].join("");
-
-  return url;
+  const params = new URLSearchParams({
+    type: "app",
+    name,
+    slug,
+    description,
+  });
+  return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
 export const constructGenericImage = ({ title, description }: GenericImageProps) => {
-  const url = [
-    `?type=generic`,
-    `&title=${encodeURIComponent(title)}`,
-    `&description=${encodeURIComponent(description)}`,
-    // Joining a multiline string for readability.
-  ].join("");
-
-  return url;
+  const params = new URLSearchParams({
+    type: "generic",
+    title,
+    description,
+  });
+  return encodeURIComponent(`/api/social/og/image?${params.toString()}`);
 };
 
 const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (

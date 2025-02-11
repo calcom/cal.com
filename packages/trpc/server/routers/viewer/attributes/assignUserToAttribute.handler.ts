@@ -1,3 +1,4 @@
+import { getWhereClauseForAttributeOptionsManagedByCalcom } from "@calcom/lib/service/attribute/server/utils";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -32,9 +33,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       teamId: org.id,
     },
     select: {
+      name: true,
       id: true,
       type: true,
       options: true,
+      isLocked: true,
     },
   });
 
@@ -90,7 +93,14 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   // const promises: Promise<{ id: string }>[] = [];
 
-  input.attributes.map(async (attribute) => {
+  const unlockedAttributesInInput = input.attributes.filter((attribute) => {
+    const attributeFromDb = attributes.find((a) => a.id === attribute.id);
+    return !attributeFromDb?.isLocked;
+  });
+
+  const lockedAttributesFromDb = attributes.filter((attribute) => attribute.isLocked);
+
+  unlockedAttributesInInput.map(async (attribute) => {
     // TEXT, NUMBER
     if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
@@ -160,6 +170,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
             },
           },
           memberId: membership.id,
+          ...getWhereClauseForAttributeOptionsManagedByCalcom(),
           NOT: {
             id: {
               in: options.map((option) => option.value),
@@ -180,6 +191,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
           create: {
             memberId: membership.id,
             attributeOptionId: option.value,
+            weight: option.weight,
           },
           update: {}, // No update needed if it already exists
           select: {
@@ -194,6 +206,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       await prisma.attributeToUser.deleteMany({
         where: {
           memberId: membership.id,
+          ...getWhereClauseForAttributeOptionsManagedByCalcom(),
           attributeOption: {
             attribute: {
               id: attribute.id,
@@ -206,7 +219,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
   return {
     success: true,
-    message: "Attributes assigned successfully",
+    message: lockedAttributesFromDb.length
+      ? `Attributes assigned successfully. Locked attributes ${lockedAttributesFromDb
+          .map((attribute) => attribute.name)
+          .join(", ")} were not assigned.`
+      : "Attributes assigned successfully.",
   };
 };
 

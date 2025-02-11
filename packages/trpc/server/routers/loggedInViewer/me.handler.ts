@@ -91,6 +91,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
         username: user.profile?.username ?? user.username ?? null,
         profile: user.profile ?? null,
         profiles: allUserEnrichedProfiles,
+        organizationSettings: user?.profile?.organization?.organizationSettings,
       };
 
   return {

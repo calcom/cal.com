@@ -1,5 +1,13 @@
 # @calcom/embed-snippet
 
+## 1.3.2
+
+### Patch Changes
+
+- Bundle size reduction for embed-react
+- Updated dependencies
+  - @calcom/embed-core@1.5.2
+
 ## 1.3.1
 
 ### Patch Changes

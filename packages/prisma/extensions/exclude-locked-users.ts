@@ -25,6 +25,14 @@ export function excludeLockedUsersExtension() {
   });
 }
 
+function safeJSONStringify(x: any) {
+  try {
+    return JSON.stringify(x);
+  } catch {
+    return "";
+  }
+}
+
 async function excludeLockedUsers(
   args:
     | Prisma.UserFindUniqueArgs<InternalArgs & DefaultArgs>
@@ -35,8 +43,10 @@ async function excludeLockedUsers(
   query: <T>(args: T) => Promise<unknown>
 ) {
   args.where = args.where || {};
+  const whereString = safeJSONStringify(args.where);
+  const shouldIncludeLocked = whereString.includes('"locked":');
   // Unless explicitly specified, we exclude locked users
-  if (args.where.locked === undefined) {
+  if (!shouldIncludeLocked) {
     args.where.locked = false;
   }
   return query(args);

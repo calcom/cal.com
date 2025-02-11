@@ -169,7 +169,7 @@ export {
   CommandShortcut,
 } from "./components/command";
 
-export { HoverCard, HoverCardTrigger, HoverCardContent } from "./components/hover-card";
+export { HoverCard, HoverCardTrigger, HoverCardContent, HoverCardPortal } from "./components/hover-card";
 
 export { OrgBanner } from "./components/organization-banner";
 export type { OrgBannerProps } from "./components/organization-banner";

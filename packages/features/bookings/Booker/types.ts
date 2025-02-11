@@ -90,6 +90,9 @@ export interface BookerProps {
   teamMemberEmail?: string | null;
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
+  areInstantMeetingParametersSet?: boolean | null;
+  userLocale?: string | null;
+  hasValidLicense?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
@@ -115,6 +118,8 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  isBookingDryRun?: boolean;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
@@ -134,6 +139,7 @@ export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
+  bookerWrapper?: string;
   bookerContainer?: string;
   eventMetaCustomClassNames?: {
     eventMetaContainer?: string;

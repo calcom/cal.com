@@ -1,4 +1,4 @@
-import BillingPage, { generateMetadata } from "app/future/settings/(settings)/billing/page";
+import BillingPage, { generateMetadata } from "app/settings/(settings-layout)/billing/page";
 
 export { generateMetadata };
 

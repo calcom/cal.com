@@ -1,4 +1,5 @@
-import { google } from "googleapis";
+import { admin_directory_v1 } from "@googleapis/admin";
+import { OAuth2Client } from "googleapis-common";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -48,14 +49,15 @@ export const getUsersFromGWorkspace = async ({}: CheckForGCalOptions) => {
 
   const credentials = credentialsSchema.parse(hasExistingCredentials.key);
 
-  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret);
+  const oAuth2Client = new OAuth2Client(client_id, client_secret);
 
   // Set users credentials instead of our app credentials - allowing us to make requests on their behalf
   oAuth2Client.setCredentials(credentials);
 
   // Create a new instance of the Admin SDK directory API
-  const directory = google.admin({ version: "directory_v1", auth: oAuth2Client });
-
+  const directory = new admin_directory_v1.Admin({
+    auth: oAuth2Client as any,
+  });
   const { data } = await directory.users.list({
     maxResults: 200, // Up this if we ever need to get more than 200 users
     customer: "my_customer", // This only works for single domain setups - we'll need to change this if we ever support multi-domain setups (unlikely we'll ever need to)

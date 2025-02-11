@@ -1,5 +1,4 @@
 import { m } from "framer-motion";
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { shallow } from "zustand/shallow";
@@ -11,13 +10,17 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { locales as i18nLocales } from "@calcom/lib/i18n";
+import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
+import type { EventTypeTranslation } from "@calcom/prisma/client";
 import { EventTypeAutoTranslatedField } from "@calcom/prisma/enums";
 
+import i18nConfigration from "../../../../../i18n.json";
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
+import { useBookerTime } from "./hooks/useBookerTime";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -26,18 +29,35 @@ const WebTimezoneSelect = dynamic(
   }
 );
 
+const getTranslatedField = (
+  translations: Array<Pick<EventTypeTranslation, "field" | "targetLocale" | "translatedText">>,
+  field: EventTypeAutoTranslatedField,
+  userLocale: string
+) => {
+  const i18nLocales = i18nConfigration.locale.targets.concat([i18nConfigration.locale.source]);
+
+  return translations?.find(
+    (trans) =>
+      trans.field === field &&
+      i18nLocales.includes(trans.targetLocale) &&
+      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
+  )?.translatedText;
+};
+
 export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  isPrivateLink,
   classNames,
+  locale,
 }: {
   event?: Pick<
     BookerEvent,
     | "lockTimeZoneToggleOnBookingPage"
     | "schedule"
     | "seatsPerTimeSlot"
-    | "users"
+    | "subsetOfUsers"
     | "length"
     | "schedulingType"
     | "profile"
@@ -55,15 +75,18 @@ export const EventMeta = ({
     | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
+  isPrivateLink: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
     eventMetaTitle?: string;
     eventMetaTimezoneSelect?: string;
   };
+  locale?: string | null;
 }) => {
-  const session = useSession();
-  const { setTimezone, timeFormat, timezone } = useTimePreferences();
+  const { timeFormat, timezone } = useBookerTime();
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
+  const [setBookerStoreTimezone] = useBookerStore((state) => [state.setTimezone], shallow);
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
   const bookerState = useBookerStore((state) => state.state);
@@ -107,14 +130,17 @@ export const EventMeta = ({
     : isHalfFull
     ? "text-yellow-500"
     : "text-bookinghighlight";
-  const userLocale = session.data?.user.locale ?? navigator.language;
-  const translatedDescription = (event?.fieldTranslations ?? []).find(
-    (trans) =>
-      trans.field === EventTypeAutoTranslatedField.DESCRIPTION &&
-      i18nLocales.includes(trans.targetLocale) &&
-      // browser language looks like "en-US", "es-ES", "fr-FR", etc
-      (userLocale === trans.targetLocale || userLocale.split("-")[0] === trans.targetLocale)
-  )?.translatedText;
+  const userLocale = locale ?? navigator.language;
+  const translatedDescription = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.DESCRIPTION,
+    userLocale
+  );
+  const translatedTitle = getTranslatedField(
+    event?.fieldTranslations ?? [],
+    EventTypeAutoTranslatedField.TITLE,
+    userLocale
+  );
 
   return (
     <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
@@ -125,18 +151,24 @@ export const EventMeta = ({
       )}
       {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          {!isPlatform && (
-            <EventMembers
-              schedulingType={event.schedulingType}
-              users={event.users}
-              profile={event.profile}
-              entity={event.entity}
-            />
-          )}
-          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
+          <EventMembers
+            schedulingType={event.schedulingType}
+            users={event.subsetOfUsers}
+            profile={event.profile}
+            entity={event.entity}
+            isPrivateLink={isPrivateLink}
+          />
+          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
+            {translatedTitle ?? event?.title}
+          </EventTitle>
           {(event.description || translatedDescription) && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: translatedDescription ?? event.description }} />
+              <div
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: markdownToSafeHTMLClient(translatedDescription ?? event.description),
+                }}
+              />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">
@@ -188,8 +220,11 @@ export const EventMeta = ({
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
+                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
+                    onChange={({ value }) => {
+                      setTimezone(value);
+                      setBookerStoreTimezone(value);
+                    }}
                     isDisabled={event.lockTimeZoneToggleOnBookingPage}
                   />
                 </span>

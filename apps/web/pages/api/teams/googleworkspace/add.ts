@@ -1,4 +1,4 @@
-import { google } from "googleapis";
+import { OAuth2Client } from "googleapis-common";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
@@ -18,9 +18,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!client_secret || typeof client_secret !== "string")
       return res.status(400).json({ message: "Google client_secret missing." });
 
-    // use differnt callback to normal calendar connection
+    // use different callback to normal calendar connection
     const redirect_uri = `${WEBAPP_URL}/api/teams/googleworkspace/callback`;
-    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
+    const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uri);
 
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",

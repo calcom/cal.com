@@ -36,7 +36,8 @@ export type PreviewState = {
     "element-click"
   >;
   palette: {
-    brandColor: string;
+    brandColor: string | null;
+    darkBrandColor: string | null;
   };
   hideEventTypeDetails: boolean;
   layout: BookerLayouts;

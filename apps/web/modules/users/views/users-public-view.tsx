@@ -11,18 +11,17 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
+  const { users, profile, eventTypes, entity } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -59,23 +58,9 @@ export function UserPage(props: PageProps) {
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+
   return (
     <>
-      <HeadSeo
-        origin={getOrgFullOrigin(entity.orgSlug ?? null)}
-        title={profile.name}
-        description={markdownStrippedBio}
-        meeting={{
-          title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
-          users: [{ username: `${user.username}`, name: `${user.name}` }],
-        }}
-        nextSeoProps={{
-          noindex: !profile.allowSEOIndexing,
-          nofollow: !profile.allowSEOIndexing,
-        }}
-      />
-
       <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
         <main
           className={classNames(
@@ -112,6 +97,7 @@ export function UserPage(props: PageProps) {
               <>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
+                  // eslint-disable-next-line react/no-danger
                   dangerouslySetInnerHTML={{ __html: props.safeBio }}
                 />
               </>

@@ -19,7 +19,7 @@ import dayjs from "@calcom/dayjs";
 import { SchedulingType, type BookingStatus } from "@calcom/prisma/enums";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
-import { expect } from "./getSchedule/expects";
+import { expect, expectedSlotsForSchedule } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
 import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
@@ -31,65 +31,9 @@ vi.mock("@calcom/lib/constants", () => ({
 
 describe("getSchedule", () => {
   setupAndTeardown();
-  describe("Calendar event", () => {
-    test("correctly identifies unavailable slots from calendar", async () => {
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus2DateString}T04:45:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
-
-      const scenarioData = {
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 45,
-            length: 45,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        users: [
-          {
-            ...TestData.users.example,
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-          },
-        ],
-        apps: [TestData.apps["google-calendar"]],
-      };
-      // An event with one accepted booking
-      await createBookingScenario(scenarioData);
-
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: false,
-          orgSlug: null,
-        },
-      });
-
-      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
-      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
-        dateString: plus2DateString,
-      });
-    });
-  });
-
-  describe("Round robin lead skip - CRM", async () => {
+  // TODO: Move these inside describe('Team Event')
+  describe("Round robin lead skip(i.e. use contact owner specified by teamMemberEmail) - CRM", async () => {
     test("correctly get slots for event with only round robin hosts", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
@@ -367,7 +311,7 @@ describe("getSchedule", () => {
         }
       );
     });
-    test("correctly get slots for event with only round robin hosts", async () => {
+    test("correctly get slots for event with only round robin hosts - When no availability is found", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
@@ -477,6 +421,119 @@ describe("getSchedule", () => {
 
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+          `12:30:00.000Z`,
+          `13:30:00.000Z`,
+          `14:30:00.000Z`,
+          `15:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+    test("Negative case(i.e. skipContactOwner is true) - when teamMemberEmail is provided but not used", async () => {
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
+
+      const crmCredential = {
+        id: 1,
+        type: "salesforce_crm",
+        key: {
+          clientId: "test-client-id",
+        },
+        userId: 1,
+        teamId: null,
+        appId: "salesforce",
+        invalid: false,
+        user: { email: "test@test.com" },
+      };
+
+      await createCredentials([crmCredential]);
+
+      mockCrmApp("salesforce", {
+        getContacts: [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+            ownerEmail: "example@example.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              apps: {
+                salesforce: {
+                  enabled: true,
+                  appCategories: ["crm"],
+                  roundRobinLeadSkip: true,
+                },
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstEveningShift],
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleWhenContactOwnerIsSkipped = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          teamMemberEmail: "example@example.com",
+          skipContactOwner: true,
+          orgSlug: null,
+        },
+      });
+
+      // Both users slot would be available as contact owner(example@example.com) is skipped and we fallback to all users of RR
+      expect(scheduleWhenContactOwnerIsSkipped).toHaveTimeSlots(
         [
           `04:30:00.000Z`,
           `05:30:00.000Z`,
@@ -1680,7 +1737,7 @@ describe("getSchedule", () => {
         [
           // `04:00:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
           `04:15:00.000Z`,
-          `05:00:00.000Z`, // <- This slot should be availble to book as this event type (id: 3) has requires confirmation without blocking the slo
+          `05:00:00.000Z`, // <- This slot should be available to book as this event type (id: 3) has requires confirmation without blocking the slot
           `05:45:00.000Z`,
           `06:30:00.000Z`,
           `07:15:00.000Z`,
@@ -1690,6 +1747,77 @@ describe("getSchedule", () => {
           `10:15:00.000Z`,
           `11:00:00.000Z`,
           `11:45:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("Edge Case: Same day OOO entries that could accidentally be considered in past shouldn't crash the getSchedule", async () => {
+      // Set a fixed date for testing
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: todayDateString } = getDate({ dateIncrement: 0 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            outOfOffice: {
+              dateRanges: [
+                {
+                  start: `${todayDateString}T00:00:00.000Z`,
+                  end: `${todayDateString}T23:59:59.999Z`,
+                },
+              ],
+            },
+          },
+        ],
+      });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+          orgSlug: null,
+        },
+      });
+
+      // Verify that we get slots for the requested dates
+      expect(schedule).toHaveTimeSlots(
+        [
+          "04:00:00.000Z",
+          "04:45:00.000Z",
+          "05:30:00.000Z",
+          "06:15:00.000Z",
+          "07:00:00.000Z",
+          "07:45:00.000Z",
+          "08:30:00.000Z",
+          "09:15:00.000Z",
+          "10:00:00.000Z",
+          "10:45:00.000Z",
+          "11:30:00.000Z",
         ],
         {
           dateString: plus2DateString,
@@ -2205,13 +2333,13 @@ describe("getSchedule", () => {
   });
 
   describe("Round robin event", async () => {
-    test("correctly get slots for event with round robin hosts choosen schedule (non-default)", async () => {
+    test("correctly get slots for event with round robin hosts chosen schedule (non-default)", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
       const plus2DateString = "2024-05-23";
 
-      // An event with no common schedule and hosts choosen schedule (non-default schedule)
+      // An event with no common schedule and hosts chosen schedule (non-default schedule)
       await createBookingScenario({
         eventTypes: [
           {
@@ -2265,7 +2393,7 @@ describe("getSchedule", () => {
         },
       });
 
-      // expect only slots of IstEveningShift , as this is the choosen schedule for hosts
+      // expect only slots of IstEveningShift , as this is the chosen schedule for hosts
       expect(scheduleWithHostChoosenSch).toHaveTimeSlots(
         [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
         {
@@ -2273,7 +2401,7 @@ describe("getSchedule", () => {
         }
       );
     });
-    test("correctly get slots for event with commom schedule", async () => {
+    test("correctly get slots for event with common schedule", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
@@ -2334,6 +2462,169 @@ describe("getSchedule", () => {
       // expect only slots of IstEveningShift , as this is the common schedule of event
       expect(scheduleWithEventCommonSch).toHaveTimeSlots(
         [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("Reschedule: should show timeslots of the same host if rescheduleWithSameRoundRobinHost is true", async () => {
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
+
+      // An event with common schedule
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            rescheduleWithSameRoundRobinHost: true,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstEveningShift],
+            defaultScheduleId: 1,
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [
+          {
+            uid: "BOOKING_TO_RESCHEDULE_UID",
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
+          },
+        ],
+      });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
+        },
+      });
+
+      // expect only slots of IstEveningShift as this is the slots for the original host of the booking
+      expect(schedule).toHaveTimeSlots(
+        [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("Reschedule: should show timeslots as per routedTeamMemberIds(instead of same host) even if rescheduleWithSameRoundRobinHost is true but it is a rerouting scenario", async () => {
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
+
+      // An event with common schedule
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            rescheduleWithSameRoundRobinHost: true,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstEveningShift],
+            defaultScheduleId: 1,
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [
+          {
+            uid: "BOOKING_TO_RESCHEDULE_UID",
+            userId: 101,
+            attendees: [
+              {
+                email: "IntegrationTestUser102@example.com",
+              },
+            ],
+            eventTypeId: 1,
+            status: "ACCEPTED",
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T04:15:00.000Z`,
+          },
+        ],
+      });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          rescheduleUid: "BOOKING_TO_RESCHEDULE_UID",
+          routedTeamMemberIds: [102],
+        },
+      });
+
+      // expect only slots of IstEveningShift as this is the slots for the original host of the booking
+      expect(schedule).toHaveTimeSlots(
+        expectedSlotsForSchedule.IstMorningShift.interval["1hr"].allPossibleSlotsStartingAt430,
         {
           dateString: plus2DateString,
         }

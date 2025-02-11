@@ -22,6 +22,7 @@ export type FormResponse = Record<
   {
     value: number | string | string[];
     label: string;
+    identifier?: string;
   }
 >;
 
@@ -69,6 +70,7 @@ export type Attribute = {
   slug: string;
   type: AttributeType;
   id: string;
+  isWeightsEnabled?: boolean;
   options: {
     id: string;
     value: string;
@@ -96,6 +98,7 @@ export type LocalRouteWithRaqbStates = LocalRoute & {
   formFieldsQueryBuilderState: FormFieldsQueryBuilderState;
   attributesQueryBuilderState: AttributesQueryBuilderState | null;
   fallbackAttributesQueryBuilderState: AttributesQueryBuilderState | null;
+  attributeIdForWeights?: string;
 };
 
 export type EditFormRoute = LocalRouteWithRaqbStates | GlobalRoute;

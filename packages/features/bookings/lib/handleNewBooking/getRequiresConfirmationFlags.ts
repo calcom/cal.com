@@ -1,24 +1,30 @@
 import dayjs from "@calcom/dayjs";
+import { checkIfFreeEmailDomain } from "@calcom/lib/freeEmailDomainCheck/checkIfFreeEmailDomain";
 
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 
-type EventType = Pick<getEventTypeResponse, "metadata" | "requiresConfirmation">;
+type EventType = Pick<
+  getEventTypeResponse,
+  "metadata" | "requiresConfirmation" | "requiresConfirmationForFreeEmail"
+>;
 type PaymentAppData = { price: number };
 
-export function getRequiresConfirmationFlags({
+export async function getRequiresConfirmationFlags({
   eventType,
   bookingStartTime,
   userId,
   paymentAppData,
   originalRescheduledBookingOrganizerId,
+  bookerEmail,
 }: {
   eventType: EventType;
   bookingStartTime: string;
   userId: number | undefined;
   paymentAppData: PaymentAppData;
   originalRescheduledBookingOrganizerId: number | undefined;
+  bookerEmail: string;
 }) {
-  const requiresConfirmation = determineRequiresConfirmation(eventType, bookingStartTime);
+  const requiresConfirmation = await determineRequiresConfirmation(eventType, bookingStartTime, bookerEmail);
   const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBookingOrganizerId);
   const isConfirmedByDefault = determineIsConfirmedByDefault(
     requiresConfirmation,
@@ -38,9 +44,18 @@ export function getRequiresConfirmationFlags({
   };
 }
 
-function determineRequiresConfirmation(eventType: EventType, bookingStartTime: string): boolean {
+async function determineRequiresConfirmation(
+  eventType: EventType,
+  bookingStartTime: string,
+  bookerEmail: string
+): Promise<boolean> {
   let requiresConfirmation = eventType?.requiresConfirmation;
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  const requiresConfirmationForFreeEmail = eventType?.requiresConfirmationForFreeEmail;
+
+  if (requiresConfirmationForFreeEmail) {
+    requiresConfirmation = await checkIfFreeEmailDomain(bookerEmail);
+  }
 
   if (rcThreshold) {
     const timeDifference = dayjs(dayjs(bookingStartTime).utc().format()).diff(dayjs(), rcThreshold.unit);

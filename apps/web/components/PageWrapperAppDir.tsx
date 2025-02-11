@@ -18,7 +18,6 @@ export type PageWrapperProps = Readonly<{
   nonce: string | undefined;
   themeBasis: string | null;
   dehydratedState?: DehydratedState;
-  isThemeSupported?: boolean;
   isBookingPage?: boolean;
   i18n?: SSRConfig;
 }>;
@@ -54,6 +53,9 @@ function PageWrapper(props: PageWrapperProps) {
         <Script
           nonce={nonce}
           id="page-status"
+          // It is strictly not necessary to disable, but in a future update of react/no-danger this will error.
+          // And we don't want it to error here anyways
+          // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
         />
         {getLayout(

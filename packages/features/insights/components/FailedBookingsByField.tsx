@@ -4,7 +4,7 @@ import { classNames } from "@calcom/lib";
 import { trpc } from "@calcom/trpc";
 import { ToggleGroup } from "@calcom/ui";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { BarList } from "./tremor/BarList";
 
 interface FormCardProps {
@@ -55,20 +55,13 @@ function FormCard({ formName, fields }: FormCardProps) {
 }
 
 export function FailedBookingsByField() {
-  const { filter } = useFilterContext();
-  const { selectedTeamId, isAll, initialConfig, selectedRoutingFormId } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
-
-  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery(
-    {
-      teamId: selectedTeamId ?? undefined,
-      isAll: !!isAll,
-      routingFormId: selectedRoutingFormId ?? undefined,
-    },
-    {
-      enabled: initialConfigIsReady,
-    }
-  );
+  const { userId, teamId, startDate, endDate, isAll, routingFormId } = useInsightsParameters();
+  const { data } = trpc.viewer.insights.failedBookingsByField.useQuery({
+    userId,
+    teamId,
+    isAll,
+    routingFormId,
+  });
 
   if (!data) return null;
 

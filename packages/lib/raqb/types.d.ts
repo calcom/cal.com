@@ -1,7 +1,5 @@
 import type { z } from "zod";
 
-import type { AttributeType } from "@calcom/prisma/client";
-
 import type { raqbChildSchema, raqbQueryValueSchema, zodAttributesQueryValue } from "./zod";
 
 export type RaqbChild = z.infer<typeof raqbChildSchema>;
@@ -32,16 +30,4 @@ export type dynamicFieldValueOperands = {
     }[];
   }[];
   response: dynamicFieldValueOperandsResponse;
-};
-
-export type Attribute = {
-  name: string;
-  slug: string;
-  type: AttributeType;
-  id: string;
-  options: {
-    id: string;
-    value: string;
-    slug: string;
-  }[];
 };

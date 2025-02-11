@@ -31,7 +31,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const event = useEvent({ fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink });
+  const event = useEvent({
+    fromRedirectOfNonOrgLink: props.entity.fromRedirectOfNonOrgLink,
+  });
   const bookerLayout = useBookerLayout(event.data);
 
   const selectedDate = searchParams?.get("date");
@@ -44,6 +46,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const bookingUid =
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
+  const timezone = searchParams?.get("cal.tz") || null;
 
   useEffect(() => {
     // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
@@ -58,6 +61,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     bookingUid: bookingUid,
     layout: bookerLayout.defaultLayout,
     org: props.entity.orgSlug,
+    timezone,
   });
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
@@ -181,6 +185,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     theme: event.data?.profile.theme,
   });
 
+  const areInstantMeetingParametersSet = Boolean(
+    event.data?.instantMeetingParameters &&
+      searchParams &&
+      event.data.instantMeetingParameters?.every?.((param) =>
+        Array.from(searchParams.values()).includes(param)
+      )
+  );
+
   return (
     <BookerComponent
       {...props}
@@ -208,6 +220,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       rescheduledBy={rescheduledBy}
       bookingUid={bookingUid}
       hasSession={hasSession}
+      hasValidLicense={session?.hasValidLicense ?? false}
       extraOptions={routerQuery}
       bookings={bookings}
       calendars={calendars}
@@ -219,6 +232,9 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
       schedule={schedule}
       verifyCode={verifyCode}
       isPlatform={false}
+      areInstantMeetingParametersSet={areInstantMeetingParametersSet}
+      userLocale={session?.user.locale}
+      renderCaptcha
     />
   );
 };

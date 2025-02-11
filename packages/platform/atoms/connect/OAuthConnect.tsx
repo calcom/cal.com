@@ -77,6 +77,10 @@ export const OAuthConnect: FC<
           tooltipOffset={10}
           tooltipClassName="p-0 text-inherit bg-inherit"
           className={cn("", !isDisabled && "cursor-pointer", className)}
+          onTouchEnd={() => {
+            connect();
+            onSuccess?.();
+          }}
           onClick={() => {
             connect();
             onSuccess?.();
@@ -100,6 +104,10 @@ export const OAuthConnect: FC<
           !isDisabled && "cursor-pointer",
           className
         )}
+        onTouchEnd={() => {
+          connect();
+          onSuccess?.();
+        }}
         onClick={() => connect()}>
         {displayedLabel}
       </Button>
