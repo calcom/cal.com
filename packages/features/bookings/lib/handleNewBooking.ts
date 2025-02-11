@@ -48,8 +48,8 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getSafe } from "@calcom/lib/bookingSuccessRedirect";
+import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -947,7 +947,7 @@ async function handler(
 
     originalRescheduledBookingAttendees
       .filter((attendee) => !emailsToExclude.has(attendee.email))
-      .map((guest) =>
+      .forEach((guest) =>
         organizerAddedGuests.push({
           email: guest.email,
           name: "",
