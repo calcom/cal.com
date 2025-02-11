@@ -14,7 +14,7 @@ type IToast = {
 export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-lg px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low border-subtle mb-2 flex h-auto space-x-2 rounded-lg border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
@@ -33,7 +33,7 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
 export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error shadow-elevation-low border-semantic-error-subtle mb-2 flex h-auto space-x-2 rounded-md border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
@@ -52,7 +52,7 @@ export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) 
 export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention shadow-elevation-low mb-2 flex h-auto space-x-2 rounded-md px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention shadow-elevation-low border-semantic-attention-subtle mb-2 flex h-auto space-x-2 rounded-md border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>

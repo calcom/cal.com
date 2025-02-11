@@ -72,13 +72,13 @@
   
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(212, 88%, 97%, 1); /* blue-100 */
-  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-info-emphasis: hsla(236, 80%, 25%, 1); /* blue-500 */
   --cal-bg-semantic-success-subtle: hsla(167, 54%, 93%, 1); /* green-100 */
   --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
   --cal-bg-semantic-attention-subtle: hsla(34, 100%, 92%, 1); /* orange-100 */
-  --cal-bg-semantic-attention-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-semantic-attention-emphasis: hsla(15, 79%, 34%, 1); /* orange-500 */
   --cal-bg-semantic-error-subtle: hsla(0, 93%, 94%, 1); /* red-100 */
-  --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+  --cal-bg-semantic-error-emphasis: hsla(0, 63%, 24%, 1); /* red-500 */
 
   /* Background Visualization */
   --cal-bg-visualization-1-subtle: hsla(326, 78%, 95%, 1); /* pink-100 */
@@ -133,6 +133,10 @@
   --cal-text-visualization-6: hsla(24, 95%, 25%, 1); /* orange-800 */
   --cal-text-visualization-7: hsla(0, 84%, 25%, 1); /* red-800 */
 
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1); 
+
   /* Legacy Content/Text Components - Consider deprecating */
   --cal-text-info: hsla(225, 57%, 33%, 1); /* #253985 - interactive text/icons */
   --cal-text-success: hsla(144, 34%, 24%, 1); /* #285231 */
@@ -164,13 +168,13 @@
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
-  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-info-emphasis: hsla(229, 90%, 74%, 1); /* blue-500 */
   --cal-bg-semantic-success-subtle: hsla(148, 88%, 16%, 1); /* green-800 */
   --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
   --cal-bg-semantic-attention-subtle: hsla(21, 86%, 8%, 1); /* orange-800 */
-  --cal-bg-semantic-attention-emphasis: hsla(15, 75%, 23%, 1); /* orange-500 */
+  --cal-bg-semantic-attention-emphasis: hsla(27, 96%, 61%, 1); /* orange-500 */
   --cal-bg-semantic-error-subtle: hsla(0, 70%, 8%, 1); /* red-800 */
-  --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+  --cal-bg-semantic-error-emphasis: hsla(0, 91%, 71%, 1); /* red-500 */
 
   /* Background Visualization */
   --cal-bg-visualization-1-subtle: hsla(336, 74%, 35%, 1); /* pink-200 */
@@ -202,6 +206,12 @@
   --cal-border-emphasis: hsla(0, 0%, 45%, 1); /* stone-800 */
   /* Border Semantic */
   --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
+
+
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1); 
+
 
   /* Legacy Border - Consider deprecating */
   --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
