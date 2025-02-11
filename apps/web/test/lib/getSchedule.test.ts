@@ -1737,7 +1737,7 @@ describe("getSchedule", () => {
         [
           // `04:00:00.000Z`, // <- This slot should be occupied by the Pending Requires Confirmation booking blocking this slot
           `04:15:00.000Z`,
-          `05:00:00.000Z`, // <- This slot should be availble to book as this event type (id: 3) has requires confirmation without blocking the slo
+          `05:00:00.000Z`, // <- This slot should be available to book as this event type (id: 3) has requires confirmation without blocking the slot
           `05:45:00.000Z`,
           `06:30:00.000Z`,
           `07:15:00.000Z`,
@@ -2157,13 +2157,13 @@ describe("getSchedule", () => {
   });
 
   describe("Round robin event", async () => {
-    test("correctly get slots for event with round robin hosts choosen schedule (non-default)", async () => {
+    test("correctly get slots for event with round robin hosts chosen schedule (non-default)", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
       const plus2DateString = "2024-05-23";
 
-      // An event with no common schedule and hosts choosen schedule (non-default schedule)
+      // An event with no common schedule and hosts chosen schedule (non-default schedule)
       await createBookingScenario({
         eventTypes: [
           {
@@ -2217,7 +2217,7 @@ describe("getSchedule", () => {
         },
       });
 
-      // expect only slots of IstEveningShift , as this is the choosen schedule for hosts
+      // expect only slots of IstEveningShift , as this is the chosen schedule for hosts
       expect(scheduleWithHostChoosenSch).toHaveTimeSlots(
         [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
         {
@@ -2225,7 +2225,7 @@ describe("getSchedule", () => {
         }
       );
     });
-    test("correctly get slots for event with commom schedule", async () => {
+    test("correctly get slots for event with common schedule", async () => {
       vi.setSystemTime("2024-05-21T00:00:13Z");
 
       const plus1DateString = "2024-05-22";
