@@ -3286,6 +3286,26 @@
             }
           },
           {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortStart",
             "required": false,
             "in": "query",
@@ -3313,6 +3333,17 @@
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
             "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
               "enum": ["asc", "desc"],
               "type": "string"
@@ -9798,8 +9829,7 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
-        },
-        "required": ["lengthInMinutesOptions"]
+        }
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -11934,8 +11964,7 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        },
-        "required": ["lengthInMinutesOptions"]
+        }
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -13941,6 +13970,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -13983,6 +14016,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses"
         ]
@@ -14076,6 +14110,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14122,6 +14160,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses",
           "recurringBookingUid"
@@ -14307,6 +14346,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14339,6 +14382,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees"
         ]
@@ -14432,6 +14476,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14468,6 +14516,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees",
           "recurringBookingUid"
@@ -14596,6 +14645,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14624,6 +14677,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees"
         ]
       },
@@ -14716,6 +14770,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14748,6 +14806,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "recurringBookingUid"
         ]
