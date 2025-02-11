@@ -1,7 +1,7 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "Routing Forms",
-  "title": "Routing Forms",
+  "name": "Routing",
+  "title": "Routing",
   "isGlobal": true,
   "slug": "routing-forms",
   "type": "routing-forms_other",

@@ -537,6 +537,11 @@ const nextConfig = {
   async redirects() {
     const redirects = [
       {
+        source: "/apps/routing-forms",
+        destination: "/routing/forms",
+        permanent: false,
+      },
+      {
         source: "/api/app-store/:path*",
         destination: "/app-store/:path*",
         permanent: true,

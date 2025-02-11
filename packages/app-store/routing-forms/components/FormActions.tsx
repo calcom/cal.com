@@ -11,7 +11,6 @@ import { EmbedDialogProvider } from "@calcom/features/embed/lib/hooks/useEmbedDi
 import { classNames } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
@@ -54,10 +53,12 @@ function NewFormDialog({
   newFormDialogState: NewFormDialogState;
   setNewFormDialogState: SetNewFormDialogState;
 }) {
-  const routerQuery = useRouterQuery();
   const { t } = useLocale();
   const router = useRouter();
   const utils = trpc.useUtils();
+
+  const action = newFormDialogState?.action;
+  const target = newFormDialogState?.target;
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
@@ -76,8 +77,6 @@ function NewFormDialog({
     description: string;
     shouldConnect: boolean;
   }>();
-
-  const { action, target } = routerQuery as z.infer<typeof newFormModalQuerySchema>;
 
   const formToDuplicate = action === "duplicate" ? target : null;
   const teamId = action === "new" ? Number(target) : null;
