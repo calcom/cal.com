@@ -169,7 +169,6 @@ module.exports = {
         booker: `var(--cal-border-booker, ${subtleColor})`,
         // Legacy - Consider deprecating
         error: "var(--cal-border-error)",
-        focus: "var(--cal-border-focus)",
         "cal-bg": "var(--cal-bg)",
         "cal-bg-muted": "var(--cal-bg-muted)",
       },
