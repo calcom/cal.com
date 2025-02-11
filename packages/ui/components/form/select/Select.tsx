@@ -68,7 +68,7 @@ export const Select = <
         input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
-            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-md text-default ",
+            "bg-default flex cursor-pointer justify-between py-1.5 px-2 rounded-md text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
@@ -89,7 +89,7 @@ export const Select = <
               ? "h-7 px-2"
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
-            "rounded-[10px]",
+            size === "sm" ? "rounded-md" : "rounded-[10px]",
             "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2",
             innerClassNames?.control
           ),
