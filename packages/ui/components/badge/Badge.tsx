@@ -25,7 +25,7 @@ export const badgeStyles = cva("font-medium inline-flex items-center justify-cen
     size: {
       sm: "px-1 py-1 text-[10px] leading-none",
       md: "py-1 px-1.5 text-xs leading-none",
-      lg: "py-1 px-1.5 text-sm leading-none",
+      lg: "py-1 px-1.5 text-sm leading-none rounded-lg",
     },
   },
   defaultVariants: {
