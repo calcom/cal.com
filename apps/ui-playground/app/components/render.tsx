@@ -25,7 +25,7 @@ export const RenderComponentWithSnippet: React.FC<PropsWithChildren<Props>> = (p
   //   });
   return (
     <div className="border-gray-6 bg-gray-1 rounded-lg border">
-      <div className={className("p-8 xl:p-12", props.className)}>{props.children}</div>
+      <div className={className("not-prose p-8 xl:p-12", props.className)}>{props.children}</div>
 
       <div className="bg-gray-3 border-gray-6 flex items-center justify-start  border-b border-t p-2">
         <Button
