@@ -28,7 +28,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
-    <Command>
+    <Command data-testid={`single-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
