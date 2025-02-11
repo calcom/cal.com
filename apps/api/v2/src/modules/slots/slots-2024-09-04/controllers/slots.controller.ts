@@ -225,11 +225,7 @@ export class SlotsController_2024_09_04 {
     @Body() body: ReserveSlotInput_2024_09_04,
     @GetOptionalUser() user: User
   ): Promise<ReserveSlotOutputResponse_2024_09_04> {
-    if (!user && body.reservationDuration) {
-      throw new BadRequestException("reservationDuration can only be used for authenticated requests");
-    }
-
-    const reservedSlot = await this.slotsService.reserveSlot(body);
+    const reservedSlot = await this.slotsService.reserveSlot(body, user?.id);
 
     return {
       status: SUCCESS_STATUS,

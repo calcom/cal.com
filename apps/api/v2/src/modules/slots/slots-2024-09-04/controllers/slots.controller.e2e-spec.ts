@@ -263,12 +263,23 @@ describe("Slots Endpoints", () => {
     let attendeesRepositoryFixture: AttendeeRepositoryFixture;
     let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
     let apiKeyString: string;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
 
     const userEmail = `slots-2024-09-04-user-${randomString()}@example.com`;
     let user: User;
     let eventTypeId: number;
     let eventTypeSlug: string;
     let eventTypeLength: number;
+
+    let team: Team;
+    const teammateUserEmail = `slots-2024-09-04-teammate-user-${randomString()}@example.com`;
+    let teammateUser: User;
+    let teammateUserApiKeyString: string;
+
+    const unrelatedUserEmail = `slots-2024-09-04-unrelated-user-${randomString()}@example.com`;
+    let unrelatedUser: User;
+    let unrelatedUserApiKeyString: string;
 
     const seatedEventTypeSlug = `slots-2024-09-04-seated-event-type-${randomString()}`;
     let seatedEventType: EventType;
@@ -300,6 +311,8 @@ describe("Slots Endpoints", () => {
       bookingSeatsRepositoryFixture = new BookingSeatRepositoryFixture(moduleRef);
       attendeesRepositoryFixture = new AttendeeRepositoryFixture(moduleRef);
       apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -307,8 +320,32 @@ describe("Slots Endpoints", () => {
         username: userEmail,
       });
 
+      unrelatedUser = await userRepositoryFixture.create({
+        email: unrelatedUserEmail,
+        name: unrelatedUserEmail,
+        username: unrelatedUserEmail,
+      });
+
+      teammateUser = await userRepositoryFixture.create({
+        email: teammateUserEmail,
+        name: teammateUserEmail,
+        username: teammateUserEmail,
+      });
+
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(user.id, null);
       apiKeyString = keyString;
+
+      const { keyString: unrelatedUserKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        unrelatedUser.id,
+        null
+      );
+      unrelatedUserApiKeyString = unrelatedUserKeyString;
+
+      const { keyString: teammateUserKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        teammateUser.id,
+        null
+      );
+      teammateUserApiKeyString = teammateUserKeyString;
 
       const userSchedule: CreateScheduleInput_2024_06_11 = {
         name: `slots-2024-09-04-schedule-${randomString()}`,
@@ -339,6 +376,25 @@ describe("Slots Endpoints", () => {
         user.id
       );
       seatedEventType = seatedEvent;
+
+      team = await teamRepositoryFixture.create({
+        name: `slots-2024-09-04-team-${randomString()}`,
+        isOrganization: false,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: user.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: teammateUser.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
+      });
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -725,24 +781,31 @@ describe("Slots Endpoints", () => {
     });
 
     it("should not be able reserve a slot with custom duration if no auth is provided", async () => {
-      // note(Lauris): mock current date to test slots release time
-      const now = "2049-09-05T12:00:00.000Z";
-      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
-      advanceTo(newDate);
-
-      const slotStartTime = "2050-09-05T10:00:00.000Z";
       await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .send({
           eventTypeId,
-          slotStart: slotStartTime,
+          slotStart: "2050-09-05T10:00:00.000Z",
           reservationDuration: 10,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
         .expect(400);
     });
 
-    it("should reserve a slot with custom duration and it should not appear in available slots", async () => {
+    it("should not be able reserve a slot with custom duration if provided auth user is not owner of event type nor shares team membership with owner", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId,
+          slotStart: "2050-09-05T10:00:00.000Z",
+          reservationDuration: 10,
+        })
+        .set({ Authorization: `Bearer cal_test_${unrelatedUserApiKeyString}` })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(401);
+    });
+
+    it("should reserve a slot as event type owner with custom duration and it should not appear in available slots", async () => {
       // note(Lauris): mock current date to test slots release time
       const now = "2049-09-05T12:00:00.000Z";
       const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
@@ -752,6 +815,62 @@ describe("Slots Endpoints", () => {
       const reserveResponse = await request(app.getHttpServer())
         .post(`/v2/slots/reservations`)
         .set({ Authorization: `Bearer cal_test_${apiKeyString}` })
+        .send({
+          eventTypeId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(responseReservedSlot.reservationUid).toBeDefined();
+      if (!responseReservedSlot.reservationUid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+      reservedSlot = responseReservedSlot;
+
+      const response = await request(app.getHttpServer())
+        .get(`/v2/slots?eventTypeId=${eventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot.start !== slotStartTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      expect(dbSlot).toBeDefined();
+      if (dbSlot) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      clear();
+    });
+
+    it("should reserve a slot as someone who shares team with event type owner with custom duration and it should not appear in available slots", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const reserveResponse = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${teammateUserApiKeyString}` })
         .send({
           eventTypeId,
           slotStart: slotStartTime,
@@ -1338,8 +1457,10 @@ describe("Slots Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(unrelatedUser.email);
       await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
       await bookingsRepositoryFixture.deleteAllBookings(user.id, user.email);
+      await teamRepositoryFixture.delete(team.id);
       clear();
 
       await app.close();
@@ -1353,37 +1474,43 @@ describe("Slots Endpoints", () => {
     let schedulesService: SchedulesService_2024_06_11;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
-    let profileRepositoryFixture: ProfileRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
+    let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+    let selectedSlotsRepositoryFixture: SelectedSlotsRepositoryFixture;
 
-    const userEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
-    const userEmailTwo = `slots-2024-09-04-user-2-team-slots-${randomString()}`;
+    const teammateEmailOne = `slots-2024-09-04-user-1-team-slots-${randomString()}`;
+    let teammateApiKeyString: string;
+    const teammateEmailTwo = `slots-2024-09-04-user-2-team-slots-${randomString()}`;
+
+    const outsiderEmail = `slots-2024-09-04-unrelated-team-slots-${randomString()}`;
+    let outsider: User;
+    let outsiderApiKeyString: string;
 
     let team: Team;
-    let userOne: User;
-    let userTwo: User;
+    let teammateOne: User;
+    let teammateTwo: User;
     let collectiveEventTypeId: number;
+    let collectiveEventTypeWithoutHostsId: number;
     let roundRobinEventTypeId: number;
     let collectiveBookingId: number;
     let roundRobinBookingId: number;
     let fullyBookedRoundRobinBookingIdOne: number;
     let fullyBookedRoundRobinBookingIdTwo: number;
 
+    let reservedSlot: ReserveSlotOutputData_2024_09_04;
+
     beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmailOne,
-        Test.createTestingModule({
-          imports: [
-            AppModule,
-            PrismaModule,
-            UsersModule,
-            TokensModule,
-            SchedulesModule_2024_06_11,
-            SlotsModule_2024_09_04,
-          ],
-        })
-      )
+      const moduleRef = await Test.createTestingModule({
+        imports: [
+          AppModule,
+          PrismaModule,
+          UsersModule,
+          TokensModule,
+          SchedulesModule_2024_06_11,
+          SlotsModule_2024_09_04,
+        ],
+      })
         .overrideGuard(PermissionsGuard)
         .useValue({
           canActivate: () => true,
@@ -1394,21 +1521,37 @@ describe("Slots Endpoints", () => {
       schedulesService = moduleRef.get<SchedulesService_2024_06_11>(SchedulesService_2024_06_11);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
+      apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+      selectedSlotsRepositoryFixture = new SelectedSlotsRepositoryFixture(moduleRef);
 
-      userOne = await userRepositoryFixture.create({
-        email: userEmailOne,
-        name: userEmailOne,
-        username: userEmailOne,
+      teammateOne = await userRepositoryFixture.create({
+        email: teammateEmailOne,
+        name: teammateEmailOne,
+        username: teammateEmailOne,
       });
 
-      userTwo = await userRepositoryFixture.create({
-        email: userEmailTwo,
-        name: userEmailTwo,
-        username: userEmailTwo,
+      teammateTwo = await userRepositoryFixture.create({
+        email: teammateEmailTwo,
+        name: teammateEmailTwo,
+        username: teammateEmailTwo,
       });
+
+      outsider = await userRepositoryFixture.create({
+        email: outsiderEmail,
+        name: outsiderEmail,
+        username: outsiderEmail,
+      });
+
+      const { keyString } = await apiKeysRepositoryFixture.createApiKey(teammateOne.id, null);
+      teammateApiKeyString = keyString;
+
+      const { keyString: unrelatedUserKeyString } = await apiKeysRepositoryFixture.createApiKey(
+        outsider.id,
+        null
+      );
+      outsiderApiKeyString = unrelatedUserKeyString;
 
       team = await teamRepositoryFixture.create({
         name: `slots-2024-09-04-team-${randomString()}`,
@@ -1417,14 +1560,14 @@ describe("Slots Endpoints", () => {
 
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
-        user: { connect: { id: userOne.id } },
+        user: { connect: { id: teammateOne.id } },
         team: { connect: { id: team.id } },
         accepted: true,
       });
 
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
-        user: { connect: { id: userTwo.id } },
+        user: { connect: { id: teammateTwo.id } },
         team: { connect: { id: team.id } },
         accepted: true,
       });
@@ -1441,10 +1584,39 @@ describe("Slots Endpoints", () => {
         bookingFields: [],
         locations: [],
         users: {
-          connect: [{ id: userOne.id }, { id: userTwo.id }],
+          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+        },
+        hosts: {
+          create: [
+            {
+              userId: teammateOne.id,
+              isFixed: true,
+            },
+            {
+              userId: teammateTwo.id,
+              isFixed: true,
+            },
+          ],
         },
       });
       collectiveEventTypeId = collectiveEventType.id;
+
+      const collectiveEventTypeWithoutHosts = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Collective Event Type Without Hosts",
+        slug: `slots-2024-09-04-collective-event-type-without-hosts-${randomString()}`,
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+        users: {
+          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+        },
+      });
+      collectiveEventTypeWithoutHostsId = collectiveEventTypeWithoutHosts.id;
 
       const roundRobinEventType = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "ROUND_ROBIN",
@@ -1458,7 +1630,19 @@ describe("Slots Endpoints", () => {
         bookingFields: [],
         locations: [],
         users: {
-          connect: [{ id: userOne.id }, { id: userTwo.id }],
+          connect: [{ id: teammateOne.id }, { id: teammateTwo.id }],
+        },
+        hosts: {
+          create: [
+            {
+              userId: teammateOne.id,
+              isFixed: true,
+            },
+            {
+              userId: teammateTwo.id,
+              isFixed: true,
+            },
+          ],
         },
       });
       roundRobinEventTypeId = roundRobinEventType.id;
@@ -1469,8 +1653,8 @@ describe("Slots Endpoints", () => {
         isDefault: true,
       };
       // note(Lauris): this creates default schedule monday to friday from 9AM to 5PM in Europe/Rome timezone
-      await schedulesService.createUserSchedule(userOne.id, userSchedule);
-      await schedulesService.createUserSchedule(userTwo.id, userSchedule);
+      await schedulesService.createUserSchedule(teammateOne.id, userSchedule);
+      await schedulesService.createUserSchedule(teammateTwo.id, userSchedule);
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -1512,6 +1696,99 @@ describe("Slots Endpoints", () => {
         });
     });
 
+    it("should not be able reserve a team event type slot with custom duration if no auth is provided", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId: collectiveEventTypeId,
+          slotStart: "2050-09-05T10:00:00.000Z",
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(400);
+    });
+
+    it("should not be able reserve a slot with custom duration if provided auth user is not part of the team that owns the team event type", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId: collectiveEventTypeId,
+          slotStart: "2050-09-05T10:00:00.000Z",
+          reservationDuration: 10,
+        })
+        .set({ Authorization: `Bearer cal_test_${outsiderApiKeyString}` })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(401);
+    });
+
+    it("should not be able reserve a slot for team event type without hosts", async () => {
+      await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .send({
+          eventTypeId: collectiveEventTypeWithoutHostsId,
+          slotStart: "2050-09-05T10:00:00.000Z",
+        })
+        .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(400);
+    });
+
+    it("should reserve a slot as team member of the team that owns the team event type", async () => {
+      // note(Lauris): mock current date to test slots release time
+      const now = "2049-09-05T12:00:00.000Z";
+      const newDate = DateTime.fromISO(now, { zone: "UTC" }).toJSDate();
+      advanceTo(newDate);
+
+      const slotStartTime = "2050-09-05T10:00:00.000Z";
+      const reserveResponse = await request(app.getHttpServer())
+        .post(`/v2/slots/reservations`)
+        .set({ Authorization: `Bearer cal_test_${teammateApiKeyString}` })
+        .send({
+          eventTypeId: collectiveEventTypeId,
+          slotStart: slotStartTime,
+          reservationDuration: 10,
+        })
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(201);
+
+      const reserveResponseBody: ReserveSlotOutputResponse_2024_09_04 = reserveResponse.body;
+      expect(reserveResponseBody.status).toEqual(SUCCESS_STATUS);
+      const responseReservedSlot: ReserveSlotOutputData_2024_09_04 = reserveResponseBody.data;
+      expect(responseReservedSlot.reservationUid).toBeDefined();
+      if (!responseReservedSlot.reservationUid) {
+        throw new Error("Reserved slot uid is undefined");
+      }
+      reservedSlot = responseReservedSlot;
+
+      const response = await request(app.getHttpServer())
+        .get(`/v2/slots?eventTypeId=${collectiveEventTypeId}&start=2050-09-05&end=2050-09-09`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
+        .expect(200);
+
+      const responseBody: GetSlotsOutput_2024_09_04 = response.body;
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      const slots = responseBody.data;
+
+      expect(slots).toBeDefined();
+      const days = Object.keys(slots);
+      expect(days.length).toEqual(5);
+
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot.start !== slotStartTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
+
+      const dbSlot = await selectedSlotsRepositoryFixture.getByUid(reservedSlot.reservationUid);
+      expect(dbSlot).toBeDefined();
+      if (dbSlot) {
+        const dbReleaseAt = DateTime.fromJSDate(dbSlot.releaseAt, { zone: "UTC" }).toISO();
+        const expectedReleaseAt = DateTime.fromISO(now, { zone: "UTC" }).plus({ minutes: 10 }).toISO();
+        expect(dbReleaseAt).toEqual(expectedReleaseAt);
+      }
+      await selectedSlotsRepositoryFixture.deleteByUId(reservedSlot.reservationUid);
+      clear();
+    });
+
     it("should book collective event type and slot should not be available at that time", async () => {
       const startTime = "2050-09-05T11:00:00.000Z";
       const booking = await bookingsRepositoryFixture.create({
@@ -1532,7 +1809,7 @@ describe("Slots Endpoints", () => {
         },
         user: {
           connect: {
-            id: userOne.id,
+            id: teammateOne.id,
           },
         },
       });
@@ -1578,7 +1855,7 @@ describe("Slots Endpoints", () => {
         },
         user: {
           connect: {
-            id: userOne.id,
+            id: teammateOne.id,
           },
         },
       });
@@ -1597,7 +1874,10 @@ describe("Slots Endpoints", () => {
       const days = Object.keys(slots);
       expect(days.length).toEqual(5);
 
-      expect(slots).toEqual(expectedSlotsUTC);
+      const expectedSlotsUTC2050_09_05 = expectedSlotsUTC["2050-09-05"].filter(
+        (slot) => slot.start !== startTime
+      );
+      expect(slots).toEqual({ ...expectedSlotsUTC, "2050-09-05": expectedSlotsUTC2050_09_05 });
       bookingsRepositoryFixture.deleteById(booking.id);
     });
 
@@ -1621,7 +1901,7 @@ describe("Slots Endpoints", () => {
         },
         user: {
           connect: {
-            id: userOne.id,
+            id: teammateOne.id,
           },
         },
       });
@@ -1645,7 +1925,7 @@ describe("Slots Endpoints", () => {
         },
         user: {
           connect: {
-            id: userTwo.id,
+            id: teammateTwo.id,
           },
         },
       });
@@ -1673,8 +1953,9 @@ describe("Slots Endpoints", () => {
     });
 
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(userOne.email);
-      await userRepositoryFixture.deleteByEmail(userTwo.email);
+      await userRepositoryFixture.deleteByEmail(teammateOne.email);
+      await userRepositoryFixture.deleteByEmail(teammateTwo.email);
+      await userRepositoryFixture.deleteByEmail(outsiderEmail);
       await teamRepositoryFixture.delete(team.id);
       await bookingsRepositoryFixture.deleteById(collectiveBookingId);
       await bookingsRepositoryFixture.deleteById(roundRobinBookingId);

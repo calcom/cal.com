@@ -1,12 +1,16 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { MembershipsService } from "@/modules/memberships/services/memberships.service";
 import { TimeSlots } from "@/modules/slots/slots-2024-04-15/services/slots-output.service";
 import { SlotsInputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-input.service";
 import { SlotsOutputService_2024_09_04 } from "@/modules/slots/slots-2024-09-04/services/slots-output.service";
 import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.repository";
+import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from "@nestjs/common";
 import { DateTime } from "luxon";
@@ -14,6 +18,7 @@ import { z } from "zod";
 
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import { GetSlotsInput_2024_09_04, ReserveSlotInput_2024_09_04 } from "@calcom/platform-types";
+import { EventType } from "@calcom/prisma/client";
 
 const eventTypeMetadataSchema = z.object({
   multipleDuration: z.number().array().optional(),
@@ -27,7 +32,10 @@ export class SlotsService_2024_09_04 {
     private readonly eventTypeRepository: EventTypesRepository_2024_06_14,
     private readonly slotsRepository: SlotsRepository_2024_09_04,
     private readonly slotsOutputService: SlotsOutputService_2024_09_04,
-    private readonly slotsInputService: SlotsInputService_2024_09_04
+    private readonly slotsInputService: SlotsInputService_2024_09_04,
+    private readonly membershipsService: MembershipsService,
+    private readonly membershipsRepository: MembershipsRepository,
+    private readonly teamsRepository: TeamsRepository
   ) {}
 
   async getAvailableSlots(query: GetSlotsInput_2024_09_04) {
@@ -51,10 +59,28 @@ export class SlotsService_2024_09_04 {
     return formatted;
   }
 
-  async reserveSlot(input: ReserveSlotInput_2024_09_04) {
+  async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
+    if (input.reservationDuration && !authUserId) {
+      throw new BadRequestException(
+        "reservationDuration can only be used for authenticated requests - use access token, api key or OAuth credentials"
+      );
+    }
+
     const eventType = await this.eventTypeRepository.getEventTypeWithHosts(input.eventTypeId);
     if (!eventType) {
       throw new NotFoundException(`Event Type with ID=${input.eventTypeId} not found`);
+    }
+
+    if (input.reservationDuration && authUserId) {
+      const canSpecifyCustomReservationDuration = await this.canSpecifyCustomReservationDuration(
+        authUserId,
+        eventType
+      );
+      if (!canSpecifyCustomReservationDuration) {
+        throw new UnauthorizedException(
+          "authenticated user is not owner of event type, does not have memberships in common with owner of the event type, nor does belong to event type's team or org."
+        );
+      }
     }
 
     const startDate = DateTime.fromISO(input.slotStart, { zone: "utc" });
@@ -117,6 +143,10 @@ export class SlotsService_2024_09_04 {
     }
 
     const host = eventType.hosts[0];
+    if (!host) {
+      throw new BadRequestException("Cannot reserve a slot for a team event without any hosts");
+    }
+
     const slot = await this.slotsRepository.createSlot(
       host.userId,
       eventType.id,
@@ -127,6 +157,36 @@ export class SlotsService_2024_09_04 {
     );
 
     return this.slotsOutputService.getReservationSlotCreated(slot, reservationDuration);
+  }
+
+  async canSpecifyCustomReservationDuration(authUserId: number, eventType: EventType) {
+    if (eventType.userId) {
+      return await this.canSpecifyCustomReservationDurationIndividualEvent(authUserId, eventType.userId);
+    }
+    if (eventType.teamId) {
+      return await this.canSpecifyCustomReservationDurationTeamEvent(authUserId, eventType.teamId);
+    }
+    return false;
+  }
+
+  async canSpecifyCustomReservationDurationIndividualEvent(authUserId: number, eventTypeOwnerId: number) {
+    if (authUserId === eventTypeOwnerId) return true;
+    if (await this.membershipsService.haveMembershipsInCommon(authUserId, eventTypeOwnerId)) return true;
+    return false;
+  }
+
+  async canSpecifyCustomReservationDurationTeamEvent(authUserId: number, teamId: number) {
+    const teamMembership = await this.membershipsRepository.findMembershipByTeamId(teamId, authUserId);
+    const hasAcceptedTeamMembership = !!teamMembership?.accepted;
+    if (hasAcceptedTeamMembership) return true;
+
+    const team = await this.teamsRepository.getById(teamId);
+    if (!team?.parentId) {
+      return false;
+    }
+    const orgMembership = await this.membershipsRepository.findMembershipByTeamId(team.parentId, authUserId);
+    const hasAcceptedOrgMembership = !!orgMembership?.accepted;
+    return hasAcceptedOrgMembership;
   }
 
   async getReservedSlot(uid: string) {
