@@ -244,7 +244,7 @@ function EventWorkflowsTab(props: Props) {
         <>
           {(isManagedEventType || isChildrenManagedEventType) && (
             <Alert
-              severity={workflowsDisableProps.isLocked ? "neutral" : "green"}
+              severity={workflowsDisableProps.isLocked ? "neutral" : "info"}
               className="mb-2"
               title={
                 <Trans i18nKey={`${lockedText}_${isManagedEventType ? "for_members" : "by_team_admins"}`}>

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { SuccessToast, ErrorToast, WarningToast, DefaultToast } from "./showToast";
+import { SuccessToast, ErrorToast, WarningToast } from "./showToast";
 
 describe("Tests for Toast Components", () => {
   const testToastComponent = (Component: typeof DefaultToast, toastTestId: string) => {
@@ -24,7 +24,6 @@ describe("Tests for Toast Components", () => {
     ["SuccessToast", SuccessToast, "toast-success"],
     ["ErrorToast", ErrorToast, "toast-error"],
     ["WarningToast", WarningToast, "toast-warning"],
-    ["DefaultToast", DefaultToast, "toast-default"],
   ];
 
   test.each(toastComponents)("Should render and close %s component", (_, ToastComponent, expectedClass) => {
