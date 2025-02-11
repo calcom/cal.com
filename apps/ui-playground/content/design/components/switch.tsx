@@ -72,3 +72,16 @@ export const WithPadding = () => {
     </RenderComponentWithSnippet>
   );
 };
+
+export const SwitchSizes = () => {
+  const [checked, setChecked] = useState(false);
+
+  return (
+    <RenderComponentWithSnippet>
+      <div className="flex flex-col space-y-4">
+        <Switch label="Small switch" size="sm" checked={checked} onCheckedChange={setChecked} />
+        <Switch label="Medium switch" checked={checked} onCheckedChange={setChecked} />
+      </div>
+    </RenderComponentWithSnippet>
+  );
+};
