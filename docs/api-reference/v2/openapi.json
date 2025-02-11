@@ -5216,15 +5216,6 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "teamMemberEmail",
-            "required": false,
-            "in": "query",
-            "description": "CRM team member email",
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
@@ -5356,6 +5347,14 @@
             "example": "range",
             "schema": {
               "enum": ["range", "time"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string"
             }
           }

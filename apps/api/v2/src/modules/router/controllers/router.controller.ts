@@ -33,7 +33,7 @@ export class RouterController {
     }
 
     if (routedUrlData?.redirect?.destination) {
-      return this.handleRedirect(routedUrlData.redirect.destination, request);
+      return this.handleRedirect(routedUrlData.redirect.destination);
     }
 
     if (routedUrlData?.props) {
@@ -43,45 +43,43 @@ export class RouterController {
     return { status: "success", data: { message: "No Route nor custom message found." }, redirect: false };
   }
 
-  private async handleRedirect(
-    destination: string,
-    request: Request
-  ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
+  private async handleRedirect(destination: string): Promise<ApiResponse<unknown> & { redirect: boolean }> {
     const routingUrl = new URL(destination);
     const routingSearchParams = routingUrl.searchParams;
-
     if (
       routingSearchParams.get("cal.action") === "eventTypeRedirectUrl" &&
       routingSearchParams.has("email") &&
-      routingSearchParams.has("cal.teamId")
+      routingSearchParams.has("cal.teamId") &&
+      !routingSearchParams.has("cal.skipContactOwner")
     ) {
-      return this.handleTeamEventTypeRedirect(routingUrl, routingSearchParams);
+      return this.handleRedirectWithContactOwner(routingUrl, routingSearchParams);
     }
 
     return { status: "success", data: destination, redirect: true };
   }
 
-  private async handleTeamEventTypeRedirect(
+  private async handleRedirectWithContactOwner(
     routingUrl: URL,
     routingSearchParams: URLSearchParams
   ): Promise<ApiResponse<unknown> & { redirect: boolean }> {
     const pathNameParams = routingUrl.pathname.split("/");
     const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
     const teamId = Number(routingSearchParams.get("cal.teamId"));
-    const eventTypeData = this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug);
+    const eventTypeData = this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug, 3);
 
+    // get the salesforce record owner email for the email given as a form response.
     const {
       email: teamMemberEmail,
       recordType: crmOwnerRecordType,
       crmAppSlug,
     } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
       query: Object.fromEntries(routingSearchParams),
-      eventTypeData,
+      eventData: eventTypeData,
     });
 
-    routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
-    routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
-    routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
+    Boolean(teamMemberEmail) && routingUrl.searchParams.set("cal.teamMemberEmail", teamMemberEmail);
+    Boolean(crmOwnerRecordType) && routingUrl.searchParams.set("cal.crmOwnerRecordType", crmOwnerRecordType);
+    Boolean(crmAppSlug) && routingUrl.searchParams.set("cal.crmAppSlug", crmAppSlug);
 
     return { status: "success", data: routingUrl.toString(), redirect: true };
   }
