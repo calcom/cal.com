@@ -1,6 +1,5 @@
 import classNames from "classnames";
-import type { ToastOptions, Toast } from "react-hot-toast";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 import { Icon } from "../icon";
 
@@ -75,23 +74,11 @@ export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast
   </button>
 );
 
-const TOAST_VISIBLE_DURATION = 6000;
-
 type ToastVariants = "success" | "warning" | "error";
 
-export function showToast(
-  message: string,
-  variant: ToastVariants,
-  // Options or duration (duration for backwards compatibility reasons)
-  options: number | ToastOptions = TOAST_VISIBLE_DURATION
-) {
-  //
-  const _options: ToastOptions = typeof options === "number" ? { duration: options } : options;
-  if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
-  if (!_options.position) _options.position = "bottom-center";
-
+export function showToast(message: string, variant: ToastVariants) {
   const onClose = (toastId: string) => {
-    toast.remove(toastId);
+    toast.dismiss(toastId);
   };
   const toastElements: { [x in ToastVariants]: (t: Toast) => JSX.Element } = {
     success: (t) => (
@@ -104,7 +91,6 @@ export function showToast(
   };
   return toast.custom(
     toastElements[variant] ||
-      ((t) => <DefaultToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />),
-    _options
+      ((t) => <DefaultToast message={message} toastVisible={t.visible} onClose={onClose} toastId={t.id} />)
   );
 }
