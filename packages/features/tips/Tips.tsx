@@ -8,12 +8,44 @@ import { Card } from "@calcom/ui";
 
 export const tips = [
   {
+    id: 17,
+    thumbnailUrl: "https://img.youtube.com/vi/fMHW6jYPIb8/0.jpg",
+    mediaLink: "https://youtu.be/fMHW6jYPIb8?si=4klwFLcfPZ_Gu4iG",
+    title: "Embed",
+    description: "Embed your booking page on your website",
+    href: "https://youtu.be/fMHW6jYPIb8?si=4klwFLcfPZ_Gu4iG",
+  },
+  {
+    id: 16,
+    thumbnailUrl: "https://img.youtube.com/vi/xopxmk2H4Ng/0.jpg",
+    mediaLink: "https://youtu.be/xopxmk2H4Ng?si=l-Drf2fL6MKjUTUv",
+    title: "Paid Bookings",
+    description: "Charge for your time with Cal.com's paid bookings",
+    href: "https://youtu.be/xopxmk2H4Ng?si=l-Drf2fL6MKjUTUv",
+  },
+  {
+    id: 15,
+    thumbnailUrl: "https://img.youtube.com/vi/ZjSD1yPgLLQ/0.jpg",
+    mediaLink: "https://youtu.be/ZjSD1yPgLLQ?si=Ty1LO9bnvO1fmbjZ",
+    title: "Instant Meetings",
+    description: "Book meetings instantly with a link",
+    href: "https://youtu.be/ZjSD1yPgLLQ?si=Ty1LO9bnvO1fmbjZ",
+  },
+  {
+    id: 14,
+    thumbnailUrl: "https://img.youtube.com/vi/IZ4-nUiIpvY/0.jpg",
+    mediaLink: "https://youtu.be/IZ4-nUiIpvY?si=9t5orVVDvWs3LAne",
+    title: "Custom Attributes",
+    description: "Define roles and attributes for your teams",
+    href: "https://youtu.be/IZ4-nUiIpvY?si=9t5orVVDvWs3LAne",
+  },
+  {
     id: 13,
-    thumbnailUrl: "https://img.youtube.com/vi/ihE8OYTdklg/0.jpg",
-    mediaLink: "https://go.cal.com/ooo",
+    thumbnailUrl: "https://img.youtube.com/vi/TTAASLLPKk0/0.jpg",
+    mediaLink: "https://youtu.be/TTAASLLPKk0?si=Uk7_70zDSXoNEWYW",
     title: "ooo.new",
     description: "Easily go out-of-office",
-    href: "https://ooo.new",
+    href: "https://youtu.be/TTAASLLPKk0?si=Uk7_70zDSXoNEWYW",
   },
   {
     id: 12,
@@ -89,11 +121,11 @@ export const tips = [
   },
   {
     id: 3,
-    thumbnailUrl: "https://img.youtube.com/vi/c7ZKFuLy1fg/0.jpg",
-    mediaLink: "https://go.cal.com/routing-video",
+    thumbnailUrl: "https://img.youtube.com/vi/-L8MCiT6uhQ/0.jpg",
+    mediaLink: "https://youtu.be/-L8MCiT6uhQ?si=DRJzRNhN85hqAwBl",
     title: "Routing Forms, Workflows",
     description: "Ask screening questions of potential bookers to connect them with the right person",
-    href: "https://cal.com/blog/cal-v-1-8",
+    href: "https://youtu.be/-L8MCiT6uhQ?si=DRJzRNhN85hqAwBl",
   },
   {
     id: 2,
@@ -105,11 +137,11 @@ export const tips = [
   },
   {
     id: 1,
-    thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://go.cal.com/dynamic-video",
+    thumbnailUrl: "https://img.youtube.com/vi/VZ5PfQzzxBw/0.jpg",
+    mediaLink: "https://youtu.be/VZ5PfQzzxBw?si=oB0LPSxG8dWIwg5a",
     title: "Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
-    href: "https://cal.com/blog/cal-v-1-9",
+    href: "https://youtu.be/VZ5PfQzzxBw?si=oB0LPSxG8dWIwg5a",
   },
 ];
 
