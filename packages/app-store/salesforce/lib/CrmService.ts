@@ -514,15 +514,13 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
             accountId,
             organizerId,
           });
-
-          if (createdContacts.length > 0) {
+          if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
         }
@@ -548,7 +546,6 @@ export default class SalesforceCRMService implements CRM {
       const attendee = contactsToCreate[0];
 
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
@@ -557,8 +554,7 @@ export default class SalesforceCRMService implements CRM {
           accountId,
           organizerId,
         });
-
-        if (createdContacts.length > 0) {
+        if (createdAccountContacts.length > 0) {
           createdContacts.push(...createdAccountContacts);
           contactCreated = true;
         }
