@@ -201,11 +201,11 @@ export function DialogHeader(props: DialogHeaderProps) {
     <div className="mb-4">
       <h3
         data-testid="dialog-title"
-        className="leading-20 text-semibold text-emphasis font-cal text-xl"
+        className="leading-20 text-semibold text-emphasis font-cal mb-1 text-xl"
         id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <p className="text-subtle font-cal text-sm">{props.subtitle}</p>}
+      {props.subtitle && <p className="text-subtle text-sm leading-none">{props.subtitle}</p>}
     </div>
   );
 }
