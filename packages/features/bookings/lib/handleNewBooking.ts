@@ -41,11 +41,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { UsersRepository } from "@calcom/features/users/users.repository";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import {
-  deleteWebhookScheduledTriggers,
-  scheduleTrigger,
-} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
@@ -1836,14 +1832,14 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    const subscribersMeetingEnded = await monitorCallbackAsync(getWebhooks, subscriberOptionsMeetingEnded);
-    const subscribersMeetingStarted = await monitorCallbackAsync(
-      getWebhooks,
-      subscriberOptionsMeetingStarted
-    );
+    // const subscribersMeetingEnded = await monitorCallbackAsync(getWebhooks, subscriberOptionsMeetingEnded);
+    // const subscribersMeetingStarted = await monitorCallbackAsync(
+    //   getWebhooks,
+    //   subscriberOptionsMeetingStarted
+    // );
 
     let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
-    const scheduleTriggerPromises = [];
+    // const scheduleTriggerPromises = [];
 
     if (rescheduleUid && originalRescheduledBooking) {
       //delete all scheduled triggers for meeting ended and meeting started of booking
@@ -1854,40 +1850,36 @@ async function handler(
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
-      const bookingWithCalEventResponses = {
-        ...booking,
-        responses: reqBody.calEventResponses,
-      };
-      for (const subscriber of subscribersMeetingEnded) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-            isDryRun,
-          })
-        );
-      }
-
-      for (const subscriber of subscribersMeetingStarted) {
-        scheduleTriggerPromises.push(
-          scheduleTrigger({
-            booking: bookingWithCalEventResponses,
-            subscriberUrl: subscriber.subscriberUrl,
-            subscriber,
-            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-            isDryRun,
-          })
-        );
-      }
+      // const bookingWithCalEventResponses = {
+      //   ...booking,
+      //   responses: reqBody.calEventResponses,
+      // };
+      // for (const subscriber of subscribersMeetingEnded) {
+      //   scheduleTriggerPromises.push(
+      //     scheduleTrigger({
+      //       booking: bookingWithCalEventResponses,
+      //       subscriberUrl: subscriber.subscriberUrl,
+      //       subscriber,
+      //       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+      //       isDryRun,
+      //     })
+      //   );
+      // }
+      // for (const subscriber of subscribersMeetingStarted) {
+      //   scheduleTriggerPromises.push(
+      //     scheduleTrigger({
+      //       booking: bookingWithCalEventResponses,
+      //       subscriberUrl: subscriber.subscriberUrl,
+      //       subscriber,
+      //       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      //       isDryRun,
+      //     })
+      //   );
+      // }
     }
 
-    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
-      loggerWithEventDetails.error(
-        "Error while scheduling or canceling webhook triggers",
-        JSON.stringify({ error })
-      );
+    await Promise.all([deleteWebhookScheduledTriggerPromise]).catch((error) => {
+      loggerWithEventDetails.error("Error while canceling webhook triggers", JSON.stringify({ error }));
     });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
