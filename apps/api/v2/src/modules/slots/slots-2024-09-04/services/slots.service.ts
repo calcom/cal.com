@@ -8,6 +8,7 @@ import { SlotsRepository_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slo
 import { TeamsRepository } from "@/modules/teams/teams/teams.repository";
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -61,7 +62,7 @@ export class SlotsService_2024_09_04 {
 
   async reserveSlot(input: ReserveSlotInput_2024_09_04, authUserId?: number) {
     if (input.reservationDuration && !authUserId) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "reservationDuration can only be used for authenticated requests - use access token, api key or OAuth credentials"
       );
     }
@@ -77,7 +78,7 @@ export class SlotsService_2024_09_04 {
         eventType
       );
       if (!canSpecifyCustomReservationDuration) {
-        throw new UnauthorizedException(
+        throw new ForbiddenException(
           "authenticated user is not owner of event type, does not have memberships in common with owner of the event type, nor does belong to event type's team or org."
         );
       }

@@ -272,7 +272,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
           reservationDuration: 10,
         })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
-        .expect(400);
+        .expect(401);
     });
 
     it("should not be able reserve a slot with custom duration if provided auth user is not part of the team that owns the team event type", async () => {
@@ -285,7 +285,7 @@ describe("Slots 2024-09-04 Endpoints", () => {
         })
         .set({ Authorization: `Bearer cal_test_${outsiderApiKeyString}` })
         .set(CAL_API_VERSION_HEADER, VERSION_2024_09_04)
-        .expect(401);
+        .expect(403);
     });
 
     it("should not be able reserve a slot for team event type without hosts", async () => {
