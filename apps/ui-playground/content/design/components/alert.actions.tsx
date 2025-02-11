@@ -8,7 +8,7 @@ const severities = ["neutral", "info", "warning", "error"] as const;
 
 export const ActionsExample: React.FC = () => (
   <RenderComponentWithSnippet>
-    <div className="space-y-4">
+    <div className="no-prose space-y-4">
       {severities.map((severity) => (
         <Alert
           key={severity}
