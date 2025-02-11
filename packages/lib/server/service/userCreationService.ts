@@ -3,12 +3,14 @@ import type z from "zod";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
+import { randomString } from "@calcom/lib/random";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import type { UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
+import { OrganizationUserService } from "./organizationUserService";
 
 interface CreateUserInput {
   email: string;
@@ -70,18 +72,22 @@ export class UserCreationService {
     email,
     name,
     image,
+    account,
   }: {
     idP: IdentityProvider;
     email: string;
     name: string;
-    image?: string;
+    image?: string | null;
+    account: {
+      providerAccountId: string;
+    };
   }) {
     // Associate with organization if enabled by flag and idP is Google (for now)
-    const { orgUsername, orgId } = await this.checkIfUserShouldBelongToOrg(idP, email);
+    const { orgUsername, orgId } = await OrganizationUserService.checkIfUserShouldBelongToOrg(idP, email);
 
     const newUser = await this.createUser({
       data: {
-        username: orgId ? slugify(orgUsername) : usernameSlug(name),
+        username: orgId ? slugify(orgUsername) : this.slugifyUsername(name),
         emailVerified: new Date(Date.now()),
         name,
         ...(image && { avatarUrl: image }),
@@ -105,24 +111,7 @@ export class UserCreationService {
     return newUser;
   }
 
-  private async checkIfUserShouldBelongToOrg(idP: IdentityProvider, email: string) {
-    const [orgUsername, apexDomain] = email.split("@");
-
-    const ORGANIZATIONS_AUTOLINK =
-      process.env.ORGANIZATIONS_AUTOLINK === "1" || process.env.ORGANIZATIONS_AUTOLINK === "true";
-
-    if (!ORGANIZATIONS_AUTOLINK || idP !== "GOOGLE") return { orgUsername, orgId: undefined };
-    const existingOrg = await prisma.team.findFirst({
-      where: {
-        organizationSettings: {
-          isOrganizationVerified: true,
-          orgAutoAcceptEmail: apexDomain,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
-    return { orgUsername, orgId: existingOrg?.id };
+  static slugifyUsername(username: string) {
+    return `${slugify(username)}-${randomString(6).toLowerCase()}`;
   }
 }
