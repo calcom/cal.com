@@ -14,7 +14,7 @@ const isAvailable = (availability: { start: Dayjs; end: Dayjs }[], range: { star
 
 describe("getAggregatedAvailability", () => {
   // rr-host availability used to combine into erroneous slots, this confirms it no longer happens
-  it("should have no host available between 11:00 and 11:30 on January 23, 2025", () => {
+  it("should not merge RR availability resulting in an unavailable slot due to overlap", () => {
     const userAvailability = [
       {
         dateRanges: [],
