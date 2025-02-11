@@ -4,7 +4,7 @@ import { describe, test, expect, vi, beforeEach } from "vitest";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
-import { CreationSource } from "@calcom/prisma/enums";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 
 import { UserRepository } from "../repository/user";
 import { UserCreationService } from "./userCreationService";
@@ -47,7 +47,7 @@ describe("UserCreationService", () => {
     vi.clearAllMocks();
   });
 
-  test("should create user with transformed fields", async () => {
+  test("should create user", async () => {
     vi.spyOn(UserRepository, "create").mockResolvedValue({
       username: "test",
       locked: false,
@@ -58,9 +58,12 @@ describe("UserCreationService", () => {
 
     expect(UserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        username: "test",
-        locked: false,
-        organizationId: null,
+        data: {
+          email: "test@example.com",
+          username: "test",
+          creationSource: CreationSource.WEBAPP,
+          locked: false,
+        },
       })
     );
 
@@ -70,11 +73,19 @@ describe("UserCreationService", () => {
   test("should lock user when email is in watchlist", async () => {
     vi.mocked(checkIfEmailIsBlockedInWatchlistController).mockResolvedValue(true);
 
+    vi.spyOn(UserRepository, "create").mockResolvedValue({
+      username: "test",
+      locked: true,
+      organizationId: null,
+    } as any);
+
     const user = await UserCreationService.createUser({ data: mockUserData });
 
     expect(UserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        locked: true,
+        data: expect.objectContaining({
+          locked: true,
+        }),
       })
     );
 
@@ -85,6 +96,12 @@ describe("UserCreationService", () => {
     const mockPassword = "password";
     vi.mocked(hashPassword).mockResolvedValue("hashed_password");
 
+    vi.spyOn(UserRepository, "create").mockResolvedValue({
+      username: "test",
+      locked: true,
+      organizationId: null,
+    } as any);
+
     const user = await UserCreationService.createUser({
       data: { ...mockUserData, password: mockPassword },
     });
@@ -92,10 +109,35 @@ describe("UserCreationService", () => {
     expect(hashPassword).toHaveBeenCalledWith(mockPassword);
     expect(UserRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        hashedPassword: "hashed_password",
+        data: expect.objectContaining({
+          hashedPassword: "hashed_password",
+        }),
       })
     );
 
     expect(user).not.toHaveProperty("locked");
+  });
+
+  test("if orgData is passed, user should be created with orgData", async () => {
+    vi.spyOn(UserRepository, "create").mockResolvedValue({
+      username: "test",
+      locked: true,
+      organizationId: null,
+    } as any);
+
+    const user = await UserCreationService.createUser({
+      data: mockUserData,
+      orgData: { id: 1, role: MembershipRole.OWNER, accepted: true },
+    });
+
+    expect(UserRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orgData: expect.objectContaining({
+          id: 1,
+          role: MembershipRole.OWNER,
+          accepted: true,
+        }),
+      })
+    );
   });
 });

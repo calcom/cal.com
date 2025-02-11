@@ -595,7 +595,7 @@ export class UserRepository {
   }) {
     const { email, username, creationSource, locked, ...rest } = data;
 
-    console.log("create user", { email, username, orgId: orgData?.id, locked });
+    logger.info("create user", { email, username, orgId: orgData?.id, locked });
     const t = await getTranslation("en", "common");
     const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
 
