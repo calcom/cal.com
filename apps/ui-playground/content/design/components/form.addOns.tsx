@@ -34,6 +34,12 @@ export const AddOnsExample: React.FC = () => {
           error={form.formState.errors.website?.message}
         />
         <InputField
+          label="Website"
+          addOnLeading="apple.cal.com/team/seeded-team/"
+          {...form.register("website")}
+          error={form.formState.errors.website?.message}
+        />
+        <InputField
           label="GitHub Username"
           addOnLeading={<Icon name="github" className="text-subtle h-4 w-4" />}
           {...form.register("githubUsername")}
