@@ -298,6 +298,14 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
+        source: "/routing",
+        destination: "/routing/forms",
+      },
+      {
+        source: "/routing/:path*",
+        destination: "/apps/routing-forms/:path*",
+      },
+      {
         source: "/success/:path*",
         has: [
           {
