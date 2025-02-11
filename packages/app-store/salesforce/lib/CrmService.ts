@@ -1336,22 +1336,22 @@ export default class SalesforceCRMService implements CRM {
       `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
     );
 
-    if (contactsQuery.records.length) {
+    if (contactsQuery.records.length > 0) {
       personRecord = {
         ...(contactsQuery.records[0] as { Id: string; Email: string }),
         recordType: SalesforceRecordEnum.CONTACT,
       };
-    }
+    } else {
+      const leadsQuery = await conn.query(
+        `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
+      );
 
-    const leadsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
-    );
-
-    if (leadsQuery.records.length) {
-      personRecord = {
-        ...(leadsQuery.records[0] as { Id: string; Email: string }),
-        recordType: SalesforceRecordEnum.LEAD,
-      };
+      if (leadsQuery.records.length > 0) {
+        personRecord = {
+          ...(leadsQuery.records[0] as { Id: string; Email: string }),
+          recordType: SalesforceRecordEnum.LEAD,
+        };
+      }
     }
 
     if (!personRecord) {
