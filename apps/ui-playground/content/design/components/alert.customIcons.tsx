@@ -9,7 +9,7 @@ const customIcons = ["info", "alert-triangle", "circle-x", "circle-check", "bell
 
 export const CustomIconsExample: React.FC = () => (
   <RenderComponentWithSnippet>
-    <div className="space-y-4">
+    <div className="not-prose space-y-4">
       {severities.map((severity, index) => (
         <Alert
           key={severity}
