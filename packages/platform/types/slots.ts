@@ -127,7 +127,7 @@ export class GetAvailableSlotsInput {
 
   @IsString()
   @IsOptional()
-  @ApiPropertyOptional({ description: "CRM team member email" })
+  @ApiPropertyOptional()
   teamMemberEmail?: string;
 }
 
