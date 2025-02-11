@@ -109,7 +109,6 @@
   --cal-border-subtle: hsla(220, 13%, 91%, 1); /* gray.200 - container borders */
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
-  --cal-border-focus: hsla(0, 0%, 10%, 1); /* Keeping existing focus border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
 
   /* Content/Text Standard */
@@ -206,7 +205,6 @@
 
   /* Legacy Border - Consider deprecating */
   --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
-  --cal-border-focus: hsla(0, 0%, 100%, 1); /* white */
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(0, 0%, 98%, 1); /* stone-50 */
