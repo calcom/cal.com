@@ -195,6 +195,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+  const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -287,7 +288,7 @@ function BookingListItem(booking: BookingItemProps) {
             },
           },
         ]),
-    ...(isBookingReroutable(parsedBooking)
+    ...(isBookingFromRoutingForm
       ? [
           {
             id: "reroute",
@@ -494,6 +495,7 @@ function BookingListItem(booking: BookingItemProps) {
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
       <EditLocationDialog
@@ -743,7 +745,7 @@ function BookingListItem(booking: BookingItemProps) {
         />
       </div>
 
-      {isBookingReroutable(parsedBooking) && (
+      {isBookingFromRoutingForm && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
