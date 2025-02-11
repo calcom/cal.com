@@ -1043,12 +1043,12 @@ const GroupedAttendees = ({
   const { bookingUid, attendees } = groupedAttendeeProps;
   const { t } = useLocale();
 
-  const { control, handleSubmit } = useForm<{
-    attendees: AttendeeProps[];
-  }>({
-    defaultValues: {
-      attendees,
-    },
+  const {
+    control,
+    handleSubmit,
+    formState: { defaultValues },
+  } = useForm<{ attendees: AttendeeProps[] }>({
+    defaultValues: { attendees },
     mode: "onBlur",
   });
 
@@ -1058,8 +1058,17 @@ const GroupedAttendees = ({
   });
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
-    const filteredData = data.attendees.slice(1);
-    noShowMutationHelper({ bookingUid, attendees: filteredData });
+    const statusChangedForAttendees: AttendeeProps[] = [];
+
+    defaultValues?.attendees?.forEach((attendee, index) => {
+      if (index !== 0 && data.attendees[index].noShow !== attendee?.noShow)
+        statusChangedForAttendees.push(data.attendees[index]);
+    });
+
+    if (statusChangedForAttendees.length) {
+      noShowMutationHelper({ bookingUid, attendees: statusChangedForAttendees });
+    }
+
     setOpenDropdown(false);
   };
 
