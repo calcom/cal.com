@@ -318,7 +318,7 @@ function MemberListContent(props: Props) {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: `Member (${totalDBRowCount})`,
+        header: "Member",
         size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
@@ -407,9 +407,6 @@ function MemberListContent(props: Props) {
         id: "actions",
         size: 90,
         enableResizing: false,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -624,7 +621,6 @@ function MemberListContent(props: Props) {
   }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
-  const totalFetched = flatData.length;
 
   const table = useReactTable({
     data: flatData,
@@ -634,6 +630,9 @@ function MemberListContent(props: Props) {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        right: ["actions"],
+      },
     },
     state: {
       columnFilters,
