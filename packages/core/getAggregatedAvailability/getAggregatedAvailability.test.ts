@@ -83,7 +83,7 @@ describe("getAggregatedAvailability", () => {
   });
 
   // validates fixed host behaviour, they all have to be available
-  it("should only have all fixed hosts available between 11:15 and 11:20 on January 23, 2025", () => {
+  it("correctly joins fixed host availability resulting in one or more combined date ranges", () => {
     const userAvailability = [
       {
         dateRanges: [],
