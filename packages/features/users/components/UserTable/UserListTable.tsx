@@ -563,7 +563,6 @@ function UserListTableContent() {
                 type="button"
                 color="primary"
                 StartIcon="plus"
-                className="rounded-md"
                 onClick={() =>
                   dispatch({
                     type: "INVITE_MEMBER",
@@ -588,8 +587,12 @@ function UserListTableContent() {
           </DataTableSelectionBar.Root>
         )}
         {numberOfSelectedRows > 0 && (
-          <DataTableSelectionBar.Root className="justify-center">
-            <p className="text-brand-subtle px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
+          <DataTableSelectionBar.Root
+            className="justify-center"
+            style={{
+              width: "max-content",
+            }}>
+            <p className="text-brand-subtle shrink-0 px-2 text-center text-xs leading-none sm:text-sm sm:font-medium">
               {t("number_selected", { count: numberOfSelectedRows })}
             </p>
             {!isPlatformUser ? (
@@ -597,6 +600,7 @@ function UserListTableContent() {
                 <TeamListBulkAction table={table} />
                 {numberOfSelectedRows >= 2 && (
                   <DataTableSelectionBar.Button
+                    color="secondary"
                     onClick={() => setDynamicLinkVisible(!dynamicLinkVisible)}
                     icon="handshake">
                     {t("group_meeting")}
