@@ -396,7 +396,7 @@ export default class SalesforceCRMService implements CRM {
         // Handle Contact/Lead record types
         soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
           "','"
-        )}') LIMIT 1`;
+        )}')`;
       }
 
       const results = await conn.query(soql);
@@ -415,7 +415,7 @@ export default class SalesforceCRMService implements CRM {
         const contactSearch = await conn.query(
           `SELECT Id, Email, OwnerId, Owner.Email FROM ${
             SalesforceRecordEnum.CONTACT
-          } WHERE Email IN ('${emailArray.join("','")}') LIMIT 1`
+          } WHERE Email IN ('${emailArray.join("','")}')`
         );
 
         if (contactSearch?.records?.length > 0) {
