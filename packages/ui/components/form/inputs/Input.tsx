@@ -44,7 +44,6 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         "addon-wrapper mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10",
         props.className
       )}
-      addOnFilled={false}
       addOnSuffix={
         <Tooltip content={textLabel}>
           <button
