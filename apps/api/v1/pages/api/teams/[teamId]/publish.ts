@@ -3,12 +3,11 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
+import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
+import { getHTTPStatusCodeFromError } from "@calcom/trpc/server/http";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
-import { TRPCError } from "@trpc/server";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
 

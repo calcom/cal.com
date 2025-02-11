@@ -3,8 +3,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import type { User } from "@calcom/prisma/client";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from "@calcom/trpc/server";
 
 export const bulkUpdateEventsToDefaultLocation = async ({
   eventTypeIds,

@@ -3,9 +3,8 @@ import type { z } from "zod";
 import { canAccessEntity } from "@calcom/lib/entityPermissionUtils";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
+import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
-import { TRPCError } from "@trpc/server";
 
 import { enrichFormWithMigrationData } from "../enrichFormWithMigrationData";
 import { getSerializableForm } from "../lib/getSerializableForm";

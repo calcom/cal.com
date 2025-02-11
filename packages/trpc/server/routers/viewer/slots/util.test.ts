@@ -8,13 +8,19 @@ describe("getUsersWithCredentialsConsideringContactOwner", () => {
   const createMockUser = (email: string): GetAvailabilityUser => ({
     id: Math.random(),
     email,
-    name: email.split("@")[0],
     username: email.split("@")[0],
     timeZone: "UTC",
-    weekStart: "Monday",
     defaultScheduleId: null,
     bufferTime: 0,
-    locale: "en",
+    availability: [],
+    credentials: [],
+    schedules: [],
+    allSelectedCalendars: [],
+    userLevelSelectedCalendars: [],
+    startTime: +new Date(),
+    endTime: +new Date(),
+    travelSchedules: [],
+    timeFormat: null,
   });
 
   it("should return all hosts when contact owner does not exist", () => {

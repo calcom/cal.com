@@ -4,9 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type PropsWithChildren } from "react";
 
 import { httpBatchLink } from "@calcom/trpc";
+import { createTRPCReact } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-
-import { createTRPCReact } from "@trpc/react-query";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mockedTrpc: any = createTRPCReact<AppRouter>();

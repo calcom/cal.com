@@ -22,5 +22,8 @@
   },
   "dependencies": {
     "@calcom/platform-constants": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
   }
 }

@@ -10,8 +10,7 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { TRPCError } from "@trpc/server";
-
+import { ErrorWithCode } from "../../errors";
 import { WorkflowService } from "../service/workflows";
 import { getParsedTeam } from "./teamUtils";
 
@@ -240,12 +239,9 @@ export class TeamRepository {
       },
     });
 
-    if (!verificationToken) throw new TRPCError({ code: "NOT_FOUND", message: "Invite not found" });
+    if (!verificationToken) throw ErrorWithCode.Factory.InviteNotFound();
     if (!verificationToken.teamId || !verificationToken.team)
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Invite token is not associated with any team",
-      });
+      throw ErrorWithCode.Factory.InviteNotFound("Invite token is not associated with any team");
 
     try {
       await prisma.membership.create({
@@ -259,10 +255,9 @@ export class TeamRepository {
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === "P2002") {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "This user is a member of this team / has a pending invitation.",
-          });
+          throw ErrorWithCode.Factory.Forbidden(
+            "This user is a member of this team / has a pending invitation."
+          );
         }
       } else throw e;
     }

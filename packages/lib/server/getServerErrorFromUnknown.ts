@@ -4,9 +4,8 @@ import type { ZodIssue } from "zod";
 import { ZodError } from "zod";
 
 import { ErrorCode } from "@calcom/lib/errorCodes";
-
-import { TRPCError } from "@trpc/server";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+import { TRPCError } from "@calcom/trpc/server";
+import { getHTTPStatusCodeFromError } from "@calcom/trpc/server/http";
 
 import { HttpError } from "../http-error";
 import { redactError } from "../redactError";

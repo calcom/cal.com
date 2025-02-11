@@ -8,7 +8,7 @@ import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { Profile } from "@calcom/prisma/client";
+import { CreationSource, type Profile } from "@calcom/prisma/client";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -115,6 +115,7 @@ describe("inviteMemberHandler", () => {
           isOrg: false,
           language: "en",
           usernameOrEmail: usersToBeInvited.map((u) => u.email),
+          creationSource: CreationSource.WEBAPP,
         };
 
         const team = {
@@ -217,6 +218,7 @@ describe("inviteMemberHandler", () => {
           role: MembershipRole.MEMBER,
           language: "en",
           usernameOrEmail: usersToBeInvited.map((u) => u.email),
+          creationSource: CreationSource.WEBAPP,
         };
 
         const team = {
@@ -323,6 +325,7 @@ describe("inviteMemberHandler", () => {
         isOrg: false,
         language: "en",
         usernameOrEmail: userToBeInvited.email,
+        creationSource: CreationSource.WEBAPP,
       };
 
       const team = {
@@ -385,6 +388,7 @@ describe("inviteMemberHandler", () => {
       isOrg: false,
       language: "en",
       usernameOrEmail: userToBeInvited.email,
+      creationSource: CreationSource.WEBAPP,
     };
 
     const ctx = {

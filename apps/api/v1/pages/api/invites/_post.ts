@@ -4,14 +4,13 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import { CreationSource } from "@calcom/prisma/enums";
+import { TRPCError } from "@calcom/trpc/server";
 import { createContext } from "@calcom/trpc/server/createContext";
+import { getHTTPStatusCodeFromError } from "@calcom/trpc/server/http";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
 import { ZInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
 import type { UserProfile } from "@calcom/types/UserProfile";
-
-import { TRPCError } from "@trpc/server";
-import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
   const data = ZInviteMemberInputSchema.parse(req.body);
