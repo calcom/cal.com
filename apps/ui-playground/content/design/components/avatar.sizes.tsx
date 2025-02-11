@@ -17,5 +17,13 @@ export const SizesExample: React.FC = () => (
         </div>
       ))}
     </div>
+    <div className="mt-2 flex items-center gap-4">
+      {sizes.map((size) => (
+        <div key={size} className="flex flex-col items-center gap-2">
+          <Avatar size={size} alt={`${size} avatar`} imageSrc={sampleImage} shape="square" />
+          <span className="text-subtle text-xs">{size}</span>
+        </div>
+      ))}
+    </div>
   </RenderComponentWithSnippet>
 );

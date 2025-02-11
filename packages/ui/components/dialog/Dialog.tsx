@@ -17,7 +17,7 @@ import type { IconName } from "../icon";
 import { Icon } from "../icon";
 
 const dialogClasses = cva(
-  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
+  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle font-cal",
   {
     variants: {
       size: {
@@ -224,7 +224,7 @@ export function DialogFooter(props: DialogFooterProps) {
         props?.noSticky ? "" : "sticky",
         props.className
       )}>
-      <div className={classNames("flex justify-end space-x-2 px-8 py-4 rtl:space-x-reverse")}>
+      <div className={classNames("flex justify-end space-x-2 px-8 py-4 font-sans rtl:space-x-reverse")}>
         {props.children}
       </div>
     </div>
