@@ -17,21 +17,12 @@ import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
-import { deleteEvent } from "@calcom/core/CalendarManager";
-import { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
-import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { CalendarEvent } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
-import { PartialReference } from "@calcom/types/EventManager";
 
-import tOrganizer from "../../../../../../web/public/static/locales/pt-BR/common.json";
 import { supabase } from "../../../config/supabase";
 import { API_VERSIONS_VALUES } from "../../../lib/api-versions";
 import { ApiAuthGuard } from "../../../modules/auth/guards/api-auth/api-auth.guard";
@@ -100,25 +91,9 @@ export class BookingsController {
   @UseGuards(ApiAuthGuard)
   async createBooking(
     @Req() req: BookingRequest,
-    @Body() body: CreateBookingInput,
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
+    @Body() body: CreateBookingInput
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const {
-      bookingUid,
-      end,
-      start,
-      orgSlug,
-      locationUrl,
-      eventTypeSlug,
-      user,
-      responses,
-      hashedLink,
-      language,
-      metadata,
-      timeZone,
-      userId,
-      ...otherParams
-    } = body;
+    const { bookingUid, end, start, orgSlug, user, responses, metadata, userId, ...otherParams } = body;
 
     req.headers["x-cal-force-slug"] = orgSlug;
 

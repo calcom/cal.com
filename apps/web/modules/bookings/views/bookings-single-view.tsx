@@ -409,9 +409,9 @@ export default function Success(props: PageProps) {
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     const titlePrefix = isRoundRobin ? "round_robin_" : "";
-    if (isCancelled) {
-      return "";
-    }
+    if (isCancelled)
+      return "Se o seu cancelamento é elegível para um reembolso, você poderá acompanhar as atualizações diretamente pelo App.";
+
     if (needsConfirmation) {
       if (props.profile.name !== null) {
         return t(`user_needs_to_confirm_or_reject_booking${titleSuffix}`, {
@@ -637,6 +637,54 @@ export default function Success(props: PageProps) {
 
   const isCancelableOrRescheduble =
     !requiresLoginToUpdate && (!needsConfirmation || !userIsOwner) && isReschedulable && !isRejectionMode;
+
+  if (!userIsOwner)
+    return (
+      <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+        <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
+        <BookingPageTagManager eventType={eventType} />
+        <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
+          <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
+            <div
+              className={classNames(
+                shouldAlignCentrally ? "text-center" : "",
+                "flex items-end justify-center px-4 pb-20 pt-4 sm:flex sm:p-0"
+              )}>
+              <div
+                className={classNames(
+                  "main my-4 flex flex-col transition-opacity sm:my-0 ",
+                  isEmbed ? "" : " inset-0"
+                )}
+                aria-hidden="true">
+                <div
+                  className={classNames(
+                    "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                    !isBackgroundTransparent && " bg-default dark:bg-muted border-booker border-booker-width",
+                    "px-8 pb-4 pt-5 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
+                  )}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="modal-headline">
+                  <h3
+                    className="text-emphasis text-2xl font-semibold leading-6"
+                    data-testid={isCancelled ? "cancelled-headline" : ""}
+                    id="modal-headline">
+                    Ops! Parece que você não tem permissão para ver os dados desse evento.
+                  </h3>
+                  <div className="mt-3">
+                    <p className="text-default">
+                      {isntAuthenticated
+                        ? "Para ver os detalhes deste evento, faça o login no seu navegador com o e-mail que você agendou neste atendimento"
+                        : "Caso você acredite que há algum erro, contate o time de suporte."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -946,7 +994,11 @@ export default function Success(props: PageProps) {
                             {!props.recurringBookings && (
                               <span className="text-default inline">
                                 <span className="underline" data-testid="reschedule-link">
-                                  <Link href={rescheduleRoute} legacyBehavior>
+                                  <Link
+                                    href={`${rescheduleRoute}?originalBookingId=${
+                                      pathname?.split("/booking/")[1].split("?")[0] || ""
+                                    }`}
+                                    legacyBehavior>
                                     {t("reschedule")}
                                   </Link>
                                 </span>
