@@ -139,7 +139,9 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true`);
+    const query = await conn.query(
+      `SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true LIMIT 1`
+    );
     if (query.records.length > 0) {
       return (query.records[0] as { Email: string; Id: string }).Id;
     }
@@ -564,7 +566,9 @@ export default class SalesforceCRMService implements CRM {
 
       if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
-        const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
+        const leadQuery = await conn.query(
+          `SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}' LIMIT 1`
+        );
         if (leadQuery.records.length) {
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
@@ -868,7 +872,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -890,7 +894,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -1226,7 +1230,9 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     // First see if the contact already exists and connect it to the account
-    const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+    const userQuery = await conn.query(
+      `SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}' LIMIT 1`
+    );
     if (userQuery.records.length) {
       const contact = userQuery.records[0] as { Id: string; Email: string };
       await conn.sobject(SalesforceRecordEnum.CONTACT).update({
@@ -1327,7 +1333,7 @@ export default class SalesforceCRMService implements CRM {
 
     // Prioritize contacts over leads
     const contactsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}'`
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
     );
 
     if (contactsQuery.records.length) {
@@ -1338,7 +1344,7 @@ export default class SalesforceCRMService implements CRM {
     }
 
     const leadsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}'`
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
     );
 
     if (leadsQuery.records.length) {
