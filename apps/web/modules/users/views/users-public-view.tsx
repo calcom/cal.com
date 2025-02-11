@@ -11,18 +11,17 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
+import { Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 
 import type { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
 export type PageProps = InferGetServerSidePropsType<typeof getServerSideProps>;
 export function UserPage(props: PageProps) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity, isOrgSEOIndexable } = props;
+  const { users, profile, eventTypes, entity } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -60,29 +59,8 @@ export function UserPage(props: PageProps) {
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
 
-  const allowSEOIndexing = isOrg
-    ? isOrgSEOIndexable
-      ? profile.allowSEOIndexing
-      : false
-    : profile.allowSEOIndexing;
-
   return (
     <>
-      <HeadSeo
-        origin={getOrgFullOrigin(entity.orgSlug ?? null)}
-        title={profile.name}
-        description={markdownStrippedBio}
-        meeting={{
-          title: markdownStrippedBio,
-          profile: { name: `${profile.name}`, image: user.avatarUrl || null },
-          users: [{ username: `${user.username}`, name: `${user.name}` }],
-        }}
-        nextSeoProps={{
-          noindex: !allowSEOIndexing,
-          nofollow: !allowSEOIndexing,
-        }}
-      />
-
       <div className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "max-w-3xl" : "")}>
         <main
           className={classNames(

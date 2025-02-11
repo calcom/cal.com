@@ -44,7 +44,7 @@ import { Button, PasswordField, TextField, Form, Alert, CheckboxField, Icon, sho
 import type { getServerSideProps } from "@lib/signup/getServerSideProps";
 
 const signupSchema = apiSignupSchema.extend({
-  apiError: z.string().optional(), // Needed to display API errors doesnt get passed to the API
+  apiError: z.string().optional(), // Needed to display API errors doesn't get passed to the API
   cfToken: z.string().optional(),
 });
 
