@@ -174,15 +174,21 @@ function BookingListItem(booking: BookingItemProps) {
           };
         }
       );
-
-      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
-  const noShowMutationHelper = (input: RouterInputs["viewer"]["markNoShow"]) => {
-    return noShowMutation.mutate(input);
+  const noShowMutationHelper = (input: RouterInputs["viewer"]["markNoShow"], callback?: () => void) => {
+    return noShowMutation.mutate(input, {
+      onSuccess: (data) => {
+        if (callback) {
+          callback();
+        } else {
+          showToast(t(data.message), "success");
+        }
+      },
+    });
   };
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
@@ -1122,15 +1128,46 @@ const NoShowAttendeesDialog = ({
   isOpen: boolean;
   setIsOpen: (value: boolean) => void;
   bookingUid: string;
-  noShowMutationHelper: (input: RouterInputs["viewer"]["markNoShow"]) => void;
+  noShowMutationHelper: (input: RouterInputs["viewer"]["markNoShow"], callback?: () => void) => void;
 }) => {
   const { t } = useLocale();
-  const [noShowAttendees, setNoShowAttendees] = useState(attendees);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isDirty, defaultValues },
+  } = useForm<{ attendees: AttendeeProps[] }>({ defaultValues: { attendees } });
+
+  const { fields, update } = useFieldArray({ control: control, name: "attendees" });
+
+  const onSubmit = () => {
+    const statusChangedForAttendees: AttendeeProps[] = [];
+
+    defaultValues?.attendees?.forEach((attendee, index) => {
+      if (fields[index].noShow !== attendee?.noShow) statusChangedForAttendees.push(fields[index]);
+    });
+
+    if (!isDirty || !statusChangedForAttendees.length) return;
+
+    handleSubmit(() => {
+      noShowMutationHelper(
+        {
+          bookingUid,
+          attendees: statusChangedForAttendees,
+        },
+        () => {
+          statusChangedForAttendees.forEach(({ noShow, email }) => {
+            showToast(t(noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", { x: email }), "success");
+          });
+        }
+      );
+    })();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => setIsOpen(false)}>
       <DialogContent title={t("mark_as_no_show_title")} description={t("no_show_description")}>
-        {noShowAttendees.map((attendee) => (
+        {fields.map((attendee, index) => (
           <div key={attendee.id} className="bg-muted flex items-center justify-between rounded-md px-4 py-2">
             <span className="text-emphasis flex flex-col text-sm">
               {attendee.name}
@@ -1139,30 +1176,13 @@ const NoShowAttendeesDialog = ({
             <Button
               color="minimal"
               StartIcon={attendee.noShow ? "eye-off" : "eye"}
-              onClick={() => {
-                const updatedNoShowAttendees = noShowAttendees.map((a) => {
-                  return {
-                    ...a,
-                    noShow: a.id === attendee.id ? !attendee.noShow : a.noShow,
-                  };
-                });
-
-                setNoShowAttendees(updatedNoShowAttendees);
-              }}>
+              onClick={() => update(index, { ...attendee, noShow: !attendee.noShow })}>
               {attendee.noShow ? t("unmark_as_no_show") : t("mark_as_no_show")}
             </Button>
           </div>
         ))}
         <DialogFooter>
-          <DialogClose
-            onClick={() =>
-              noShowMutationHelper({
-                bookingUid,
-                attendees: noShowAttendees,
-              })
-            }>
-            {t("done")}
-          </DialogClose>
+          <DialogClose onClick={onSubmit}>{t("done")}</DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
