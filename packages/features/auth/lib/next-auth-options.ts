@@ -29,17 +29,15 @@ import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import { isENVDev } from "@calcom/lib/env";
 import logger from "@calcom/lib/logger";
-import { randomString } from "@calcom/lib/random";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
-import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { CreationSource } from "@calcom/prisma/enums";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -55,7 +53,6 @@ const { client_id: GOOGLE_CLIENT_ID, client_secret: GOOGLE_CLIENT_SECRET } =
 const GOOGLE_LOGIN_ENABLED = process.env.GOOGLE_LOGIN_ENABLED === "true";
 const IS_GOOGLE_LOGIN_ENABLED = !!(GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_LOGIN_ENABLED);
 
-const usernameSlug = (username: string) => `${slugify(username)}-${randomString(6).toLowerCase()}`;
 const getDomainFromEmail = (email: string): string => email.split("@")[1];
 
 const loginWithTotp = async (email: string) =>
@@ -931,27 +928,12 @@ export const getOptions = ({
           return "/auth/error?error=use-identity-login";
         }
 
-        const newUser = await UserCreationService.createUser({
-          data: {
-            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-            emailVerified: new Date(Date.now()),
-            name: user.name,
-            ...(user.image && { avatarUrl: user.image }),
-            email: user.email,
-            identityProvider: idP,
-            identityProviderId: account.providerAccountId,
-            creationSource: idP === "GOOGLE" ? CreationSource.GOOGLE : CreationSource.SAML,
-            ...(orgId ? { verified: true } : {}),
-          },
-          ...(orgId
-            ? {
-                orgData: {
-                  id: orgId,
-                  role: MembershipRole.MEMBER,
-                  accepted: true,
-                },
-              }
-            : {}),
+        const newUser = await UserCreationService.createUserWithIdP({
+          idP,
+          email: user.email,
+          name: user.name,
+          image: user?.image,
+          account,
         });
 
         const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
