@@ -17,7 +17,7 @@ import type { IconName } from "../icon";
 import { Icon } from "../icon";
 
 const dialogClasses = cva(
-  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle font-cal",
+  "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 rounded-2xl text-left shadow-xl focus-visible:outline-none sm:align-middle",
   {
     variants: {
       size: {
@@ -205,7 +205,7 @@ export function DialogHeader(props: DialogHeaderProps) {
         id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <p className="text-subtle text-sm">{props.subtitle}</p>}
+      {props.subtitle && <p className="text-subtle font-cal text-sm">{props.subtitle}</p>}
     </div>
   );
 }
