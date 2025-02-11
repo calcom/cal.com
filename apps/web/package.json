@@ -123,7 +123,6 @@
     "react-dom": "^18.2.0",
     "react-easy-crop": "^3.5.2",
     "react-hook-form": "^7.43.3",
-    "react-hot-toast": "^2.3.0",
     "react-intl": "^5.25.1",
     "react-live-chat-loader": "^2.8.1",
     "react-multi-email": "^0.5.3",
