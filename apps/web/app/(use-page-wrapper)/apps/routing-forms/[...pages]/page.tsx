@@ -4,6 +4,7 @@ import { _generateMetadata } from "app/_utils";
 import { cookies, headers } from "next/headers";
 
 import LayoutHandler from "@calcom/app-store/routing-forms/pages/layout-handler/[...appPages]";
+import Shell from "@calcom/features/shell/Shell";
 
 import { getServerSideProps } from "@lib/apps/routing-forms/[...pages]/getServerSideProps";
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
@@ -26,7 +27,15 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
     ...props,
     pages: pages.slice(1),
   };
-  return <LayoutHandler {...componentProps} />;
+  if (pages[0] === "routing-link") {
+    return <LayoutHandler {...componentProps} />;
+  }
+
+  return (
+    <Shell withoutMain withoutSeo>
+      <LayoutHandler {...componentProps} />;
+    </Shell>
+  );
 };
 
 export default ServerPage;
