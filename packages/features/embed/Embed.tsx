@@ -163,11 +163,11 @@ function useEmbedGoto(noQueryParamMode = false) {
         ...prev,
         embedType: null,
         embedTabName: null,
-        embedUrl: null,
-        eventId: null,
-        namespace: null,
-        date: null,
-        month: null,
+        embedUrl: prev?.embedUrl ?? null,
+        eventId: prev?.eventId ?? null,
+        namespace: prev?.namespace ?? null,
+        date: prev?.date ?? null,
+        month: prev?.month ?? null,
       }));
     } else {
       removeQueryParams(["embedType", "embedTabName"]);
@@ -677,7 +677,25 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     _searchParams.set(a, b);
     return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
-  const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
+  const parsedTabs = tabs.map((t) => {
+    const { href, ...rest } = t;
+    const tabName = href.split("=")[1];
+    return {
+      ...rest,
+      isActive: tabName === embedParams.embedTabName,
+      ...(noQueryParamMode
+        ? {
+            onClick: () => {
+              gotoState({ embedTabName: tabName });
+            },
+            // We still pass the href(which is unique) so that all the tabs aren't marked as active
+            href: t.href,
+          }
+        : {
+            href: s(t.href),
+          }),
+    };
+  });
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
