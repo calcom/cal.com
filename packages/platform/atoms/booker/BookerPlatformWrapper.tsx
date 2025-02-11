@@ -320,7 +320,6 @@ export const BookerPlatformWrapper = (
     orgSlug: props.entity?.orgSlug ?? undefined,
     eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
     ...routingParams,
-    _isDryRun: routingParams.isBookingDryRun,
   });
 
   const bookerForm = useBookingForm({

@@ -124,12 +124,6 @@ export class GetAvailableSlotsInput {
   @IsNumber({}, { each: true })
   @ApiHideProperty()
   routedTeamMemberIds?: number[];
-
-  @Transform(({ value }) => value && value.toLowerCase() === "true")
-  @IsBoolean()
-  @IsOptional()
-  @ApiHideProperty()
-  _isDryRun?: boolean;
 }
 
 export class RemoveSelectedSlotInput {
@@ -165,4 +159,9 @@ export class ReserveSlotInput {
     description: "Optional but only for events with seats. Used to retrieve booking of a seated event.",
   })
   bookingUid?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  @ApiHideProperty()
+  _isDryRun?: boolean;
 }
