@@ -868,7 +868,7 @@ export default class SalesforceCRMService implements CRM {
 
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
     const conn = await this.conn;
-    const emailDomain = email.split("@")[1].toLocaleLowerCase();
+    const emailDomain = email.split("@")[1];
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
