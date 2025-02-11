@@ -991,22 +991,22 @@ export default function Success(props: PageProps) {
                             Deseja fazer alguma alteração?
                           </span>
                           <>
-                            {!props.recurringBookings && (
-                              <span className="text-default inline">
-                                <span className="underline" data-testid="reschedule-link">
-                                  <Link
-                                    href={`${rescheduleRoute}?originalBookingId=${
-                                      pathname?.split("/booking/")[1].split("?")[0] || ""
-                                    }`}
-                                    legacyBehavior>
-                                    {t("reschedule")}
-                                  </Link>
-                                </span>
-                                {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
-                                  <span className="mx-2">{t("or_lowercase")}</span>
-                                )}
+                            {/* {!props.recurringBookings && ( */}
+                            <span className="text-default inline">
+                              <span className="underline" data-testid="reschedule-link">
+                                <Link
+                                  href={`${rescheduleRoute}?originalBookingId=${
+                                    pathname?.split("/booking/")[1].split("?")[0] || ""
+                                  }`}
+                                  legacyBehavior>
+                                  {t("reschedule")}
+                                </Link>
                               </span>
-                            )}
+                              {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                                <span className="mx-2">{t("or_lowercase")}</span>
+                              )}
+                            </span>
+                            {/* )} */}
 
                             {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
                               <button
