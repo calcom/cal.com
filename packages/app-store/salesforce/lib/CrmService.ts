@@ -391,7 +391,7 @@ export default class SalesforceCRMService implements CRM {
         // For an account let's assume that the first email is the one we should be querying against
         const attendeeEmail = emailArray[0];
         log.info("Searching account for email", safeStringify({ attendeeEmail }));
-        soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null LIMIT 1`;
+        soql = `SELECT Id, Email, OwnerId, AccountId, Account.Owner.Email, Account.Website FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${attendeeEmail}' AND AccountId != null`;
       } else {
         // Handle Contact/Lead record types
         soql = `SELECT Id, Email, OwnerId, Owner.Email FROM ${recordToSearch} WHERE Email IN ('${emailArray.join(
