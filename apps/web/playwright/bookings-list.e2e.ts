@@ -90,12 +90,12 @@ test.describe("Bookings", () => {
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
       const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeHidden();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
-      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeHidden();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeVisible();
+      await page.locator('[data-testid="mark-no-show"]').click();
       await firstGuest.click();
-      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
-      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+      await expect(page.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(page.locator('[data-testid="mark-no-show"]')).toBeHidden();
       await webhookReceiver.waitForRequestCount(1);
       const [request] = webhookReceiver.requestList;
       const body = request.body;
