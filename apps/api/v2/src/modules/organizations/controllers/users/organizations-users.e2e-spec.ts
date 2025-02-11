@@ -15,6 +15,7 @@ import { OrganizationRepositoryFixture } from "test/fixtures/repository/organiza
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -29,7 +30,7 @@ describe("Organizations Users Endpoints", () => {
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmail = "member1@org.com";
+    const userEmail = `organizations-users-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
 
@@ -47,7 +48,7 @@ describe("Organizations Users Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org 3",
+        name: `organizations-users-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -118,24 +119,24 @@ describe("Organizations Users Endpoints", () => {
     let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "admin1@org.com";
-    const nonMemberEmail = "non-member@test.com";
+    const userEmail = `organizations-users-admin-${randomString()}@api.com`;
+    const nonMemberEmail = `organizations-users-non-member-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let createdUser: User;
 
     const orgMembersData = [
       {
-        email: "member1@org.com",
-        username: "member1@org.com",
+        email: `organizations-users-member1-${randomString()}@api.com`,
+        username: `organizations-users-member1-${randomString()}@api.com`,
       },
       {
-        email: "member2@org.com",
-        username: "member2@org.com",
+        email: `organizations-users-member2-${randomString()}@api.com`,
+        username: `organizations-users-member2-${randomString()}@api.com`,
       },
       {
-        email: "member3@org.com",
-        username: "member3@org.com",
+        email: `organizations-users-member3-${randomString()}@api.com`,
+        username: `organizations-users-member3-${randomString()}@api.com`,
       },
     ];
 
@@ -154,7 +155,7 @@ describe("Organizations Users Endpoints", () => {
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org 2",
+        name: `organizations-users-admin-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -243,9 +244,9 @@ describe("Organizations Users Endpoints", () => {
         { userData },
         userData.map((u) => u.profile)
       );
-      expect(userData.find((u) => u.profile.username === "member1@org.com")).toBeDefined();
-      expect(userData.find((u) => u.profile.username === "member2@org.com")).toBeDefined();
-      expect(userData.find((u) => u.profile.username === "member3@org.com")).toBeDefined();
+      expect(userData.find((u) => u.profile.username === orgMembersData[0].username)).toBeDefined();
+      expect(userData.find((u) => u.profile.username === orgMembersData[1].username)).toBeDefined();
+      expect(userData.find((u) => u.profile.username === orgMembersData[2].username)).toBeDefined();
 
       expect(userData.filter((user: { email: string }) => user.email === nonMemberEmail).length).toBe(0);
     });
@@ -304,7 +305,7 @@ describe("Organizations Users Endpoints", () => {
 
     it("should create a new org user", async () => {
       const newOrgUser = {
-        email: "new-org-member-b@org.com",
+        email: `organizations-users-new-member-${randomString()}@api.com`,
         organizationRole: "MEMBER",
         autoAccept: true,
       };
@@ -327,7 +328,7 @@ describe("Organizations Users Endpoints", () => {
         usernameOrEmail: newOrgUser.email,
         orgName: org.name,
         orgId: org.id,
-        inviterName: "admin1@org.com",
+        inviterName: userEmail,
         locale: null,
       });
       createdUser = userData;
@@ -366,7 +367,7 @@ describe("Organizations Users Endpoints", () => {
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const authEmail = "auth@org.com";
+    const authEmail = `organizations-users-auth-${randomString()}@api.com`;
     let user: User;
     let org: Team;
     let team: Team;
@@ -390,12 +391,12 @@ describe("Organizations Users Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org 4",
+        name: `organizations-users-organization-${randomString()}`,
         isOrganization: true,
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org 4 team",
+        name: `organizations-users-team-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -464,7 +465,7 @@ describe("Organizations Users Endpoints", () => {
 
     it("should create a new org user with team event-types", async () => {
       const newOrgUser = {
-        email: "new-org-member-d@org.com",
+        email: `organizations-users-new-member-${randomString()}@api.com`,
         organizationRole: "MEMBER",
         autoAccept: true,
       };

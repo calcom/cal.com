@@ -17,7 +17,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 async function getUserPageProps(context: GetServerSidePropsContext) {
-  const session = await getServerSession(context);
+  const session = await getServerSession({ req: context.req });
   const { link, slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, duration: queryDuration } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req);
@@ -121,6 +121,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
+      eventData,
       entity: eventData.entity,
       duration: getMultipleDurationValue(
         eventData.metadata?.multipleDuration,

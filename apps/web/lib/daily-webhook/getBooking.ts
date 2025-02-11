@@ -21,6 +21,7 @@ export const getBooking = async (bookingId: number) => {
         select: {
           teamId: true,
           parentId: true,
+          canSendCalVideoTranscriptionEmails: true,
         },
       },
       user: {
