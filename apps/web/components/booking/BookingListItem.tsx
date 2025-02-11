@@ -1046,7 +1046,7 @@ const GroupedAttendees = ({
   const {
     control,
     handleSubmit,
-    formState: { defaultValues },
+    formState: { defaultValues, isDirty },
   } = useForm<{ attendees: AttendeeProps[] }>({
     defaultValues: { attendees },
     mode: "onBlur",
@@ -1113,6 +1113,7 @@ const GroupedAttendees = ({
             <Button
               data-testid="update-no-show"
               color="secondary"
+              disabled={!isDirty}
               onClick={(e) => {
                 e.preventDefault();
                 handleSubmit(onSubmit)();

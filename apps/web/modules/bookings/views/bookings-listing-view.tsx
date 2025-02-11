@@ -162,7 +162,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status, bookingListFilters, t]);
+  }, [user, status, bookingListFilters]);
 
   const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
