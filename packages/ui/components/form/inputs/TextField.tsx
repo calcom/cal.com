@@ -81,7 +81,7 @@ const Addon = ({ children, className, error, onClickAddon, size = "md", position
   <div
     onClick={onClickAddon && onClickAddon}
     className={classNames(
-      "flex items-center justify-center",
+      "flex flex-shrink-0 items-center justify-center whitespace-nowrap",
       onClickAddon && "pointer-events-auto cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
@@ -149,7 +149,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           dir="ltr"
           className={classNames(
             inputStyles({ size }),
-            "group relative mb-1 flex items-center gap-1",
+            "group relative mb-1 flex min-w-0 items-center gap-1",
             inputIsFullWidth && "w-full"
           )}>
           {addOnLeading && (
@@ -163,7 +163,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             type={type}
             placeholder={placeholder}
             className={classNames(
-              "w-full border-0 bg-transparent focus:outline-none focus:ring-0",
+              "w-full min-w-0 truncate border-0 bg-transparent focus:outline-none focus:ring-0",
               "text-default text-sm font-medium leading-none",
               "placeholder:text-muted",
               className
