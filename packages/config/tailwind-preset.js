@@ -163,6 +163,8 @@ module.exports = {
         // Semantic Borders
         semantic: {
           error: "var(--cal-border-semantic-error)",
+          "attention-subtle": "var(--cal-border-semantic-attention-subtle)",
+          "error-subtle": "var(--cal-border-semantic-error-subtle)",
         },
 
         // Used in booker embed customization

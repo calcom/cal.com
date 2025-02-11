@@ -124,6 +124,10 @@
   --cal-text-semantic-attention: hsla(15, 79%, 34%, 1); /* orange-800 */
   --cal-text-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
 
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1); 
+
   /* Content/Text Visualization */
   --cal-text-visualization-1: hsla(332, 79%, 25%, 1); /* pink-800 */
   --cal-text-visualization-2: hsla(270, 91%, 25%, 1); /* purple-800 */
@@ -224,6 +228,10 @@
   --cal-text-semantic-success-emphasis: hsla(142, 71%, 25%, 1); /* green-800 */
   --cal-text-semantic-attention-emphasis: hsla(24, 95%, 25%, 1); /* orange-800 */
   --cal-text-semantic-error-emphasis: hsla(0, 84%, 25%, 1); /* red-800 */
+
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1); 
 
   /* Legacy Content/Text Components - Consider deprecating */
   --cal-text-info: hsla(218, 83%, 93%, 1); /* Keeping existing info text */

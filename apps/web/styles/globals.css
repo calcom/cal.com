@@ -133,6 +133,10 @@
   --cal-text-visualization-6: hsla(24, 95%, 25%, 1); /* orange-800 */
   --cal-text-visualization-7: hsla(0, 84%, 25%, 1); /* red-800 */
 
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(32, 98%, 83%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 96%, 89%, 1); 
+
   /* Legacy Content/Text Components - Consider deprecating */
   --cal-text-info: hsla(225, 57%, 33%, 1); /* #253985 - interactive text/icons */
   --cal-text-success: hsla(144, 34%, 24%, 1); /* #285231 */
@@ -202,6 +206,12 @@
   --cal-border-emphasis: hsla(0, 0%, 45%, 1); /* stone-800 */
   /* Border Semantic */
   --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
+
+
+  /* Border/Semantic Subtle */
+  --cal-border-semantic-attention-subtle: hsla(15, 75%, 23%, 1); 
+  --cal-border-semantic-error-subtle: hsla(0, 63%, 24%, 1); 
+
 
   /* Legacy Border - Consider deprecating */
   --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
