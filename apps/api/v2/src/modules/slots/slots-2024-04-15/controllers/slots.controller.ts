@@ -10,6 +10,7 @@ import {
   VERSION_2024_06_14,
   VERSION_2024_04_15,
   VERSION_2024_06_11,
+  VERSION_2024_08_13,
 } from "@calcom/platform-constants";
 import { getAvailableSlots } from "@calcom/platform-libraries";
 import type { AvailableSlotsType } from "@calcom/platform-libraries";
@@ -18,7 +19,7 @@ import { ApiResponse, GetAvailableSlotsInput_2024_04_15 } from "@calcom/platform
 
 @Controller({
   path: "/v2/slots",
-  version: [VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14],
+  version: [VERSION_2024_04_15, VERSION_2024_06_11, VERSION_2024_06_14, VERSION_2024_08_13],
 })
 @DocsExcludeController(true)
 export class SlotsController_2024_04_15 {
