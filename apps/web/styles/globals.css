@@ -72,13 +72,13 @@
   
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(212, 88%, 97%, 1); /* blue-100 */
-  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-info-emphasis: hsla(236, 80%, 25%, 1); /* blue-500 */
   --cal-bg-semantic-success-subtle: hsla(167, 54%, 93%, 1); /* green-100 */
   --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
   --cal-bg-semantic-attention-subtle: hsla(34, 100%, 92%, 1); /* orange-100 */
-  --cal-bg-semantic-attention-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-semantic-attention-emphasis: hsla(15, 79%, 34%, 1); /* orange-500 */
   --cal-bg-semantic-error-subtle: hsla(0, 93%, 94%, 1); /* red-100 */
-  --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+  --cal-bg-semantic-error-emphasis: hsla(0, 63%, 24%, 1); /* red-500 */
 
   /* Background Visualization */
   --cal-bg-visualization-1-subtle: hsla(326, 78%, 95%, 1); /* pink-100 */
@@ -164,13 +164,13 @@
 
   /* Background Semantic */
   --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
-  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-info-emphasis: hsla(229, 90%, 74%, 1); /* blue-500 */
   --cal-bg-semantic-success-subtle: hsla(148, 88%, 16%, 1); /* green-800 */
   --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
   --cal-bg-semantic-attention-subtle: hsla(21, 86%, 8%, 1); /* orange-800 */
-  --cal-bg-semantic-attention-emphasis: hsla(15, 75%, 23%, 1); /* orange-500 */
+  --cal-bg-semantic-attention-emphasis: hsla(27, 96%, 61%, 1); /* orange-500 */
   --cal-bg-semantic-error-subtle: hsla(0, 70%, 8%, 1); /* red-800 */
-  --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
+  --cal-bg-semantic-error-emphasis: hsla(0, 91%, 71%, 1); /* red-500 */
 
   /* Background Visualization */
   --cal-bg-visualization-1-subtle: hsla(336, 74%, 35%, 1); /* pink-200 */
