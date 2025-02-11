@@ -19,7 +19,16 @@ export type GetSlots = {
   organizerTimeZone: string;
   datesOutOfOffice?: IOutOfOfficeData;
 };
-export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
+export type TimeFrame = {
+  userIds?: number[];
+  startTime: number;
+  endTime: number;
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+};
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 const minimumOfZero = (input: number) => (input < 0 ? 0 : input);
@@ -33,6 +42,7 @@ function buildSlots({
   startDate,
   organizerTimeZone,
   inviteeTimeZone,
+  datesOutOfOffice,
 }: {
   computedLocalAvailability: TimeFrame[];
   startOfInviteeDay: Dayjs;
@@ -42,6 +52,7 @@ function buildSlots({
   offsetStart?: number;
   organizerTimeZone: string;
   inviteeTimeZone: string;
+  datesOutOfOffice?: IOutOfOfficeData;
 }) {
   // no slots today
   if (startOfInviteeDay.isBefore(startDate, "day")) {
@@ -64,12 +75,32 @@ function buildSlots({
       userIds: number[];
       startTime: number;
       endTime: number;
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
     }
   > = {};
   // get boundaries sorted by start time.
   const boundaries = computedLocalAvailability
     .map((item) => [item.startTime < dayStart ? dayStart : item.startTime, item.endTime])
     .sort((a, b) => a[0] - b[0]);
+
+  // If it's an OOO day, create a single boundary for the whole day
+  const dateYYYYMMDD = startOfInviteeDay.format("YYYY-MM-DD");
+  const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+  console.log("OOO Debug:", {
+    dateYYYYMMDD,
+    dateOutOfOfficeExists,
+    boundaries,
+    computedLocalAvailability,
+  });
+  if (dateOutOfOfficeExists) {
+    // Override boundaries to show the whole working day
+    boundaries.length = 0;
+    boundaries.push([dayStart, 24 * 60]); // Full day boundary
+  }
 
   const ranges: number[][] = [];
   let currentRange: number[] = [];
@@ -99,6 +130,22 @@ function buildSlots({
       slotStart < boundaryEnd;
       slotStart += offsetStart + frequency
     ) {
+      // If OOO, create slot regardless of availability
+      if (dateOutOfOfficeExists) {
+        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+        slotsTimeFrameAvailable[slotStart.toString()] = {
+          userIds: [],
+          startTime: slotStart,
+          endTime: slotStart + eventLength,
+          away: true,
+          ...(fromUser && { fromUser }),
+          ...(toUser && { toUser }),
+          ...(reason && { reason }),
+          ...(emoji && { emoji }),
+        };
+        continue;
+      }
+
       computedLocalAvailability.forEach((item) => {
         // TODO: This logic does not allow for past-midnight bookings.
         if (slotStart < item.startTime || slotStart > item.endTime + 1 - eventLength) {
@@ -117,13 +164,25 @@ function buildSlots({
     dayjs().tz(organizerTimeZone).utcOffset() - startOfInviteeDay.tz(organizerTimeZone).utcOffset();
   const inviteeDSTDiff =
     dayjs().tz(inviteeTimeZone).utcOffset() - startOfInviteeDay.tz(inviteeTimeZone).utcOffset();
-  const slots: { time: Dayjs; userIds?: number[] }[] = [];
   const getTime = (time: number) => {
     const minutes = time + organizerDSTDiff - inviteeDSTDiff;
-
     return startOfInviteeDay.tz(inviteeTimeZone).add(minutes, "minutes");
   };
-  for (const item of Object.values(slotsTimeFrameAvailable)) {
+
+  // Create slots for all times, marking availability
+  const slots: {
+    time: Dayjs;
+    userIds?: number[];
+    away?: boolean;
+    fromUser?: IFromUser;
+    toUser?: IToUser;
+    reason?: string;
+    emoji?: string;
+    busy?: boolean;
+  }[] = [];
+
+  // Create slots for all times
+  for (const [time, isAvailable] of Object.entries(slotsTimeFrameAvailable)) {
     /*
      * @calcom/web:dev: 2022-11-06T00:00:00-04:00
      * @calcom/web:dev: 2022-11-06T01:00:00-04:00
@@ -132,10 +191,40 @@ function buildSlots({
      * @calcom/web:dev: 2022-11-06T03:00:00-04:00
      * ...
      */
-    slots.push({
-      userIds: item.userIds,
-      time: getTime(item.startTime),
-    });
+    const timeNum = parseInt(time);
+    const slotTime = getTime(timeNum);
+    // Skip slots that are before the day's start or after its end
+    if (timeNum < dayStart) continue;
+
+    let slotData: {
+      time: Dayjs;
+      userIds?: number[];
+      away?: boolean;
+      fromUser?: IFromUser;
+      toUser?: IToUser;
+      reason?: string;
+      emoji?: string;
+      busy?: boolean;
+    } = {
+      userIds: isAvailable ? isAvailable.userIds : undefined,
+      time: slotTime,
+      busy: !isAvailable, // Mark non-available slots as busy
+    };
+
+    // Always add OOO data if it exists, regardless of availabilityy
+    if (dateOutOfOfficeExists) {
+      const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+      slotData = {
+        ...slotData,
+        away: true,
+        ...(fromUser && { fromUser }),
+        ...(toUser && { toUser }),
+        ...(reason && { reason }),
+        ...(emoji && { emoji }),
+      };
+    }
+
+    slots.push(slotData);
   }
 
   return slots;
@@ -376,6 +465,7 @@ const getSlots = ({
     offsetStart,
     organizerTimeZone,
     inviteeTimeZone: timeZone,
+    datesOutOfOffice,
   });
 };
 
