@@ -4,10 +4,8 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
-import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import type {
   ApiErrorResponse,
   ApiSuccessResponse,
@@ -28,7 +26,13 @@ export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (
   event: { data?: Pick<BookerEvent, "id" | "length"> | null },
-  { onReserveSlotSuccess, onReserveSlotError, onDeleteSlotSuccess, onDeleteSlotError }: UseSlotsCallbacks = {}
+  {
+    onReserveSlotSuccess,
+    onReserveSlotError,
+    onDeleteSlotSuccess,
+    onDeleteSlotError,
+    isBookingDryRun,
+  }: UseSlotsCallbacks & { isBookingDryRun?: boolean } = {}
 ) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
@@ -37,7 +41,6 @@ export const useSlots = (
   );
 
   const [slotReservationId, setSlotReservationId] = useSlotReservationId();
-  const searchParams = useCompatSearchParams();
 
   const reserveSlotMutation = useReserveSlot({
     onSuccess: (res) => {
@@ -67,7 +70,7 @@ export const useSlots = (
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
-        _isDryRun: isBookingDryRun(searchParams),
+        _isDryRun: isBookingDryRun,
       });
     }
   };
