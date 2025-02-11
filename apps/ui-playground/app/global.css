@@ -53,37 +53,47 @@
   --cal-radius-3xl: 1.5rem;   /* 24px */
   --cal-radius-full: 9999px;
 
-  /* Background */
+  /* Background Standard */
   --cal-bg-emphasis: hsla(220, 13%, 91%, 1); /* gray.200 - active items and emphasising */
   --cal-bg: hsla(0, 0%, 100%, 1); /* white - default background */
-  --cal-bg-subtle: hsla(220, 14%, 96%, 1); /* gray.100 - hovering on items, subtle raising */
-  --cal-bg-muted: hsla(220, 20%, 98%, 1); /* gray.50 - large items, sidebar, sections */
-  --cal-bg-inverted: hsla(220, 9%, 11%, 1); /* gray.900 - tooltips */
+  --cal-bg-subtle: hsla(220, 14%, 94%, 1); /* gray.100 - hovering on items, subtle raising */
+  --cal-bg-muted: hsla(210, 20%, 97%, 1); /* gray.50 - large items, sidebar, sections */
+  --cal-bg-inverted: hsla(210, 30%, 4%, 1); /* gray.900 - tooltips */
 
+  /* Background Primary */
+  --cal-bg-primary: hsla(214, 30%, 16%, 1); /* stone-100 */
+  --cal-bg-primary-emphasis: hsla(220, 6%, 25%, 1); /* stone-800 */
+  --cal-bg-primary-muted: hsla(220, 14%, 94%, 1); /* stone-400 */
+
+  /* Background Brand */
+  --cal-bg-brand: hsla(214, 30%, 16%, 1); /* gray-50 */
+  --cal-bg-brand-emphasis: hsla(220, 6%, 25%, 1); /* stone-100 */
+  --cal-bg-brand-muted: hsla(220, 14%, 94%, 1); /* stone-100 */
+  
   /* Background Semantic */
-  --cal-bg-semantic-info-subtle: hsla(214, 95%, 93%, 1); /* blue-100 */
-  --cal-bg-semantic-info-emphasis: hsla(217, 91%, 60%, 1); /* blue-500 */
-  --cal-bg-semantic-success-subtle: hsla(141, 84%, 93%, 1); /* green-100 */
-  --cal-bg-semantic-success-emphasis: hsla(142, 71%, 45%, 1); /* green-500 */
+  --cal-bg-semantic-info-subtle: hsla(212, 88%, 97%, 1); /* blue-100 */
+  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-success-subtle: hsla(167, 54%, 93%, 1); /* green-100 */
+  --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
   --cal-bg-semantic-attention-subtle: hsla(34, 100%, 92%, 1); /* orange-100 */
-  --cal-bg-semantic-attention-emphasis: hsla(24, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-semantic-attention-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
   --cal-bg-semantic-error-subtle: hsla(0, 93%, 94%, 1); /* red-100 */
   --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
 
   /* Background Visualization */
-  --cal-bg-visualization-1-subtle: hsla(327, 73%, 95%, 1); /* pink-100 */
-  --cal-bg-visualization-1-emphasis: hsla(332, 79%, 58%, 1); /* pink-500 */
-  --cal-bg-visualization-2-subtle: hsla(270, 100%, 95%, 1); /* purple-100 */
-  --cal-bg-visualization-2-emphasis: hsla(270, 91%, 65%, 1); /* purple-500 */
-  --cal-bg-visualization-3-subtle: hsla(214, 95%, 93%, 1); /* blue-100 */
-  --cal-bg-visualization-3-emphasis: hsla(217, 91%, 60%, 1); /* blue-500 */
-  --cal-bg-visualization-4-subtle: hsla(141, 84%, 93%, 1); /* green-100 */
-  --cal-bg-visualization-4-emphasis: hsla(142, 71%, 45%, 1); /* green-500 */
-  --cal-bg-visualization-5-subtle: hsla(55, 92%, 88%, 1); /* yellow-100 */
+  --cal-bg-visualization-1-subtle: hsla(326, 78%, 95%, 1); /* pink-100 */
+  --cal-bg-visualization-1-emphasis: hsla(330, 81%, 60%, 1); /* pink-500 */
+  --cal-bg-visualization-2-subtle: hsla(256, 86%, 91%, 1); /* purple-100 */
+  --cal-bg-visualization-2-emphasis: hsla(256, 85%, 57%, 1); /* purple-500 */
+  --cal-bg-visualization-3-subtle: hsla(217, 87%, 91%, 1); /* blue-100 */
+  --cal-bg-visualization-3-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-visualization-4-subtle: hsla(167, 54%, 93%, 1); /* green-100 */
+  --cal-bg-visualization-4-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
+  --cal-bg-visualization-5-subtle: hsla(55, 97%, 88%, 1); /* yellow-100 */
   --cal-bg-visualization-5-emphasis: hsla(45, 93%, 47%, 1); /* yellow-500 */
   --cal-bg-visualization-6-subtle: hsla(34, 100%, 92%, 1); /* orange-100 */
-  --cal-bg-visualization-6-emphasis: hsla(24, 95%, 53%, 1); /* orange-500 */
-  --cal-bg-visualization-7-subtle: hsla(0, 93%, 94%, 1); /* red-100 */
+  --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-visualization-7-subtle: hsla(0, 96%, 89%, 1); /* red-100 */
   --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
 
   /* Legacy Background Components - Consider deprecating */
@@ -94,25 +104,26 @@
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1); /* Keeping existing dark error */
 
   /* Borders */
-  --cal-border-emphasis: hsla(220, 9%, 65%, 1); /* gray.400 - input:hover */
-  --cal-border: hsla(220, 13%, 84%, 1); /* gray.300 - inputs */
+  --cal-border-emphasis: hsla(218, 11%, 65%, 1); /* gray.400 - input:hover */
+  --cal-border: hsla(216, 12%, 84%, 1); /* gray.300 - inputs */
   --cal-border-subtle: hsla(220, 13%, 91%, 1); /* gray.200 - container borders */
-  --cal-border-muted: hsla(220, 14%, 96%, 1); /* gray.100 */
-  --cal-border-error: hsla(4, 63%, 41%, 1); /* Keeping existing error border */
+  --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
+  --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-focus: hsla(0, 0%, 10%, 1); /* Keeping existing focus border */
+  --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
 
   /* Content/Text Standard */
-  --cal-text-emphasis: hsla(220, 9%, 11%, 1); /* gray-900 */
-  --cal-text: hsla(220, 9%, 27%, 1); /* gray-700 */
+  --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
+  --cal-text: hsla(220, 6%, 25%, 1); /* gray-700 */
   --cal-text-subtle: hsla(220, 9%, 46%, 1); /* gray-500 */
-  --cal-text-muted: hsla(220, 9%, 65%, 1); /* gray-400 */
+  --cal-text-muted: hsla(218, 11%, 65%, 1); /* gray-400 */
   --cal-text-inverted: hsla(0, 0%, 100%, 1); /* white */
 
   /* Content/Text Semantic */
-  --cal-text-semantic-info: hsla(217, 91%, 25%, 1); /* blue-800 */
-  --cal-text-semantic-success: hsla(142, 71%, 25%, 1); /* green-800 */
-  --cal-text-semantic-attention: hsla(24, 95%, 25%, 1); /* orange-800 */
-  --cal-text-semantic-error: hsla(0, 84%, 25%, 1); /* red-800 */
+  --cal-text-semantic-info: hsla(236, 80%, 25%, 1); /* blue-800 */
+  --cal-text-semantic-success: hsla(150, 84%, 22%, 1); /* green-800 */
+  --cal-text-semantic-attention: hsla(15, 79%, 34%, 1); /* orange-800 */
+  --cal-text-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
 
   /* Content/Text Visualization */
   --cal-text-visualization-1: hsla(332, 79%, 25%, 1); /* pink-800 */
@@ -136,46 +147,46 @@
 }
 .dark {
   /* Background Standard */
-  --cal-bg-emphasis: hsla(220, 9%, 34%, 1); /* stone-700 */
-  --cal-bg: hsla(0, 0%, 10%, 1); /* stone-950 */
-  --cal-bg-subtle: hsla(220, 9%, 17%, 1); /* stone-800 */
-  --cal-bg-muted: hsla(220, 9%, 11%, 1); /* stone-900 */
-  --cal-bg-inverted: hsla(220, 20%, 98%, 1); /* stone-50 */
+  --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
+  --cal-bg: hsla(0, 0%, 6%, 1); /* stone-950 */
+  --cal-bg-subtle: hsla(0, 0%, 15%, 1); /* stone-800 */
+  --cal-bg-muted: hsla(0, 0%, 9%, 1); /* stone-900 */
+  --cal-bg-inverted: hsla(0, 0%, 98%, 1); /* stone-50 */
 
   /* Background Primary */
-  --cal-bg-primary: hsla(220, 9%, 96%, 1); /* stone-100 */
-  --cal-bg-primary-emphasis: hsla(220, 9%, 17%, 1); /* stone-800 */
-  --cal-bg-primary-muted: hsla(220, 9%, 65%, 1); /* stone-400 */
+  --cal-bg-primary: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-primary-emphasis: hsla(0, 0%, 64%, 1); /* stone-800 */
+  --cal-bg-primary-muted: hsla(0, 0%, 15%, 1); /* stone-400 */
 
   /* Background Brand */
-  --cal-bg-brand: hsla(220, 20%, 98%, 1); /* gray-50 */
-  --cal-bg-brand-emphasis: hsla(220, 9%, 96%, 1); /* stone-100 */
-  --cal-bg-brand-muted: hsla(220, 9%, 96%, 1); /* stone-100 */
+  --cal-bg-brand: hsla(0, 0%, 98%, 1); /* gray-50 */
+  --cal-bg-brand-emphasis: hsla(0, 0%, 96%, 1); /* stone-100 */
+  --cal-bg-brand-muted: hsla(0, 0%, 96%, 1); /* stone-100 */
 
   /* Background Semantic */
-  --cal-bg-semantic-info-subtle: hsla(217, 91%, 25%, 1); /* blue-800 */
-  --cal-bg-semantic-info-emphasis: hsla(217, 91%, 60%, 1); /* blue-500 */
-  --cal-bg-semantic-success-subtle: hsla(142, 71%, 25%, 1); /* green-800 */
-  --cal-bg-semantic-success-emphasis: hsla(142, 71%, 45%, 1); /* green-500 */
-  --cal-bg-semantic-attention-subtle: hsla(24, 95%, 25%, 1); /* orange-800 */
-  --cal-bg-semantic-attention-emphasis: hsla(24, 95%, 53%, 1); /* orange-500 */
-  --cal-bg-semantic-error-subtle: hsla(0, 84%, 25%, 1); /* red-800 */
+  --cal-bg-semantic-info-subtle: hsla(236, 80%, 8%, 1); /* blue-800 */
+  --cal-bg-semantic-info-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-semantic-success-subtle: hsla(148, 88%, 16%, 1); /* green-800 */
+  --cal-bg-semantic-success-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
+  --cal-bg-semantic-attention-subtle: hsla(21, 86%, 8%, 1); /* orange-800 */
+  --cal-bg-semantic-attention-emphasis: hsla(15, 75%, 23%, 1); /* orange-500 */
+  --cal-bg-semantic-error-subtle: hsla(0, 70%, 8%, 1); /* red-800 */
   --cal-bg-semantic-error-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
 
   /* Background Visualization */
-  --cal-bg-visualization-1-subtle: hsla(332, 79%, 85%, 1); /* pink-200 */
-  --cal-bg-visualization-1-emphasis: hsla(332, 79%, 58%, 1); /* pink-500 */
-  --cal-bg-visualization-2-subtle: hsla(270, 91%, 85%, 1); /* purple-200 */
-  --cal-bg-visualization-2-emphasis: hsla(270, 91%, 65%, 1); /* purple-500 */
-  --cal-bg-visualization-3-subtle: hsla(217, 91%, 85%, 1); /* blue-200 */
-  --cal-bg-visualization-3-emphasis: hsla(217, 91%, 60%, 1); /* blue-500 */
-  --cal-bg-visualization-4-subtle: hsla(142, 71%, 85%, 1); /* green-200 */
-  --cal-bg-visualization-4-emphasis: hsla(142, 71%, 45%, 1); /* green-500 */
-  --cal-bg-visualization-5-subtle: hsla(45, 93%, 85%, 1); /* yellow-200 */
+  --cal-bg-visualization-1-subtle: hsla(336, 74%, 35%, 1); /* pink-200 */
+  --cal-bg-visualization-1-emphasis: hsla(330, 81%, 60%, 1); /* pink-500 */
+  --cal-bg-visualization-2-subtle: hsla(252, 83%, 23%, 1); /* purple-200 */
+  --cal-bg-visualization-2-emphasis: hsla(256, 85%, 57%, 1); /* purple-500 */
+  --cal-bg-visualization-3-subtle: hsla(236, 74%, 35%, 1); /* blue-200 */
+  --cal-bg-visualization-3-emphasis: hsla(235, 100%, 63%, 1); /* blue-500 */
+  --cal-bg-visualization-4-subtle: hsla(150, 84%, 22%, 1); /* green-200 */
+  --cal-bg-visualization-4-emphasis: hsla(158, 74%, 38%, 1); /* green-500 */
+  --cal-bg-visualization-5-subtle: hsla(28, 73%, 26%, 1); /* yellow-200 */
   --cal-bg-visualization-5-emphasis: hsla(45, 93%, 47%, 1); /* yellow-500 */
-  --cal-bg-visualization-6-subtle: hsla(24, 95%, 85%, 1); /* orange-200 */
-  --cal-bg-visualization-6-emphasis: hsla(24, 95%, 53%, 1); /* orange-500 */
-  --cal-bg-visualization-7-subtle: hsla(0, 84%, 85%, 1); /* red-200 */
+  --cal-bg-visualization-6-subtle: hsla(15, 75%, 23%, 1); /* orange-200 */
+  --cal-bg-visualization-6-emphasis: hsla(25, 95%, 53%, 1); /* orange-500 */
+  --cal-bg-visualization-7-subtle: hsla(0, 70%, 35%, 1); /* red-200 */
   --cal-bg-visualization-7-emphasis: hsla(0, 84%, 60%, 1); /* red-500 */
 
   /* Legacy Background Components - Consider deprecating */
@@ -186,30 +197,29 @@
   --cal-bg-dark-error: hsla(2, 55%, 30%, 1); /* Keeping existing dark error */
 
   /* Border Standard */
-  --cal-border: hsla(220, 9%, 34%, 1); /* stone-600 */
-  --cal-border-muted: hsla(220, 9%, 46%, 1); /* stone-500 */
-  --cal-border-subtle: hsla(220, 9%, 34%, 1); /* stone-700 */
-  --cal-border-emphasis: hsla(220, 9%, 17%, 1); /* stone-800 */
-
+  --cal-border: hsla(0, 0%, 30%, 1); /* stone-600 */
+  --cal-border-muted: hsla(0, 0%, 9%, 1); /* stone-500 */
+  --cal-border-subtle: hsla(0, 0%, 15%, 1); /* stone-700 */
+  --cal-border-emphasis: hsla(0, 0%, 45%, 1); /* stone-800 */
   /* Border Semantic */
-  --cal-border-semantic-error: hsla(0, 84%, 25%, 1); /* red-800 */
+  --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
 
   /* Legacy Border - Consider deprecating */
-  --cal-border-error: hsla(4, 63%, 41%, 1); /* Keeping existing error border */
+  --cal-border-error: hsla(0, 63%, 24%, 1); /* Keeping existing error border */
   --cal-border-focus: hsla(0, 0%, 100%, 1); /* white */
 
   /* Content/Text Standard */
-  --cal-text-emphasis: hsla(220, 20%, 98%, 1); /* stone-50 */
-  --cal-text: hsla(220, 13%, 84%, 1); /* stone-300 */
-  --cal-text-subtle: hsla(220, 9%, 65%, 1); /* stone-400 */
-  --cal-text-muted: hsla(220, 9%, 65%, 1); /* stone-400 */
+  --cal-text-emphasis: hsla(0, 0%, 98%, 1); /* stone-50 */
+  --cal-text: hsla(0, 0%, 83%, 1); /* stone-300 */
+  --cal-text-subtle: hsla(0, 0%, 64%, 1); /* stone-400 */
+  --cal-text-muted: hsla(0, 0%, 64%, 1); /* stone-400 */
   --cal-text-inverted: hsla(0, 0%, 0%, 1); /* black */
 
   /* Content/Text Semantic */
-  --cal-text-semantic-info: hsla(217, 91%, 95%, 1); /* blue-100 */
-  --cal-text-semantic-success: hsla(142, 71%, 95%, 1); /* green-100 */
-  --cal-text-semantic-attention: hsla(24, 95%, 95%, 1); /* orange-100 */
-  --cal-text-semantic-error: hsla(0, 84%, 95%, 1); /* red-100 */
+  --cal-text-semantic-info: hsla(229, 90%, 74%, 1); /* blue-100 */
+  --cal-text-semantic-success: hsla(161, 49%, 54%, 1); /* green-100 */
+  --cal-text-semantic-attention: hsla(27, 96%, 61%, 1); /* orange-100 */
+  --cal-text-semantic-error: hsla(0, 91%, 71%, 1); /* red-100 */
 
   /* Content/Text Semantic Emphasis */
   --cal-text-semantic-info-emphasis: hsla(217, 91%, 25%, 1); /* blue-800 */
