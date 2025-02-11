@@ -160,7 +160,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       isActive: currentTab === "limits",
       href: `${url}?tabName=limits`,
       icon: "clock",
-      info: `event_limit_tab_description`,
+      info: t(`event_limit_tab_description`),
     });
 
   tabs.includes("advanced") &&
@@ -170,7 +170,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       isActive: currentTab === "advanced",
       href: `${url}?tabName=advanced`,
       icon: "sliders-vertical",
-      info: `event_advanced_tab_description`,
+      info: t(`event_advanced_tab_description`),
     });
   tabs.includes("payments") &&
     tabsNavigation.push({
@@ -179,7 +179,7 @@ function getNavigation({ length, multipleDuration, t, tabs, url, onClick, curren
       isActive: currentTab === "payments",
       href: `${url}?tabName=payments`,
       icon: "credit-card",
-      info: `event_payments_tab_description`,
+      info: t(`event_payments_tab_description`),
     });
 
   return tabsNavigation;

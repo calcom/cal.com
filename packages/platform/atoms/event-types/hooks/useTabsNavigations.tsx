@@ -83,14 +83,14 @@ export const useTabsNavigations = ({
 
     if (!requirePayment) {
       navigation.splice(3, 0, {
-        name: "recurring",
+        name: t("recurring"),
         href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
         icon: "repeat",
         info: t(`recurring_event_tab_description`),
       });
     }
     navigation.splice(1, 0, {
-      name: "availability",
+      name: t("availability"),
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
       icon: "calendar",
       info:
@@ -109,7 +109,7 @@ export const useTabsNavigations = ({
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
-        name: "assignment",
+        name: t("assignment"),
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
         icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
@@ -121,7 +121,7 @@ export const useTabsNavigations = ({
     if (showInstant) {
       if (team) {
         navigation.push({
-          name: "instant_tab_title",
+          name: t("instant_tab_title"),
           href: `/event-types/${eventType.id}?tabName=instant`,
           icon: "phone-call",
           info: t(`instant_event_tab_description`),
@@ -129,7 +129,7 @@ export const useTabsNavigations = ({
       }
     }
     navigation.push({
-      name: "webhooks",
+      name: t("webhooks"),
       href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
       icon: "webhook",
       info: `${activeWebhooksNumber} ${t("active")}`,
