@@ -150,9 +150,7 @@ export default class SalesforceCRMService implements CRM {
   private getSalesforceUserFromUserId = async (userId: string) => {
     const conn = await this.conn;
 
-    return await conn.query(
-      `SELECT Id, Email, Name FROM User WHERE Id = '${userId}' AND IsActive = true LIMIT 1`
-    );
+    return await conn.query(`SELECT Id, Email, Name FROM User WHERE Id = '${userId}' AND IsActive = true`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -645,10 +643,10 @@ export default class SalesforceCRMService implements CRM {
       let salesforceAttendeeEmail: string | undefined = undefined;
       // Figure out if the attendee is a contact or lead
       const contactQuery = (await conn.query(
-        `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}' LIMIT 1`
+        `SELECT Email FROM Contact WHERE Id = '${salesforceEvent.records[0].WhoId}'`
       )) as { records: { Email: string }[] };
       const leadQuery = (await conn.query(
-        `SELECT Email FROM Lead WHERE Id = '${salesforceEvent.records[0].WhoId}' LIMIT 1`
+        `SELECT Email FROM Lead WHERE Id = '${salesforceEvent.records[0].WhoId}'`
       )) as { records: { Email: string }[] };
 
       // Prioritize contacts over leads
@@ -837,7 +835,7 @@ export default class SalesforceCRMService implements CRM {
 
     // Get the associated record that the event was created on
     const recordQuery = (await conn.query(
-      `SELECT OwnerId, Owner.Name FROM ${recordType} WHERE Id = '${id}' LIMIT 1`
+      `SELECT OwnerId, Owner.Name FROM ${recordType} WHERE Id = '${id}'`
     )) as { records: { OwnerId: string; Owner: { Name: string } }[] };
 
     if (!recordQuery || !recordQuery.records.length) {
@@ -1209,7 +1207,7 @@ export default class SalesforceCRMService implements CRM {
     const existingFieldNames = existingFields.map((field) => field.name);
 
     const query = await conn.query(
-      `SELECT Id, ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}' LIMIT 1`
+      `SELECT Id, ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
     );
 
     if (!query.records.length) {
@@ -1273,7 +1271,7 @@ export default class SalesforceCRMService implements CRM {
       if (!accountId) return;
 
       const accountQuery = (await conn.query(
-        `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}' LIMIT 1`
+        `SELECT ${lookupField.name} FROM ${SalesforceRecordEnum.ACCOUNT} WHERE Id = '${accountId}'`
       )) as {
         records: { [key: string]: any };
       };
