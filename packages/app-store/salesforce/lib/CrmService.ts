@@ -874,7 +874,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE LOWER(Website) = '${emailDomain}' LIMIT 1`
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
