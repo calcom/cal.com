@@ -28,7 +28,7 @@ function BasePhoneInput({ name, className = "", onChange, value, ...rest }: Phon
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
-      defaultCountry={defaultCountry}
+      country={defaultCountry}
       inputProps={{
         name: name,
         required: rest.required,
