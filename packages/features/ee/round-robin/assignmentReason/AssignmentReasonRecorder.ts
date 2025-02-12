@@ -169,4 +169,25 @@ export default class AssignmentReasonRecorder {
       },
     });
   }
+
+  static async rerouting({ bookingId, reroutedByEmail }: { bookingId: number; reroutedByEmail: string }) {
+    const reroutedBy = await prisma.user.findFirst({
+      where: {
+        email: reroutedByEmail,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const reasonString = `Rerouted by: ${reroutedBy?.id || "team member"}. `;
+
+    await prisma.assignmentReason.create({
+      data: {
+        bookingId: bookingId,
+        reasonEnum: AssignmentReasonEnum.REROUTED,
+        reasonString,
+      },
+    });
+  }
 }
