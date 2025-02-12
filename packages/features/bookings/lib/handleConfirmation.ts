@@ -67,6 +67,7 @@ export async function handleConfirmation(args: {
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
+    location: string | null;
   };
   paid?: boolean;
   emailsEnabled?: boolean;
@@ -441,6 +442,7 @@ export async function handleConfirmation(args: {
       booking: {
         startTime: booking.startTime,
         id: booking.id,
+        location: booking.location,
       },
       triggerForUser,
       organizerUser: { id: booking.userId },

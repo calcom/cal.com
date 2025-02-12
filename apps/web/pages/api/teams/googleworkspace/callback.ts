@@ -15,7 +15,7 @@ const stateSchema = z.object({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
