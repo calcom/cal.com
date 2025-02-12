@@ -18,36 +18,21 @@ import {
 } from "@calcom/ui";
 
 import { useDataTable, useFilterValue } from "../../hooks";
+import {
+  CUSTOM_PRESET,
+  CUSTOM_PRESET_VALUE,
+  DEFAULT_PRESET,
+  PRESET_OPTIONS,
+  getDefaultStartDate,
+  getDefaultEndDate,
+  type PresetOption,
+} from "../../lib/dateRange";
 import type { FilterableColumn } from "../../lib/types";
 import { ZDateRangeFilterValue, ColumnFilterType } from "../../lib/types";
-
-type PresetOption = {
-  labelKey: string;
-  i18nOptions?: Record<string, string | number>;
-  value: string;
-};
 
 type DateRangeFilterProps = {
   column: Extract<FilterableColumn, { type: ColumnFilterType.DATE_RANGE }>;
 };
-
-const CUSTOM_PRESET_VALUE = "c" as const;
-
-const DEFAULT_PRESET: PresetOption = {
-  labelKey: "last_number_of_days",
-  i18nOptions: { count: 7 },
-  value: "w",
-};
-const CUSTOM_PRESET: PresetOption = { labelKey: "custom_range", value: CUSTOM_PRESET_VALUE };
-
-const PRESET_OPTIONS: PresetOption[] = [
-  { labelKey: "today", value: "tdy" },
-  DEFAULT_PRESET,
-  { labelKey: "last_number_of_days", i18nOptions: { count: 30 }, value: "t" },
-  { labelKey: "month_to_date", value: "m" },
-  { labelKey: "year_to_date", value: "y" },
-  CUSTOM_PRESET,
-];
 
 const getDateRangeFromPreset = (val: string | null) => {
   let startDate;
@@ -86,10 +71,6 @@ const getDateRangeFromPreset = (val: string | null) => {
 
   return { startDate, endDate, preset };
 };
-
-const getDefaultStartDate = () => dayjs().subtract(1, "week").startOf("day");
-
-const getDefaultEndDate = () => dayjs().endOf("day");
 
 export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   const filterValue = useFilterValue(column.id, ZDateRangeFilterValue);

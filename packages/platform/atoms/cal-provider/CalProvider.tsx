@@ -9,6 +9,7 @@ import type deTranslations from "@calcom/web/public/static/locales/de/common.jso
 import type enTranslations from "@calcom/web/public/static/locales/en/common.json";
 import type esTranslations from "@calcom/web/public/static/locales/es/common.json";
 import type frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import type nlTranslations from "@calcom/web/public/static/locales/nl/common.json";
 import type ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
 import http from "../lib/http";
@@ -19,19 +20,22 @@ export type frTranslationKeys = keyof typeof frTranslations;
 export type deTranslationKeys = keyof typeof deTranslations;
 export type esTranslationKeys = keyof typeof esTranslations;
 export type ptBrTranslationKeys = keyof typeof ptBrTranslations;
+export type nlTranslationKeys = keyof typeof nlTranslations;
 export type translationKeys =
   | enTranslationKeys
   | frTranslationKeys
   | deTranslationKeys
   | esTranslationKeys
-  | ptBrTranslationKeys;
+  | ptBrTranslationKeys
+  | nlTranslationKeys;
 
 const FR = "fr";
 export const EN = "en";
 const PT_BR = "pt-BR";
 const DE = "de";
 const ES = "es";
-export const CAL_PROVIDER_LANGUAUES = [FR, EN, PT_BR, DE, ES] as const;
+const NL = "nl";
+export const CAL_PROVIDER_LANGUAUES = [FR, EN, PT_BR, DE, ES, NL] as const;
 export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAUES)[number];
 
 const queryClient = new QueryClient();
@@ -61,7 +65,12 @@ type i18nEsProps = {
   language?: "es";
 };
 
-export type i18nProps = i18nFrProps | i18nEnProps | i18nPtBrProps | i18nDeProps | i18nEsProps;
+type i18nNlProps = {
+  labels?: Partial<Record<nlTranslationKeys, string>>;
+  language?: "nl";
+};
+
+export type i18nProps = i18nFrProps | i18nEnProps | i18nPtBrProps | i18nDeProps | i18nEsProps | i18nNlProps;
 
 export type CalProviderProps = {
   children?: ReactNode;
