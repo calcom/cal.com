@@ -382,8 +382,7 @@ const getSlots = ({
   datesOutOfOffice,
 }: GetSlots) => {
   if (dateRanges && !organizerTimeZone) {
-    const processStarted = performance.now();
-    const slots = buildSlotsWithDateRanges({
+    return buildSlotsWithDateRanges({
       dateRanges,
       frequency,
       eventLength,
@@ -392,13 +391,9 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
-
-    console.log("buildSlotsWithDateRanges took", performance.now() - processStarted, "ms");
     return slots;
   } else if (dateRanges && organizerTimeZone) {
-    const processStarted = performance.now();
-
-    const slots = buildSlotsWithDateRangesOld({
+    return buildSlotsWithDateRangesOld({
       dateRanges,
       frequency,
       eventLength,
@@ -408,9 +403,6 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
-
-    console.log("buildSlotsWithDateRangesOld took", performance.now() - processStarted, "ms");
-    return slots;
   }
 
   if (!organizerTimeZone) {

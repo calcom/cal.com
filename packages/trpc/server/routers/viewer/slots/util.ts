@@ -327,6 +327,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 
   const loggerWithEventDetails = logger.getSubLogger({
+    type: "json",
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
@@ -448,25 +449,20 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
-  console.log({
-    timeSlots: groupTimeSlotsByDay(timeSlots),
-    timeSlotsNew: groupTimeSlotsByDay(timeSlotsNew),
-    differences: Object.keys({
-      ...groupTimeSlotsByDay(timeSlots),
-      ...groupTimeSlotsByDay(timeSlotsNew),
-    }).reduce((acc, day) => {
-      const times1 = groupTimeSlotsByDay(timeSlots)[day] || [];
-      const times2 = groupTimeSlotsByDay(timeSlotsNew)[day] || [];
+  const ts = groupTimeSlotsByDay(timeSlots),
+    tsNew = groupTimeSlotsByDay(timeSlotsNew);
 
-      const missingInNew = times1.filter((t) => !times2.includes(t));
-      const missingInOld = times2.filter((t) => !times1.includes(t));
-
-      if (missingInNew.length || missingInOld.length) {
-        acc[day] = {
-          onlyInTimeSlots: missingInNew,
-          onlyInTimeSlotsNew: missingInOld,
-        };
-      }
+  loggerWithEventDetails.info({
+    routedTeamMemberIds,
+    timeSlots: ts,
+    timeSlotsNew: tsNew,
+    differences: Object.keys({ ...ts, ...tsNew }).reduce((acc, day) => {
+      const t1 = ts[day] || [],
+        t2 = tsNew[day] || [];
+      const missingInNew = t1.filter((t) => !t2.includes(t));
+      const missingInOld = t2.filter((t) => !t1.includes(t));
+      if (missingInNew.length || missingInOld.length)
+        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
       return acc;
     }, {}),
   });
@@ -607,11 +603,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     );
   });
 
-  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+  loggerWithEventDetails.debug({ slotsMappedToDate });
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
-  loggerWithEventDetails.debug(safeStringify({ availableDates }));
+  loggerWithEventDetails.debug({ availableDates });
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
