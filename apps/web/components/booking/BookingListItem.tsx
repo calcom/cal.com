@@ -68,6 +68,7 @@ type BookingItemProps = BookingItem & {
     userTimeFormat: number | null | undefined;
     userEmail: string | undefined;
   };
+  isToday: boolean;
 };
 
 type ParsedBooking = ReturnType<typeof buildParsedBooking>;
@@ -144,6 +145,7 @@ function BookingListItem(booking: BookingItemProps) {
   const isRecurring = booking.recurringEventId !== null;
   const isTabRecurring = booking.listingStatus === "recurring";
   const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+  const isBookingFromRoutingForm = isBookingReroutable(parsedBooking);
 
   const paymentAppData = getPaymentAppData(booking.eventType);
 
@@ -215,7 +217,7 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const editBookingActions: ActionType[] = [
-    ...(isBookingInPast
+    ...(isBookingInPast && !booking.eventType.allowReschedulingPastBookings
       ? []
       : [
           {
@@ -236,7 +238,7 @@ function BookingListItem(booking: BookingItemProps) {
             },
           },
         ]),
-    ...(isBookingReroutable(parsedBooking)
+    ...(isBookingFromRoutingForm
       ? [
           {
             id: "reroute",
@@ -443,6 +445,7 @@ function BookingListItem(booking: BookingItemProps) {
           setIsOpenDialog={setIsOpenReassignDialog}
           bookingId={booking.id}
           teamId={booking.eventType?.team?.id || 0}
+          bookingFromRoutingForm={isBookingFromRoutingForm}
         />
       )}
       <EditLocationDialog
@@ -511,9 +514,12 @@ function BookingListItem(booking: BookingItemProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <tr data-testid="booking-item" className="hover:bg-muted group transition ">
+      <div
+        data-testid="booking-item"
+        data-today={String(booking.isToday)}
+        className="hover:bg-muted group w-full">
         <div className="flex flex-col sm:flex-row">
-          <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <div className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
             <div className="flex h-full items-center">
               {eventTypeColor && (
                 <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />
@@ -562,8 +568,10 @@ function BookingListItem(booking: BookingItemProps) {
                 </div>
               </Link>
             </div>
-          </td>
-          <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+          </div>
+          <div
+            data-testid="title-and-attendees"
+            className={`w-full px-4${isRejected ? " line-through" : ""}`}>
             <Link href={bookingLink}>
               {/* Time and Badges for mobile */}
               <div className="w-full pb-2 pt-4 sm:hidden">
@@ -648,8 +656,8 @@ function BookingListItem(booking: BookingItemProps) {
                 )}
               </div>
             </Link>
-          </td>
-          <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
+          </div>
+          <div className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
             {isUpcoming && !isCancelled ? (
               <>
                 {isPending && <TableActions actions={pendingActions} />}
@@ -674,7 +682,7 @@ function BookingListItem(booking: BookingItemProps) {
                   <TableActions actions={chargeCardActions} />
                 </div>
               )}
-          </td>
+          </div>
         </div>
         <BookingItemBadges
           booking={booking}
@@ -683,9 +691,9 @@ function BookingListItem(booking: BookingItemProps) {
           userTimeFormat={userTimeFormat}
           userTimeZone={userTimeZone}
         />
-      </tr>
+      </div>
 
-      {isBookingReroutable(parsedBooking) && (
+      {isBookingFromRoutingForm && (
         <RerouteDialog
           isOpenDialog={rerouteDialogIsOpen}
           setIsOpenDialog={setRerouteDialogIsOpen}
@@ -712,7 +720,7 @@ const BookingItemBadges = ({
   const { t } = useLocale();
 
   return (
-    <div className="hidden h-9 flex-row pb-4 pl-6 sm:flex">
+    <div className="hidden h-9 flex-row items-center pb-4 pl-6 sm:flex">
       {isPending && (
         <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
           {t("unconfirmed")}
@@ -1251,11 +1259,9 @@ const AssignmentReasonTooltip = ({ assignmentReason }: { assignmentReason: Assig
   const badgeTitle = assignmentReasonBadgeTitleMap(assignmentReason.reasonEnum);
   return (
     <Tooltip content={<p>{assignmentReason.reasonString}</p>}>
-      <div className="-mt-1">
-        <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-          {t(badgeTitle)}
-        </Badge>
-      </div>
+      <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+        {t(badgeTitle)}
+      </Badge>
     </Tooltip>
   );
 };

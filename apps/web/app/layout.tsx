@@ -10,6 +10,7 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
 const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
@@ -119,7 +120,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             --font-cal: ${calFont.style.fontFamily.replace(/\'/g, "")};
           }
         `}</style>
-        <IconSprites />
       </head>
       <body
         className="dark:bg-darkgray-50 bg-subtle antialiased"
@@ -135,6 +135,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               }
             : {}
         }>
+        <IconSprites />
         {!!process.env.NEXT_PUBLIC_BODY_SCRIPTS && (
           <script
             nonce={nonce}
@@ -145,6 +146,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             }}
           />
         )}
+        <SpeculationRules
+          // URLs In Navigation
+          prerenderPathsOnHover={[
+            "/event-types",
+            "/availability",
+            "/bookings/upcoming",
+            "/teams",
+            "/apps",
+            "/apps/routing-forms/forms",
+            "/workflows",
+            "/insights",
+          ]}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>

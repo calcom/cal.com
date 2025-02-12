@@ -12,7 +12,6 @@ import {
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -68,6 +67,7 @@ import { WorkflowRepository } from "@calcom/lib/server/repository/workflow";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 import {
   eventTypeAppMetadataOptionalSchema,
   eventTypeMetaDataSchemaWithTypedApps,
@@ -277,6 +277,7 @@ const buildDryRunBooking = ({
     ratingFeedback: null,
     noShowHost: null,
     cancelledBy: null,
+    creationSource: CreationSource.WEBAPP,
   } as CreatedBooking;
 
   /**
@@ -1195,6 +1196,7 @@ async function handler(
         },
         evt,
         originalRescheduledBooking,
+        creationSource: req.body.creationSource,
       });
 
       if (booking?.userId) {
@@ -1852,10 +1854,14 @@ async function handler(
     }
 
     if (booking && booking.status === BookingStatus.ACCEPTED) {
+      const bookingWithCalEventResponses = {
+        ...booking,
+        responses: reqBody.calEventResponses,
+      };
       for (const subscriber of subscribersMeetingEnded) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -1867,7 +1873,7 @@ async function handler(
       for (const subscriber of subscribersMeetingStarted) {
         scheduleTriggerPromises.push(
           scheduleTrigger({
-            booking,
+            booking: bookingWithCalEventResponses,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
@@ -1976,9 +1982,9 @@ async function handler(
   }
 
   try {
-    if (isConfirmedByDefault && (booking.location === DailyLocationType || booking.location?.trim() === "")) {
+    if (isConfirmedByDefault) {
       await monitorCallbackAsync(scheduleNoShowTriggers, {
-        booking: { startTime: booking.startTime, id: booking.id },
+        booking: { startTime: booking.startTime, id: booking.id, location: booking.location },
         triggerForUser,
         organizerUser: { id: organizerUser.id },
         eventTypeId,

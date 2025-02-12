@@ -18,10 +18,10 @@ export default function Payment(props: { calUsername: string; calEmail: string }
       <Navbar username={props.calUsername} />
       <PaymentForm
         paymentUid={uid ?? ""}
-        onPaymentSuccess={(data) => {
+        onPaymentSuccess={() => {
           router.push("/bookings");
         }}
-        onPaymentCancellation={(data) => {
+        onPaymentCancellation={() => {
           router.back();
         }}
       />

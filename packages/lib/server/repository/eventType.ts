@@ -441,6 +441,17 @@ export class EventTypeRepository {
     });
   }
 
+  static async findTitleById({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        title: true,
+      },
+    });
+  }
+
   static async findById({ id, userId }: { id: number; userId: number }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -477,6 +488,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -502,6 +514,7 @@ export class EventTypeRepository {
       showOptimizedSlots: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      allowReschedulingPastBookings: true,
       assignRRMembersUsingSegment: true,
       rrSegmentQueryValue: true,
       isRRWeightsEnabled: true,
@@ -785,6 +798,7 @@ export class EventTypeRepository {
         periodStartDate: true,
         periodEndDate: true,
         onlyShowFirstAvailableSlot: true,
+        allowReschedulingPastBookings: true,
         showOptimizedSlots: true,
         periodCountCalendarDays: true,
         rescheduleWithSameRoundRobinHost: true,

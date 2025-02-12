@@ -68,12 +68,6 @@
           ]
         },
         {
-          "group": "Calendars",
-          "icon": "<i class='fa-light fa-calendar' style='color: #cfd2d8;'></i>",
-          "iconType": "custom",
-          "pages": ["calendars/how-to-add-google-calendar", "calendars/how-to-add-apple-calendar"]
-        },
-        {
           "group": "Event Types",
           "icon": "calendar",
           "iconType": "solid",
@@ -164,15 +158,22 @@
             "apps-and-integrations/assign-people",
             "apps-and-integrations/build-greeter-app",
             "apps-and-integrations/how-to-build-an-app",
-            "apps-and-integrations/syncing-third-party"
+            "apps-and-integrations/syncing-third-party",
+            "apps-and-integrations/attio"
           ]
+        },
+        {
+          "group": "Developers",
+          "icon": "terminal",
+          "iconType": "solid",
+          "pages": ["apps-and-integrations/oauth", "apps-and-integrations/open-source", "webhooks"]
         }
       ]
     }
   ],
   "footerSocials": {
-    "twitter": "https://twitter.com/calcom?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor",
-    "linkedin": "https://www.linkedin.com/company/cal-com/",
-    "discord": "https://discord.com/invite/calcom"
+    "x": "https://x.com/calcom",
+    "github": "https://github.com/calcom",
+    "linkedin": "https://www.linkedin.com/company/cal-com"
   }
 }

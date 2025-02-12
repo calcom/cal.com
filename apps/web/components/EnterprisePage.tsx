@@ -42,7 +42,7 @@ export default function EnterprisePage() {
   ];
   return (
     <div>
-      <Shell heading={t("enterprise")} subtitle={t("enterprise_description")}>
+      <Shell heading={t("enterprise")} subtitle={t("enterprise_description")} withoutSeo={true}>
         <UpgradeTip
           plan="enterprise"
           title={t("create_your_org")}

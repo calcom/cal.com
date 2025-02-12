@@ -6,7 +6,7 @@ import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-us
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ConflictException, Injectable } from "@nestjs/common";
-import { User } from "@prisma/client";
+import { User, CreationSource } from "@prisma/client";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
@@ -46,6 +46,7 @@ export class OAuthClientUsersService {
               role: "MEMBER",
             },
           ],
+          creationSource: CreationSource.API_V2,
           teamId: organizationId,
           isOrg: true,
           parentId: null,

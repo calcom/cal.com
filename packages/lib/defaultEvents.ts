@@ -88,6 +88,7 @@ const commons = {
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
   onlyShowFirstAvailableSlot: false,
+  allowReschedulingPastBookings: false,
   showOptimizedSlots: false,
   id: 0,
   hideCalendarNotes: false,
@@ -109,6 +110,7 @@ const commons = {
   workflows: [],
   users: [user],
   hosts: [],
+  subsetOfHosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
   bookingFields: [],
   assignAllTeamMembers: false,
@@ -179,7 +181,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
   // So, even though this code handles even if individual user is dynamic link, that isn't a possibility right now.
   users = arrayCast(users);
 
-  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/g, "+").split("+")).flat();
+  const allUsers = users.map((user) => user.replace(/( |%20|%2b)/gi, "+").split("+")).flat();
   return Array.prototype.concat(...allUsers.map((userSlug) => slugify(userSlug)));
 };
 
