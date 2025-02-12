@@ -1636,6 +1636,12 @@ model PlatformBilling {
   billingCycleEnd   Int?
   overdue           Boolean? @default(false)
 
+  // note(Lauris): in case of a platform managed organization's billing record this field points to the manager organization's billing record.
+  managerBillingId Int?
+  managerBilling   PlatformBilling?  @relation("ManagedBilling", fields: [managerBillingId], references: [id])
+  // note(Lauris): in case of a manager organization's billing record this field points to billing records of its platform managed organizations.
+  managedBillings  PlatformBilling[] @relation("ManagedBilling")
+
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
