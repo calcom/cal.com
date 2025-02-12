@@ -396,6 +396,12 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(createdAtDate.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
               expect(createdAtDate.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
 
+              // Check updatedAt date is between the time of the request and after the request
+              expect(data.updatedAt).toBeDefined();
+              const updatedAtDate = data.updatedAt ? new Date(data.updatedAt) : null;
+              expect(updatedAtDate?.getTime()).toBeGreaterThanOrEqual(beforeCreate.getTime());
+              expect(updatedAtDate?.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
+
               expect(data.metadata).toEqual(body.metadata);
               createdBooking = data;
             } else {
@@ -869,7 +875,63 @@ describe("Bookings Endpoints 2024-08-13", () => {
 
       it("should should get bookings by before specified end time", async () => {
         return request(app.getHttpServer())
-          .get(`/v2/bookings?afterStart=${createdRecurringBooking[0].start}`)
+          .get(`/v2/bookings?beforeEnd=${createdRecurringBooking[0].end}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+          });
+      });
+
+      it("should should get bookings after specified update time", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?afterUpdatedAt=${createdRecurringBooking[1].updatedAt}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+          });
+      });
+
+      it("should should get bookings before specified update time", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?beforeUpdatedAt=${createdRecurringBooking[0].updatedAt}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(3);
+          });
+      });
+
+      it("should should get bookings in update range", async () => {
+        return request(app.getHttpServer())
+          .get(
+            `/v2/bookings?afterUpdatedAt=${createdRecurringBooking[0].updatedAt}&beforeUpdatedAt=${createdRecurringBooking[2].updatedAt}`
+          )
           .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
           .expect(200)
           .then(async (response) => {
@@ -1002,6 +1064,46 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(data.length).toEqual(2);
             expect(data[0].start).toEqual(bookingInThePast.startTime.toISOString());
             expect(data[1].start).toEqual(createdBooking.start);
+          });
+      });
+
+      it("should should sort bookings by updated in descending order", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=desc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data[0].updatedAt).toEqual(createdBooking.updatedAt);
+            expect(data[1].updatedAt).toEqual(bookingInThePast.updatedAt?.toISOString());
+          });
+      });
+
+      it("should should sort bookings by updated in ascending order", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings?eventTypeId=${eventTypeId}&sortUpdatedAt=asc`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingsOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            const data: (
+              | BookingOutput_2024_08_13
+              | RecurringBookingOutput_2024_08_13
+              | GetSeatedBookingOutput_2024_08_13
+            )[] = responseBody.data;
+            expect(data.length).toEqual(2);
+            expect(data[0].updatedAt).toEqual(bookingInThePast.updatedAt?.toISOString());
+            expect(data[1].updatedAt).toEqual(createdBooking.updatedAt);
           });
       });
     });

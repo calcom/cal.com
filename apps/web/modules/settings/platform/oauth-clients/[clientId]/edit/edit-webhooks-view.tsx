@@ -126,12 +126,7 @@ export default function EditOAuthClientWebhooks() {
 
   return (
     <div>
-      <Shell
-        withoutSeo={true}
-        isPlatformUser={true}
-        hideHeadingOnMobile
-        withoutMain={false}
-        SidebarContainer={<></>}>
+      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

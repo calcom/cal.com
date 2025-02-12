@@ -1,23 +1,19 @@
 import classNames from "classnames";
 
-import { HeadSeo, Logo } from "@calcom/ui";
+import { Logo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
 
 interface Props {
-  title: string;
-  description: string;
   footerText?: React.ReactNode | string;
   showLogo?: boolean;
   heading?: string;
   loading?: boolean;
-  isAppDir?: boolean;
 }
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
   return (
     <div className="bg-subtle dark:bg-darkgray-50 flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {!props.isAppDir ? <HeadSeo title={props.title} description={props.description} /> : null}
       {props.showLogo && <Logo small inline={false} className="mx-auto mb-auto" />}
 
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>

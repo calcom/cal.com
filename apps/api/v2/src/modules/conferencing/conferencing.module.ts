@@ -1,6 +1,6 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { ConferencingController } from "@/modules/conferencing/controllers/conferencing.controller";
-import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.respository";
+import { ConferencingRepository } from "@/modules/conferencing/repositories/conferencing.repository";
 import { ConferencingService } from "@/modules/conferencing/services/conferencing.service";
 import { GoogleMeetService } from "@/modules/conferencing/services/google-meet.service";
 import { Office365VideoService } from "@/modules/conferencing/services/office365-video.service";

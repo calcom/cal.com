@@ -4,8 +4,10 @@ import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-type TimeSlots = { slots: Record<string, { time: string }[]> };
-type RangeSlots = { slots: Record<string, { startTime: string; endTime: string }[]> };
+type TimeSlots = { slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]> };
+type RangeSlots = {
+  slots: Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>;
+};
 
 @Injectable()
 export class SlotsOutputService {
@@ -30,6 +32,8 @@ export class SlotsOutputService {
     const formattedSlots = Object.entries(slots.slots).reduce((acc, [date, daySlots]) => {
       acc[date] = daySlots.map((slot) => ({
         time: DateTime.fromISO(slot.time).setZone(timeZone).toISO() || "unknown-time",
+        ...(slot.attendees ? { attendees: slot.attendees } : {}),
+        ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
       }));
       return acc;
     }, {} as Record<string, { time: string }[]>);
@@ -42,6 +46,8 @@ export class SlotsOutputService {
       acc[date] = daySlots.map((slot) => ({
         startTime: DateTime.fromISO(slot.startTime).setZone(timeZone).toISO() || "unknown-start-time",
         endTime: DateTime.fromISO(slot.endTime).setZone(timeZone).toISO() || "unknown-end-time",
+        ...(slot.attendees ? { attendees: slot.attendees } : {}),
+        ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
       }));
       return acc;
     }, {} as Record<string, { startTime: string; endTime: string }[]>);
@@ -62,14 +68,16 @@ export class SlotsOutputService {
     const slotDuration = await this.getDuration(duration, eventTypeId);
 
     const slots = Object.entries(availableSlots.slots).reduce<
-      Record<string, { startTime: string; endTime: string }[]>
+      Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>
     >((acc, [date, slots]) => {
-      acc[date] = (slots as { time: string }[]).map((slot) => {
+      acc[date] = (slots as { time: string; attendees?: number; bookingUid?: string }[]).map((slot) => {
         const startTime = new Date(slot.time);
         const endTime = new Date(startTime.getTime() + slotDuration * 60000);
         return {
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
+          ...(slot.attendees ? { attendees: slot.attendees } : {}),
+          ...(slot.bookingUid ? { bookingUid: slot.bookingUid } : {}),
         };
       });
       return acc;

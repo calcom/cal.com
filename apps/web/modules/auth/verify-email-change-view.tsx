@@ -34,7 +34,7 @@ function VerifyEmailChange(props: PageProps) {
         showToast(t("verify_email_change_failure_toast"), "error");
       }
     }
-    // We only need this to run on inital mount. These props can't and won't change due to it being fetched serveside.
+    // We only need this to run on initial mount. These props can't and won't change due to it being fetched serverside.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -13,6 +13,7 @@ export const ClearFiltersButton = ({ exclude }: { exclude?: string[] }) => {
   return (
     <Tooltip content={t("clear_filters")}>
       <Button
+        data-testid="clear-filters-button"
         variant="icon"
         color="secondary"
         target="_blank"

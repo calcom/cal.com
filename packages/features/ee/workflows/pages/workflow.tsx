@@ -320,7 +320,6 @@ function WorkflowPage({
                 </div>
               )
             }
-            hideHeadingOnMobile
             heading={
               isAllDataLoaded && (
                 <div className="flex">

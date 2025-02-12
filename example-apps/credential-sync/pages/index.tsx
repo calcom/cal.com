@@ -6,8 +6,8 @@ export default function Index() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const appSlug = searchParams.get("appSlug");
-  const userId = searchParams.get("userId");
+  const appSlug = searchParams?.get("appSlug");
+  const userId = searchParams?.get("userId");
 
   useEffect(() => {
     let isRedirectNeeded = false;

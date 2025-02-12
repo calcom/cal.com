@@ -33,5 +33,3 @@ export default function Type({
     </main>
   );
 }
-
-Type.isBookingPage = true;

@@ -74,7 +74,6 @@ const ManagedUsersView = () => {
       subtitle={t("managed_users_description")}
       title={t("managed_users")}
       description={t("managed_users_description")}
-      hideHeadingOnMobile
       withoutMain={false}
       isPlatformUser={true}>
       <Skeleton as={Label} loadingClassName="w-16" title={t("select_oAuth_client")}>

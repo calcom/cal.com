@@ -106,7 +106,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       bookRef.meetingPassword = guestMeetingPassword;
     });
   }
-  // Only for backward compatibility and setting user id in particpants for organizer
+  // Only for backward compatibility and setting user id in participants for organizer
   else {
     const meetingPassword = await setEnableRecordingUIAndUserIdForOrganizer(
       oldVideoReference.id,

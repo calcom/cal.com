@@ -428,6 +428,7 @@ export const getPublicEvent = async (
     orgDetails = await prisma.team.findFirst({
       where: {
         slug: org,
+        parentId: null,
       },
       select: {
         logoUrl: true,

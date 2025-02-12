@@ -42,7 +42,7 @@ const PlatformMembersView = () => {
   if (!isPlatformUser)
     return (
       <div>
-        <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+        <Shell isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
           <NoPlatformPlan />
         </Shell>
       </div>
@@ -65,7 +65,6 @@ const PlatformMembersView = () => {
       }
       title={t("platform_members")}
       subtitle={t("platform_members_description")}
-      hideHeadingOnMobile
       withoutMain={false}
       isPlatformUser={true}>
       <div>{!isPending && canLoggedInUserSeeMembers && <UserListTable />}</div>

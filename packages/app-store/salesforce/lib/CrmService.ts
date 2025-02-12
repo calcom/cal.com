@@ -139,7 +139,9 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true`);
+    const query = await conn.query(
+      `SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true LIMIT 1`
+    );
     if (query.records.length > 0) {
       return (query.records[0] as { Email: string; Id: string }).Id;
     }
@@ -191,7 +193,7 @@ export default class SalesforceCRMService implements CRM {
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
-      this.log.warn("salesforceCreateEvent: No organizer email found for event", event.uid, event?.organizer);
+      log.warn("No organizer email found for event", event?.organizer);
     }
 
     /**
@@ -201,7 +203,7 @@ export default class SalesforceCRMService implements CRM {
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
+      log.warn("No contacts found for event", contacts);
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -230,14 +232,14 @@ export default class SalesforceCRMService implements CRM {
         // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
         // proceeding to create the event using just the first attendee as the primary WhoId
         return await this.salesforceCreateEventApiCall(event, {
-          WhoId: firstContact,
+          WhoId: firstContact.id,
         }).catch((reason) => Promise.reject(reason));
       }
       log.error(`Error creating event: ${JSON.stringify(reason)}`);
 
       // Try creating a simple object without additional records
       return await this.salesforceCreateEventApiCall(event, {
-        EventWhoIds: eventWhoIds,
+        WhoId: firstContact.id,
         ...(ownerId && { OwnerId: ownerId }),
       }).catch((reason) => {
         log.error(`Error creating simple event: ${JSON.stringify(reason)}`);
@@ -250,7 +252,7 @@ export default class SalesforceCRMService implements CRM {
         // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
         await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
       } else {
-        this.log.warn(
+        log.warn(
           `Could not find owner with email ${event.organizer.email} to change record ${firstContact.id} ownership to`
         );
       }
@@ -512,15 +514,13 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
             accountId,
             organizerId,
           });
-
-          if (createdContacts.length > 0) {
+          if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
         }
@@ -546,7 +546,6 @@ export default class SalesforceCRMService implements CRM {
       const attendee = contactsToCreate[0];
 
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
@@ -555,8 +554,7 @@ export default class SalesforceCRMService implements CRM {
           accountId,
           organizerId,
         });
-
-        if (createdContacts.length > 0) {
+        if (createdAccountContacts.length > 0) {
           createdContacts.push(...createdAccountContacts);
           contactCreated = true;
         }
@@ -564,7 +562,9 @@ export default class SalesforceCRMService implements CRM {
 
       if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
-        const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
+        const leadQuery = await conn.query(
+          `SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}' LIMIT 1`
+        );
         if (leadQuery.records.length) {
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
@@ -847,14 +847,18 @@ export default class SalesforceCRMService implements CRM {
     }
 
     await conn
-      .sobject(appOptions?.createEventOn)
+      .sobject(recordType)
       .update({
         // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
       })
       .catch((error) => {
-        this.log.warn(`Error changing owner name with error ${JSON.stringify(error)}`);
+        this.log.warn(
+          `Error changing record ${id} of type ${recordType} owner to ${newOwnerId} with error ${JSON.stringify(
+            error
+          )}`
+        );
       });
   }
 
@@ -864,7 +868,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -886,7 +890,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -1222,7 +1226,9 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     // First see if the contact already exists and connect it to the account
-    const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+    const userQuery = await conn.query(
+      `SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}' LIMIT 1`
+    );
     if (userQuery.records.length) {
       const contact = userQuery.records[0] as { Id: string; Email: string };
       await conn.sobject(SalesforceRecordEnum.CONTACT).update({
@@ -1319,41 +1325,19 @@ export default class SalesforceCRMService implements CRM {
   ) {
     const conn = await this.conn;
 
-    let personRecord: { Id: string; Email: string; recordType: SalesforceRecordEnum } | null = null;
-
     // Prioritize contacts over leads
-    const contactsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}'`
-    );
-
-    if (contactsQuery.records.length) {
-      personRecord = {
-        ...(contactsQuery.records[0] as { Id: string; Email: string }),
-        recordType: SalesforceRecordEnum.CONTACT,
-      };
-    }
-
-    const leadsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}'`
-    );
-
-    if (leadsQuery.records.length) {
-      personRecord = {
-        ...(leadsQuery.records[0] as { Id: string; Email: string }),
-        recordType: SalesforceRecordEnum.LEAD,
-      };
-    }
+    const personRecord = await this.findProspectByEmail(email);
 
     if (!personRecord) {
       this.log.info(`No contact or lead found for email ${email}`);
       // No salesforce entity to update, skip and report success (unrecoverable)
       return;
     }
+
+    const recordType = this.determineRecordTypeById(personRecord.Id);
+
     // Ensure the fields exist on the record
-    const existingFields = await this.ensureFieldsExistOnObject(
-      Object.keys(writeToRecordObject),
-      personRecord.recordType
-    );
+    const existingFields = await this.ensureFieldsExistOnObject(Object.keys(writeToRecordObject), recordType);
 
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
@@ -1361,7 +1345,7 @@ export default class SalesforceCRMService implements CRM {
       onBookingWriteToRecordFields: writeToRecordObject,
     });
     await conn
-      .sobject(personRecord.recordType)
+      .sobject(recordType)
       .update({
         Id: personRecord.Id,
         ...writeOnRecordBody,
@@ -1390,6 +1374,37 @@ export default class SalesforceCRMService implements CRM {
       default:
         this.log.warn(`Unhandled record id type ${id}`);
         return SalesforceRecordEnum.CONTACT;
+    }
+  }
+
+  /** Prioritizes contacts over leads */
+  private async findProspectByEmail(email: string) {
+    const contact = await this.findContactByEmail(email);
+    if (contact) return contact;
+    const lead = await this.findLeadByEmail(email);
+    if (lead) return lead;
+    return null;
+  }
+
+  private async findContactByEmail(email: string) {
+    const conn = await this.conn;
+    const contactsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (contactsQuery.records.length > 0) {
+      return contactsQuery.records[0] as { Id: string; Email: string };
+    }
+  }
+
+  private async findLeadByEmail(email: string) {
+    const conn = await this.conn;
+    const leadsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (leadsQuery.records.length > 0) {
+      return leadsQuery.records[0] as { Id: string; Email: string };
     }
   }
 }

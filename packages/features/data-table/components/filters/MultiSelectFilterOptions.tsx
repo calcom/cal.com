@@ -28,7 +28,7 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
-    <Command>
+    <Command data-testid={`multi-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>

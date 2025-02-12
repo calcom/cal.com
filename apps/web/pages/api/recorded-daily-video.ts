@@ -158,6 +158,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const bookingReference = await getBookingReference(room);
       const booking = await getBooking(bookingReference.bookingId as number);
 
+      if (!booking.eventType?.canSendCalVideoTranscriptionEmails) {
+        return res.status(200).json({
+          message: `Transcription emails are disabled for this event type ${booking.eventTypeId}`,
+        });
+      }
+
       const transcripts = await getAllTranscriptsAccessLinkFromMeetingId(meeting_id);
 
       if (!transcripts || !transcripts.length)

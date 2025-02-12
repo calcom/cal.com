@@ -1,6 +1,7 @@
 import { cardExamples } from "@pages/api/plain/example-cards";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -26,7 +27,7 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-async function handler(request: Request) {
+async function handler(request: NextRequest) {
   const headersList = headers();
   const requestBody = await request.json();
 
@@ -38,7 +39,7 @@ async function handler(request: Request) {
     .digest("hex");
 
   if (incomingSignature !== expectedSignature) {
-    return new Response("Forbidden", { status: 403 });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Validate request body

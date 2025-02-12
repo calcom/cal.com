@@ -12,8 +12,7 @@ export function ShellMainAppDir(props: LayoutProps) {
         <div
           className={classNames(
             "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && <ShellMainAppDirBackButton backPath={props.backPath} />}
           {props.heading && (
@@ -21,13 +20,15 @@ export function ShellMainAppDir(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
+                className={classNames(
+                  "hidden w-full truncate ltr:mr-4 rtl:ml-4 md:block",
+                  props.headerClassName
+                )}>
                 {props.heading && (
                   <h3
                     className={classNames(
                       "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
+                      props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {props.heading}
                   </h3>

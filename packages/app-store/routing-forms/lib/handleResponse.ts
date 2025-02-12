@@ -15,7 +15,7 @@ import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
 
-type Form = SerializableForm<
+export type Form = SerializableForm<
   App_RoutingForms_Form & {
     user: {
       id: number;

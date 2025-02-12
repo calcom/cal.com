@@ -169,4 +169,19 @@ export class CreateBookingInput_2024_04_15 {
       label?: string | undefined;
     }
   >;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  teamMemberEmail?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  crmAppSlug?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiPropertyOptional()
+  crmOwnerRecordType?: string;
 }

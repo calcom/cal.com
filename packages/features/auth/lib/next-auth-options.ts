@@ -944,6 +944,12 @@ export const getOptions = ({
                 identityProviderId: account.providerAccountId,
               },
             });
+
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail.email);
+            } else {
+              return true;
+            }
           }
 
           return "/auth/error?error=use-identity-login";
@@ -952,35 +958,39 @@ export const getOptions = ({
         // Associate with organization if enabled by flag and idP is Google (for now)
         const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
 
-        const newUser = await prisma.user.create({
-          data: {
-            // Slugify the incoming name and append a few random characters to
-            // prevent conflicts for users with the same name.
-            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-            emailVerified: new Date(Date.now()),
-            name: user.name,
-            ...(user.image && { avatarUrl: user.image }),
-            email: user.email,
-            identityProvider: idP,
-            identityProviderId: account.providerAccountId,
-            ...(orgId && {
-              verified: true,
-              organization: { connect: { id: orgId } },
-              teams: {
-                create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
-              },
-            }),
-            creationSource: CreationSource.WEBAPP,
-          },
-        });
+        try {
+          const newUser = await prisma.user.create({
+            data: {
+              // Slugify the incoming name and append a few random characters to
+              // prevent conflicts for users with the same name.
+              username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
+              emailVerified: new Date(Date.now()),
+              name: user.name,
+              ...(user.image && { avatarUrl: user.image }),
+              email: user.email,
+              identityProvider: idP,
+              identityProviderId: account.providerAccountId,
+              ...(orgId && {
+                verified: true,
+                organization: { connect: { id: orgId } },
+                teams: {
+                  create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
+                },
+              }),
+              creationSource: CreationSource.WEBAPP,
+            },
+          });
+          const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
+          await calcomAdapter.linkAccount(linkAccountNewUserData);
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
-        await calcomAdapter.linkAccount(linkAccountNewUserData);
-
-        if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser.email);
-        } else {
-          return true;
+          if (account.twoFactorEnabled) {
+            return loginWithTotp(newUser.email);
+          } else {
+            return true;
+          }
+        } catch (err) {
+          log.error("Error creating a new user", err);
+          return "/auth/error?error=use-identity-login";
         }
       }
 

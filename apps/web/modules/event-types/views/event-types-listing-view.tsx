@@ -934,12 +934,8 @@ const InfiniteScrollMain = ({
 
   return (
     <>
-      {eventTypeGroups.length >= 1 && (
-        <>
-          <HorizontalTabs tabs={tabs} />
-          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
-        </>
-      )}
+      {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
+      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}

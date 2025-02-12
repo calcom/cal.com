@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { getServerErrorFromUnknown } from "./getServerErrorFromUnknown";
 
 export const apiRouteMiddleware =
-  (handler: (req: Request, res?: Response) => Promise<Response>) =>
+  (handler: (req: NextRequest, res?: NextResponse) => Promise<NextResponse>) =>
   async (req: NextRequest, res: NextResponse) => {
     try {
       return await handler(req, res);

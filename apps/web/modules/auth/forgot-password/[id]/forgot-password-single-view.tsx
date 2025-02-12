@@ -73,11 +73,7 @@ export default function Page({ requestId, isRequestExpired, csrfToken }: PagePro
   };
 
   return (
-    <AuthContainer
-      showLogo
-      title={t("reset_password")}
-      description={t("change_your_password")}
-      heading={!success ? t("reset_password") : undefined}>
+    <AuthContainer showLogo heading={!success ? t("reset_password") : undefined}>
       {isRequestExpired && <Expired />}
       {!isRequestExpired && !success && (
         <>

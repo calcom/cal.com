@@ -201,6 +201,22 @@ export async function getBookings({
     };
   }
 
+  if (filters?.afterUpdatedDate) {
+    bookingWhereInputFilters.afterUpdatedDate = {
+      updatedAt: {
+        gte: dayjs.utc(filters.afterUpdatedDate).toDate(),
+      },
+    };
+  }
+
+  if (filters?.beforeUpdatedDate) {
+    bookingWhereInputFilters.beforeUpdatedDate = {
+      updatedAt: {
+        lte: dayjs.utc(filters.beforeUpdatedDate).toDate(),
+      },
+    };
+  }
+
   const filtersCombined: Prisma.BookingWhereInput[] = !filters
     ? []
     : Object.keys(filters)

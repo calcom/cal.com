@@ -71,7 +71,6 @@ export default function Platform() {
             subtitle={t("platform_description")}
             title={t("platform")}
             description={t("platform_description")}
-            hideHeadingOnMobile
             withoutSeo={true}
             withoutMain={false}
             isPlatformUser={true}>
@@ -89,7 +88,6 @@ export default function Platform() {
         // we want to hide org banner and have different sidebar tabs for platform clients
         // hence we pass isPlatformUser boolean as prop
         isPlatformUser={true}
-        hideHeadingOnMobile
         withoutMain={false}
         withoutSeo={true}
         SidebarContainer={<></>}>

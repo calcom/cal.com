@@ -722,7 +722,6 @@ export default function SettingsLayoutAppDirClient({
     <Shell
       withoutSeo={true}
       flexChildrenContainer
-      hideHeadingOnMobile
       {...rest}
       SidebarContainer={
         <SidebarContainerElement

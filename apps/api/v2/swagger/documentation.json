@@ -63,98 +63,6 @@
         ]
       }
     },
-    "/v2/gcal/oauth/auth-url": {
-      "get": {
-        "operationId": "GcalController_redirect",
-        "summary": "Get auth URL",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalAuthUrlOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
-    "/v2/gcal/oauth/save": {
-      "get": {
-        "operationId": "GcalController_save",
-        "summary": "Connect a calendar",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalSaveRedirectOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
-    "/v2/gcal/check": {
-      "get": {
-        "operationId": "GcalController_check",
-        "summary": "Check a calendar connection status",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalCheckOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
@@ -3478,6 +3386,26 @@
             }
           },
           {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortStart",
             "required": false,
             "in": "query",
@@ -3511,6 +3439,20 @@
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
             "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
               "enum": [
                 "asc",
@@ -5649,6 +5591,14 @@
                 "range",
                 "time"
               ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "schema": {
               "type": "string"
             }
           }
@@ -10580,10 +10530,7 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
-        },
-        "required": [
-          "lengthInMinutesOptions"
-        ]
+        }
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -13015,10 +12962,7 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        },
-        "required": [
-          "lengthInMinutesOptions"
-        ]
+        }
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -14304,64 +14248,6 @@
           "data"
         ]
       },
-      "AuthUrlData": {
-        "type": "object",
-        "properties": {
-          "authUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "authUrl"
-        ]
-      },
-      "GcalAuthUrlOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/AuthUrlData"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GcalSaveRedirectOutput": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "url"
-        ]
-      },
-      "GcalCheckOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
       "ProviderVerifyClientData": {
         "type": "object",
         "properties": {
@@ -15370,9 +15256,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15414,6 +15308,10 @@
             "example": true
           },
           "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "updatedAt": {
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
@@ -15462,6 +15360,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses"
         ]
@@ -15505,9 +15404,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15549,6 +15456,10 @@
             "example": true
           },
           "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "updatedAt": {
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
@@ -15601,6 +15512,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses",
           "recurringBookingUid"
@@ -15743,9 +15655,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15790,6 +15710,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -15822,6 +15746,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees"
         ]
@@ -15865,9 +15790,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15912,6 +15845,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -15948,6 +15885,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees",
           "recurringBookingUid"
@@ -16032,9 +15970,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -16079,6 +16025,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -16107,6 +16057,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees"
         ]
       },
@@ -16149,9 +16100,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -16196,6 +16155,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -16228,6 +16191,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "recurringBookingUid"
         ]

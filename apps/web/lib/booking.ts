@@ -30,6 +30,7 @@ export const getEventTypesFromDB = async (id: number) => {
       eventName: true,
       recurringEvent: true,
       requiresConfirmation: true,
+      canSendCalVideoTranscriptionEmails: true,
       userId: true,
       successRedirectUrl: true,
       customInputs: true,

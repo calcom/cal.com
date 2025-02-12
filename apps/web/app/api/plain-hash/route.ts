@@ -1,4 +1,5 @@
 import { createHmac } from "crypto";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -14,16 +15,16 @@ const responseSchema = z.object({
   chatAvatarUrl: z.string(),
 });
 
-async function handler(request: Request) {
+async function handler(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const session = await getServerSession({ req: request as any });
   if (!session?.user?.email) {
-    return new Response("Unauthorized - No session email found", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - No session email found" }, { status: 401 });
   }
 
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
   if (!secret) {
-    return new Response("Missing Plain Chat secret", { status: 500 });
+    return NextResponse.json({ error: "Missing Plain Chat secret" }, { status: 500 });
   }
 
   const hmac = createHmac("sha256", secret);

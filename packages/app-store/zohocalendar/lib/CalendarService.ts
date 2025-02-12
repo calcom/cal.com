@@ -405,6 +405,7 @@ export default class ZohoCalendarService implements Calendar {
     try {
       const resp = await this.fetcher(`/calendars`);
       const data = (await this.handleData(resp, this.log)) as ZohoCalendarListResp;
+      const userInfo = await this.getUserInfo();
       const result = data.calendars
         .filter((cal) => {
           if (cal.privilege === "owner") {
@@ -418,7 +419,7 @@ export default class ZohoCalendarService implements Calendar {
             integration: this.integrationName,
             name: cal.name || "No calendar name",
             primary: cal.isdefault,
-            email: cal.uid ?? "",
+            email: userInfo.Email ?? "",
           };
           return calendar;
         });
@@ -436,7 +437,7 @@ export default class ZohoCalendarService implements Calendar {
           integration: this.integrationName,
           name: cal.name || "No calendar name",
           primary: cal.isdefault,
-          email: cal.uid ?? "",
+          email: userInfo.Email ?? "",
         };
         return calendar;
       });

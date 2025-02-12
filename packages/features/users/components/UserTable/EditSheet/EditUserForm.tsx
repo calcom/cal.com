@@ -392,7 +392,7 @@ function AttributesList(props: { selectedUserId: number }) {
                                 <>
                                   <div key={option.value} className="flex items-center justify-between">
                                     <Label
-                                      htmlFor={`attributes.${index}.otions.${idx}.weight`}
+                                      htmlFor={`attributes.${index}.options.${idx}.weight`}
                                       className="text-subtle">
                                       {option.label}
                                     </Label>

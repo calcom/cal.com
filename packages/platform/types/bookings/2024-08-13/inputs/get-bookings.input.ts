@@ -152,6 +152,26 @@ export class GetBookingsInput_2024_08_13 {
   })
   beforeEnd?: string;
 
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "fromDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings that have been updated after this date string.",
+    example: "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+  })
+  afterUpdatedAt?: string;
+
+  @IsOptional()
+  @IsISO8601({ strict: true }, { message: "toDate must be a valid ISO 8601 date." })
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter bookings that have been updated before this date string.",
+    example: "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+  })
+  beforeUpdatedAt?: string;
+
   // note(Lauris): sort
   @IsOptional()
   @IsEnum(SortOrder, {
@@ -189,6 +209,19 @@ export class GetBookingsInput_2024_08_13 {
     enum: SortOrder,
   })
   sortCreated?: SortOrderType;
+
+  @IsOptional()
+  @IsEnum(SortOrder, {
+    message: 'SortCreated must be either "asc" or "desc".',
+  })
+  @ApiProperty({
+    required: false,
+    description:
+      "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+    example: "?sortUpdated=asc OR ?sortUpdated=desc",
+    enum: SortOrder,
+  })
+  sortUpdatedAt?: SortOrderType;
 
   // note(Lauris): pagination
   @ApiProperty({ required: false, description: "The number of items to return", example: 10 })

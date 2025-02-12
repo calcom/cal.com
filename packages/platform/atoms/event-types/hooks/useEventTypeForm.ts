@@ -86,6 +86,7 @@ export const useEventTypeForm = ({
       periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
+      canSendCalVideoTranscriptionEmails: eventType.canSendCalVideoTranscriptionEmails,
       requiresConfirmationWillBlockSlot: eventType.requiresConfirmationWillBlockSlot,
       requiresConfirmationForFreeEmail: eventType.requiresConfirmationForFreeEmail,
       slotInterval: eventType.slotInterval,

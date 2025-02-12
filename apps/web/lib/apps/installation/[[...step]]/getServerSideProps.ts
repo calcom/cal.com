@@ -88,6 +88,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     position: true,
     recurringEvent: true,
     requiresConfirmation: true,
+    canSendCalVideoTranscriptionEmails: true,
     team: { select: { slug: true } },
     schedulingType: true,
     teamId: true,
