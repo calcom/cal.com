@@ -78,6 +78,10 @@ export const OrgTeamsFilter = () => {
       />
     ) : null;
 
+  const teams = (data || [])
+    .filter((team) => !team.isOrg)
+    .filter((team) => team.name?.toLowerCase().includes(query.toLowerCase()));
+
   return (
     <AnimatedPopover text={text} PrefixComponent={PrefixComponent} popoverTriggerClassNames="mb-0">
       <FilterCheckboxFieldsContainer>
@@ -126,35 +130,32 @@ export const OrgTeamsFilter = () => {
           label={t("yours")}
         />
 
-        <Divider />
-        {(data || [])
-          .filter((team) => !team.isOrg)
-          .filter((team) => team.name?.toLowerCase().includes(query.toLowerCase()))
-          .map((team) => {
-            return (
-              <FilterCheckboxField
-                testId="org-teams-filter-item"
-                key={team.id}
-                id={team.name || ""}
-                label={team.name || ""}
-                checked={selectedTeamId === team.id && orgTeamsType === "team"}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onSelected({ type: "team", teamId: team.id });
-                  } else if (!e.target.checked) {
-                    resetSelection();
-                  }
-                }}
-                icon={
-                  <Avatar
-                    alt={team.name || ""}
-                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
-                    size="xs"
-                  />
+        {teams.length > 0 && <Divider />}
+        {teams.map((team) => {
+          return (
+            <FilterCheckboxField
+              testId="org-teams-filter-item"
+              key={team.id}
+              id={team.name || ""}
+              label={team.name || ""}
+              checked={selectedTeamId === team.id && orgTeamsType === "team"}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onSelected({ type: "team", teamId: team.id });
+                } else if (!e.target.checked) {
+                  resetSelection();
                 }
-              />
-            );
-          })}
+              }}
+              icon={
+                <Avatar
+                  alt={team.name || ""}
+                  imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
+                  size="xs"
+                />
+              }
+            />
+          );
+        })}
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
