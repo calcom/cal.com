@@ -63,7 +63,8 @@ function AddFilterButtonComponent<TData>(
                   <CommandItem
                     key={column.id}
                     onSelect={() => handleAddFilter(column.id)}
-                    className="px-4 py-2">
+                    className="px-4 py-2"
+                    data-testid={`add-filter-item-${column.id}`}>
                     {startCase(column.title)}
                   </CommandItem>
                 );
