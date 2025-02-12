@@ -1206,7 +1206,17 @@ async function handler(
 
       // If it's a round robin event, record the reason for the host assignment
       if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-        if (reqBody.crmOwnerRecordType && reqBody.crmAppSlug && contactOwnerEmail && routingFormResponseId) {
+        if (isReroutingCase) {
+          await AssignmentReasonRecorder.rerouting({
+            bookingId: booking.id,
+            reroutedBy: reqBody.rescheduledBy,
+          });
+        } else if (
+          reqBody.crmOwnerRecordType &&
+          reqBody.crmAppSlug &&
+          contactOwnerEmail &&
+          routingFormResponseId
+        ) {
           await monitorCallbackAsync(AssignmentReasonRecorder.CRMOwnership, {
             bookingId: booking.id,
             crmAppSlug: reqBody.crmAppSlug,
