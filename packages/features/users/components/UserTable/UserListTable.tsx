@@ -20,6 +20,7 @@ import {
   singleSelectFilter,
   multiSelectFilter,
   ColumnFilterType,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -458,13 +459,28 @@ function UserListTableContent() {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role,
+                value: role,
+              }))
+            );
           case "teams":
-            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
           default:
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
-              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+              return convertFacetedValuesToMap(
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
+              );
             }
             return new Map();
         }

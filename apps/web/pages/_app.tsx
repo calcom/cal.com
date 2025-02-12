@@ -8,6 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import "@calcom/ui/css";
 
 import type { AppProps } from "@lib/app-providers";
+import PlainChat from "@lib/plain/dynamicProvider";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
@@ -20,6 +21,7 @@ function MyApp(props: AppProps) {
 
   return (
     <SessionProvider session={pageProps.session ?? undefined}>
+      <PlainChat />
       {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
       <CacheProvider>
         {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}

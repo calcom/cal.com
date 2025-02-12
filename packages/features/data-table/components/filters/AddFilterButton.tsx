@@ -16,6 +16,7 @@ import {
   CommandList,
   CommandEmpty,
   CommandItem,
+  Icon,
 } from "@calcom/ui";
 
 import { useDataTable, useFilterableColumns } from "../../hooks";
@@ -61,13 +62,16 @@ function AddFilterButtonComponent<TData>(
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
+                const isVisible = table.getColumn(column.id)?.getIsVisible();
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
                     key={column.id}
                     onSelect={() => handleAddFilter(column.id)}
-                    className="px-4 py-2">
-                    {startCase(column.title)}
+                    className="flex items-center justify-between px-4 py-2"
+                    data-testid={`add-filter-item-${column.id}`}>
+                    <span>{startCase(column.title)}</span>
+                    {!isVisible && <Icon name="eye-off" className="h-4 w-4 opacity-50" />}
                   </CommandItem>
                 );
               })}

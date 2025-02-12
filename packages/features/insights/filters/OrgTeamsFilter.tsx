@@ -14,19 +14,16 @@ import { useInsightsOrgTeams } from "../hooks/useInsightsOrgTeams";
 
 export type OrgTeamsType = "org" | "team" | "yours";
 
-// This is a clone of TeamAndSelfList, but without useFilterContext().
-// It's meant to be used in the RoutingFormResponsesTable.
 export const OrgTeamsFilter = () => {
   const { orgTeamsType, selectedTeamId, setOrgTeamsType, setSelectedTeamId } = useInsightsOrgTeams();
   const { t } = useLocale();
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
-  const currentUserId = session.data?.user.id;
   const currentUserName = session.data?.user.name;
 
   const [query, setQuery] = useState<string>("");
 
-  const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
+  const { data } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
     trpc: {
@@ -60,8 +57,16 @@ export const OrgTeamsFilter = () => {
     return { text: t("select"), imageUrl: undefined };
   };
 
+  const resetSelection = () => {
+    if (isOrgDataAvailable) {
+      onSelected({ type: "org", teamId: currentOrgId });
+    } else {
+      onSelected({ type: "yours", teamId: undefined });
+    }
+  };
+
   const { text, placeholder, imageUrl } = getPopoverProps();
-  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg;
+  const isOrgDataAvailable = !!data && data.length > 0 && !!data[0].isOrg && data[0].id === currentOrgId;
 
   const PrefixComponent =
     orgTeamsType !== undefined && (imageUrl || placeholder) ? (
@@ -72,6 +77,10 @@ export const OrgTeamsFilter = () => {
         className="mr-2"
       />
     ) : null;
+
+  const teams = (data || [])
+    .filter((team) => !team.isOrg)
+    .filter((team) => team.name?.toLowerCase().includes(query.toLowerCase()));
 
   return (
     <AnimatedPopover text={text} PrefixComponent={PrefixComponent} popoverTriggerClassNames="mb-0">
@@ -86,10 +95,15 @@ export const OrgTeamsFilter = () => {
         {isOrgDataAvailable && (
           <FilterCheckboxField
             id="all"
+            testId="org-teams-filter-item"
             icon={<Icon name="layers" className="h-4 w-4" />}
             checked={orgTeamsType === "org"}
             onChange={(e) => {
-              onSelected({ type: "org", teamId: undefined });
+              if (e.target.checked) {
+                onSelected({ type: "org", teamId: currentOrgId });
+              } else {
+                resetSelection();
+              }
             }}
             label={t("all")}
           />
@@ -97,6 +111,7 @@ export const OrgTeamsFilter = () => {
 
         <FilterCheckboxField
           id="yours"
+          testId="org-teams-filter-item"
           icon={
             <Avatar
               alt={`${currentUserName} avatar`}
@@ -109,40 +124,38 @@ export const OrgTeamsFilter = () => {
             if (e.target.checked) {
               onSelected({ type: "yours", teamId: undefined });
             } else if (!e.target.checked) {
-              onSelected({ type: currentOrgId ? "org" : "yours", teamId: undefined });
+              resetSelection();
             }
           }}
           label={t("yours")}
         />
 
-        <Divider />
-        {data
-          ?.filter((team) => !team.isOrg)
-          .filter((team) => team.name?.toLowerCase().includes(query.toLowerCase()))
-          .map((team) => {
-            return (
-              <FilterCheckboxField
-                key={team.id}
-                id={team.name || ""}
-                label={team.name || ""}
-                checked={selectedTeamId === team.id && orgTeamsType === "team"}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onSelected({ type: "team", teamId: team.id });
-                  } else if (!e.target.checked) {
-                    onSelected({ type: currentOrgId ? "org" : "yours", teamId: undefined });
-                  }
-                }}
-                icon={
-                  <Avatar
-                    alt={team.name || ""}
-                    imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
-                    size="xs"
-                  />
+        {teams.length > 0 && <Divider />}
+        {teams.map((team) => {
+          return (
+            <FilterCheckboxField
+              testId="org-teams-filter-item"
+              key={team.id}
+              id={team.name || ""}
+              label={team.name || ""}
+              checked={selectedTeamId === team.id && orgTeamsType === "team"}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  onSelected({ type: "team", teamId: team.id });
+                } else if (!e.target.checked) {
+                  resetSelection();
                 }
-              />
-            );
-          })}
+              }}
+              icon={
+                <Avatar
+                  alt={team.name || ""}
+                  imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
+                  size="xs"
+                />
+              }
+            />
+          );
+        })}
       </FilterCheckboxFieldsContainer>
     </AnimatedPopover>
   );
