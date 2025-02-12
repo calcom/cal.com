@@ -7,8 +7,8 @@ import { I18nextProvider } from "react-i18next";
 import type { EmbedThemeConfig } from "@calcom/embed-core/src/types";
 // adds trpc context to all stories (esp. booker)
 import { StorybookTrpcProvider } from "@calcom/ui";
+import "@calcom/ui/css";
 
-import "../styles/globals.css";
 import "../styles/storybook-styles.css";
 import i18n from "./i18next";
 

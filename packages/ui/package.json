@@ -6,6 +6,7 @@
   "main": "./index.ts",
   "exports": {
     ".": "./index.ts",
+    "./css": "./styles/css.ts",
     "./alert": "./components/alert/index.ts",
     "./app-list-card": "./components/app-list-card/index.ts",
     "./apps": "./components/apps/index.ts",

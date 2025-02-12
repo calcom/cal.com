@@ -1,5 +1,4 @@
 import type { Data } from "@/pages/api/get-managed-users";
-import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
 import { usePathname } from "next/navigation";
@@ -9,6 +8,7 @@ import Select from "react-select";
 
 import { CalProvider, BookerEmbed, Router } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
+import "@calcom/ui/css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
 type TUser = Data["users"][0];
