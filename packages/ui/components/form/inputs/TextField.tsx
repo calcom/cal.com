@@ -25,11 +25,8 @@ export const inputStyles = cva(
 
     // States
     "hover:border-emphasis",
-    "dark:focus:border-emphasis",
-    "focus:border-subtle",
-    "focus:ring-brand-default",
-    "focus:ring-2",
-    "focus:outline-none",
+    "focus:ring-0",
+    "focus:shadow-outline-gray-focused",
 
     // Disabled state
     "disabled:bg-subtle",
