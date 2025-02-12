@@ -488,6 +488,9 @@ model Team {
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
 
+  platformManagedOrganization  PlatformManagedOrganization?  @relation("PlatformManagedOrganization")
+  platformManagedOrganizations PlatformManagedOrganization[] @relation("PlatformManagerOrganization")
+
   @@unique([slug, parentId])
   @@index([parentId])
 }
@@ -1623,6 +1626,18 @@ enum SMSLockState {
   LOCKED
   UNLOCKED
   REVIEW_NEEDED
+}
+
+model PlatformManagedOrganization {
+  managedOrganizationId Int  @unique
+  managedOrganization   Team @relation("PlatformManagedOrganization", fields: [managedOrganizationId], references: [id], onDelete: Cascade)
+
+  managerOrganizationId Int
+  managerOrganization   Team @relation("PlatformManagerOrganization", fields: [managerOrganizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([managerOrganizationId])
 }
 
 model PlatformBilling {
