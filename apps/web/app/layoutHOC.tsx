@@ -27,12 +27,14 @@ export function WithLayout<T extends Record<string, any>>({
 }: WithLayoutParams<T>) {
   // eslint-disable-next-line react/display-name
   return async <P extends "P" | "L">(p: P extends "P" ? PageProps : LayoutProps) => {
-    const h = headers();
+    const h = await headers();
     const nonce = h.get("x-nonce") ?? undefined;
     let props = {} as T;
 
     if ("searchParams" in p && getData) {
-      props = (await getData(buildLegacyCtx(h, cookies(), p.params, p.searchParams))) ?? ({} as T);
+      props =
+        (await getData(buildLegacyCtx(h, await cookies(), await p.params, await p.searchParams))) ??
+        ({} as T);
     }
 
     // `p.children` exists only for layout.tsx files

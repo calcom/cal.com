@@ -49,7 +49,7 @@ const Page = async ({ params }: PageProps) => {
   }
   // const scheduleId = Number(params.schedule);
 
-  // const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
+  // const session = await getServerSession({ req: buildLegacyRequest(await headers(), await cookies()) });
   // const userId = session?.user?.id;
   // if (!userId) {
   //   notFound();

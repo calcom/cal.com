@@ -13,7 +13,7 @@ import type { Props } from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/i
 import Page from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
 
 export const generateMetadata = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const { isBrandingHidden, eventData } = await getData(context);
 
   const profileName = eventData?.profile.name ?? "";

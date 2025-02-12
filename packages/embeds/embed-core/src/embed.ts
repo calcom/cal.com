@@ -296,12 +296,6 @@ export class Cal {
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    if (window.ENABLE_FUTURE_ROUTES) {
-      urlInstance.pathname = `/future${urlInstance.pathname}`;
-    }
-
     urlInstance.searchParams.set("embed", this.namespace);
 
     if (embedConfig.debug) {
