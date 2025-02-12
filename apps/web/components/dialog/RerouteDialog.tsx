@@ -469,7 +469,7 @@ const NewRoutingManager = ({
     // TODO: Long term, we should refactor handleNewBooking and use a different route specific for this purpose,
     createBookingMutation.mutate({
       rescheduleUid: booking.uid,
-      rescheduledBy: session?.data?.user?.email,
+      rescheduledBy: session?.data?.user?.email ?? undefined,
       // rescheduleReason,
       reroutingFormResponses: reroutingFormResponses,
       ...getTimeslotFields(),
