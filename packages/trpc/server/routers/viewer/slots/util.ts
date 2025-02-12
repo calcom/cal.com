@@ -186,6 +186,20 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
+const groupTimeSlotsByDay = (timeSlots) => {
+  return timeSlots.reduce((acc, { time }) => {
+    const day = time.format("YYYY-MM-DD"); // Group by date
+    const formattedTime = time.format("HH:mm"); // Format as HH:mm
+
+    if (!acc[day]) {
+      acc[day] = [];
+    }
+    acc[day].push(formattedTime);
+
+    return acc;
+  }, {});
+};
+
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
   const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
   Object.keys(occupiedSeatsCount).forEach((date) => {
@@ -435,8 +449,26 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   console.log({
-    timeSlots,
-    timeSlotsNew,
+    timeSlots: groupTimeSlotsByDay(timeSlots),
+    timeSlotsNew: groupTimeSlotsByDay(timeSlotsNew),
+    differences: Object.keys({
+      ...groupTimeSlotsByDay(timeSlots),
+      ...groupTimeSlotsByDay(timeSlotsNew),
+    }).reduce((acc, day) => {
+      const times1 = groupTimeSlotsByDay(timeSlots)[day] || [];
+      const times2 = groupTimeSlotsByDay(timeSlotsNew)[day] || [];
+
+      const missingInNew = times1.filter((t) => !times2.includes(t));
+      const missingInOld = times2.filter((t) => !times1.includes(t));
+
+      if (missingInNew.length || missingInOld.length) {
+        acc[day] = {
+          onlyInTimeSlots: missingInNew,
+          onlyInTimeSlotsNew: missingInOld,
+        };
+      }
+      return acc;
+    }, {}),
   });
 
   let availableTimeSlots: typeof timeSlots = [];
