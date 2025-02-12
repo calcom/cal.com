@@ -436,6 +436,7 @@ export const EventAdvancedTab = ({
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
+  const isRecurringEvent = formMethods.getValues("recurringEvent") !== null;
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
@@ -596,6 +597,7 @@ export const EventAdvancedTab = ({
             descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
+            disabled={eventType?.recurringEvent !== null}
           />
         )}
       />
@@ -794,12 +796,14 @@ export const EventAdvancedTab = ({
               {...seatsLocked}
               description={t("offer_seats_description")}
               checked={value}
-              disabled={noShowFeeEnabled || multiLocation}
+              disabled={noShowFeeEnabled || multiLocation || isRecurringEvent}
               tooltip={
                 multiLocation
                   ? t("multilocation_doesnt_support_seats")
                   : noShowFeeEnabled
                   ? t("no_show_fee_doesnt_support_seats")
+                  : isRecurringEvent
+                  ? t("recurring_event_doesnt_support_seats")
                   : undefined
               }
               onCheckedChange={(e) => {
