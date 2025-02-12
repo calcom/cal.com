@@ -188,7 +188,8 @@ export const ReassignDialog = ({
           <Form form={form} handleSubmit={handleSubmit} ref={animationParentRef}>
             <RadioArea.Group
               onValueChange={(val) => {
-                form.setValue("reassignType", val as ReasonEnum);
+                const reassignType: ReassignType = z.nativeEnum(ReassignType).parse(val);
+                form.setValue("reassignType", reassignType);
               }}
               defaultValue={bookingFromRoutingForm ? ReassignType.TEAM_MEMBER : ReassignType.ROUND_ROBIN}
               className="mt-1 flex flex-col gap-4">

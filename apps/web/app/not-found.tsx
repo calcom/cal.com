@@ -122,8 +122,7 @@ async function NotFound() {
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)}
-
+              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
                   <strong className="text-blue-500">{username}</strong>
@@ -137,7 +136,7 @@ async function NotFound() {
               {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
-                  <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                  <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
                   {t("is_still_available")}
                 </>
               ) : null}
