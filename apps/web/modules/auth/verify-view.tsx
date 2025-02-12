@@ -2,25 +2,19 @@
 
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
-import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import z from "zod";
 
 import { classNames } from "@calcom/lib";
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 import Loader from "@components/Loader";
-
-import type { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
@@ -117,7 +111,7 @@ const MailOpenIcon = () => (
   </div>
 );
 
-export default function Verify(props: PageProps) {
+export default function Verify({ EMAIL_FROM }: { EMAIL_FROM?: string }) {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -176,17 +170,6 @@ export default function Verify(props: PageProps) {
 
   return (
     <div className="text-default bg-muted bg-opacity-90 backdrop-blur-md backdrop-grayscale backdrop-filter">
-      <Head>
-        <title>
-          {/* @note: Ternary can look ugly ant his might be extracted later but I think at 3 it's not yet worth
-        it or too hard to read. */}
-          {hasPaymentFailed
-            ? "Your payment failed"
-            : sessionId
-            ? "Payment successful!"
-            : `Verify your email | ${APP_NAME}`}
-        </title>
-      </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">
         <div className="border-subtle bg-default m-10 flex max-w-2xl flex-col items-center rounded-xl border px-8 py-14 text-left">
           {hasPaymentFailed ? <PaymentFailedIcon /> : sessionId ? <PaymentSuccess /> : <MailOpenIcon />}
@@ -209,8 +192,8 @@ export default function Verify(props: PageProps) {
             <Button
               color="secondary"
               href={
-                props.EMAIL_FROM
-                  ? encodeURIComponent(`https://mail.google.com/mail/u/0/#search/from:${props.EMAIL_FROM}`)
+                EMAIL_FROM
+                  ? encodeURIComponent(`https://mail.google.com/mail/u/0/#search/from:${EMAIL_FROM}`)
                   : "https://mail.google.com/mail/u/0/"
               }
               target="_blank"

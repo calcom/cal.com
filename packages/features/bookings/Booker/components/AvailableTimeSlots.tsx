@@ -2,6 +2,7 @@ import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
+import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
@@ -20,7 +21,7 @@ type AvailableTimeSlotsProps = {
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length"> | null;
+    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: {
     availableTimeSlotsContainer?: string;
@@ -29,6 +30,13 @@ type AvailableTimeSlotsProps = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
+  loadingStates: IUseBookingLoadingStates;
+  isVerificationCodeSending: boolean;
+  renderConfirmNotVerifyEmailButtonCond: boolean;
+  onSubmit: (timeSlot?: string) => void;
+  skipConfirmStep: boolean;
+  shouldRenderCaptcha?: boolean;
+  watchedCfToken?: string;
 };
 
 /**
@@ -38,15 +46,17 @@ type AvailableTimeSlotsProps = {
  * will also fetch the next `extraDays` days and show multiple days
  * in columns next to each other.
  */
+
 export const AvailableTimeSlots = ({
   extraDays,
   limitHeight,
-  seatsPerTimeSlot,
   showAvailableSeatsCount,
   schedule,
   isLoading,
-  event,
   customClassNames,
+  skipConfirmStep,
+  onSubmit,
+  ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
@@ -70,6 +80,9 @@ export const AvailableTimeSlots = ({
         bookingUid,
         showAvailableSeatsCount,
       });
+    }
+    if (skipConfirmStep) {
+      onSubmit(time);
     }
     return;
   };
@@ -135,9 +148,9 @@ export const AvailableTimeSlots = ({
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
                 slots={slots.slots}
-                seatsPerTimeSlot={seatsPerTimeSlot}
                 showAvailableSeatsCount={showAvailableSeatsCount}
-                event={event}
+                skipConfirmStep={skipConfirmStep}
+                {...props}
               />
             </div>
           ))}

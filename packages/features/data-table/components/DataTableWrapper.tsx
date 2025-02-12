@@ -1,13 +1,15 @@
 "use client";
 
 import type { Table as ReactTableType } from "@tanstack/react-table";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import {
   DataTable,
   DataTableToolbar,
   DataTablePagination,
   useFetchMoreOnBottomReached,
+  useDataTable,
+  useColumnFilters,
 } from "@calcom/features/data-table";
 
 export type DataTableWrapperProps<TData, TValue> = {
@@ -23,6 +25,8 @@ export type DataTableWrapperProps<TData, TValue> = {
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
+  className?: string;
+  containerClassName?: string;
   children?: React.ReactNode;
 };
 
@@ -39,6 +43,8 @@ export function DataTableWrapper<TData, TValue>({
   hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  className,
+  containerClassName,
   children,
 }: DataTableWrapperProps<TData, TValue>) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -48,6 +54,22 @@ export function DataTableWrapper<TData, TValue>({
     fetchNextPage,
     isFetching,
   });
+  const { sorting, setSorting, columnVisibility, setColumnVisibility } = useDataTable();
+  const columnFilters = useColumnFilters();
+
+  useEffect(() => {
+    table.setState((prev) => ({
+      ...prev,
+      sorting,
+      columnFilters,
+      columnVisibility,
+    }));
+    table.setOptions((prev) => ({
+      ...prev,
+      onSortingChange: setSorting,
+      onColumnVisibilityChange: setColumnVisibility,
+    }));
+  }, [table, sorting, columnFilters, columnVisibility]);
 
   return (
     <DataTable
@@ -59,18 +81,21 @@ export function DataTableWrapper<TData, TValue>({
       enableColumnResizing={true}
       hideHeader={hideHeader}
       variant={variant}
+      className={className}
+      containerClassName={containerClassName}
       onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-      <DataTableToolbar.Root>
-        <div className="flex w-full flex-col gap-2 sm:flex-row">
-          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <div className="flex justify-start gap-2">{ToolbarLeft}</div>
-            <div className="grow" />
-            <div className="flex justify-end gap-2">{ToolbarRight}</div>
+      {(ToolbarLeft || ToolbarRight || children) && (
+        <DataTableToolbar.Root>
+          <div className="flex w-full flex-col gap-2">
+            <div className="flex w-full flex-wrap justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
+              <div className="flex flex-wrap items-center gap-2">{ToolbarRight}</div>
+            </div>
           </div>
-        </div>
 
-        {children}
-      </DataTableToolbar.Root>
+          {children}
+        </DataTableToolbar.Root>
+      )}
 
       {totalDBRowCount && (
         <div style={{ gridArea: "footer", marginTop: "1rem" }}>
