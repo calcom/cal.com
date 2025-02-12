@@ -1,6 +1,5 @@
 import { get } from "@vercel/edge-config";
 import { collectEvents } from "next-collect/server";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -73,13 +72,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  if (url.pathname.startsWith("/future/auth/logout")) {
-    cookies().set("next-auth.session-token", "", {
-      path: "/",
-      expires: new Date(0),
-    });
-  }
-
   requestHeaders.set("x-pathname", url.pathname);
 
   const locale = await getLocale(req);
@@ -91,6 +83,10 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       headers: requestHeaders,
     },
   });
+
+  if (url.pathname.startsWith("/auth/logout")) {
+    res.cookies.delete("next-auth.session-token");
+  }
 
   return responseWithHeaders({ url, res, req });
 };
@@ -144,6 +140,7 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
+    "/",
     "/403",
     "/500",
     "/icons",
@@ -158,12 +155,7 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/login",
-    "/auth/error",
-    "/auth/signin",
-    "/auth/oauth2/authorize",
-    "/auth/platform/authorize",
-    "/auth/verify-email",
+    "/auth/:path*",
     /**
      * Paths required by routingForms.handle
      */
@@ -171,11 +163,9 @@ export const config = {
 
     "/event-types/:path*",
     "/apps/installed/:category/",
-    "/future/apps/installed/:category/",
+    "/apps/installation/:path*",
     "/apps/:slug/",
-    "/future/apps/:slug/",
     "/apps/:slug/setup/",
-    "/future/apps/:slug/setup/",
     "/apps/categories/",
     "/apps/categories/:category/",
     "/workflows/:path*",
@@ -193,6 +183,8 @@ export const config = {
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
+    "/:user/:type/",
+    "/:user/",
   ],
 };
 

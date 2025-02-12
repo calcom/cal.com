@@ -9,4 +9,8 @@ export const generateMetadata = async () => {
   );
 };
 
-export default VerifyEmailPage;
+const ServerPageWrapper = async () => {
+  return <VerifyEmailPage />;
+};
+
+export default ServerPageWrapper;

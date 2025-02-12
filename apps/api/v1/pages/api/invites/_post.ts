@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { CreationSource } from "@calcom/prisma/enums";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerTeamsRouter } from "@calcom/trpc/server/routers/viewer/teams/_router";
 import type { TInviteMemberInputSchema } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.schema";
@@ -43,6 +44,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
       language: data.language,
       teamId: data.teamId,
       usernameOrEmail: data.usernameOrEmail,
+      creationSource: CreationSource.API_V1,
     });
 
     return { success: true, message: `${data.usernameOrEmail} has been invited.` };

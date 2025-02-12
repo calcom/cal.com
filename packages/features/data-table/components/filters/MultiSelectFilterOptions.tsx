@@ -16,10 +16,10 @@ import {
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZMultiSelectFilterValue } from "../../lib/types";
+import { ZMultiSelectFilterValue, ColumnFilterType } from "../../lib/types";
 
 export type MultiSelectFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "multi_select" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.MULTI_SELECT }>;
 };
 
 export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsProps) {
@@ -28,7 +28,7 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
-    <Command>
+    <Command data-testid={`multi-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
@@ -44,7 +44,7 @@ export function MultiSelectFilterOptions({ column }: MultiSelectFilterOptionsPro
                 const newFilterValue = filterValue?.data.includes(optionValue)
                   ? filterValue?.data.filter((value) => value !== optionValue)
                   : [...(filterValue?.data || []), optionValue];
-                updateFilter(column.id, { type: "multi_select", data: newFilterValue });
+                updateFilter(column.id, { type: ColumnFilterType.MULTI_SELECT, data: newFilterValue });
               }}>
               <div
                 className={classNames(

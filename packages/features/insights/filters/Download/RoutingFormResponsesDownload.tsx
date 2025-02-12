@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import type { ColumnFilter, SortingState } from "@calcom/features/data-table";
+import type { SortingState } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -9,17 +9,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+
 type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForDownload"]["data"][number];
 
 type Props = {
-  teamId: number | undefined;
-  userId: number | undefined;
-  memberUserIds: number[] | undefined;
-  routingFormId: string | undefined;
-  isAll: boolean;
-  startDate: string;
-  endDate: string;
-  columnFilters: ColumnFilter[];
   sorting: SortingState;
 };
 
@@ -28,18 +22,10 @@ type Batch = {
   nextCursor: number | undefined;
 };
 
-export const RoutingFormResponsesDownload = ({
-  teamId,
-  userId,
-  memberUserIds,
-  routingFormId,
-  isAll,
-  startDate,
-  endDate,
-  columnFilters,
-  sorting,
-}: Props) => {
+export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
+  const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
+    useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const utils = trpc.useUtils();
