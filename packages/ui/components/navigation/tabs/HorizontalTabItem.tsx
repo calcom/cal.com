@@ -59,7 +59,7 @@ const HorizontalTabItem = function ({
           aria-hidden="true"
         />
       )}
-      {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-2 h-4 w-4" />} {name}
+      {avatar && <Avatar size="xs" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-1" />} {name}
     </Link>
   );
 };
