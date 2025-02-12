@@ -180,7 +180,7 @@ export default class AssignmentReasonRecorder {
       },
     });
 
-    const reasonString = `Rerouted by: ${reroutedBy?.id || "team member"}. `;
+    const reasonString = `Rerouted by user: ${reroutedBy?.id || "team member"}`;
 
     await prisma.assignmentReason.create({
       data: {
