@@ -236,6 +236,11 @@ class BaseBookingOutput_2024_08_13 {
   @Expose()
   createdAt!: string;
 
+  @ApiProperty({ type: String, example: "2024-08-13T15:30:00Z" })
+  @IsDateString()
+  @Expose()
+  updatedAt!: string | null;
+
   @ApiPropertyOptional({
     type: Object,
     example: { key: "value" },
