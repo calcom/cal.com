@@ -523,14 +523,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 540, //09:00
-          endTime: 1020, //17:00
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -558,14 +550,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 750, //12:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -594,14 +578,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 750, //12:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -629,14 +605,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 720, //12:00
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -664,14 +632,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 720, //12:00
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -699,14 +659,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 30,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 765, //12:45
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -740,14 +692,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 30,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 765, //12:45
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -780,14 +724,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 20,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 750, //12:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -826,14 +762,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 20,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 480, //08:00
-          endTime: 750, //12:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -871,14 +799,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 570, //09:30
-          endTime: 1050, //17:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -907,14 +827,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 570, //09:30
-          endTime: 1050, //17:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -942,14 +854,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 565, //07:45
-          endTime: 930, //15:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -977,14 +881,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: false,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 565, //07:45
-          endTime: 930, //15:30
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
@@ -1012,14 +908,6 @@ describe("Tests the date-range slot logic with showOptimizedSlots", () => {
       showOptimizedSlots: true,
       inviteeDate: dayjs.tz("2024-09-12T00:00:00.000-07:00", "America/Los_Angeles"),
       eventLength: 60,
-      workingHours: [
-        {
-          days: [1, 2, 3, 4, 5],
-          startTime: 545, //09:05
-          endTime: 775, //12:55
-          userId: 1,
-        },
-      ],
       dateOverrides: [],
       offsetStart: 0,
       // equivalent dateRanges in UTC-7
