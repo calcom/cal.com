@@ -1189,6 +1189,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -3277,6 +3286,26 @@
             }
           },
           {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortStart",
             "required": false,
             "in": "query",
@@ -3304,6 +3333,17 @@
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
             "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
               "enum": ["asc", "desc"],
               "type": "string"
@@ -5340,6 +5380,14 @@
               "enum": ["range", "time"],
               "type": "string"
             }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5740,6 +5788,15 @@
             "description": "Slug of team event type to return.",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -8027,7 +8084,7 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug"]
+        "required": ["lengthInMinutes", "title", "slug"]
       },
       "OutputAddressLocation_2024_06_14": {
         "type": "object",
@@ -9718,8 +9775,7 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
-        },
-        "required": ["lengthInMinutesOptions"]
+        }
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -11087,7 +11143,7 @@
             "description": "If true, all current and future team members will be assigned to this event type"
           }
         },
-        "required": ["lengthInMinutes", "lengthInMinutesOptions", "title", "slug", "schedulingType", "hosts"]
+        "required": ["lengthInMinutes", "title", "slug", "schedulingType", "hosts"]
       },
       "CreateTeamEventTypeOutput": {
         "type": "object",
@@ -11854,8 +11910,7 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        },
-        "required": ["lengthInMinutesOptions"]
+        }
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -13806,9 +13861,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -13850,6 +13913,10 @@
             "example": true
           },
           "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "updatedAt": {
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
@@ -13895,6 +13962,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses"
         ]
@@ -13933,9 +14001,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -13977,6 +14053,10 @@
             "example": true
           },
           "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "updatedAt": {
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
@@ -14026,6 +14106,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses",
           "recurringBookingUid"
@@ -14156,9 +14237,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14203,6 +14292,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14235,6 +14328,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees"
         ]
@@ -14273,9 +14367,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14317,6 +14419,10 @@
             "example": true
           },
           "createdAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
+          "updatedAt": {
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
@@ -14356,6 +14462,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees",
           "recurringBookingUid"
@@ -14429,9 +14536,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14476,6 +14591,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14504,6 +14623,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees"
         ]
       },
@@ -14541,9 +14661,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14588,6 +14716,10 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -14620,6 +14752,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "recurringBookingUid"
         ]

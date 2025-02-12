@@ -3498,7 +3498,7 @@ __metadata:
     "@axiomhq/winston": ^1.2.0
     "@calcom/platform-constants": "*"
     "@calcom/platform-enums": "*"
-    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.93"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.99"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
@@ -3699,6 +3699,15 @@ __metadata:
     react: ^18.0.0 || ^19.0.0
     react-awesome-query-builder: ^5.1.2
     react-dom: ^18.0.0 || ^19.0.0
+  languageName: unknown
+  linkType: soft
+
+"@calcom/attio@workspace:packages/app-store/attio":
+  version: 0.0.0-use.local
+  resolution: "@calcom/attio@workspace:packages/app-store/attio"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
@@ -4524,14 +4533,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.93":
-  version: 0.0.93
-  resolution: "@calcom/platform-libraries@npm:0.0.93"
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.99":
+  version: 0.0.99
+  resolution: "@calcom/platform-libraries@npm:0.0.99"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: 347bfc1e89e4a5d5a10b41e2bfc5ea452aadc3ae0ef835d89bcf2cfd46f5ef83b041126ac689b95b1a6bde8e6aa269744aba3a124e7b12e90f1d448b1f5ea118
+  checksum: 7c3e2c9ff7cfacb3049df8fc05b592fe347c2445f75b0546e782bbde05505876bdaa50600d94f7215ab9924ac577106908c82a4c37654ed32a3aa71c859494d9
   languageName: node
   linkType: hard
 

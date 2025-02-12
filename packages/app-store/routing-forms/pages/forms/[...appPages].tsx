@@ -150,7 +150,7 @@ export default function RoutingForms({
   return (
     <LicenseRequired>
       <ShellMain
-        heading={t("routing_forms")}
+        heading={t("routing")}
         CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
@@ -346,11 +346,7 @@ const ShellContainer = ({ page }: { page: React.ReactElement }) => {
   const { t } = useLocale();
 
   return (
-    <Shell
-      title={t("routing_forms")}
-      description={t("routing_forms_description")}
-      withoutMain={true}
-      hideHeadingOnMobile>
+    <Shell title={t("routing_forms")} description={t("routing_forms_description")} withoutMain={true}>
       {page}
     </Shell>
   );
