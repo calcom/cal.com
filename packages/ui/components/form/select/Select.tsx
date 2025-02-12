@@ -100,8 +100,8 @@ export const Select = <
           cx("text-default placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
         multiValue: () =>
           cx(
-            "bg-subtle text-default rounded-lg py-1.5 px-2 flex items-center text-sm leading-tight",
-            innerClassNames?.multiValue
+            "font-medium inline-flex items-center justify-center rounded bg-emphasis text-emphasis leading-none text-xs",
+            size == "sm" ? "px-1.5 py-[1px] rounded-md" : "py-1 px-1.5 leading-none rounded-lg"
           ),
         menu: () =>
           cx(
@@ -122,7 +122,7 @@ export const Select = <
                 : "rotate-180 transition-transform"
               : "text-default" // Woo it adds another SVG here on multi for some reason
           ),
-        multiValueRemove: () => "text-default py-auto ml-2",
+        multiValueRemove: () => "text-default py-auto",
         ...classNames,
       }}
       {...restProps}

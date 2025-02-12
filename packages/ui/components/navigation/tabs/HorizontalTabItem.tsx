@@ -43,6 +43,7 @@ const HorizontalTabItem = function ({
       href={href}
       shallow={linkShallow}
       scroll={linkScroll}
+      aria-disabled={props.disabled ? "true" : undefined}
       className={classNames(
         isCurrent ? "bg-subtle text-emphasis" : "hover:bg-muted hover:text-default text-subtle",
         "inline-flex h-fit items-center justify-center whitespace-nowrap rounded-md p-2 text-sm font-medium leading-none transition md:mb-0",
@@ -59,7 +60,7 @@ const HorizontalTabItem = function ({
           aria-hidden="true"
         />
       )}
-      {avatar && <Avatar size="sm" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-2 h-4 w-4" />} {name}
+      {avatar && <Avatar size="xs" imageSrc={avatar} alt="avatar" className="-ml-0.5 me-1" />} {name}
     </Link>
   );
 };

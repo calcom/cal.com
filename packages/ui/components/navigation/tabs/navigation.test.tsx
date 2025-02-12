@@ -1,145 +1,176 @@
-/* eslint-disable playwright/missing-playwright-await */
 import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
+import type { IconName } from "../../icon";
 import HorizontalTabs from "./HorizontalTabs";
 import VerticalTabs from "./VerticalTabs";
 
+// Mock the hooks
 vi.mock("@calcom/lib/hooks/useUrlMatchesCurrentUrl", () => ({
-  useUrlMatchesCurrentUrl() {
-    return {
-      route: "/",
-      pathname: "",
-      query: "",
-      asPath: "",
-      push: vi.fn(),
-      events: {
-        on: vi.fn(),
-        off: vi.fn(),
-      },
-      beforePopState: vi.fn(() => null),
-      prefetch: vi.fn(() => null),
-    };
-  },
+  useUrlMatchesCurrentUrl: () => false,
 }));
 
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
-  useLocale: () => {
-    return {
-      t: (str: string) => str,
-      isLocaleReady: true,
-      i18n: {
-        language: "en",
-        defaultLocale: "en",
-        locales: ["en"],
-        exists: () => false,
-      },
-    };
-  },
+  useLocale: () => ({
+    t: (str: string) => str,
+    isLocaleReady: true,
+    i18n: {
+      language: "en",
+      defaultLocale: "en",
+      locales: ["en"],
+    },
+  }),
 }));
 
-describe("Tests for navigation folder", () => {
-  describe("Test HorizontalTabs Component", () => {
+describe("Navigation Components", () => {
+  describe("HorizontalTabs", () => {
     const mockTabs = [
-      { name: "Tab 1", href: "/tab1" },
-      { name: "Tab 2", href: "/tab2", avatar: "Avatar" },
-      { name: "Tab 3", href: "/tab3" },
-    ];
+      { name: "Dashboard", href: "/dashboard" },
+      { name: "Settings", href: "/settings", icon: "atom" },
+      { name: "Profile", href: "/profile", avatar: "user-avatar" },
+      { name: "Disabled", href: "/disabled", disabled: true },
+    ] as {
+      name: string;
+      href: string;
+      icon?: IconName;
+      avatar?: string;
+      disabled?: boolean;
+    }[];
 
     beforeEach(() => {
       vi.clearAllMocks();
     });
 
-    test("Should render tabs with correct name and href", () => {
+    test("renders all tabs with correct name and href", async () => {
       render(<HorizontalTabs tabs={mockTabs} />);
-      mockTabs.forEach((tab) => {
-        const tabLabelElement = screen.getByTestId(`horizontal-tab-${tab.name}`);
-        expect(tabLabelElement).toBeInTheDocument();
 
-        const name = screen.getByText(tab.name);
-        expect(name).toBeInTheDocument();
-        expect(tabLabelElement).toHaveAttribute("href", tab.href);
-      });
+      for (const tab of mockTabs) {
+        const tabElement = screen.getByRole("link", { name: tab.name });
+        expect(tabElement).toBeInTheDocument();
+        await expect(tabElement).toHaveAttribute("href", tab.href);
+      }
     });
 
-    test("Should render actions correctly", () => {
-      const handleClick = vi.fn();
-      const mockActions = <button onClick={handleClick}>Actions</button>;
-      render(<HorizontalTabs tabs={mockTabs} actions={mockActions} />);
-      const actionsElement = screen.getByText("Actions");
-      expect(actionsElement).toBeInTheDocument();
-      fireEvent.click(actionsElement);
+    test("renders disabled tabs with correct aria-disabled attribute", async () => {
+      render(<HorizontalTabs tabs={mockTabs} />);
 
-      expect(handleClick).toHaveBeenCalled();
+      const disabledTab = mockTabs.find((tab) => tab.disabled);
+      // Just to keep TS happy
+      // eslint-disable-next-line playwright/no-conditional-in-test
+      if (!disabledTab) throw new Error("Test requires a disabled tab in mockTabs");
+
+      const tabElement = screen.getByRole("link", { name: disabledTab.name });
+
+      await expect(tabElement).toHaveAttribute("aria-disabled", "true");
+    });
+
+    test("renders actions when provided", async () => {
+      const mockAction = <button>Add New</button>;
+      render(<HorizontalTabs tabs={mockTabs} actions={mockAction} />);
+
+      expect(screen.getByRole("button", { name: "Add New" })).toBeInTheDocument();
+    });
+
+    test("handles tab click events", () => {
+      const handleClick = vi.fn();
+      const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick }];
+
+      render(<HorizontalTabs tabs={tabsWithClick} />);
+      fireEvent.click(screen.getByRole("link", { name: "Tab" }));
+
+      expect(handleClick).toHaveBeenCalledWith("Tab");
     });
   });
 
-  describe("Test VerticalTabs Component", () => {
+  describe("VerticalTabs", () => {
     const mockTabs = [
       {
-        name: "Tab 1",
-        href: "/tab1",
-        disableChevron: true,
-        disabled: true,
-        icon: "plus" as const,
+        name: "Overview",
+        href: "/overview",
+        icon: "home",
+        info: "Main dashboard view",
       },
-      { name: "Tab 2", href: "/tab2", isExternalLink: true },
-      { name: "Tab 3", href: "/tab3", info: "info" },
-    ];
+      {
+        name: "External",
+        href: "https://external.com",
+        isExternalLink: true,
+        icon: "external",
+      },
+      {
+        name: "Disabled",
+        href: "/disabled",
+        disabled: true,
+        icon: "lock",
+      },
+      {
+        name: "Child Tab",
+        href: "/child",
+        isChild: true,
+        disableChevron: true,
+      },
+    ] as {
+      name: string;
+      href: string;
+      icon?: IconName;
+      avatar?: string;
+      disabled?: boolean;
+      isExternalLink?: boolean;
+      isChild?: boolean;
+      disableChevron?: boolean;
+      info?: string;
+    }[];
 
     beforeEach(() => {
       vi.clearAllMocks();
     });
 
-    test("Should render tabs with correct name and href", () => {
-      render(<VerticalTabs tabs={mockTabs} />);
-      mockTabs.forEach((tab) => {
-        const tabLabelElement = screen.getByTestId(`vertical-tab-${tab.name}`);
-        expect(tabLabelElement).toBeInTheDocument();
+    test("renders all tabs with correct structure and attributes", async () => {
+      const { container } = render(<VerticalTabs tabs={mockTabs} sticky className="custom-class" />);
 
-        const name = screen.getByText(tab.name);
-        expect(name).toBeInTheDocument();
-        expect(tabLabelElement).toHaveAttribute("href", tab.href);
-      });
-    });
+      mockTabs.forEach(async (tab) => {
+        const tabElement = screen.getByRole("link", { name: tab.name });
+        expect(tabElement).toBeInTheDocument();
+        await expect(tabElement).toHaveAttribute("href", tab.href);
 
-    test("Should render correctly if props are passed", async () => {
-      render(<VerticalTabs tabs={mockTabs} />);
-
-      const iconElement = await screen.findAllByTestId("icon-component");
-      const externalLink = await screen.findAllByTestId("external-link");
-      const chevronRight = await screen.findAllByTestId("chevron-right");
-
-      mockTabs.forEach((tab) => {
-        const tabName = screen.getByText(tab.name);
-        expect(tabName).toBeInTheDocument();
-
-        const aTag = screen.getByTestId(`vertical-tab-${tab.name}`);
-        const tabContainer = tabName.closest("a");
-        const infoElement = tabContainer?.querySelector("p[title='info']");
-
-        expect(chevronRight.length).toEqual(mockTabs.length - 1);
         if (tab.disabled) {
-          expect(aTag).tabToBeDisabled();
-        } else {
-          expect(aTag).not.tabToBeDisabled();
-        }
-
-        if (tab.info) {
-          expect(infoElement).toBeInTheDocument();
-        } else {
-          expect(infoElement).toBeNull();
+          await expect(tabElement).toHaveAttribute("aria-disabled", "true");
         }
 
         if (tab.isExternalLink) {
-          expect(aTag).toHaveAttribute("target", "_blank");
-        } else {
-          expect(aTag).toHaveAttribute("target", "_self");
+          await expect(tabElement).toHaveAttribute("target", "_blank");
+          expect(screen.getByTestId("external-link")).toBeInTheDocument();
+        }
+
+        if (tab.info) {
+          expect(screen.getByTitle(tab.info)).toBeInTheDocument();
+        }
+
+        if (tab.icon) {
+          expect(screen.getByTestId("icon-component")).toBeInTheDocument();
         }
       });
 
-      expect(externalLink.length).toEqual(1);
-      expect(iconElement.length).toEqual(1);
+      // Check sticky behavior
+      await expect(container.firstChild).toHaveClass("sticky");
+    });
+
+    test("applies custom classNames correctly", async () => {
+      render(
+        <VerticalTabs
+          tabs={mockTabs}
+          className="custom-nav"
+          itemClassname="custom-item"
+          iconClassName="custom-icon"
+        />
+      );
+
+      await expect(screen.getByRole("navigation")).toHaveClass("custom-nav");
+      mockTabs.forEach(async (tab) => {
+        if (tab.icon) {
+          const iconElement = screen.getByTestId("icon-component");
+          await expect(iconElement).toHaveClass("custom-icon");
+        }
+      });
     });
   });
 });

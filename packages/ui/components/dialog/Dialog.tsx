@@ -205,7 +205,11 @@ export function DialogHeader(props: DialogHeaderProps) {
         id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <p className="text-subtle text-sm leading-none">{props.subtitle}</p>}
+      {props.subtitle && (
+        <p className="text-subtle text-sm leading-none" data-testid="dialog-subtitle">
+          {props.subtitle}
+        </p>
+      )}
     </div>
   );
 }
@@ -220,10 +224,11 @@ export function DialogFooter(props: DialogFooterProps) {
   return (
     <div
       className={classNames(
-        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl border-t-[1px]",
+        "bg-muted border-subtle bottom-0 -mx-8 mt-10 rounded-b-2xl",
         props?.noSticky ? "" : "sticky",
         props.className
       )}>
+      {props.showDivider && <div data-testid="divider" className="border-subtle border-t" />}
       <div className={classNames("flex justify-end space-x-2 px-8 py-4 font-sans rtl:space-x-reverse")}>
         {props.children}
       </div>
@@ -272,13 +277,15 @@ export function DialogClose(
     [isPlatform]
   );
 
+  const { className, ...buttonProps } = props;
+
   return (
     <Close asChild {...props.dialogCloseProps}>
-      {/* This will require the i18n string passed in */}
       <Button
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
-        {...props}>
+        className={classNames(props.color === "destructive" && "destructive", className)}
+        {...buttonProps}>
         {props.children ? props.children : t("close")}
       </Button>
     </Close>
