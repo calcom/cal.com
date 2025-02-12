@@ -62,7 +62,7 @@ describe("Check Booking Limits Tests", () => {
       )
     ).resolves.toBeTruthy();
   });
-  it("Should handle mutiple limits correctly", async () => {
+  it("Should handle multiple limits correctly", async () => {
     prismaMock.booking.count.mockResolvedValue(1);
     expect(
       checkBookingLimit({
