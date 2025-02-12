@@ -1,4 +1,5 @@
-@import url("../../../packages/features/calendars/weeklyview/styles/styles.css");
+@import "../../../packages/features/calendars/weeklyview/styles/styles.css";
+@import "../../web/styles/tokens.css";
 
 .sbdocs {
   font-family: "Inter var" !important;
@@ -192,96 +193,4 @@
 
 .docs-story {
   padding: 24px !important;
-}
-
-@layer {
-  :root {
-    /* background */
-  
-    --cal-bg-emphasis: hsla(220,13%,91%,1);
-    --cal-bg: hsla(0,0%,100%,1);
-    --cal-bg-subtle: hsla(220, 14%, 96%,1);
-    --cal-bg-muted: hsla(210,20%,98%,1);
-    --cal-bg-inverted: hsla(0,0%,6%,1);
-  
-    /* background -> components*/
-    --cal-bg-info: hsla(218,83%,98%,1);
-    --cal-bg-success: hsla(134,76%,94%,1);
-    --cal-bg-attention: hsla(37, 86%, 92%, 1);
-    --cal-bg-error: hsla(3,66,93,1);
-    --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
-  
-    /* Borders */
-    --cal-border-emphasis: hsla(218, 11%, 65%, 1);
-    --cal-border: hsla(216, 12%, 84%, 1);
-    --cal-border-subtle: hsla(220, 13%, 91%, 1);
-    --cal-border-booker: #e5e7eb;
-    --cal-border-muted: hsla(220, 14%, 96%, 1);
-    --cal-border-error: hsla(4, 63%, 41%, 1);
-  
-    /* Content/Text */
-    --cal-text-emphasis: hsla(217, 19%, 27%, 1);
-    --cal-text: hsla(217, 19%, 27%, 1);
-    --cal-text-subtle: hsla(220, 9%, 46%, 1);
-    --cal-text-muted: hsla(218, 11%, 65%, 1);
-    --cal-text-inverted: hsla(0, 0%, 100%, 1);
-  
-    /* Content/Text -> components */
-    --cal-text-info: hsla(228, 56%, 33%, 1);
-    --cal-text-success: hsla(133, 34%, 24%, 1);
-    --cal-text-attention: hsla(16, 62%, 28%, 1);
-    --cal-text-error: hsla(0, 63%, 31%, 1);
-  
-    /* Brand shinanigans
-        -> These will be computed for the users theme at runtime.
-      */
-    --cal-brand: hsla(221, 39%, 11%, 1);
-    --cal-brand-emphasis: hsla(0, 0%, 6%, 1);
-    --cal-brand-text: hsla(0, 0%, 100%, 1);
-  }
-  .dark {
-    /* background */
-  
-    --cal-bg-emphasis: hsla(0, 0%, 32%, 1);
-    --cal-bg: hsla(0, 0%, 10%, 1);
-    --cal-bg-subtle: hsla(0, 0%, 18%, 1);
-    --cal-bg-muted: hsla(0, 0%, 12%, 1);
-    --cal-bg-inverted: hsla(220, 14%, 96%, 1);
-  
-    /* background -> components*/
-    --cal-bg-info: hsla(228, 56%, 33%, 1);
-    --cal-bg-success: hsla(133, 34%, 24%, 1);
-    --cal-bg-attention: hsla(16, 62%, 28%, 1);
-    --cal-bg-error: hsla(2, 55%, 30%, 1);
-    --cal-bg-dark-error: hsla(2, 55%, 30%, 1);
-  
-    /* Borders */
-    --cal-border-emphasis: hsla(0, 0%, 46%, 1);
-    --cal-border: hsla(0, 0%, 34%, 1);
-    --cal-border-subtle: hsla(0, 0%, 22%, 1);
-    --cal-border-booker: hsla(0, 0%, 22%, 1);
-    --cal-border-muted: hsla(0, 0%, 18%, 1);
-    --cal-border-error: hsla(4, 63%, 41%, 1);
-  
-    /* Content/Text */
-    --cal-text-emphasis: hsla(240, 20%, 99%, 1);
-    --cal-text: hsla(0, 0%, 84%, 1);
-    --cal-text-subtle: hsla(0, 0%, 65%, 1);
-    --cal-text-muted: hsla(0, 0%, 34%, 1);
-    --cal-text-inverted: hsla(0, 0%, 10%, 1);
-  
-    /* Content/Text -> components */
-    --cal-text-info: hsla(218, 83%, 93%, 1);
-    --cal-text-success: hsla(134, 76%, 94%, 1);
-    --cal-text-attention: hsla(37, 86%, 92%, 1);
-    --cal-text-error: hsla(3, 66%, 93%, 1);
-  
-    /* Brand shenanigans
-        -> These will be computed for the users theme at runtime.
-      */
-    --cal-brand: hsla(0, 0%, 100%, 1);
-    --cal-brand-emphasis: hsla(218, 11%, 65%, 1);
-    --cal-brand-text: hsla(0, 0%, 0%,1);
-  }
-  
 }
