@@ -291,6 +291,8 @@ module.exports = {
         "outline-gray-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         "outline-gray-hover": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         "outline-gray-active": "0px 2px 1px 0px rgba(0, 0, 0, 0.05) inset",
+        "outline-gray-focused":
+          "0px 0px 0px 1px rgba(255, 255, 255, 0.20), 0px 0px 0px 2px rgba(0, 0, 0, 0.10)",
         "outline-red-rested": "0px 2px 3px 0px rgba(0, 0, 0, 0.03), 0px 2px 2px -1px rgba(0, 0, 0, 0.03)",
         "outline-red-hover": "0px 1px 1px 0px rgba(0, 0, 0, 0.06), 0px 2px 3px 0px rgba(0, 0, 0, 0.08)",
         "outline-red-active":

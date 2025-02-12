@@ -90,7 +90,7 @@ export const Select = <
               : "h-9 px-3",
             props.isDisabled && "bg-subtle",
             size === "sm" ? "rounded-md" : "rounded-[10px]",
-            "[&:focus-within]:border-subtle [&:focus-within]:ring-brand-default [&:focus-within]:ring-2 !flex",
+            "[&:focus-within]:border-emphasis [&:focus-within]:shadow-outline-gray-focused [&:focus-within]:ring-0 !flex",
             innerClassNames?.control
           ),
         singleValue: () => cx("text-default placeholder:text-muted", innerClassNames?.singleValue),
