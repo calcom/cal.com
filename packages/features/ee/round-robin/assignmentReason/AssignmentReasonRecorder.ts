@@ -21,7 +21,7 @@ export default class AssignmentReasonRecorder {
     organizerId: number;
     teamId: number;
     isRerouting: boolean;
-    reroutedByEmail: string | null;
+    reroutedByEmail?: string | null;
   }) {
     // Get the routing form data
     const routingFormResponse = await prisma.app_RoutingForms_FormResponse.findFirst({
