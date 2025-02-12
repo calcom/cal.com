@@ -14,6 +14,17 @@ export const deletePastBookingsHandler = async ({ ctx, input }: DeletePastBookin
   const { user } = ctx;
   const { bookingIds } = input;
 
+  const bookings = await prisma.booking.findMany({
+    where: {
+      id: { in: bookingIds },
+    },
+  });
+
+  const unauthorized = bookings.some((booking) => booking.userId !== user.id);
+  if (unauthorized) {
+    throw new Error("Unauthorized: Cannot delete bookings that don't belong to you");
+  }
+
   const result = await prisma.booking.deleteMany({
     where: {
       id: { in: bookingIds },
