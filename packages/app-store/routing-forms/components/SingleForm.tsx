@@ -79,18 +79,18 @@ const Actions = ({
         <VerticalDivider />
       </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
-        <FormAction
-          routingForm={form}
-          color="secondary"
-          target="_blank"
-          variant="icon"
-          type="button"
-          rel="noreferrer"
-          action="preview"
-          StartIcon="external-link"
-          tooltip={t("preview")}
-          tooltipSide="bottom"
-        />
+        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
+          <FormAction
+            routingForm={form}
+            color="secondary"
+            target="_blank"
+            variant="icon"
+            type="button"
+            rel="noreferrer"
+            action="preview"
+            StartIcon="external-link"
+          />
+        </Tooltip>
         <FormAction
           routingForm={form}
           action="copyLink"
@@ -101,17 +101,17 @@ const Actions = ({
           tooltip={t("copy_link_to_form")}
           tooltipSide="bottom"
         />
-        <FormAction
-          data-testid="download-responses"
-          routingForm={form}
-          action="download"
-          color="secondary"
-          variant="icon"
-          type="button"
-          StartIcon="download"
-          tooltip={t("download_responses")}
-          tooltipSide="bottom"
-        />
+        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
+          <FormAction
+            data-testid="download-responses"
+            routingForm={form}
+            action="download"
+            color="secondary"
+            variant="icon"
+            type="button"
+            StartIcon="download"
+          />
+        </Tooltip>
         <FormAction
           routingForm={form}
           action="embed"
