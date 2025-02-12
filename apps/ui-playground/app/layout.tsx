@@ -4,8 +4,6 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import { Suspense } from "react";
 
-import "@calcom/ui/css";
-
 import "./global.css";
 
 const inter = Inter({
