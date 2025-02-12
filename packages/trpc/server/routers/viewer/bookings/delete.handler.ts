@@ -42,6 +42,10 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     throw new Error("Booking not found");
   }
 
+  if (booking.userId !== user.id) {
+    throw new Error("Unauthorized: You don't have permission to delete this booking");
+  }
+
   await prisma.booking.delete({
     where: {
       id: booking.id,
