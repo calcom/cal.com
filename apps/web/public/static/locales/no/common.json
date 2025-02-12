@@ -2956,5 +2956,7 @@
   "desc": "Synkende",
   "verify_email": "Bekreft e-post",
   "verify_email_change": "Bekreft endring av e-post",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Legg til dine nye strenger over her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Gjentakende arrangementer støtter ikke setealternativer",
+  "seats_doesnt_support_recurring": "Seter støtter ikke gjentakende arrangementer"
 }

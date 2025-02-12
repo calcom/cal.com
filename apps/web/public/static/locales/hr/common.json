@@ -444,5 +444,7 @@
   "ooo_select_reason": "Odaberi razlog",
   "enterprise_license_locally": "Možete testirati ovu značajku lokalno, ali ne u proizvodnji.",
   "enterprise_license_sales": "Da biste se nadogradili na poslovnu verziju, obratite se našem timu za prodaju. Ako je već licencni ključ na mjestu, kontaktirajte support@cal.com za pomoć.",
-  "apply_to_all_event_types": "Primjenjuje se na sve, uključujući buduće vrste događaja"
+  "apply_to_all_event_types": "Primjenjuje se na sve, uključujući buduće vrste događaja",
+  "recurring_event_doesnt_support_seats": "Ponavljajući događaj ne podržava opciju sjedala",
+  "seats_doesnt_support_recurring": "Sjedala ne podržavaju ponavljajuće događaje"
 }

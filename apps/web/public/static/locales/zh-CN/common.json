@@ -2956,5 +2956,7 @@
   "desc": "降序",
   "verify_email": "验证邮箱",
   "verify_email_change": "验证邮箱变更",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "重复事件不支持座位选项",
+  "seats_doesnt_support_recurring": "座位不支持重复事件"
 }

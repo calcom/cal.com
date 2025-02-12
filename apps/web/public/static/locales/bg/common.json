@@ -2956,5 +2956,7 @@
   "desc": "Низх",
   "verify_email": "Потвърди имейл",
   "verify_email_change": "Потвърди промяната на имейл",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавете новите си низове над този ред ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Повтарящото се събитие не поддържа опцията за места",
+  "seats_doesnt_support_recurring": "Местата не поддържат повтарящи се събития"
 }

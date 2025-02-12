@@ -2956,5 +2956,7 @@
   "desc": "Desc",
   "verify_email": "Vérifier l'e-mail",
   "verify_email_change": "Vérifier le changement d'e-mail",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "L'événement récurrent ne prend pas en charge l'option des sièges",
+  "seats_doesnt_support_recurring": "Les sièges ne prennent pas en charge les événements récurrents"
 }

@@ -2956,5 +2956,7 @@
   "desc": "Faldende",
   "verify_email": "Bekræft e-mail",
   "verify_email_change": "Bekræft ændring af e-mail",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Tilbagevendende begivenheder understøtter ikke sædeindstillinger",
+  "seats_doesnt_support_recurring": "Sæder understøtter ikke tilbagevendende begivenheder"
 }

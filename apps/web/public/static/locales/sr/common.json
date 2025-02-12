@@ -2956,5 +2956,7 @@
   "desc": "Opadajuće",
   "verify_email": "Potvrdi email",
   "verify_email_change": "Potvrdi promenu email adrese",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodajte svoje nove stringove iznad ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Ponavljajući događaj ne podržava opciju sedišta",
+  "seats_doesnt_support_recurring": "Sedišta ne podržavaju ponavljajuće događaje"
 }

@@ -2956,5 +2956,7 @@
   "desc": "Zostupne",
   "verify_email": "Overiť email",
   "verify_email_change": "Overiť zmenu e-mailu",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Opakujúca sa udalosť nepodporuje možnosť sedadiel",
+  "seats_doesnt_support_recurring": "Sedadlá nepodporujú opakujúce sa udalosti"
 }

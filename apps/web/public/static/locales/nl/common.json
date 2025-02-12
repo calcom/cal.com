@@ -2956,5 +2956,7 @@
   "desc": "Aflopend",
   "verify_email": "E-mail verifiëren",
   "verify_email_change": "Verifieer e-mailwijziging",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Voeg uw nieuwe strings hierboven toe ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Terugkerende evenementen ondersteunen geen stoeloptie",
+  "seats_doesnt_support_recurring": "Stoelen ondersteunen geen terugkerende evenementen"
 }

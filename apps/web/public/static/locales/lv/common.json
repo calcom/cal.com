@@ -151,5 +151,7 @@
   "ooo_select_reason": "Izvēlieties iemeslu",
   "enterprise_license_locally": "Jūs varat testēt šo funkciju vietēji, bet ne ražošanas vidē.",
   "enterprise_license_sales": "Lai uzlabotu uz uzņēmuma izdevumu, lūdzu, sazinieties ar mūsu pārdošanas komandu. Ja licences atslēga jau ir, lūdzu, sazinieties ar support@cal.com uz palīdzību.",
-  "apply_to_all_event_types": "Piemēroties visiem, ieskaitot arī nākotnes notikumu veidus"
+  "apply_to_all_event_types": "Piemēroties visiem, ieskaitot arī nākotnes notikumu veidus",
+  "recurring_event_doesnt_support_seats": "Atkārtots notikums neatbalsta sēdvietu iespēju",
+  "seats_doesnt_support_recurring": "Sēdvietas neatbalsta atkārtotus notikumus"
 }

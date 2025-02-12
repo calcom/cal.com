@@ -2956,5 +2956,8 @@
   "desc": "Decrescente",
   "verify_email": "Verificar e-mail",
   "verify_email_change": "Verificar alteração de e-mail",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "O evento recorrente não suporta a opção de lugares",
+  "seats_doesnt_support_recurring": "Os lugares não suportam eventos recorrentes"
+
 }

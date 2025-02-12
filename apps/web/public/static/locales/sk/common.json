@@ -55,5 +55,7 @@
   "ooo_select_reason": "Vybrať dôvod",
   "enterprise_license_locally": "Túto funkciu môžete otestovať lokálne, ale nie v produkčnom prostredí.",
   "enterprise_license_sales": "Na upgradovanie na podnikateľskú verziu kontaktujte náš obchodný tím. Ak už je licenčný kľúč na mieste, kontaktujte support@cal.com pre pomoc.",
-  "apply_to_all_event_types": "Platí pre všetky, vrátane budúcich typov udalostí"
+  "apply_to_all_event_types": "Platí pre všetky, vrátane budúcich typov udalostí",
+  "recurring_event_doesnt_support_seats": "Opakujúca sa udalosť nepodporuje možnosť sedadiel",
+  "seats_doesnt_support_recurring": "Sedadlá nepodporujú opakujúce sa udalosti"
 }

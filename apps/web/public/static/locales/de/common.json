@@ -2956,5 +2956,7 @@
   "desc": "Absteigend",
   "verify_email": "E-Mail verifizieren",
   "verify_email_change": "E-Mail-Änderung bestätigen",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Wiederkehrende Veranstaltung unterstützt keine Sitzoption",
+  "seats_doesnt_support_recurring": "Sitzplätze unterstützen keine wiederkehrenden Veranstaltungen"
 }

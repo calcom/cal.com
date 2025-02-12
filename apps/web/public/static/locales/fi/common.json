@@ -2956,5 +2956,7 @@
   "desc": "Laskeva",
   "verify_email": "Vahvista sähköposti",
   "verify_email_change": "Vahvista sähköpostin muutos",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Toistuva tapahtuma ei tue istumapaikkoja",
+  "seats_doesnt_support_recurring": "Istumapaikat eivät tue toistuvia tapahtumia"
 }

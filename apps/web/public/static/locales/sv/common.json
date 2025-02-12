@@ -2956,5 +2956,7 @@
   "desc": "Fallande",
   "verify_email": "Verifiera e-post",
   "verify_email_change": "Verifiera ändring av e-postadress",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Återkommande evenemang stöder inte alternativet för platser",
+  "seats_doesnt_support_recurring": "Platser stöder inte återkommande evenemang"
 }

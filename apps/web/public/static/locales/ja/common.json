@@ -2956,5 +2956,7 @@
   "desc": "降順",
   "verify_email": "メールアドレスを確認",
   "verify_email_change": "メールアドレスの変更を確認",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ この上に新しい文字列を追加してください ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "定期イベントは座席オプションをサポートしていません",
+  "seats_doesnt_support_recurring": "座席は定期イベントをサポートしていません"
 }

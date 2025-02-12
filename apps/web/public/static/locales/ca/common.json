@@ -2956,5 +2956,7 @@
   "desc": "Desc",
   "verify_email": "Verifica el correu",
   "verify_email_change": "Verifica el canvi de correu electrònic",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Afegiu les vostres noves cadenes a dalt ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "L'esdeveniment recurrent no admet l'opció de seients",
+  "seats_doesnt_support_recurring": "Els seients no admeten esdeveniments recurrents"
 }

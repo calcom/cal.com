@@ -2956,5 +2956,7 @@
   "desc": "Azalan",
   "verify_email": "E-poçtu təsdiqlə",
   "verify_email_change": "E-poçt dəyişikliyini təsdiqlə",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Təkrarlanan tədbir oturacaq seçimlərini dəstəkləmir",
+  "seats_doesnt_support_recurring": "Oturacaqlar təkrarlanan tədbiri dəstəkləmir"
 }

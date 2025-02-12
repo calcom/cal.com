@@ -2956,5 +2956,7 @@
   "desc": "내림차순",
   "verify_email": "이메일 인증",
   "verify_email_change": "이메일 변경 확인",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "반복 이벤트는 좌석 옵션을 지원하지 않습니다",
+  "seats_doesnt_support_recurring": "좌석은 반복 이벤트를 지원하지 않습니다"
 }

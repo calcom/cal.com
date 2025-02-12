@@ -2956,5 +2956,7 @@
   "desc": "Csökkenő",
   "verify_email": "E-mail megerősítése",
   "verify_email_change": "E-mail-cím módosításának megerősítése",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adja hozzá az új karakterláncokat fent ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Az ismétlődő esemény nem támogatja az ülőhelyeket",
+  "seats_doesnt_support_recurring": "Az ülőhelyek nem támogatják az ismétlődő eseményeket"
 }

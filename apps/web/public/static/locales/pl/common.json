@@ -2956,5 +2956,7 @@
   "desc": "Malejąco",
   "verify_email": "Zweryfikuj email",
   "verify_email_change": "Zweryfikuj zmianę adresu email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Wydarzenie cykliczne nie obsługuje opcji miejsc siedzących",
+  "seats_doesnt_support_recurring": "Miejsca siedzące nie obsługują wydarzeń cyklicznych"
 }

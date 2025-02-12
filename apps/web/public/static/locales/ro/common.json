@@ -2956,5 +2956,7 @@
   "desc": "Descrescător",
   "verify_email": "Verifică email-ul",
   "verify_email_change": "Verifică schimbarea adresei de email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Evenimentul recurent nu acceptă opțiunea de locuri",
+  "seats_doesnt_support_recurring": "Locurile nu acceptă evenimente recurente"
 }

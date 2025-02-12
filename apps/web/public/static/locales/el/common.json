@@ -2956,5 +2956,7 @@
   "desc": "Φθίνουσα",
   "verify_email": "Επαλήθευση email",
   "verify_email_change": "Επαλήθευση αλλαγής email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
+  "recurring_event_doesnt_support_seats": "Η επαναλαμβανόμενη εκδήλωση δεν υποστηρίζει επιλογή θέσεων",
+  "seats_doesnt_support_recurring": "Οι θέσεις δεν υποστηρίζουν επαναλαμβανόμενες εκδηλώσεις"
 }
