@@ -295,6 +295,7 @@ function MemberListContent(props: Props) {
         id: "select",
         enableHiding: false,
         enableSorting: false,
+        enableResizing: false,
         size: 30,
         header: ({ table }) => (
           <Checkbox
@@ -317,7 +318,7 @@ function MemberListContent(props: Props) {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
-        header: `Member (${totalDBRowCount})`,
+        header: "Member",
         size: 250,
         cell: ({ row }) => {
           const { username, email, avatarUrl, accepted, name } = row.original;
@@ -350,8 +351,9 @@ function MemberListContent(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
+          const { data } = filterValue;
           const userEmail = rows.original.email;
-          return filterValue.includes(userEmail);
+          return data.includes(userEmail);
         },
       },
       {
@@ -386,13 +388,14 @@ function MemberListContent(props: Props) {
           );
         },
         filterFn: (rows, id, filterValue) => {
-          if (filterValue.includes("PENDING")) {
-            if (filterValue.length === 1) return !rows.original.accepted;
-            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          const { data } = filterValue;
+          if (data.includes("PENDING")) {
+            if (data.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || data.includes(rows.getValue(id));
           }
 
           // Show only the selected roles
-          return filterValue.includes(rows.getValue(id));
+          return data.includes(rows.getValue(id));
         },
       },
       {
@@ -402,10 +405,8 @@ function MemberListContent(props: Props) {
       },
       {
         id: "actions",
-        size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
+        size: 90,
+        enableResizing: false,
         cell: ({ row }) => {
           const user = row.original;
           const isSelf = user.id === session?.user.id;
@@ -620,7 +621,6 @@ function MemberListContent(props: Props) {
   }, [props.isOrgAdminOrOwner, dispatch, totalDBRowCount, session?.user.id]);
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.members) ?? [], [data]) as User[];
-  const totalFetched = flatData.length;
 
   const table = useReactTable({
     data: flatData,
@@ -630,6 +630,9 @@ function MemberListContent(props: Props) {
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        right: ["actions"],
+      },
     },
     state: {
       columnFilters,
@@ -655,10 +658,11 @@ function MemberListContent(props: Props) {
   return (
     <>
       <DataTable
-        data-testid="team-member-list-container"
+        testId="team-member-list-container"
         table={table}
         tableContainerRef={tableContainerRef}
         isPending={isPending}
+        enableColumnResizing={true}
         onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
         <DataTableToolbar.Root>
           <div className="flex w-full gap-2">

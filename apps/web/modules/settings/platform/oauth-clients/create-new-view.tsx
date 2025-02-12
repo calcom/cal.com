@@ -64,7 +64,7 @@ export default function CreateOAuthClient() {
   if (isPlatformUser && isPaidUser) {
     return (
       <div>
-        <Shell title={t("oAuth_client_creation_form")} isPlatformUser={true}>
+        <Shell title={t("oAuth_client_creation_form")} isPlatformUser={true} withoutSeo={true}>
           <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
@@ -85,7 +85,7 @@ export default function CreateOAuthClient() {
 
   return (
     <div>
-      <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell withoutSeo={true} isPlatformUser={true} withoutMain={false} SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>
     </div>

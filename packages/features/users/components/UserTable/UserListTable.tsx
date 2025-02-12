@@ -4,23 +4,23 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, getSortedRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { useSession } from "next-auth/react";
 import { useQueryState, parseAsBoolean } from "nuqs";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useMemo, useReducer, useState } from "react";
 
 import {
+  DataTableWrapper,
   DataTableProvider,
-  DataTable,
   DataTableToolbar,
-  DataTableFilters,
   DataTableSelectionBar,
-  DataTablePagination,
+  DataTableFilters,
   useColumnFilters,
-  useFetchMoreOnBottomReached,
   textFilter,
   isTextFilterValue,
   isSingleSelectFilterValue,
   isMultiSelectFilterValue,
   singleSelectFilter,
   multiSelectFilter,
+  ColumnFilterType,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -118,11 +118,10 @@ function UserListTableContent() {
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
 
-  const tableContainerRef = useRef<HTMLDivElement>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [isDownloading, setIsDownloading] = useState(false);
@@ -163,7 +162,6 @@ function UserListTableContent() {
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
-  const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -188,12 +186,12 @@ function UserListTableContent() {
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
-            ? "number"
+            ? ColumnFilterType.NUMBER
             : isText
-            ? "text"
+            ? ColumnFilterType.TEXT
             : isSingleSelect
-            ? "single_select"
-            : "multi_select";
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -269,11 +267,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -295,13 +288,9 @@ function UserListTableContent() {
         id: "member",
         accessorFn: (data) => data.email,
         enableHiding: false,
+        enableColumnFilter: false,
         size: 200,
-        header: () => {
-          return `Members`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
-        },
+        header: "Members",
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -414,9 +403,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -450,17 +436,19 @@ function UserListTableContent() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+        right: ["actions"],
+      },
     },
     defaultColumn: {
       size: 150,
     },
     state: {
-      columnFilters,
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -471,26 +459,34 @@ function UserListTableContent() {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role,
+                value: role,
+              }))
+            );
           case "teams":
-            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
           default:
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
-              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+              return convertFacetedValuesToMap(
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
+              );
             }
             return new Map();
         }
       }
       return new Map();
     },
-  });
-
-  const fetchMoreOnBottomReached = useFetchMoreOnBottomReached({
-    tableContainerRef,
-    hasNextPage,
-    fetchNextPage,
-    isFetching,
   });
 
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
@@ -543,65 +539,63 @@ function UserListTableContent() {
     }
   };
 
+  if (!isPlatformUser && !isSuccessAttributes) {
+    // do not render the table until the attributes are fetched
+    return null;
+  }
+
   return (
     <>
-      <DataTable
-        data-testid="user-list-data-table"
-        // className="lg:max-w-screen-lg"
+      <DataTableWrapper
+        testId="user-list-data-table"
         table={table}
-        tableContainerRef={tableContainerRef}
         isPending={isPending}
-        enableColumnResizing={true}
-        onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
-        <DataTableToolbar.Root>
-          <div className="flex w-full flex-col gap-2 sm:flex-row">
-            <div className="w-full sm:w-auto sm:min-w-[200px] sm:flex-1">
-              <DataTableToolbar.SearchBar
-                table={table}
-                onSearch={(value) => setDebouncedSearchTerm(value)}
-                className="sm:max-w-64 max-w-full"
-              />
-            </div>
-            <div className="flex flex-wrap items-center justify-between gap-2">
+        hasNextPage={hasNextPage}
+        fetchNextPage={fetchNextPage}
+        isFetching={isFetching}
+        totalDBRowCount={totalDBRowCount}
+        ToolbarLeft={
+          <DataTableToolbar.SearchBar
+            table={table}
+            onSearch={(value) => setDebouncedSearchTerm(value)}
+            className="sm:max-w-64 max-w-full"
+          />
+        }
+        ToolbarRight={
+          <>
+            <DataTableToolbar.CTA
+              type="button"
+              color="secondary"
+              StartIcon="file-down"
+              loading={isDownloading}
+              onClick={() => handleDownload()}
+              data-testid="export-members-button">
+              {t("download")}
+            </DataTableToolbar.CTA>
+            <DataTableFilters.AddFilterButton table={table} />
+            <DataTableFilters.ColumnVisibilityButton table={table} />
+            {adminOrOwner && (
               <DataTableToolbar.CTA
                 type="button"
-                color="secondary"
-                StartIcon="file-down"
-                loading={isDownloading}
-                onClick={() => handleDownload()}
-                data-testid="export-members-button">
-                {t("download")}
+                color="primary"
+                StartIcon="plus"
+                className="rounded-md"
+                onClick={() =>
+                  dispatch({
+                    type: "INVITE_MEMBER",
+                    payload: {
+                      showModal: true,
+                    },
+                  })
+                }
+                data-testid="new-organization-member-button">
+                {t("add")}
               </DataTableToolbar.CTA>
-              {/* We have to omit member because we don't want the filter to show but we can't disable filtering as we need that for the search bar */}
-              <DataTableFilters.AddFilterButton table={table} omit={["member"]} />
-              <DataTableFilters.ColumnVisibilityButton table={table} />
-              {adminOrOwner && (
-                <DataTableToolbar.CTA
-                  type="button"
-                  color="primary"
-                  StartIcon="plus"
-                  className="rounded-md"
-                  onClick={() =>
-                    dispatch({
-                      type: "INVITE_MEMBER",
-                      payload: {
-                        showModal: true,
-                      },
-                    })
-                  }
-                  data-testid="new-organization-member-button">
-                  {t("add")}
-                </DataTableToolbar.CTA>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2 justify-self-start">
-            <DataTableFilters.ActiveFilters table={table} />
-          </div>
-        </DataTableToolbar.Root>
-
-        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+            )}
+          </>
+        }>
+        <div className="flex gap-2 justify-self-start">
+          <DataTableFilters.ActiveFilters table={table} />
         </div>
 
         {numberOfSelectedRows >= 2 && dynamicLinkVisible && (
@@ -634,7 +628,8 @@ function UserListTableContent() {
             />
           </DataTableSelectionBar.Root>
         )}
-      </DataTable>
+      </DataTableWrapper>
+
       {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}

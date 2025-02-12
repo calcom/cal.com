@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Dispatch, ReactElement, ReactNode, SetStateAction } from "react";
@@ -6,7 +8,6 @@ import { Toaster } from "react-hot-toast";
 
 import { useRedirectToLoginIfUnauthenticated } from "@calcom/features/auth/lib/hooks/useRedirectToLoginIfUnauthenticated";
 import { useRedirectToOnboardingIfNeeded } from "@calcom/features/auth/lib/hooks/useRedirectToOnboardingIfNeeded";
-import { useBootIntercom } from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { KBarContent, KBarRoot } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import classNames from "@calcom/lib/classNames";
@@ -29,7 +30,7 @@ const Layout = (props: LayoutProps) => {
   const isFullPageWithoutSidebar = pathname?.startsWith("/apps/routing-forms/reporting/");
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
   const withoutSeo = props.withoutSeo ?? props.withoutMain ?? false;
-  useBootIntercom();
+
   useFormbricks();
 
   return (
@@ -95,7 +96,6 @@ export type LayoutProps = {
   beforeCTAactions?: JSX.Element;
   afterHeading?: ReactNode;
   smallHeading?: boolean;
-  hideHeadingOnMobile?: boolean;
   isPlatformUser?: boolean;
 };
 
@@ -144,9 +144,8 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+            "hidden items-center md:mb-6 md:mt-0 md:flex",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && (
             <Button
@@ -172,8 +171,7 @@ export function ShellMain(props: LayoutProps) {
                   <h3
                     className={classNames(
                       "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
+                      props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                   </h3>
@@ -238,7 +236,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-2 py-4 lg:px-6">
+      <div className="max-w-full p-2 sm:py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

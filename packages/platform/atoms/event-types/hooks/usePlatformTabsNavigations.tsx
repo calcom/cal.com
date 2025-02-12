@@ -8,7 +8,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { EventTypeSetupProps, FormValues } from "@calcom/features/eventtypes/lib/types";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { VerticalTabItemProps } from "@calcom/ui";
 

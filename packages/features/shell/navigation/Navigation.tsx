@@ -9,6 +9,7 @@ import {
 } from "@calcom/features/ee/organizations/context/provider";
 import { KBarTrigger } from "@calcom/features/kbar/Kbar";
 import { classNames } from "@calcom/lib";
+import { Badge } from "@calcom/ui";
 
 import { TeamInviteBadge } from "../TeamInviteBadge";
 import type { NavigationItemType } from "./NavigationItem";
@@ -55,6 +56,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "apps",
     href: "/apps",
     icon: "grid-3x3",
+    moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
@@ -87,9 +89,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "ellipsis",
   },
   {
-    name: "routing_forms",
+    name: "routing",
     href: "/apps/routing-forms/forms",
-    icon: "file-text",
+    icon: "split",
+    badge: <Badge variant="green">NEW</Badge>,
+
     isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
     moreOnMobile: true,
   },
@@ -164,6 +168,12 @@ const platformNavigationItems: NavigationItemType[] = [
   {
     name: "Members",
     href: "/settings/platform/members",
+    icon: "users",
+    moreOnMobile: true,
+  },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
     icon: "users",
     moreOnMobile: true,
   },

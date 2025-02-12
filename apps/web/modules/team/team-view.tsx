@@ -11,7 +11,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -19,7 +18,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
+import { Avatar, Button, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -28,14 +27,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import Team from "@components/team/screens/Team";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({
-  team,
-  considerUnpublished,
-  markdownStrippedBio,
-  isValidOrgDomain,
-  currentOrgDomain,
-  isSEOIndexable,
-}: PageProps) {
+function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const router = useRouter();
   const routerQuery = useRouterQuery();
@@ -181,22 +173,6 @@ function TeamPage({
 
   return (
     <>
-      <HeadSeo
-        origin={getOrgFullOrigin(currentOrgDomain)}
-        title={teamName}
-        description={teamName}
-        meeting={{
-          title: markdownStrippedBio,
-          profile: {
-            name: `${team.name}`,
-            image: profileImageSrc,
-          },
-        }}
-        nextSeoProps={{
-          nofollow: !isSEOIndexable,
-          noindex: !isSEOIndexable,
-        }}
-      />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
