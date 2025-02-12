@@ -6,6 +6,7 @@ import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
+import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
@@ -109,6 +110,7 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
+  attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,

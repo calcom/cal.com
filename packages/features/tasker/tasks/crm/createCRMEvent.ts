@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { eventTypeAppCardZod } from "@calcom/app-store/eventTypeAppCardZod";
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -76,7 +76,13 @@ export async function createCRMEvent(payload: string): Promise<void> {
     for (const appSlug of Object.keys(eventTypeAppMetadata)) {
       try {
         const appData = eventTypeAppMetadata[appSlug as keyof typeof eventTypeAppMetadata];
-        const appParse = eventTypeAppCardZod.safeParse(appData);
+        const appDataSchema = appDataSchemas[appSlug as keyof typeof appDataSchemas];
+
+        if (!appData || !appDataSchema) {
+          throw new Error(`Could not find appData or appDataSchema for ${appSlug}`);
+        }
+
+        const appParse = appDataSchema.safeParse(appData);
 
         if (!appParse.success) {
           log.error(`Error parsing event type app data for bookingUid ${bookingUid}`, appParse?.error);

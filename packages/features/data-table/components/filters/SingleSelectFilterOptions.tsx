@@ -16,10 +16,10 @@ import {
 
 import { useDataTable, useFilterValue } from "../../hooks";
 import type { FilterableColumn } from "../../lib/types";
-import { ZSingleSelectFilterValue } from "../../lib/types";
+import { ZSingleSelectFilterValue, ColumnFilterType } from "../../lib/types";
 
 export type SingleSelectFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "single_select" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.SINGLE_SELECT }>;
 };
 
 export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsProps) {
@@ -28,7 +28,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
   const { updateFilter, removeFilter } = useDataTable();
 
   return (
-    <Command>
+    <Command data-testid={`single-select-options-${column.id}`}>
       <CommandInput placeholder={t("search")} />
       <CommandList>
         <CommandEmpty>{t("no_options_found")}</CommandEmpty>
@@ -41,7 +41,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
             <CommandItem
               key={optionValue}
               onSelect={() => {
-                updateFilter(column.id, { type: "single_select", data: optionValue });
+                updateFilter(column.id, { type: ColumnFilterType.SINGLE_SELECT, data: optionValue });
               }}>
               <div
                 className={classNames(
