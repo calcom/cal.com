@@ -191,9 +191,6 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
     columns.push({
       id: "actions",
       size: 90,
-      meta: {
-        sticky: { position: "right" },
-      },
       cell: ({ row }) => {
         const item = row.original;
         return (
