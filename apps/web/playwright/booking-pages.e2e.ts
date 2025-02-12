@@ -63,7 +63,7 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
 
 todo("check SSR and OG - Team Event Type");
 
-test.describe("user with a special character in the username @test", () => {
+test.describe("user with a special character in the username", () => {
   test("/[user] page shouldn't 404", async ({ page, users }) => {
     const user = await users.create({ username: "franz-janßen" });
     const response = await page.goto(`/${user.username}`);
