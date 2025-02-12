@@ -176,7 +176,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
           allURLSearchParams: getUrlSearchParamsToForward({
             formResponse: response,
             fields: serializableForm.fields,
-            searchParams: new URLSearchParams(stringify(paramsToBeForwardedAsIs)),
+            searchParams: new URLSearchParams(
+              stringify({ ...paramsToBeForwardedAsIs, "cal.action": "eventTypeRedirectUrl" })
+            ),
             teamMembersMatchingAttributeLogic,
             formResponseId: formResponseId ?? null,
             attributeRoutingConfig: attributeRoutingConfig ?? null,
@@ -191,7 +193,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   } else if (decidedAction.type === "externalRedirectUrl") {
     return {
       redirect: {
-        destination: `${decidedAction.value}?${stringify(context.query)}`,
+        destination: `${decidedAction.value}?${stringify(context.query)}&cal.action=externalRedirectUrl`,
         permanent: false,
       },
     };
