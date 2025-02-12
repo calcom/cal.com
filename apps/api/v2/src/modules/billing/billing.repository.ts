@@ -36,12 +36,11 @@ export class BillingRepository {
     });
   }
 
-  async updateBillingOverdue(subId: string, cusId: string, overdue: boolean) {
+  async updateBillingOverdue(teamId: number, overdue: boolean) {
     try {
       return this.dbWrite.prisma.platformBilling.update({
         where: {
-          subscriptionId: subId,
-          customerId: cusId,
+          id: teamId,
         },
         data: {
           overdue,
@@ -49,8 +48,7 @@ export class BillingRepository {
       });
     } catch (err) {
       this.logger.error("Could not update billing overdue", {
-        subId,
-        cusId,
+        teamId,
         err,
       });
     }
