@@ -91,7 +91,7 @@ export default function RecurringEventController({
               checked={recurringEventState !== null}
               data-testid="recurring-event-check"
               disabled={isSeatsOffered}
-              tooltip={isSeatsOffered ? t("seats_doesnt_support_recurring") : null}
+              tooltip={isSeatsOffered ? t("seats_doesnt_support_recurring") : undefined}
               onCheckedChange={(e) => {
                 if (!e) {
                   formMethods.setValue("recurringEvent", null, { shouldDirty: true });

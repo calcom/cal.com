@@ -597,7 +597,6 @@ export const EventAdvancedTab = ({
             descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
-            disabled={eventType?.recurringEvent !== null}
           />
         )}
       />
