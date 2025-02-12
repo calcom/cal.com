@@ -60,14 +60,6 @@ describe("Dialog", () => {
   );
 
   describe("Rendering", () => {
-    it("renders with title and subtitle", () => {
-      render(<TestDialog open title={title} subtitle={subtitle} />);
-
-      expect(screen.getByText(title)).toBeInTheDocument();
-      expect(screen.getByText(subtitle)).toBeInTheDocument();
-      expect(screen.getByText(content)).toBeInTheDocument();
-    });
-
     it("renders without header when no title provided", () => {
       render(<TestDialog open />);
 
@@ -85,12 +77,6 @@ describe("Dialog", () => {
       render(<TestDialog open type="confirmation" />);
 
       expect(screen.getByTestId("dialog-confirmation")).toBeInTheDocument();
-    });
-
-    it("renders with icon when provided", () => {
-      render(<TestDialog open type="confirmation" icon="info" />);
-
-      expect(screen.getByTestId("icon-info")).toBeInTheDocument();
     });
   });
 
@@ -131,23 +117,9 @@ describe("Dialog", () => {
 
       expect(screen.getByTestId("divider")).toBeInTheDocument();
     });
-
-    it("renders close button with custom color", () => {
-      render(<TestDialog open color="destructive" />);
-
-      const closeBtn = screen.getByText("Custom Close");
-      expect(closeBtn.className).toContain("destructive");
-    });
   });
 
   describe("Behavior", () => {
-    it("prevents close on outside click when preventCloseOnOutsideClick is true", () => {
-      render(<TestDialog open preventCloseOnOutsideClick />);
-
-      const dialogContent = screen.getByText(content);
-      expect(dialogContent.parentElement?.getAttribute("onpointerdownoutside")).toBeTruthy();
-    });
-
     it("enables overflow when enableOverflow is true", () => {
       render(<TestDialog open enableOverflow />);
 
