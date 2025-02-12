@@ -45,7 +45,7 @@ describe("Navigation Components", () => {
       render(<HorizontalTabs tabs={mockTabs} />);
 
       for (const tab of mockTabs) {
-        const tabElement = screen.getByRole("link", { name: tab.name });
+        const tabElement = screen.getByTestId(`horizontal-tab-${tab.name}`);
         expect(tabElement).toBeInTheDocument();
         await expect(tabElement).toHaveAttribute("href", tab.href);
       }
@@ -59,7 +59,7 @@ describe("Navigation Components", () => {
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (!disabledTab) throw new Error("Test requires a disabled tab in mockTabs");
 
-      const tabElement = screen.getByRole("link", { name: disabledTab.name });
+      const tabElement = screen.getByTestId(`horizontal-tab-${disabledTab.name}`);
 
       await expect(tabElement).toHaveAttribute("aria-disabled", "true");
     });
@@ -76,7 +76,7 @@ describe("Navigation Components", () => {
       const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick }];
 
       render(<HorizontalTabs tabs={tabsWithClick} />);
-      fireEvent.click(screen.getByRole("link", { name: "Tab" }));
+      fireEvent.click(screen.getByTestId("horizontal-tab-Tab"));
 
       expect(handleClick).toHaveBeenCalledWith("Tab");
     });
@@ -128,7 +128,7 @@ describe("Navigation Components", () => {
       const { container } = render(<VerticalTabs tabs={mockTabs} sticky className="custom-class" />);
 
       mockTabs.forEach(async (tab) => {
-        const tabElement = screen.getByRole("link", { name: tab.name });
+        const tabElement = screen.getByTestId(`vertical-tab-${tab.name}`);
         expect(tabElement).toBeInTheDocument();
         await expect(tabElement).toHaveAttribute("href", tab.href);
 
@@ -142,11 +142,13 @@ describe("Navigation Components", () => {
         }
 
         if (tab.info) {
-          expect(screen.getByTitle(tab.info)).toBeInTheDocument();
+          const infoElement = screen.getByTestId("apps-info");
+          expect(infoElement).toBeInTheDocument();
+          expect(infoElement).toHaveTextContent(tab.info);
         }
 
         if (tab.icon) {
-          expect(screen.getByTestId("icon-component")).toBeInTheDocument();
+          expect(screen.getAllByTestId("icon-component")).toHaveLength(3);
         }
       });
 
@@ -154,23 +156,53 @@ describe("Navigation Components", () => {
       await expect(container.firstChild).toHaveClass("sticky");
     });
 
-    test("applies custom classNames correctly", async () => {
+    test("applies custom icon correctly", async () => {
       render(
         <VerticalTabs
-          tabs={mockTabs}
+          tabs={[
+            {
+              name: "Overview",
+              href: "/overview",
+              icon: "atom",
+              info: "Main dashboard view",
+            },
+          ]}
           className="custom-nav"
           itemClassname="custom-item"
           iconClassName="custom-icon"
         />
       );
 
-      await expect(screen.getByRole("navigation")).toHaveClass("custom-nav");
-      mockTabs.forEach(async (tab) => {
-        if (tab.icon) {
-          const iconElement = screen.getByTestId("icon-component");
-          await expect(iconElement).toHaveClass("custom-icon");
-        }
-      });
+      const iconElement = screen.getByTestId("icon-component");
+      expect(iconElement).toBeInTheDocument();
+      await expect(iconElement).toHaveClass("custom-icon");
+    });
+
+    test("applies custom classNames correctly", async () => {
+      render(
+        <VerticalTabs
+          tabs={[
+            {
+              name: "Overview",
+              href: "/overview",
+              icon: "atom",
+              info: "Main dashboard view",
+            },
+          ]}
+          className="custom-nav"
+          itemClassname="custom-item"
+          iconClassName="custom-icon"
+        />
+      );
+
+      const nav = screen.getByTestId("vertical-tab-Overview").closest("nav");
+      await expect(nav).toHaveClass("custom-nav");
+
+      const tabElement = screen.getByTestId("vertical-tab-Overview");
+      await expect(tabElement).toHaveClass("custom-item");
+
+      const iconElement = screen.getByTestId("icon-component");
+      await expect(iconElement).toHaveClass("custom-icon");
     });
   });
 });
