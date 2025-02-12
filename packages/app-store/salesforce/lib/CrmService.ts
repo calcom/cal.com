@@ -514,15 +514,13 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
             accountId,
             organizerId,
           });
-
-          if (createdContacts.length > 0) {
+          if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
         }
@@ -548,7 +546,6 @@ export default class SalesforceCRMService implements CRM {
       const attendee = contactsToCreate[0];
 
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
@@ -557,8 +554,7 @@ export default class SalesforceCRMService implements CRM {
           accountId,
           organizerId,
         });
-
-        if (createdContacts.length > 0) {
+        if (createdAccountContacts.length > 0) {
           createdContacts.push(...createdAccountContacts);
           contactCreated = true;
         }
@@ -1329,41 +1325,19 @@ export default class SalesforceCRMService implements CRM {
   ) {
     const conn = await this.conn;
 
-    let personRecord: { Id: string; Email: string; recordType: SalesforceRecordEnum } | null = null;
-
     // Prioritize contacts over leads
-    const contactsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
-    );
-
-    if (contactsQuery.records.length) {
-      personRecord = {
-        ...(contactsQuery.records[0] as { Id: string; Email: string }),
-        recordType: SalesforceRecordEnum.CONTACT,
-      };
-    }
-
-    const leadsQuery = await conn.query(
-      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
-    );
-
-    if (leadsQuery.records.length) {
-      personRecord = {
-        ...(leadsQuery.records[0] as { Id: string; Email: string }),
-        recordType: SalesforceRecordEnum.LEAD,
-      };
-    }
+    const personRecord = await this.findProspectByEmail(email);
 
     if (!personRecord) {
       this.log.info(`No contact or lead found for email ${email}`);
       // No salesforce entity to update, skip and report success (unrecoverable)
       return;
     }
+
+    const recordType = this.determineRecordTypeById(personRecord.Id);
+
     // Ensure the fields exist on the record
-    const existingFields = await this.ensureFieldsExistOnObject(
-      Object.keys(writeToRecordObject),
-      personRecord.recordType
-    );
+    const existingFields = await this.ensureFieldsExistOnObject(Object.keys(writeToRecordObject), recordType);
 
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
@@ -1371,7 +1345,7 @@ export default class SalesforceCRMService implements CRM {
       onBookingWriteToRecordFields: writeToRecordObject,
     });
     await conn
-      .sobject(personRecord.recordType)
+      .sobject(recordType)
       .update({
         Id: personRecord.Id,
         ...writeOnRecordBody,
@@ -1400,6 +1374,37 @@ export default class SalesforceCRMService implements CRM {
       default:
         this.log.warn(`Unhandled record id type ${id}`);
         return SalesforceRecordEnum.CONTACT;
+    }
+  }
+
+  /** Prioritizes contacts over leads */
+  private async findProspectByEmail(email: string) {
+    const contact = await this.findContactByEmail(email);
+    if (contact) return contact;
+    const lead = await this.findLeadByEmail(email);
+    if (lead) return lead;
+    return null;
+  }
+
+  private async findContactByEmail(email: string) {
+    const conn = await this.conn;
+    const contactsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (contactsQuery.records.length > 0) {
+      return contactsQuery.records[0] as { Id: string; Email: string };
+    }
+  }
+
+  private async findLeadByEmail(email: string) {
+    const conn = await this.conn;
+    const leadsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (leadsQuery.records.length > 0) {
+      return leadsQuery.records[0] as { Id: string; Email: string };
     }
   }
 }
