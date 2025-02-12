@@ -1628,7 +1628,7 @@ enum SMSLockState {
 model PlatformBilling {
   id Int @id @unique // team id
 
-  customerId     String  @unique
+  customerId     String
   subscriptionId String?
   plan           String  @default("none")
 
