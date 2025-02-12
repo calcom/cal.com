@@ -236,12 +236,9 @@
   },
   "globalDependencies": ["yarn.lock"],
   "globalEnv": [
-    "AB_TEST_BUCKET_PROBABILITY",
     "ALLOWED_HOSTNAMES",
     "ANALYZE",
     "API_KEY_PREFIX",
-    "APP_ROUTER_APPS_SLUG_SETUP_ENABLED",
-    "APP_ROUTER_TEAM_ENABLED",
     "APP_USER_NAME",
     "BASECAMP3_CLIENT_ID",
     "BASECAMP3_CLIENT_SECRET",
