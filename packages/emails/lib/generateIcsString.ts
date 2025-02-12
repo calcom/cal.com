@@ -1,7 +1,6 @@
 import type { DateArray, ParticipationRole, EventStatus, ParticipationStatus } from "ics";
-import { createEvent } from "ics";
+import { createEvents } from "ics";
 import type { TFunction } from "next-i18next";
-import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -44,58 +43,53 @@ const generateIcsString = ({
   partstat?: ParticipationStatus;
   t?: TFunction;
 }) => {
-  const location = getVideoCallUrlFromCalEvent(event) || event.location;
-
-  // Taking care of recurrence rule
-  let recurrenceRule: string | undefined = undefined;
   const icsRole: ParticipationRole = "REQ-PARTICIPANT";
-  if (event.recurringEvent?.count) {
-    // ics appends "RRULE:" already, so removing it from RRule generated string
-    recurrenceRule = new RRule(event.recurringEvent).toString().replace("RRULE:", "");
-  }
-
-  const icsEvent = createEvent({
-    uid: event.iCalUID || event.uid!,
-    sequence: event.iCalSequence || 0,
-    start: dayjs(event.startTime)
-      .utc()
-      .toArray()
-      .slice(0, 6)
-      .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
-    startInputType: "utc",
-    productId: "calcom/ics",
-    title: event.title,
-    description: getRichDescription(event, t),
-    duration: { minutes: dayjs(event.endTime).diff(dayjs(event.startTime), "minute") },
-    organizer: { name: event.organizer.name, email: event.organizer.email },
-    ...{ recurrenceRule },
-    attendees: [
-      ...event.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-        partstat,
-        role: icsRole,
-        rsvp: true,
-      })),
-      ...(event.team?.members
-        ? event.team?.members.map((member: Person) => ({
-            name: member.name,
-            email: member.email,
-            partstat,
-            role: icsRole,
-            rsvp: true,
-          }))
-        : []),
-    ],
-    location: location ?? undefined,
-    method: "REQUEST",
-    status,
-    ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
+  const events = event.recurringEvent.dates.map((recurrence, index) => {
+    const location = recurrence.location || getVideoCallUrlFromCalEvent(event) || event.location;
+    return {
+      uid: `${event.iCalUID || event.uid}-${index + 1}`,
+      sequence: event.iCalSequence || 0,
+      start: dayjs(recurrence.startTime)
+        .utc()
+        .toArray()
+        .slice(0, 6)
+        .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
+      startInputType: "utc",
+      productId: "calcom/ics",
+      title: event.title,
+      description: getRichDescription(event, t),
+      duration: { minutes: dayjs(recurrence.endTime).diff(dayjs(recurrence.startTime), "minute") },
+      organizer: { name: event.organizer.name, email: event.organizer.email },
+      attendees: [
+        ...event.attendees.map((attendee: Person) => ({
+          name: attendee.name,
+          email: attendee.email,
+          partstat,
+          role: icsRole,
+          rsvp: true,
+        })),
+        ...(event.team?.members
+          ? event.team?.members.map((member: Person) => ({
+              name: member.name,
+              email: member.email,
+              partstat,
+              role: icsRole,
+              rsvp: true,
+            }))
+          : []),
+      ],
+      location: location ?? undefined,
+      method: "REQUEST",
+      status,
+      ...(event.hideCalendarEventDetails ? { classification: "PRIVATE" } : {}),
+    };
   });
-  if (icsEvent.error) {
-    throw icsEvent.error;
+
+  const { error, value } = createEvents(events);
+  if (error) {
+    throw error;
   }
-  return icsEvent.value;
+  return value;
 };
 
 export default generateIcsString;
