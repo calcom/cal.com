@@ -32,7 +32,9 @@ export function WithLayout<T extends Record<string, any>>({
     let props = {} as T;
 
     if ("searchParams" in p && getData) {
-      props = (await getData(buildLegacyCtx(h, await cookies(), p.params, p.searchParams))) ?? ({} as T);
+      props =
+        (await getData(buildLegacyCtx(h, await cookies(), await p.params, await p.searchParams))) ??
+        ({} as T);
     }
 
     // `p.children` exists only for layout.tsx files

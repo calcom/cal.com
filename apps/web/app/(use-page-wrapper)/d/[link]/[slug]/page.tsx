@@ -27,7 +27,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 
 const getData = withAppDirSsr<PageProps>(getServerSideProps);
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const legacyCtx = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const legacyCtx = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const pageProps = await getData(legacyCtx);
 
   return <Type {...pageProps} />;

@@ -33,7 +33,7 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);
 
 const ServerPage = async ({ params, searchParams }: _PageProps) => {
-  const context = buildLegacyCtx(headers(), cookies(), params, searchParams);
+  const context = buildLegacyCtx(await headers(), await cookies(), await params, await searchParams);
   const props = await getData(context);
   return <OldPage {...props} />;
 };

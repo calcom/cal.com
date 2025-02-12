@@ -30,7 +30,7 @@ const getInitialProps = async (url: string) => {
   const isEmbed = pathname.endsWith("/embed") || (searchParams?.get("embedType") ?? null) !== null;
   const embedColorScheme = searchParams?.get("ui.color-scheme");
 
-  const req = { headers: headers(), cookies: cookies() };
+  const req = { headers: await headers(), cookies: await cookies() };
   const newLocale = await getLocale(req);
   const direction = dir(newLocale);
 
