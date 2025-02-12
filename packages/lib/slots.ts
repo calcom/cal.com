@@ -141,6 +141,106 @@ function buildSlots({
   return slots;
 }
 
+function buildSlotsWithDateRangesOld({
+  dateRanges,
+  frequency,
+  eventLength,
+  timeZone,
+  minimumBookingNotice,
+  organizerTimeZone,
+  offsetStart,
+  datesOutOfOffice,
+}: {
+  dateRanges: DateRange[];
+  frequency: number;
+  eventLength: number;
+  timeZone: string;
+  minimumBookingNotice: number;
+  organizerTimeZone: string;
+  offsetStart?: number;
+  datesOutOfOffice?: IOutOfOfficeData;
+}) {
+  // keep the old safeguards in; may be needed.
+  frequency = minimumOfOne(frequency);
+  eventLength = minimumOfOne(eventLength);
+  offsetStart = offsetStart ? minimumOfOne(offsetStart) : 0;
+  const slots: {
+    time: Dayjs;
+    userIds?: number[];
+    away?: boolean;
+    fromUser?: IFromUser;
+    toUser?: IToUser;
+    reason?: string;
+    emoji?: string;
+  }[] = [];
+
+  let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
+  const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
+
+  for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
+    if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
+      interval = intervalsWithDefinedStartTimes[i];
+      break;
+    }
+  }
+
+  dateRanges.forEach((range) => {
+    const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+
+    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+      ? range.start
+      : startTimeWithMinNotice;
+
+    slotStartTime =
+      slotStartTime.minute() % interval !== 0
+        ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
+        : slotStartTime;
+
+    // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
+    const rangeEnd = range.end
+      .add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes")
+      .isSame(range.end.endOf("day").add(dayjs().tz(organizerTimeZone).utcOffset(), "minutes"), "minute")
+      ? range.end.add(1, "minute")
+      : range.end;
+
+    slotStartTime = slotStartTime.add(offsetStart ?? 0, "minutes").tz(timeZone);
+
+    while (!slotStartTime.add(eventLength, "minutes").subtract(1, "second").utc().isAfter(rangeEnd)) {
+      const dateOutOfOfficeExists = datesOutOfOffice?.[dateYYYYMMDD];
+      let slotData: {
+        time: Dayjs;
+        userIds?: number[];
+        away?: boolean;
+        fromUser?: IFromUser;
+        toUser?: IToUser;
+        reason?: string;
+        emoji?: string;
+      } = {
+        time: slotStartTime,
+      };
+
+      if (dateOutOfOfficeExists) {
+        const { toUser, fromUser, reason, emoji } = dateOutOfOfficeExists;
+
+        slotData = {
+          time: slotStartTime,
+          away: true,
+          ...(fromUser && { fromUser }),
+          ...(toUser && { toUser }),
+          ...(reason && { reason }),
+          ...(emoji && { emoji }),
+        };
+      }
+
+      slots.push(slotData);
+      slotStartTime = slotStartTime.add(frequency + (offsetStart ?? 0), "minutes");
+    }
+  });
+
+  return slots;
+}
+
 function buildSlotsWithDateRanges({
   dateRanges,
   frequency,
@@ -281,7 +381,8 @@ const getSlots = ({
   organizerTimeZone,
   datesOutOfOffice,
 }: GetSlots) => {
-  if (dateRanges) {
+  if (dateRanges && !organizerTimeZone) {
+    const processStarted = performance.now();
     const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
@@ -291,6 +392,24 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
+
+    console.log("buildSlotsWithDateRanges took", performance.now() - processStarted, "ms");
+    return slots;
+  } else if (dateRanges && organizerTimeZone) {
+    const processStarted = performance.now();
+
+    const slots = buildSlotsWithDateRangesOld({
+      dateRanges,
+      frequency,
+      eventLength,
+      timeZone: getTimeZone(inviteeDate),
+      minimumBookingNotice,
+      organizerTimeZone,
+      offsetStart,
+      datesOutOfOffice,
+    });
+
+    console.log("buildSlotsWithDateRangesOld took", performance.now() - processStarted, "ms");
     return slots;
   }
 

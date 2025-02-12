@@ -3,7 +3,10 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import {
+  getAggregatedAvailability,
+  getAggregatedAvailabilityNew,
+} from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
@@ -350,18 +353,19 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     contactOwnerEmail,
   });
 
-  let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-    await calculateHostsAndAvailabilities({
-      input,
-      eventType,
-      hosts: routedHostsWithContactOwnerAndFixedHosts,
-      contactOwnerEmail,
-      loggerWithEventDetails,
-      startTime,
-      endTime,
-      bypassBusyCalendarTimes,
-      shouldServeCache,
-    });
+  let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
+    input,
+    eventType,
+    hosts: routedHostsWithContactOwnerAndFixedHosts,
+    contactOwnerEmail,
+    loggerWithEventDetails,
+    startTime,
+    endTime,
+    bypassBusyCalendarTimes,
+    shouldServeCache,
+  });
+
+  let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
   // If contact skipping, determine if there's availability within two weeks
   if (contactOwnerEmail && aggregatedAvailability.length > 0) {
@@ -375,8 +379,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
       if (routedHostsAndFixedHosts.length > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-          await calculateHostsAndAvailabilities({
+        ({ allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities(
+          {
             input,
             eventType,
             hosts: routedHostsAndFixedHosts,
@@ -386,7 +390,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             endTime,
             bypassBusyCalendarTimes,
             shouldServeCache,
-          }));
+          }
+        ));
+        aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
     }
   }
@@ -396,6 +402,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -403,7 +415,28 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
+    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+  });
+
+  const aggregatedAvailabilityNew = getAggregatedAvailabilityNew(
+    allUsersAvailability,
+    eventType.schedulingType
+  );
+
+  const timeSlotsNew = monitorCallbackSync(getSlots, {
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    offsetStart: eventType.offsetStart,
+    dateRanges: aggregatedAvailabilityNew,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+  });
+
+  console.log({
+    timeSlots,
+    timeSlotsNew,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
@@ -547,9 +580,6 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
-
-  const eventTimeZone =
-    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -1021,14 +1051,7 @@ const calculateHostsAndAvailabilities = async ({
     }
   );
 
-  const aggregatedAvailability = monitorCallbackSync(
-    getAggregatedAvailability,
-    allUsersAvailability,
-    eventType.schedulingType
-  );
-
   return {
-    aggregatedAvailability,
     allUsersAvailability,
     usersWithCredentials,
     currentSeats,
