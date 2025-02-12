@@ -44,9 +44,15 @@ export class OrganizationPermissionService {
 
   hasModifiedDefaultPayment(input: SeatsPrice & { billingPeriod?: string }): boolean {
     return (
-      (input.billingPeriod !== undefined && input.billingPeriod !== "MONTHLY") ||
-      (input.seats !== undefined && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
-      (input.pricePerSeat !== undefined && input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE)
+      (input.billingPeriod !== undefined &&
+        input.billingPeriod !== null &&
+        input.billingPeriod !== "MONTHLY") ||
+      (input.seats !== undefined &&
+        input.seats !== null &&
+        input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
+      (input.pricePerSeat !== undefined &&
+        input.pricePerSeat !== null &&
+        input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE)
     );
   }
 

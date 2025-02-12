@@ -61,14 +61,6 @@ async function createOrganizationWithOwner(orgData: OrganizationData, ownerEmail
     throw new Error(`Owner not found with email: ${ownerEmail}`);
   }
   const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
-  assertCanCreateOrg({
-    slug: orgData.slug,
-    isPlatform: orgData.isPlatform,
-    orgOwner: owner,
-    // If it would have been restricted, then it would have been done already in intentToCreateOrgHandler
-    restrictBasedOnMinimumPublishedTeams: true,
-  });
-
   let organization = await OrganizationRepository.findBySlug({ slug: orgData.slug });
 
   if (organization) {
@@ -81,6 +73,14 @@ async function createOrganizationWithOwner(orgData: OrganizationData, ownerEmail
     );
     return { organization, owner, orgOwnerTranslation };
   }
+
+  await assertCanCreateOrg({
+    slug: orgData.slug,
+    isPlatform: orgData.isPlatform,
+    orgOwner: owner,
+    // If it would have been restricted, then it would have been done already in intentToCreateOrgHandler
+    restrictBasedOnMinimumPublishedTeams: true,
+  });
 
   logger.debug(`Creating organization for owner ${owner.email}`);
 
@@ -216,7 +216,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     organizationOnboarding.orgOwnerEmail
   );
 
-  setupDomain({
+  await setupDomain({
     slug: organizationOnboarding.slug,
     isPlatform: organizationOnboarding.isPlatform,
     orgOwnerEmail: organizationOnboarding.orgOwnerEmail,

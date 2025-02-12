@@ -8,6 +8,8 @@ import {
   WEBAPP_URL,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -16,6 +18,7 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 
+const log = logger.getSubLogger({ prefix: ["intentToCreateOrgHandler"] });
 /**
  * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
  */
@@ -176,12 +179,22 @@ export const findUserToBeOrgOwner = async (email: string) => {
 
 export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) => {
   const { slug, name, orgOwnerEmail, seats, pricePerSeat, billingPeriod, isPlatform } = input;
+  log.debug(
+    "Starting organization creation intent",
+    safeStringify({ slug, name, orgOwnerEmail, isPlatform })
+  );
+
   const loggedInUser = ctx.user;
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
+  log.debug("User authorization check", safeStringify({ userId: loggedInUser.id, isAdmin: IS_USER_ADMIN }));
 
   if (!IS_USER_ADMIN && loggedInUser.email !== orgOwnerEmail && !isPlatform) {
+    log.warn(
+      "Unauthorized organization creation attempt",
+      safeStringify({ loggedInUserEmail: loggedInUser.email, orgOwnerEmail })
+    );
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
@@ -190,12 +203,15 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
 
   const orgOwner = await findUserToBeOrgOwner(orgOwnerEmail);
   if (!orgOwner) {
+    log.warn("Organization owner not found", safeStringify({ orgOwnerEmail }));
     // FIXME: Write logic to create new org user as per feat-payment-before-org-creation.md
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Organization owner doesn't exist. NEED TO IMPLEMENT THIS",
     });
   }
+  log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
+
   await assertCanCreateOrg({
     slug,
     isPlatform,
@@ -203,6 +219,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
 
+  log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
   return {
     userId: orgOwner.id,
     orgOwnerEmail,
@@ -226,9 +243,11 @@ export const setupDomain = async ({
   orgOwnerEmail: string;
   orgOwnerTranslation: TFunction;
 }) => {
+  log.debug("Starting domain setup", safeStringify({ slug, isPlatform }));
   const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
 
   if (!isOrganizationConfigured) {
+    log.warn("Organization domain not configured", safeStringify({ slug }));
     // Otherwise, we proceed to send an administrative email to admins regarding
     // the need to configure DNS registry to support the newly created org
     const instanceAdmins = await prisma.user.findMany({
@@ -236,18 +255,30 @@ export const setupDomain = async ({
       select: { email: true },
     });
     if (instanceAdmins.length) {
-      await sendAdminOrganizationNotification({
-        instanceAdmins,
-        orgSlug: slug,
-        ownerEmail: orgOwnerEmail,
-        webappIPAddress: await getIPAddress(
-          WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
-        ),
-        t: orgOwnerTranslation,
-      });
+      log.debug(
+        "Sending admin notification for domain configuration",
+        safeStringify({ slug, adminCount: instanceAdmins.length })
+      );
+      console.log("process.env.NEXT_PUBLIC_IS_E2E", process.env.NEXT_PUBLIC_IS_E2E);
+      try {
+        await sendAdminOrganizationNotification({
+          instanceAdmins,
+          orgSlug: slug,
+          ownerEmail: orgOwnerEmail,
+          webappIPAddress: await getIPAddress(
+            WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
+          ),
+          t: orgOwnerTranslation,
+        });
+      } catch (error) {
+        // TODO: Why would this error come?
+        log.error("Error sending admin notification", safeStringify({ error }));
+      }
     } else {
-      console.warn("Organization created: subdomain not configured and couldn't notify adminnistrators");
+      log.warn("Organization created: subdomain not configured and couldn't notify administrators");
     }
+  } else {
+    log.debug("Domain setup completed successfully", safeStringify({ slug }));
   }
 };
 
