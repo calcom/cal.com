@@ -58,7 +58,7 @@ function AddFilterButtonComponent<TData>(
             <CommandList>
               <CommandEmpty>{t("no_columns_found")}</CommandEmpty>
               {filterableColumns.map((column) => {
-                const isVisible = table.getColumn(column.id).getIsVisible();
+                const isVisible = table.getColumn(column.id)?.getIsVisible();
                 if (activeFilters?.some((filter) => filter.f === column.id)) return null;
                 return (
                   <CommandItem
