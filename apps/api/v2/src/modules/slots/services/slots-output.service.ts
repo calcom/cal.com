@@ -20,7 +20,6 @@ export class SlotsOutputService {
     slotFormat?: SlotFormat,
     timeZone?: string
   ): Promise<TimeSlots | RangeSlots> {
-    console.log("availableSlots", JSON.stringify(availableSlots, null, 2));
     if (!slotFormat) {
       return timeZone ? this.setTimeZone(availableSlots, timeZone) : availableSlots;
     }
