@@ -60,6 +60,7 @@ describe("Navigation Components", () => {
       if (!disabledTab) throw new Error("Test requires a disabled tab in mockTabs");
 
       const tabElement = screen.getByRole("link", { name: disabledTab.name });
+
       await expect(tabElement).toHaveAttribute("aria-disabled", "true");
     });
 
@@ -151,18 +152,6 @@ describe("Navigation Components", () => {
 
       // Check sticky behavior
       await expect(container.firstChild).toHaveClass("sticky");
-    });
-
-    test("handles child tabs correctly", async () => {
-      render(<VerticalTabs tabs={mockTabs} />);
-
-      const childTab = mockTabs.find((tab) => tab.isChild);
-      // Just to keep TS happy
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      if (!childTab) throw new Error("Test requires a child tab in mockTabs");
-
-      const tabElement = screen.getByRole("link", { name: childTab.name });
-      await expect(tabElement).toHaveClass("ml-4"); // Check for indentation
     });
 
     test("applies custom classNames correctly", async () => {

@@ -55,6 +55,7 @@ const VerticalTabItem = ({
             href={href}
             shallow={linkShallow}
             scroll={linkScroll}
+            aria-disabled={props.disabled ? "true" : undefined}
             target={props.isExternalLink ? "_blank" : "_self"}
             className={classNames(
               props.textClassNames || "text-default text-sm font-medium leading-none",

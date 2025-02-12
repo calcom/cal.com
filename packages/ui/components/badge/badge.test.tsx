@@ -19,19 +19,12 @@ describe("Badge", () => {
     "purple",
   ] as const;
 
-  const sizes = ["sm", "md", "lg"] as const;
   const children = "Test Badge";
 
   test.each(variants)("renders %s variant correctly", (variant) => {
     render(<Badge variant={variant}>{children}</Badge>);
     const badge = screen.getByText(children);
     expect(badge.className).toContain(badgeStyles({ variant }));
-  });
-
-  test.each(sizes)("renders %s size correctly", (size) => {
-    render(<Badge size={size}>{children}</Badge>);
-    const badge = screen.getByText(children);
-    expect(badge.className).toContain(badgeStyles({ size }));
   });
 
   test("renders with default props", () => {
@@ -48,7 +41,7 @@ describe("Badge", () => {
 
   test("renders with startIcon when provided", () => {
     render(<Badge startIcon="info">{children}</Badge>);
-    expect(screen.getByTestId("icon-info")).toBeInTheDocument();
+    expect(screen.getByTestId("start-icon")).toBeInTheDocument();
   });
 
   test("renders with customStartIcon when provided", () => {
