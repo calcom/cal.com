@@ -1,13 +1,23 @@
 import { z } from "zod";
 
+import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
+import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
+import {
+  assertCanCreateOrg,
+  findUserToBeOrgOwner,
+  setupDomain,
+} from "@calcom/trpc/server/routers/viewer/organizations/intentToCreateOrg.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 import type { SWHMap } from "./__handler";
@@ -45,13 +55,19 @@ const invoicePaidSchema = z.object({
 });
 
 async function createOrganizationWithOwner(orgData: OrganizationData, ownerEmail: string) {
-  const owner = await prisma.user.findUnique({
-    where: { email: ownerEmail },
-  });
+  const owner = await findUserToBeOrgOwner(ownerEmail);
 
   if (!owner) {
     throw new Error(`Owner not found with email: ${ownerEmail}`);
   }
+  const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
+  assertCanCreateOrg({
+    slug: orgData.slug,
+    isPlatform: orgData.isPlatform,
+    orgOwner: owner,
+    // If it would have been restricted, then it would have been done already in intentToCreateOrgHandler
+    restrictBasedOnMinimumPublishedTeams: true,
+  });
 
   let organization = await OrganizationRepository.findBySlug({ slug: orgData.slug });
 
@@ -63,20 +79,49 @@ async function createOrganizationWithOwner(orgData: OrganizationData, ownerEmail
         id: organization.id,
       })
     );
-    return { organization, owner };
+    return { organization, owner, orgOwnerTranslation };
   }
 
   logger.debug(`Creating organization for owner ${owner.email}`);
+
   try {
+    const nonOrgUsername = owner.username || "";
     const result = await OrganizationRepository.createWithExistingUserAsOwner({
       orgData,
       owner: {
         id: owner.id,
         email: owner.email,
-        nonOrgUsername: owner.username || "",
+        nonOrgUsername,
       },
     });
     organization = result.organization;
+    const ownerProfile = result.ownerProfile;
+
+    // Send organization creation email
+    if (!orgData.isPlatform) {
+      await sendOrganizationCreationEmail({
+        language: orgOwnerTranslation,
+        from: `${organization.name}'s admin`,
+        to: ownerEmail,
+        ownerNewUsername: ownerProfile.username,
+        ownerOldUsername: nonOrgUsername,
+        orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
+        orgName: organization.name,
+        prevLink: `${getOrgFullOrigin("", { protocol: true })}/${owner.username || ""}`,
+        newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
+      });
+    }
+
+    // Set up default availability
+    const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+    await prisma.availability.createMany({
+      data: availability.map((schedule) => ({
+        days: schedule.days,
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        userId: owner.id,
+      })),
+    });
   } catch (error) {
     // Catch and log so that redactError doesn't redact the log message
     logger.error(
@@ -86,7 +131,7 @@ async function createOrganizationWithOwner(orgData: OrganizationData, ownerEmail
     throw error;
   }
 
-  return { organization, owner };
+  return { organization, owner, orgOwnerTranslation };
 }
 
 async function createTeamsForOrganization(teams: TeamData[], owner: User, organizationId: number) {
@@ -143,8 +188,10 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
   logger.debug(`Processing invoice paid webhook for customer ${invoice.customer}`);
 
-  const onboardingForm = await OrganizationOnboardingRepository.findByStripeCustomerId(invoice.customer);
-  if (!onboardingForm) {
+  const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
+    invoice.customer
+  );
+  if (!organizationOnboarding) {
     logger.error(
       `NonRecoverableError: No onboarding record found for stripe customer id: ${invoice.customer}.`
     );
@@ -154,24 +201,31 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     };
   }
 
-  const { organization, owner } = await createOrganizationWithOwner(
+  const { organization, owner, orgOwnerTranslation } = await createOrganizationWithOwner(
     {
-      name: onboardingForm.name,
-      slug: onboardingForm.slug,
+      name: organizationOnboarding.name,
+      slug: organizationOnboarding.slug,
       isOrganizationConfigured: true,
       isOrganizationAdminReviewed: true,
-      autoAcceptEmail: onboardingForm.orgOwnerEmail.split("@")[1],
-      seats: onboardingForm.seats,
-      pricePerSeat: onboardingForm.pricePerSeat,
+      autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
+      seats: organizationOnboarding.seats,
+      pricePerSeat: organizationOnboarding.pricePerSeat,
       isPlatform: false,
-      billingPeriod: onboardingForm.billingPeriod,
+      billingPeriod: organizationOnboarding.billingPeriod,
     },
-    onboardingForm.orgOwnerEmail
+    organizationOnboarding.orgOwnerEmail
   );
+
+  setupDomain({
+    slug: organizationOnboarding.slug,
+    isPlatform: organizationOnboarding.isPlatform,
+    orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+    orgOwnerTranslation,
+  });
 
   const invitedMembers = z
     .array(z.object({ email: z.string().email(), name: z.string().optional() }))
-    .parse(onboardingForm.invitedMembers);
+    .parse(organizationOnboarding.invitedMembers);
 
   const teams = z
     .array(
@@ -182,13 +236,13 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
         slug: z.string(),
       })
     )
-    .parse(onboardingForm.teams);
+    .parse(organizationOnboarding.teams);
 
   await createTeamsForOrganization(teams, owner, organization.id);
   await inviteMembers(invitedMembers, organization);
 
   logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
-  await OrganizationOnboardingRepository.markAsComplete(onboardingForm.id);
+  await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
 
   return { success: true };
 };

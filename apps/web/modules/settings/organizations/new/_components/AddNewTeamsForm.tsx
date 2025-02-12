@@ -20,10 +20,6 @@ import {
   SkeletonButton,
 } from "@calcom/ui";
 
-const querySchema = z.object({
-  id: z.string().transform((val) => parseInt(val)),
-});
-
 const schema = z.object({
   teams: z.array(
     z.object({

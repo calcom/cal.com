@@ -4,16 +4,21 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+type SeatsPrice = {
+  seats?: number | null;
+  pricePerSeat?: number | null;
+};
+
 export interface validatePermissionsIOrganizationPermissionService {
   hasPermissionToCreateForEmail(targetEmail: string): Promise<boolean>;
   hasPendingOrganizations(email: string, slug?: string): Promise<boolean>;
   hasPermissionToModifyDefaultPayment(): boolean;
   hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean>;
-  hasModifiedDefaultPayment(input: {
-    billingPeriod?: string;
-    seats?: number;
-    pricePerSeat?: number;
-  }): boolean;
+  hasModifiedDefaultPayment(
+    input: {
+      billingPeriod?: string;
+    } & SeatsPrice
+  ): boolean;
 }
 
 export class OrganizationPermissionService {
@@ -30,18 +35,14 @@ export class OrganizationPermissionService {
       },
     });
 
-    return orgOnboarding && orgOnboarding.isComplete;
+    return !!(orgOnboarding && orgOnboarding.isComplete);
   }
 
   hasPermissionToModifyDefaultPayment(): boolean {
     return this.user.role === "ADMIN";
   }
 
-  hasModifiedDefaultPayment(input: {
-    billingPeriod?: string;
-    seats?: number;
-    pricePerSeat?: number;
-  }): boolean {
+  hasModifiedDefaultPayment(input: SeatsPrice & { billingPeriod?: string }): boolean {
     return (
       (input.billingPeriod !== undefined && input.billingPeriod !== "MONTHLY") ||
       (input.seats !== undefined && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
@@ -69,14 +70,14 @@ export class OrganizationPermissionService {
     return teamMemberships.length === teamIds.length;
   }
 
-  async validatePermissions(input: {
-    orgOwnerEmail: string;
-    teams?: { id: number; isBeingMigrated: boolean }[];
-    billingPeriod?: string;
-    seats?: number;
-    pricePerSeat?: number;
-    slug: string;
-  }): Promise<boolean> {
+  async validatePermissions(
+    input: {
+      orgOwnerEmail: string;
+      teams?: { id: number; isBeingMigrated: boolean }[];
+      billingPeriod?: string;
+      slug: string;
+    } & SeatsPrice
+  ): Promise<boolean> {
     if (!(await this.hasPermissionToCreateForEmail(input.orgOwnerEmail))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",

@@ -8,8 +8,8 @@ enum BillingPeriod {
 
 interface OnboardingAdminStoreState {
   billingPeriod?: BillingPeriod;
-  pricePerSeat?: number;
-  seats?: number;
+  pricePerSeat?: number | null;
+  seats?: number | null;
   orgOwnerEmail?: string;
 }
 
@@ -19,14 +19,14 @@ interface OnboardingUserStoreState {
   logo?: string;
   bio?: string;
   invitedMembers: { email: string; name?: string }[];
-  teams: { id: number; name?: string; slug: string | null; isBeingMigrated: boolean }[];
+  teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[];
 }
 
 interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUserStoreState {
   // Actions for admin state
   setBillingPeriod: (billingPeriod: BillingPeriod) => void;
-  setPricePerSeat: (price: number) => void;
-  setSeats: (seats: number) => void;
+  setPricePerSeat: (price: number | null) => void;
+  setSeats: (seats: number | null) => void;
   setOrgOwnerEmail: (email: string) => void;
 
   // Actions for user state
@@ -38,7 +38,7 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   removeInvitedMember: (email: string) => void;
 
   // Actions for team state
-  setTeams: (teams: { id: number; name?: string; slug: string | null; isBeingMigrated: boolean }[]) => void;
+  setTeams: (teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[]) => void;
   // Reset state
   reset: () => void;
 }

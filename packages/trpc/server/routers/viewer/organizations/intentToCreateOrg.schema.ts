@@ -9,7 +9,7 @@ export enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-export const ZCreateInputSchema = z.object({
+export const ZIntentToCreateOrgInputSchema = z.object({
   name: z.string(),
   slug: z.string().transform((val) => slugify(val.trim())),
   orgOwnerEmail: emailSchema,
@@ -17,8 +17,8 @@ export const ZCreateInputSchema = z.object({
   seats: z.number().optional(),
   pricePerSeat: z.number().optional(),
   isPlatform: z.boolean().default(false),
-  billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY).optional(),
+  billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY),
   creationSource: z.nativeEnum(CreationSource),
 });
 
-export type TCreateInputSchema = z.infer<typeof ZCreateInputSchema>;
+export type TIntentToCreateOrgInputSchema = z.infer<typeof ZIntentToCreateOrgInputSchema>;

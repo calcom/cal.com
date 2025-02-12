@@ -1848,6 +1848,7 @@ model OrganizationOnboarding {
   pricePerSeat  Float
   seats         Int
   orgOwnerEmail String @unique
+  isPlatform    Boolean @default(false)
 
   // Organization info
   name String

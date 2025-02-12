@@ -26,7 +26,10 @@ export const ZCreateUserInputSchema = z.object({
       z.object({
         id: z.number(), // New teams are treated as -1
         name: z.string(),
-        slug: z.string().transform((val) => slugify(val.trim())),
+        slug: z
+          .string()
+          .transform((val) => slugify(val.trim()))
+          .nullable(),
         isBeingMigrated: z.boolean(),
       })
     )
@@ -35,8 +38,8 @@ export const ZCreateUserInputSchema = z.object({
 
 // Admin-only schema - fields that only admins can set
 export const ZCreateAdminInputSchema = z.object({
-  seats: z.number(),
-  pricePerSeat: z.number(),
+  seats: z.number().nullish(),
+  pricePerSeat: z.number().nullish(),
   billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY),
 });
 

@@ -24,6 +24,7 @@ TODO:
 - [ ] How does renewal of plan work? What if it fails? Do we read team.metadata.stripe related fields?
 - Schema
      - OrganizationOnboarding schema should be unaware of the Payment app being used. We might need to move to another payment service as well.
+- [ ] OrganizationOnboarding schema should be created through intentToCreateOrgHandler and rest of the flow should just update it. This could be important because we do a lot of validation in intentToCreateOrgHandler and without that we shouldn't allow organization to be created and thus no-pnboarding should happen.
      
 TODO: Platform
 - [ ] Platform organization creation flow has to be working in the same way

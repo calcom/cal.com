@@ -163,7 +163,6 @@ export class OrganizationRepository {
         slug,
         isOrganization: true,
       },
-      select: orgSelect,
     });
   }
 
@@ -389,39 +388,6 @@ export class OrganizationRepository {
     return !reservedSubdomains.includes(slug);
   }
 
-  static utils = {
-    /**
-     * Gets the organization setting if the team is an organization.
-     * If not, it gets the organization setting of the parent organization.
-     */
-    getOrganizationSettings: (team: {
-      isOrganization: boolean;
-      organizationSettings: MinimumOrganizationSettings | null;
-      parent: {
-        organizationSettings: MinimumOrganizationSettings | null;
-      } | null;
-    }) => {
-      if (!team) return null;
-      if (team.isOrganization) return team.organizationSettings ?? null;
-      if (!team.parent) return null;
-      return team.parent.organizationSettings ?? null;
-    },
-    getOrganizationSEOSettings: (team: {
-      isOrganization: boolean;
-      organizationSettings: SEOOrganizationSettings | null;
-      parent: {
-        organizationSettings: SEOOrganizationSettings | null;
-      } | null;
-    }) => {
-      if (!team) return null;
-      if (team.isOrganization) return team.organizationSettings ?? null;
-      if (!team.parent) return null;
-      return team.parent.organizationSettings ?? null;
-    },
-    getVerifiedDomain(settings: Pick<OrganizationSettings, "orgAutoAcceptEmail">) {
-      return settings.orgAutoAcceptEmail;
-    },
-  };
   static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
     return await prisma.team.findFirst({
       where: {

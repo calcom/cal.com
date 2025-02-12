@@ -15,13 +15,13 @@ import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
 import { ZCheckAvailableSlug } from "./checkAvailableSlug.schema";
-import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
 import { ZGetMembersInput } from "./getMembers.schema";
 import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
+import { ZIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
@@ -41,8 +41,11 @@ export const viewerOrganizationsRouter = router({
     );
     return handler(opts);
   }),
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+  intentToCreateOrg: authedProcedure.input(ZIntentToCreateOrgInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("intentToCreateOrg"),
+      () => import("./intentToCreateOrg.handler")
+    );
     return handler(opts);
   }),
   createWithPaymentIntent: authedProcedure

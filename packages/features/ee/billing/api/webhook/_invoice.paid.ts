@@ -17,7 +17,6 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   }
 
   // Get the product ID from the first subscription item
-  // @ts-expect-error - we know lines.data exists and has items for subscription invoices
   const firstItem = invoice.lines.data[0];
   const productId = firstItem?.price?.product as string; // prod_xxxxx
 
@@ -26,12 +25,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
     return { success: true };
   }
 
-  const handlerGetter = handlers[productId];
-  console.log("handlers", {
-    productId,
-    handlers,
-    handlerGetter,
-  });
+  const handlerGetter = handlers[productId as keyof typeof handlers];
   if (!handlerGetter) throw new HttpCode(202, `No product handler found for product: ${productId}`);
   const handler = (await handlerGetter())?.default;
   // auto catch unsupported Stripe products.

@@ -17,9 +17,9 @@ type CreatePaymentIntentInput = {
   slug: string;
   orgOwnerEmail: string;
   billingPeriod?: BillingPeriod;
-  seats?: number;
-  pricePerSeat?: number;
-  teams?: { id: number; isBeingMigrated: boolean; slug: string; name: string }[];
+  seats?: number | null;
+  pricePerSeat?: number | null;
+  teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
   invitedMembers?: { email: string }[];
 };
 
@@ -66,7 +66,11 @@ export class OrganizationPaymentService {
     return customer.stripeCustomerId;
   }
 
-  protected normalizePaymentConfig(input: Partial<PaymentConfig>): PaymentConfig {
+  protected normalizePaymentConfig(input: {
+    billingPeriod?: BillingPeriod;
+    seats?: number | null;
+    pricePerSeat?: number | null;
+  }): PaymentConfig {
     return {
       billingPeriod: input.billingPeriod || "MONTHLY",
       seats: input.seats || Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),

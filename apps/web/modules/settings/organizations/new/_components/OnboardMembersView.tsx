@@ -43,8 +43,7 @@ const useCheckout = () => {
   return {
     mutation,
     mutate: mutation.mutate,
-    isLoading: mutation.isLoading,
-    redirectUrl: mutation.data?.redirectUrl,
+    isPending: mutation.isPending,
   };
 };
 
@@ -176,17 +175,10 @@ export const AddNewTeamMembersForm = () => {
       <div className="mt-3 mt-6 flex items-center justify-end">
         <Button
           onClick={() => {
-            console.log("Checkout", {
-              name,
-              slug,
-              orgOwnerEmail,
-              billingPeriod,
-              pricePerSeat,
-              seats,
-              teams,
-              invitedMembers,
-            });
-
+            if (!orgOwnerEmail || !name || !slug) {
+              console.error("Org owner email, name, and slug are required");
+              return;
+            }
             checkout.mutation.mutate({
               name,
               slug,
@@ -198,7 +190,7 @@ export const AddNewTeamMembersForm = () => {
               invitedMembers,
             });
           }}
-          loading={checkout.isLoading}>
+          loading={checkout.isPending}>
           {t("checkout")}
         </Button>
       </div>

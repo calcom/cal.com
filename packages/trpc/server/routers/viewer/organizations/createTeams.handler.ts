@@ -193,6 +193,7 @@ async function moveTeam({
       id: teamId,
     },
     select: {
+      id: true,
       slug: true,
       metadata: true,
       members: {

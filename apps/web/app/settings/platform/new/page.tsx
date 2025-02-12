@@ -3,7 +3,6 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 
 import { getServerSideProps } from "@lib/settings/organizations/new/getServerSideProps";
-import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import LegacyPage, { LayoutWrapper } from "~/settings/platform/new/create-new-view";
 
@@ -12,10 +11,13 @@ export const generateMetadata = async () =>
     (t) => t("set_up_your_platform_organization"),
     (t) => t("platform_organization_description")
   );
+type Props = {
+  isOrg: boolean;
+};
 
 export default WithLayout({
   getLayout: LayoutWrapper,
   Page: LegacyPage,
-  getData: withAppDirSsr<inferSSRProps<typeof getServerSideProps>>(getServerSideProps),
+  getData: withAppDirSsr<Props>(getServerSideProps),
   requiresLicense: true,
 });

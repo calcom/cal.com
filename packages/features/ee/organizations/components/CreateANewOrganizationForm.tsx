@@ -1,7 +1,7 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -13,8 +13,10 @@ import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { useTelemetry } from "@calcom/lib/telemetry";
+import { CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import type { Ensure } from "@calcom/types/utils";
 import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
 
 function extractDomainFromEmail(email: string) {
@@ -31,7 +33,7 @@ export const CreateANewOrganizationForm = () => {
   if (!session.data) {
     return null;
   }
-  return <CreateANewOrganizationFormChild session={session.data} />;
+  return <CreateANewOrganizationFormChild session={session} />;
 };
 
 enum BillingPeriod {
@@ -42,15 +44,15 @@ enum BillingPeriod {
 const CreateANewOrganizationFormChild = ({
   session,
 }: {
-  session: SessionContextValue["data"];
+  session: Ensure<SessionContextValue, "data">;
   isPlatformOrg?: boolean;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
   const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const isAdmin = session.user.role === UserPermissionRole.ADMIN;
-  const defaultOrgOwnerEmail = session.user.email ?? "";
+  const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
+  const defaultOrgOwnerEmail = session.data.user.email ?? "";
 
   const { setBillingPeriod, setPricePerSeat, setSeats, setOrgOwnerEmail, setName, setSlug } =
     useOnboardingStore();
@@ -71,35 +73,58 @@ const CreateANewOrganizationFormChild = ({
     },
   });
 
-  const utils = trpc.useUtils();
+  // const utils = trpc.useUtils();
+  // TODO: Rename .create to .intentToCreateOrg and accordingly update the handler
+  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
+    onSuccess: async (data) => {
+      // TODO: To be moved to _invoice.paid.org.ts
+      // telemetry.event(telemetryEventTypes.org_created);
+      setBillingPeriod(data.billingPeriod);
+      setPricePerSeat(data.pricePerSeat ?? null);
+      setSeats(data.seats ?? null);
+      setOrgOwnerEmail(data.orgOwnerEmail);
+      setName(data.name);
+      setSlug(data.slug);
 
+      // Not needed because we aren't moving the user to organization(as it hasn't been created yet)
+      // await session.update({
+      //   upId: data.upId,
+      // });
+      if (isAdmin && data.userId !== session.data?.user.id) {
+        // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
+        // He won't need to have access to the org directly in this way.
+        signIn("impersonation-auth", {
+          username: data.orgOwnerEmail,
+          callbackUrl: `/settings/organizations/new/about`,
+        });
+      } else {
+        router.push("/settings/organizations/new/about");
+      }
+    },
+    onError: (err) => {
+      if (err.message === "organization_url_taken") {
+        newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
+      } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
+        newOrganizationFormMethods.setError("slug", {
+          type: "custom",
+          message: t("problem_registering_domain"),
+        });
+      } else {
+        setServerErrorMessage(err.message);
+      }
+    },
+  });
   return (
     <>
       <Form
         form={newOrganizationFormMethods}
         className="space-y-5"
         id="createOrg"
-        handleSubmit={async (values) => {
-          setServerErrorMessage(null);
-          const isSlugAvailable = await utils.viewer.organizations.checkAvailableSlug.fetch({
-            slug: values.slug,
-          });
-          if (!isSlugAvailable) {
-            newOrganizationFormMethods.setError("slug", {
-              message: t("organization_slug_taken"),
-            });
-            return;
+        handleSubmit={async (v) => {
+          if (!intentToCreateOrgMutation.isPending) {
+            setServerErrorMessage(null);
+            intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
           }
-
-          setBillingPeriod(values.billingPeriod);
-          setPricePerSeat(values.pricePerSeat);
-          setSeats(values.seats);
-          setOrgOwnerEmail(values.orgOwnerEmail);
-          setName(values.name);
-          setSlug(values.slug);
-
-          // Navigate to next step
-          router.push("/settings/organizations/new/about");
         }}>
         <div>
           {serverErrorMessage && (
@@ -305,7 +330,7 @@ const CreateANewOrganizationFormChild = ({
 
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
-            loading={newOrganizationFormMethods.formState.isSubmitting}
+            loading={newOrganizationFormMethods.formState.isSubmitting || intentToCreateOrgMutation.isPending}
             color="primary"
             EndIcon="arrow-right"
             type="submit"
