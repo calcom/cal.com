@@ -33,6 +33,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ApiQuery, ApiExcludeController as DocsExcludeController } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { CreationSource } from "@prisma/client";
 import { Request } from "express";
 import { NextApiRequest } from "next/types";
 import { v4 as uuidv4 } from "uuid";
@@ -383,7 +384,11 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
     });
     Object.assign(clone, { userId, ...oAuthParams, platformBookingLocation });
-    clone.body = { ...clone.body, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+    clone.body = {
+      ...clone.body,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
+    };
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
@@ -411,6 +416,7 @@ export class BookingsController_2024_04_15 {
       ...oAuthParams,
       platformBookingLocation,
       noEmail: !oAuthParams.arePlatformEmailsEnabled,
+      creationSource: CreationSource.API_V2,
     });
     return clone as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }

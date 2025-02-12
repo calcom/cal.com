@@ -89,6 +89,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     pricePerSeat,
     isPlatform,
     billingPeriod: billingPeriodRaw,
+    creationSource,
   } = input;
 
   const loggedInUser = await prisma.user.findUnique({
@@ -229,6 +230,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       owner: {
         email: orgOwnerEmail,
       },
+      creationSource,
     });
 
     orgOwner = data.orgOwner;
