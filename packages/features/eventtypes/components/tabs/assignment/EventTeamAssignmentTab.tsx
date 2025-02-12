@@ -592,11 +592,31 @@ export const EventTeamAssignmentTab = ({
       // description: t("round_robin_description"),
     },
   ];
+
+  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  const { getValues, setValue, watch } = useFormContext<FormValues>();
+  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
+    getValues("assignAllTeamMembers") ?? false
+  );
+
+  useEffect(() => {
+    if (assignAllTeamMembers) {
+      setValue("optionalTeamGuests", []);
+    }
+  }, [assignAllTeamMembers, setValue]);
+
+  const optionalTeamGuests = watch("optionalTeamGuests");
+
+  const optionalTeamGuestsFilterFn = (member: (typeof teamMembers)[number]) =>
+    !optionalTeamGuests.some((guest) => guest.id === member.id);
   const pendingMembers = (member: (typeof teamMembers)[number]) =>
     !!eventType.team?.parentId || !!member.username;
+
   const teamMembersOptions = teamMembers
     .filter(pendingMembers)
+    .filter(optionalTeamGuestsFilterFn)
     .map((member) => mapUserToValue(member, t("pending")));
+
   const childrenEventTypeOptions = teamMembers.filter(pendingMembers).map((member) => {
     return mapMemberToChildrenOption(
       {
@@ -609,12 +629,6 @@ export const EventTeamAssignmentTab = ({
       t("pending")
     );
   });
-  const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const { getValues, setValue } = useFormContext<FormValues>();
-  const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
-    getValues("assignAllTeamMembers") ?? false
-  );
-
   const resetRROptions = () => {
     setValue("assignRRMembersUsingSegment", false, { shouldDirty: true });
     setValue("assignAllTeamMembers", false, { shouldDirty: true });

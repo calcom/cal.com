@@ -43,6 +43,10 @@ const childSchema = z.object({
   hidden: z.boolean(),
 });
 
+const optionalTeamGuestSchema = z.object({
+  id: z.number(),
+});
+
 /** Optional fields */
 const BaseEventTypeUpdateInput = _EventTypeModel
   .extend({
@@ -61,6 +65,7 @@ const BaseEventTypeUpdateInput = _EventTypeModel
     users: z.array(stringOrNumber),
     children: z.array(childSchema),
     hosts: z.array(hostSchema),
+    optionalTeamGuests: z.array(optionalTeamGuestSchema),
     schedule: z.number().nullable(),
     instantMeetingSchedule: z.number().nullable(),
     multiplePrivateLinks: z.array(z.string()),

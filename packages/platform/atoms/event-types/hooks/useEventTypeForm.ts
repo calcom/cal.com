@@ -97,6 +97,7 @@ export const useEventTypeForm = ({
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
+      optionalTeamGuests: eventType.optionalTeamGuests,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       secondaryEmailId: eventType?.secondaryEmailId || -1,
       children: eventType.children.map((ch) => ({
@@ -283,6 +284,8 @@ export const useEventTypeForm = ({
       metadata,
       customInputs,
       assignAllTeamMembers,
+      optionalTeamGuests,
+      hosts,
       // We don't need to send send these values to the backend
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       seatsPerTimeSlotEnabled,
@@ -324,6 +327,12 @@ export const useEventTypeForm = ({
       }
     }
 
+    // Fixed Hosts & Optional Team Host should be mutually exclusive
+    optionalTeamGuests?.forEach((guest) => {
+      const inclusiveUser = hosts?.find((host) => host.userId === guest.id);
+      if (inclusiveUser) throw new Error(t("event_setup_same_user_in_fixed_hosts_and_optional_team_guest"));
+    });
+
     // Prevent two payment apps to be enabled
     // Ok to cast type here because this metadata will be updated as the event type metadata
     if (checkForMultiplePaymentApps(metadata)) throw new Error(t("event_setup_multiple_payment_apps_error"));
@@ -356,6 +365,8 @@ export const useEventTypeForm = ({
       customInputs,
       children,
       assignAllTeamMembers,
+      hosts,
+      optionalTeamGuests,
       multiplePrivateLinks: values.multiplePrivateLinks,
       aiPhoneCallConfig: rest.aiPhoneCallConfig
         ? { ...rest.aiPhoneCallConfig, templateType: rest.aiPhoneCallConfig.templateType as TemplateType }

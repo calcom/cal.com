@@ -169,6 +169,7 @@ model EventType {
   maxLeadThreshold                        Int?
   selectedCalendars                       SelectedCalendar[]
   allowReschedulingPastBookings           Boolean                   @default(false)
+  optionalTeamGuests                      User[]
 
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                   Json?
@@ -378,6 +379,7 @@ model User {
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
   BookingInternalNote        BookingInternalNote[]
   creationSource             CreationSource?
+  optionalTeamEventTypes     EventType[]
 
   @@unique([email])
   @@unique([email, username])
@@ -597,16 +599,17 @@ model BookingReference {
 }
 
 model Attendee {
-  id          Int          @id @default(autoincrement())
-  email       String
-  name        String
-  timeZone    String
-  phoneNumber String?
-  locale      String?      @default("en")
-  booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  bookingId   Int?
-  bookingSeat BookingSeat?
-  noShow      Boolean?     @default(false)
+  id                  Int          @id @default(autoincrement())
+  email               String
+  name                String
+  timeZone            String
+  phoneNumber         String?
+  locale              String?      @default("en")
+  booking             Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId           Int?
+  bookingSeat         BookingSeat?
+  noShow              Boolean?     @default(false)
+  isOptionalTeamGuest Boolean?     @default(false)
 
   @@index([email])
   @@index([bookingId])

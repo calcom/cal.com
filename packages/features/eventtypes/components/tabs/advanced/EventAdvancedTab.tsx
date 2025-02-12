@@ -19,6 +19,8 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { MultiplePrivateLinksController } from "@calcom/features/eventtypes/components";
+import { mapUserToValue } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
+import OptionalTeamGuests from "@calcom/features/eventtypes/components/tabs/advanced/OptionalTeamGuests";
 import type {
   FormValues,
   EventTypeSetupProps,
@@ -99,7 +101,7 @@ export type EventAdvancedTabCustomClassNames = {
 
 type BookingField = z.infer<typeof fieldSchema>;
 
-export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team"> & {
+export type EventAdvancedBaseProps = Pick<EventTypeSetupProps, "eventType" | "team" | "teamMembers"> & {
   user?: Partial<
     Pick<RouterOutputs["viewer"]["me"], "email" | "secondaryEmails" | "theme" | "defaultBookerLayouts">
   >;
@@ -391,6 +393,7 @@ export const EventAdvancedTab = ({
   showToast,
   showBookerLayoutSelector,
   customClassNames,
+  teamMembers,
 }: EventAdvancedTabProps) => {
   const isPlatform = useIsPlatform();
   const platformContext = useAtomsContext();
@@ -488,7 +491,9 @@ export const EventAdvancedTab = ({
   const closeEventNameTip = () => setShowEventNameTip(false);
 
   const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
-
+  const [isOptionalTeamGuestsChecked, setIsOptionalTeamGuestsChecked] = useState(
+    !!formMethods.getValues("optionalTeamGuests").length
+  );
   const [eventTypeColorState, setEventTypeColorState] = useState(
     eventType.eventTypeColor || {
       lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
@@ -518,6 +523,20 @@ export const EventAdvancedTab = ({
     }));
     userEmail = removePlatformClientIdFromEmail(userEmail, platformContext.clientId);
   }
+
+  const fixedHosts = formMethods.watch("hosts");
+
+  const pendingMembers = (member: (typeof teamMembers)[number]) =>
+    !!eventType.team?.parentId || !!member.username;
+  const fixedHostsFilterFn = (member: (typeof teamMembers)[number]) =>
+    !fixedHosts.some((host) => host.userId === member.id);
+
+  const teamMembersOptions = teamMembers
+    .filter(pendingMembers)
+    .filter(fixedHostsFilterFn)
+    .map((member) => mapUserToValue(member, t("pending")));
+
+  const assignAllTeamMembers = formMethods.watch("assignAllTeamMembers");
 
   return (
     <div className="flex flex-col space-y-4">
@@ -1020,6 +1039,36 @@ export const EventAdvancedTab = ({
           </SettingsToggle>
         )}
       />
+      {!assignAllTeamMembers && (
+        <Controller
+          name="optionalTeamGuests"
+          render={({ field: { value: fieldValue, onChange } }) => (
+            <SettingsToggle
+              title={t("team_member_as_optional_guest")}
+              description={t("team_member_as_optional_guest_description")}
+              toggleSwitchAtTheEnd={true}
+              checked={isOptionalTeamGuestsChecked}
+              onCheckedChange={(e) => {
+                const value = e ? fieldValue : [];
+                formMethods.setValue("optionalTeamGuests", value, { shouldDirty: true });
+                setIsOptionalTeamGuestsChecked(e);
+              }}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                isOptionalTeamGuestsChecked && "rounded-b-none",
+                customClassNames?.seatsOptions?.container
+              )}
+              childrenClassName={classNames("lg:ml-0", customClassNames?.seatsOptions?.children)}
+              descriptionClassName={customClassNames?.seatsOptions?.description}
+              labelClassName={classNames("text-sm")}
+              disabled={assignAllTeamMembers}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <OptionalTeamGuests value={fieldValue} onChange={onChange} options={teamMembersOptions} />
+              </div>
+            </SettingsToggle>
+          )}
+        />
+      )}
       {isRoundRobinEventType && (
         <Controller
           name="rescheduleWithSameRoundRobinHost"

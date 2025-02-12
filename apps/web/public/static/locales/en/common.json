@@ -2956,5 +2956,8 @@
   "desc": "Desc",
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
+  "team_member_as_optional_guest":"Add team member as optional guests",
+  "team_member_as_optional_guest_description":"Adding a team member as an optional guest will always send an optional invite, but not check their availability",
+  "event_setup_same_user_in_fixed_hosts_and_optional_team_guest":"Event Setup: Same user cannot be a fixed host and an optional team member guest at the same time",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
