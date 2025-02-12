@@ -116,7 +116,10 @@ Below is a list of props that can be passed to the booker atom.
 | onReserveSlotSuccess       | No       | Callback function for successful slot reservation                                                     |
 | onReserveSlotError         | No       | Callback function triggered on slot reservation failure                                               |
 | onDeleteSlotSuccess        | No       | Callback function for successful slot deletion                                                        |
-| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure   
+| onDeleteSlotError          | No       | Callback function triggered on slot deletion failure  
+| view         | No       | Specifies the layout of the booker atom into column, week, or month view                                             |
+| metadata        | No       | Used to pass custom metadata values into the booker. Metadata should be an object eg: `{ bookingSource: "website", userRole: "admin" }`                                                |
+| bannerUrl          | No       | Adds custom banner to the booker atom                                             |
 
 Along with the props, booker atom accepts custom styles via the **customClassNames** prop. Below is a list of props that fall under this **customClassNames** prop.
 <p></p>
