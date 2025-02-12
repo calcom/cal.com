@@ -5593,6 +5593,14 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "teamMemberEmail",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
