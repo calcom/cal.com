@@ -12,7 +12,11 @@ type CreateOptions = {
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const paymentService = new OrganizationPaymentService(ctx.user);
-  return paymentService.createPaymentIntent(input);
+  return paymentService.createPaymentIntent({
+    ...input,
+    logo: input.logo ?? null,
+    bio: input.bio ?? null,
+  });
 };
 
 export default createHandler;

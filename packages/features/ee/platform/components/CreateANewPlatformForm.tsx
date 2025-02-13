@@ -11,7 +11,7 @@ import { deriveOrgNameFromEmail } from "@calcom/ee/organizations/components/Crea
 import { deriveSlugFromEmail } from "@calcom/ee/organizations/components/CreateANewOrganizationForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { useTelemetry } from "@calcom/lib/telemetry";
+import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
@@ -47,18 +47,18 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
     },
   });
 
-  const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
+  const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
     onSuccess: async (data) => {
-      // telemetry.event(telemetryEventTypes.org_created);
+      telemetry.event(telemetryEventTypes.org_created);
       // This is necessary so that server token has the updated upId
-      // await session.update({
-      //   upId: data.upId,
-      // });
+      await session.update({
+        upId: data.upId,
+      });
       if (isAdmin && data.userId !== session.data?.user.id) {
         // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
         // He won't need to have access to the org directly in this way.
         signIn("impersonation-auth", {
-          username: data.orgOwnerEmail,
+          username: data.email,
           callbackUrl: `/settings/platform`,
         });
       }
@@ -87,9 +87,9 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
         className="space-y-5"
         id="createOrg"
         handleSubmit={(v) => {
-          if (!intentToCreateOrgMutation.isPending) {
+          if (!createOrganizationMutation.isPending) {
             setServerErrorMessage(null);
-            intentToCreateOrgMutation.mutate({
+            createOrganizationMutation.mutate({
               ...v,
               slug: `${v.name.toLocaleLowerCase()}-platform-${uuid().substring(0, 20)}`,
               creationSource: CreationSource.API_V2,
@@ -165,7 +165,7 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
         <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={
-              newOrganizationFormMethods.formState.isSubmitting || intentToCreateOrgMutation.isPending
+              newOrganizationFormMethods.formState.isSubmitting || createOrganizationMutation.isPending
             }
             color="primary"
             EndIcon="arrow-right"

@@ -13,6 +13,8 @@ export const ZCreateUserInputSchema = z.object({
   slug: z.string().transform((val) => slugify(val.trim())),
   orgOwnerEmail: z.string().email(),
   language: z.string().optional(),
+  logo: z.string().nullish(),
+  bio: z.string().nullish(),
   invitedMembers: z
     .array(
       z.object({

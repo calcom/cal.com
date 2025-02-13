@@ -245,7 +245,7 @@ async function moveTeam({
       creationSource,
       language: "en",
       inviterName: null,
-      teamId: team.id,
+      teamId: org.id,
     });
   }
 

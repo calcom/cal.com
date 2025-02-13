@@ -14,6 +14,7 @@ import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
 import { ZAdminVerifyInput } from "./adminVerify.schema";
 import { ZBulkUsersDelete } from "./bulkDeleteUsers.schema.";
+import { ZCreateInputSchema } from "./create.schema";
 import { ZCreateTeamsSchema } from "./createTeams.schema";
 import { ZCreateWithPaymentIntentInputSchema } from "./createWithPaymentIntent.schema";
 import { ZDeleteTeamInputSchema } from "./deleteTeam.schema";
@@ -33,6 +34,10 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
+  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+    return handler(opts);
+  }),
   intentToCreateOrg: authedProcedure.input(ZIntentToCreateOrgInputSchema).mutation(async (opts) => {
     const handler = await importHandler(
       namespaced("intentToCreateOrg"),
