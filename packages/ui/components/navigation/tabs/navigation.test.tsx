@@ -74,7 +74,7 @@ describe("Navigation Components", () => {
 
     test("handles tab click events", () => {
       const handleClick = vi.fn();
-      const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick, "data-testId": "tab" }];
+      const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick, "data-testid": "tab" }];
 
       render(<HorizontalTabs tabs={tabsWithClick} />);
       fireEvent.click(screen.getByTestId("horizontal-tab-tab"));
