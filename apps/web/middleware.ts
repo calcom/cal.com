@@ -18,8 +18,21 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+const API_ROUTES_COMING_TO_MIDDLEWARE = ["/api/auth/signup", "/api/trpc"];
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
+  if (
+    req.method === "POST" &&
+    API_ROUTES_COMING_TO_MIDDLEWARE.every((route) => !url.pathname.startsWith(route))
+  ) {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
@@ -156,21 +169,10 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/:path*",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/apps/installation/:path*",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
+    "/apps/:path*",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
