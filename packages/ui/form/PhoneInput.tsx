@@ -20,12 +20,15 @@ export type PhoneInputProps = {
 };
 
 function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
+  const defaultCountry = useDefaultCountry();
+
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
       enableSearch
       disableSearchIcon
+      country={defaultCountry}
       inputProps={{
         name: name,
         required: rest.required,
