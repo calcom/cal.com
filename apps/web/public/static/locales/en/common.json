@@ -2966,5 +2966,10 @@
   "you_are_part_of_this_organization_already": "You are part of this organization already",
   "organization_payment_success": "Organization payment success",
   "organization_payment_success_description": "Your organization has been created successfully",
+  "this_may_take_a_few_seconds": "This may take a few seconds",
+  "organization_onboarding_status": "Organization onboarding status",
+  "organization_onboarding_status_description": "Organization onboarding status description",
+  "payment_failed": "Payment failed",
+  "payment_failed_description": "Your payment has failed. Please try again.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

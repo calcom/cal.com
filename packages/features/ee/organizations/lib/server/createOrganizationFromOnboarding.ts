@@ -33,6 +33,8 @@ type OrganizationData = {
   seats: number | null;
   pricePerSeat: number | null;
   isPlatform: boolean;
+  logoUrl: string | null;
+  bio: string | null;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
 };
 
@@ -230,6 +232,8 @@ export const createOrganizationFromOnboarding = async ({
     | "invitedMembers"
     | "teams"
     | "isPlatform"
+    | "logo"
+    | "bio"
   >;
 }) => {
   const { organization, owner, orgOwnerTranslation } = await createOrganizationWithOwner(
@@ -244,6 +248,8 @@ export const createOrganizationFromOnboarding = async ({
       pricePerSeat: organizationOnboarding.pricePerSeat,
       isPlatform: false,
       billingPeriod: organizationOnboarding.billingPeriod,
+      logoUrl: organizationOnboarding.logo,
+      bio: organizationOnboarding.bio,
     },
     organizationOnboarding
   );

@@ -32,6 +32,8 @@ export class OrganizationRepository {
       pricePerSeat: number | null;
       isPlatform: boolean;
       billingPeriod?: "MONTHLY" | "ANNUALLY";
+      logoUrl: string | null;
+      bio: string | null;
     };
     owner: {
       id: number;
@@ -76,6 +78,8 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat: number | null;
       isPlatform: boolean;
+      logoUrl: string | null;
+      bio: string | null;
     };
     owner: {
       email: string;
@@ -120,12 +124,16 @@ export class OrganizationRepository {
     billingPeriod?: "MONTHLY" | "ANNUALLY";
     pricePerSeat: number | null;
     isPlatform: boolean;
+    logoUrl: string | null;
+    bio: string | null;
   }) {
     return await prisma.team.create({
       data: {
         name: orgData.name,
         isOrganization: true,
         slug: orgData.slug,
+        logoUrl: orgData.logoUrl,
+        bio: orgData.bio,
         organizationSettings: {
           create: {
             isAdminReviewed: orgData.isOrganizationAdminReviewed,

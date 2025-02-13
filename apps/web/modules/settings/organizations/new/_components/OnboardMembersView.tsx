@@ -41,8 +41,6 @@ const useCheckout = () => {
         // We don't open new tab because that might be blocked by browser
         window.location.href = data.checkoutUrl;
       }
-      // Clear persisted store data after successful checkout as it is now in DB
-      useOnboardingStore.persist.clearStorage();
     },
     onError: (error) => {
       setServerErrorMessage(error.message);

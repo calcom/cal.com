@@ -2,7 +2,7 @@
 
 import { WizardLayout } from "@calcom/ui";
 
-import PaymentSuccessView from "~/settings/organizations/new/_components/PaymentSuccessView";
+import PaymentStatusView from "~/settings/organizations/new/_components/PaymentStatusView";
 
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
@@ -12,4 +12,4 @@ export const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-export default PaymentSuccessView;
+export default PaymentStatusView;
