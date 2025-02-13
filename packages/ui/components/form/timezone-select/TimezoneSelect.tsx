@@ -65,7 +65,9 @@ export type TimezoneSelectComponentProps = SelectProps & {
   data?: Timezones;
   timezoneSelectCustomClassname?: string;
   size?: "sm" | "md";
+  grow?: boolean;
 };
+
 export function TimezoneSelectComponent({
   className,
   classNames: timezoneClassNames,
