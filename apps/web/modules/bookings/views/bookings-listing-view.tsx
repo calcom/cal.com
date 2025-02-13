@@ -44,22 +44,27 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
+    "data-testid": "upcoming",
   },
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
+    "data-testid": "unconfirmed",
   },
   {
     name: "recurring",
     href: "/bookings/recurring",
+    "data-testid": "recurring",
   },
   {
     name: "past",
     href: "/bookings/past",
+    "data-testid": "past",
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
+    "data-testid": "cancelled",
   },
 ];
 
