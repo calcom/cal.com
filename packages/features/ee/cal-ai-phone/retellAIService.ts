@@ -188,7 +188,7 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
 
   async execute(): Promise<TCreatePhoneSchema> {
     try {
-      const createPhoneCallRes = await fetcher("/create-phone-call", {
+      const createPhoneCallRes = await fetcher("/v2/create-phone-call", {
         method: "POST",
         body: JSON.stringify({
           from_number: this.props.yourPhoneNumber,
@@ -203,8 +203,8 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
 
       return createPhoneCallRes;
     } catch (err) {
-      log.error("Unable to Get Phone number", safeStringify(err));
-      throw new Error("Something went wrong! Unable to Get Phone number");
+      log.error("Unable to create phone call", safeStringify(err));
+      throw new Error("Something went wrong! Unable to create phone call");
     }
   }
 }
