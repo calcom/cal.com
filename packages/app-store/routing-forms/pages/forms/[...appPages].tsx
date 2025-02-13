@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -32,25 +32,20 @@ import {
 
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import {
-  FormAction,
-  FormActionsDropdown,
-  FormActionsProvider,
-  useOpenModal,
-} from "../../components/FormActions";
+import type { SetNewFormDialogState, NewFormDialogState } from "../../components/FormActions";
+import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../components/FormActions";
 import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import { isFallbackRoute } from "../../lib/isFallbackRoute";
 import { getServerSideProps } from "./getServerSideProps";
 
-function NewFormButton() {
+function NewFormButton({ setNewFormDialogState }: { setNewFormDialogState: SetNewFormDialogState }) {
   const { t } = useLocale();
-  const openModal = useOpenModal();
   return (
     <CreateButtonWithTeamsList
       subtitle={t("create_routing_form_on").toUpperCase()}
       data-testid="new-routing-form"
       createFunction={(teamId) => {
-        openModal({ action: "new", target: teamId ? String(teamId) : "" });
+        setNewFormDialogState({ action: "new", target: teamId ? String(teamId) : "" });
       }}
     />
   );
@@ -88,6 +83,8 @@ export default function RoutingForms({
   const queryRes = trpc.viewer.appRoutingForms.forms.useQuery({
     filters,
   });
+
+  const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
 
   const { data: typeformApp } = useApp("typeform");
   const forms = queryRes.data?.filtered;
@@ -151,7 +148,11 @@ export default function RoutingForms({
     <LicenseRequired>
       <ShellMain
         heading={t("routing")}
-        CTA={hasPaidPlan && forms?.length ? <NewFormButton /> : null}
+        CTA={
+          hasPaidPlan && forms?.length ? (
+            <NewFormButton setNewFormDialogState={setNewFormDialogState} />
+          ) : null
+        }
         subtitle={t("routing_forms_description")}>
         <UpgradeTip
           plan="team"
@@ -172,7 +173,10 @@ export default function RoutingForms({
               </ButtonGroup>
             </div>
           }>
-          <FormActionsProvider appUrl={appUrl}>
+          <FormActionsProvider
+            appUrl={appUrl}
+            newFormDialogState={newFormDialogState}
+            setNewFormDialogState={setNewFormDialogState}>
             <div className="mb-10 w-full">
               <div className="flex">
                 <TeamsFilter />
@@ -184,7 +188,7 @@ export default function RoutingForms({
                     Icon="git-merge"
                     headline={t("create_your_first_form")}
                     description={t("create_your_first_form_description")}
-                    buttonRaw={<NewFormButton />}
+                    buttonRaw={<NewFormButton setNewFormDialogState={setNewFormDialogState} />}
                   />
                 }
                 noResultsScreen={
