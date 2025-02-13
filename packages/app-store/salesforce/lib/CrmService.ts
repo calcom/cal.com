@@ -203,7 +203,7 @@ export default class SalesforceCRMService implements CRM {
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      log.warn("No contacts found for event", contacts);
+      log.error("No contacts found for event", contacts);
       throw new Error("No contacts found for event");
     }
 
