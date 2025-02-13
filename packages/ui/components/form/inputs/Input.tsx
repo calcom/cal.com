@@ -187,7 +187,7 @@ export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(f
   return (
     <InputField
       ref={ref}
-      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" />}
+      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" data-testid="search-icon" />}
       placeholder="Search"
       containerClassName="mx-3 mt-2"
       {...props}
