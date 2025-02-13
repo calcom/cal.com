@@ -21,7 +21,21 @@ export class PlatformPlanGuard implements CanActivate {
     const orgId = request.params.orgId as string;
     const user = request.user as ApiAuthGuardUser;
     const minimumPlan = this.reflector.get(PlatformPlan, context.getHandler()) as PlatformPlanType;
+    const { canAccess } = await this.checkPlatformPlanAccess({ teamId, orgId, user, minimumPlan });
+    return canAccess;
+  }
 
+  async checkPlatformPlanAccess({
+    teamId,
+    orgId,
+    user,
+    minimumPlan,
+  }: {
+    teamId?: string;
+    orgId?: string;
+    user: ApiAuthGuardUser;
+    minimumPlan: PlatformPlanType;
+  }): Promise<{ canAccess: boolean }> {
     const REDIS_CACHE_KEY = `apiv2:user:${user?.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:platformbilling:${minimumPlan}`;
@@ -29,7 +43,7 @@ export class PlatformPlanGuard implements CanActivate {
     const cachedAccess = JSON.parse((await this.redisService.redis.get(REDIS_CACHE_KEY)) ?? "false");
 
     if (cachedAccess) {
-      return cachedAccess;
+      return { canAccess: cachedAccess };
     }
 
     let canAccess = false;
@@ -55,7 +69,7 @@ export class PlatformPlanGuard implements CanActivate {
     }
 
     await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 300);
-    return canAccess;
+    return { canAccess };
   }
 }
 

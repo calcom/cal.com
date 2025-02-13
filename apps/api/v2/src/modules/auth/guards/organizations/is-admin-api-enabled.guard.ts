@@ -18,22 +18,35 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    let canAccess = false;
-    const request = context.switchToHttp().getRequest<Request & { organization: Team }>();
+    const request = context.switchToHttp().getRequest<Request & { organization?: Team }>();
     const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
       throw new ForbiddenException("No organization id found in request params.");
     }
 
+    const { canAccess, organization } = await this.checkAdminAPIEnabled(organizationId);
+    if (organization) {
+      request.organization = organization;
+    }
+    return canAccess;
+  }
+
+  async checkAdminAPIEnabled(
+    organizationId: string
+  ): Promise<{ canAccess: boolean; organization?: Team | null }> {
+    let canAccess = false;
     const REDIS_CACHE_KEY = `apiv2:org:${organizationId}:guard:isAdminAccess`;
+    // Check Redis Cache
     const cachedData = await this.redisService.redis.get(REDIS_CACHE_KEY);
 
     if (cachedData) {
       const { org: cachedOrg, canAccess: cachedCanAccess } = JSON.parse(cachedData) as CachedData;
       if (cachedOrg?.id === Number(organizationId) && cachedCanAccess !== undefined) {
-        request.organization = cachedOrg;
-        return cachedCanAccess;
+        return {
+          canAccess: cachedCanAccess,
+          organization: cachedOrg,
+        };
       }
     }
 
@@ -57,6 +70,6 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
         "EX",
         300
       ));
-    return canAccess;
+    return { canAccess, organization: org };
   }
 }

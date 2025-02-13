@@ -1,5 +1,6 @@
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import { OAuthCallbackState } from "@/modules/conferencing/controllers/conferencing.controller";
+import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { BadRequestException, Logger, NotFoundException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -21,7 +22,11 @@ export class Office365VideoService {
   private redirectUri = `${this.config.get("api.url")}/conferencing/${OFFICE_365_VIDEO}/oauth/callback`;
   private scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
-  constructor(private readonly config: ConfigService, private readonly appsRepository: AppsRepository) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly appsRepository: AppsRepository,
+    private readonly credentialsRepository: CredentialsRepository
+  ) {}
 
   async getOffice365AppKeys() {
     const app = await this.appsRepository.getAppBySlug(OFFICE_365_VIDEO);
@@ -56,7 +61,7 @@ export class Office365VideoService {
     return { url };
   }
 
-  async connectOffice365App(state: OAuthCallbackState, code: string, userId: number) {
+  async connectOffice365App(state: OAuthCallbackState, code: string, userId: number, teamId?: number) {
     const { client_id, client_secret } = await this.getOffice365AppKeys();
 
     const toUrlEncoded = (payload: Record<string, string>) =>
@@ -98,23 +103,28 @@ export class Office365VideoService {
     responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
     delete responseBody.expires_in;
 
-    const existingCredentialOffice365Video = await this.appsRepository.findAppCredential({
-      type: OFFICE_365_VIDEO_TYPE,
-      userId,
-      appId: OFFICE_365_VIDEO,
-    });
+    const existingCredentialOffice365Video = teamId
+      ? await this.credentialsRepository.findAllCredentialsByTypeAndTeamId(OFFICE_365_VIDEO_TYPE, teamId)
+      : await this.credentialsRepository.findAllCredentialsByTypeAndUserId(OFFICE_365_VIDEO_TYPE, userId);
 
     const credentialIdsToDelete = existingCredentialOffice365Video.map((item) => item.id);
     if (credentialIdsToDelete.length > 0) {
       await this.appsRepository.deleteAppCredentials(credentialIdsToDelete, userId);
     }
 
-    await this.appsRepository.createAppCredential(
-      OFFICE_365_VIDEO_TYPE,
-      responseBody as unknown as Prisma.InputJsonObject,
-      userId,
-      OFFICE_365_VIDEO
-    );
+    teamId
+      ? await this.appsRepository.createTeamAppCredential(
+          OFFICE_365_VIDEO_TYPE,
+          responseBody as unknown as Prisma.InputJsonObject,
+          teamId,
+          OFFICE_365_VIDEO
+        )
+      : await this.appsRepository.createAppCredential(
+          OFFICE_365_VIDEO_TYPE,
+          responseBody as unknown as Prisma.InputJsonObject,
+          userId,
+          OFFICE_365_VIDEO
+        );
 
     return { url: state.returnTo ?? "" };
   }
