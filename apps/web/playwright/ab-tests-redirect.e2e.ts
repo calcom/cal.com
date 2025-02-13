@@ -72,7 +72,7 @@ test.describe("apps/ A/B tests", () => {
 
     await page.goto("/bookings/upcoming/");
 
-    const locator = page.getByTestId("horizontal-tab-upcoming");
+    const locator = page.getByTestId("horizontal-tab-Upcoming");
 
     await expect(locator).toHaveClass(/bg-emphasis/);
   });
