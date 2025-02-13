@@ -221,6 +221,7 @@ function getNavigation({
       icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
+      "data-testid": "apps",
     },
     {
       name: t("workflows"),
