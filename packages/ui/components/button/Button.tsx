@@ -53,21 +53,18 @@ export const buttonClasses = cva(
           // Base colors
           "bg-brand-default",
           "text-brand",
-          // Hover state
-          "hover:bg-brand-emphasis/20",
           // Focus state
           "focus-visible:outline-none",
-          "focus-visible:ring-2",
-          "focus-visible:ring-offset",
-          "focus-visible:ring-brand-default",
+          "focus-visible:ring-0",
+          "focus-visible:shadow-button-solid-brand-focused",
           // Border
           "border border-brand-default",
           // Disabled
           "disabled:opacity-30",
           // Shadows and effects
-          "shadow-solid-gray-rested",
-          "enabled:hover:shadow-solid-gray-hover",
-          "enabled:active:shadow-solid-gray-active",
+          "shadow-button-solid-brand-default",
+          "enabled:active:shadow-button-solid-brand-active",
+          "enabled:hover:shadow-button-solid-brand-hover",
           "transition-shadow",
           "transition-transform",
           "duration-100",
@@ -88,9 +85,8 @@ export const buttonClasses = cva(
           // Focus state
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
-          "focus-visible:ring-2",
-          "focus-visible:ring-offset",
-          "focus-visible:ring-empthasis",
+          "focus-visible:ring-0",
+          "focus-visible:shadow-outline-gray-focused",
           // Shadows and effects
           "shadow-outline-gray-rested",
           "enabled:hover:shadow-outline-gray-hover",
@@ -112,9 +108,9 @@ export const buttonClasses = cva(
           // Focus
           "focus-visible:bg-subtle",
           "focus-visible:outline-none",
-          "focus-visible:ring-2",
-          "focus-visible:ring-offset",
-          "focus-visible:ring-empthasis",
+          "focus-visible:ring-0",
+          "focus-visible:border-subtle",
+          "focus-visible:shadow-button-outline-gray-focused",
 
           // Shadows and effects
           "enabled:active:shadow-outline-gray-active",
@@ -133,12 +129,10 @@ export const buttonClasses = cva(
           "hover:bg-error",
           // Focus state
           "focus-visible:text-red-700",
-          "focus-visible:border-red-100",
           "focus-visible:bg-error",
           "focus-visible:outline-none",
-          "focus-visible:ring-2",
-          "focus-visible:ring-offset",
-          "focus-visible:ring-red-700",
+          "focus-visible:ring-0",
+          "focus-visible:shadow-button-outline-red-focused",
           // Disabled state
           "disabled:bg-red-100",
           "disabled:border-red-200",

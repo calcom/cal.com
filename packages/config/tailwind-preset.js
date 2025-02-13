@@ -299,12 +299,18 @@ module.exports = {
           "0px 1px 1px 0px rgba(127, 29, 29, 0.06), 0px 0px 3px 0px rgba(127, 29, 29, 0.08), 0px 2px 2px 1px rgba(127, 29, 29, 0.06) inset",
         "elevation-low":
           "0px 1px 1px 0px rgba(0, 0, 0, 0.07), 0px 1px 2px 0px rgba(0, 0, 0, 0.08), 0px 2px 2px 0px rgba(0, 0, 0, 0.10), 0px 0px 8px 0px rgba(0, 0, 0, 0.05)",
+        // Brand
         "button-solid-brand-default":
-          "0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset",
+          " 0px 2px 3px 0px rgba(0, 0, 0, 0.06), 0px 1px 1px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px 2px 0.4px 0px rgba(255, 255, 255, 0.12) inset, 0px -3px 2px 0px rgba(0, 0, 0, 0.04) inset;",
         "button-solid-brand-hover":
           "0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset",
         "button-solid-brand-active":
           "0px 3px 1px 0px rgba(0, 0, 0, 0.10) inset, 0px 0px 2px 0px rgba(0, 0, 0, 0.10) inset",
+        "button-solid-brand-focused":
+          "0px 0px 0px 1px rgba(255, 255, 255, 0.40), 0px 0px 0px 2px rgba(0, 0, 0, 0.20), 0px 1px 1px 0px rgba(0, 0, 0, 0.10), 0px 2px 3px 0px rgba(0, 0, 0, 0.08), 1px 4px 8px 0px rgba(0, 0, 0, 0.12), 0px -3px 2px 0px rgba(0, 0, 0, 0.10) inset, 0px 2px 0.4px 0px rgba(255, 255, 255, 0.24) inset",
+        // Outline - red
+        "button-outline-red-focused":
+          "0px 0px 0px 1px rgba(255, 255, 255, 0.32), 0px 0px 0px 2px rgba(220, 38, 38, 0.15)",
       },
     },
   },
