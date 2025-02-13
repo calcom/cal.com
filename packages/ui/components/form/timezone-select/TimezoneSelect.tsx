@@ -64,6 +64,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   isPending: boolean;
   data?: Timezones;
   timezoneSelectCustomClassname?: string;
+  size?: "sm" | "md";
 };
 export function TimezoneSelectComponent({
   className,
