@@ -42,7 +42,7 @@ function SettingsToggle({
   labelClassName,
   descriptionClassName,
   noIndentation = false,
-  hideSwitch = false,
+  hideSwitch,
   ...rest
 }: Props) {
   const [animateRef] = useAutoAnimate<HTMLDivElement>();
