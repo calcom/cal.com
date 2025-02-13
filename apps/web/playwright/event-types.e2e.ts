@@ -210,7 +210,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+918888888888")).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
@@ -229,7 +229,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+19199999999")).toBeVisible();
+        await expect(page.locator("text=+918888888888")).toBeVisible();
       });
 
       test("Can add Cal video location and book with it", async ({ page }) => {
