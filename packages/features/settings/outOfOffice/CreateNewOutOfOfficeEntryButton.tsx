@@ -9,7 +9,13 @@ import { Button } from "@calcom/ui";
 
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 
-const CreateNewOutOfOfficeEntry = ({ size }: { size?: ButtonProps["size"] }) => {
+const CreateNewOutOfOfficeEntry = ({
+  size,
+  ...rest
+}: {
+  size?: ButtonProps["size"];
+  "data-testid"?: string;
+}) => {
   const { t } = useLocale();
 
   const params = useSearchParams();
@@ -30,7 +36,7 @@ const CreateNewOutOfOfficeEntry = ({ size }: { size?: ButtonProps["size"] }) => 
         className="flex items-center justify-between px-4"
         StartIcon="plus"
         onClick={() => setOpenModal(true)}
-        data-testid="add_entry_ooo">
+        data-testid={rest["data-testid"]}>
         {t("add")}
       </Button>
       {openModal && (
