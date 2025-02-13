@@ -36,6 +36,7 @@ type OrganizationData = {
   logoUrl: string | null;
   bio: string | null;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
+  paymentSubscriptionId: string;
 };
 
 type TeamData = {
@@ -50,15 +51,15 @@ type InvitedMember = {
   name?: string;
 };
 
-async function createOrganizationWithOwner(
-  orgData: OrganizationData,
-  { orgOwnerEmail, id: organizationOnboardingId }: { orgOwnerEmail: string; id: number }
-) {
-  const owner = await findUserToBeOrgOwner(orgOwnerEmail);
-
-  if (!owner) {
-    throw new Error(`Owner not found with email: ${orgOwnerEmail}`);
-  }
+async function createOrganizationWithOwner({
+  owner,
+  organizationOnboardingId,
+  orgData,
+}: {
+  organizationOnboardingId: number;
+  owner: NonNullable<Awaited<ReturnType<typeof findUserToBeOrgOwner>>>;
+  orgData: OrganizationData;
+}) {
   const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
   let organization = orgData.id
     ? await OrganizationRepository.findById({ id: orgData.id })
@@ -72,7 +73,7 @@ async function createOrganizationWithOwner(
         id: organization.id,
       })
     );
-    return { organization, owner, orgOwnerTranslation };
+    return { organization };
   }
 
   const { slugConflictType } = await assertCanCreateOrg({
@@ -116,7 +117,7 @@ async function createOrganizationWithOwner(
       await sendOrganizationCreationEmail({
         language: orgOwnerTranslation,
         from: `${organization.name}'s admin`,
-        to: orgOwnerEmail,
+        to: owner.email,
         ownerNewUsername: ownerProfile.username,
         ownerOldUsername: nonOrgUsername,
         orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
@@ -151,7 +152,7 @@ async function createOrganizationWithOwner(
     organizationId: organization.id,
   });
 
-  return { organization, owner, orgOwnerTranslation, needToSetSlug: !canSetSlug };
+  return { organization };
 }
 
 async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, organizationId: number) {
@@ -198,10 +199,7 @@ async function inviteMembers(invitedMembers: InvitedMember[], organization: Team
   log.debug(`Inviting ${invitedMembers.length} members to organization ${organization.id}`);
   await inviteMembersWithNoInviterPermissionCheck({
     inviterName: null,
-    team: {
-      ...organization,
-      parent: null,
-    },
+    teamId: organization.id,
     language: "en",
     creationSource: CreationSource.WEBAPP,
     orgSlug: organization.slug || null,
@@ -218,6 +216,7 @@ async function inviteMembers(invitedMembers: InvitedMember[], organization: Team
  */
 export const createOrganizationFromOnboarding = async ({
   organizationOnboarding,
+  paymentSubscriptionId,
 }: {
   organizationOnboarding: Pick<
     OrganizationOnboarding,
@@ -235,9 +234,24 @@ export const createOrganizationFromOnboarding = async ({
     | "logo"
     | "bio"
   >;
+  paymentSubscriptionId: string;
 }) => {
-  const { organization, owner, orgOwnerTranslation } = await createOrganizationWithOwner(
-    {
+  const owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
+  if (!owner) {
+    throw new Error(`Owner not found with email: ${organizationOnboarding.orgOwnerEmail}`);
+  }
+  const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
+
+  // Important: Setup Domain first before creating the organization as Vercel/Cloudflare might not allow the domain to be created and that could cause organization booking pages to not actually work
+  await setupDomain({
+    slug: organizationOnboarding.slug,
+    isPlatform: organizationOnboarding.isPlatform,
+    orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+    orgOwnerTranslation,
+  });
+
+  const { organization } = await createOrganizationWithOwner({
+    orgData: {
       id: organizationOnboarding.organizationId,
       name: organizationOnboarding.name,
       slug: organizationOnboarding.slug,
@@ -250,9 +264,11 @@ export const createOrganizationFromOnboarding = async ({
       billingPeriod: organizationOnboarding.billingPeriod,
       logoUrl: organizationOnboarding.logo,
       bio: organizationOnboarding.bio,
+      paymentSubscriptionId,
     },
-    organizationOnboarding
-  );
+    organizationOnboardingId: organizationOnboarding.id,
+    owner,
+  });
 
   const invitedMembers = z
     .array(z.object({ email: z.string().email(), name: z.string().optional() }))
@@ -269,6 +285,8 @@ export const createOrganizationFromOnboarding = async ({
     )
     .parse(organizationOnboarding.teams);
 
+  await inviteMembers(invitedMembers, organization);
+
   await createOrMoveTeamsToOrganization(teams, owner, organization.id);
   // We have moved the teams through `createOrMoveTeamsToOrganization`, so we if need to set the slug, this is the best time to do it.
   if (!organization.slug) {
@@ -277,15 +295,6 @@ export const createOrganizationFromOnboarding = async ({
       slug: organizationOnboarding.slug,
     });
   }
-
-  await inviteMembers(invitedMembers, organization);
-
-  await setupDomain({
-    slug: organizationOnboarding.slug,
-    isPlatform: organizationOnboarding.isPlatform,
-    orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-    orgOwnerTranslation,
-  });
 
   return { organization, owner };
 };

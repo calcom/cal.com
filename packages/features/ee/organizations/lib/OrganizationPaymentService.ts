@@ -15,6 +15,8 @@ import { OrganizationPermissionService } from "./OrganizationPermissionService";
 type CreatePaymentIntentInput = {
   name: string;
   slug: string;
+  logo: string | null;
+  bio: string | null;
   orgOwnerEmail: string;
   billingPeriod?: BillingPeriod;
   seats?: number | null;
@@ -147,6 +149,8 @@ export class OrganizationPaymentService {
           stripeCustomerId,
           invitedMembers: input.invitedMembers,
           teams: teamsToMigrate,
+          logo: input.logo,
+          bio: input.bio,
           updatedAt: new Date(),
         },
       });
@@ -164,6 +168,8 @@ export class OrganizationPaymentService {
         stripeCustomerId,
         invitedMembers: input.invitedMembers,
         teams: teamsToMigrate,
+        logo: input.logo,
+        bio: input.bio,
       },
     });
   }

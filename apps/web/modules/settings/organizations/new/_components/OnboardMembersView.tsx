@@ -68,6 +68,8 @@ export const AddNewTeamMembersForm = () => {
     seats,
     teams,
     invitedMembers,
+    logo,
+    bio,
   } = useOnboardingStore();
   const checkout = useCheckout();
 
@@ -195,6 +197,8 @@ export const AddNewTeamMembersForm = () => {
             checkout.mutation.mutate({
               name,
               slug,
+              logo,
+              bio,
               orgOwnerEmail,
               billingPeriod,
               pricePerSeat,

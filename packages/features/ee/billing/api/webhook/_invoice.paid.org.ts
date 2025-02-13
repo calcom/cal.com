@@ -15,7 +15,9 @@ const invoicePaidSchema = z.object({
 
 const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
-  logger.debug(`Processing invoice paid webhook for customer ${invoice.customer}`);
+  logger.debug(
+    `Processing invoice paid webhook for customer ${invoice.customer} and subscription ${invoice.subscription}`
+  );
 
   const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
     invoice.customer
@@ -32,6 +34,7 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
 
   const { organization } = await createOrganizationFromOnboarding({
     organizationOnboarding,
+    paymentSubscriptionId: invoice.subscription,
   });
 
   logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

@@ -34,6 +34,8 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       logoUrl: string | null;
       bio: string | null;
+      // Required for Organization and not for platform
+      paymentSubscriptionId: string | null;
     };
     owner: {
       id: number;
@@ -42,6 +44,9 @@ export class OrganizationRepository {
     };
   }) {
     logger.debug("createWithExistingUserAsOwner", safeStringify({ orgData, owner }));
+    if (!orgData.isPlatform && !orgData.paymentSubscriptionId) {
+      throw new Error("paymentSubscriptionId is required for non-platform organizations");
+    }
     const organization = await this.create(orgData);
     const ownerProfile = await createAProfileForAnExistingUser({
       user: {
@@ -80,6 +85,7 @@ export class OrganizationRepository {
       isPlatform: boolean;
       logoUrl: string | null;
       bio: string | null;
+      paymentSubscriptionId: string | null;
     };
     owner: {
       email: string;
@@ -87,6 +93,9 @@ export class OrganizationRepository {
     creationSource: CreationSource;
   }) {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
+    if (!orgData.isPlatform && !orgData.paymentSubscriptionId) {
+      throw new Error("paymentSubscriptionId is required for non-platform organizations");
+    }
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
     const ownerInDb = await UserRepository.create({
@@ -126,6 +135,7 @@ export class OrganizationRepository {
     isPlatform: boolean;
     logoUrl: string | null;
     bio: string | null;
+    paymentSubscriptionId: string | null;
   }) {
     return await prisma.team.create({
       data: {
@@ -148,6 +158,9 @@ export class OrganizationRepository {
           // orgSeats: orgData.seats,
           // orgPricePerSeat: orgData.pricePerSeat,
           // billingPeriod: orgData.billingPeriod,
+
+          // We set it here as required by various places in app. We could plan to move it to OrganizationOnboarding later
+          subscriptionId: orgData.paymentSubscriptionId,
         },
         isPlatform: orgData.isPlatform,
       },
