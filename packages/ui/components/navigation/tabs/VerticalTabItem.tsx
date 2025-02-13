@@ -26,6 +26,7 @@ export type VerticalTabItemProps = {
   iconClassName?: string;
   onClick?: (name: string) => void;
   isActive?: boolean;
+  "data-testid"?: string;
 };
 
 const VerticalTabItem = ({
@@ -64,7 +65,7 @@ const VerticalTabItem = ({
               (isChild || !props.icon) && "ml-7",
               props.className
             )}
-            data-testid={`vertical-tab-${name}`}
+            data-testid={`vertical-tab-${props["data-testid"]}`}
             aria-current={isCurrent ? "page" : undefined}>
             {props.icon && (
               <Icon

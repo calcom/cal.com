@@ -109,7 +109,7 @@ export function createAppsFixture(page: Page) {
       await page.getByRole("link", { name: eventType }).click();
     },
     goToAppsTab: async () => {
-      await page.getByTestId("vertical-tab-Apps").click();
+      await page.getByTestId("vertical-tab-apps").click();
     },
     activeApp: async (app: string) => {
       await page.locator(`[data-testid='${app}-app-switch']`).click();

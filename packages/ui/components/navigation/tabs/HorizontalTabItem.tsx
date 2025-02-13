@@ -19,6 +19,7 @@ export type HorizontalTabItemProps = {
   avatar?: string;
   onClick?: (name: string) => void;
   isActive?: boolean;
+  "data-testid"?: string;
 };
 
 const HorizontalTabItem = function ({
@@ -51,7 +52,7 @@ const HorizontalTabItem = function ({
         props.className
       )}
       target={props.target ? props.target : undefined}
-      data-testid={`horizontal-tab-${name}`}
+      data-testid={`horizontal-tab-${props["data-testid"]}`}
       aria-current={isCurrent ? "page" : undefined}>
       {props.icon && (
         <Icon
