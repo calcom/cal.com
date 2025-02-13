@@ -25,16 +25,17 @@ vi.mock("@calcom/lib/hooks/useLocale", () => ({
 describe("Navigation Components", () => {
   describe("HorizontalTabs", () => {
     const mockTabs = [
-      { name: "Dashboard", href: "/dashboard" },
-      { name: "Settings", href: "/settings", icon: "atom" },
-      { name: "Profile", href: "/profile", avatar: "user-avatar" },
-      { name: "Disabled", href: "/disabled", disabled: true },
+      { name: "Dashboard", href: "/dashboard", "data-testid": "dashboard" },
+      { name: "Settings", href: "/settings", icon: "atom", "data-testid": "settings" },
+      { name: "Profile", href: "/profile", avatar: "user-avatar", "data-testid": "profile" },
+      { name: "Disabled", href: "/disabled", disabled: true, "data-testid": "disabled" },
     ] as {
       name: string;
       href: string;
       icon?: IconName;
       avatar?: string;
       disabled?: boolean;
+      "data-testid"?: string;
     }[];
 
     beforeEach(() => {
@@ -45,7 +46,7 @@ describe("Navigation Components", () => {
       render(<HorizontalTabs tabs={mockTabs} />);
 
       for (const tab of mockTabs) {
-        const tabElement = screen.getByTestId(`horizontal-tab-${tab.name}`);
+        const tabElement = screen.getByTestId(`horizontal-tab-${tab["data-testid"]}`);
         expect(tabElement).toBeInTheDocument();
         await expect(tabElement).toHaveAttribute("href", tab.href);
       }
@@ -59,7 +60,7 @@ describe("Navigation Components", () => {
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (!disabledTab) throw new Error("Test requires a disabled tab in mockTabs");
 
-      const tabElement = screen.getByTestId(`horizontal-tab-${disabledTab.name}`);
+      const tabElement = screen.getByTestId(`horizontal-tab-${disabledTab["data-testid"]}`);
 
       await expect(tabElement).toHaveAttribute("aria-disabled", "true");
     });
@@ -73,10 +74,10 @@ describe("Navigation Components", () => {
 
     test("handles tab click events", () => {
       const handleClick = vi.fn();
-      const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick }];
+      const tabsWithClick = [{ name: "Tab", href: "/tab", onClick: handleClick, "data-testId": "tab" }];
 
       render(<HorizontalTabs tabs={tabsWithClick} />);
-      fireEvent.click(screen.getByTestId("horizontal-tab-Tab"));
+      fireEvent.click(screen.getByTestId("horizontal-tab-tab"));
 
       expect(handleClick).toHaveBeenCalledWith("Tab");
     });
@@ -89,24 +90,28 @@ describe("Navigation Components", () => {
         href: "/overview",
         icon: "home",
         info: "Main dashboard view",
+        "data-testid": "Overview",
       },
       {
         name: "External",
         href: "https://external.com",
         isExternalLink: true,
         icon: "external",
+        "data-testid": "Exteral",
       },
       {
         name: "Disabled",
         href: "/disabled",
         disabled: true,
         icon: "lock",
+        "data-testid": "Disabled",
       },
       {
         name: "Child Tab",
         href: "/child",
         isChild: true,
         disableChevron: true,
+        "data-testid": "Child Tab",
       },
     ] as {
       name: string;
@@ -118,6 +123,7 @@ describe("Navigation Components", () => {
       isChild?: boolean;
       disableChevron?: boolean;
       info?: string;
+      "data-testid"?: string;
     }[];
 
     beforeEach(() => {
@@ -128,7 +134,7 @@ describe("Navigation Components", () => {
       const { container } = render(<VerticalTabs tabs={mockTabs} sticky className="custom-class" />);
 
       mockTabs.forEach(async (tab) => {
-        const tabElement = screen.getByTestId(`vertical-tab-${tab.name}`);
+        const tabElement = screen.getByTestId(`vertical-tab-${tab["data-testid"]}`);
         expect(tabElement).toBeInTheDocument();
         await expect(tabElement).toHaveAttribute("href", tab.href);
 
@@ -187,6 +193,7 @@ describe("Navigation Components", () => {
               href: "/overview",
               icon: "atom",
               info: "Main dashboard view",
+              "data-testid": "overview",
             },
           ]}
           className="custom-nav"
