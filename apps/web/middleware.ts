@@ -23,7 +23,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   if (
     req.method === "POST" &&
-    API_ROUTES_COMING_TO_MIDDLEWARE.every((route) => !url.pathname.startsWith(route))
+    !API_ROUTES_COMING_TO_MIDDLEWARE.some((route) => url.pathname.startsWith(route))
   ) {
     return new NextResponse(null, {
       status: 405,
