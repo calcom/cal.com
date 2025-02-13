@@ -1638,6 +1638,7 @@ model ManagedOrganization {
 
   createdAt DateTime @default(now())
 
+  @@unique([managerOrganizationId, managedOrganizationId])
   @@index([managerOrganizationId])
 }
 
