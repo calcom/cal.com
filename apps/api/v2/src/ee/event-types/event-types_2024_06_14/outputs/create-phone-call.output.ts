@@ -10,8 +10,9 @@ class Data {
   callId!: string;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  agentId!: string;
+  agentId?: string;
 }
 
 export class CreatePhoneCallOutput {
