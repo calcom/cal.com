@@ -17,6 +17,7 @@ import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
 import parseRefreshTokenResponse from "../../_utils/oauth/parseRefreshTokenResponse";
 import { default as appMeta } from "../config.json";
+import type { writeToRecordDataSchema } from "../zod";
 import {
   SalesforceRecordEnum,
   SalesforceFieldType,
@@ -138,7 +139,9 @@ export default class SalesforceCRMService implements CRM {
 
   private getSalesforceUserIdFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const query = await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true`);
+    const query = await conn.query(
+      `SELECT Id, Email FROM User WHERE Email = '${email}' AND IsActive = true LIMIT 1`
+    );
     if (query.records.length > 0) {
       return (query.records[0] as { Email: string; Id: string }).Id;
     }
@@ -179,28 +182,18 @@ export default class SalesforceCRMService implements CRM {
   };
 
   private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
+    const log = logger.getSubLogger({ prefix: [`[salesforceCreateEvent]:${event.uid}`] });
+
     const appOptions = this.getAppOptions();
 
-    const customFieldInputsEnabled =
-      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+    const writeToEventRecord = await this.generateWriteToEventBody(event);
+    log.info(`Writing to event fields: ${Object.keys(writeToEventRecord)} `);
 
-    const customFieldInputs = customFieldInputsEnabled
-      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
-      : [];
-
-    const confirmedCustomFieldInputs: {
-      [key: string]: any;
-    } = {};
-
-    for (const field of customFieldInputs) {
-      confirmedCustomFieldInputs[field.name] = appOptions.onBookingWriteToEventObjectMap[field.name];
-    }
-
-    let ownerId = null;
+    let ownerId: string | undefined = undefined;
     if (event?.organizer?.email) {
       ownerId = await this.getSalesforceUserIdFromEmail(event.organizer.email);
     } else {
-      this.log.warn("salesforceCreateEvent: No organizer email found for event", event.uid, event?.organizer);
+      log.warn("No organizer email found for event", event?.organizer);
     }
 
     /**
@@ -210,12 +203,24 @@ export default class SalesforceCRMService implements CRM {
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      this.log.warn("salesforceCreateEvent: No contacts found for event", event.uid, contacts);
+      log.warn("No contacts found for event", contacts);
+    }
+
+    const eventWhoIds = contacts.reduce((contactIds, contact) => {
+      if (contact?.id) {
+        contactIds.push(contact.id);
+      }
+
+      return contactIds;
+    }, [] as string[]);
+
+    if (eventWhoIds.length !== contacts.length) {
+      log.warn(`Not all contacts contain ids ${contacts}`);
     }
 
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
-      EventWhoIds: contacts.map((contact) => contact.id),
-      ...confirmedCustomFieldInputs,
+      EventWhoIds: eventWhoIds,
+      ...writeToEventRecord,
       ...(ownerId && { OwnerId: ownerId }),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
@@ -227,15 +232,30 @@ export default class SalesforceCRMService implements CRM {
         // User has not configured "Allow Users to Relate Multiple Contacts to Tasks and Events"
         // proceeding to create the event using just the first attendee as the primary WhoId
         return await this.salesforceCreateEventApiCall(event, {
-          WhoId: firstContact,
+          WhoId: firstContact.id,
         }).catch((reason) => Promise.reject(reason));
       }
-      return Promise.reject(reason);
+      log.error(`Error creating event: ${JSON.stringify(reason)}`);
+
+      // Try creating a simple object without additional records
+      return await this.salesforceCreateEventApiCall(event, {
+        WhoId: firstContact.id,
+        ...(ownerId && { OwnerId: ownerId }),
+      }).catch((reason) => {
+        log.error(`Error creating simple event: ${JSON.stringify(reason)}`);
+        return Promise.reject(reason);
+      });
     });
     // Check to see if we also need to change the record owner
-    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName && ownerId) {
-      // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
-      await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
+    if (appOptions.onBookingChangeRecordOwner && appOptions.onBookingChangeRecordOwnerName) {
+      if (ownerId) {
+        // TODO: firstContact id is assumed to not be undefined. But current code doesn't check for it.
+        await this.checkRecordOwnerNameFromRecordId(firstContact.id, ownerId);
+      } else {
+        log.warn(
+          `Could not find owner with email ${event.organizer.email} to change record ${firstContact.id} ownership to`
+        );
+      }
     }
     if (appOptions.onBookingWriteToRecord && appOptions.onBookingWriteToRecordFields) {
       await this.writeToPersonRecord(
@@ -482,8 +502,9 @@ export default class SalesforceCRMService implements CRM {
       );
     }
 
-    if (contactsToCreate[0]?.email) {
+    if (!contactsToCreate[0]?.email) {
       this.log.warn(`createContact: no attendee email found `, contactsToCreate);
+      return [];
     }
 
     if (createEventOn === SalesforceRecordEnum.LEAD) {
@@ -493,15 +514,13 @@ export default class SalesforceCRMService implements CRM {
       if (appOptions.createNewContactUnderAccount) {
         // Check for an account
         const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
         if (accountId) {
           const createdAccountContacts = await this.createNewContactUnderAnAccount({
             attendee,
             accountId,
             organizerId,
           });
-
-          if (createdContacts.length > 0) {
+          if (createdAccountContacts.length > 0) {
             createdContacts.push(...createdAccountContacts);
           }
         }
@@ -527,7 +546,6 @@ export default class SalesforceCRMService implements CRM {
       const attendee = contactsToCreate[0];
 
       const accountId = await this.getAccountIdBasedOnEmailDomainOfContacts(attendee.email);
-
       let contactCreated = false;
 
       if (accountId && appOptions.createNewContactUnderAccount) {
@@ -536,8 +554,7 @@ export default class SalesforceCRMService implements CRM {
           accountId,
           organizerId,
         });
-
-        if (createdContacts.length > 0) {
+        if (createdAccountContacts.length > 0) {
           createdContacts.push(...createdAccountContacts);
           contactCreated = true;
         }
@@ -545,7 +562,9 @@ export default class SalesforceCRMService implements CRM {
 
       if (!accountId && appOptions.createLeadIfAccountNull && !contactCreated) {
         // Check to see if the lead exists already
-        const leadQuery = await conn.query(`SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}'`);
+        const leadQuery = await conn.query(
+          `SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}' LIMIT 1`
+        );
         if (leadQuery.records.length) {
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
@@ -799,36 +818,48 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
 
-    if (!appOptions?.createEventOn) {
+    this.log.info(`Changing owner for record ${id}`);
+
+    const recordType = this.determineRecordTypeById(id);
+
+    if (!appOptions?.onBookingChangeRecordOwnerName) {
       this.log.warn(
-        `No appOptions.createEventOn found for ${this.integrationName} on checkRecordOwnerNameFromRecordId`
+        `No appOptions.onBookingChangeRecordOwnerName found for ${this.integrationName} on checkRecordOwnerNameFromRecordId`
       );
       return;
     }
 
     // Get the associated record that the event was created on
     const recordQuery = (await conn.query(
-      `SELECT OwnerId FROM ${appOptions.createEventOn} WHERE Id = '${id}'`
-    )) as { records: { OwnerId: string }[] };
+      `SELECT OwnerId, Owner.Name FROM ${recordType} WHERE Id = '${id}'`
+    )) as { records: { OwnerId: string; Owner: { Name: string } }[] };
 
-    if (!recordQuery || !recordQuery.records.length) return;
+    if (!recordQuery || !recordQuery.records.length) {
+      this.log.warn(`Could not find record for id ${id} and type ${recordType}`);
+    }
 
-    const ownerId = recordQuery.records[0].OwnerId;
+    const owner = recordQuery.records[0].Owner;
 
-    const ownerQuery = await this.getSalesforceUserFromUserId(ownerId);
+    if (!appOptions.onBookingChangeRecordOwnerName.includes(owner?.Name)) {
+      this.log.warn(
+        `Current owner name ${owner?.Name} for record ${id} does not match the option ${appOptions.onBookingChangeRecordOwnerName}`
+      );
+    }
 
-    if (!ownerQuery || !ownerQuery.records.length) return;
-
-    const owner = ownerQuery.records[0] as { Name: string };
-
-    // Check that the owner name matches the names where we need to change the organizer
-    if (appOptions?.onBookingChangeRecordOwnerName.includes(owner.Name)) {
-      await conn.sobject(appOptions?.createEventOn).update({
+    await conn
+      .sobject(recordType)
+      .update({
         // First field is there WHERE statement
         Id: id,
         OwnerId: newOwnerId,
+      })
+      .catch((error) => {
+        this.log.warn(
+          `Error changing record ${id} of type ${recordType} owner to ${newOwnerId} with error ${JSON.stringify(
+            error
+          )}`
+        );
       });
-    }
   }
 
   private async getAccountIdBasedOnEmailDomainOfContacts(email: string) {
@@ -837,7 +868,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, Website FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -859,7 +890,7 @@ export default class SalesforceCRMService implements CRM {
 
     // First check if an account has the same website as the email domain of the attendee
     const accountQuery = await conn.query(
-      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%'`
+      `SELECT Id, OwnerId, Owner.Email FROM Account WHERE Website LIKE '%${emailDomain}%' LIMIT 1`
     );
 
     if (accountQuery.records.length > 0) {
@@ -913,20 +944,25 @@ export default class SalesforceCRMService implements CRM {
     bookingUid?: string | null
   ) {
     const conn = await this.conn;
-    const { createEventOn, onBookingWriteToRecordFields = {} } = this.getAppOptions();
-
+    const { onBookingWriteToRecordFields = {} } = this.getAppOptions();
     // Determine record type (Contact or Lead)
-    const personRecordType = this.determinePersonRecordType(createEventOn);
-
+    const personRecordType = this.determineRecordTypeById(contactId);
     // Search the fields and ensure 1. they exist 2. they're the right type
     const fieldsToWriteOn = Object.keys(onBookingWriteToRecordFields);
     const existingFields = await this.ensureFieldsExistOnObject(fieldsToWriteOn, personRecordType);
+
+    if (!existingFields.length) {
+      this.log.warn(`No fields found for record type ${personRecordType}`);
+      return;
+    }
 
     const personRecord = await this.fetchPersonRecord(contactId, existingFields, personRecordType);
     if (!personRecord) {
       this.log.warn(`No personRecord found for contactId ${contactId}`);
       return;
     }
+
+    this.log.info(`Writing to recordId ${contactId} on fields ${fieldsToWriteOn}`);
 
     const writeOnRecordBody = await this.buildRecordUpdatePayload({
       existingFields,
@@ -937,6 +973,10 @@ export default class SalesforceCRMService implements CRM {
       organizerEmail,
       calEventResponses,
     });
+
+    this.log.info(
+      `Final writeOnRecordBody contains fields ${Object.keys(writeOnRecordBody)} for record ${contactId}`
+    );
 
     // Update the person record
     await conn
@@ -962,7 +1002,7 @@ export default class SalesforceCRMService implements CRM {
     existingFields: Field[];
     personRecord: Record<string, any>;
     onBookingWriteToRecordFields: Record<string, any>;
-    startTime: string;
+    startTime?: string;
     bookingUid?: string | null;
     organizerEmail?: string;
     calEventResponses?: CalEventResponses | null;
@@ -974,7 +1014,25 @@ export default class SalesforceCRMService implements CRM {
 
       // Skip if field should only be written when empty and already has a value
       if (fieldConfig.whenToWrite === WhenToWriteToRecord.FIELD_EMPTY && personRecord[field.name]) {
+        this.log.info(
+          `Field ${field.name} on contactId ${personRecord?.Id} already exists with value ${
+            personRecord[field.name]
+          }`
+        );
         continue;
+      }
+
+      if (fieldConfig.fieldType === SalesforceFieldType.CUSTOM) {
+        const extractedValue = await this.getTextFieldValue({
+          fieldValue: fieldConfig.value,
+          fieldLength: field.length,
+          calEventResponses,
+          bookingUid,
+        });
+        if (extractedValue) {
+          writeOnRecordBody[field.name] = extractedValue;
+          continue;
+        }
       }
 
       // Handle different field types
@@ -989,7 +1047,7 @@ export default class SalesforceCRMService implements CRM {
           if (extractedText) {
             writeOnRecordBody[field.name] = extractedText;
           }
-        } else if (field.type === SalesforceFieldType.DATE) {
+        } else if (field.type === SalesforceFieldType.DATE && startTime && organizerEmail) {
           const dateValue = await this.getDateFieldValue(
             fieldConfig.value,
             startTime,
@@ -1005,6 +1063,35 @@ export default class SalesforceCRMService implements CRM {
 
     return writeOnRecordBody;
   }
+
+  private async generateWriteToEventBody(event: CalendarEvent) {
+    const appOptions = this.getAppOptions();
+
+    const customFieldInputsEnabled =
+      appOptions?.onBookingWriteToEventObject && appOptions?.onBookingWriteToEventObjectMap;
+
+    if (!customFieldInputsEnabled) return {};
+
+    const customFieldInputs = customFieldInputsEnabled
+      ? await this.ensureFieldsExistOnObject(Object.keys(appOptions?.onBookingWriteToEventObjectMap), "Event")
+      : [];
+
+    const confirmedCustomFieldInputs: {
+      [key: string]: any;
+    } = {};
+
+    for (const field of customFieldInputs) {
+      confirmedCustomFieldInputs[field.name] = await this.getTextFieldValue({
+        fieldValue: appOptions.onBookingWriteToEventObjectMap[field.name],
+        fieldLength: field.length,
+        calEventResponses: event.responses,
+        bookingUid: event?.uid,
+      });
+    }
+
+    return confirmedCustomFieldInputs;
+  }
+
   private async getTextFieldValue({
     fieldValue,
     fieldLength,
@@ -1012,7 +1099,7 @@ export default class SalesforceCRMService implements CRM {
     bookingUid,
   }: {
     fieldValue: string;
-    fieldLength: number;
+    fieldLength?: number;
     calEventResponses?: CalEventResponses | null;
     bookingUid?: string | null;
   }) {
@@ -1020,7 +1107,6 @@ export default class SalesforceCRMService implements CRM {
     if (!fieldValue.startsWith("{") && !fieldValue.endsWith("}")) return fieldValue;
 
     let valueToWrite = fieldValue;
-
     if (fieldValue.startsWith("{form:")) {
       // Get routing from response
       if (!bookingUid) return;
@@ -1035,7 +1121,7 @@ export default class SalesforceCRMService implements CRM {
     if (valueToWrite === fieldValue) return;
 
     // Trim incase the replacement values increased the length
-    return valueToWrite.substring(0, fieldLength);
+    return fieldLength ? valueToWrite.substring(0, fieldLength) : valueToWrite;
   }
 
   private async getTextValueFromRoutingFormResponse(fieldValue: string, bookingUid: string) {
@@ -1060,7 +1146,6 @@ export default class SalesforceCRMService implements CRM {
     // Search for fieldValue, only handle raw text return for now
     for (const fieldId of Object.keys(response)) {
       const field = response[fieldId];
-
       if (field?.identifier === identifierField) {
         return field.value.toString();
       }
@@ -1109,14 +1194,6 @@ export default class SalesforceCRMService implements CRM {
     return null;
   }
 
-  private determinePersonRecordType(createEventOn: string): SalesforceRecordEnum {
-    return createEventOn === SalesforceRecordEnum.LEAD &&
-      this.appOptions.createEventOnLeadCheckForContact &&
-      this.getFallbackToContact()
-      ? SalesforceRecordEnum.CONTACT
-      : this.appOptions.createEventOn;
-  }
-
   private async fetchPersonRecord(
     contactId: string,
     existingFields: Field[],
@@ -1126,7 +1203,7 @@ export default class SalesforceCRMService implements CRM {
     const existingFieldNames = existingFields.map((field) => field.name);
 
     const query = await conn.query(
-      `SELECT ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
+      `SELECT Id, ${existingFieldNames.join(", ")} FROM ${personRecordType} WHERE Id = '${contactId}'`
     );
 
     if (!query.records.length) {
@@ -1149,7 +1226,9 @@ export default class SalesforceCRMService implements CRM {
     const conn = await this.conn;
 
     // First see if the contact already exists and connect it to the account
-    const userQuery = await conn.query(`SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}'`);
+    const userQuery = await conn.query(
+      `SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}' LIMIT 1`
+    );
     if (userQuery.records.length) {
       const contact = userQuery.records[0] as { Id: string; Email: string };
       await conn.sobject(SalesforceRecordEnum.CONTACT).update({
@@ -1238,5 +1317,94 @@ export default class SalesforceCRMService implements CRM {
 
     const response = await checkIfFreeEmailDomain(attendeeEmail);
     return response;
+  }
+
+  async incompleteBookingWriteToRecord(
+    email: string,
+    writeToRecordObject: z.infer<typeof writeToRecordDataSchema>
+  ) {
+    const conn = await this.conn;
+
+    // Prioritize contacts over leads
+    const personRecord = await this.findProspectByEmail(email);
+
+    if (!personRecord) {
+      this.log.info(`No contact or lead found for email ${email}`);
+      // No salesforce entity to update, skip and report success (unrecoverable)
+      return;
+    }
+
+    const recordType = this.determineRecordTypeById(personRecord.Id);
+
+    // Ensure the fields exist on the record
+    const existingFields = await this.ensureFieldsExistOnObject(Object.keys(writeToRecordObject), recordType);
+
+    const writeOnRecordBody = await this.buildRecordUpdatePayload({
+      existingFields,
+      personRecord,
+      onBookingWriteToRecordFields: writeToRecordObject,
+    });
+    await conn
+      .sobject(recordType)
+      .update({
+        Id: personRecord.Id,
+        ...writeOnRecordBody,
+      })
+      .catch((e) => {
+        const contactId = personRecord?.Id || "unknown";
+        // catch the error and throw a new one with a more descriptive message
+        const errorMessage = `Error updating person record for contactId '${contactId}': ${
+          e instanceof Error ? e.message : String(e)
+        }`;
+        throw new Error(errorMessage);
+      });
+  }
+
+  /** All salesforce ids have a 3 character prefix associated with the record type
+   * https://help.salesforce.com/s/articleView?id=000385203&type=1
+   */
+  private determineRecordTypeById(id: string) {
+    switch (id.substring(0, 3)) {
+      case "003":
+        return SalesforceRecordEnum.CONTACT;
+      case "001":
+        return SalesforceRecordEnum.ACCOUNT;
+      case "00Q":
+        return SalesforceRecordEnum.LEAD;
+      default:
+        this.log.warn(`Unhandled record id type ${id}`);
+        return SalesforceRecordEnum.CONTACT;
+    }
+  }
+
+  /** Prioritizes contacts over leads */
+  private async findProspectByEmail(email: string) {
+    const contact = await this.findContactByEmail(email);
+    if (contact) return contact;
+    const lead = await this.findLeadByEmail(email);
+    if (lead) return lead;
+    return null;
+  }
+
+  private async findContactByEmail(email: string) {
+    const conn = await this.conn;
+    const contactsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.CONTACT} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (contactsQuery.records.length > 0) {
+      return contactsQuery.records[0] as { Id: string; Email: string };
+    }
+  }
+
+  private async findLeadByEmail(email: string) {
+    const conn = await this.conn;
+    const leadsQuery = await conn.query(
+      `SELECT Id, Email FROM ${SalesforceRecordEnum.LEAD} WHERE Email = '${email}' LIMIT 1`
+    );
+
+    if (leadsQuery.records.length > 0) {
+      return leadsQuery.records[0] as { Id: string; Email: string };
+    }
   }
 }

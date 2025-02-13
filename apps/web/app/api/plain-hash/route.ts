@@ -1,9 +1,12 @@
 import { createHmac } from "crypto";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { apiRouteMiddleware } from "@calcom/lib/server/apiRouteMiddleware";
+
+import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
 const responseSchema = z.object({
   hash: z.string(),
@@ -14,16 +17,15 @@ const responseSchema = z.object({
   chatAvatarUrl: z.string(),
 });
 
-async function handler(request: Request) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const session = await getServerSession({ req: request as any });
+async function handler() {
+  const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   if (!session?.user?.email) {
-    return new Response("Unauthorized - No session email found", { status: 401 });
+    return NextResponse.json({ error: "Unauthorized - No session email found" }, { status: 401 });
   }
 
   const secret = process.env.PLAIN_CHAT_HMAC_SECRET_KEY;
   if (!secret) {
-    return new Response("Missing Plain Chat secret", { status: 500 });
+    return NextResponse.json({ error: "Missing Plain Chat secret" }, { status: 500 });
   }
 
   const hmac = createHmac("sha256", secret);
@@ -38,7 +40,7 @@ async function handler(request: Request) {
     hash,
     email: session.user.email || "user@example.com",
     shortName,
-    appId: process.env.PLAIN_CHAT_ID,
+    appId: process.env.NEXT_PUBLIC_PLAIN_CHAT_ID,
     fullName: session.user.name || "User",
     chatAvatarUrl: session.user.avatarUrl || "",
   });

@@ -92,6 +92,9 @@ export function getFieldResponse({
   };
 }
 
+/**
+ * Not called in preview mode or dry run mode
+ */
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },

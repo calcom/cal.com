@@ -19,6 +19,8 @@ import {
   isMultiSelectFilterValue,
   singleSelectFilter,
   multiSelectFilter,
+  ColumnFilterType,
+  convertFacetedValuesToMap,
 } from "@calcom/features/data-table";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import classNames from "@calcom/lib/classNames";
@@ -184,12 +186,12 @@ function UserListTableContent() {
           const isSingleSelect = attribute.type === "SINGLE_SELECT";
           const isMultiSelect = attribute.type === "MULTI_SELECT";
           const filterType = isNumber
-            ? "number"
+            ? ColumnFilterType.NUMBER
             : isText
-            ? "text"
+            ? ColumnFilterType.TEXT
             : isSingleSelect
-            ? "single_select"
-            : "multi_select";
+            ? ColumnFilterType.SINGLE_SELECT
+            : ColumnFilterType.MULTI_SELECT;
 
           return {
             id: attribute.id,
@@ -265,11 +267,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 30,
-        meta: {
-          sticky: {
-            position: "left",
-          },
-        },
         header: ({ table }) => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
@@ -293,12 +290,7 @@ function UserListTableContent() {
         enableHiding: false,
         enableColumnFilter: false,
         size: 200,
-        header: () => {
-          return `Members`;
-        },
-        meta: {
-          sticky: { position: "left", gap: 24 },
-        },
+        header: "Members",
         cell: ({ row }) => {
           const { username, email, avatarUrl } = row.original;
           return (
@@ -411,9 +403,6 @@ function UserListTableContent() {
         enableSorting: false,
         enableResizing: false,
         size: 80,
-        meta: {
-          sticky: { position: "right" },
-        },
         cell: ({ row }) => {
           const user = row.original;
           const permissionsRaw = permissions;
@@ -447,17 +436,19 @@ function UserListTableContent() {
     data: flatData,
     columns: memorisedColumns,
     enableRowSelection: true,
-    columnResizeMode: "onChange",
     debugTable: true,
     manualPagination: true,
     initialState: {
       columnVisibility: initalColumnVisibility,
+      columnPinning: {
+        left: ["select", "member"],
+        right: ["actions"],
+      },
     },
     defaultColumn: {
       size: 150,
     },
     state: {
-      columnFilters,
       rowSelection,
     },
     getCoreRowModel: getCoreRowModel(),
@@ -468,13 +459,28 @@ function UserListTableContent() {
       if (facetedTeamValues) {
         switch (columnId) {
           case "role":
-            return new Map(facetedTeamValues.roles.map((role) => [role, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.roles.map((role) => ({
+                label: role,
+                value: role,
+              }))
+            );
           case "teams":
-            return new Map(facetedTeamValues.teams.map((team) => [team.name, 1]));
+            return convertFacetedValuesToMap(
+              facetedTeamValues.teams.map((team) => ({
+                label: team.name,
+                value: team.name,
+              }))
+            );
           default:
             const attribute = facetedTeamValues.attributes.find((attr) => attr.id === columnId);
             if (attribute) {
-              return new Map(attribute?.options.map(({ value }) => [value, 1]) ?? []);
+              return convertFacetedValuesToMap(
+                attribute?.options.map(({ value }) => ({
+                  label: value,
+                  value,
+                })) ?? []
+              );
             }
             return new Map();
         }

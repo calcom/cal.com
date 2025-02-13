@@ -9,6 +9,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { CreationSource } from "@calcom/prisma/enums";
 
 const querySchema = z.object({
   username: z
@@ -48,6 +49,7 @@ async function handler(req: NextApiRequest) {
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       identityProvider: IdentityProvider.CAL,
+      creationSource: CreationSource.WEBAPP,
     },
   });
 

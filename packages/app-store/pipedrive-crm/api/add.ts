@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (!client_id) return res.status(400).json({ message: "pipedrive client id missing." });
   // Check that user is authenticated
-  req.session = await getServerSession({ req, res });
+  req.session = await getServerSession({ req });
   const { teamId } = req.query;
   const user = req.session?.user;
   if (!user) {
