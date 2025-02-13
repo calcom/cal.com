@@ -634,6 +634,9 @@ select:focus {
   @apply z-40 !important;
 }
 
+@import "../../web/styles/tokens.css";
+@import "../../web/styles/app.css";
+
 .prose :where(a:not([data-card])):not(:where([class~="not-prose"] *)) {
   text-decoration: none;
 }

@@ -6,10 +6,10 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
-import "@calcom/ui/css";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
+import "../styles/globals.css";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 

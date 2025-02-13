@@ -5,10 +5,11 @@ import React, { useEffect } from "react";
 import CacheProvider from "react-inlinesvg/provider";
 
 import { trpc } from "@calcom/trpc/react";
-import "@calcom/ui/css";
 
 import type { AppProps } from "@lib/app-providers";
 import PlainChat from "@lib/plain/dynamicProvider";
+
+import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
