@@ -380,7 +380,15 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
   datesOutOfOffice,
-}: GetSlots) => {
+}: GetSlots): {
+  time: Dayjs;
+  userIds?: number[];
+  away?: boolean;
+  fromUser?: IFromUser;
+  toUser?: IToUser;
+  reason?: string;
+  emoji?: string;
+}[] => {
   if (dateRanges && !organizerTimeZone) {
     return buildSlotsWithDateRanges({
       dateRanges,
@@ -391,7 +399,6 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
-    return slots;
   } else if (dateRanges && organizerTimeZone) {
     return buildSlotsWithDateRangesOld({
       dateRanges,

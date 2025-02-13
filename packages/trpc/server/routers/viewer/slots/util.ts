@@ -186,8 +186,8 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
-const groupTimeSlotsByDay = (timeSlots) => {
-  return timeSlots.reduce((acc, { time }) => {
+const groupTimeSlotsByDay = (timeSlots: { time: Dayjs }[]) => {
+  return timeSlots.reduce((acc: Record<string, string[]>, { time }) => {
     const day = time.format("YYYY-MM-DD"); // Group by date
     const formattedTime = time.format("HH:mm"); // Format as HH:mm
 
@@ -456,15 +456,18 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     routedTeamMemberIds,
     timeSlots: ts,
     timeSlotsNew: tsNew,
-    differences: Object.keys({ ...ts, ...tsNew }).reduce((acc, day) => {
-      const t1 = ts[day] || [],
-        t2 = tsNew[day] || [];
-      const missingInNew = t1.filter((t) => !t2.includes(t));
-      const missingInOld = t2.filter((t) => !t1.includes(t));
-      if (missingInNew.length || missingInOld.length)
-        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
-      return acc;
-    }, {}),
+    differences: Object.keys({ ...ts, ...tsNew }).reduce(
+      (acc: Record<string, { onlyInTimeSlots: string[]; onlyInTimeSlotsNew: string[] }>, day) => {
+        const t1 = ts[day] || [],
+          t2 = tsNew[day] || [];
+        const missingInNew = t1.filter((t) => !t2.includes(t));
+        const missingInOld = t2.filter((t) => !t1.includes(t));
+        if (missingInNew.length || missingInOld.length)
+          acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
+        return acc;
+      },
+      {}
+    ),
   });
 
   let availableTimeSlots: typeof timeSlots = [];
