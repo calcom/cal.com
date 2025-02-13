@@ -3,7 +3,7 @@ import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/bi
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
 import {

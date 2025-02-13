@@ -1,6 +1,6 @@
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
+import { OrganizationsService } from "@/modules/organizations/index/organizations.service";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";

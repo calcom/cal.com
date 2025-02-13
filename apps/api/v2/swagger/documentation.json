@@ -772,7 +772,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
       "post": {
-        "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_createOrganizationAttributeOption",
         "summary": "Create an attribute option",
         "parameters": [
           {
@@ -819,7 +819,7 @@
         ]
       },
       "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptions",
         "summary": "Get all attribute options",
         "parameters": [
           {
@@ -858,7 +858,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
       "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_deleteOrganizationAttributeOption",
         "summary": "Delete an attribute option",
         "parameters": [
           {
@@ -903,7 +903,7 @@
         ]
       },
       "patch": {
-        "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_updateOrganizationAttributeOption",
         "summary": "Update an attribute option",
         "parameters": [
           {
@@ -960,7 +960,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
-        "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
+        "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
         "summary": "Assign an attribute to a user",
         "parameters": [
           {
@@ -1007,7 +1007,7 @@
         ]
       },
       "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptionsForUser",
         "summary": "Get all attribute options for a user",
         "parameters": [
           {
@@ -1046,7 +1046,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
       "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
+        "operationId": "OrganizationsAttributesOptionsController_unassignOrganizationAttributeOptionFromUser",
         "summary": "Unassign an attribute from a user",
         "parameters": [
           {

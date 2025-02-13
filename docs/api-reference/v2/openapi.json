@@ -59,92 +59,6 @@
         "tags": ["Platform / Cal Provider"]
       }
     },
-    "/v2/gcal/oauth/auth-url": {
-      "get": {
-        "operationId": "GcalController_redirect",
-        "summary": "Get auth URL",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalAuthUrlOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Google Calendar"]
-      }
-    },
-    "/v2/gcal/oauth/save": {
-      "get": {
-        "operationId": "GcalController_save",
-        "summary": "Connect a calendar",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalSaveRedirectOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Google Calendar"]
-      }
-    },
-    "/v2/gcal/check": {
-      "get": {
-        "operationId": "GcalController_check",
-        "summary": "Check a calendar connection status",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalCheckOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": ["Platform / Google Calendar"]
-      }
-    },
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
@@ -818,7 +732,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options": {
       "post": {
-        "operationId": "OrganizationsOptionsAttributesController_createOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_createOrganizationAttributeOption",
         "summary": "Create an attribute option",
         "parameters": [
           {
@@ -863,7 +777,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptions",
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptions",
         "summary": "Get all attribute options",
         "parameters": [
           {
@@ -900,7 +814,7 @@
     },
     "/v2/organizations/{orgId}/attributes/{attributeId}/options/{optionId}": {
       "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_deleteOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_deleteOrganizationAttributeOption",
         "summary": "Delete an attribute option",
         "parameters": [
           {
@@ -943,7 +857,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "patch": {
-        "operationId": "OrganizationsOptionsAttributesController_updateOrganizationAttributeOption",
+        "operationId": "OrganizationsAttributesOptionsController_updateOrganizationAttributeOption",
         "summary": "Update an attribute option",
         "parameters": [
           {
@@ -998,7 +912,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}": {
       "post": {
-        "operationId": "OrganizationsOptionsAttributesController_assignOrganizationAttributeOptionToUser",
+        "operationId": "OrganizationsAttributesOptionsController_assignOrganizationAttributeOptionToUser",
         "summary": "Assign an attribute to a user",
         "parameters": [
           {
@@ -1043,7 +957,7 @@
         "tags": ["Orgs / Attributes / Options"]
       },
       "get": {
-        "operationId": "OrganizationsOptionsAttributesController_getOrganizationAttributeOptionsForUser",
+        "operationId": "OrganizationsAttributesOptionsController_getOrganizationAttributeOptionsForUser",
         "summary": "Get all attribute options for a user",
         "parameters": [
           {
@@ -1080,7 +994,7 @@
     },
     "/v2/organizations/{orgId}/attributes/options/{userId}/{attributeOptionId}": {
       "delete": {
-        "operationId": "OrganizationsOptionsAttributesController_unassignOrganizationAttributeOptionFromUser",
+        "operationId": "OrganizationsAttributesOptionsController_unassignOrganizationAttributeOptionFromUser",
         "summary": "Unassign an attribute from a user",
         "parameters": [
           {
@@ -12943,49 +12857,6 @@
           }
         },
         "required": ["status", "data"]
-      },
-      "AuthUrlData": {
-        "type": "object",
-        "properties": {
-          "authUrl": {
-            "type": "string"
-          }
-        },
-        "required": ["authUrl"]
-      },
-      "GcalAuthUrlOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/AuthUrlData"
-          }
-        },
-        "required": ["status", "data"]
-      },
-      "GcalSaveRedirectOutput": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": ["url"]
-      },
-      "GcalCheckOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          }
-        },
-        "required": ["status"]
       },
       "ProviderVerifyClientData": {
         "type": "object",

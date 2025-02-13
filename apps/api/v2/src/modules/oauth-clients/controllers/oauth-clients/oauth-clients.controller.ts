@@ -12,7 +12,7 @@ import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
