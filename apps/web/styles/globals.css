@@ -110,6 +110,7 @@
   --cal-border-muted: hsla(220, 14%, 94%, 1); /* gray.100 */
   --cal-border-error: hsla(0, 96%, 89%, 1); /* Keeping existing error border */
   --cal-border-semantic-error: hsla(0, 96%, 89%, 1);
+  --cal-border-booker: var(--cal-border-subtle);
 
   /* Content/Text Standard */
   --cal-text-emphasis: hsla(210, 30%, 4%, 1); /* gray-900 */
@@ -204,6 +205,7 @@
   --cal-border-muted: hsla(0, 0%, 9%, 1); /* stone-500 */
   --cal-border-subtle: hsla(0, 0%, 15%, 1); /* stone-700 */
   --cal-border-emphasis: hsla(0, 0%, 45%, 1); /* stone-800 */
+  --cal-border-booker: var(--cal-border-subtle);
   /* Border Semantic */
   --cal-border-semantic-error: hsla(0, 63%, 24%, 1); /* red-800 */
 
