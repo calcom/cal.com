@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   organizerTimeZone?: string;
   datesOutOfOffice?: IOutOfOfficeData;
+  eventTypeId?: number;
 };
 export type TimeFrame = {
   userIds?: number[];
@@ -352,7 +353,7 @@ function fromIndex<T>(cb: (val: T, i: number, a: T[]) => boolean, index: number)
   };
 }
 
-const getSlots = ({
+export const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
@@ -487,5 +488,3 @@ const getSlots = ({
     datesOutOfOffice,
   });
 };
-
-export default getSlots;
