@@ -1,13 +1,14 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 
+import AccountDialog from "@calcom/app-store/office365video/components/AccountDialog";
 import { AppList } from "@calcom/features/apps/components/AppList";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { GOOGLE_MEET, ZOOM } from "@calcom/platform-constants";
+import { GOOGLE_MEET, OFFICE_365_VIDEO, ZOOM } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { App } from "@calcom/types/App";
 import {
@@ -90,6 +91,8 @@ export const ConferencingAppsViewPlatformWrapper = ({
       app: null,
     }
   );
+
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   const handleModelClose = () => {
     updateModal({ isOpen: false, credentialId: null, app: null });
@@ -199,6 +202,14 @@ export const ConferencingAppsViewPlatformWrapper = ({
               </DropdownItem>
             </DropdownMenuItem>
           )}
+
+          {installedApps && !installedApps?.find((app) => app.slug == OFFICE_365_VIDEO) && (
+            <DropdownMenuItem>
+              <DropdownItem color="secondary" onClick={() => setIsAccountModalOpen(true)}>
+                {t("office_365_video")}
+              </DropdownItem>
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </Dropdown>
     );
@@ -256,6 +267,12 @@ export const ConferencingAppsViewPlatformWrapper = ({
             credentialId={modal.credentialId}
             app={modal.app}
             handleRemoveApp={handleRemoveApp}
+          />
+
+          <AccountDialog
+            open={isAccountModalOpen}
+            onOpenChange={setIsAccountModalOpen}
+            handleSubmit={() => connect(OFFICE_365_VIDEO)}
           />
         </>
       </SettingsHeader>

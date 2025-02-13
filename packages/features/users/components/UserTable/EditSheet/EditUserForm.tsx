@@ -26,6 +26,7 @@ import {
   SheetFooter,
   Button,
   SheetTitle,
+  Divider,
 } from "@calcom/ui";
 
 import type { UserTableAction } from "../types";
@@ -45,6 +46,7 @@ const attributeSchema = z.object({
       z.object({
         label: z.string().optional(),
         value: stringOrNumber.optional(),
+        weight: z.number().optional(),
         createdByDSyncId: z.string().nullable().optional(),
       })
     )
@@ -167,19 +169,21 @@ export function EditForm({
         }}>
         <SheetHeader>
           <SheetTitle>{t("update_profile")}</SheetTitle>
-
-          <div className="mt-6 flex flex-col gap-2">
+        </SheetHeader>
+        <SheetBody className="bg-muted border-subtle mt-6 gap-4 rounded-xl border p-4">
+          <div className="">
             <Controller
               control={form.control}
               name="avatar"
               render={({ field: { value } }) => (
                 <div className="flex items-center">
-                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
+                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="mdLg" />
                   <div className="ml-4">
                     <ImageUploader
                       target="avatar"
                       id="avatar-upload"
                       buttonMsg={t("change_avatar")}
+                      buttonSize="sm"
                       handleAvatarChange={(newAvatar) => {
                         form.setValue("avatar", newAvatar, { shouldDirty: true });
                       }}
@@ -190,14 +194,10 @@ export function EditForm({
               )}
             />
           </div>
-        </SheetHeader>
-        <SheetBody className="mt-4 flex h-full flex-col space-y-3 px-1">
-          <label className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</label>
-          <TextField label={t("username")} {...form.register("username")} />
+          <Divider />
           <TextField label={t("name")} {...form.register("name")} />
-          <TextField label={t("email")} {...form.register("email")} />
-
-          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-24" />
+          <TextField label={t("username")} {...form.register("username")} />
+          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24" />
           <div>
             <Label>{t("role")}</Label>
             <ToggleGroup
@@ -214,6 +214,7 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
@@ -247,11 +248,11 @@ function AttributesList(props: { selectedUserId: number }) {
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: props.selectedUserId,
     });
-  const { data: attributes, isPending: attributesPending } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();
-  const { control, watch, getFieldState, setValue } = useFormContext();
+  const { control, getFieldState } = useFormContext();
 
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
@@ -278,7 +279,8 @@ function AttributesList(props: { selectedUserId: number }) {
           options: attr.options.map((option) => ({
             label: option.value,
             value: option.id,
-            createdByDSyncId: option.createdByDSyncId,
+            createdByDSyncId: option.createdByDSyncId ?? null,
+            weight: option.weight ?? 100,
           })),
         };
       } else if (attr.type === "SINGLE_SELECT") {
@@ -289,10 +291,11 @@ function AttributesList(props: { selectedUserId: number }) {
               label: attr.options[0]?.value,
               value: attr.options[0]?.id,
               createdByDSyncId: attr.options[0]?.createdByDSyncId ?? null,
+              weight: attr.options[0]?.weight ?? 100,
             },
           ],
         };
-      } else {
+      } else if (attr.type === "TEXT") {
         acc[key] = {
           id: attr.id,
           value: attr.options[0]?.value || "",
@@ -308,7 +311,6 @@ function AttributesList(props: { selectedUserId: number }) {
   return (
     <div className="flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-emphasis mb-1 mt-6 text-base font-semibold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
@@ -323,7 +325,7 @@ function AttributesList(props: { selectedUserId: number }) {
             render={({ field: { value, ...field } }) => {
               const fieldValue = value as Attribute | undefined | null;
               return (
-                <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
+                <div className="flex w-full items-center justify-center" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
                     <InputField
                       {...field}
@@ -341,36 +343,85 @@ function AttributesList(props: { selectedUserId: number }) {
                     />
                   )}
                   {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
-                    <SelectField
-                      isDisabled={attr.isLocked}
-                      name={field.name}
-                      containerClassName="w-full"
-                      isMulti={attr.type === "MULTI_SELECT"}
-                      labelProps={{
-                        className: "text-emphasis mb-2 block text-sm font-medium leading-none",
-                      }}
-                      label={attr.name}
-                      options={getOptionsByAttributeId(attr.id)}
-                      value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
-                      onChange={(value) => {
-                        if (!value) return;
-                        const valueAsArray = value instanceof Array ? value : [value];
+                    <div className="w-full">
+                      <SelectField
+                        isDisabled={attr.isLocked}
+                        name={field.name}
+                        containerClassName="w-full"
+                        isMulti={attr.type === "MULTI_SELECT"}
+                        labelProps={{
+                          className: "text-emphasis mb-2 block text-sm font-medium leading-none",
+                        }}
+                        label={attr.name}
+                        options={getOptionsByAttributeId(attr.id)}
+                        value={attr.type === "MULTI_SELECT" ? fieldValue?.options : fieldValue?.options?.[0]}
+                        onChange={(value) => {
+                          if (!value) return;
+                          const valueAsArray = value instanceof Array ? value : [value];
 
-                        const updatedOptions =
-                          attr.type === "MULTI_SELECT"
-                            ? valueAsArray.map((v) => ({ label: v.label, value: v.value }))
-                            : [{ label: valueAsArray[0].label, value: valueAsArray[0].value }];
+                          const updatedOptions =
+                            attr.type === "MULTI_SELECT"
+                              ? valueAsArray.map((v) => ({
+                                  label: v.label,
+                                  value: v.value,
+                                  weight: v.weight || 100,
+                                }))
+                              : [
+                                  {
+                                    label: valueAsArray[0].label,
+                                    value: valueAsArray[0].value,
+                                    weight: valueAsArray[0].weight || 100,
+                                  },
+                                ];
 
-                        field.onChange({
-                          id: attr.id,
-                          // It is also ensured in the backend that the options not owned by cal.com are not removed
-                          options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
-                            earlierOptions: fieldValue?.options || [],
-                            updatedOptions,
-                          }),
-                        });
-                      }}
-                    />
+                          field.onChange({
+                            id: attr.id,
+                            options: getOptionsEnsuringNotOwnedByCalcomNotRemoved({
+                              earlierOptions: fieldValue?.options || [],
+                              updatedOptions,
+                            }),
+                          });
+                        }}
+                      />
+                      {attr.isWeightsEnabled && fieldValue?.options && (
+                        <div className="mt-3 space-y-2">
+                          <Label>Weights</Label>
+                          <div className="">
+                            {fieldValue.options.map((option, idx) => {
+                              return (
+                                <>
+                                  <div key={option.value} className="flex items-center justify-between">
+                                    <Label
+                                      htmlFor={`attributes.${index}.options.${idx}.weight`}
+                                      className="text-subtle">
+                                      {option.label}
+                                    </Label>
+                                    <InputField
+                                      noLabel
+                                      name={`attributes.${index}.options.${idx}.weight`}
+                                      type="number"
+                                      step={10}
+                                      value={option.weight || 100}
+                                      onChange={(e) => {
+                                        const newWeight = parseFloat(e.target.value) || 1;
+                                        const newOptions = fieldValue?.options?.map((opt, i) =>
+                                          i === idx ? { ...opt, weight: newWeight } : opt
+                                        );
+                                        field.onChange({
+                                          id: attr.id,
+                                          options: newOptions,
+                                        });
+                                      }}
+                                      addOnSuffix={<span className="text-subtle text-sm">%</span>}
+                                    />
+                                  </div>
+                                </>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               );

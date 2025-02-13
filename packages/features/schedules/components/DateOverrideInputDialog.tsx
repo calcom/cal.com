@@ -186,7 +186,7 @@ const DateOverrideForm = ({
                 }}
                 disabled={selectedDates.length === 0}
                 data-testid="add-override-submit-btn">
-                {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
+                {value ? t("date_overrides_update_btn") : t("date_overrides_save_btn")}
               </Button>
               <DialogClose />
             </div>

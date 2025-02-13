@@ -63,6 +63,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       settings: true,
       teamId: true,
       position: true,
+      updatedById: true,
     },
   });
 
@@ -145,6 +146,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
       description,
       settings: settings === null ? Prisma.JsonNull : settings,
       routes: routes === null ? Prisma.JsonNull : routes,
+      updatedById: user.id,
     },
   });
 
@@ -269,6 +271,7 @@ export const formMutationHandler = async ({ ctx, input }: FormMutationHandlerOpt
         },
         data: {
           fields: updatedConnectedFormFields,
+          updatedById: user.id,
         },
       });
     }

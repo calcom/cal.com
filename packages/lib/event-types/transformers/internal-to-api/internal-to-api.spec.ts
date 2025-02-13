@@ -275,6 +275,9 @@ describe("transformBookingFieldsInternalToApi", () => {
         slug: "name",
         isDefault: true,
         required: true,
+        disableOnPrefill: false,
+        label: undefined,
+        placeholder: undefined,
       },
     ];
 
@@ -334,6 +337,9 @@ describe("transformBookingFieldsInternalToApi", () => {
         slug: "email",
         isDefault: true,
         required: true,
+        disableOnPrefill: false,
+        label: undefined,
+        placeholder: undefined,
       },
     ];
 
@@ -397,6 +403,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your phone number",
         required: true,
         placeholder: "123456789",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -433,6 +441,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your address",
         required: true,
         placeholder: "1234 Main St",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -469,6 +479,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your text",
         required: true,
         placeholder: "Enter your text",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -505,6 +517,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your number",
         required: true,
         placeholder: "100",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -530,6 +544,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         editable: "user",
         required: true,
         placeholder: "Detailed description here...",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -541,6 +557,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your detailed information",
         required: true,
         placeholder: "Detailed description here...",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -582,6 +600,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         required: true,
         placeholder: "Select...",
         options: ["Option 1", "Option 2"],
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -621,6 +641,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your multiple selections",
         required: true,
         options: ["Option 1", "Option 2"],
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -646,6 +668,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         editable: "user",
         required: true,
         placeholder: "example@example.com",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -657,6 +681,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your multiple emails",
         required: true,
         placeholder: "example@example.com",
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -696,6 +722,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your checkboxes",
         required: true,
         options: ["Checkbox 1", "Checkbox 2"],
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -735,6 +763,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         label: "Your radio buttons",
         required: true,
         options: ["Radio 1", "Radio 2"],
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -769,6 +799,8 @@ describe("transformBookingFieldsInternalToApi", () => {
         slug: "agree-to-terms",
         label: "Agree to terms?",
         required: true,
+        hidden: false,
+        disableOnPrefill: false,
       },
     ];
 
@@ -802,6 +834,10 @@ describe("transformBookingFieldsInternalToApi", () => {
         type: "phone",
         slug: "attendeePhoneNumber",
         required: false,
+        hidden: true,
+        disableOnPrefill: false,
+        label: undefined,
+        placeholder: undefined,
       },
     ];
 

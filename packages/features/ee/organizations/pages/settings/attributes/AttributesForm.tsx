@@ -1,11 +1,10 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState } from "react";
+import type { UseFormReturn, FieldArrayWithId } from "react-hook-form";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { entries } from "@calcom/prisma/zod-utils";
 import {
   Button,
   Form,
@@ -18,9 +17,10 @@ import {
   SettingsToggle,
 } from "@calcom/ui";
 
-const AttributeFormSchema = z.object({
+const attributeFormSchema = z.object({
   attrName: z.string().min(1),
   isLocked: z.boolean().optional(),
+  isWeightsEnabled: z.boolean().optional(),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
   options: z.array(
     z.object({
@@ -34,7 +34,7 @@ const AttributeFormSchema = z.object({
   ),
 });
 
-type FormValues = z.infer<typeof AttributeFormSchema>;
+type AttributeFormValues = z.infer<typeof attributeFormSchema>;
 
 const AttributeTypeOptions = [
   { value: "TEXT", label: "Text" },
@@ -44,8 +44,8 @@ const AttributeTypeOptions = [
 ];
 
 interface AttributeFormProps {
-  initialValues?: FormValues;
-  onSubmit: (values: FormValues) => void;
+  initialValues?: AttributeFormValues;
+  onSubmit: (values: AttributeFormValues) => void;
   header: React.ReactNode;
 }
 
@@ -118,6 +118,177 @@ export function getGroupOptionUpdate({
   }
 }
 
+type AttributeOption = {
+  value: string;
+  id?: string;
+  assignedUsers?: number;
+  isGroup?: boolean;
+  contains?: string[];
+  attributeOptionId?: string;
+};
+
+const NonGroupOption = ({
+  option,
+  index,
+  form,
+  removeOption,
+  setDeleteOptionDialog,
+}: {
+  option: AttributeOption;
+  index: number;
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
+  setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
+}) => {
+  const { t } = useLocale();
+  return (
+    <div key={option.id}>
+      <div className="flex items-center gap-2" key={option.id}>
+        <div className="flex w-full">
+          <Input {...form.register(`options.${index}.value`)} placeholder={t("enter_option_value")} />
+        </div>
+        <Button
+          type="button"
+          variant="icon"
+          StartIcon="x"
+          color="minimal"
+          className="mb-2"
+          disabled={index === 0 && form.getValues("options").length === 1}
+          onClick={() => {
+            if (option.assignedUsers && option.assignedUsers > 0) {
+              setDeleteOptionDialog({ id: index, open: true });
+            } else {
+              removeOption(index);
+            }
+          }}
+          title={t("remove_option")}
+        />
+      </div>
+      <Input {...form.register(`options.${index}.id`)} className="hidden" />
+    </div>
+  );
+};
+
+const getNonGroupOptionsForSelect = (nonGroupOptions: AttributeOption[]) => {
+  return nonGroupOptions
+    .map((f) => ({
+      label: f.value,
+      value: f.attributeOptionId,
+    }))
+    .filter((option): option is { label: string; value: string } => !!option.value);
+};
+
+const getSelectedNonGroupOptions = (option: AttributeOption, nonGroupOptions: AttributeOption[]) => {
+  return option.contains
+    ?.map((containedId: string) => {
+      const nonGroupOption = nonGroupOptions.find((opt) => opt.attributeOptionId === containedId);
+      if (!nonGroupOption?.value || !nonGroupOption?.attributeOptionId) return null;
+      return {
+        label: nonGroupOption.value,
+        value: nonGroupOption.attributeOptionId,
+      };
+    })
+    .filter((val): val is { label: string; value: string } => val !== null);
+};
+
+const GroupOption = ({
+  option,
+  index,
+  form,
+  removeOption,
+  setDeleteOptionDialog,
+}: {
+  option: AttributeOption;
+  index: number;
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
+  setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
+}) => {
+  const { t } = useLocale();
+  const watchedOptions = form.getValues("options") as AttributeOption[];
+  if (!watchedOptions) return null;
+
+  const watchedNonGroupOptions = watchedOptions.filter((field): field is AttributeOption => !field.isGroup);
+  if (!watchedNonGroupOptions.length) return null;
+
+  const nonGroupOptionsSelectFieldOptions = getNonGroupOptionsForSelect(watchedNonGroupOptions);
+  const nonGroupOptionsSelectFieldSelectedValue = getSelectedNonGroupOptions(option, watchedNonGroupOptions);
+
+  return (
+    <div key={option.id}>
+      <div className="mb-2 flex items-center gap-2" key={option.id}>
+        <div className="flex w-full items-center justify-between gap-2">
+          <Input {...form.register(`options.${index}.value`)} className="!mb-0 w-36" />
+          <SelectField
+            isMulti
+            placeholder={t("choose_an_option")}
+            options={nonGroupOptionsSelectFieldOptions}
+            value={nonGroupOptionsSelectFieldSelectedValue}
+            onChange={(chosenNonGroupOptions) => {
+              const newContains = chosenNonGroupOptions.map((opt) => opt.value);
+              form.setValue(`options.${index}.contains`, newContains);
+            }}
+            containerClassName="w-full"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="icon"
+          StartIcon="x"
+          color="minimal"
+          className="mb-2"
+          disabled={index === 0 && form.getValues("options").length === 1}
+          onClick={() => {
+            if (option.assignedUsers && option.assignedUsers > 0) {
+              setDeleteOptionDialog({ id: index, open: true });
+            } else {
+              removeOption(index);
+            }
+          }}
+        />
+      </div>
+      <Input {...form.register(`options.${index}.id`)} className="hidden" />
+    </div>
+  );
+};
+
+const GroupOptions = ({
+  fields,
+  watchedOptions,
+  form,
+  removeOption,
+  setDeleteOptionDialog,
+}: {
+  fields: FieldArrayWithId<AttributeFormValues, "options", "id">[];
+  watchedOptions: AttributeOption[];
+  form: UseFormReturn<AttributeFormValues>;
+  removeOption: (index: number) => void;
+  setDeleteOptionDialog: (value: { id: number; open: boolean }) => void;
+}) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <Label>{t("Group Options")}</Label>
+      <div>
+        {fields.map((option, index) => {
+          const isAGroupOption = option.isGroup;
+          if (!isAGroupOption) return null;
+          return (
+            <GroupOption
+              key={option.id}
+              option={watchedOptions[index]}
+              index={index}
+              form={form}
+              removeOption={removeOption}
+              setDeleteOptionDialog={setDeleteOptionDialog}
+            />
+          );
+        })}
+      </div>
+    </>
+  );
+};
+
 export function AttributeForm({ initialValues, onSubmit, header }: AttributeFormProps) {
   const { t } = useLocale();
   const [deleteOptionDialog, setDeleteOptionDialog] = useState<{
@@ -127,12 +298,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
     id: undefined,
     open: false,
   });
-  const [listRef] = useAutoAnimate<HTMLDivElement>({
-    duration: 300,
-    easing: "ease-in-out",
-  });
 
-  // Needed because useFieldArray overrides the id field
+  // Needed because fields returned by useFieldArray have their own id field overriding the id field of the option object.
   const initialValuesEnsuringThatOptionIdIsNotInId = initialValues
     ? {
         ...initialValues,
@@ -146,8 +313,8 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
       }
     : undefined;
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(AttributeFormSchema),
+  const form = useForm<AttributeFormValues>({
+    resolver: zodResolver(attributeFormSchema),
     defaultValues: initialValuesEnsuringThatOptionIdIsNotInId || {
       attrName: "",
       options: [{ value: "", isGroup: false }],
@@ -160,8 +327,40 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
     name: "options",
   });
 
-  const watchedOptions = form.watch("options");
-  const watchedGroupOptions = watchedOptions.filter((field) => field.isGroup);
+  const removeOption = (index: number) => {
+    // Update contains array of any group that has this option
+    const optionToRemove = watchedOptions[index];
+    if (!optionToRemove.isGroup && optionToRemove.attributeOptionId) {
+      const updatedOptions = getUpdatedOptionsAfterRemovingNonGroupOption({
+        optionToRemove,
+        watchedOptions,
+      });
+      form.setValue("options", updatedOptions);
+    }
+    remove(index);
+  };
+
+  const getUpdatedOptionsAfterRemovingNonGroupOption = ({
+    optionToRemove,
+    watchedOptions,
+  }: {
+    optionToRemove: AttributeOption;
+    watchedOptions: AttributeOption[];
+  }) => {
+    const attributeOptionIdToRemove = optionToRemove.attributeOptionId;
+    if (!attributeOptionIdToRemove) return watchedOptions;
+    return watchedOptions.map((option) => {
+      if (option.isGroup && option.contains) {
+        return {
+          ...option,
+          contains: option.contains.filter((id) => id !== attributeOptionIdToRemove),
+        };
+      }
+      return option;
+    });
+  };
+
+  const watchedOptions = form.watch("options") as AttributeOption[];
   const watchedType = form.watch("type");
   return (
     <Form
@@ -193,6 +392,23 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           );
         }}
       />
+      {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedType) && (
+        <Controller
+          name="isWeightsEnabled"
+          render={({ field: { value, onChange } }) => {
+            return (
+              <SettingsToggle
+                title={t("attribute_weight_enabled")}
+                description={t("attribute_weight_enabled_description")}
+                checked={value}
+                onCheckedChange={(checked) => {
+                  onChange(checked);
+                }}
+              />
+            );
+          }}
+        />
+      )}
       <InputField label={t("name")} required {...form.register("attrName")} />
       <Controller
         name="type"
@@ -214,74 +430,19 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           <div className="flex flex-col gap-2">
             <div>
               <Label>{t("options")}</Label>
-              <div ref={listRef}>
-                {watchedOptions.map((nonGroupOption, index) => {
-                  const isAGroupOption = nonGroupOption.isGroup;
+              <div>
+                {fields.map((option, index) => {
+                  const isAGroupOption = option.isGroup;
                   if (isAGroupOption) return null;
-                  const groupOptionsSelectFieldSelectedValue = watchedGroupOptions
-                    ?.filter(
-                      ({ contains }) =>
-                        nonGroupOption.attributeOptionId &&
-                        contains?.includes(nonGroupOption.attributeOptionId)
-                    )
-                    .map((groupOption) => ({
-                      label: groupOption.value,
-                      value: groupOption.attributeOptionId,
-                    }));
-
-                  const groupOptionsSelectFieldOptions = watchedGroupOptions
-                    .map((f) => ({
-                      label: f.value,
-                      value: f.attributeOptionId,
-                    }))
-                    .filter((option): option is { label: string; value: string } => !!option.value);
-
                   return (
-                    <>
-                      <div className="flex items-center gap-2" key={nonGroupOption.id}>
-                        <div className="flex w-full justify-between gap-2">
-                          <Input {...form.register(`options.${index}.value`)} />
-                          <SelectField
-                            isMulti
-                            isDisabled={!nonGroupOption.attributeOptionId}
-                            placeholder="Add to group"
-                            options={groupOptionsSelectFieldOptions}
-                            value={groupOptionsSelectFieldSelectedValue}
-                            onChange={(chosenGroupOptions) => {
-                              // subOption is the option that is being added to groups
-                              const subOption = nonGroupOption;
-                              const optionsUpdate = getGroupOptionUpdate({
-                                // Spread makes it non-readonly
-                                newGroupOptions: [...chosenGroupOptions],
-                                previousGroupOptions: groupOptionsSelectFieldSelectedValue,
-                                subOption,
-                                allOptions: watchedOptions,
-                              });
-                              entries(optionsUpdate).forEach(([index, value]) => {
-                                form.setValue(`options.${index}.contains`, value);
-                              });
-                            }}
-                            className="min-w-64"
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="icon"
-                          StartIcon="x"
-                          color="minimal"
-                          className="mb-2"
-                          disabled={index === 0 && fields.length === 1}
-                          onClick={() => {
-                            if (nonGroupOption.assignedUsers && nonGroupOption.assignedUsers > 0) {
-                              setDeleteOptionDialog({ id: index, open: true });
-                            } else {
-                              remove(index);
-                            }
-                          }}
-                        />
-                      </div>
-                      <Input {...form.register(`options.${index}.id`)} className="hidden" />
-                    </>
+                    <NonGroupOption
+                      key={option.id}
+                      option={watchedOptions[index]}
+                      index={index}
+                      form={form}
+                      removeOption={removeOption}
+                      setDeleteOptionDialog={setDeleteOptionDialog}
+                    />
                   );
                 })}
               </div>
@@ -290,38 +451,13 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
               </Button>
             </div>
             <div className="mt-6">
-              <Label>{t("Group Options")}</Label>
-              <div ref={listRef}>
-                {watchedOptions.map((watchedOption, index) => {
-                  const isAGroupOption = watchedOption.isGroup;
-                  if (!isAGroupOption) return null;
-                  return (
-                    <>
-                      <div className="flex items-center gap-2" key={watchedOption.id}>
-                        <div className="flex w-full">
-                          <Input {...form.register(`options.${index}.value`)} className="w-full" />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="icon"
-                          StartIcon="x"
-                          color="minimal"
-                          className="mb-2"
-                          disabled={index === 0 && fields.length === 1}
-                          onClick={() => {
-                            if (watchedOption.assignedUsers && watchedOption.assignedUsers > 0) {
-                              setDeleteOptionDialog({ id: index, open: true });
-                            } else {
-                              remove(index);
-                            }
-                          }}
-                        />
-                      </div>
-                      <Input {...form.register(`options.${index}.id`)} className="hidden" />
-                    </>
-                  );
-                })}
-              </div>
+              <GroupOptions
+                fields={fields}
+                watchedOptions={watchedOptions}
+                form={form}
+                removeOption={removeOption}
+                setDeleteOptionDialog={setDeleteOptionDialog}
+              />
               <Button
                 type="button"
                 StartIcon="plus"
@@ -340,7 +476,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           title={t("delete_attribute")}
           confirmBtnText={t("delete")}
           onConfirm={() => {
-            remove(deleteOptionDialog.id as number);
+            removeOption(deleteOptionDialog.id as number);
             setDeleteOptionDialog({ id: undefined, open: false });
           }}
           loadingText={t("deleting_attribute")}>

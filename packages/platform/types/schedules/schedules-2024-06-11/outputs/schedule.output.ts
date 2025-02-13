@@ -1,14 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import {
-  IsBoolean,
-  IsOptional,
-  IsString,
-  ValidateNested,
-  IsArray,
-  IsTimeZone,
-  IsNumber,
-} from "class-validator";
+import { IsBoolean, IsString, ValidateNested, IsArray, IsTimeZone, IsNumber } from "class-validator";
 
 import {
   ScheduleAvailabilityInput_2024_06_11,
@@ -57,7 +49,6 @@ export class ScheduleOutput_2024_06_11 {
   isDefault!: boolean;
 
   @IsArray()
-  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => ScheduleOverrideInput_2024_06_11)
   @ApiProperty({

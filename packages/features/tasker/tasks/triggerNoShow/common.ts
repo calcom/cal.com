@@ -215,7 +215,7 @@ export const prepareNoShowTrigger = async (
   const numberOfHostsThatJoined = hosts.length - hostsThatDidntJoinTheCall.length;
 
   const didGuestJoinTheCall = meetingDetails.data.some(
-    (meeting) => meeting.max_participants < numberOfHostsThatJoined
+    (meeting) => meeting.max_participants > numberOfHostsThatJoined
   );
 
   const participantsWithEmail = await getParticipantsWithEmail(allParticipants);

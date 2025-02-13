@@ -27,7 +27,7 @@ description: Answers to the most common questions about the Platform API and ato
 - An atom is a customizable UI component that handles scheduling on behalf of your user.
 - Everything from the front-end to API calls is being handled by the atom, all you need to is import the atom and drop it in your code.
 
-### 6. What are the minimun setup requirments for using atoms?
+### 6. What are the minimum setup requirements for using atoms?
 - You need to have a project that uses React version 18 and above.
 - At the moment atoms are only supported in React, so there's no way to use them in vanilla js or any other popular framework.
 
@@ -40,7 +40,15 @@ description: Answers to the most common questions about the Platform API and ato
  <html dir="ltr"> ... </html>
  ```
 
-### 9. What are the authentification methods for making calls to the v2 API?
+### 9. What are the authentication methods for making calls to the v2 API?
 Either of the two:
 - Setting `Authorization: Bearer <token>` header where `<token>` is access token of the managed user.
 - Setting `x-cal-client-id: <client-id>` and `x-cal-secret-key: <client-secret>` where `<client-id>` is OAuth client id and `<client-secret>` is OAuth client secret. Both can be copied from the dashboard.
+
+### 10. When am I charged and not charged ?
+- You are charged for scheduled booking only when the booking starts.
+- If a booking is rescheduled you are still charged once.
+- If a booking is cancelled then you are not charged for it.
+
+### 11. What happens if there are more bookings than in my plan?
+- You have to pay overage for each booking that exceeds the amount in your plan.

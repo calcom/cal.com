@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
@@ -6,18 +6,22 @@ import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 export class TeamMembershipOutput {
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly id!: number;
 
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly userId!: number;
 
   @IsInt()
   @Expose()
+  @ApiProperty()
   readonly teamId!: number;
 
   @IsBoolean()
   @Expose()
+  @ApiProperty()
   readonly accepted!: boolean;
 
   @IsString()
@@ -28,5 +32,6 @@ export class TeamMembershipOutput {
   @IsOptional()
   @IsBoolean()
   @Expose()
+  @ApiPropertyOptional()
   readonly disableImpersonation?: boolean;
 }

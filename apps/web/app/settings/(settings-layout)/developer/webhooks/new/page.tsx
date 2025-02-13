@@ -1,9 +1,10 @@
-import { getFixedT, _generateMetadata } from "app/_utils";
+import { getTranslate, _generateMetadata } from "app/_utils";
+import { Suspense } from "react";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import { NewWebhookView } from "@calcom/features/webhooks/pages/webhook-new-view";
 import { APP_NAME } from "@calcom/lib/constants";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -11,10 +12,19 @@ export const generateMetadata = async () =>
     (t) => t("add_webhook_description", { appName: APP_NAME })
   );
 
-const Page = async () => {
-  const session = await getServerSessionForAppDir();
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
-  const t = await getFixedT(session?.user.locale || "en");
+const Page = async () => {
+  const t = await getTranslate();
 
   return (
     <SettingsHeader
@@ -22,7 +32,9 @@ const Page = async () => {
       description={t("add_webhook_description", { appName: APP_NAME })}
       borderInShellHeader={true}
       backButton>
-      <NewWebhookView />
+      <Suspense fallback={<SkeletonLoader />}>
+        <NewWebhookView />
+      </Suspense>
     </SettingsHeader>
   );
 };

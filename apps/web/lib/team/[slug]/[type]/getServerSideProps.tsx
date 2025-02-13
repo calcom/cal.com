@@ -2,16 +2,13 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrganizationSEOSettings } from "@calcom/features/ee/organizations/lib/orgSettings";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
-import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
+import type { User } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -24,9 +21,6 @@ const paramsSchema = z.object({
   slug: z.string().transform((s) => slugify(s)),
 });
 
-// Booker page fetches a tiny bit of data server side:
-// 1. Check if team exists, to show 404
-// 2. If rescheduling, get the booking details
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req, params, query } = context;
   const session = await getServerSession({ req });
@@ -48,7 +42,90 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const team = await prisma.team.findFirst({
+  const team = await getTeamWithEventsData(teamSlug, meetingSlug, isValidOrgDomain, currentOrgDomain);
+
+  if (!team || !team.eventTypes?.[0]) {
+    return { notFound: true } as const;
+  }
+
+  const eventData = team.eventTypes[0];
+  const eventTypeId = eventData.id;
+  const eventHostsUserData = await getUsersData(
+    team.isPrivate,
+    eventTypeId,
+    eventData.hosts.map((h) => h.user)
+  );
+  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
+  const name = team.parent?.name ?? team.name ?? null;
+
+  const booking = rescheduleUid ? await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id) : null;
+  const ssr = await ssrInit(context);
+  const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
+  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
+
+  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+  );
+  const {
+    email: teamMemberEmail,
+    recordType: crmOwnerRecordType,
+    crmAppSlug,
+  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+    query,
+    eventData,
+  });
+
+  const organizationSettings = getOrganizationSEOSettings(team);
+  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
+
+  return {
+    props: {
+      eventData: {
+        eventTypeId,
+        entity: {
+          fromRedirectOfNonOrgLink,
+          considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
+          orgSlug,
+          teamSlug: team.slug ?? null,
+          name,
+        },
+        length: eventData.length,
+        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
+        profile: {
+          image: team.parent
+            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+            : getPlaceholderAvatar(team.logoUrl, team.name),
+          name,
+          username: orgSlug ?? null,
+        },
+        title: eventData.title,
+        users: eventHostsUserData,
+        hidden: eventData.hidden,
+      },
+      booking,
+      user: teamSlug,
+      teamId: team.id,
+      slug: meetingSlug,
+      trpcState: ssr.dehydrate(),
+      isBrandingHidden: team?.hideBranding,
+      isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
+      themeBasis: null,
+      orgBannerUrl: team.parent?.bannerUrl ?? "",
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
+      isSEOIndexable: allowSEOIndexing,
+    },
+  };
+};
+
+const getTeamWithEventsData = async (
+  teamSlug: string,
+  meetingSlug: string,
+  isValidOrgDomain: boolean,
+  currentOrgDomain: string | null
+) => {
+  return await prisma.team.findFirst({
     where: {
       ...getSlugOrRequestedSlug(teamSlug),
       parent: isValidOrgDomain && currentOrgDomain ? getSlugOrRequestedSlug(currentOrgDomain) : null,
@@ -58,6 +135,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      isPrivate: true,
       hideBranding: true,
       parent: {
         select: {
@@ -87,6 +165,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           metadata: true,
           length: true,
           hidden: true,
+          hosts: {
+            take: 3,
+            select: {
+              user: {
+                select: {
+                  name: true,
+                  username: true,
+                  email: true,
+                },
+              },
+            },
+          },
         },
       },
       isOrganization: true,
@@ -97,98 +187,44 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     },
   });
+};
 
-  if (!team || !team.eventTypes?.[0]) {
-    return {
-      notFound: true,
-    } as const;
+const getUsersData = async (
+  isPrivateTeam: boolean,
+  eventTypeId: number,
+  users: Pick<User, "username" | "name">[]
+) => {
+  if (!isPrivateTeam && users.length > 0) {
+    return users
+      .filter((user) => user.username)
+      .map((user) => ({
+        username: user.username ?? "",
+        name: user.name ?? "",
+      }));
   }
-
-  // INFO: This code was pulled from getPublicEvent and used here.
-  // Calling the tRPC fetch to get the public event data is incredibly slow
-  // for large teams and we don't want to add it back. Future refactors will happen
-  // to speed up this call.
-  const usernameList = getUsernameList(teamSlug);
-  const orgSlug = isValidOrgDomain ? currentOrgDomain : null;
-  const name = team.parent?.name ?? team.name ?? null;
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
-    usernameList,
-    orgSlug: team.parent?.slug || null,
-  });
-
-  const eventData = team.eventTypes[0];
-  const eventTypeId = eventData.id;
-
-  let booking: GetBookingType | null = null;
-  if (rescheduleUid) {
-    booking = await getBookingForReschedule(`${rescheduleUid}`, session?.user?.id);
-  }
-
-  const ssr = await ssrInit(context);
-  const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
-  const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
-  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/web/lib/getTeamMemberEmailFromCrm"
-  );
-  const {
-    email: teamMemberEmail,
-    recordType: crmOwnerRecordType,
-    crmAppSlug,
-  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-    query,
-    eventData,
-  });
-
-  const organizationSettings = OrganizationRepository.utils.getOrganizationSEOSettings(team);
-  const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
-
-  if (!eventData) {
-    return {
-      notFound: true,
-    } as const;
-  }
-
-  return {
-    props: {
-      eventData: {
-        eventTypeId,
-        entity: {
-          fromRedirectOfNonOrgLink,
-          considerUnpublished: isUnpublished && !fromRedirectOfNonOrgLink,
-          orgSlug,
-          teamSlug: team.slug ?? null,
-          name,
+  if (!isPrivateTeam && users.length === 0) {
+    const { users: data } = await prisma.eventType.findUniqueOrThrow({
+      where: { id: eventTypeId },
+      select: {
+        users: {
+          take: 1,
+          select: {
+            username: true,
+            name: true,
+          },
         },
-        length: eventData.length,
-        metadata: EventTypeMetaDataSchema.parse(eventData.metadata),
-        profile: {
-          image: team.parent
-            ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-            : getPlaceholderAvatar(team.logoUrl, team.name),
-          name,
-          username: orgSlug ?? null,
-        },
-        title: eventData.title,
-        users: usersInOrgContext.map((user) => ({
-          ...user,
-          metadata: undefined,
-          bookerUrl: getBookerBaseUrlSync(user.profile?.organization?.slug ?? null),
-        })),
-        hidden: eventData.hidden,
       },
-      booking,
-      user: teamSlug,
-      teamId: team.id,
-      slug: meetingSlug,
-      trpcState: ssr.dehydrate(),
-      isBrandingHidden: team?.hideBranding,
-      isInstantMeeting: eventData && queryIsInstantMeeting ? true : false,
-      themeBasis: null,
-      orgBannerUrl: team.parent?.bannerUrl ?? "",
-      teamMemberEmail,
-      crmOwnerRecordType,
-      crmAppSlug,
-      isSEOIndexable: allowSEOIndexing,
-    },
-  };
+    });
+
+    return data.length > 0
+      ? [
+          {
+            username: data[0].username ?? "",
+            name: data[0].name ?? "",
+          },
+        ]
+      : [];
+  }
+
+  return [];
 };

@@ -63,7 +63,6 @@ if (only === "all" || only === "ns:default") {
       },
       name: "John",
       email: "johndoe@gmail.com",
-      notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       theme: "dark",
       "flag.coep": "true",
@@ -454,7 +453,6 @@ if (only === "all" || only == "ns:floatingButton") {
       "flag.coep": "true",
       name: "John",
       email: "johndoe@gmail.com",
-      notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       ...(theme ? { theme } : {}),
     },
@@ -572,7 +570,7 @@ if (only === "all" || only == "ns:columnViewHideEventTypeDetails") {
   Cal.ns.columnViewHideEventTypeDetails("ui", {
     hideEventTypeDetails: true,
   });
-  
+
   Cal.ns.columnViewHideEventTypeDetails("on", {
     action: "*",
     callback,

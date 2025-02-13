@@ -2,7 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
-import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
+import { TeamsEventTypesService } from "@/modules/teams/event-types/services/teams-event-types.service";
 import { CreateTeamMembershipInput } from "@/modules/teams/memberships/inputs/create-team-membership.input";
 import { UpdateTeamMembershipInput } from "@/modules/teams/memberships/inputs/update-team-membership.input";
 import { CreateTeamMembershipOutput } from "@/modules/teams/memberships/outputs/create-team-membership.output";
@@ -45,7 +45,7 @@ export class TeamsMembershipsController {
 
   constructor(
     private teamsMembershipsService: TeamsMembershipsService,
-    private oganizationsEventTypesService: OrganizationsEventTypesService
+    private teamsEventTypesService: TeamsEventTypesService
   ) {}
 
   @Roles("TEAM_ADMIN")
@@ -149,7 +149,7 @@ export class TeamsMembershipsController {
   ): Promise<DeleteTeamMembershipOutput> {
     const membership = await this.teamsMembershipsService.deleteTeamMembership(teamId, membershipId);
 
-    await this.oganizationsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
+    await this.teamsEventTypesService.deleteUserTeamEventTypesAndHosts(membership.userId, teamId);
 
     return {
       status: SUCCESS_STATUS,
