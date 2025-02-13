@@ -51,6 +51,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           email: true,
           locale: true,
           timeZone: true,
+          destinationCalendar: true,
         },
       },
       bookingFields: true,

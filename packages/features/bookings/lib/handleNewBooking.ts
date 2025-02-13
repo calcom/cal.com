@@ -899,16 +899,27 @@ async function handler(
     });
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const optionalTeamGuestsPromises = eventType.optionalTeamGuests.map(async (guest) => ({
-    id: guest.id,
-    name: guest.name ?? "",
-    email: guest.email,
-    timeZone: guest.timeZone,
-    language: {
-      translate: await getTranslation(guest.locale ?? "en", "common"),
-      locale: guest.locale ?? "en",
-    },
-  }));
+  const optionalTeamGuestsDestinationCalendars: DestinationCalendar[] = [];
+  const optionalTeamGuestsPromises = eventType.optionalTeamGuests.map(async (guest) => {
+    if (isTeamEventType && guest.destinationCalendar) {
+      optionalTeamGuestsDestinationCalendars.push({
+        ...guest.destinationCalendar,
+        externalId: processExternalId(guest.destinationCalendar),
+      });
+    }
+
+    return {
+      id: guest.id,
+      name: guest.name ?? "",
+      email: guest.email,
+      timeZone: guest.timeZone,
+      language: {
+        translate: await getTranslation(guest.locale ?? "en", "common"),
+        locale: guest.locale ?? "en",
+      },
+    };
+  });
+
   const optionalTeamGuests = await Promise.all(optionalTeamGuestsPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1019,6 +1030,10 @@ async function handler(
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
     evt.destinationCalendar?.push(...teamDestinationCalendars);
+  }
+
+  if (isTeamEventType && optionalTeamGuests) {
+    evt.destinationCalendar?.push(...optionalTeamGuestsDestinationCalendars);
   }
 
   // data needed for triggering webhooks
