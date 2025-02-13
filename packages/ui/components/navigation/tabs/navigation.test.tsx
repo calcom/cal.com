@@ -195,10 +195,10 @@ describe("Navigation Components", () => {
         />
       );
 
-      const nav = screen.getByTestId("vertical-tab-Overview").closest("nav");
+      const nav = screen.getByTestId("vertical-tab-overview").closest("nav");
       await expect(nav).toHaveClass("custom-nav");
 
-      const tabElement = screen.getByTestId("vertical-tab-Overview");
+      const tabElement = screen.getByTestId("vertical-tab-overview");
       await expect(tabElement).toHaveClass("custom-item");
 
       const iconElement = screen.getByTestId("icon-component");
