@@ -9,7 +9,6 @@ const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const invoice = data.object;
-  console.log("invoice.paid webhook received", invoice);
   // Only handle subscription invoices
   if (!invoice.subscription) {
     console.log("Not a subscription invoice, skipping");

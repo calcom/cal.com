@@ -1,16 +1,9 @@
-import { lookup } from "dns";
-import { type TFunction } from "i18next";
-
-import { sendAdminOrganizationNotification } from "@calcom/emails";
 import {
-  RESERVED_SUBDOMAINS,
-  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
-import { createDomain } from "@calcom/lib/domainManager/organization";
+  assertCanCreateOrg,
+  findUserToBeOrgOwner,
+} from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -19,162 +12,12 @@ import type { TrpcSessionUser } from "../../../trpc";
 import type { TIntentToCreateOrgInputSchema } from "./intentToCreateOrg.schema";
 
 const log = logger.getSubLogger({ prefix: ["intentToCreateOrgHandler"] });
-/**
- * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
- */
-function isNotACompanyEmail(email: string) {
-  // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
-  const emailProviders = [
-    "gmail.com",
-    "yahoo.com",
-    "outlook.com",
-    "hotmail.com",
-    "aol.com",
-    "icloud.com",
-    "mail.com",
-    "protonmail.com",
-    "zoho.com",
-    "yandex.com",
-    "gmx.com",
-    "fastmail.com",
-    "inbox.com",
-    "me.com",
-    "hushmail.com",
-    "live.com",
-    "rediffmail.com",
-    "tutanota.com",
-    "mail.ru",
-    "usa.com",
-    "qq.com",
-    "163.com",
-    "web.de",
-    "rocketmail.com",
-    "excite.com",
-    "lycos.com",
-    "outlook.co",
-    "hotmail.co.uk",
-  ];
-
-  const emailParts = email.split("@");
-  if (emailParts.length < 2) return true;
-  return emailProviders.includes(emailParts[1]);
-}
 
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
   input: TIntentToCreateOrgInputSchema;
-};
-
-type OrgOwner = {
-  id: number;
-  email: string;
-  username?: string | null;
-  teams: {
-    team: {
-      isPlatform: boolean;
-      slug: string | null;
-      isOrganization: boolean;
-    };
-  }[];
-  completedOnboarding?: boolean;
-  emailVerified?: Date | null;
-};
-
-const getIPAddress = async (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    lookup(url, (err, address) => {
-      if (err) reject(err);
-      resolve(address);
-    });
-  });
-};
-
-export class OrgCreationError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-export async function assertCanCreateOrg({
-  slug,
-  isPlatform,
-  orgOwner,
-  restrictBasedOnMinimumPublishedTeams,
-}: {
-  slug: string;
-  isPlatform: boolean;
-  orgOwner: OrgOwner;
-  restrictBasedOnMinimumPublishedTeams: boolean;
-}) {
-  const verifiedUser = orgOwner.completedOnboarding && !!orgOwner.emailVerified;
-  if (!verifiedUser) {
-    throw new OrgCreationError("You need to complete onboarding before creating a platform team");
-  }
-
-  if (isNotACompanyEmail(orgOwner.email) && !isPlatform) {
-    throw new OrgCreationError("Use company email to create an organization");
-  }
-
-  const hasAnOrgWithSameSlug = await prisma.team.findFirst({
-    where: {
-      slug: slug,
-      parentId: null,
-      isOrganization: true,
-    },
-  });
-
-  // Allow creating an organization with same requestedSlug as a non-org Team's slug
-  // It is needed so that later we can migrate the non-org Team(with the conflicting slug) to the newly created org
-  // Publishing the organization would fail if the team with the same slug is not migrated first
-
-  if (hasAnOrgWithSameSlug || RESERVED_SUBDOMAINS.includes(slug))
-    throw new OrgCreationError("organization_url_taken");
-
-  const hasExistingPlatformOrOrgTeam = orgOwner?.teams.find((team) => {
-    return team.team.isPlatform || team.team.isOrganization;
-  });
-
-  if (!!hasExistingPlatformOrOrgTeam?.team && isPlatform) {
-    throw new OrgCreationError("User is already part of a team");
-  }
-
-  const publishedTeams = orgOwner.teams.filter((team) => !!team.team.slug);
-
-  if (
-    restrictBasedOnMinimumPublishedTeams &&
-    publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE &&
-    !isPlatform
-  ) {
-    throw new OrgCreationError("You need to have minimum published teams.");
-  }
-
-  // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
-  if (orgOwner.teams.some((team) => team.team.isOrganization)) {
-    throw new OrgCreationError("You are part of an organization already");
-  }
-}
-
-export const findUserToBeOrgOwner = async (email: string) => {
-  return await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    include: {
-      teams: {
-        select: {
-          team: {
-            select: {
-              slug: true,
-              isOrganization: true,
-              isPlatform: true,
-            },
-          },
-        },
-      },
-    },
-  });
 };
 
 export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) => {
@@ -230,56 +73,6 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     billingPeriod,
     isPlatform,
   };
-};
-
-export const setupDomain = async ({
-  slug,
-  isPlatform,
-  orgOwnerEmail,
-  orgOwnerTranslation,
-}: {
-  slug: string;
-  isPlatform: boolean;
-  orgOwnerEmail: string;
-  orgOwnerTranslation: TFunction;
-}) => {
-  log.debug("Starting domain setup", safeStringify({ slug, isPlatform }));
-  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
-
-  if (!isOrganizationConfigured) {
-    log.warn("Organization domain not configured", safeStringify({ slug }));
-    // Otherwise, we proceed to send an administrative email to admins regarding
-    // the need to configure DNS registry to support the newly created org
-    const instanceAdmins = await prisma.user.findMany({
-      where: { role: UserPermissionRole.ADMIN },
-      select: { email: true },
-    });
-    if (instanceAdmins.length) {
-      log.debug(
-        "Sending admin notification for domain configuration",
-        safeStringify({ slug, adminCount: instanceAdmins.length })
-      );
-      console.log("process.env.NEXT_PUBLIC_IS_E2E", process.env.NEXT_PUBLIC_IS_E2E);
-      try {
-        await sendAdminOrganizationNotification({
-          instanceAdmins,
-          orgSlug: slug,
-          ownerEmail: orgOwnerEmail,
-          webappIPAddress: await getIPAddress(
-            WEBAPP_URL.replace("https://", "")?.replace("http://", "").replace(/(:.*)/, "")
-          ),
-          t: orgOwnerTranslation,
-        });
-      } catch (error) {
-        // TODO: Why would this error come?
-        log.error("Error sending admin notification", safeStringify({ error }));
-      }
-    } else {
-      log.warn("Organization created: subdomain not configured and couldn't notify administrators");
-    }
-  } else {
-    log.debug("Domain setup completed successfully", safeStringify({ slug }));
-  }
 };
 
 // export const createHandler = async ({ input, ctx }: CreateOptions) => {

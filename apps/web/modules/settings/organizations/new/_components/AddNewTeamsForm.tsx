@@ -72,16 +72,21 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
   const { t } = useLocale();
   const router = useRouter();
   const [counter, setCounter] = useState(1);
-  const { slug: orgRequestedSlug, setTeams } = useOnboardingStore();
+  const { slug: orgSlug, setTeams, teams: teamsFromStore } = useOnboardingStore();
+  const teamsToCreateFromStore = teamsFromStore.filter((team) => !team.isBeingMigrated);
+  const teamsToMigrateFromStore = teamsFromStore.filter((team) => team.isBeingMigrated);
   const form = useForm({
     defaultValues: {
-      teams: [{ name: "" }],
-      moveTeams: teams.map((team) => ({
-        id: team.id,
-        shouldMove: false,
-        newSlug: getSuggestedSlug({ teamSlug: team.slug, orgSlug: orgRequestedSlug }),
-        name: team.name,
-      })),
+      teams: teamsToCreateFromStore.length ? teamsToCreateFromStore : [{ name: "" }],
+      moveTeams: teams.map((team) => {
+        const teamToMigrateInStore = teamsToMigrateFromStore.find((t) => t.id === team.id);
+        return {
+          id: team.id,
+          shouldMove: !!teamToMigrateInStore,
+          newSlug: teamToMigrateInStore?.slug || getSuggestedSlug({ teamSlug: team.slug, orgSlug }),
+          name: team.name,
+        };
+      }),
     }, // Set initial values
     resolver: async (data) => {
       try {
@@ -136,7 +141,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         return {
           id: -1,
           isBeingMigrated: false,
-          slug: getSuggestedSlug({ teamSlug: team.name, orgSlug: orgRequestedSlug }),
+          slug: getSuggestedSlug({ teamSlug: team.name, orgSlug }),
           name: team.name,
         };
       })
@@ -227,10 +232,12 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
         )}
         <Button
           EndIcon="arrow-right"
+          type="submit"
           color="primary"
           className="mt-6 w-full justify-center"
           data-testId="continue_or_checkout"
-          onClick={handleFormSubmit}>
+          // Form submitted means navigation is happening and new Form would render when that occurs, so keep it in loading state
+          loading={form.formState.isSubmitted}>
           {t("continue")}
         </Button>
       </Form>

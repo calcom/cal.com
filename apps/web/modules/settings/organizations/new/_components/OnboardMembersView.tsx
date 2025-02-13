@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -18,6 +19,7 @@ import {
   Tooltip,
   TextField,
   showToast,
+  Alert,
 } from "@calcom/ui";
 
 type TeamMember = RouterOutputs["viewer"]["teams"]["listMembers"]["members"][number];
@@ -32,11 +34,18 @@ const AddNewTeamMembers = () => {
 };
 
 const useCheckout = () => {
+  const [serverErrorMessage, setServerErrorMessage] = useState("");
   const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
+        // We don't open new tab because that might be blocked by browser
         window.location.href = data.checkoutUrl;
       }
+      // Clear persisted store data after successful checkout as it is now in DB
+      useOnboardingStore.persist.clearStorage();
+    },
+    onError: (error) => {
+      setServerErrorMessage(error.message);
     },
   });
 
@@ -44,6 +53,7 @@ const useCheckout = () => {
     mutation,
     mutate: mutation.mutate,
     isPending: mutation.isPending,
+    errorMessage: serverErrorMessage,
   };
 };
 
@@ -114,6 +124,11 @@ export const AddNewTeamMembersForm = () => {
 
   return (
     <>
+      {checkout.errorMessage && (
+        <div className="mb-4">
+          <Alert severity="error" message={checkout.errorMessage} />
+        </div>
+      )}
       <div className="space-y-6">
         <div className="flex space-x-3">
           <form onSubmit={onSubmit} className="flex w-full items-end space-x-2">

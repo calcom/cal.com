@@ -1,25 +1,25 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
+import { Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
-  const [image, setImage] = useState("");
-
-  const { setLogo, setBio } = useOnboardingStore();
-
+  const { setLogo, setBio, bio: bioFromStore, logo: logoFromStore } = useOnboardingStore();
   const aboutOrganizationFormMethods = useForm<{
     logo: string;
     bio: string;
-  }>();
+  }>({
+    defaultValues: {
+      logo: logoFromStore,
+      bio: bioFromStore,
+    },
+  });
 
   return (
     <>
@@ -31,17 +31,11 @@ export const AboutOrganizationForm = () => {
           setBio(values.bio);
           router.push(`/settings/organizations/new/add-teams`);
         }}>
-        {serverErrorMessage && (
-          <div>
-            <Alert severity="error" message={serverErrorMessage} />
-          </div>
-        )}
-
         <div>
           <Controller
             control={aboutOrganizationFormMethods.control}
             name="logo"
-            render={() => (
+            render={({ field: { value } }) => (
               <>
                 <Label>{t("organization_logo")}</Label>
                 <div className="flex items-center">
@@ -49,7 +43,7 @@ export const AboutOrganizationForm = () => {
                     alt=""
                     fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     className="items-center"
-                    imageSrc={image}
+                    imageSrc={value}
                     size="lg"
                   />
                   <div className="ms-4">
@@ -58,10 +52,9 @@ export const AboutOrganizationForm = () => {
                       id="avatar-upload"
                       buttonMsg={t("upload")}
                       handleAvatarChange={(newAvatar: string) => {
-                        setImage(newAvatar);
                         aboutOrganizationFormMethods.setValue("logo", newAvatar);
                       }}
-                      imageSrc={image}
+                      imageSrc={value}
                     />
                   </div>
                 </div>
@@ -91,7 +84,8 @@ export const AboutOrganizationForm = () => {
 
         <div className="flex">
           <Button
-            disabled={aboutOrganizationFormMethods.formState.isSubmitting}
+            // Form submitted means navigation is happening and new Form would render when that occurs, so keep it in loading state
+            loading={aboutOrganizationFormMethods.formState.isSubmitted}
             color="primary"
             EndIcon="arrow-right"
             type="submit"

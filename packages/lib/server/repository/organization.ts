@@ -24,7 +24,7 @@ export class OrganizationRepository {
   }: {
     orgData: {
       name: string;
-      slug: string;
+      slug: string | null;
       isOrganizationConfigured: boolean;
       isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
@@ -112,7 +112,7 @@ export class OrganizationRepository {
 
   static async create(orgData: {
     name: string;
-    slug: string;
+    slug: string | null;
     isOrganizationConfigured: boolean;
     isOrganizationAdminReviewed: boolean;
     autoAcceptEmail: string;
@@ -152,7 +152,6 @@ export class OrganizationRepository {
         id,
         isOrganization: true,
       },
-      select: orgSelect,
     });
   }
 
@@ -364,30 +363,6 @@ export class OrganizationRepository {
     return org?.calVideoLogo;
   }
 
-  // TODO: Should be moved to OrganizationService
-  static async checkSlugIsAvailable({ slug }: { slug: string }) {
-    const org = await prisma.team.findFirst({
-      where: {
-        // Organization exists in Team domain, so slug is unique across teams and organizations
-        // isOrganization: true,
-        slug,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (org) {
-      return false;
-    }
-
-    const reservedSubdomains = (process.env.RESERVED_SUBDOMAINS || "")
-      .split(",")
-      .map((s) => s.trim().replace(/^"(.*)"$/, "$1")); // Remove surrounding quotes
-
-    return !reservedSubdomains.includes(slug);
-  }
-
   static async getVerifiedOrganizationByAutoAcceptEmailDomain(domain: string) {
     return await prisma.team.findFirst({
       where: {
@@ -404,6 +379,13 @@ export class OrganizationRepository {
           },
         },
       },
+    });
+  }
+
+  static async setSlug({ id, slug }: { id: number; slug: string }) {
+    return await prisma.team.update({
+      where: { id, isOrganization: true },
+      data: { slug },
     });
   }
 }

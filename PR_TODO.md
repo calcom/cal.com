@@ -1,4 +1,8 @@
 TODO:
+- [ ] Failed payment handling
+- [  ] createTeams.handler No subscriptionId found in team metadata when moving team members via onboarding
+- [ ] Immediate after payment, session doesn't have correct(new) upId set, so profile page for org doesn't load it seems
+- [ ] What to do about "customer.subscription.deleted.team-plan'
 - [ ] We need to reuse some of trpc/server/routers/viewer/organizations/create.handler.ts logic to start creating subdomains which isn't happening in _invoice.paid.org.ts at the moment.
 - [ ] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
 - [ ] Make sure that we pass creationSource to createTeamsMutation.mutate
@@ -37,6 +41,10 @@ Bugs:
 
 Testing:
 - Test a scenario where a team is moved with same slug as the organization's slug being moved to.
+- [ ] Onboarding First Step(Organization)
+     - [x] Error when user is already a part of an organization.
+     - [x] Error when slug is taken by another organization.
+- [ ] Onboarding First Step(Platform)
 
 
 Followup Improvements:

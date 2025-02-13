@@ -113,7 +113,7 @@ export class OrganizationPermissionService {
     if (teamsToMigrate && !(await this.hasPermissionToMigrateTeams(teamsToMigrate))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "You do not have permission to migrate these teams",
+        message: "You do not have permission to migrate one or more of the teams",
       });
     }
 

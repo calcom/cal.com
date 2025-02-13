@@ -207,8 +207,8 @@ export class OrganizationPaymentService {
   ) {
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
-      successUrl: `${WEBAPP_URL}/settings/organizations/new/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/cancel?session_id={CHECKOUT_SESSION_ID}`,
+      successUrl: `${WEBAPP_URL}/settings/organizations/new/payment-status?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/payment-status?session_id={CHECKOUT_SESSION_ID}`,
       priceId,
       quantity: config.seats,
       metadata: {

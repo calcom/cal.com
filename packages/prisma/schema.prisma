@@ -489,6 +489,7 @@ model Team {
   bookingLimits                Json?
   includeManagedEventsInLimits Boolean              @default(false)
   internalNotePresets          InternalNotePreset[]
+  organizationOnboarding     OrganizationOnboarding?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1842,7 +1843,8 @@ model OrganizationOnboarding {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  organizationId Int? @unique
+  organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   // Admin state
   billingPeriod BillingPeriod
   pricePerSeat  Float

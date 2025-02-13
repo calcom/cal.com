@@ -19,6 +19,7 @@ const teamSchema = z.object({
 });
 
 export type CreateOrganizationOnboardingInput = {
+  organizationId: number | null;
   billingPeriod: BillingPeriod;
   pricePerSeat: number;
   seats: number;
@@ -64,7 +65,10 @@ export class OrganizationOnboardingRepository {
   }
 
   static async findByStripeCustomerId(stripeCustomerId: string) {
-    logger.debug("Finding organization onboarding by stripe customer id", { stripeCustomerId });
+    logger.debug(
+      "Finding organization onboarding by stripe customer id",
+      safeStringify({ stripeCustomerId })
+    );
     return await prisma.organizationOnboarding.findUnique({
       where: {
         stripeCustomerId,
@@ -111,6 +115,11 @@ export class OrganizationOnboardingRepository {
       },
       data,
     });
+  }
+
+  static async setOrganizationId({ id, organizationId }: { id: number; organizationId: number }) {
+    logger.debug("Setting organization id", { id, organizationId });
+    return OrganizationOnboardingRepository.update(id, { organizationId });
   }
 
   static async delete(id: number) {

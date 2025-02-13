@@ -8,7 +8,7 @@ import { OrganizationPermissionService } from "./OrganizationPermissionService";
 vi.mock("@calcom/prisma", () => ({
   prisma: {
     organizationOnboarding: {
-      findFirst: vi.fn(),
+      findUnique: vi.fn(),
     },
     membership: {
       findMany: vi.fn(),
@@ -73,7 +73,7 @@ describe("OrganizationPermissionService", () => {
 
   describe("validatePermissions", () => {
     it("should validate all permissions successfully", async () => {
-      vi.mocked(prisma.organizationOnboarding.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.organizationOnboarding.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.membership.findMany).mockResolvedValue([{ userId: 1, teamId: 1, role: "OWNER" }]);
 
       const result = await service.validatePermissions({
