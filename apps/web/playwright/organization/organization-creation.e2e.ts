@@ -135,7 +135,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.locator(".text-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
@@ -269,7 +269,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.locator(".text-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
