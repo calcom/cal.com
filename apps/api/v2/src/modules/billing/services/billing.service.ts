@@ -17,6 +17,14 @@ import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
+import { z } from "zod";
+
+export const SubscriptionMetadataSchema = z.object({
+  teamId: z.string(),
+  plan: z.string(),
+});
+
+export type SubscriptionMetadata = z.infer<typeof SubscriptionMetadataSchema>;
 
 @Injectable()
 export class BillingService implements OnModuleDestroy {
@@ -64,6 +72,11 @@ export class BillingService implements OnModuleDestroy {
   }
 
   async redirectToSubscribeCheckout(teamId: number, plan: PlatformPlan, customerId?: string) {
+    const metadata: SubscriptionMetadata = {
+      teamId: teamId.toString(),
+      plan: plan.toString(),
+    };
+
     const { url } = await this.stripeService.getStripe().checkout.sessions.create({
       customer: customerId,
       line_items: [
@@ -78,16 +91,10 @@ export class BillingService implements OnModuleDestroy {
       success_url: `${this.webAppUrl}/settings/platform/`,
       cancel_url: `${this.webAppUrl}/settings/platform/`,
       mode: "subscription",
-      metadata: {
-        teamId: teamId.toString(),
-        plan: plan.toString(),
-      },
+      metadata,
       currency: "usd",
       subscription_data: {
-        metadata: {
-          teamId: teamId.toString(),
-          plan: plan.toString(),
-        },
+        metadata,
       },
       allow_promotion_codes: true,
     });
@@ -174,20 +181,90 @@ export class BillingService implements OnModuleDestroy {
 
   async handleStripePaymentSuccess(event: Stripe.Event) {
     const invoice = event.data.object as Stripe.Invoice;
-    const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
-    const customerId = this.getCustomerIdFromInvoice(invoice);
-    if (subscriptionId && customerId) {
-      await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, false);
+    const teamId = await this.getTeamIdFromStripeInvoice(invoice);
+
+    if (!teamId) {
+      this.logger.error("Failed to get team ID from Stripe invoice", {
+        invoice,
+      });
+      return;
     }
+
+    await this.billingRepository.updateBillingOverdue(teamId, false);
   }
 
   async handleStripePaymentFailed(event: Stripe.Event) {
     const invoice = event.data.object as Stripe.Invoice;
+    const teamId = await this.getTeamIdFromStripeInvoice(invoice);
+
+    if (!teamId) {
+      this.logger.error("Failed to get team ID from Stripe invoice", {
+        invoice,
+      });
+      return;
+    }
+
+    await this.billingRepository.updateBillingOverdue(teamId, true);
+  }
+
+  async getTeamIdFromStripeInvoice(invoice: Stripe.Invoice): Promise<number | null> {
     const subscriptionId = this.getSubscriptionIdFromInvoice(invoice);
     const customerId = this.getCustomerIdFromInvoice(invoice);
-    if (subscriptionId && customerId) {
-      await this.billingRepository.updateBillingOverdue(subscriptionId, customerId, true);
+
+    if (!subscriptionId || !customerId) {
+      this.logger.error("Subscription or customer ID not found in invoice", {
+        subscriptionId,
+        customerId,
+        invoice,
+      });
+      return null;
     }
+
+    const teamId = await this.getSubscriptionMetadataTeamId(subscriptionId);
+    if (!teamId) {
+      this.logger.error("Failed to get team ID from subscription metadata", {
+        subscriptionId,
+        customerId,
+        invoice,
+      });
+      return null;
+    }
+
+    return teamId;
+  }
+
+  async getSubscriptionMetadataTeamId(subscriptionId: string): Promise<number | null> {
+    const metadata = await this.getSubscriptionMetadata(subscriptionId);
+    if (!metadata) {
+      this.logger.error("Failed to parse subscription metadata", {
+        subscriptionId,
+      });
+      return null;
+    }
+
+    const teamId = parseInt(metadata.teamId, 10);
+
+    if (isNaN(teamId)) {
+      this.logger.error("Parsed stripe subscription metadata teamId is not a valid number", {
+        teamId: metadata.teamId,
+      });
+      return null;
+    }
+
+    return teamId;
+  }
+
+  async getSubscriptionMetadata(subscriptionId: string): Promise<SubscriptionMetadata | null> {
+    const subscription = await this.stripeService.getSubscription(subscriptionId);
+    const metadataResult = SubscriptionMetadataSchema.safeParse(subscription.metadata);
+    if (!metadataResult.success) {
+      this.logger.error("Failed to parse subscription metadata", {
+        errors: metadataResult.error,
+        subscriptionMetadata: subscription.metadata,
+      });
+      return null;
+    }
+    return metadataResult.data;
   }
 
   async handleStripeCheckoutEvents(event: Stripe.Event) {
