@@ -243,7 +243,12 @@ function BookingsContent({ status }: BookingsProps) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
-        <HorizontalTabs tabs={tabs} />
+        <HorizontalTabs
+          tabs={tabs.map((tab) => ({
+            ...tab,
+            name: t(tab.name),
+          }))}
+        />
         <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />

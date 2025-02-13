@@ -6,10 +6,10 @@ import React from "react";
 
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { IconSprites } from "@calcom/ui";
-import "@calcom/ui/css";
 
 import { prepareRootMetadata } from "@lib/metadata";
 
+import "../styles/globals.css";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
@@ -122,7 +122,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         `}</style>
       </head>
       <body
-        className="dark:bg-darkgray-50 bg-subtle antialiased"
+        className="dark:bg-default bg-subtle antialiased"
         style={
           isEmbed
             ? {

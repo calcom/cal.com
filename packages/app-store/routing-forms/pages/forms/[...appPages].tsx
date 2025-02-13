@@ -174,7 +174,7 @@ export default function RoutingForms({
           }>
           <FormActionsProvider appUrl={appUrl}>
             <div className="mb-10 w-full">
-              <div className="flex">
+              <div className="mb-2 flex">
                 <TeamsFilter />
               </div>
               <FilterResults

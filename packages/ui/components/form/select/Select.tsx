@@ -18,6 +18,7 @@ export type SelectProps<
   variant?: "default" | "checkbox";
   "data-testid"?: string;
   size?: "sm" | "md";
+  grow?: boolean;
 };
 
 export const Select = <
@@ -28,6 +29,7 @@ export const Select = <
   components,
   variant = "default",
   size = "md",
+  grow,
   ...props
 }: SelectProps<Option, IsMulti, Group> & {
   innerClassNames?: {
@@ -61,7 +63,7 @@ export const Select = <
         control: (base) => ({
           ...base,
           minHeight: size === "sm" ? "28px" : "36px",
-          height: size === "sm" ? "28px" : "36px",
+          height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
         }),
       }}
       classNames={{

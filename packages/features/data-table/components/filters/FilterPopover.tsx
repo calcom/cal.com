@@ -2,7 +2,7 @@
 import startCase from "lodash/startCase";
 
 import type { IconName } from "@calcom/ui";
-import { Button, Icon, Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
+import { Button, Popover, PopoverContent, PopoverTrigger, Badge } from "@calcom/ui";
 
 import { useFilterValue } from "../../hooks";
 import { type FilterableColumn, type FilterValue, ZFilterValue, ColumnFilterType } from "../../lib/types";
@@ -134,14 +134,9 @@ export function FilterPopover({ column }: FilterPopoverProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          color="secondary"
-          className="items-center"
-          data-testid={`filter-popover-trigger-${column.id}`}>
-          <Icon name={icon} className="mr-2 h-4 w-4" />
+        <Button color="secondary" className="items-center" StartIcon={icon} EndIcon="chevron-down">
           <span>{startCase(column.title)}</span>
           <AppliedFilterValue column={column} filterValue={filterValue} />
-          <Icon name="chevron-down" className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">

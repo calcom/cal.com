@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "../../alert";
 import { Icon } from "../../icon";
 import { Tooltip } from "../../tooltip";
-import { Input, InputField } from "../inputs/TextField";
+import { Input, InputField, inputStyles } from "../inputs/TextField";
 import { Label } from "./Label";
 import type { InputFieldProps } from "./types";
 
@@ -97,12 +97,9 @@ type TextAreaProps = JSX.IntrinsicElements["textarea"];
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
     <textarea
-      ref={ref}
       {...props}
-      className={classNames(
-        "hover:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle mb-2 block w-full rounded-md border px-3 py-2 text-sm transition focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:cursor-not-allowed",
-        props.className
-      )}
+      ref={ref}
+      className={classNames(inputStyles(), "min-h-[80px] w-full", props.className)}
     />
   );
 });
@@ -183,22 +180,17 @@ export const NumberInput = forwardRef<HTMLInputElement, InputFieldProps>(functio
   );
 });
 
-export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function TextField(
+export const FilterSearchField = forwardRef<HTMLInputElement, InputFieldProps>(function PasswordField(
   props,
   ref
 ) {
   return (
-    <div
-      dir="ltr"
-      className="focus-within:ring-brand-default group relative mx-3 mb-1 mt-2.5 flex items-center rounded-md transition focus-within:outline-none focus-within:ring-2">
-      <div className="addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default flex h-7 items-center justify-center rounded-l-md border border-r-0 transition">
-        <Icon name="search" className="ms-3 h-4 w-4" data-testid="search-icon" />
-      </div>
-      <Input
-        ref={ref}
-        className="disabled:bg-subtle disabled:hover:border-subtle !my-0 h-7 rounded-l-none border-l-0 !ring-0 disabled:cursor-not-allowed"
-        {...props}
-      />
-    </div>
+    <InputField
+      ref={ref}
+      addOnLeading={<Icon name="search" className="h-4 w-4 stroke-[2.5px]" />}
+      placeholder="Search"
+      containerClassName="mx-3 mt-2"
+      {...props}
+    />
   );
 });

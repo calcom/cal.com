@@ -83,33 +83,33 @@ export const useTabsNavigations = ({
 
     if (!requirePayment) {
       navigation.splice(3, 0, {
-        name: "recurring",
+        name: t("recurring"),
         href: `/event-types/${formMethods.getValues("id")}?tabName=recurring`,
         icon: "repeat",
-        info: `recurring_event_tab_description`,
+        info: t(`recurring_event_tab_description`),
       });
     }
     navigation.splice(1, 0, {
-      name: "availability",
+      name: t("availability"),
       href: `/event-types/${formMethods.getValues("id")}?tabName=availability`,
       icon: "calendar",
       info:
         isManagedEventType || isChildrenManagedEventType
           ? formMethods.getValues("schedule") === null
-            ? "members_default_schedule"
+            ? t("members_default_schedule")
             : isChildrenManagedEventType
             ? `${
                 formMethods.getValues("scheduleName")
                   ? `${formMethods.getValues("scheduleName")} - ${t("managed")}`
-                  : `default_schedule_name`
+                  : t(`default_schedule_name`)
               }`
-            : formMethods.getValues("scheduleName") ?? `default_schedule_name`
-          : formMethods.getValues("scheduleName") ?? `default_schedule_name`,
+            : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`)
+          : formMethods.getValues("scheduleName") ?? t(`default_schedule_name`),
     });
     // If there is a team put this navigation item within the tabs
     if (team) {
       navigation.splice(2, 0, {
-        name: "assignment",
+        name: t("assignment"),
         href: `/event-types/${formMethods.getValues("id")}?tabName=team`,
         icon: "users",
         info: `${t(watchSchedulingType?.toLowerCase() ?? "")}${
@@ -121,15 +121,15 @@ export const useTabsNavigations = ({
     if (showInstant) {
       if (team) {
         navigation.push({
-          name: "instant_tab_title",
+          name: t("instant_tab_title"),
           href: `/event-types/${eventType.id}?tabName=instant`,
           icon: "phone-call",
-          info: `instant_event_tab_description`,
+          info: t(`instant_event_tab_description`),
         });
       }
     }
     navigation.push({
-      name: "webhooks",
+      name: t("webhooks"),
       href: `/event-types/${formMethods.getValues("id")}?tabName=webhooks`,
       icon: "webhook",
       info: `${activeWebhooksNumber} ${t("active")}`,
@@ -140,7 +140,7 @@ export const useTabsNavigations = ({
         name: "Cal.ai",
         href: `/event-types/${eventType.id}?tabName=ai`,
         icon: "sparkles",
-        info: "cal_ai_event_tab_description", // todo `cal_ai_event_tab_description`,
+        info: t("cal_ai_event_tab_description"), // todo `cal_ai_event_tab_description`,
       });
     }
     return navigation;
@@ -189,32 +189,32 @@ function getNavigation({
 
   return [
     {
-      name: "event_setup_tab_title",
+      name: t("event_setup_tab_title"),
       href: `/event-types/${id}?tabName=setup`,
       icon: "link",
       info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
-      name: "event_limit_tab_title",
+      name: t("event_limit_tab_title"),
       href: `/event-types/${id}?tabName=limits`,
       icon: "clock",
-      info: `event_limit_tab_description`,
+      info: t(`event_limit_tab_description`),
     },
     {
-      name: "event_advanced_tab_title",
+      name: t("event_advanced_tab_title"),
       href: `/event-types/${id}?tabName=advanced`,
       icon: "sliders-vertical",
-      info: `event_advanced_tab_description`,
+      info: t(`event_advanced_tab_description`),
     },
     {
-      name: "apps",
+      name: t("apps"),
       href: `/event-types/${id}?tabName=apps`,
       icon: "grid-3x3",
       //TODO: Handle proper translation with count handling
       info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
-      name: "workflows",
+      name: t("workflows"),
       href: `/event-types/${id}?tabName=workflows`,
       icon: "zap",
       info: `${enabledWorkflowsNumber} ${t("active")}`,

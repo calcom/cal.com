@@ -10,6 +10,7 @@ import { filterBySearchText, addTimezonesToDropdown, handleOptionLabel } from "@
 import type { Timezones } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 
+import { inputStyles } from "../inputs/TextField";
 import { getReactSelectProps } from "../select";
 
 const SELECT_SEARCH_DATA: Timezones = [
@@ -37,6 +38,8 @@ const SELECT_SEARCH_DATA: Timezones = [
 export type TimezoneSelectProps = SelectProps & {
   variant?: "default" | "minimal";
   timezoneSelectCustomClassname?: string;
+  size?: "sm" | "md";
+  grow?: boolean;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
   const { data = [], isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
@@ -61,6 +64,7 @@ export type TimezoneSelectComponentProps = SelectProps & {
   isPending: boolean;
   data?: Timezones;
   timezoneSelectCustomClassname?: string;
+  size?: "sm" | "md";
 };
 export function TimezoneSelectComponent({
   className,
@@ -70,6 +74,8 @@ export function TimezoneSelectComponent({
   variant = "default",
   isPending,
   value,
+  size = "md",
+  grow = false,
   ...props
 }: TimezoneSelectComponentProps) {
   const data = [...(props.data || []), ...SELECT_SEARCH_DATA];
@@ -103,6 +109,13 @@ export function TimezoneSelectComponent({
         ...(props.data ? addTimezonesToDropdown(data) : {}),
         ...addTimezonesToDropdown(additionalTimezones),
       }}
+      styles={{
+        control: (base) => ({
+          ...base,
+          minHeight: size === "sm" ? "28px" : "36px",
+          height: grow ? "h-auto " : size === "sm" ? "28px" : "36px",
+        }),
+      }}
       onInputChange={handleInputChange}
       {...props}
       formatOptionLabel={(option) => (
@@ -118,19 +131,26 @@ export function TimezoneSelectComponent({
           ),
         option: (state) =>
           classNames(
-            "bg-default flex !cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
+            "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-md text-default ",
             state.isFocused && "bg-subtle",
-            state.isSelected && "bg-emphasis",
+            state.isDisabled && "bg-muted",
+            state.isSelected && "bg-emphasis text-default",
             timezoneClassNames?.option && timezoneClassNames.option(state)
           ),
         placeholder: (state) => classNames("text-muted", state.isFocused && "hidden"),
         dropdownIndicator: () => "text-default",
         control: (state) =>
           classNames(
-            "!cursor-pointer",
-            variant === "default"
-              ? "px-3 py-2 bg-default border-default !min-h-9 text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:ring-2 focus-within:ring-emphasis hover:border-emphasis rounded-md border gap-1"
-              : "text-sm gap-1",
+            inputStyles({ size }),
+            state.isMulti
+              ? state.hasValue
+                ? "p-1 h-fit"
+                : "px-3 h-fit"
+              : size === "sm"
+              ? "h-7 px-2"
+              : "h-9 px-3",
+            props.isDisabled && "bg-subtle",
+            "rounded-[10px]",
             timezoneClassNames?.control && timezoneClassNames.control(state)
           ),
         singleValue: (state) =>
