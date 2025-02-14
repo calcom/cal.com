@@ -314,6 +314,20 @@ export default class Office365CalendarService implements Calendar {
                 };
               })
           : []),
+        ...(event.team?.optionalGuests
+          .filter((guest) => guest.email !== this.credential.user?.email)
+          .map((guest) => {
+            const destinationCalendar =
+              event.destinationCalendar && event.destinationCalendar.find((cal) => cal.userId === guest.id);
+
+            return {
+              emailAddress: {
+                address: destinationCalendar?.externalId ?? guest.email,
+                name: guest.name,
+              },
+              type: "optional" as const,
+            };
+          }) || []),
       ],
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
