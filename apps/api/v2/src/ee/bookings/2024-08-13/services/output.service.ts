@@ -283,7 +283,8 @@ export class OutputBookingsService_2024_08_13 {
       const { responses } = safeParse(
         seatedBookingDataSchema,
         attendee.bookingSeat?.data,
-        defaultSeatedBookingData
+        defaultSeatedBookingData,
+        false
       );
 
       const attendeeData = {
@@ -300,7 +301,8 @@ export class OutputBookingsService_2024_08_13 {
       attendeeParsed.metadata = safeParse(
         seatedBookingMetadataSchema,
         attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata
+        defaultSeatedBookingMetadata,
+        false
       );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
@@ -391,7 +393,8 @@ export class OutputBookingsService_2024_08_13 {
       const { responses } = safeParse(
         seatedBookingDataSchema,
         attendee.bookingSeat?.data,
-        defaultSeatedBookingData
+        defaultSeatedBookingData,
+        false
       );
 
       const attendeeData = {
@@ -408,7 +411,8 @@ export class OutputBookingsService_2024_08_13 {
       attendeeParsed.metadata = safeParse(
         seatedBookingMetadataSchema,
         attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata
+        defaultSeatedBookingMetadata,
+        false
       );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
