@@ -84,7 +84,7 @@ test.describe("Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
       const formId = await addForm(page);
 
-      await page.click('[href*="/forms"]');
+      await page.click('[data-test-id="routing"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
@@ -93,7 +93,7 @@ test.describe("Routing Forms", () => {
       await gotoRoutingLink({ page, formId });
       await expect(page.locator("text=Test Form Name")).toBeVisible();
 
-      await page.goto(`routing/route-builder/${formId}`);
+      await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
       await expect(page.getByTestId(`404-page`)).toBeVisible();
@@ -101,12 +101,12 @@ test.describe("Routing Forms", () => {
 
     test("recently added form appears first in the list", async ({ page }) => {
       await addForm(page, { name: "Test Form 1" });
-      await page.goto(`routing/forms`);
+      await page.goto(`apps/routing-forms/forms`);
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(1);
 
       await addForm(page, { name: "Test Form 2" });
-      await page.goto(`routing/forms`);
+      await page.goto(`apps/routing-forms/forms`);
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       await expect(page.locator('[data-testid="routing-forms-list"] > div h1')).toHaveCount(2);
 
@@ -351,7 +351,7 @@ test.describe("Routing Forms", () => {
         ["event-routing", "Option-2", "Option-2", "Option-2", "Option-2", "", "", "", expect.any(String)],
       ]);
 
-      await page.goto(`routing/route-builder/${routingForm.id}`);
+      await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
@@ -446,7 +446,7 @@ test.describe("Routing Forms", () => {
     test("Test preview should return correct route", async ({ page, users }) => {
       const user = await createUserAndLogin({ users, page });
       const routingForm = user.routingForms[0];
-      await page.goto(`routing/form-edit/${routingForm.id}`);
+      await page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
       await page.click('[data-testid="test-preview"]');
 
       //event redirect
@@ -696,7 +696,7 @@ async function addAllTypesOfFieldsAndSaveForm(
   page: Page,
   form: { description: string; label: string }
 ) {
-  await page.goto(`routing/form-edit/${formId}`);
+  await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
   await page.fill('[data-testid="description"]', form.description);
 
@@ -752,7 +752,7 @@ async function addAllTypesOfFieldsAndSaveForm(
 }
 
 async function addShortTextFieldAndSaveForm({ page, formId }: { page: Page; formId: string }) {
-  await page.goto(`routing/form-edit/${formId}`);
+  await page.goto(`apps/routing-forms/form-edit/${formId}`);
   await page.click('[data-testid="add-field"]');
   await page.locator(".data-testid-field-type").nth(0).click();
   await page.fill(`[name="fields.0.label"]`, "Short Text");

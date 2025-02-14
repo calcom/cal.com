@@ -79,6 +79,7 @@ export const CheckedTeamSelect = ({
   return (
     <>
       <Select
+        {...props}
         name={props.name}
         placeholder={props.placeholder || t("select")}
         isSearchable={true}

@@ -74,6 +74,7 @@ export type EventAdvancedTabCustomClassNames = {
   };
   requiresConfirmation?: RequiresConfirmationCustomClassNames;
   bookerEmailVerification?: SettingsToggleClassNames;
+  canSendCalVideoTranscriptionEmails?: SettingsToggleClassNames;
   calendarNotes?: SettingsToggleClassNames;
   eventDetailsVisibility?: SettingsToggleClassNames;
   bookingRedirect?: SettingsToggleClassNames & {
@@ -471,11 +472,13 @@ export const EventAdvancedTab = ({
   const successRedirectUrlLocked = shouldLockDisableProps("successRedirectUrl");
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
+  const sendCalVideoTranscriptionEmailsProps = shouldLockDisableProps("canSendCalVideoTranscriptionEmails");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
   const hideCalendarEventDetailsLocked = shouldLockDisableProps("hideCalendarEventDetails");
   const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
   const multiplePrivateLinksLocked = shouldLockDisableProps("multiplePrivateLinks");
+  const reschedulingPastBookingsLocked = shouldLockDisableProps("allowReschedulingPastBookings");
   const { isLocked, ...eventNameLocked } = shouldLockDisableProps("eventName");
 
   if (isManagedEventType) {
@@ -572,6 +575,29 @@ export const EventAdvancedTab = ({
         requiresConfirmationWillBlockSlot={formMethods.getValues("requiresConfirmationWillBlockSlot")}
         onRequiresConfirmation={setRequiresConfirmation}
         customClassNames={customClassNames?.requiresConfirmation}
+      />
+      <Controller
+        name="canSendCalVideoTranscriptionEmails"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames(
+              "text-sm",
+              customClassNames?.canSendCalVideoTranscriptionEmails?.label
+            )}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              customClassNames?.canSendCalVideoTranscriptionEmails?.container
+            )}
+            title={t("send_cal_video_transcription_emails")}
+            data-testid="send-cal-video-transcription-emails"
+            {...sendCalVideoTranscriptionEmailsProps}
+            description={t("description_send_cal_video_transcription_emails")}
+            descriptionClassName={customClassNames?.canSendCalVideoTranscriptionEmails?.description}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
       />
       <Controller
         name="requiresBookerEmailVerification"
@@ -890,6 +916,21 @@ export const EventAdvancedTab = ({
             checked={value}
             onCheckedChange={(e) => onChange(e)}
             data-testid="lock-timezone-toggle"
+          />
+        )}
+      />
+      <Controller
+        name="allowReschedulingPastBookings"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName={classNames("text-sm")}
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames("border-subtle rounded-lg border py-6 px-4 sm:px-6")}
+            title={t("allow_rescheduling_past_events")}
+            {...reschedulingPastBookingsLocked}
+            description={t("allow_rescheduling_past_events_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
           />
         )}
       />
