@@ -96,7 +96,6 @@ export type LayoutProps = {
   beforeCTAactions?: JSX.Element;
   afterHeading?: ReactNode;
   smallHeading?: boolean;
-  hideHeadingOnMobile?: boolean;
   isPlatformUser?: boolean;
 };
 
@@ -145,18 +144,26 @@ export function ShellMain(props: LayoutProps) {
       {(props.heading || !!props.backPath) && (
         <div
           className={classNames(
-            "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
+            "mb-0 flex items-center md:mb-6 md:mt-0",
+            props.smallHeading ? "lg:mb-7" : "lg:mb-8"
           )}>
           {!!props.backPath && (
             <Button
               variant="icon"
               size="sm"
               color="minimal"
-              onClick={() =>
-                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-              }
+              onClick={() => {
+                if (typeof props.backPath === "string") {
+                  // Prevents weird crash when navigating from /routing to /routing/forms
+                  if (props.backPath.startsWith("/routing")) {
+                    window.location.href = props.backPath;
+                  } else {
+                    router.push(props.backPath as string);
+                  }
+                } else {
+                  router.back();
+                }
+              }}
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
@@ -172,9 +179,8 @@ export function ShellMain(props: LayoutProps) {
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 hidden truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
+                      props.smallHeading ? "text-base" : "text-xl"
                     )}>
                     {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                   </h3>
@@ -239,7 +245,7 @@ function MainContainer({
     <main className="bg-default relative z-0 flex-1 focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-2 py-4 lg:px-6">
+      <div className="max-w-full p-2 sm:py-4 lg:px-6">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>

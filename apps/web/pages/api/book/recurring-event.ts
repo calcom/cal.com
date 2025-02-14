@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
@@ -10,7 +10,7 @@ import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken"
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
-async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
+async function handler(req: NextApiRequest & { userId?: number }) {
   const userIp = getIP(req);
 
   if (process.env.NEXT_PUBLIC_CLOUDFLARE_USE_TURNSTILE_IN_BOOKER === "1") {
@@ -24,7 +24,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
     rateLimitingType: "core",
     identifier: userIp,
   });
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   /* To mimic API behavior and comply with types */
   req.userId = session?.user?.id || -1;
 

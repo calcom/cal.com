@@ -179,6 +179,12 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
   completedOnboarding?: boolean;
+  outOfOffice?: {
+    dateRanges: {
+      start: string;
+      end: string;
+    }[];
+  };
 };
 
 export type InputEventType = {
@@ -284,7 +290,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
 export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
-    "users" | "worflows" | "destinationCalendar" | "schedule"
+    "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -665,13 +671,32 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
   });
 }
 
-export async function addUsersToDb(
-  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
-) {
+export async function addUsersToDb(users: InputUser[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
+
+  // Create OutOfOfficeEntry for users with outOfOffice data
+  for (const user of users) {
+    if (user.outOfOffice) {
+      log.debug("Creating OutOfOfficeEntry for user", user.id);
+      for (const dateRange of user.outOfOffice.dateRanges) {
+        await prismock.outOfOfficeEntry.create({
+          data: {
+            uuid: uuidv4(),
+            start: new Date(dateRange.start),
+            end: new Date(dateRange.end),
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        });
+      }
+    }
+  }
 
   const allUsers = await prismock.user.findMany({
     include: {

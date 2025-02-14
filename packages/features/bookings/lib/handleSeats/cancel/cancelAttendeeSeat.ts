@@ -1,3 +1,5 @@
+import type { NextApiRequest } from "next";
+
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmailsAndSMS } from "@calcom/emails";
@@ -16,7 +18,7 @@ import { bookingCancelAttendeeSeatSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import type { CustomRequest } from "../../handleCancelBooking";
+import type { AppRouterRequest, CustomRequest } from "../../handleCancelBooking";
 
 async function cancelAttendeeSeat(
   req: CustomRequest,
@@ -33,7 +35,8 @@ async function cancelAttendeeSeat(
   },
   eventTypeMetadata: EventTypeMetadata
 ) {
-  const input = bookingCancelAttendeeSeatSchema.safeParse(req.body);
+  const body = (req as AppRouterRequest).appDirRequestBody ?? (req as NextApiRequest).body;
+  const input = bookingCancelAttendeeSeatSchema.safeParse(body);
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
   if (!input.success) return;
   const { seatReferenceUid } = input.data;
@@ -62,7 +65,7 @@ async function cancelAttendeeSeat(
       },
     }),
   ]);
-  req.statusCode = 200;
+  (req as NextApiRequest).statusCode = 200;
 
   const attendee = bookingToDelete?.attendees.find((attendee) => attendee.id === seatReference.attendeeId);
   const bookingToDeleteUser = bookingToDelete.user ?? null;

@@ -45,6 +45,8 @@ import {
   checkIfSuccessfullyConfiguredInWorkspace,
 } from "@calcom/lib/domainWideDelegation/server";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -82,6 +84,7 @@ export type UpdateScheduleOutputType = Awaited<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
+
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
@@ -261,3 +264,7 @@ export { handleDeleteCredential };
 export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
+
+export { getRoutedUrl };
+
+export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };

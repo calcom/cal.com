@@ -699,7 +699,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
 }) {
   if (newOrganizer !== prevOrganizer) {
     vi.waitFor(() => {
-      // new organizer should recieve scheduling emails
+      // new organizer should receive scheduling emails
       expect(emails).toHaveEmail(
         {
           heading: "new_event_scheduled",
@@ -710,7 +710,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
 
     vi.waitFor(() => {
-      // old organizer should recieve cancelled emails
+      // old organizer should receive cancelled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_request_cancelled",
@@ -721,7 +721,7 @@ export function expectSuccessfulRoundRobinReschedulingEmails({
     });
   } else {
     vi.waitFor(() => {
-      // organizer should recieve rescheduled emails
+      // organizer should receive rescheduled emails
       expect(emails).toHaveEmail(
         {
           heading: "event_has_been_rescheduled",
