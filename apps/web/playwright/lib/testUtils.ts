@@ -163,6 +163,9 @@ export const bookTimeSlot = async (
     await page.fill('[name="title"]', opts.title);
   }
   if (opts?.attendeePhoneNumber) {
+    await page.waitForResponse(
+      (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
+    );
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await submitAndWaitForResponse(page, "/api/book/event", {
