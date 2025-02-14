@@ -206,7 +206,10 @@ test.describe("Event Types tests", () => {
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
 
-        await page.locator(`[data-fob-field-name="location"] input`).fill("19199999999");
+        await page.waitForLoadState("networkidle");
+
+        await page.locator(`[data-fob-field-name="location"] input`).waitFor();
+        await page.locator(`[data-fob-field-name="location"] input`).fill("919999999999");
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
