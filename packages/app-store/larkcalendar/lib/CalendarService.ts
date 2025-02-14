@@ -400,6 +400,7 @@ export default class LarkCalendarService implements Calendar {
 
   private translateAttendees = (event: CalendarEvent): LarkEventAttendee[] => {
     const attendeeArray: LarkEventAttendee[] = [];
+
     event.attendees
       .filter((att) => att.email)
       .forEach((att) => {
@@ -410,6 +411,7 @@ export default class LarkCalendarService implements Calendar {
         };
         attendeeArray.push(attendee);
       });
+
     event.team?.members.forEach((member) => {
       if (member.email !== this.credential.user?.email) {
         const attendee: LarkEventAttendee = {
@@ -418,6 +420,16 @@ export default class LarkCalendarService implements Calendar {
           third_party_email: member.email,
         };
         attendeeArray.push(attendee);
+      }
+    });
+
+    event.team?.optionalGuests.forEach((guest) => {
+      if (guest.email !== this.credential.user?.email) {
+        attendeeArray.push({
+          type: "third_party",
+          is_optional: true,
+          third_party_email: guest.email,
+        });
       }
     });
 
