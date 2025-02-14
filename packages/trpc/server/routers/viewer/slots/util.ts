@@ -410,6 +410,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+    showOptimizedSlots: eventType.showOptimizedSlots,
   });
 
   let availableTimeSlots: typeof timeSlots = [];

@@ -132,6 +132,7 @@ export const useEventTypeForm = ({
       isRRWeightsEnabled: eventType.isRRWeightsEnabled,
       maxLeadThreshold: eventType.maxLeadThreshold,
       useEventLevelSelectedCalendars: eventType.useEventLevelSelectedCalendars,
+      showOptimizedSlots: eventType.showOptimizedSlots || undefined,
     };
   }, [eventType, periodDates]);
 
