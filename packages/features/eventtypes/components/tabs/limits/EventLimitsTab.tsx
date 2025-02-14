@@ -212,7 +212,7 @@ function RollingLimitRadioItem({
             labelSrOnly
             type="number"
             className={classNames(
-              "border-default my-0 !mr-0 block w-16 text-sm [appearance:textfield]",
+              "border-default my-0 block w-16 text-sm [appearance:textfield]",
               customClassNames?.textField
             )}
             placeholder="30"
