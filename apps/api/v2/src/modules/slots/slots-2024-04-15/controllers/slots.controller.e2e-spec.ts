@@ -4,7 +4,7 @@ import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
-import { SlotsModule } from "@/modules/slots/slots.module";
+import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -243,7 +243,7 @@ const expectedSlotsRomeRange = {
   },
 };
 
-describe("Slots Endpoints", () => {
+describe("Slots 2024-04-15 Endpoints", () => {
   describe("Individual user slots", () => {
     let app: INestApplication;
 
@@ -275,7 +275,7 @@ describe("Slots Endpoints", () => {
             UsersModule,
             TokensModule,
             SchedulesModule_2024_06_11,
-            SlotsModule,
+            SlotsModule_2024_04_15,
           ],
         })
       )
