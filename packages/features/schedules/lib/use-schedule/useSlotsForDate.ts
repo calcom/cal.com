@@ -18,7 +18,7 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
 };
 
 export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
-  const [slotsPerDay, setSlotsPerDay] = useState<{ date: string; slots: Slots[string] }[]>([]);
+  const [slotsPerDay, setSlotsPerDay] = useState<{ date: string | null; slots: Slots[string] }[]>([]);
 
   const toggleConfirmButton = useCallback(
     (selectedSlot: Slots[string][number] & { showConfirmButton?: boolean }) => {
