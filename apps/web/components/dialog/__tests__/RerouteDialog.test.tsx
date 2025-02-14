@@ -37,6 +37,11 @@ const mockOpen = vi.fn((_url: string) => {
 
 vi.stubGlobal("open", mockOpen);
 
+const mockSession = {
+  expires: new Date(Date.now() + 2 * 86400).toISOString(),
+  user: userWhoBooked,
+};
+
 vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
     return (
@@ -384,7 +389,7 @@ describe("RerouteDialog", () => {
   describe("New Routing tests", () => {
     test("when verify_new_route is clicked, the form is submitted", async () => {
       render(
-        <SessionProvider>
+        <SessionProvider session={mockSession}>
           <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
         </SessionProvider>
       );
@@ -405,7 +410,7 @@ describe("RerouteDialog", () => {
     describe("New tab rescheduling", () => {
       test("new tab is closed when new booking is rerouted", async () => {
         render(
-          <SessionProvider>
+          <SessionProvider session={mockSession}>
             <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
           </SessionProvider>
         );
@@ -446,7 +451,7 @@ describe("RerouteDialog", () => {
 
       test("Rescheduling with same timeslot works", async () => {
         render(
-          <SessionProvider>
+          <SessionProvider session={mockSession}>
             <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
           </SessionProvider>
         );
