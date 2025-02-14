@@ -221,6 +221,8 @@ test.describe("Event Types tests", () => {
 
         await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
+
+        await page.waitForLoadState("networkidle");
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).fill("19199999999");
