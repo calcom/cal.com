@@ -35,6 +35,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
             <Button
+              data-testid="btn_bookings_list_remove_filters"
               disabled={!hasValidQueryParams}
               color="secondary"
               type="button"
