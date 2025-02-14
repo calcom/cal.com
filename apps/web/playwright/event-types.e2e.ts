@@ -205,9 +205,6 @@ test.describe("Event Types tests", () => {
         await saveEventType(page);
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
-        // To avoid race conditions in the <PhoneInput> component
-        await page.fill('[name="name"]', "Stripe Stripeson");
-        await page.fill('[name="email"]', "test@example.com");
         const locationInput = page.locator(`[data-fob-field-name="location"] input`);
         await locationInput.clear();
         await locationInput.fill("+19199999999");
@@ -222,8 +219,6 @@ test.describe("Event Types tests", () => {
 
         await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
-        // To avoid race conditions in the <PhoneInput> component
-        await page.waitForTimeout(2000); // waits for 2 second
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).clear();
