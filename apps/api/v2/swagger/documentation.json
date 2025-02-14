@@ -15376,6 +15376,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -15523,6 +15527,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -15775,6 +15783,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "seatUid": {
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
@@ -15909,6 +15921,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "seatUid": {
             "type": "string",
@@ -16090,6 +16106,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -16219,6 +16239,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
