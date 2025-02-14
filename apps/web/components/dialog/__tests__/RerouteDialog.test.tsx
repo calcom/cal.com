@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
 
 import { RouteActionType } from "@calcom/app-store/routing-forms/zod";
@@ -383,7 +384,9 @@ describe("RerouteDialog", () => {
   describe("New Routing tests", () => {
     test("when verify_new_route is clicked, the form is submitted", async () => {
       render(
-        <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+        <SessionProvider>
+          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+        </SessionProvider>
       );
       fireEvent.click(screen.getByText("verify_new_route"));
 
