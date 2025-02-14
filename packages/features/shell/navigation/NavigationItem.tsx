@@ -57,6 +57,13 @@ export const NavigationItem: React.FC<{
         <Link
           data-test-id={item.name}
           href={item.href}
+          onClick={(e) => {
+            // Prevents weird crash when navigating from /routing to /routing/forms
+            if (item.href.startsWith("/routing")) {
+              e.preventDefault();
+              window.location.href = item.href;
+            }
+          }}
           aria-label={t(item.name)}
           target={item.target}
           className={classNames(
