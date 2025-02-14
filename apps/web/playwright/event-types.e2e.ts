@@ -206,8 +206,7 @@ test.describe("Event Types tests", () => {
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
 
-        await page.locator(`[data-fob-field-name="location"] input`).fill("+918888888888");
-        await bookTimeSlot(page);
+        await bookTimeSlot(page, { attendeePhoneNumber: "+918888888888" });
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
         await expect(page.locator("text=+918888888888")).toBeVisible();
