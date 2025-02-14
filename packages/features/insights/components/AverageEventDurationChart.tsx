@@ -1,10 +1,9 @@
 import { Title } from "@tremor/react";
 
-import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { valueFormatter } from "../lib/valueFormatter";
 import { CardInsights } from "./Card";
 import { LineChart } from "./LineChart";
@@ -12,19 +11,16 @@ import { LoadingInsight } from "./LoadingInsights";
 
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId, isAll, initialConfig } = filter;
-  const [startDate, endDate] = dateRange;
-  const { selectedTeamId: teamId, selectedUserId, selectedEventTypeId } = filter;
-  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
+  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
+
   const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
-      startDate: dayjs.utc(startDate).toISOString(),
-      endDate: dayjs.utc(endDate).toISOString(),
+      startDate,
+      endDate,
       teamId,
-      eventTypeId: selectedEventTypeId ?? undefined,
-      memberUserId: selectedMemberUserId ?? undefined,
-      userId: selectedUserId ?? undefined,
+      eventTypeId,
+      memberUserId,
+      userId,
       isAll,
     },
     {
@@ -32,15 +28,13 @@ export const AverageEventDurationChart = () => {
       trpc: {
         context: { skipBatch: true },
       },
-      // At least one of the following initial configs should have a value
-      enabled: initialConfigIsReady,
     }
   );
 
   if (isPending) return <LoadingInsight />;
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
-  const isNoData = (data && data.length === 0) || data.every((item) => item["Average"] === 0);
+  if (!isSuccess || !data) return null;
+  const isNoData = data.every((item) => item["Average"] === 0);
   return (
     <CardInsights>
       <Title className="text-emphasis">{t("average_event_duration")}</Title>
