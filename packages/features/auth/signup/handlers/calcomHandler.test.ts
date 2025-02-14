@@ -38,7 +38,7 @@ describe("calcomHandler", () => {
       },
     });
 
-    (req as unknown as RequestWithUsernameStatus).usernameStatus = {
+    req.usernameStatus = {
       statusCode: 200,
       json: {
         available: true,
@@ -47,7 +47,7 @@ describe("calcomHandler", () => {
       requestedUserName: "test",
     };
 
-    const result = await handler(req as unknown as RequestWithUsernameStatus, res);
+    await handler(req as unknown as RequestWithUsernameStatus, res);
 
     const user = await prismock.user.findFirst({
       where: {
@@ -63,6 +63,57 @@ describe("calcomHandler", () => {
         email: "test@test.com",
         username: "test",
         locked: false,
+        organizationId: null,
+      })
+    );
+
+    expect(user?.password?.hash).not.toBeNull();
+  });
+
+  test("should create a locked user if domain is in watchlist", async () => {
+    const { req, res } = createMocks<NextApiRequest & Request, CustomNextApiResponse>({
+      method: "POST",
+      body: {
+        email: "test@blocked.com",
+        password: "PASSWORDpassword1!",
+        username: "test",
+      },
+    });
+
+    req.usernameStatus = {
+      statusCode: 200,
+      json: {
+        available: true,
+        premium: false,
+      },
+      requestedUserName: "test",
+    };
+
+    await prismock.watchlist.create({
+      data: {
+        type: "DOMAIN",
+        value: "blocked.com",
+        severity: "CRITICAL",
+        createdById: 1,
+      },
+    });
+
+    await handler(req as unknown as RequestWithUsernameStatus, res);
+
+    const user = await prismock.user.findFirst({
+      where: {
+        email: "test@blocked.com",
+      },
+      include: {
+        password: true,
+      },
+    });
+
+    expect(user).toEqual(
+      expect.objectContaining({
+        email: "test@blocked.com",
+        username: "test",
+        locked: true,
         organizationId: null,
       })
     );
