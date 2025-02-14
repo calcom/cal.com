@@ -64,17 +64,16 @@ export class StripeBillingService implements BillingService {
   }
 
   async createPrice(args: Parameters<BillingService["createPrice"]>[0]) {
-    const { amount, currency, interval, nickname, metadata } = args;
+    const { amount, currency, interval, productId, nickname, metadata } = args;
 
     const price = await this.stripe.prices.create({
+      nickname,
       unit_amount: amount,
       currency,
       recurring: {
         interval,
       },
-      product_data: {
-        name: nickname || `Custom ${interval}ly price`,
-      },
+      product: productId,
       metadata,
     });
 

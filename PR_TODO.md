@@ -1,9 +1,11 @@
+Deployment Plan:
+- Need Stripe Product ID in Env variable
+
 TODO:
 - [ ] PLATFORM: We need to create the organization without requiring payment first.
 - [ ] BUG: createTeams.handler.ts doesn't seem to validate the membership of the person with the teams being moved
 - [ ] BUG: logo and bio not bieng saved to Onboarding/Organization
 - [ ] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
-- [ ] What to do about "customer.subscription.deleted.team-plan'
 - [ ] Make sure that we pass creationSource to createTeamsMutation.mutate
 - [ ] Refreshing on onboarding once it is complete should redirect to Organization profile page in dashboard.
 - [ ] Test admin creation flow.

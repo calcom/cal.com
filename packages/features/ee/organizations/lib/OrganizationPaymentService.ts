@@ -4,6 +4,8 @@ import {
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -12,6 +14,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
+const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
 type CreatePaymentIntentInput = {
   name: string;
   slug: string;
@@ -48,6 +51,7 @@ export class OrganizationPaymentService {
   }
 
   protected async getOrCreateStripeCustomerId(email: string) {
+    log.debug("getOrCreateStripeCustomerId", safeStringify({ email }));
     const existingCustomer = await prisma.user.findUnique({
       where: { email },
       select: { metadata: true },
@@ -59,12 +63,15 @@ export class OrganizationPaymentService {
       return userParsed.stripeCustomerId;
     }
 
+    log.debug("Creating new Stripe customer", safeStringify({ email }));
     const customer = await this.billingService.createCustomer({
       email,
       metadata: {
         email,
       },
     });
+    log.debug("Created new Stripe customer", safeStringify({ email, customer }));
+
     return customer.stripeCustomerId;
   }
 
@@ -179,6 +186,14 @@ export class OrganizationPaymentService {
     organizationOnboardingId: number,
     shouldCreateCustomPrice: boolean
   ): Promise<StripePrice> {
+    log.debug(
+      "getOrCreatePrice",
+      safeStringify({
+        config,
+        organizationOnboardingId,
+        shouldCreateCustomPrice,
+      })
+    );
     if (!shouldCreateCustomPrice) {
       return {
         priceId: process.env.STRIPE_ORG_MONTHLY_PRICE_ID!,
@@ -186,10 +201,17 @@ export class OrganizationPaymentService {
       };
     }
 
+    const { interval, occurrence } = (() => {
+      if (config.billingPeriod === "MONTHLY") return { interval: "month" as const, occurrence: 1 };
+      if (config.billingPeriod === "ANNUALLY") return { interval: "year" as const, occurrence: 12 };
+      throw new Error(`Invalid billing period: ${config.billingPeriod}`);
+    })();
+
     const customPrice = await this.billingService.createPrice({
-      amount: config.pricePerSeat * 100,
+      amount: config.pricePerSeat * 100 * occurrence,
+      productId: process.env.STRIPE_ORG_PRODUCT_ID!,
       currency: "usd",
-      interval: config.billingPeriod.toLowerCase() as "month" | "year",
+      interval,
       nickname: `Custom Organization Price - ${config.pricePerSeat} per seat`,
       metadata: {
         organizationOnboardingId,
@@ -211,6 +233,15 @@ export class OrganizationPaymentService {
     config: PaymentConfig,
     organizationOnboardingId: number
   ) {
+    log.debug(
+      "Creating subscription",
+      safeStringify({
+        stripeCustomerId,
+        priceId,
+        config,
+        organizationOnboardingId,
+      })
+    );
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
       successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success`,
@@ -238,6 +269,7 @@ export class OrganizationPaymentService {
   }
 
   async createPaymentIntent(input: CreatePaymentIntentInput) {
+    log.debug("createPaymentIntent", safeStringify(input));
     await this.permissionService.validatePermissions(input);
 
     const shouldCreateCustomPrice =

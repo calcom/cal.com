@@ -1840,16 +1840,26 @@ enum BillingPeriod {
 }
 
 model OrganizationOnboarding {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
+  
+  // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
+  // TODO:  To be added when we start creating organizationOnboarding on intentToCreateOrg
+  // userId    Int         @unique
+
+  // We keep the email only here and don't need to connect it with user because on User deletion, we don't delete the entry here.
+  orgOwnerEmail String @unique
+  error         String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Set after organization payment is done and the organization is created
   organizationId Int? @unique
   organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  // Admin state
+  
   billingPeriod BillingPeriod
   pricePerSeat  Float
   seats         Int
-  orgOwnerEmail String @unique
   isPlatform    Boolean @default(false)
 
   // Organization info
@@ -1858,8 +1868,8 @@ model OrganizationOnboarding {
   logo String?
   bio  String?
 
-  // Stripe info
-  stripeCustomerId     String @unique
+  // Set when payment intent is there.
+  stripeCustomerId     String? @unique
   // TODO: Can we make it required
   stripeSubscriptionId String?
 

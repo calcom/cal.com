@@ -46,12 +46,20 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
 
   const orgOwner = await findUserToBeOrgOwner(orgOwnerEmail);
   if (!orgOwner) {
-    log.warn("Organization owner not found", safeStringify({ orgOwnerEmail }));
-    // FIXME: Write logic to create new org user as per feat-payment-before-org-creation.md
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Organization owner doesn't exist. NEED TO IMPLEMENT THIS",
-    });
+    log.debug(
+      "Organization owner not found, allowing to go ahead with onboarding",
+      safeStringify({ email: orgOwnerEmail, IS_USER_ADMIN })
+    );
+    return {
+      userId: null,
+      orgOwnerEmail,
+      name,
+      slug,
+      seats,
+      pricePerSeat,
+      billingPeriod,
+      isPlatform,
+    };
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
@@ -74,134 +82,5 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     isPlatform,
   };
 };
-
-// export const createHandler = async ({ input, ctx }: CreateOptions) => {
-//   const {
-//     slug,
-//     name,
-//     orgOwnerEmail,
-//     seats,
-//     pricePerSeat,
-//     isPlatform,
-//     billingPeriod: billingPeriodRaw,
-//     creationSource,
-//   } = input;
-
-// We only allow creating an annual billing period if you are a system admin
-// const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
-
-//   const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
-
-//   const ownerTranslation = await getTranslation(ctx.user.locale, "common");
-//   const inputLanguageTranslation = await getTranslation(input.language ?? "en", "common");
-
-//   const autoAcceptEmail = orgOwnerEmail.split("@")[1];
-
-//   const orgData = {
-//     name,
-//     slug,
-//     isOrganizationConfigured,
-//     isOrganizationAdminReviewed: IS_USER_ADMIN,
-//     autoAcceptEmail,
-//     seats: seats ?? null,
-//     pricePerSeat: pricePerSeat ?? null,
-//     isPlatform,
-//     billingPeriod,
-//   };
-
-//   // Create a new user and invite them as the owner of the organization
-//   if (!orgOwner) {
-//     const data = await OrganizationRepository.createWithNonExistentOwner({
-//       orgData,
-//       owner: {
-//         email: orgOwnerEmail,
-//       },
-//       creationSource,
-//     });
-
-//     orgOwner = data.orgOwner;
-
-//     const { organization, ownerProfile } = data;
-
-//     const translation = await getTranslation(input.language ?? "en", "common");
-
-//     await sendEmailVerification({
-//       email: orgOwnerEmail,
-//       language: ctx.user.locale,
-//       username: ownerProfile.username || "",
-//       isPlatform: isPlatform,
-//     });
-
-//     if (!isPlatform) {
-//       await sendOrganizationCreationEmail({
-//         language: translation,
-//         from: ctx.user.name ?? `${organization.name}'s admin`,
-//         to: orgOwnerEmail,
-//         ownerNewUsername: ownerProfile.username,
-//         ownerOldUsername: null,
-//         orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-//         orgName: organization.name,
-//         prevLink: null,
-//         newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-//       });
-//     }
-
-//     const user = await UserRepository.enrichUserWithItsProfile({
-//       user: { ...orgOwner, organizationId: organization.id },
-//     });
-
-//     return {
-//       userId: user.id,
-//       email: user.email,
-//       organizationId: user.organizationId,
-//       upId: user.profile.upId,
-//     };
-//   } else {
-//     const nonOrgUsernameForOwner = orgOwner.username || "";
-//     const { organization, ownerProfile } = await OrganizationRepository.createWithExistingUserAsOwner({
-//       orgData,
-//       owner: {
-//         id: orgOwner.id,
-//         email: orgOwnerEmail,
-//         nonOrgUsername: nonOrgUsernameForOwner,
-//       },
-//     });
-
-//     if (!isPlatform) {
-//       await sendOrganizationCreationEmail({
-//         language: inputLanguageTranslation,
-//         from: ctx.user.name ?? `${organization.name}'s admin`,
-//         to: orgOwnerEmail,
-//         ownerNewUsername: ownerProfile.username,
-//         ownerOldUsername: nonOrgUsernameForOwner,
-//         orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-//         orgName: organization.name,
-//         prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-//         newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-//       });
-//     }
-
-//     if (!organization.id) throw Error("User not created");
-//     const user = await UserRepository.enrichUserWithItsProfile({
-//       user: { ...orgOwner, organizationId: organization.id },
-//     });
-
-//     await prisma.availability.createMany({
-//       data: availability.map((schedule) => ({
-//         days: schedule.days,
-//         startTime: schedule.startTime,
-//         endTime: schedule.endTime,
-//         userId: user.id,
-//       })),
-//     });
-
-//     return {
-//       userId: user.id,
-//       email: user.email,
-//       organizationId: user.organizationId,
-//       upId: user.profile.upId,
-//     };
-//   }
-// };
 
 export default intentToCreateOrgHandler;

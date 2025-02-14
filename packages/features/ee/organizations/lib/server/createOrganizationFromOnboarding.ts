@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
+import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   assertCanCreateOrg,
@@ -51,7 +52,7 @@ type InvitedMember = {
   name?: string;
 };
 
-async function createOrganizationWithOwner({
+async function createOrganizationWithExistingUserAsOwner({
   owner,
   organizationOnboardingId,
   orgData,
@@ -155,6 +156,74 @@ async function createOrganizationWithOwner({
   return { organization };
 }
 
+async function createOrganizationWithNonExistentUserAsOwner({
+  email,
+  orgData,
+}: {
+  email: string;
+  orgData: OrganizationData;
+}) {
+  let organization = orgData.id
+    ? await OrganizationRepository.findById({ id: orgData.id })
+    : await OrganizationRepository.findBySlug({ slug: orgData.slug });
+
+  if (organization) {
+    log.debug(
+      `createOrganizationWithNonExistentUserAsOwner: Reusing existing organization:`,
+      safeStringify({ slug: orgData.slug, id: organization.id })
+    );
+    const owner = await findUserToBeOrgOwner(email);
+    if (!owner) {
+      throw new Error(`Org exists but owner could not be found for email: ${email}`);
+    }
+    return { organization, owner };
+  }
+
+  const orgCreationResult = await OrganizationRepository.createWithNonExistentOwner({
+    orgData,
+    owner: {
+      email: email,
+    },
+    // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
+    creationSource: CreationSource.WEBAPP,
+  });
+  organization = orgCreationResult.organization;
+  const { ownerProfile, orgOwner: orgOwnerFromCreation } = orgCreationResult;
+  const orgOwner = await findUserToBeOrgOwner(orgOwnerFromCreation.email);
+  if (!orgOwner) {
+    throw new Error(
+      `Just created the owner ${orgOwnerFromCreation.email}, but couldn't find it in the database`
+    );
+  }
+  const translation = await getTranslation(orgOwner.locale ?? "en", "common");
+
+  await sendEmailVerification({
+    email: orgOwner.email,
+    language: orgOwner.locale ?? "en",
+    username: ownerProfile.username || "",
+    isPlatform: orgData.isPlatform,
+  });
+
+  if (!orgData.isPlatform) {
+    await sendOrganizationCreationEmail({
+      language: translation,
+      from: orgOwner.name ?? `${organization.name}'s admin`,
+      to: orgOwner.email,
+      ownerNewUsername: ownerProfile.username,
+      ownerOldUsername: null,
+      orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
+      orgName: organization.name,
+      prevLink: null,
+      newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
+    });
+  }
+
+  return {
+    organization,
+    owner: orgOwner,
+  };
+}
+
 async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, organizationId: number) {
   if (teams.length === 0) return;
 
@@ -236,11 +305,8 @@ export const createOrganizationFromOnboarding = async ({
   >;
   paymentSubscriptionId: string;
 }) => {
-  const owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
-  if (!owner) {
-    throw new Error(`Owner not found with email: ${organizationOnboarding.orgOwnerEmail}`);
-  }
-  const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
+  let owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
+  const orgOwnerTranslation = await getTranslation(owner?.locale || "en", "common");
 
   // Important: Setup Domain first before creating the organization as Vercel/Cloudflare might not allow the domain to be created and that could cause organization booking pages to not actually work
   await setupDomain({
@@ -250,25 +316,40 @@ export const createOrganizationFromOnboarding = async ({
     orgOwnerTranslation,
   });
 
-  const { organization } = await createOrganizationWithOwner({
-    orgData: {
-      id: organizationOnboarding.organizationId,
-      name: organizationOnboarding.name,
-      slug: organizationOnboarding.slug,
-      isOrganizationConfigured: true,
-      isOrganizationAdminReviewed: true,
-      autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
-      seats: organizationOnboarding.seats,
-      pricePerSeat: organizationOnboarding.pricePerSeat,
-      isPlatform: false,
-      billingPeriod: organizationOnboarding.billingPeriod,
-      logoUrl: organizationOnboarding.logo,
-      bio: organizationOnboarding.bio,
-      paymentSubscriptionId,
-    },
-    organizationOnboardingId: organizationOnboarding.id,
-    owner,
-  });
+  let organization;
+  const orgData = {
+    id: organizationOnboarding.organizationId,
+    name: organizationOnboarding.name,
+    slug: organizationOnboarding.slug,
+    isOrganizationConfigured: true,
+    // We believe that as the payment has been accepted first and we also restrict the emails to company emails, it is safe to set this to true.
+    // We could easily set it to false if needed. In effect, it disables impersonations by non-admin reviewed organization's owner and also disables editing the member details
+    isOrganizationAdminReviewed: true,
+    autoAcceptEmail: organizationOnboarding.orgOwnerEmail.split("@")[1],
+    seats: organizationOnboarding.seats,
+    pricePerSeat: organizationOnboarding.pricePerSeat,
+    isPlatform: false,
+    billingPeriod: organizationOnboarding.billingPeriod,
+    logoUrl: organizationOnboarding.logo,
+    bio: organizationOnboarding.bio,
+    paymentSubscriptionId,
+  };
+
+  if (!owner) {
+    const result = await createOrganizationWithNonExistentUserAsOwner({
+      email: organizationOnboarding.orgOwnerEmail,
+      orgData,
+    });
+    organization = result.organization;
+    owner = result.owner;
+  } else {
+    const result = await createOrganizationWithExistingUserAsOwner({
+      orgData,
+      organizationOnboardingId: organizationOnboarding.id,
+      owner,
+    });
+    organization = result.organization;
+  }
 
   const invitedMembers = z
     .array(z.object({ email: z.string().email(), name: z.string().optional() }))

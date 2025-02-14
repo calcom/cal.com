@@ -100,11 +100,7 @@ const CreateANewOrganizationFormChild = ({
       setName(data.name);
       setSlug(data.slug);
 
-      // Not needed because we aren't moving the user to organization(as it hasn't been created yet)
-      // await session.update({
-      //   upId: data.upId,
-      // });
-      if (isAdmin && data.userId !== session.data?.user.id) {
+      if (isAdmin && data.userId && data.userId !== session.data?.user.id) {
         // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
         // He won't need to have access to the org directly in this way.
         signIn("impersonation-auth", {
