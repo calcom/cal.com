@@ -188,7 +188,7 @@ async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
     });
   } else {
     // Create the user
-    const user = await UserCreationService.createUser({
+    await UserCreationService.createUser({
       data: {
         username,
         email,
