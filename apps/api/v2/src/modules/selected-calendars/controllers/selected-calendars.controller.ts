@@ -18,6 +18,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SelectedCalendarRepository } from "@calcom/platform-libraries";
 
 @Controller({
   path: "/v2/selected-calendars",
@@ -38,19 +39,19 @@ export class SelectedCalendarsController {
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = input;
-    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
-
-    const newlyAddedCalendarEntry = await this.selectedCalendarsRepository.addUserSelectedCalendar(
-      user.id,
+    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = input;
+    const data = await SelectedCalendarRepository.upsert({
+      userId: user.id,
       integration,
       externalId,
-      credentialId
-    );
+      credentialId,
+      domainWideDelegationCredentialId,
+      eventTypeId: null,
+    });
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(SelectedCalendarOutputDto, newlyAddedCalendarEntry, { strategy: "excludeAll" }),
+      data: plainToClass(SelectedCalendarOutputDto, data, { strategy: "excludeAll" }),
     };
   }
 
@@ -61,7 +62,7 @@ export class SelectedCalendarsController {
     @Query() queryParams: SelectedCalendarsQueryParamsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = queryParams;
+    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = queryParams;
     await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
 
     const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(

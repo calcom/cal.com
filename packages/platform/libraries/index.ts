@@ -271,3 +271,5 @@ export { getRoutedUrl };
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 
 export { addDwd };
+
+export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";

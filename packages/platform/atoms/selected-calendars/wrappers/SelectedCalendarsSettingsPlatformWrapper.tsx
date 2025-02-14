@@ -83,7 +83,7 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                           className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
-                              {allowDelete && (
+                              {allowDelete && !connectedCalendar.domainWideDelegationCredentialId && (
                                 <PlatformDisconnectIntegration
                                   credentialId={connectedCalendar.credentialId}
                                   trashIcon
@@ -107,6 +107,10 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    domainWideDelegationCredentialId={
+                                      connectedCalendar.domainWideDelegationCredentialId
+                                    }
+                                    eventTypeId={null}
                                   />
                                 );
                               })}
@@ -120,17 +124,19 @@ export const SelectedCalendarsSettingsPlatformWrapper = ({
                         key={`alert-${connectedCalendar.credentialId}`}
                         severity="warning"
                         title={t("something_went_wrong")}
-                        message={<span>{t("calendar_error")}</span>}
+                        message={<span>{connectedCalendar.error?.message || t("calendar_error")}</span>}
                         iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                         actions={
-                          <div className="flex w-32 justify-end">
-                            <PlatformDisconnectIntegration
-                              credentialId={connectedCalendar.credentialId}
-                              trashIcon
-                              buttonProps={{ className: "border border-default" }}
-                              slug={connectedCalendar.integration.slug}
-                            />
-                          </div>
+                          !Boolean(connectedCalendar.domainWideDelegationCredentialId) && (
+                            <div className="flex w-32 justify-end">
+                              <PlatformDisconnectIntegration
+                                credentialId={connectedCalendar.credentialId}
+                                trashIcon
+                                buttonProps={{ className: "border border-default" }}
+                                slug={connectedCalendar.integration.slug}
+                              />
+                            </div>
+                          )
                         }
                       />
                     );
@@ -216,7 +222,7 @@ const PlatformDisconnectIntegration = (props: {
 };
 
 const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { isChecked, title, credentialId, type, externalId } = props;
+  const { isChecked, title, credentialId, type, externalId, domainWideDelegationCredentialId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const { toast } = useToast();
 
@@ -249,9 +255,14 @@ const PlatformCalendarSwitch = (props: ICalendarSwitchProps) => {
     externalId: string;
   }) => {
     if (isOn) {
-      await addSelectedCalendar({ credentialId, integration, externalId });
+      await addSelectedCalendar({ credentialId, integration, externalId, domainWideDelegationCredentialId });
     } else {
-      await removeSelectedCalendar({ credentialId, integration, externalId });
+      await removeSelectedCalendar({
+        credentialId,
+        integration,
+        externalId,
+        domainWideDelegationCredentialId,
+      });
     }
   };
 

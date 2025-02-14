@@ -1091,6 +1091,37 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/dwd": {
+      "post": {
+        "operationId": "OrganizationsDWDController_createDwd",
+        "summary": "Create a dwd",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / dwd"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -5371,6 +5402,14 @@
           {
             "name": "credentialId",
             "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "domainWideDelegationCredentialId",
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -10664,6 +10703,9 @@
           },
           "credentialId": {
             "type": "number"
+          },
+          "domainWideDelegationCredentialId": {
+            "type": "string"
           }
         },
         "required": [
@@ -12698,8 +12740,7 @@
           }
         },
         "required": [
-          "callId",
-          "agentId"
+          "callId"
         ]
       },
       "CreatePhoneCallOutput": {
@@ -15376,6 +15417,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -15523,6 +15568,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -15775,6 +15824,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "seatUid": {
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
@@ -15909,6 +15962,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "seatUid": {
             "type": "string",
@@ -16090,6 +16147,10 @@
               "key": "value"
             }
           },
+          "rating": {
+            "type": "number",
+            "example": 4
+          },
           "attendees": {
             "type": "array",
             "items": {
@@ -16219,6 +16280,10 @@
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
