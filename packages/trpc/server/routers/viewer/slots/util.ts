@@ -274,6 +274,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 
   const loggerWithEventDetails = logger.getSubLogger({
+    type: "json",
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
