@@ -219,17 +219,17 @@ function BookingsContent({ status }: BookingsProps) {
   }, [query.data]);
 
   const finalData = useMemo<RowData[]>(() => {
-    if (bookingsToday.length > 0 && status === "upcoming") {
-      const merged: RowData[] = [
-        { type: "today" as const },
-        ...bookingsToday,
-        { type: "next" as const },
-        ...flatData,
-      ];
-      return merged;
-    } else {
+    if (status !== "upcoming") {
       return flatData;
     }
+    const merged: RowData[] = [];
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
+    }
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
+    }
+    return merged;
   }, [bookingsToday, flatData, status]);
 
   const table = useReactTable<RowData>({
