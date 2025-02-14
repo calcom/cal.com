@@ -97,13 +97,20 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   useProperHeightForMobile(tableContainerRef);
+
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
