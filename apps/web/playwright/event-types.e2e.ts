@@ -205,6 +205,7 @@ test.describe("Event Types tests", () => {
         await saveEventType(page);
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
+        // To avoid race conditions in the <PhoneInput> component
         await page.waitForResponse(
           (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
         );
@@ -220,6 +221,7 @@ test.describe("Event Types tests", () => {
 
         await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
+        // To avoid race conditions in the <PhoneInput> component
         await page.waitForResponse(
           (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
         );
