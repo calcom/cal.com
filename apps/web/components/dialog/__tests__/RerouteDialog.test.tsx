@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import type { Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { vi } from "vitest";
 
@@ -39,8 +40,12 @@ vi.stubGlobal("open", mockOpen);
 
 const mockSession = {
   expires: new Date(Date.now() + 2 * 86400).toISOString(),
-  user: userWhoBooked,
-};
+  user: {
+    id: 1,
+    name: "Test User",
+    email: "user@example.com",
+  },
+} as Session;
 
 vi.mock("@calcom/app-store/routing-forms/components/FormInputFields", () => ({
   default: vi.fn(({ response, form, setResponse, disabledFields }) => {
