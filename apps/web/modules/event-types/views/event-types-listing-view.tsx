@@ -915,6 +915,7 @@ const InfiniteScrollMain = ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
     avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
   }));
 
   const activeEventTypeGroup =
