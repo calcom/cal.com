@@ -18,7 +18,23 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+export function checkPostMethod(req: NextRequest) {
+  if (!req.nextUrl.pathname.startsWith("/api") && req.method === "POST") {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+  return null;
+}
+
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
+  const postCheckResult = checkPostMethod(req);
+  if (postCheckResult) return postCheckResult;
+
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
