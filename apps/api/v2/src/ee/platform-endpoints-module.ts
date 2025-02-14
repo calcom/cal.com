@@ -8,7 +8,8 @@ import { MeModule } from "@/ee/me/me.module";
 import { ProviderModule } from "@/ee/provider/provider.module";
 import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { SlotsModule } from "@/modules/slots/slots.module";
+import { SlotsModule_2024_04_15 } from "@/modules/slots/slots-2024-04-15/slots.module";
+import { SlotsModule_2024_09_04 } from "@/modules/slots/slots-2024-09-04/slots.module";
 import { TeamsEventTypesModule } from "@/modules/teams/event-types/teams-event-types.module";
 import { TeamsMembershipsModule } from "@/modules/teams/memberships/teams-memberships.module";
 import { TeamsModule } from "@/modules/teams/teams/teams.module";
@@ -29,7 +30,8 @@ import { Module } from "@nestjs/common";
     BookingsModule_2024_04_15,
     BookingsModule_2024_08_13,
     TeamsMembershipsModule,
-    SlotsModule,
+    SlotsModule_2024_04_15,
+    SlotsModule_2024_09_04,
     TeamsModule,
   ],
 })
