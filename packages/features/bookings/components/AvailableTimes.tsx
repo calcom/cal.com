@@ -9,7 +9,7 @@ import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slots } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,8 +22,6 @@ import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
-
-type Slot = Slots[string][number] & { showConfirmButton?: boolean };
 
 type TOnTimeSelect = (
   time: string,
@@ -54,7 +52,7 @@ type SlotItemProps = {
   skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
-  handleSlotClick: (slot: Slot, isOverlapping: boolean) => void;
+  handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
 const SlotItem = ({
@@ -127,7 +125,7 @@ const SlotItem = ({
           data-testid="time"
           data-disabled={bookingFull}
           data-time={slot.time}
-          onClick={() => handleSlotClick(slot, isOverlapping)}
+          onClick={() => handleSlotClick && handleSlotClick(slot, isOverlapping)}
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
