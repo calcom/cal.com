@@ -5,7 +5,7 @@ import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/booking
 import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
-import type { Slots } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -110,7 +110,7 @@ export const AvailableTimeSlots = ({
   );
 
   const handleSlotClick = useCallback(
-    (selectedSlot: Slots[string][number] & { showConfirmButton?: boolean }, isOverlapping: boolean) => {
+    (selectedSlot: Slot, isOverlapping: boolean) => {
       if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
         toggleConfirmButton(selectedSlot);
       } else {
