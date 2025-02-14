@@ -152,12 +152,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
