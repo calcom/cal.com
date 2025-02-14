@@ -51,8 +51,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
       req.nextUrl.pathname = `/maintenance`;
       return NextResponse.rewrite(req.nextUrl);
     }
-    req.nextUrl.pathname = `/maintenance`;
-    return NextResponse.rewrite(req.nextUrl);
   }
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
