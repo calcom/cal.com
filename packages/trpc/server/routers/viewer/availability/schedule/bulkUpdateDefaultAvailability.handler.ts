@@ -19,7 +19,7 @@ export const bulkUpdateToDefaultAvailabilityHandler = async ({
   const { eventTypeIds, selectedDefaultScheduleId } = input;
   const defaultScheduleId = ctx.user.defaultScheduleId;
 
-  if (!defaultScheduleId && !selectedDefaultScheduleId) {
+  if (!selectedDefaultScheduleId && !defaultScheduleId) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Default schedule not set",
