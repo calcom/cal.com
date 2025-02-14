@@ -2,13 +2,12 @@ Deployment Plan:
 - Need Stripe Product ID in Env variable
 
 TODO:
-- [ ] PLATFORM: We need to create the organization without requiring payment first.
-- [ ] BUG: createTeams.handler.ts doesn't seem to validate the membership of the person with the teams being moved
-- [ ] BUG: logo and bio not bieng saved to Onboarding/Organization
-- [ ] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
-- [ ] Make sure that we pass creationSource to createTeamsMutation.mutate
+- [x] PLATFORM: We need to create the organization without requiring payment first.
+- [x] BUG: logo and bio not bieng saved to Onboarding/Organization
+- [x] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
+- [x] Make sure that we pass creationSource to createTeamsMutation.mutate
 - [ ] Refreshing on onboarding once it is complete should redirect to Organization profile page in dashboard.
-- [ ] Test admin creation flow.
+- [x] Test admin creation flow.
 - [ ] Even though the payment succeeds, the organization setup might fail. Possible failure reasons are below. We should record the failure in organizationOnboarding table.
      - Organization slug conflict. Taken by some other organization. As soon as the onboarding is complete, the organization slug is reserved.
      - Domain setup - Vercel/Cloudflare domain creation might fail.
@@ -41,10 +40,10 @@ Bugs:
 Testing:
 - [ ] Test Emails
 - [ ] Test a scenario where a team is moved with same slug as the organization's slug being moved to.
-- [ ] Onboarding First Step(Organization)
+- [x] Onboarding First Step(Organization)
      - [x] Error when user is already a part of an organization.
      - [x] Error when slug is taken by another organization.
-- [ ] Onboarding First Step(Platform)
+- [x] Onboarding First Step(Platform)
 
 
 Followup Improvements:

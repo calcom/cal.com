@@ -7,6 +7,9 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { OrganizationPaymentService } from "./OrganizationPaymentService";
 import type { IOrganizationPermissionService } from "./OrganizationPermissionService";
 
+vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "STRIPE_ORG_PRODUCT_ID");
+vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+
 vi.mock("@calcom/prisma", () => ({
   prisma: {
     organizationOnboarding: {
@@ -206,7 +209,8 @@ describe("OrganizationPaymentService", () => {
         expect(vi.mocked(service["billingService"].createPrice)).toHaveBeenCalledWith({
           amount: customPrice * 100, // Convert to cents for Stripe
           currency: "usd",
-          interval: "monthly",
+          interval: "month",
+          productId: "STRIPE_ORG_PRODUCT_ID",
           metadata: expect.any(Object),
           nickname: expect.any(String),
         });

@@ -194,9 +194,15 @@ export class OrganizationPaymentService {
         shouldCreateCustomPrice,
       })
     );
+
+    if (!process.env.STRIPE_ORG_PRODUCT_ID || !process.env.STRIPE_ORG_MONTHLY_PRICE_ID) {
+      throw new Error("STRIPE_ORG_PRODUCT_ID or STRIPE_ORG_MONTHLY_PRICE_ID is not set");
+    }
+
+    const fixedPriceId = process.env.STRIPE_ORG_MONTHLY_PRICE_ID;
     if (!shouldCreateCustomPrice) {
       return {
-        priceId: process.env.STRIPE_ORG_MONTHLY_PRICE_ID!,
+        priceId: fixedPriceId,
         isCustom: false,
       };
     }
@@ -209,7 +215,7 @@ export class OrganizationPaymentService {
 
     const customPrice = await this.billingService.createPrice({
       amount: config.pricePerSeat * 100 * occurrence,
-      productId: process.env.STRIPE_ORG_PRODUCT_ID!,
+      productId: process.env.STRIPE_ORG_PRODUCT_ID,
       currency: "usd",
       interval,
       nickname: `Custom Organization Price - ${config.pricePerSeat} per seat`,

@@ -174,7 +174,6 @@ async function moveTeam({
   teamId,
   newSlug,
   org,
-  ctx,
   creationSource,
 }: {
   teamId: number;
@@ -185,7 +184,6 @@ async function moveTeam({
     ownerId: number;
     metadata: Prisma.JsonValue;
   };
-  ctx: CreateTeamsOptions["ctx"];
   creationSource: CreationSource;
 }) {
   const team = await prisma.team.findUnique({

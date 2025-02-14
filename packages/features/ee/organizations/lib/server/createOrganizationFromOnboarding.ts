@@ -22,6 +22,9 @@ import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
+// Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
+const creationSource = CreationSource.WEBAPP;
+
 const log = logger.getSubLogger({ prefix: ["createOrganizationFromOnboarding"] });
 // Types for organization data
 type OrganizationData = {
@@ -178,8 +181,7 @@ async function createOrganizationWithNonExistentUserAsOwner({
     owner: {
       email: email,
     },
-    // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
-    creationSource: CreationSource.WEBAPP,
+    creationSource,
   });
   organization = orgCreationResult.organization;
   const { ownerProfile, orgOwner: orgOwnerFromCreation } = orgCreationResult;
@@ -247,7 +249,7 @@ async function createOrMoveTeamsToOrganization(teams: TeamData[], owner: User, o
       teamNames: teamsToCreate,
       orgId: organizationId,
       moveTeams: teamsToMove,
-      creationSource: CreationSource.WEBAPP,
+      creationSource,
     },
   });
 

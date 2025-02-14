@@ -5,6 +5,7 @@ type Data = SWHMap["invoice.paid"]["data"];
 
 type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
 
+// We can't crash here if STRIPE_ORG_PRODUCT_ID is not set, because not all self-hosters use Organizations and it might break the build on import of this module.
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
 
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
