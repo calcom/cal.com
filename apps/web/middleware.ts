@@ -18,13 +18,9 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
-const API_ROUTES_COMING_TO_MIDDLEWARE = ["/api/auth/signup", "/api/trpc"];
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
-  if (
-    req.method === "POST" &&
-    API_ROUTES_COMING_TO_MIDDLEWARE.every((route) => !url.pathname.startsWith(route))
-  ) {
+  if (req.method === "POST" && !url.pathname.startsWith("/api")) {
     return new NextResponse(null, {
       status: 405,
       statusText: "Method Not Allowed",
