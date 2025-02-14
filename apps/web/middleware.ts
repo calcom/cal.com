@@ -6,9 +6,7 @@ import { NextResponse } from "next/server";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
-import { csp } from "@lib/csp";
-
-import { abTestMiddlewareFactory } from "./abTest/middlewareFactory";
+import { csp } from "./lib/csp";
 
 const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   try {
@@ -199,7 +197,7 @@ export const config = {
 };
 
 export default collectEvents({
-  middleware: abTestMiddlewareFactory(middleware),
+  middleware,
   ...nextCollectBasicSettings,
   cookieName: "__clnds",
   extend: extendEventData,
