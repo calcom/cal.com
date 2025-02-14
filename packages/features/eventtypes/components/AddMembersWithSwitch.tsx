@@ -53,6 +53,18 @@ const sortByLabel = (a: ReturnType<typeof mapUserToValue>, b: ReturnType<typeof 
   return 0;
 };
 
+function isOptionDisabledForHost(
+  option: CheckedSelectOption,
+  hosts: Host[],
+  isFixed: boolean,
+  assignAllTeamMembers?: boolean
+): boolean {
+  if (assignAllTeamMembers && isFixed) {
+    return hosts.some((host) => host.isFixed && host.userId.toString() === option.value);
+  }
+  return hosts.some((host) => host.userId.toString() === option.value);
+}
+
 const CheckedHostField = ({
   labelText,
   placeholder,
@@ -83,12 +95,7 @@ const CheckedHostField = ({
         <CheckedTeamSelect
           assignAllTeamMembers={assignAllTeamMembers}
           isFixed={isFixed}
-          isOptionDisabled={(option) => {
-            if (assignAllTeamMembers && isFixed) {
-              return !!value.find((host) => host.isFixed && host.userId.toString() === option.value);
-            }
-            return !!value.find((host) => host.userId.toString() === option.value);
-          }}
+          isOptionDisabled={(option) => isOptionDisabledForHost(option, value, isFixed, assignAllTeamMembers)}
           onOptionChange={(options) => {
             onChange &&
               onChange(
