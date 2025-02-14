@@ -44,22 +44,27 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
+    "data-testid": "upcoming",
   },
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
+    "data-testid": "unconfirmed",
   },
   {
     name: "recurring",
     href: "/bookings/recurring",
+    "data-testid": "recurring",
   },
   {
     name: "past",
     href: "/bookings/past",
+    "data-testid": "past",
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
+    "data-testid": "cancelled",
   },
 ];
 
@@ -250,7 +255,12 @@ function BookingsContent({ status }: BookingsProps) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
-        <HorizontalTabs tabs={tabs} />
+        <HorizontalTabs
+          tabs={tabs.map((tab) => ({
+            ...tab,
+            name: t(tab.name),
+          }))}
+        />
         <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />
