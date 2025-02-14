@@ -206,11 +206,9 @@ test.describe("Event Types tests", () => {
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         // To avoid race conditions in the <PhoneInput> component
+        await page.waitForTimeout(2000); // waits for 2 second
         await page.fill('[name="name"]', "Stripe Stripeson");
         await page.fill('[name="email"]', "test@example.com");
-        await page.waitForResponse(
-          (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
-        );
         await page.locator(`[data-fob-field-name="location"] input`).fill("19199999999");
         await bookTimeSlot(page);
 
@@ -224,9 +222,7 @@ test.describe("Event Types tests", () => {
         await page.getByTestId("location-select").click();
         await page.locator(`text="Organizer Phone Number"`).click();
         // To avoid race conditions in the <PhoneInput> component
-        await page.waitForResponse(
-          (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
-        );
+        await page.waitForTimeout(2000); // waits for 2 second
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
         await page.locator(`input[name="${locationInputName}"]`).fill("19199999999");
