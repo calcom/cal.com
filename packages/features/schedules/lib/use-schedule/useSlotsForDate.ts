@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Slots } from "./types";
 
@@ -18,14 +18,38 @@ export const useSlotsForDate = (date: string | null, slots?: Slots) => {
 };
 
 export const useSlotsForAvailableDates = (dates: (string | null)[], slots?: Slots) => {
-  const slotsForDates = useMemo(() => {
-    if (slots === undefined) return [];
-    return dates
+  const [slotsPerDay, setSlotsPerDay] = useState<{ date: string; slots: Slots[string] }[]>([]);
+
+  const toggleConfirmButton = useCallback(
+    (selectedSlot: Slots[string][number] & { showConfirmButton?: boolean }) => {
+      setSlotsPerDay((prevSlotsPerDay) =>
+        prevSlotsPerDay.map(({ date, slots }) => ({
+          date,
+          slots: slots.map((slot) => ({
+            ...slot,
+            showConfirmButton: slot.time === selectedSlot.time ? !selectedSlot?.showConfirmButton : false,
+          })),
+        }))
+      );
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (slots === undefined) {
+      setSlotsPerDay([]);
+      return;
+    }
+
+    const updatedSlots = dates
       .filter((date) => date !== null)
       .map((date) => ({
         slots: slots[`${date}`] || [],
         date,
       }));
-  }, [dates, slots]);
-  return slotsForDates;
+
+    setSlotsPerDay(updatedSlots);
+  }, [JSON.stringify(dates), JSON.stringify(slots)]);
+
+  return { slotsPerDay, setSlotsPerDay, toggleConfirmButton } as const;
 };

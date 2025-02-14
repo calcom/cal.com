@@ -175,7 +175,8 @@ const BookerComponent = ({
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
-    if (!selectedTimeslot || skipConfirmStep) return setBookerState("selecting_time");
+    if (!selectedTimeslot) return setBookerState("selecting_time");
+    if (selectedTimeslot && skipConfirmStep) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 

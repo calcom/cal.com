@@ -1,7 +1,7 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
@@ -36,7 +36,7 @@ export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
   showTimeFormatToggle?: boolean;
   className?: string;
-} & Omit<SlotItemProps, "slot" | "handleSlotClick">;
+} & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
   slot: Slot;
@@ -218,41 +218,12 @@ const SlotItem = ({
 };
 
 export const AvailableTimes = ({
-  slots: Incomingslots,
+  slots,
   showTimeFormatToggle = true,
   className,
-  seatsPerTimeSlot,
-  skipConfirmStep,
-  onTimeSelect,
   ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
-
-  const [slots, setSlots] = useState(Incomingslots);
-
-  const overlayCalendarToggled =
-    getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-
-  const handleSlotClick = useCallback(
-    (selectedSlot: Slot, isOverlapping: boolean) => {
-      if ((overlayCalendarToggled && isOverlapping) || skipConfirmStep) {
-        setSlots((prevSlots) =>
-          prevSlots.map((slot) => ({
-            ...slot,
-            showConfirmButton: slot.time === selectedSlot.time ? !selectedSlot?.showConfirmButton : false,
-          }))
-        );
-        return;
-      }
-      onTimeSelect(
-        selectedSlot.time,
-        selectedSlot?.attendees || 0,
-        seatsPerTimeSlot,
-        selectedSlot.bookingUid
-      );
-    },
-    [overlayCalendarToggled, onTimeSelect, seatsPerTimeSlot, skipConfirmStep]
-  );
 
   const oooAllDay = slots.every((slot) => slot.away);
   if (oooAllDay) {
@@ -279,17 +250,7 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return (
-            <SlotItem
-              key={slot.time}
-              slot={slot}
-              {...props}
-              handleSlotClick={handleSlotClick}
-              seatsPerTimeSlot={seatsPerTimeSlot}
-              skipConfirmStep={skipConfirmStep}
-              onTimeSelect={onTimeSelect}
-            />
-          );
+          return <SlotItem key={slot.time} slot={slot} {...props} />;
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>
