@@ -44,6 +44,15 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           includeManagedEventsInLimits: true,
         },
       },
+      optionalTeamGuests: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          locale: true,
+          timeZone: true,
+        },
+      },
       bookingFields: true,
       title: true,
       length: true,
