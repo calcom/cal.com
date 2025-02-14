@@ -34,7 +34,6 @@ interface PlainChatConfig {
   chatButtons: Array<{
     icon: string;
     text: string;
-    type: string;
     form?: {
       fields: Array<{
         type: string;
@@ -43,10 +42,7 @@ interface PlainChatConfig {
           icon: string;
           text: string;
           threadDetails: {
-            severity: string;
             labelTypeIds: Array<string>;
-            issueType: string;
-            priority: string;
           };
         }>;
       }>;
@@ -154,17 +150,14 @@ const PlainChat = () => {
           {
             icon: "chat",
             text: "Ask a question",
-            type: "primary",
           },
           {
             icon: "bulb",
             text: "Send feedback",
-            type: "default",
           },
           {
             icon: "error",
             text: "Report an issue",
-            type: "default",
             form: {
               fields: [
                 {
@@ -175,30 +168,21 @@ const PlainChat = () => {
                       icon: "support",
                       text: "I'm unable to use the app",
                       threadDetails: {
-                        severity: "critical",
-                        issueType: "critical",
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                        priority: "u",
                       },
                     },
                     {
                       icon: "error",
                       text: "Major functionality degraded",
                       threadDetails: {
-                        severity: "major",
-                        issueType: "major",
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                        priority: "h",
                       },
                     },
                     {
                       icon: "bug",
                       text: "Minor annoyance",
                       threadDetails: {
-                        severity: "minor",
-                        issueType: "minor",
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                        priority: "l",
                       },
                     },
                   ],
