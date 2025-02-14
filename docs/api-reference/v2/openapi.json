@@ -3839,7 +3839,7 @@
     "/v2/calendars/{calendar}/connect": {
       "get": {
         "operationId": "CalendarsController_redirect",
-        "summary": "Get connect URL",
+        "summary": "Get oAuth connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -3854,6 +3854,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["office365", "google"],
               "type": "string"
             }
           }
@@ -3876,7 +3877,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save a calendar",
+        "summary": "Save an oAuth calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -3899,6 +3900,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["office365", "google"],
               "type": "string"
             }
           }
@@ -3921,6 +3923,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["apple"],
               "type": "string"
             }
           }
@@ -3943,6 +3946,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["apple", "google", "office365"],
               "type": "string"
             }
           }
@@ -3972,6 +3976,7 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": ["apple", "google", "office365"],
               "type": "string"
             }
           }
@@ -11577,7 +11582,7 @@
             "type": "string"
           }
         },
-        "required": ["callId", "agentId"]
+        "required": ["callId"]
       },
       "CreatePhoneCallOutput": {
         "type": "object",
