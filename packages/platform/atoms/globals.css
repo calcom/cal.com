@@ -11264,8 +11264,10 @@ hr {}
 .\[grid-area\:timeslots\] {
   grid-area: timeslots;
 }
+
 /**
 * Add css variables here as well for light mode in addition to tailwind.config to avoid FOUC
+* Must update them here as well: packages/embeds/embed-core/src/addAppCssVars.ts
 */
 :root {
   /* Spacing Scale */
@@ -11411,6 +11413,7 @@ hr {}
   --cal-brand-emphasis: hsla(0, 0%, 6%, 1); /* Keeping existing brand emphasis */
   --cal-brand-text: hsla(0, 0%, 100%, 1); /* white */
 }
+
 .dark {
   /* Background Standard */
   --cal-bg-emphasis: hsla(0, 0%, 25%, 1); /* stone-700 */
