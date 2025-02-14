@@ -91,6 +91,8 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                         }
                         className="border-subtle mt-4 rounded-lg border"
                         actions={
+                          // DWD credential can't be disconnected
+                          !connectedCalendar.domainWideDelegationCredentialId &&
                           !disableConnectionModification && (
                             <div className="flex w-32 justify-end">
                               <DisconnectIntegration
@@ -120,6 +122,9 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                                     isChecked={cal.isSelected}
                                     destination={cal.externalId === props.destinationCalendarId}
                                     credentialId={cal.credentialId}
+                                    domainWideDelegationCredentialId={
+                                      connectedCalendar.domainWideDelegationCredentialId
+                                    }
                                     eventTypeId={shouldUseEventTypeScope ? eventTypeId : null}
                                   />
                                 ))}
@@ -140,19 +145,22 @@ export const SelectedCalendarsSettingsWebWrapper = (props: SelectedCalendarsSett
                           <Link href={`/apps/${connectedCalendar.integration.slug}`}>
                             {connectedCalendar.integration.name}
                           </Link>
-                          : {t("calendar_error")}
+                          : {connectedCalendar.error?.message || t("calendar_error")}
                         </span>
                       }
                       iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                       actions={
-                        <div className="flex w-32 justify-end">
-                          <DisconnectIntegration
-                            credentialId={connectedCalendar.credentialId}
-                            trashIcon
-                            onSuccess={props.onChanged}
-                            buttonProps={{ className: "border border-default" }}
-                          />
-                        </div>
+                        // DWD credential can't be disconnected
+                        !connectedCalendar.domainWideDelegationCredentialId && (
+                          <div className="flex w-32 justify-end">
+                            <DisconnectIntegration
+                              credentialId={connectedCalendar.credentialId}
+                              trashIcon
+                              onSuccess={props.onChanged}
+                              buttonProps={{ className: "border border-default" }}
+                            />
+                          </div>
+                        )
                       }
                     />
                   );

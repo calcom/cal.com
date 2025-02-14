@@ -49,6 +49,11 @@ import {
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
+import { getFirstDwdConferencingCredentialAppLocation } from "@calcom/lib/domainWideDelegation/server";
+import {
+  enrichHostsWithDwdCredentials,
+  enrichUsersWithDwdCredentials,
+} from "@calcom/lib/domainWideDelegation/server";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
@@ -180,7 +185,7 @@ function buildLuckyUsersWithJustContactOwner({
   availableUsers: IsFixedAwareUser[];
   fixedUserPool: IsFixedAwareUser[];
 }) {
-  const luckyUsers: Awaited<ReturnType<typeof loadAndValidateUsers>> = [];
+  const luckyUsers: IsFixedAwareUser[] = [];
   if (!contactOwnerEmail) {
     return luckyUsers;
   }
@@ -491,7 +496,7 @@ async function handler(
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerFromReq;
 
-  const allHostUsers = await monitorCallbackAsync(loadAndValidateUsers, {
+  const allHostUsersWithoutHavingDwdCredentials = await monitorCallbackAsync(loadAndValidateUsers, {
     req,
     eventType,
     eventTypeId,
@@ -502,14 +507,28 @@ async function handler(
     isSameHostReschedule: !!(eventType.rescheduleWithSameRoundRobinHost && reqBody.rescheduleUid),
   });
 
+  const firstUserWithoutDwdCredentials: (typeof allHostUsersWithoutHavingDwdCredentials)[number] | undefined =
+    allHostUsersWithoutHavingDwdCredentials[0];
+
+  // We use first user's org ID assuming that each and every member would be within the same organization.
+  const firstUserOrgId = await getOrgIdFromMemberOrTeamId({
+    memberId: firstUserWithoutDwdCredentials?.id ?? null,
+    teamId: eventType.teamId,
+  });
+
+  const allHostUsers = await enrichUsersWithDwdCredentials({
+    orgId: firstUserOrgId ?? null,
+    users: allHostUsersWithoutHavingDwdCredentials,
+  });
+
   // We filter out users but ensure allHostUsers remain same.
   let users = allHostUsers;
-
-  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
+  const firstUser = users[0];
+  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb({
     dynamicUserList,
     users,
-    location
-  );
+    location,
+  });
 
   await monitorCallbackAsync(checkBookingAndDurationLimits, {
     eventType,
@@ -541,7 +560,7 @@ async function handler(
 
   //checks what users are available
   if (isFirstSeat) {
-    const eventTypeWithUsers: getEventTypeResponse & {
+    const eventTypeWithUsers: Omit<getEventTypeResponse, "users"> & {
       users: IsFixedAwareUser[];
     } = {
       ...eventType,
@@ -677,14 +696,18 @@ async function handler(
           });
         }
 
+        // TODO: Why can't we use eventType.users which already has hosts handled??
+        const eventTypeHosts = await enrichHostsWithDwdCredentials({
+          orgId: firstUserOrgId ?? null,
+          hosts: eventTypeWithUsers.hosts,
+        });
+
         const newLuckyUser = shouldUseSameRRHost
           ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser({
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              allRRHosts: eventTypeWithUsers.hosts.filter(
-                (host) => !host.isFixed && userIdsSet.has(host.user.id)
-              ), // users part of virtual queue
+              allRRHosts: eventTypeHosts.filter((host) => !host.isFixed && userIdsSet.has(host.user.id)), // users part of virtual queue
               eventType,
               routingFormResponse: routingFormResponse ?? null,
             });
@@ -798,6 +821,11 @@ async function handler(
       locationBodyString = OrganizerDefaultConferencingAppType;
     }
   }
+
+  const organizationDefaultLocation = getFirstDwdConferencingCredentialAppLocation({
+    credentials: firstUser.credentials,
+  });
+
   // use host default
   if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -809,6 +837,8 @@ async function handler(
         organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
           organizerMetadata?.defaultConferencingApp?.appLink;
       }
+    } else if (organizationDefaultLocation) {
+      locationBodyString = organizationDefaultLocation;
     } else {
       locationBodyString = "integrations:daily";
     }

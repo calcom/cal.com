@@ -17,7 +17,6 @@ import type { Booking, BookingReference } from "@calcom/prisma/client";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { Ensure } from "@calcom/types/utils";
 
@@ -126,12 +125,12 @@ async function getAllCredentials({
   user,
   conferenceCredentialId,
 }: {
-  user: { id: number };
+  user: { id: number; email: string };
   conferenceCredentialId: number | null;
 }) {
   const credentials = await getUsersCredentials(user);
 
-  let conferenceCredential: CredentialPayload | null = null;
+  let conferenceCredential;
 
   if (conferenceCredentialId) {
     conferenceCredential = await CredentialRepository.findFirstByIdWithKeyAndUser({

@@ -289,12 +289,12 @@ function PlatformListItem({ platform, onEdit, onToggle }: Pick<Props, "platform"
                 onClick: () => onEdit(platform, "meta"),
                 icon: "pencil",
               },
-              {
-                id: "edit-service-account",
-                label: t("edit_service_account"),
-                onClick: () => onEdit(platform, "serviceAccount"),
-                icon: "pencil",
-              },
+              // {
+              //   id: "edit-service-account",
+              //   label: t("edit_service_account"),
+              //   onClick: () => onEdit(platform, "serviceAccount"),
+              //   icon: "pencil",
+              // },
             ]}
           />
         </div>
@@ -305,7 +305,7 @@ function PlatformListItem({ platform, onEdit, onToggle }: Pick<Props, "platform"
 
 function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "onOpenChange">) {
   const { t } = useLocale();
-  type FormValues = { name: string; description: string; slug: string; defaultServiceAccountKey: string };
+  type FormValues = { name: string; description: string; slug: string; defaultServiceAccountKey?: string };
   const form = useForm<FormValues>({
     defaultValues: {
       name: "",
@@ -318,7 +318,7 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
         name: z.string(),
         description: z.string(),
         slug: z.string(),
-        defaultServiceAccountKey: z.string(),
+        defaultServiceAccountKey: z.string().optional(),
       })
     ),
   });
@@ -337,16 +337,27 @@ function CreatePlatformDialog({ isOpen, onOpenChange }: Pick<Props, "isOpen" | "
   });
 
   const onSubmit: SubmitHandler<FormValues> = (values) => {
-    const parsedKey = JSON.parse(values.defaultServiceAccountKey);
-    const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
-    if (!validatedKey.success) {
-      form.setError("defaultServiceAccountKey", { message: t("invalid_service_account_key") });
-      return;
+    // Only validate service account key if it's provided
+    if (values.defaultServiceAccountKey) {
+      const parsedKey = JSON.parse(values.defaultServiceAccountKey);
+      const validatedKey = serviceAccountKeySchema.safeParse(parsedKey);
+      if (!validatedKey.success) {
+        form.setError("defaultServiceAccountKey", { message: t("invalid_service_account_key") });
+        return;
+      }
+      addMutation.mutate({
+        ...values,
+        defaultServiceAccountKey: validatedKey.data,
+      });
+    } else {
+      // Submit without service account key
+      addMutation.mutate({
+        name: values.name,
+        description: values.description,
+        slug: values.slug,
+        enabled: true,
+      });
     }
-    addMutation.mutate({
-      ...values,
-      defaultServiceAccountKey: validatedKey.data,
-    });
   };
 
   return (
@@ -419,7 +430,7 @@ function PlatformFormFields({ isCreate }: Pick<Props, "isCreate">) {
       <TextField required label={t("name")} {...form.register("name")} />
       <TextAreaField required label={t("description")} {...form.register("description")} />
       {isCreate && <TextField required label={t("slug")} {...form.register("slug")} />}
-      {isCreate && <ServiceAccountFields />}
+      {isCreate && false && <ServiceAccountFields />}
     </div>
   );
 }

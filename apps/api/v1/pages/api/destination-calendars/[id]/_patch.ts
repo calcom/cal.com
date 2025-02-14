@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type { z } from "zod";
 
-import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
+import { getCalendarCredentialsWithoutDwd, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -185,7 +185,7 @@ async function verifyCredentialsAndGetId({
   currentCredentialId: number | null;
 }) {
   if (parsedBody.integration && parsedBody.externalId) {
-    const calendarCredentials = getCalendarCredentials(userCredentials);
+    const calendarCredentials = getCalendarCredentialsWithoutDwd(userCredentials);
 
     const { connectedCalendars } = await getConnectedCalendars(
       calendarCredentials,

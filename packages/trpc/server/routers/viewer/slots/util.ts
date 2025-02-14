@@ -24,6 +24,8 @@ import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/rout
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { enrichUsersWithDwdCredentials } from "@calcom/lib/domainWideDelegation/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -39,6 +41,7 @@ import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
+import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { TRPCError } from "@trpc/server";
 
@@ -47,6 +50,9 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+type GetAvailabilityUserWithoutDwdCredentials = Omit<GetAvailabilityUser, "credentials"> & {
+  credentials: CredentialPayload[];
+};
 
 async function getEventTypeId({
   slug,
@@ -222,7 +228,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
   contactOwnerEmail: string | null | undefined;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithoutDwdCredentials;
   }[];
 }) {
   const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
@@ -244,7 +250,7 @@ export function getUsersWithCredentialsConsideringContactOwner({
   }
 
   const contactOwnerAndFixedHosts = hosts.reduce(
-    (usersArray: (GetAvailabilityUser & { isFixed?: boolean })[], host) => {
+    (usersArray: (GetAvailabilityUserWithoutDwdCredentials & { isFixed?: boolean })[], host) => {
       if (host.isFixed || host.user.email === contactOwnerEmail)
         usersArray.push({ ...host.user, isFixed: host.isFixed });
 
@@ -254,6 +260,29 @@ export function getUsersWithCredentialsConsideringContactOwner({
   );
 
   return contactOwnerAndFixedHosts;
+}
+
+async function getEnrichedUsersWithCredentialsConsideringContactOwner({
+  contactOwnerEmail,
+  hosts,
+  orgId,
+}: {
+  contactOwnerEmail: string | null | undefined;
+  hosts: {
+    isFixed?: boolean;
+    user: GetAvailabilityUserWithoutDwdCredentials;
+  }[];
+  orgId: number | null;
+}) {
+  const hostsWithContactOwner = getUsersWithCredentialsConsideringContactOwner({
+    contactOwnerEmail,
+    hosts,
+  });
+
+  return await enrichUsersWithDwdCredentials({
+    users: hostsWithContactOwner,
+    orgId,
+  });
 }
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
@@ -326,10 +355,20 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   }
 
   const eventHosts = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
+    findQualifiedHosts<GetAvailabilityUserWithoutDwdCredentials>,
     eventType,
     !!input.rescheduleUid
   );
+
+  const firstUser: GetAvailabilityUserWithoutDwdCredentials | undefined = eventHosts[0]?.user;
+
+  const firstUserOrgId =
+    (await getOrgIdFromMemberOrTeamId({
+      // TODO: Instead of using the firstUser, there should be a better way to determine the orgId
+      memberId: firstUser?.id ?? null,
+      teamId: eventType?.team?.id,
+    })) ?? null;
+
   const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
     eventType,
     normalizedHosts: eventHosts,
@@ -361,6 +400,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
+      orgId: firstUserOrgId,
     });
 
   // If contact skipping, determine if there's availability within two weeks
@@ -386,6 +426,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             endTime,
             bypassBusyCalendarTimes,
             shouldServeCache,
+            orgId: firstUserOrgId,
           }));
       }
     }
@@ -696,7 +737,7 @@ async function getExistingBookings(
       in: "ACCEPTED"[];
     };
   },
-  usersWithCredentials: ReturnType<typeof getUsersWithCredentialsConsideringContactOwner>,
+  usersWithCredentials: Awaited<ReturnType<typeof getEnrichedUsersWithCredentialsConsideringContactOwner>>,
   allUserIds: number[]
 ) {
   const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
@@ -873,12 +914,13 @@ const calculateHostsAndAvailabilities = async ({
   endTime,
   bypassBusyCalendarTimes,
   shouldServeCache,
+  orgId,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
   hosts: {
     isFixed?: boolean;
-    user: GetAvailabilityUser;
+    user: GetAvailabilityUserWithoutDwdCredentials;
   }[];
   contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;
@@ -886,6 +928,7 @@ const calculateHostsAndAvailabilities = async ({
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  orgId: number | null;
 }) => {
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   if (
@@ -910,10 +953,14 @@ const calculateHostsAndAvailabilities = async ({
     hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
   }
 
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
-    contactOwnerEmail,
-    hosts,
-  });
+  const usersWithCredentials = await monitorCallbackAsync(
+    getEnrichedUsersWithCredentialsConsideringContactOwner,
+    {
+      contactOwnerEmail,
+      hosts,
+      orgId,
+    }
+  );
 
   loggerWithEventDetails.debug("Using users", {
     usersWithCredentials: usersWithCredentials.map((user) => user.email),
