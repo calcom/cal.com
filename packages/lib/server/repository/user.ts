@@ -593,7 +593,7 @@ export class UserRepository {
       accepted: boolean;
     };
   }) {
-    const { email, username, creationSource, locked, ...rest } = data;
+    const { email, username, creationSource, locked, hashedPassword, ...rest } = data;
 
     logger.info("create user", { email, username, orgId: orgData?.id, locked });
     const t = await getTranslation("en", "common");
@@ -603,7 +603,7 @@ export class UserRepository {
       data: {
         username,
         email: email,
-        ...(data.hashedPassword && { password: { create: { hash: data.hashedPassword } } }),
+        ...(hashedPassword && { password: { create: { hash: hashedPassword } } }),
         // Default schedule
         schedules: {
           create: {

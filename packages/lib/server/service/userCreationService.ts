@@ -44,7 +44,7 @@ const log = logger.getSubLogger({ prefix: ["[userCreationService]"] });
 
 export class UserCreationService {
   static async createUser({ data, orgData }: { data: CreateUserInput; orgData?: OrgData }) {
-    const { email, password, username } = data;
+    const { email, password, username, ...rest } = data;
 
     const shouldLockByDefault = await checkIfEmailIsBlockedInWatchlistController(email);
 
@@ -52,8 +52,9 @@ export class UserCreationService {
 
     const user = await UserRepository.create({
       data: {
-        ...data,
-        username: slugify(username),
+        ...rest,
+        email,
+        ...(username && { username: slugify(username) }),
         ...(hashedPassword && { hashedPassword }),
         locked: shouldLockByDefault,
       },
@@ -62,9 +63,9 @@ export class UserCreationService {
 
     log.info(`Created user: ${user.id} with locked status of ${user.locked}`);
 
-    const { locked, ...rest } = user;
+    const { locked, ...restUser } = user;
 
-    return rest;
+    return restUser;
   }
 
   static async createUserWithIdP({
