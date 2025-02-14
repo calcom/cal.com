@@ -51,6 +51,8 @@ export const useSchedule = ({
   const _cacheParam = searchParams?.get("cal.cache");
   const shouldServeCache = _cacheParam ? _cacheParam === "true" : undefined;
   const routingFormResponseIdParam = searchParams?.get("cal.routingFormResponseId");
+  const email = searchParams?.get("email");
+
   const routingFormResponseId = routingFormResponseIdParam
     ? parseInt(routingFormResponseIdParam, 10)
     : undefined;
@@ -76,6 +78,7 @@ export const useSchedule = ({
     skipContactOwner,
     shouldServeCache,
     routingFormResponseId,
+    email,
   };
 
   const options = {

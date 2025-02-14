@@ -384,6 +384,16 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       }
     }
 
+    if (input.email) {
+      loggerWithEventDetails.info({
+        email: input.email,
+        contactOwnerEmail,
+        qualifiedRRHosts: qualifiedRRHosts.map((host) => host.user.id),
+        fallbackRRHosts: allFallbackRRHosts.map((host) => host.user.id),
+        fallBackActive: diff > 0,
+      });
+    }
+
     if (diff > 0) {
       // if the first available slot is more than 2 weeks from now, round robin as normal
       ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
