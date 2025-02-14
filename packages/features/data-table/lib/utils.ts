@@ -7,6 +7,7 @@ import type {
   FilterValue,
   NumberFilterValue,
   DateRangeFilterValue,
+  FacetedValue,
 } from "./types";
 import {
   ZNumberFilterValue,
@@ -111,6 +112,20 @@ export const numberFilter = (cellValue: unknown, filterValue: NumberFilterValue)
   return false;
 };
 
+export const dateRangeFilter = (cellValue: unknown, filterValue: DateRangeFilterValue) => {
+  if (!(cellValue instanceof Date)) {
+    return false;
+  }
+
+  if (!filterValue.data.startDate || !filterValue.data.endDate) {
+    return true;
+  }
+
+  const cellValueStr = cellValue.toISOString();
+
+  return filterValue.data.startDate <= cellValueStr && filterValue.data.endDate >= cellValueStr;
+};
+
 export const isNumberFilterValue = (filterValue: unknown): filterValue is NumberFilterValue => {
   return ZNumberFilterValue.safeParse(filterValue).success;
 };
@@ -128,6 +143,26 @@ export const dataTableFilter = (cellValue: unknown, filterValue: FilterValue) =>
     return textFilter(cellValue, filterValue);
   } else if (isNumberFilterValue(filterValue)) {
     return numberFilter(cellValue, filterValue);
+  } else if (isDateRangeFilterValue(filterValue)) {
+    return dateRangeFilter(cellValue, filterValue);
   }
   return false;
+};
+
+export const convertFacetedValuesToMap = (array: FacetedValue[]) => {
+  return new Map<FacetedValue, number>(
+    array.map((option) => [{ label: option.label, value: option.value }, 1])
+  );
+};
+
+export const convertMapToFacetedValues = (map: Map<FacetedValue, number> | undefined) => {
+  if (!map || !(map instanceof Map)) {
+    return [];
+  }
+  return Array.from(map.keys()).map((option) => {
+    if (typeof option === "string") {
+      return { label: option, value: option };
+    }
+    return { label: option.label as string, value: option.value as string | number };
+  });
 };

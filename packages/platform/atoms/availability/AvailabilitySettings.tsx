@@ -394,7 +394,7 @@ export function AvailabilitySettings({
           {allowDelete && (
             <>
               <DeleteDialogButton
-                buttonClassName={cn("hidden sm:inline", customClassNames?.deleteButtonClassname)}
+                buttonClassName={cn("hidden me-2 sm:inline", customClassNames?.deleteButtonClassname)}
                 disabled={schedule.isLastSchedule}
                 isPending={isDeleting}
                 handleDelete={handleDelete}
