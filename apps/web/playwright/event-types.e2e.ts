@@ -206,6 +206,8 @@ test.describe("Event Types tests", () => {
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
         // To avoid race conditions in the <PhoneInput> component
+        await page.fill('[name="name"]', "Stripe Stripeson");
+        await page.fill('[name="email"]', "test@example.com");
         await page.waitForResponse(
           (res) => res.url().includes("/api/trpc/public/countryCode?batch=1") && res.status() === 200
         );
