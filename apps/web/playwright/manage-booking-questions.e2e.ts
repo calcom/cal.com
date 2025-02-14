@@ -258,7 +258,7 @@ test.describe("Manage Booking Questions", () => {
       await test.step("Go to First Team Event", async () => {
         const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
         await locator.click();
-        await expect(locator.getAttribute("aria-current")).toBe("page");
+        await expect(await locator.getAttribute("aria-current")).toBe("page");
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
