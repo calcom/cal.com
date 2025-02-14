@@ -37,7 +37,8 @@ Bugs:
 - [x] When teams are added(in AddNewTeamsForm), they are persisted but aren't shown in the UI after refresh.
 
 Testing:
-- Test a scenario where a team is moved with same slug as the organization's slug being moved to.
+- [ ] Test Emails
+- [ ] Test a scenario where a team is moved with same slug as the organization's slug being moved to.
 - [ ] Onboarding First Step(Organization)
      - [x] Error when user is already a part of an organization.
      - [x] Error when slug is taken by another organization.

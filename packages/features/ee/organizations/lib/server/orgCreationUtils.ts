@@ -10,6 +10,7 @@ import {
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
@@ -76,6 +77,9 @@ type OrgOwner = {
   }[];
   completedOnboarding?: boolean;
   emailVerified?: Date | null;
+  profile?: {
+    organizationId: number | null;
+  } | null;
 };
 
 const getIPAddress = async (url: string): Promise<string> => {
@@ -198,6 +202,11 @@ export async function assertCanCreateOrg({
     errorOnUserAlreadyPartOfOrg,
   });
 
+  // Let slug verification be done before it as that gives better error message if the user creating the org is already a part of the org(i.e. the org exist and he is a member)
+  if (orgOwner.profile?.organizationId) {
+    throw new OrgCreationError("you_are_part_of_an_organization_already");
+  }
+
   const hasExistingPlatformOrOrgTeam = orgOwner?.teams.find((team) => {
     return team.team.isPlatform || team.team.isOrganization;
   });
@@ -234,7 +243,7 @@ export async function assertCanCreateOrg({
 }
 
 export const findUserToBeOrgOwner = async (email: string) => {
-  return await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       email,
     },
@@ -251,6 +260,14 @@ export const findUserToBeOrgOwner = async (email: string) => {
         },
       },
     },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return await UserRepository.enrichUserWithItsProfile({
+    user,
   });
 };
 

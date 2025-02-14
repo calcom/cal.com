@@ -8,11 +8,6 @@
     "resolveJsonModule": true,
     "esModuleInterop": true
   },
-  "include": [
-    ".",
-    "../types/next-auth.d.ts",
-    "../types/tanstack-table.d.ts",
-    "../../apps/web/modules/settings/organizations/new/_components/AddNewTeamsForm.tsx"
-  ],
+  "include": [".", "../types/next-auth.d.ts", "../types/tanstack-table.d.ts"],
   "exclude": ["dist", "build", "node_modules", "**/*.test.*", "**/__mocks__/*", "**/__tests__/*"]
 }

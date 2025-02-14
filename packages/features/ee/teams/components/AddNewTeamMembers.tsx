@@ -46,7 +46,7 @@ const AddNewTeamMembers = ({ isOrg = false }: { isOrg?: boolean }) => {
 
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
-  return <AddNewTeamMembersForm teamId={teamId} isOrg={true} />;
+  return <AddNewTeamMembersForm teamId={teamId} isOrg={isOrg} />;
 };
 
 export const AddNewTeamMembersForm = ({ teamId, isOrg }: { teamId: number; isOrg?: boolean }) => {

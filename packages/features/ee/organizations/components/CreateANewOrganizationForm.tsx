@@ -54,22 +54,36 @@ const CreateANewOrganizationFormChild = ({
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
 
-  const { setBillingPeriod, setPricePerSeat, setSeats, setOrgOwnerEmail, setName, setSlug } =
-    useOnboardingStore();
+  const {
+    setBillingPeriod,
+    setPricePerSeat,
+    setSeats,
+    setOrgOwnerEmail,
+    setName,
+    setSlug,
+    slug,
+    name,
+    orgOwnerEmail,
+    billingPeriod,
+    pricePerSeat,
+    seats,
+  } = useOnboardingStore();
 
   const newOrganizationFormMethods = useForm<{
     name: string;
-    seats: number;
+    seats: number | null;
     billingPeriod: BillingPeriod;
-    pricePerSeat: number;
+    pricePerSeat: number | null;
     slug: string;
     orgOwnerEmail: string;
   }>({
     defaultValues: {
-      billingPeriod: BillingPeriod.MONTHLY,
-      slug: !isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined,
-      orgOwnerEmail: !isAdmin ? defaultOrgOwnerEmail : undefined,
-      name: !isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined,
+      billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
+      slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
+      orgOwnerEmail: orgOwnerEmail ?? (!isAdmin ? defaultOrgOwnerEmail : undefined),
+      name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
+      seats: seats ?? null,
+      pricePerSeat: pricePerSeat ?? null,
     },
   });
 
@@ -110,7 +124,7 @@ const CreateANewOrganizationFormChild = ({
           message: t("problem_registering_domain"),
         });
       } else {
-        setServerErrorMessage(err.message);
+        setServerErrorMessage(t(err.message));
       }
     },
   });
@@ -290,7 +304,7 @@ const CreateANewOrganizationFormChild = ({
                         type="number"
                         addOnSuffix="$"
                         label="Price per seat (optional)"
-                        defaultValue={value}
+                        defaultValue={value ?? ""}
                         onChange={(e) => {
                           onChange(+e.target.value);
                         }}

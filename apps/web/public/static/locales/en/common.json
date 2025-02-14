@@ -2964,6 +2964,7 @@
   "you_cannot_create_a_platform_organization_as_you_are_already_part_of_a_team": "You cannot create a platform organization as you are already a part of a team",
   "you_need_to_have_minimum_published_teams": "You need to have minimum published teams",
   "you_are_part_of_this_organization_already": "You are part of this organization already",
+  "you_are_part_of_another_organization_cannot_create_organization": "You are part of another organization, cannot create a new organization",
   "organization_payment_success": "Organization payment success",
   "organization_payment_success_description": "Your organization has been created successfully",
   "this_may_take_a_few_seconds": "This may take a few seconds",
