@@ -23,16 +23,17 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
-  if (!url.pathname.startsWith("/api")) {
-    if (req.method === "POST") {
-      return new NextResponse(null, {
-        status: 405,
-        statusText: "Method Not Allowed",
-        headers: {
-          Allow: "GET",
-        },
-      });
-    }
+  if (!url.pathname.startsWith("/api") && req.method === "POST") {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+
+  if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
     //       by the application the user is automatically redirected to /auth/login.
@@ -40,12 +41,9 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
     // Check whether the maintenance page should be shown
-    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
     // If is in maintenance mode, point the url pathname to the maintenance page
-    if (isInMaintenanceMode) {
-      req.nextUrl.pathname = `/maintenance`;
-      return NextResponse.rewrite(req.nextUrl);
-    }
+    req.nextUrl.pathname = `/maintenance`;
+    return NextResponse.rewrite(req.nextUrl);
   }
 
   const routingFormRewriteResponse = routingForms.handleRewrite(url);
@@ -181,8 +179,8 @@ export const config = {
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
+    "/:user((?!api)[^/]+)/:type/", // Not match /api/:anything
+    "/:user((?!api)[^/]+)/", // Not match /api
   ],
 };
 
