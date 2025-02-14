@@ -20,9 +20,6 @@ export class ManagedOrganizationsRepository {
           },
         },
       },
-      include: {
-        managedOrganization: true,
-      },
     });
   }
 

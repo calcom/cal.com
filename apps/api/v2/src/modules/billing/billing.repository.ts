@@ -3,10 +3,18 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable, Logger } from "@nestjs/common";
 
+import { Prisma } from "@calcom/prisma/client";
+
 @Injectable()
 export class BillingRepository {
   private readonly logger = new Logger("BillingRepository");
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
+
+  async createPlatformBilling(data: Prisma.PlatformBillingCreateInput) {
+    return this.dbWrite.prisma.platformBilling.create({
+      data,
+    });
+  }
 
   getBillingForTeam = (teamId: number) =>
     this.dbRead.prisma.platformBilling.findUnique({

@@ -11,6 +11,8 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
+import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
+import { ManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/managed-organization.output";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/organizations-organizations.service";
 import { CreateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/create-organization-team.input";
 import { UpdateOrgTeamDto } from "@/modules/organizations/teams/index/inputs/update-organization-team.input";
@@ -43,7 +45,7 @@ import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
-const PLATFORM_PLAN = "SCALE";
+const SCALE = "SCALE";
 
 @Controller({
   path: "/v2/organizations/:managerOrganizationId/organizations",
@@ -56,21 +58,22 @@ export class OrganizationsTeamsController {
 
   @Post()
   @Roles("ORG_ADMIN")
-  @PlatformPlan(PLATFORM_PLAN)
+  @PlatformPlan(SCALE)
   @ApiOperation({ summary: "Create an organization within an organization" })
   async createOrganization(
     @Param("managerOrganizationId", ParseIntPipe) managerOrganizationId: number,
+    @GetUser("id") authUserId: number,
     @Body() body: CreateOrganizationInput
-  ): Promise<OrgTeamOutputResponseDto> {
+  ): Promise<CreateManagedOrganizationOutput> {
     const organization = await this.managedOrganizationsService.createManagedOrganization(
+      authUserId,
       managerOrganizationId,
       body
     );
 
-    // in response return api key also
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgTeamOutputDto, organization, { strategy: "excludeAll" }),
+      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
     };
   }
 
