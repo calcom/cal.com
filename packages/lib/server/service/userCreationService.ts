@@ -14,7 +14,7 @@ import { OrganizationUserService } from "./organizationUserService";
 
 interface CreateUserInput {
   email: string;
-  username: string;
+  username: string | null;
   name?: string;
   password?: string;
   brandColor?: string;
