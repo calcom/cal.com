@@ -37,17 +37,7 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
-  if (!url.pathname.startsWith("/api") && req.method === "POST") {
-    return new NextResponse(null, {
-      status: 405,
-      statusText: "Method Not Allowed",
-      headers: {
-        Allow: "GET",
-      },
-    });
-  }
-
-  if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
+  if (!url.pathname.startsWith("/api")) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
     //       by the application the user is automatically redirected to /auth/login.
@@ -55,7 +45,12 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     //     - For this reason our matchers are sufficient for an app-wide maintenance page.
     //
     // Check whether the maintenance page should be shown
+    const isInMaintenanceMode = await safeGet<boolean>("isInMaintenanceMode");
     // If is in maintenance mode, point the url pathname to the maintenance page
+    if (isInMaintenanceMode) {
+      req.nextUrl.pathname = `/maintenance`;
+      return NextResponse.rewrite(req.nextUrl);
+    }
     req.nextUrl.pathname = `/maintenance`;
     return NextResponse.rewrite(req.nextUrl);
   }
@@ -177,10 +172,21 @@ export const config = {
     "/api/trpc/:path*",
     "/login",
     "/auth/:path*",
+    /**
+     * Paths required by routingForms.handle
+     */
+    "/apps/routing_forms/:path*",
+
     "/event-types/:path*",
+    "/apps/installed/:category/",
+    "/apps/installation/:path*",
+    "/apps/:slug/",
+    "/apps/:slug/setup/",
+    "/apps/categories/",
+    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps/:path*",
+    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
