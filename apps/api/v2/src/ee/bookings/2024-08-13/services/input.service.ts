@@ -463,11 +463,18 @@ export class InputBookingsService_2024_08_13 {
       teamIds: queryParams.teamsIds || (queryParams.teamId ? [queryParams.teamId] : undefined),
       eventTypeIds:
         queryParams.eventTypeIds || (queryParams.eventTypeId ? [queryParams.eventTypeId] : undefined),
+      afterUpdatedDate: queryParams.afterUpdatedAt,
+      beforeUpdatedDate: queryParams.beforeUpdatedAt,
     };
   }
 
   transformGetBookingsSort(queryParams: GetBookingsInput_2024_08_13) {
-    if (!queryParams.sortStart && !queryParams.sortEnd && !queryParams.sortCreated) {
+    if (
+      !queryParams.sortStart &&
+      !queryParams.sortEnd &&
+      !queryParams.sortCreated &&
+      !queryParams.sortUpdatedAt
+    ) {
       return undefined;
     }
 
@@ -475,6 +482,7 @@ export class InputBookingsService_2024_08_13 {
       sortStart: queryParams.sortStart,
       sortEnd: queryParams.sortEnd,
       sortCreated: queryParams.sortCreated,
+      sortUpdated: queryParams.sortUpdatedAt,
     };
   }
 

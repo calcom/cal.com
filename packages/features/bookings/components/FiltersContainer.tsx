@@ -21,7 +21,9 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   const searchParams = useSearchParams();
 
   const validFilterKeys = ["userIds", "eventTypeIds", "upIds", "teamIds", "afterStartDate", "beforeEndDate"];
-  const hasValidQueryParams = Array.from(searchParams.keys()).some((key) => validFilterKeys.includes(key));
+  const hasValidQueryParams = Array.from(searchParams?.keys() ?? []).some((key) =>
+    validFilterKeys.includes(key)
+  );
 
   return (
     <div ref={animationParentRef}>
@@ -33,6 +35,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
           <StartTimeFilters />
           <Tooltip content={t("remove_filters")}>
             <Button
+              data-testid="btn_bookings_list_remove_filters"
               disabled={!hasValidQueryParams}
               color="secondary"
               type="button"
