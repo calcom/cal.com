@@ -923,26 +923,34 @@ export const getOptions = ({
                 identityProviderId: account.providerAccountId,
               },
             });
+
+            if (existingUserWithEmail.twoFactorEnabled) {
+              return loginWithTotp(existingUserWithEmail.email);
+            } else {
+              return true;
+            }
           }
 
           return "/auth/error?error=use-identity-login";
         }
 
-        const newUser = await UserCreationService.createUserWithIdP({
-          idP,
-          email: user.email,
-          name: user.name,
-          image: user?.image,
-          account,
-        });
+        try {
+          const newUser = await UserCreationService.createUserWithIdP({
+            idP,
+            email: user.email,
+            name: user.name,
+            image: user?.image,
+            account,
+          });
 
-        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
-        await calcomAdapter.linkAccount(linkAccountNewUserData);
-
-        if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser.email);
-        } else {
-          return true;
+          if (account.twoFactorEnabled) {
+            return loginWithTotp(newUser.email);
+          } else {
+            return true;
+          }
+        } catch (err) {
+          log.error("Error creating a new user", err);
+          return "/auth/error?error=use-identity-login";
         }
       }
 
