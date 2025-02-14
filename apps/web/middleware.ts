@@ -20,19 +20,19 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
 
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
-  if (req.method === "POST" && !url.pathname.startsWith("/api")) {
-    return new NextResponse(null, {
-      status: 405,
-      statusText: "Method Not Allowed",
-      headers: {
-        Allow: "GET",
-      },
-    });
-  }
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
   if (!url.pathname.startsWith("/api")) {
+    if (req.method === "POST") {
+      return new NextResponse(null, {
+        status: 405,
+        statusText: "Method Not Allowed",
+        headers: {
+          Allow: "GET",
+        },
+      });
+    }
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
     //       by the application the user is automatically redirected to /auth/login.
