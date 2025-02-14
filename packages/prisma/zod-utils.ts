@@ -379,7 +379,7 @@ export const bookingCancelSchema = z.object({
     .object({
       id: z.number(),
       name: z.string(),
-      cancellationReason: z.string().optional(),
+      cancellationReason: z.string().optional().nullable(),
     })
     .optional()
     .nullable(),
@@ -719,6 +719,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   customInputs: true,
   disableGuests: true,
   requiresConfirmation: true,
+  canSendCalVideoTranscriptionEmails: true,
   requiresConfirmationForFreeEmail: true,
   requiresConfirmationWillBlockSlot: true,
   eventName: true,
@@ -753,6 +754,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   assignAllTeamMembers: true,
   isRRWeightsEnabled: true,
   eventTypeColor: true,
+  allowReschedulingPastBookings: true,
   rescheduleWithSameRoundRobinHost: true,
   maxLeadThreshold: true,
 };
