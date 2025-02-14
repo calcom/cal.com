@@ -20,7 +20,22 @@ enum PageType {
 function getPageInfo(pathname: string, host: string) {
   const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: host });
   const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
-  if (!routerUsername || (isValidOrgDomain && currentOrgDomain)) {
+  if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
+    const splitPath = routerUsername.split("/");
+    if (splitPath[1] === "team" && splitPath.length === 3) {
+      return {
+        username: splitPath[2],
+        pageType: PageType.TEAM,
+        url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
+      };
+    } else {
+      return {
+        username: routerUsername,
+        pageType: PageType.USER,
+        url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
+      };
+    }
+  } else {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
@@ -29,21 +44,6 @@ function getPageInfo(pathname: string, host: string) {
       }`,
     };
   }
-
-  const splitPath = routerUsername.split("/");
-  if (splitPath[1] === "team" && splitPath.length === 3) {
-    return {
-      username: splitPath[2],
-      pageType: PageType.TEAM,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
-    };
-  }
-
-  return {
-    username: routerUsername,
-    pageType: PageType.USER,
-    url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
-  };
 }
 
 async function NotFound() {
@@ -122,11 +122,11 @@ async function NotFound() {
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)}
-
+              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
-                  <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                  <strong className="text-blue-500">{username}</strong>
+                  {` ${t("is_still_available")} `}
                   <span className="text-blue-500">{t("register_now")}</span>.
                 </>
               ) : null}
@@ -136,7 +136,7 @@ async function NotFound() {
               {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
-                  <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                  <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
                   {t("is_still_available")}
                 </>
               ) : null}

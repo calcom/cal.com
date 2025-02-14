@@ -15,6 +15,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -36,7 +37,7 @@ describe("Organizations Team Endpoints", () => {
     let teamCreatedViaApi: Team;
     let teamCreatedViaApi2: Team;
 
-    const userEmail = "org-admin-teams-controller-e2e@api.com";
+    const userEmail = `organizations-teams-admin-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -58,7 +59,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -69,13 +70,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: "Test org team 2",
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -133,10 +134,11 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create the team of the org", async () => {
+      const teamName = `organizations-teams-api-team1-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: "Team created via API",
+          name: teamName,
           slug: "team-created-via-api",
           bio: "This is our test team created via API",
         } satisfies CreateOrgTeamDto)
@@ -145,7 +147,7 @@ describe("Organizations Team Endpoints", () => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
-          expect(teamCreatedViaApi.name).toEqual("Team created via API");
+          expect(teamCreatedViaApi.name).toEqual(teamName);
           expect(teamCreatedViaApi.slug).toEqual("team-created-via-api");
           expect(teamCreatedViaApi.bio).toEqual("This is our test team created via API");
           expect(teamCreatedViaApi.parentId).toEqual(org.id);
@@ -171,10 +173,11 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should update the team of the org", async () => {
+      const updatedTeamName = `organizations-teams-api-team1-${randomString()}-updated`;
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
         .send({
-          name: "Team created via API Updated",
+          name: updatedTeamName,
           weekStart: "Monday",
           logoUrl: "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png",
           bannerUrl: "https://i.cal.com/api/avatar/949be534-7a88-4185-967c-c020b0c0bef3.png",
@@ -184,7 +187,7 @@ describe("Organizations Team Endpoints", () => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
-          expect(teamCreatedViaApi.name).toEqual("Team created via API Updated");
+          expect(teamCreatedViaApi.name).toEqual(updatedTeamName);
           expect(teamCreatedViaApi.weekStart).toEqual("Monday");
           expect(teamCreatedViaApi.logoUrl).toEqual(
             "https://i.cal.com/api/avatar/b0b58752-68ad-4c0d-8024-4fa382a77752.png"
@@ -219,10 +222,11 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create the team of the org without auto-accepting creator", async () => {
+      const teamName = `organizations-teams-api-team2-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: "Team II created via API",
+          name: teamName,
           autoAcceptCreator: false,
         } satisfies CreateOrgTeamDto)
         .expect(201)
@@ -230,7 +234,7 @@ describe("Organizations Team Endpoints", () => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi2 = responseBody.data;
-          expect(teamCreatedViaApi2.name).toEqual("Team II created via API");
+          expect(teamCreatedViaApi2.name).toEqual(teamName);
           expect(teamCreatedViaApi2.parentId).toEqual(org.id);
           const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
             user.id,
@@ -265,7 +269,7 @@ describe("Organizations Team Endpoints", () => {
     let team: Team;
     let team2: Team;
 
-    const userEmail = "org-member-teams-controller-e2e@api.com";
+    const userEmail = `organizations-teams-member-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -287,7 +291,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -298,13 +302,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: "Test org team 2",
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -338,7 +342,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: "Team created via API",
+          name: `organizations-teams-api-team1-${randomString()}`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -347,7 +351,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
         .send({
-          name: "Team created via API Updated",
+          name: `organizations-teams-api-team1-${randomString()}-updated`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -379,7 +383,7 @@ describe("Organizations Team Endpoints", () => {
     let team: Team;
     let team2: Team;
 
-    const userEmail = "org-member-teams-owner-controller-e2e@api.com";
+    const userEmail = `organizations-teams-owner-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -401,7 +405,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
+        name: `organizations-teams-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -412,13 +416,13 @@ describe("Organizations Team Endpoints", () => {
       });
 
       team = await teamsRepositoryFixture.create({
-        name: "Test org team",
+        name: `organizations-teams-team1-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
 
       team2 = await teamsRepositoryFixture.create({
-        name: "Test org team 2",
+        name: `organizations-teams-team2-${randomString()}`,
         isOrganization: false,
         parent: { connect: { id: org.id } },
       });
@@ -464,7 +468,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .send({
-          name: "Team created via API",
+          name: `organizations-teams-api-team1-${randomString()}`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -473,7 +477,7 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
         .send({
-          name: "Team created via API Updated",
+          name: `organizations-teams-api-team1-${randomString()}-updated`,
         } satisfies CreateOrgTeamDto)
         .expect(403);
     });
@@ -509,7 +513,7 @@ describe("Organizations Team Endpoints", () => {
     let team1: Team;
     let team2: Team;
 
-    const userEmail = "platform-org-member-teams-owner-controller-e2e@api.com";
+    const userEmail = `organizations-teams-platform-owner-${randomString()}@api.com`;
     let user: User;
 
     beforeAll(async () => {
@@ -531,7 +535,7 @@ describe("Organizations Team Endpoints", () => {
       });
 
       org = await orgRepositoryFixture.create({
-        name: "Platform Test Organization",
+        name: `organizations-teams-platform-organization-${randomString()}`,
         isOrganization: true,
       });
 
@@ -570,7 +574,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create first oAuth client team", async () => {
-      const teamName = "Platform team created via API";
+      const teamName = `organizations-teams-platform-api-team1-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .set(X_CAL_CLIENT_ID, oAuthClient1.id)
@@ -593,7 +597,7 @@ describe("Organizations Team Endpoints", () => {
     });
 
     it("should create second oAuth client team", async () => {
-      const teamName = "Platform team II created via API";
+      const teamName = `organizations-teams-platform-api-team2-${randomString()}`;
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams`)
         .set(X_CAL_CLIENT_ID, oAuthClient2.id)

@@ -36,7 +36,11 @@ type initProps = {
   generalPrompt: string;
 };
 
-const updateAgentWebsocketUrl = async (phoneNumber: string, llmWebsocketUrl: string): Promise<void> => {
+const updateAgentWebsocketUrl = async (
+  phoneNumber: string,
+  llmWebsocketUrl: string,
+  llmId: string
+): Promise<void> => {
   try {
     const phoneNumberDetails = await fetcher(`/get-phone-number/${phoneNumber}`).then(
       ZGetPhoneNumberSchema.parse
@@ -45,7 +49,11 @@ const updateAgentWebsocketUrl = async (phoneNumber: string, llmWebsocketUrl: str
     await fetcher(`/update-agent/${phoneNumberDetails.outbound_agent_id}`, {
       method: "PATCH",
       body: JSON.stringify({
-        llm_websocket_url: llmWebsocketUrl,
+        response_engined: {
+          type: "retell-llm",
+          llm_websocket_url: llmWebsocketUrl,
+          llm_id: llmId,
+        },
       }),
     });
   } catch (error) {
@@ -94,8 +102,12 @@ class CreateRetellLLMCommand implements Command<TCreateRetellLLMSchema> {
         }),
       }).then(ZCreateRetellLLMSchema.parse);
 
-      const llmWebSocketUrlToBeUpdated = createdRetellLLM.llm_websocket_url;
-      await updateAgentWebsocketUrl(this.props.yourPhoneNumber, llmWebSocketUrlToBeUpdated);
+      const llmWebSocketUrlToBeUpdated = createdRetellLLM.inbound_dynamic_variables_webhook_url;
+      await updateAgentWebsocketUrl(
+        this.props.yourPhoneNumber,
+        llmWebSocketUrlToBeUpdated,
+        createdRetellLLM.llm_id
+      );
 
       return createdRetellLLM;
     } catch (error) {
@@ -133,8 +145,12 @@ class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
         }),
       }).then(ZGetRetellLLMSchema.parse);
 
-      const llmWebSocketUrlToBeUpdated = updatedRetellLLM.llm_websocket_url;
-      await updateAgentWebsocketUrl(this.props.yourPhoneNumber, llmWebSocketUrlToBeUpdated);
+      const llmWebSocketUrlToBeUpdated = updatedRetellLLM.inbound_dynamic_variables_webhook_url;
+      await updateAgentWebsocketUrl(
+        this.props.yourPhoneNumber,
+        llmWebSocketUrlToBeUpdated,
+        updatedRetellLLM.llm_id
+      );
 
       return updatedRetellLLM;
     } catch (err) {
@@ -172,7 +188,7 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
 
   async execute(): Promise<TCreatePhoneSchema> {
     try {
-      const createPhoneCallRes = await fetcher("/create-phone-call", {
+      const createPhoneCallRes = await fetcher("/v2/create-phone-call", {
         method: "POST",
         body: JSON.stringify({
           from_number: this.props.yourPhoneNumber,
@@ -187,8 +203,8 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
 
       return createPhoneCallRes;
     } catch (err) {
-      log.error("Unable to Get Phone number", safeStringify(err));
-      throw new Error("Something went wrong! Unable to Get Phone number");
+      log.error("Unable to create phone call", safeStringify(err));
+      throw new Error("Something went wrong! Unable to create phone call");
     }
   }
 }

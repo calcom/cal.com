@@ -261,6 +261,7 @@ async function handler(req: NextApiRequest) {
         data: attendeesList,
       },
     },
+    creationSource: req.body.creationSource,
   };
 
   const createBookingObj = {

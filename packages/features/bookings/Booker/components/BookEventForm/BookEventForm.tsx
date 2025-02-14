@@ -29,6 +29,7 @@ type BookEventFormProps = {
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
   isVerificationCodeSending: boolean;
+  shouldRenderCaptcha?: boolean;
 };
 
 export const BookEventForm = ({
@@ -45,6 +46,7 @@ export const BookEventForm = ({
   extraOptions,
   isVerificationCodeSending,
   isPlatform = false,
+  shouldRenderCaptcha,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
     isError: boolean;
@@ -88,6 +90,8 @@ export const BookEventForm = ({
     return <Alert severity="warning" message={t("error_booking_event")} />;
   }
 
+  const watchedCfToken = bookingForm.watch("cfToken");
+
   return (
     <div className="flex h-full flex-col">
       <Form
@@ -120,6 +124,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
+        {/* Cloudflare Turnstile Captcha */}
         {!isPlatform && (
           <div className="text-subtle my-3 w-full text-xs">
             <Trans
@@ -143,6 +148,7 @@ export const BookEventForm = ({
             />
           </div>
         )}
+
         {isPlatformBookerEmbed && (
           <div className="text-subtle my-3 w-full text-xs">
             {t("proceeding_agreement")}{" "}
@@ -176,9 +182,11 @@ export const BookEventForm = ({
                   {t("back")}
                 </Button>
               )}
+
               <Button
                 type="submit"
                 color="primary"
+                disabled={!!shouldRenderCaptcha && !watchedCfToken}
                 loading={
                   loadingStates.creatingBooking ||
                   loadingStates.creatingRecurringBooking ||
