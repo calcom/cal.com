@@ -23,6 +23,16 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-url", req.url);
 
+  if (!url.pathname.startsWith("/api") && req.method === "POST") {
+    return new NextResponse(null, {
+      status: 405,
+      statusText: "Method Not Allowed",
+      headers: {
+        Allow: "GET",
+      },
+    });
+  }
+
   if (!url.pathname.startsWith("/api") && (await safeGet<boolean>("isInMaintenanceMode"))) {
     //
     // NOTE: When tRPC hits an error a 500 is returned, when this is received
