@@ -4,13 +4,15 @@ import { DateTime } from "luxon";
 
 import { SlotFormat } from "@calcom/platform-enums";
 
-type TimeSlots = { slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]> };
+export type TimeSlots = {
+  slots: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>;
+};
 type RangeSlots = {
   slots: Record<string, { startTime: string; endTime: string; attendees?: number; bookingUid?: string }[]>;
 };
 
 @Injectable()
-export class SlotsOutputService {
+export class SlotsOutputService_2024_04_15 {
   constructor(private readonly eventTypesRepository: EventTypesRepository_2024_04_15) {}
 
   async getOutputSlots(

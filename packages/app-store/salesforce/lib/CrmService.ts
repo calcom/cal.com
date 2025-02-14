@@ -195,15 +195,16 @@ export default class SalesforceCRMService implements CRM {
     } else {
       log.warn("No organizer email found for event", event?.organizer);
     }
+    log.info(`Organizer found with Salesforce id ${ownerId}`);
 
     /**
      * Current code assume that contacts is not empty.
-     * I'm not going to reject the promise since I don't know if this is a valid assumption.
      **/
     const [firstContact] = contacts;
 
     if (!firstContact?.id) {
-      log.warn("No contacts found for event", contacts);
+      log.error("No contacts found for event", { contacts });
+      throw new Error("No contacts found for event");
     }
 
     const eventWhoIds = contacts.reduce((contactIds, contact) => {
@@ -565,7 +566,7 @@ export default class SalesforceCRMService implements CRM {
         const leadQuery = await conn.query(
           `SELECT Id, Email FROM Lead WHERE Email = '${attendee.email}' LIMIT 1`
         );
-        if (leadQuery.records.length) {
+        if (leadQuery.records.length > 0) {
           const contact = leadQuery.records[0] as { Id: string; Email: string };
           return [{ id: contact.Id, email: contact.Email }];
         }
@@ -1229,7 +1230,7 @@ export default class SalesforceCRMService implements CRM {
     const userQuery = await conn.query(
       `SELECT Id, Email FROM Contact WHERE Email = '${attendee.email}' LIMIT 1`
     );
-    if (userQuery.records.length) {
+    if (userQuery.records.length > 0) {
       const contact = userQuery.records[0] as { Id: string; Email: string };
       await conn.sobject(SalesforceRecordEnum.CONTACT).update({
         // The first argument is the WHERE clause

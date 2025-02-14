@@ -3542,6 +3542,7 @@ __metadata:
     jest: ^29.7.0
     jest-date-mock: ^1.0.10
     jsforce: ^1.11.0
+    lodash: ^4.17.21
     luxon: ^3.4.4
     nest-winston: ^1.9.4
     next-auth: ^4.22.1
