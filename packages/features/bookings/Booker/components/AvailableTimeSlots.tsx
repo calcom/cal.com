@@ -7,6 +7,7 @@ import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
+import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { AvailableTimesHeader } from "../../components/AvailableTimesHeader";
@@ -16,7 +17,7 @@ import type { useScheduleForEventReturnType } from "../utils/event";
 type AvailableTimeSlotsProps = {
   extraDays?: number;
   limitHeight?: boolean;
-  schedule?: useScheduleForEventReturnType["data"];
+  schedule?: useScheduleForEventReturnType;
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
@@ -37,6 +38,10 @@ type AvailableTimeSlotsProps = {
   skipConfirmStep: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
+  /**
+   * This is the list of time slots that are unavailable to book
+   */
+  unavailableTimeSlots: string[];
 };
 
 /**
@@ -56,6 +61,7 @@ export const AvailableTimeSlots = ({
   customClassNames,
   skipConfirmStep,
   onSubmit,
+  unavailableTimeSlots,
   ...props
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
@@ -66,13 +72,43 @@ export const AvailableTimeSlots = ({
   const isColumnView = layout === BookerLayouts.COLUMN_VIEW;
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const { setTentativeSelectedTimeslots, tentativeSelectedTimeslots } = useBookerStore((state) => ({
+    setTentativeSelectedTimeslots: state.setTentativeSelectedTimeslots,
+    tentativeSelectedTimeslots: state.tentativeSelectedTimeslots,
+  }));
+
+  const onTentativeTimeSelect = ({
+    time,
+    attendees: _attendees,
+    seatsPerTimeSlot: _seatsPerTimeSlot,
+    bookingUid: _bookingUid,
+  }: {
+    time: string;
+    attendees: number;
+    seatsPerTimeSlot?: number | null;
+    bookingUid?: string;
+  }) => {
+    // We don't intentionally invalidate schedule here because that could remove the slot itself that was clicked, causing a bad UX.
+    // We could start doing that after we fix this behaviour.
+    // schedule?.invalidate();
+
+    setTentativeSelectedTimeslots(Array.from(new Set([...tentativeSelectedTimeslots, time])));
+  };
+
   const onTimeSelect = (
     time: string,
     attendees: number,
     seatsPerTimeSlot?: number | null,
     bookingUid?: string
   ) => {
+    // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
+    if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
+      // Ensures that user has latest available slots when they are about to confirm the booking by filling up the details
+      schedule?.invalidate();
+    }
     setSelectedTimeslot(time);
+    setTentativeSelectedTimeslots([]);
+
     if (seatsPerTimeSlot) {
       setSeatedEventData({
         seatsPerTimeSlot,
@@ -81,13 +117,16 @@ export const AvailableTimeSlots = ({
         showAvailableSeatsCount,
       });
     }
-    if (skipConfirmStep) {
+
+    const isTimeSlotAvailable = !unavailableTimeSlots.includes(time);
+    if (skipConfirmStep && isTimeSlotAvailable) {
       onSubmit(time);
     }
     return;
   };
 
-  const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.slots);
+  const scheduleData = schedule?.data;
+  const nonEmptyScheduleDays = useNonEmptyScheduleDays(scheduleData?.slots);
   const nonEmptyScheduleDaysFromSelectedDate = nonEmptyScheduleDays.filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
@@ -100,7 +139,7 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
-  const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
+  const slotsPerDay = useSlotsForAvailableDates(dates, scheduleData?.slots);
 
   return (
     <>
@@ -147,6 +186,8 @@ export const AvailableTimeSlots = ({
                 customClassNames={customClassNames?.availableTimes}
                 showTimeFormatToggle={!isColumnView}
                 onTimeSelect={onTimeSelect}
+                onTentativeTimeSelect={onTentativeTimeSelect}
+                unavailableTimeSlots={unavailableTimeSlots}
                 slots={slots.slots}
                 showAvailableSeatsCount={showAvailableSeatsCount}
                 skipConfirmStep={skipConfirmStep}

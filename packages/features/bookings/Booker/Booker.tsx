@@ -12,6 +12,7 @@ import useSkipConfirmStep from "@calcom/features/bookings/Booker/components/hook
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
+import { PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM } from "@calcom/lib/constants";
 import { CLOUDFLARE_SITE_ID, CLOUDFLARE_USE_TURNSTILE_IN_BOOKER } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
@@ -30,10 +31,12 @@ import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
 import { NotFound } from "./components/Unavailable";
+import type { QuickAvailabilityCheck } from "./components/hooks/useSlots";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 import { isBookingDryRun } from "./utils/isBookingDryRun";
+import { isSlotEquivalent } from "./utils/isSlotEquivalent";
 
 const TurnstileCaptcha = dynamic(() => import("@calcom/features/auth/Turnstile"), { ssr: false });
 
@@ -45,6 +48,46 @@ const UnpublishedEntity = dynamic(() =>
 const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
   ssr: false,
 });
+
+/**
+ * Checks if a given time slot is available in the schedule
+ * It should never give false negative, false positives are fine.
+ * It could be unavailable for any number of reasons including the slot being reserved and not actually booked
+ * @returns boolean - true if the slot is available, false otherwise.
+ */
+const isTimeSlotAvailable = ({
+  schedule,
+  slotToCheckInIso,
+  dateString,
+  quickAvailabilityChecks,
+}: {
+  schedule: WrappedBookerProps["schedule"];
+  slotToCheckInIso: string;
+  dateString: string | null;
+  quickAvailabilityChecks: QuickAvailabilityCheck[];
+}) => {
+  const isUnavailableAsPerQuickCheck =
+    quickAvailabilityChecks &&
+    quickAvailabilityChecks.some(
+      (slot) => slot.utcStartIso === slotToCheckInIso && slot.status !== "available"
+    );
+
+  if (isUnavailableAsPerQuickCheck) return false;
+
+  // If schedule is not loaded or other variables are unavailable consider the slot available
+  if (!schedule?.data || !dateString) {
+    return true;
+  }
+
+  // Get the slots for this date
+  const slotsForDateInIso = schedule.data.slots[dateString];
+  if (!slotsForDateInIso) return false;
+
+  // Check if the exact time slot exists in the available slots
+  return slotsForDateInIso.some((slot) => {
+    return isSlotEquivalent({ slotTimeInIso: slot.time, slotToCheckInIso });
+  });
+};
 
 const BookerComponent = ({
   username,
@@ -101,8 +144,7 @@ const BookerComponent = ({
     (state) => [state.seatedEventData, state.setSeatedEventData],
     shallow
   );
-  const { selectedTimeslot, setSelectedTimeslot } = slots;
-
+  const { selectedTimeslot, setSelectedTimeslot, allSelectedTimeslots } = slots;
   const [dayCount, setDayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
 
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
@@ -179,6 +221,15 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
+  const unavailableTimeSlots = allSelectedTimeslots.filter((slot) => {
+    return !isTimeSlotAvailable({
+      schedule,
+      slotToCheckInIso: slot,
+      dateString: selectedDate,
+      quickAvailabilityChecks: slots.quickAvailabilityChecks,
+    });
+  });
+
   const slot = getQueryParam("slot");
 
   useEffect(() => {
@@ -196,6 +247,11 @@ const BookerComponent = ({
         shouldRenderCaptcha={shouldRenderCaptcha}
         onCancel={() => {
           setSelectedTimeslot(null);
+          // Temporarily allow disabling it, till we are sure that it doesn't cause any significant load on the system
+          if (PUBLIC_INVALIDATE_AVAILABLE_SLOTS_ON_BOOKING_FORM) {
+            // Ensures that user has latest available slots when they want to re-choose from the slots
+            schedule?.invalidate();
+          }
           if (seatedEventData.bookingUid) {
             setSeatedEventData({ ...seatedEventData, bookingUid: undefined, attendees: undefined });
           }
@@ -203,6 +259,7 @@ const BookerComponent = ({
         onSubmit={() => (renderConfirmNotVerifyEmailButtonCond ? handleBookEvent() : handleVerifyEmail())}
         errorRef={bookerFormErrorRef}
         errors={{ ...formErrors, ...errors }}
+        isTimeslotUnavailable={unavailableTimeSlots.includes(selectedTimeslot || "")}
         loadingStates={loadingStates}
         renderConfirmNotVerifyEmailButtonCond={renderConfirmNotVerifyEmailButtonCond}
         bookingForm={bookingForm}
@@ -276,6 +333,7 @@ const BookerComponent = ({
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
+    unavailableTimeSlots,
   ]);
 
   /**
@@ -465,9 +523,10 @@ const BookerComponent = ({
                 customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
                 extraDays={extraDays}
                 limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                schedule={schedule?.data}
+                schedule={schedule}
                 isLoading={schedule.isPending}
                 seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                unavailableTimeSlots={unavailableTimeSlots}
                 showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
                 event={event}
                 loadingStates={loadingStates}

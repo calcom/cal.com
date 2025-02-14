@@ -47,6 +47,19 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
+const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
+  select: {
+    id: true,
+    slotUtcStartDate: true,
+    slotUtcEndDate: true,
+    userId: true,
+    isSeat: true,
+    eventTypeId: true,
+    uid: true,
+  },
+});
+
+type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
 async function getEventTypeId({
   slug,
@@ -88,6 +101,44 @@ async function getEventTypeId({
     throw new TRPCError({ code: "NOT_FOUND" });
   }
   return eventType?.id;
+}
+
+async function _getReservedSlotsAndCleanupExpired({
+  bookerClientUid,
+  usersWithCredentials,
+  eventTypeId,
+}: {
+  bookerClientUid: string | undefined;
+  usersWithCredentials: GetAvailabilityUser[];
+  eventTypeId: number;
+}) {
+  const currentTimeInUtc = dayjs.utc().format();
+
+  const unexpiredSelectedSlots =
+    (await prisma.selectedSlots.findMany({
+      where: {
+        userId: { in: usersWithCredentials.map((user) => user.id) },
+        releaseAt: { gt: currentTimeInUtc },
+      },
+      ...selectSelectedSlots,
+    })) || [];
+
+  const slotsSelectedByOtherUsers = unexpiredSelectedSlots.filter((slot) => slot.uid !== bookerClientUid);
+
+  await _cleanupExpiredSlots({ eventTypeId });
+
+  const reservedSlots = slotsSelectedByOtherUsers;
+
+  return reservedSlots;
+
+  async function _cleanupExpiredSlots({ eventTypeId }: { eventTypeId: number }) {
+    await prisma.selectedSlots.deleteMany({
+      where: {
+        eventTypeId: { equals: eventTypeId },
+        releaseAt: { lt: currentTimeInUtc },
+      },
+    });
+  }
 }
 
 export async function getEventType(
@@ -169,19 +220,6 @@ export async function getRegularOrDynamicEventType(
     ? await getDynamicEventType(input, organizationDetails)
     : await getEventType(input, organizationDetails);
 }
-
-const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()({
-  select: {
-    id: true,
-    slotUtcStartDate: true,
-    slotUtcEndDate: true,
-    userId: true,
-    isSeat: true,
-    eventTypeId: true,
-  },
-});
-
-type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
   const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
@@ -413,18 +451,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   let availableTimeSlots: typeof timeSlots = [];
-  // Load cached busy slots
-  const selectedSlots =
-    /* FIXME: For some reason this returns undefined while testing in Jest */
-    (await prisma.selectedSlots.findMany({
-      where: {
-        userId: { in: usersWithCredentials.map((user) => user.id) },
-        releaseAt: { gt: dayjs.utc().format() },
-      },
-      ...selectSelectedSlots,
-    })) || [];
-  await prisma.selectedSlots.deleteMany({
-    where: { eventTypeId: { equals: eventType.id }, id: { notIn: selectedSlots.map((item) => item.id) } },
+  const bookerClientUid = ctx?.req?.cookies?.uid;
+
+  const reservedSlots = await _getReservedSlotsAndCleanupExpired({
+    bookerClientUid,
+    eventTypeId: eventType.id,
+    usersWithCredentials,
   });
 
   availableTimeSlots = timeSlots;
@@ -434,8 +466,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     currentSeats,
   };
 
-  if (selectedSlots?.length > 0) {
-    let occupiedSeats: typeof selectedSlots = selectedSlots.filter(
+  if (reservedSlots?.length > 0) {
+    let occupiedSeats: typeof reservedSlots = reservedSlots.filter(
       (item) => item.isSeat && item.eventTypeId === eventType.id
     );
     if (occupiedSeats?.length) {
@@ -468,7 +500,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     }
     availableTimeSlots = availableTimeSlots
       .map((slot) => {
-        const busy = selectedSlots.reduce<EventBusyDate[]>((r, c) => {
+        const busySlotsFromReservedSlots = reservedSlots.reduce<EventBusyDate[]>((r, c) => {
           if (!c.isSeat) {
             r.push({ start: c.slotUtcStartDate, end: c.slotUtcEndDate });
           }
@@ -478,7 +510,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         if (
           !checkForConflicts({
             time: slot.time,
-            busy,
+            busy: busySlotsFromReservedSlots,
             ...availabilityCheckProps,
           })
         ) {

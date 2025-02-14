@@ -30,10 +30,25 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
+type TOnTentativeTimeSelect = ({
+  time,
+  attendees,
+  seatsPerTimeSlot,
+  bookingUid,
+}: {
+  time: string;
+  attendees: number;
+  seatsPerTimeSlot?: number | null;
+  bookingUid?: string;
+}) => void;
+
 export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
   showTimeFormatToggle?: boolean;
   className?: string;
+  // It is called when a slot is selected, but it is not a confirmation and a confirm button will be shown besides it.
+  onTentativeTimeSelect?: TOnTentativeTimeSelect;
+  unavailableTimeSlots?: string[];
 } & Omit<SlotItemProps, "slot">;
 
 type SlotItemProps = {
@@ -41,6 +56,7 @@ type SlotItemProps = {
   seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
   onTimeSelect: TOnTimeSelect;
+  onTentativeTimeSelect?: TOnTentativeTimeSelect;
   showAvailableSeatsCount?: boolean | null;
   event: {
     data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
@@ -52,6 +68,7 @@ type SlotItemProps = {
   skipConfirmStep?: boolean;
   shouldRenderCaptcha?: boolean;
   watchedCfToken?: string;
+  unavailableTimeSlots?: string[];
 };
 
 const SlotItem = ({
@@ -68,6 +85,8 @@ const SlotItem = ({
   skipConfirmStep,
   shouldRenderCaptcha,
   watchedCfToken,
+  onTentativeTimeSelect,
+  unavailableTimeSlots = [],
 }: SlotItemProps) => {
   const { t } = useLocale();
 
@@ -107,10 +126,15 @@ const SlotItem = ({
   });
 
   const [showConfirm, setShowConfirm] = useState(false);
-
   const onButtonClick = useCallback(() => {
     if (!showConfirm && ((overlayCalendarToggled && isOverlapping) || skipConfirmStep)) {
       setShowConfirm(true);
+      onTentativeTimeSelect?.({
+        time: slot.time,
+        attendees: slot?.attendees || 0,
+        seatsPerTimeSlot,
+        bookingUid: slot.bookingUid,
+      });
       return;
     }
     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
@@ -124,7 +148,10 @@ const SlotItem = ({
     slot.bookingUid,
     seatsPerTimeSlot,
     skipConfirmStep,
+    onTentativeTimeSelect,
   ]);
+
+  const isTimeslotUnavailable = unavailableTimeSlots.includes(slot.time);
 
   return (
     <AnimatePresence>
@@ -138,7 +165,8 @@ const SlotItem = ({
             loadingStates?.creatingRecurringBooking ||
             isVerificationCodeSending ||
             loadingStates?.creatingInstantBooking ||
-            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
+            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken) ||
+            isTimeslotUnavailable
           }
           data-testid="time"
           data-disabled={bookingFull}
@@ -188,6 +216,7 @@ const SlotItem = ({
                     }
                     data-testid="skip-confirm-book-button"
                     disabled={
+                      isTimeslotUnavailable ||
                       (!!shouldRenderCaptcha && !watchedCfToken) ||
                       loadingStates?.creatingBooking ||
                       loadingStates?.creatingRecurringBooking ||
@@ -201,11 +230,11 @@ const SlotItem = ({
                       isVerificationCodeSending ||
                       loadingStates?.creatingInstantBooking
                     }>
-                    {renderConfirmNotVerifyEmailButtonCond
-                      ? isPaidEvent
-                        ? t("pay_and_book")
-                        : t("confirm")
-                      : t("verify_email_email_button")}
+                    {(() => {
+                      if (isTimeslotUnavailable) return t("timeslot_unavailable_short");
+                      if (!renderConfirmNotVerifyEmailButtonCond) return t("verify_email_email_button");
+                      return isPaidEvent ? t("pay_and_book") : t("confirm");
+                    })()}
                   </Button>
                 ) : (
                   <Button

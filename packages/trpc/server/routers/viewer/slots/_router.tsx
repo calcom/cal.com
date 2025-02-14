@@ -3,12 +3,14 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZGetScheduleInputSchema } from "./getSchedule.schema";
+import { ZIsAvailableInputSchema, ZIsAvailableOutputSchema } from "./isAvailable.schema";
 import { ZRemoveSelectedSlotInputSchema } from "./removeSelectedSlot.schema";
 import { ZReserveSlotInputSchema } from "./reserveSlot.schema";
 
 type SlotsRouterHandlerCache = {
   getSchedule?: typeof import("./getSchedule.handler").getScheduleHandler;
   reserveSlot?: typeof import("./reserveSlot.handler").reserveSlotHandler;
+  isAvailable?: typeof import("./isAvailable.handler").isAvailableHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: SlotsRouterHandlerCache = {};
@@ -49,6 +51,26 @@ export const slotsRouter = router({
       input,
     });
   }),
+  isAvailable: publicProcedure
+    .input(ZIsAvailableInputSchema)
+    .output(ZIsAvailableOutputSchema)
+    .query(async ({ input, ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.isAvailable) {
+        UNSTABLE_HANDLER_CACHE.isAvailable = await import("./isAvailable.handler").then(
+          (mod) => mod.isAvailableHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.isAvailable) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.isAvailable({
+        ctx: { ...ctx, req: ctx.req as NextApiRequest },
+        input,
+      });
+    }),
   // This endpoint has no dependencies, it doesn't need its own file
   removeSelectedSlotMark: publicProcedure
     .input(ZRemoveSelectedSlotInputSchema)
