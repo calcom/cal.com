@@ -405,7 +405,9 @@ describe("RerouteDialog", () => {
     describe("New tab rescheduling", () => {
       test("new tab is closed when new booking is rerouted", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider>
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleToTheNewEventWithDifferentTimeslotButton();
@@ -444,7 +446,9 @@ describe("RerouteDialog", () => {
 
       test("Rescheduling with same timeslot works", async () => {
         render(
-          <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          <SessionProvider>
+            <RerouteDialog isOpenDialog={true} setIsOpenDialog={mockSetIsOpenDialog} booking={mockBooking} />
+          </SessionProvider>
         );
         clickVerifyNewRouteButton();
         clickRescheduleWithSameTimeslotOfChosenEventButton();
