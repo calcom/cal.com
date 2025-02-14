@@ -4,22 +4,6 @@ import { SchedulingType } from "@calcom/prisma/enums";
 
 import { mergeOverlappingDateRanges } from "./date-range-utils/mergeOverlappingDateRanges";
 
-function uniqueAndSortedDateRanges(ranges: DateRange[]): DateRange[] {
-  const seen = new Set<string>();
-
-  return ranges
-    .sort((a, b) => {
-      const startDiff = a.start.valueOf() - b.start.valueOf();
-      return startDiff !== 0 ? startDiff : a.end.valueOf() - b.end.valueOf();
-    })
-    .filter((range) => {
-      const key = `${range.start.valueOf()}-${range.end.valueOf()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-}
-
 export const getAggregatedAvailability = (
   userAvailability: {
     dateRanges: DateRange[];
@@ -32,22 +16,22 @@ export const getAggregatedAvailability = (
     schedulingType === SchedulingType.COLLECTIVE ||
     schedulingType === SchedulingType.ROUND_ROBIN ||
     userAvailability.length > 1;
-
   const fixedHosts = userAvailability.filter(
     ({ user }) => !schedulingType || schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
   );
 
-  const fixedDateRanges = mergeOverlappingDateRanges(
-    intersect(fixedHosts.map((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges)))
+  const dateRangesToIntersect = fixedHosts.map((s) =>
+    !isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges
   );
-  const dateRangesToIntersect = !!fixedDateRanges.length ? [fixedDateRanges] : [];
-  const roundRobinHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
-  if (roundRobinHosts.length) {
+
+  const unfixedHosts = userAvailability.filter(({ user }) => user?.isFixed !== true);
+  if (unfixedHosts.length) {
     dateRangesToIntersect.push(
-      roundRobinHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
+      unfixedHosts.flatMap((s) => (!isTeamEvent ? s.dateRanges : s.oooExcludedDateRanges))
     );
   }
+
   const availability = intersect(dateRangesToIntersect);
-  // we no longer merge overlapping date ranges, rr-hosts need to be individually available here.
-  return uniqueAndSortedDateRanges(availability);
+
+  return mergeOverlappingDateRanges(availability);
 };

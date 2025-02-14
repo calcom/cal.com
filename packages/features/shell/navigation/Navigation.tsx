@@ -90,11 +90,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
   },
   {
     name: "routing",
-    href: "/apps/routing-forms/forms",
+    href: "/routing",
     icon: "split",
     badge: <Badge variant="green">NEW</Badge>,
 
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
     moreOnMobile: true,
   },
   {

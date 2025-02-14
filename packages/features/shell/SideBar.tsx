@@ -110,7 +110,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
     isAdmin
       ? {
           name: "impersonation",
-          href: "/settings/security/impersonation",
+          href: "/settings/admin/impersonation",
           icon: "lock",
         }
       : null,

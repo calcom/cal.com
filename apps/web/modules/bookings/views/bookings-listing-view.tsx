@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -97,11 +97,18 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
 
   const bookingListFilters = useMemo(() => {
     return {
@@ -226,17 +233,17 @@ function BookingsContent({ status }: BookingsProps) {
   }, [query.data, user?.timeZone]);
 
   const finalData = useMemo<RowData[]>(() => {
-    if (bookingsToday.length > 0 && status === "upcoming") {
-      const merged: RowData[] = [
-        { type: "today" as const },
-        ...bookingsToday,
-        { type: "next" as const },
-        ...flatData,
-      ];
-      return merged;
-    } else {
+    if (status !== "upcoming") {
       return flatData;
     }
+    const merged: RowData[] = [];
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
+    }
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
+    }
+    return merged;
   }, [bookingsToday, flatData, status]);
 
   const table = useReactTable<RowData>({
