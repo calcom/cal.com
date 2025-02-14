@@ -1,20 +1,21 @@
+import type z from "zod";
+
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
 import logger from "@calcom/lib/logger";
-import type {
-  CreationSource,
-  UserPermissionRole,
-  IdentityProvider,
-  MembershipRole,
-} from "@calcom/prisma/enums";
+import { randomString } from "@calcom/lib/random";
+import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
+import type { UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
+import type { userMetadata } from "@calcom/prisma/zod-utils";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
+import { OrganizationUserService } from "./organizationUserService";
 
 interface CreateUserInput {
   email: string;
   username: string;
-  name?: string | null;
+  name?: string;
   password?: string;
   brandColor?: string;
   darkBrandColor?: string;
@@ -29,6 +30,8 @@ interface CreateUserInput {
   role?: UserPermissionRole;
   emailVerified?: Date;
   identityProvider?: IdentityProvider;
+  identityProviderId?: string;
+  metadata?: z.infer<typeof userMetadata>;
 }
 
 interface OrgData {
@@ -63,5 +66,53 @@ export class UserCreationService {
     const { locked, ...restUser } = user;
 
     return restUser;
+  }
+
+  static async createUserWithIdP({
+    idP,
+    email,
+    name,
+    image,
+    account,
+  }: {
+    idP: IdentityProvider;
+    email: string;
+    name: string;
+    image?: string | null;
+    account: {
+      providerAccountId: string;
+    };
+  }) {
+    // Associate with organization if enabled by flag and idP is Google (for now)
+    const { orgUsername, orgId } = await OrganizationUserService.checkIfUserShouldBelongToOrg(idP, email);
+
+    const newUser = await this.createUser({
+      data: {
+        username: orgId ? slugify(orgUsername) : this.slugifyUsername(name),
+        emailVerified: new Date(Date.now()),
+        name,
+        ...(image && { avatarUrl: image }),
+        email,
+        identityProvider: idP,
+        identityProviderId: account.providerAccountId,
+        creationSource: idP === "GOOGLE" ? CreationSource.GOOGLE : CreationSource.SAML,
+        ...(orgId ? { verified: true } : {}),
+      },
+      ...(orgId
+        ? {
+            orgData: {
+              id: orgId,
+              role: MembershipRole.MEMBER,
+              accepted: true,
+            },
+          }
+        : {}),
+    });
+
+    return newUser;
+  }
+
+  static slugifyUsername(username: string) {
+    return `${slugify(username)}-${randomString(6).toLowerCase()}`;
   }
 }

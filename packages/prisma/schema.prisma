@@ -49,6 +49,8 @@ enum CreationSource {
   SELF_SERVE_ADMIN @map("self_serve_admin")
   WEBAPP_NEW_ORG   @map("webapp_new_org")
   API_V2_NEW_ORG   @map("api_v2_new_org")
+  GOOGLE           @map("google")
+  SAML             @map("saml")
 }
 
 model Host {
