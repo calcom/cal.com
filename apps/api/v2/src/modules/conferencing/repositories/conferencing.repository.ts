@@ -17,6 +17,15 @@ export class ConferencingRepository {
     });
   }
 
+  async findTeamConferencingApps(teamId: number) {
+    return this.dbRead.prisma.credential.findMany({
+      where: {
+        teamId,
+        type: { endsWith: "_video" },
+      },
+    });
+  }
+
   async findGoogleMeet(userId: number) {
     return this.dbRead.prisma.credential.findFirst({
       where: { userId, type: GOOGLE_MEET_TYPE },
@@ -26,6 +35,12 @@ export class ConferencingRepository {
   async findConferencingApp(userId: number, app: string) {
     return this.dbRead.prisma.credential.findFirst({
       where: { userId, appId: app },
+    });
+  }
+
+  async findTeamConferencingApp(teamId: number, app: string) {
+    return this.dbRead.prisma.credential.findFirst({
+      where: { teamId, appId: app },
     });
   }
 }

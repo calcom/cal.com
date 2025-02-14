@@ -161,7 +161,7 @@ export class CalendarsService {
     calendarType: keyof typeof APPS_TYPE_ID_MAPPING,
     credentialId?: number | null
   ) {
-    const credential = await this.credentialsRepository.upsertAppCredential(
+    const credential = await this.credentialsRepository.upsertUserAppCredential(
       calendarType,
       key,
       userId,
