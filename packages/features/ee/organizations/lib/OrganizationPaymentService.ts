@@ -231,7 +231,8 @@ export class OrganizationPaymentService {
     stripeCustomerId: string,
     priceId: string,
     config: PaymentConfig,
-    organizationOnboardingId: number
+    organizationOnboardingId: number,
+    params: URLSearchParams
   ) {
     log.debug(
       "Creating subscription",
@@ -244,8 +245,8 @@ export class OrganizationPaymentService {
     );
     return this.billingService.createSubscriptionCheckout({
       customerId: stripeCustomerId,
-      successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success`,
-      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed`,
+      successUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=success&${params.toString()}`,
+      cancelUrl: `${WEBAPP_URL}/settings/organizations/new/status?session_id={CHECKOUT_SESSION_ID}&paymentStatus=failed&${params.toString()}`,
       priceId,
       quantity: config.seats,
       metadata: {
@@ -297,7 +298,10 @@ export class OrganizationPaymentService {
       stripeCustomerId,
       priceId,
       paymentConfig,
-      organizationOnboarding.id
+      organizationOnboarding.id,
+      new URLSearchParams({
+        orgOwnerEmail: input.orgOwnerEmail,
+      })
     );
 
     return {

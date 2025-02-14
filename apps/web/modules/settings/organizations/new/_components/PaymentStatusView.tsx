@@ -1,7 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useState } from "react";
 import { useEffect } from "react";
 
 import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
@@ -13,15 +15,23 @@ const PaymentStatusView = () => {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { name } = useOnboardingStore();
-
-  const { data: organization, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    refetchInterval: 2000, // Poll every 2 seconds until org is created
-  });
-
   const paymentStatus = searchParams?.get("paymentStatus");
   const paymentError = searchParams?.get("error");
+  const orgOwnerEmail = searchParams?.get("orgOwnerEmail");
+  const impersonationAttempted = searchParams?.get("impersonationAttempted");
+  const { name } = useOnboardingStore();
+  const loggedInUser = session.data?.user;
+  const shouldImpersonate =
+    !impersonationAttempted && loggedInUser && orgOwnerEmail ? loggedInUser.email !== orgOwnerEmail : false;
+  const canImpersonate = loggedInUser?.role === "ADMIN";
+
+  const [isImpersonating, setIsImpersonating] = useState(false);
+  const { data: organization, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !shouldImpersonate,
+    refetchInterval: 2000, // Poll every 2 seconds until org is created
+  });
 
   useEffect(() => {
     if (organization) {
@@ -32,13 +42,21 @@ const PaymentStatusView = () => {
     }
   }, [organization, router]);
 
-  if (session.status === "loading" || isLoading) {
+  if (session.status === "loading" || isLoading || isImpersonating) {
     return (
       <SkeletonContainer>
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="mt-4 h-8 w-full" />
       </SkeletonContainer>
     );
+  }
+
+  if (shouldImpersonate && canImpersonate && !isImpersonating) {
+    setIsImpersonating(true);
+    signIn("impersonation-auth", {
+      username: orgOwnerEmail,
+      callbackUrl: `${pathname}?paymentStatus=${paymentStatus}&error=${paymentError}&orgOwnerEmail=${orgOwnerEmail}&impersonationAttempted=true`,
+    });
   }
 
   if (paymentStatus === "failed" || paymentError) {

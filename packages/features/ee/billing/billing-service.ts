@@ -36,6 +36,7 @@ export interface BillingService {
     currency: string;
     interval: "month" | "year";
     nickname?: string;
+    productId: string;
     metadata?: Record<string, string | number>;
   }): Promise<{ priceId: string }>;
   checkIfTeamHasActivePlan(subscriptionId: string): Promise<boolean>;

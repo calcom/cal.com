@@ -117,11 +117,6 @@ export class OrganizationOnboardingRepository {
     });
   }
 
-  static async setOrganizationId({ id, organizationId }: { id: number; organizationId: number }) {
-    logger.debug("Setting organization id", { id, organizationId });
-    return OrganizationOnboardingRepository.update(id, { organizationId });
-  }
-
   static async delete(id: number) {
     logger.debug("Deleting organization onboarding", { id });
     return await prisma.organizationOnboarding.delete({

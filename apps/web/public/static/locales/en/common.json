@@ -2972,5 +2972,6 @@
   "organization_onboarding_status_description": "Organization onboarding status description",
   "payment_failed": "Payment failed",
   "payment_failed_description": "Your payment has failed. Please try again.",
+  "creating_your_organization": "Creating your organization",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

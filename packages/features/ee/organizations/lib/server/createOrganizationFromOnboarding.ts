@@ -147,12 +147,6 @@ async function createOrganizationWithExistingUserAsOwner({
     throw error;
   }
 
-  // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.
-  await OrganizationOnboardingRepository.setOrganizationId({
-    id: organizationOnboardingId,
-    organizationId: organization.id,
-  });
-
   return { organization };
 }
 
@@ -350,6 +344,12 @@ export const createOrganizationFromOnboarding = async ({
     });
     organization = result.organization;
   }
+
+  // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.
+  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+    organizationId: organization.id,
+    stripeSubscriptionId: paymentSubscriptionId,
+  });
 
   const invitedMembers = z
     .array(z.object({ email: z.string().email(), name: z.string().optional() }))
