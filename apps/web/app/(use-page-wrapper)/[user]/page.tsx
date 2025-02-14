@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
@@ -25,13 +25,14 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     profile: { name: `${profile.name}`, image: profile.image },
     users: [{ username: `${profile.username}`, name: `${profile.name}` }],
   };
+
   const metadata = await generateMeetingMetadata(
     meeting,
     () => profile.name,
     () => markdownStrippedBio,
     false,
     getOrgFullOrigin(entity.orgSlug ?? null),
-    `/${params.user}`
+    `/${decodeParams(params).user}`
   );
 
   return {
