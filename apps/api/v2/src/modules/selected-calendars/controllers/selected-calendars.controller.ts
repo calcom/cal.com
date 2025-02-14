@@ -63,12 +63,16 @@ export class SelectedCalendarsController {
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId, domainWideDelegationCredentialId } = queryParams;
-    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
+
+    if (!domainWideDelegationCredentialId) {
+      await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
+    }
 
     const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
       user.id,
       integration,
-      externalId
+      externalId,
+      domainWideDelegationCredentialId
     );
 
     return {
