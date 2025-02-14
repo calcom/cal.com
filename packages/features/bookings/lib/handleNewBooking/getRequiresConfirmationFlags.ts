@@ -67,7 +67,7 @@ async function determineRequiresConfirmation(
   return requiresConfirmation;
 }
 
-function isUserReschedulingOwner(
+export function isUserReschedulingOwner(
   userId: number | undefined,
   originalRescheduledBookingOrganizerId: number | undefined
 ): boolean {

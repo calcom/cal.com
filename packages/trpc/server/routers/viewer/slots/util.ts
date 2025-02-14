@@ -11,7 +11,9 @@ import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWr
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
+import { isUserReschedulingOwner } from "@calcom/features/bookings/lib/handleNewBooking/getRequiresConfirmationFlags";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
@@ -24,6 +26,7 @@ import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/rout
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import {
   calculatePeriodLimits,
   isTimeOutOfBounds,
@@ -35,7 +38,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository, withSelectedCalendars } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { PeriodType, Prisma } from "@calcom/prisma/client";
+import { MembershipRole, PeriodType, Prisma } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { EventBusyDate } from "@calcom/types/Calendar";
@@ -281,7 +284,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         isValidOrgDomain: !!input.orgSlug && !RESERVED_SUBDOMAINS.includes(input.orgSlug),
       }
     : orgDomainConfig(ctx?.req);
-
+  const session = ctx?.req ? await getServerSession({ req: ctx?.req }) : null;
+  const user = session?.user;
   if (process.env.INTEGRATION_TEST_MODE === "true") {
     logger.settings.minLevel = 2;
   }
@@ -361,6 +365,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       endTime,
       bypassBusyCalendarTimes,
       shouldServeCache,
+      userId: user?.id,
     });
 
   // If contact skipping, determine if there's availability within two weeks
@@ -386,6 +391,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             endTime,
             bypassBusyCalendarTimes,
             shouldServeCache,
+            userId: user?.id,
           }));
       }
     }
@@ -873,6 +879,7 @@ const calculateHostsAndAvailabilities = async ({
   endTime,
   bypassBusyCalendarTimes,
   shouldServeCache,
+  userId,
 }: {
   input: TGetScheduleInputSchema;
   eventType: Exclude<Awaited<ReturnType<typeof getRegularOrDynamicEventType>>, null>;
@@ -886,12 +893,12 @@ const calculateHostsAndAvailabilities = async ({
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
+  userId?: number | undefined;
 }) => {
   const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
+  const guests: (GetAvailabilityUser & { isFixed: boolean })[] = [];
   if (
     input.rescheduleUid &&
-    eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
     // If it is rerouting, we should not force reschedule with same host.
     // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
     !isRerouting({ rescheduleUid: input.rescheduleUid, routedTeamMemberIds })
@@ -905,15 +912,81 @@ const calculateHostsAndAvailabilities = async ({
       },
       select: {
         userId: true,
+        eventType: {
+          select: {
+            teamId: true,
+          },
+        },
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    if (
+      eventType.rescheduleWithSameRoundRobinHost &&
+      eventType.schedulingType === SchedulingType.ROUND_ROBIN
+    ) {
+      hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+    }
+    const userReschedulingIsOwner = isUserReschedulingOwner(userId, originalRescheduledBooking?.userId || 0);
+    let isDynamicEventAndUserIsOwner = false;
+    if (input.usernameList && input.usernameList.length > 1 && userId) {
+      isDynamicEventAndUserIsOwner = eventType.users.some((eventUser) => eventUser.id === userId);
+    }
+    let isTeamOrOrgOwnerOrAdmin = false;
+    const orgId = userId && (await getOrgIdFromMemberOrTeamId({ memberId: userId }));
+    if ((input?.isTeamEvent && originalRescheduledBooking?.eventType?.teamId) || orgId) {
+      const teamIdFilter = [originalRescheduledBooking?.eventType?.teamId, orgId].filter(Boolean) as number[];
+      const teamOrOrgOwnerOrAdmin = await prisma.membership.findFirst({
+        where: {
+          teamId: {
+            in: teamIdFilter,
+          },
+          userId: userId,
+          role: {
+            in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          },
+        },
+        select: {
+          userId: true,
+        },
+      });
+      isTeamOrOrgOwnerOrAdmin = !!teamOrOrgOwnerOrAdmin;
+    }
+    if (userReschedulingIsOwner || isDynamicEventAndUserIsOwner || isTeamOrOrgOwnerOrAdmin) {
+      const attendeesEmailList = originalRescheduledBooking?.attendees.map((attendee) => attendee.email);
+      const attendees = await prisma.user.findMany({
+        where: {
+          email: {
+            in: attendeesEmailList,
+          },
+        },
+        select: {
+          credentials: { select: credentialForCalendarServiceSelect },
+          ...availabilityUserSelect,
+        },
+      });
+      attendees.forEach((user) => {
+        guests.push({
+          ...user,
+          allSelectedCalendars: user.selectedCalendars,
+          userLevelSelectedCalendars: user.selectedCalendars.filter((calendar) => !calendar.eventTypeId),
+          isFixed: true,
+        });
+      });
+    }
   }
 
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
+  let usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
     contactOwnerEmail,
     hosts,
   });
+
+  if (guests.length) {
+    usersWithCredentials = [...usersWithCredentials, ...guests];
+  }
 
   loggerWithEventDetails.debug("Using users", {
     usersWithCredentials: usersWithCredentials.map((user) => user.email),
