@@ -140,7 +140,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }
       }}>
       <DialogContent
-        enabledOverflow
+        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -149,7 +149,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
           onSubmit={handleSubmit((data) => {
             createOrEditOutOfOfficeEntry.mutate(data);
           })}>
-          <div className="scrollbar-thin h-full max-h-[80vh] overflow-y-scroll px-1">
+          <div className="h-full px-1">
             <DialogHeader
               title={
                 currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
