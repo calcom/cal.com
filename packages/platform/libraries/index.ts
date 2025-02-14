@@ -53,6 +53,7 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { paymentDataSelect } from "@calcom/prisma/selects/payment";
 import type { TeamQuery } from "@calcom/trpc/server/routers/loggedInViewer/integrations.handler";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
+import addDwd from "@calcom/trpc/server/routers/viewer/domainWideDelegation/add.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   createNewUsersConnectToOrgIfExists,
@@ -268,3 +269,5 @@ export { getBookingFieldsWithSystemFields };
 export { getRoutedUrl };
 
 export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
+
+export { addDwd };

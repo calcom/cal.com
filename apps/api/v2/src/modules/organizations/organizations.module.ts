@@ -7,6 +7,7 @@ import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrganizationsOptionsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes-options.controller";
 import { OrganizationsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes.controller";
+import { OrganizationsDWDController } from "@/modules/organizations/controllers/dwd/dwd.controller";
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsMembershipsController } from "@/modules/organizations/controllers/memberships/organizations-membership.controller";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
@@ -128,6 +129,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
+    OrganizationsDWDController,
   ],
 })
 export class OrganizationsModule {}
