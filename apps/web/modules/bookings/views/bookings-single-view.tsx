@@ -983,7 +983,7 @@ export default function Success(props: PageProps) {
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 1
-                              ? "border-focus bg-emphasis"
+                              ? "border-emphasis bg-emphasis"
                               : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
@@ -994,7 +994,7 @@ export default function Success(props: PageProps) {
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 2
-                              ? "border-focus bg-emphasis"
+                              ? "border-emphasis bg-emphasis"
                               : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
@@ -1005,7 +1005,7 @@ export default function Success(props: PageProps) {
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 3
-                              ? "border-focus bg-emphasis"
+                              ? "border-emphasis bg-emphasis"
                               : " border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
@@ -1016,7 +1016,7 @@ export default function Success(props: PageProps) {
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 4
-                              ? "border-focus bg-emphasis"
+                              ? "border-emphasis bg-emphasis"
                               : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
@@ -1027,7 +1027,7 @@ export default function Success(props: PageProps) {
                           className={classNames(
                             "flex h-10 w-10 items-center justify-center rounded-full border text-2xl hover:opacity-100",
                             rateValue === 5
-                              ? "border-focus bg-emphasis"
+                              ? "border-emphasis bg-emphasis"
                               : "border-muted bg-default opacity-50"
                           )}
                           disabled={isFeedbackSubmitted}
@@ -1132,8 +1132,6 @@ const DisplayLocation = ({
   ) : (
     <p className={className}>{locationToDisplay}</p>
   );
-
-Success.isBookingPage = true;
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];

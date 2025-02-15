@@ -1870,7 +1870,6 @@ model OrganizationOnboarding {
   logo String?
   bio  String?
   isDomainConfigured Boolean @default(false)
-  error String?
 
   // Set when payment intent is there.
   stripeCustomerId     String? @unique

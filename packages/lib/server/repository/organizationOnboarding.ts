@@ -33,6 +33,8 @@ export type CreateOrganizationOnboardingInput = {
   stripeSubscriptionId: string;
   invitedMembers?: { email: string; name?: string }[];
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
+  error?: string | null;
+  isDomainConfigured?: boolean;
 };
 
 export class OrganizationOnboardingRepository {

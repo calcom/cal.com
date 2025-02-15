@@ -316,6 +316,7 @@ export const createOrganizationFromOnboarding = async ({
     | "logo"
     | "bio"
     | "stripeCustomerId"
+    | "isDomainConfigured"
   >;
   paymentSubscriptionId: string;
 }) => {

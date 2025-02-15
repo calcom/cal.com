@@ -227,7 +227,8 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
             color="secondary"
             onClick={handleCounterIncrease}
             aria-label={t("add_a_team")}
-            className="my-1">
+            className="my-1"
+            data-testId="add_a_team">
             {t("add_a_team")}
           </Button>
         )}

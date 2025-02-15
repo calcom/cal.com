@@ -46,7 +46,14 @@ type PermissionCheckInput = {
 
 type OrganizationOnboardingForPaymentIntent = Pick<
   OrganizationOnboarding,
-  "id" | "pricePerSeat" | "billingPeriod" | "seats" | "isComplete" | "orgOwnerEmail" | "slug"
+  | "id"
+  | "pricePerSeat"
+  | "billingPeriod"
+  | "seats"
+  | "isComplete"
+  | "orgOwnerEmail"
+  | "slug"
+  | "stripeCustomerId"
 >;
 
 type PaymentConfig = {
@@ -340,7 +347,9 @@ export class OrganizationPaymentService {
       hasModifiedDefaultPayment
     );
 
-    const stripeCustomerId = await this.getOrCreateStripeCustomerId(organizationOnboarding.orgOwnerEmail);
+    const stripeCustomerId = organizationOnboarding.stripeCustomerId
+      ? organizationOnboarding.stripeCustomerId
+      : await this.getOrCreateStripeCustomerId(organizationOnboarding.orgOwnerEmail);
 
     const subscription = await this.createSubscription(
       stripeCustomerId,
