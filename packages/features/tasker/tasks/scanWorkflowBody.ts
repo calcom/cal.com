@@ -2,9 +2,12 @@ import { AkismetClient } from "akismet-api";
 import type { Comment } from "akismet-api";
 import z from "zod";
 
+import { getTemplateBodyForAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import compareReminderBodyToTemplate from "@calcom/features/ee/workflows/lib/compareReminderBodyToTemplate";
 import { lockUser } from "@calcom/lib/autoLock";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { scheduleWorkflowNotifications } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
@@ -29,12 +32,48 @@ export async function scanWorkflowBody(payload: string) {
         in: workflowStepIds,
       },
     },
+    include: {
+      workflow: {
+        select: {
+          user: {
+            select: {
+              locale: true,
+              timeFormat: true,
+            },
+          },
+        },
+      },
+    },
   });
 
   const client = new AkismetClient({ key: process.env.AKISMET_API_KEY, blog: WEBAPP_URL });
 
   for (const workflowStep of workflowSteps) {
     if (!workflowStep.reminderBody) {
+      await prisma.workflowStep.update({
+        where: {
+          id: workflowStep.id,
+        },
+        data: {
+          verifiedAt: new Date(),
+        },
+      });
+      continue;
+    }
+
+    const timeFormat = getTimeFormatStringFromUserTimeFormat(workflowStep.workflow.user?.timeFormat);
+
+    // Determine if body is a template
+    const defaultTemplate = getTemplateBodyForAction({
+      action: workflowStep.action,
+      locale: workflowStep.workflow.user?.locale ?? "en",
+      template: workflowStep.template,
+      timeFormat,
+    });
+
+    if (
+      compareReminderBodyToTemplate({ reminderBody: workflowStep.reminderBody, template: defaultTemplate })
+    ) {
       await prisma.workflowStep.update({
         where: {
           id: workflowStep.id,
