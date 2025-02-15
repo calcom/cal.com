@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
@@ -34,16 +34,18 @@ const AddNewTeamMembers = () => {
 };
 
 const useCheckout = () => {
+  const { t } = useLocale();
   const [serverErrorMessage, setServerErrorMessage] = useState("");
   const mutation = trpc.viewer.organizations.createWithPaymentIntent.useMutation({
     onSuccess: (data) => {
       if (data.checkoutUrl) {
-        // We don't open new tab because that might be blocked by browser
         window.location.href = data.checkoutUrl;
+      } else {
+        data.organizationOnboarding.id;
       }
     },
     onError: (error) => {
-      setServerErrorMessage(error.message);
+      setServerErrorMessage(t(error.message));
     },
   });
 
@@ -57,19 +59,16 @@ const useCheckout = () => {
 
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
+  const useOnboardingStore = useOnboarding();
   const {
     addInvitedMember,
     removeInvitedMember,
-    name,
-    slug,
     orgOwnerEmail,
-    billingPeriod,
-    pricePerSeat,
-    seats,
     teams,
     invitedMembers,
     logo,
     bio,
+    onboardingId,
   } = useOnboardingStore();
   const checkout = useCheckout();
 
@@ -190,21 +189,19 @@ export const AddNewTeamMembersForm = () => {
       <div className="mt-3 mt-6 flex items-center justify-end">
         <Button
           onClick={() => {
-            if (!orgOwnerEmail || !name || !slug) {
-              console.error("Org owner email, name, and slug are required");
+            if (!onboardingId) {
+              console.error("Org owner email and onboardingId are required", {
+                orgOwnerEmail,
+                onboardingId,
+              });
               return;
             }
             checkout.mutation.mutate({
-              name,
-              slug,
               logo,
               bio,
-              orgOwnerEmail,
-              billingPeriod,
-              pricePerSeat,
-              seats,
               teams,
               invitedMembers,
+              onboardingId,
             });
           }}
           loading={checkout.isPending}>

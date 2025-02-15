@@ -3,14 +3,17 @@
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Avatar, Button, Form, Icon, ImageUploader, Label, TextAreaField } from "@calcom/ui";
 
 export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+
+  const useOnboardingStore = useOnboarding();
   const { setLogo, setBio, bio: bioFromStore, logo: logoFromStore } = useOnboardingStore();
+
   const aboutOrganizationFormMethods = useForm<{
     logo: string;
     bio: string;

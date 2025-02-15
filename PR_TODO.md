@@ -1,7 +1,10 @@
 Deployment Plan:
-- Need Stripe Product ID in Env variable
+- [ ] Need Stripe Product ID in Env variable
+- [ ] Set NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW to 37
+
 
 TODO:
+- [ ] Change onboarding.id to a uuid
 - [x] PLATFORM: We need to create the organization without requiring payment first.
 - [x] BUG: logo and bio not bieng saved to Onboarding/Organization
 - [x] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
@@ -39,6 +42,7 @@ Bugs:
 
 Testing:
 - [ ] Test Emails
+- [ ] Test inviting members from the members page, increases the seats in the subscription.
 - [ ] Test a scenario where a team is moved with same slug as the organization's slug being moved to.
 - [x] Onboarding First Step(Organization)
      - [x] Error when user is already a part of an organization.
@@ -47,6 +51,9 @@ Testing:
 
 
 Followup Improvements:
+ - [ ] If due to the number of people being invited during the onboarding if the seats increase, we should show that as a toast in the last onboarding step
+ - [ ] Logo upload isn't working form onboarding(Existing bug)
+ - [ ] Send telemetry event for org creation,
  - [ ]  What if renewal of plan fails? Need to handle that.
  - [ ] OrganizationOnboarding schema should be created through intentToCreateOrgHandler and rest of the flow should just update it. This could be important because we do a lot of validation in intentToCreateOrgHandler and without that we shouldn't allow organization to be created and thus no-onboarding should happen.
  - [ ]  Consider showing what each step in onboarding does, like some indication in front of all steps viewable at once.

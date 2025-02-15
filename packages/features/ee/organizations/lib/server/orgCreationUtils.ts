@@ -6,6 +6,7 @@ import {
   RESERVED_SUBDOMAINS,
   ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
   WEBAPP_URL,
+  IS_CALCOM,
 } from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import logger from "@calcom/lib/logger";
@@ -283,9 +284,15 @@ export const setupDomain = async ({
   orgOwnerTranslation: TFunction;
 }) => {
   log.debug("Starting domain setup", safeStringify({ slug, isPlatform }));
-  const isOrganizationConfigured = isPlatform ? true : await createDomain(slug);
+  const areDomainsConfigured = isPlatform ? true : await createDomain(slug);
 
-  if (!isOrganizationConfigured) {
+  // On Cal.com, we expect the domains to be configured.
+  if (IS_CALCOM && !areDomainsConfigured) {
+    log.error("Failed to create domain in Vercel/Cloudflare", safeStringify({ slug }));
+    throw new OrgCreationError("could_not_create_domain");
+  }
+
+  if (!areDomainsConfigured) {
     log.warn("Organization domain not configured", safeStringify({ slug }));
     // Otherwise, we proceed to send an administrative email to admins regarding
     // the need to configure DNS registry to support the newly created org

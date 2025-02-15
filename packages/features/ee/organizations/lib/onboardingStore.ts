@@ -1,5 +1,10 @@
+import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 enum BillingPeriod {
   MONTHLY = "MONTHLY",
@@ -18,6 +23,7 @@ interface OnboardingUserStoreState {
   slug: string;
   logo?: string;
   bio?: string;
+  onboardingId: string | null;
   invitedMembers: { email: string; name?: string }[];
   teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[];
 }
@@ -37,6 +43,8 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   addInvitedMember: (member: { email: string; name?: string }) => void;
   removeInvitedMember: (email: string) => void;
 
+  setOnboardingId: (onboardingId: string) => void;
+
   // Actions for team state
   setTeams: (teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[]) => void;
   // Reset state
@@ -49,8 +57,33 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   slug: "",
   logo: "",
   bio: "",
+  onboardingId: null,
   invitedMembers: [],
   teams: [],
+};
+
+export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status" | null }) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [onboardingIdFromStore, setOnboardingId] = useOnboardingStore((state) => [
+    state.onboardingId,
+    state.setOnboardingId,
+  ]);
+
+  const onboardingIdFromParams = searchParams?.get("onboardingId");
+
+  // Set only if the store didn't have it already
+  if (onboardingIdFromParams && !onboardingIdFromStore) {
+    setOnboardingId(onboardingIdFromParams);
+    return;
+  }
+
+  const requireOnboardingIdInStore = step !== "start" && step !== "status";
+
+  if (!onboardingIdFromStore && requireOnboardingIdInStore) {
+    console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
+    router.push("/settings/organizations/new");
+  }
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
@@ -69,6 +102,7 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setSlug: (slug) => set({ slug }),
       setLogo: (logo) => set({ logo }),
       setBio: (bio) => set({ bio }),
+      setOnboardingId: (onboardingId) => set({ onboardingId }),
       addInvitedMember: (member) =>
         set((state) => ({
           invitedMembers: [...state.invitedMembers, member],
@@ -89,3 +123,21 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
     }
   )
 );
+
+export const useOnboarding = (params?: { step?: "start" | "status" | null }) => {
+  const session = useSession();
+  const router = useRouter();
+  const path = usePathname();
+  const searchParams = useSearchParams();
+  useSetOnboardingIdFromParam({ step: params?.step ?? null });
+  useEffect(() => {
+    if (session.status === "loading") {
+      return;
+    }
+    if (!session.data) {
+      const searchString = !searchParams ? "" : `${searchParams.toString()}`;
+      router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
+    }
+  }, [session, router, path, searchParams]);
+  return useOnboardingStore;
+};

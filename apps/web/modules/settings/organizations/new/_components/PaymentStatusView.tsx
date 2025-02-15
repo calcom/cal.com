@@ -1,63 +1,39 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useState } from "react";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button, Icon, SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { Button, Icon } from "@calcom/ui";
 
 const PaymentStatusView = () => {
   const { t } = useLocale();
-  const session = useSession();
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const paymentStatus = searchParams?.get("paymentStatus");
   const paymentError = searchParams?.get("error");
-  const orgOwnerEmail = searchParams?.get("orgOwnerEmail");
-  const impersonationAttempted = searchParams?.get("impersonationAttempted");
+  const useOnboardingStore = useOnboarding({
+    step: "status",
+  });
+  const [organizationCreated, setOrganizationCreated] = useState<boolean>(false);
   const { name } = useOnboardingStore();
-  const loggedInUser = session.data?.user;
-  const shouldImpersonate =
-    !impersonationAttempted && loggedInUser && orgOwnerEmail ? loggedInUser.email !== orgOwnerEmail : false;
-  const canImpersonate = loggedInUser?.role === "ADMIN";
 
-  const [isImpersonating, setIsImpersonating] = useState(false);
-  const { data: organization, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !shouldImpersonate,
+  const { data: organization } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     refetchInterval: 2000, // Poll every 2 seconds until org is created
+    enabled: !organizationCreated,
   });
 
   useEffect(() => {
     if (organization) {
+      setOrganizationCreated(true);
       // Clear persisted store data after successful checkout as it is now in DB
       useOnboardingStore.persist.clearStorage();
       // Organization is created, redirect to next step
       router.push(`/settings/organizations`);
     }
-  }, [organization, router]);
-
-  if (session.status === "loading" || isLoading || isImpersonating) {
-    return (
-      <SkeletonContainer>
-        <SkeletonText className="h-8 w-full" />
-        <SkeletonText className="mt-4 h-8 w-full" />
-      </SkeletonContainer>
-    );
-  }
-
-  if (shouldImpersonate && canImpersonate && !isImpersonating) {
-    setIsImpersonating(true);
-    signIn("impersonation-auth", {
-      username: orgOwnerEmail,
-      callbackUrl: `${pathname}?paymentStatus=${paymentStatus}&error=${paymentError}&orgOwnerEmail=${orgOwnerEmail}&impersonationAttempted=true`,
-    });
-  }
+  }, [organization, router, useOnboardingStore]);
 
   if (paymentStatus === "failed" || paymentError) {
     return (

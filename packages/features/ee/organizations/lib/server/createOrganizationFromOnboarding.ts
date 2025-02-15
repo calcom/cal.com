@@ -15,16 +15,18 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { Team, User } from "@calcom/prisma/client";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
 const creationSource = CreationSource.WEBAPP;
-
+type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["createOrganizationFromOnboarding"] });
 // Types for organization data
 type OrganizationData = {
@@ -57,10 +59,8 @@ type InvitedMember = {
 
 async function createOrganizationWithExistingUserAsOwner({
   owner,
-  organizationOnboardingId,
   orgData,
 }: {
-  organizationOnboardingId: number;
   owner: NonNullable<Awaited<ReturnType<typeof findUserToBeOrgOwner>>>;
   orgData: OrganizationData;
 }) {
@@ -191,6 +191,7 @@ async function createOrganizationWithNonExistentUserAsOwner({
       `Just created the owner ${orgOwnerFromCreation.email}, but couldn't find it in the database`
     );
   }
+
   const translation = await getTranslation(orgOwner.locale ?? "en", "common");
 
   await sendEmailVerification({
@@ -275,6 +276,22 @@ async function inviteMembers(invitedMembers: InvitedMember[], organization: Team
   });
 }
 
+async function ensureStripeCustomerIdIsUpdated({
+  owner,
+  stripeCustomerId,
+}: {
+  owner: User;
+  stripeCustomerId: string;
+}) {
+  const parsedMetadata = userMetadata.parse(owner.metadata);
+
+  await UserRepository.updateCustomerId({
+    id: owner.id,
+    stripeCustomerId: stripeCustomerId,
+    existingMetadata: parsedMetadata,
+  });
+}
+
 /**
  * This function is used by stripe webhook, so it should expect to be called multiple times till the entire flow completes without any error.
  * So, it should be idempotent.
@@ -298,18 +315,25 @@ export const createOrganizationFromOnboarding = async ({
     | "isPlatform"
     | "logo"
     | "bio"
+    | "stripeCustomerId"
   >;
   paymentSubscriptionId: string;
 }) => {
   let owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
   const orgOwnerTranslation = await getTranslation(owner?.locale || "en", "common");
 
-  // Important: Setup Domain first before creating the organization as Vercel/Cloudflare might not allow the domain to be created and that could cause organization booking pages to not actually work
-  await setupDomain({
-    slug: organizationOnboarding.slug,
-    isPlatform: organizationOnboarding.isPlatform,
-    orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
-    orgOwnerTranslation,
+  if (!organizationOnboarding.isDomainConfigured) {
+    // Important: Setup Domain first before creating the organization as Vercel/Cloudflare might not allow the domain to be created and that could cause organization booking pages to not actually work
+    await setupDomain({
+      slug: organizationOnboarding.slug,
+      isPlatform: organizationOnboarding.isPlatform,
+      orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+      orgOwnerTranslation,
+    });
+  }
+
+  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+    isDomainConfigured: true,
   });
 
   let organization;
@@ -341,10 +365,16 @@ export const createOrganizationFromOnboarding = async ({
   } else {
     const result = await createOrganizationWithExistingUserAsOwner({
       orgData,
-      organizationOnboardingId: organizationOnboarding.id,
       owner,
     });
     organization = result.organization;
+  }
+
+  if (organizationOnboarding.stripeCustomerId) {
+    await ensureStripeCustomerIdIsUpdated({
+      owner,
+      stripeCustomerId: organizationOnboarding.stripeCustomerId,
+    });
   }
 
   // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.

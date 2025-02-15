@@ -8,13 +8,11 @@ export enum BillingPeriod {
 }
 
 // Base user schema - fields that any user can set
-export const ZCreateUserInputSchema = z.object({
-  name: z.string(),
-  slug: z.string().transform((val) => slugify(val.trim())),
-  orgOwnerEmail: z.string().email(),
+export const ZCreateWithPaymentIntentInputSchema = z.object({
   language: z.string().optional(),
   logo: z.string().nullish(),
   bio: z.string().nullish(),
+  onboardingId: z.string(),
   invitedMembers: z
     .array(
       z.object({
@@ -38,18 +36,4 @@ export const ZCreateUserInputSchema = z.object({
     .optional(),
 });
 
-// Admin-only schema - fields that only admins can set
-export const ZCreateAdminInputSchema = z.object({
-  seats: z.number().nullish(),
-  pricePerSeat: z.number().nullish(),
-  billingPeriod: z.nativeEnum(BillingPeriod).default(BillingPeriod.MONTHLY),
-});
-
-// Combined schema for creating with payment intent
-export const ZCreateWithPaymentIntentInputSchema = ZCreateUserInputSchema.merge(
-  ZCreateAdminInputSchema.partial()
-);
-
-export type TCreateUserInputSchema = z.infer<typeof ZCreateUserInputSchema>;
-export type TCreateAdminInputSchema = z.infer<typeof ZCreateAdminInputSchema>;
 export type TCreateWithPaymentIntentInputSchema = z.infer<typeof ZCreateWithPaymentIntentInputSchema>;

@@ -5,6 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 
+type OnboardingId = string;
 // Zod schemas for validation
 const invitedMemberSchema = z.object({
   email: z.string().email(),
@@ -26,12 +27,12 @@ export type CreateOrganizationOnboardingInput = {
   orgOwnerEmail: string;
   name: string;
   slug: string;
-  logo?: string;
-  bio?: string;
+  logo?: string | null;
+  bio?: string | null;
   stripeCustomerId: string;
   stripeSubscriptionId: string;
   invitedMembers?: { email: string; name?: string }[];
-  teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string }[];
+  teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
 };
 
 export class OrganizationOnboardingRepository {
@@ -76,8 +77,17 @@ export class OrganizationOnboardingRepository {
     });
   }
 
+  static async findById(id: OnboardingId) {
+    logger.debug("Finding organization onboarding by id", safeStringify({ id }));
+    return await prisma.organizationOnboarding.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   static async findByOrgOwnerEmail(email: string) {
-    logger.debug("Finding organization onboarding by org owner email", { email });
+    logger.debug("Finding organization onboarding by org owner email", safeStringify({ email }));
     return await prisma.organizationOnboarding.findUnique({
       where: {
         orgOwnerEmail: email,
@@ -86,7 +96,7 @@ export class OrganizationOnboardingRepository {
   }
 
   // TODO: This method should be moved to OrganizationOnboardingService
-  static async markAsComplete(id: number) {
+  static async markAsComplete(id: OnboardingId) {
     logger.debug("Marking organization onboarding as complete", { id });
     return await prisma.organizationOnboarding.update({
       where: {
@@ -98,7 +108,7 @@ export class OrganizationOnboardingRepository {
     });
   }
 
-  static async update(id: number, data: Partial<CreateOrganizationOnboardingInput>) {
+  static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
 
     // Validate invitedMembers and teams if they exist
@@ -113,11 +123,14 @@ export class OrganizationOnboardingRepository {
       where: {
         id,
       },
-      data,
+      data: {
+        ...data,
+        updatedAt: new Date(),
+      },
     });
   }
 
-  static async delete(id: number) {
+  static async delete(id: OnboardingId) {
     logger.debug("Deleting organization onboarding", { id });
     return await prisma.organizationOnboarding.delete({
       where: {

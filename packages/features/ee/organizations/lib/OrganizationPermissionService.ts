@@ -1,9 +1,12 @@
 import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+const log = logger.getSubLogger({ prefix: ["ee", "organizations", "OrganizationPermissionService"] });
 type SeatsPrice = {
   seats?: number | null;
   pricePerSeat?: number | null;
@@ -43,17 +46,22 @@ export class OrganizationPermissionService {
   }
 
   hasModifiedDefaultPayment(input: SeatsPrice & { billingPeriod?: string }): boolean {
-    return (
-      (input.billingPeriod !== undefined &&
-        input.billingPeriod !== null &&
-        input.billingPeriod !== "MONTHLY") ||
-      (input.seats !== undefined &&
-        input.seats !== null &&
-        input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS) ||
-      (input.pricePerSeat !== undefined &&
-        input.pricePerSeat !== null &&
-        input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE)
+    const isBillingPeriodModified =
+      input.billingPeriod !== undefined && input.billingPeriod !== null && input.billingPeriod !== "MONTHLY";
+
+    const isSeatsModified =
+      input.seats !== undefined && input.seats !== null && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS;
+
+    const isPricePerSeatModified =
+      input.pricePerSeat !== undefined &&
+      input.pricePerSeat !== null &&
+      input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE;
+
+    log.debug(
+      "hasModifiedDefaultPayment",
+      safeStringify({ isBillingPeriodModified, isSeatsModified, isPricePerSeatModified })
     );
+    return isBillingPeriodModified || isSeatsModified || isPricePerSeatModified;
   }
 
   async hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean> {
@@ -76,6 +84,9 @@ export class OrganizationPermissionService {
     return teamMemberships.length === teamIds.length;
   }
 
+  /**
+   * Doesn't validate custom price permission as that is validated before onboarding is created and this method also runs when checkout is to be started
+   */
   async validatePermissions(
     input: {
       orgOwnerEmail: string;
@@ -96,13 +107,6 @@ export class OrganizationPermissionService {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Onboarding already completed",
-      });
-    }
-
-    if (this.hasModifiedDefaultPayment(input) && !this.hasPermissionToModifyDefaultPayment()) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "You do not have permission to modify the default payment settings",
       });
     }
 

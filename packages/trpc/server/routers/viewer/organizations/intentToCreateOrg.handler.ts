@@ -1,3 +1,4 @@
+import { OrganizationPaymentService } from "@calcom/features/ee/organizations/lib/OrganizationPaymentService";
 import {
   assertCanCreateOrg,
   findUserToBeOrgOwner,
@@ -46,20 +47,12 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
 
   const orgOwner = await findUserToBeOrgOwner(orgOwnerEmail);
   if (!orgOwner) {
-    log.debug(
-      "Organization owner not found, allowing to go ahead with onboarding",
-      safeStringify({ email: orgOwnerEmail, IS_USER_ADMIN })
-    );
-    return {
-      userId: null,
-      orgOwnerEmail,
-      name,
-      slug,
-      seats,
-      pricePerSeat,
-      billingPeriod,
-      isPlatform,
-    };
+    // The flow exists to create the user through the stripe webhook invoice.paid but there could be a possible security issue with the approach. So, we avoid it currently.
+    // Issue: As the onboarding link(which has onboardingId) could be used by unwanted person to pay and then invite some unwanted members to the organization.
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `No user found with email ${orgOwnerEmail}`,
+    });
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
@@ -69,6 +62,9 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     orgOwner,
     restrictBasedOnMinimumPublishedTeams: !IS_USER_ADMIN,
   });
+
+  const paymentService = new OrganizationPaymentService(ctx.user);
+  const organizationOnboarding = await paymentService.createOrganizationOnboarding(input);
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
   return {
@@ -80,6 +76,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
     pricePerSeat,
     billingPeriod,
     isPlatform,
+    organizationOnboardingId: organizationOnboarding.id,
   };
 };
 

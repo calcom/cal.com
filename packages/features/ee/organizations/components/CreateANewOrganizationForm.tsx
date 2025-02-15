@@ -1,23 +1,23 @@
 "use client";
 
 import type { SessionContextValue } from "next-auth/react";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import { MINIMUM_NUMBER_OF_ORG_SEATS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { useTelemetry } from "@calcom/lib/telemetry";
 import { CreationSource } from "@calcom/prisma/enums";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { Ensure } from "@calcom/types/utils";
 import { Alert, Button, Form, Label, RadioGroup as RadioArea, TextField, ToggleGroup } from "@calcom/ui";
+
+import { useOnboarding } from "../lib/onboardingStore";
 
 function extractDomainFromEmail(email: string) {
   let out = "";
@@ -49,11 +49,11 @@ const CreateANewOrganizationFormChild = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const telemetry = useTelemetry();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
 
+  const useOnboardingStore = useOnboarding({ step: "start" });
   const {
     setBillingPeriod,
     setPricePerSeat,
@@ -67,6 +67,7 @@ const CreateANewOrganizationFormChild = ({
     billingPeriod,
     pricePerSeat,
     seats,
+    setOnboardingId,
   } = useOnboardingStore();
 
   const newOrganizationFormMethods = useForm<{
@@ -99,14 +100,10 @@ const CreateANewOrganizationFormChild = ({
       setOrgOwnerEmail(data.orgOwnerEmail);
       setName(data.name);
       setSlug(data.slug);
+      setOnboardingId(data.organizationOnboardingId);
 
-      if (isAdmin && data.userId && data.userId !== session.data?.user.id) {
-        // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
-        // He won't need to have access to the org directly in this way.
-        signIn("impersonation-auth", {
-          username: data.orgOwnerEmail,
-          callbackUrl: `/settings/organizations/new/about`,
-        });
+      if (isAdmin) {
+        router.push("/settings/organizations/new/handover");
       } else {
         router.push("/settings/organizations/new/about");
       }

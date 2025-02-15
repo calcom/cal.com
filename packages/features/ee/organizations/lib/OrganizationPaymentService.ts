@@ -6,7 +6,10 @@ import {
 } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc";
@@ -14,19 +17,37 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { OrganizationPermissionService } from "./OrganizationPermissionService";
 
+type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["OrganizationPaymentService"] });
 type CreatePaymentIntentInput = {
-  name: string;
-  slug: string;
   logo: string | null;
   bio: string | null;
+  teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
+  invitedMembers?: { email: string }[];
+};
+
+type CreateOnboardingInput = {
+  name: string;
+  slug: string;
   orgOwnerEmail: string;
   billingPeriod?: BillingPeriod;
   seats?: number | null;
   pricePerSeat?: number | null;
-  teams?: { id: number; isBeingMigrated: boolean; slug: string | null; name: string }[];
-  invitedMembers?: { email: string }[];
 };
+
+type PermissionCheckInput = {
+  orgOwnerEmail: string;
+  teams: { id: number; isBeingMigrated: boolean }[];
+  billingPeriod: BillingPeriod;
+  seats: number;
+  pricePerSeat: number;
+  slug: string;
+};
+
+type OrganizationOnboardingForPaymentIntent = Pick<
+  OrganizationOnboarding,
+  "id" | "pricePerSeat" | "billingPeriod" | "seats" | "isComplete" | "orgOwnerEmail" | "slug"
+>;
 
 type PaymentConfig = {
   billingPeriod: BillingPeriod;
@@ -54,13 +75,15 @@ export class OrganizationPaymentService {
     log.debug("getOrCreateStripeCustomerId", safeStringify({ email }));
     const existingCustomer = await prisma.user.findUnique({
       where: { email },
-      select: { metadata: true },
+      select: { id: true, metadata: true },
     });
 
-    const userParsed = existingCustomer?.metadata ? userMetadata.parse(existingCustomer.metadata) : undefined;
+    const parsedMetadata = existingCustomer?.metadata
+      ? userMetadata.parse(existingCustomer.metadata)
+      : undefined;
 
-    if (userParsed?.stripeCustomerId) {
-      return userParsed.stripeCustomerId;
+    if (parsedMetadata?.stripeCustomerId) {
+      return parsedMetadata.stripeCustomerId;
     }
 
     log.debug("Creating new Stripe customer", safeStringify({ email }));
@@ -70,9 +93,19 @@ export class OrganizationPaymentService {
         email,
       },
     });
-    log.debug("Created new Stripe customer", safeStringify({ email, customer }));
 
-    return customer.stripeCustomerId;
+    const stripeCustomerId = customer.stripeCustomerId;
+    if (existingCustomer && parsedMetadata) {
+      await UserRepository.updateCustomerId({
+        id: existingCustomer.id,
+        stripeCustomerId,
+        existingMetadata: parsedMetadata,
+      });
+    }
+
+    log.debug("Created new Stripe customer", safeStringify({ email, stripeCustomerId }));
+
+    return stripeCustomerId;
   }
 
   protected normalizePaymentConfig(input: {
@@ -110,58 +143,20 @@ export class OrganizationPaymentService {
     return memberships.length;
   }
 
-  protected async createOrganizationOnboarding(
-    input: CreatePaymentIntentInput,
-    config: PaymentConfig,
-    stripeCustomerId: string
-  ) {
-    const teamsToMigrate = input.teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
-    const teamIds = teamsToMigrate.filter((team) => team.id > 0).map((team) => team.id);
-
-    // Get unique members count from existing teams
-    const uniqueMembersCount = await this.getUniqueTeamMembersCount(teamIds);
-
-    // Create new config with updated seats if necessary
-    const updatedConfig = {
-      ...config,
-      seats: Math.max(config.seats, uniqueMembersCount),
-    };
-
-    // Try to find an existing incomplete onboarding with matching slug
-    const existingOnboarding = await prisma.organizationOnboarding.findFirst({
-      where: {
-        orgOwnerEmail: input.orgOwnerEmail,
-        slug: input.slug,
-      },
-    });
-
-    if (existingOnboarding?.isComplete) {
+  async createOrganizationOnboarding(input: CreateOnboardingInput) {
+    if (
+      this.permissionService.hasModifiedDefaultPayment(input) &&
+      !this.permissionService.hasPermissionToModifyDefaultPayment()
+    ) {
       throw new TRPCError({
-        code: "BAD_REQUEST",
-        // TODO: Consider redirecting to the organization settings page or maybe confirm if org exists and then redirect to the success page.
-        // If any error in creatng the organization, that must be shown there and user can fix that maybe
-        message: "Organization onboarding is already complete",
+        code: "UNAUTHORIZED",
+        message: "You do not have permission to modify the default payment settings",
       });
     }
 
-    if (existingOnboarding) {
-      // Update the existing onboarding with new data
-      return await prisma.organizationOnboarding.update({
-        where: { id: existingOnboarding.id },
-        data: {
-          name: input.name,
-          billingPeriod: updatedConfig.billingPeriod,
-          pricePerSeat: updatedConfig.pricePerSeat,
-          seats: updatedConfig.seats,
-          stripeCustomerId,
-          invitedMembers: input.invitedMembers,
-          teams: teamsToMigrate,
-          logo: input.logo,
-          bio: input.bio,
-          updatedAt: new Date(),
-        },
-      });
-    }
+    await this.permissionService.validatePermissions(input);
+
+    const config = this.normalizePaymentConfig(input);
 
     // Create new onboarding record if none exists
     return await prisma.organizationOnboarding.create({
@@ -169,21 +164,16 @@ export class OrganizationPaymentService {
         name: input.name,
         slug: input.slug,
         orgOwnerEmail: input.orgOwnerEmail,
-        billingPeriod: updatedConfig.billingPeriod,
-        seats: updatedConfig.seats,
-        pricePerSeat: updatedConfig.pricePerSeat,
-        stripeCustomerId,
-        invitedMembers: input.invitedMembers,
-        teams: teamsToMigrate,
-        logo: input.logo,
-        bio: input.bio,
+        billingPeriod: config.billingPeriod,
+        seats: config.seats,
+        pricePerSeat: config.pricePerSeat,
       },
     });
   }
 
   protected async getOrCreatePrice(
     config: PaymentConfig,
-    organizationOnboardingId: number,
+    organizationOnboardingId: OrganizationOnboardingId,
     shouldCreateCustomPrice: boolean
   ): Promise<StripePrice> {
     log.debug(
@@ -237,7 +227,7 @@ export class OrganizationPaymentService {
     stripeCustomerId: string,
     priceId: string,
     config: PaymentConfig,
-    organizationOnboardingId: number,
+    organizationOnboardingId: OrganizationOnboardingId,
     params: URLSearchParams
   ) {
     log.debug(
@@ -264,54 +254,118 @@ export class OrganizationPaymentService {
     });
   }
 
-  protected async validatePermissions(input: CreatePaymentIntentInput): Promise<boolean> {
-    return this.permissionService.validatePermissions({
-      orgOwnerEmail: input.orgOwnerEmail,
-      teams: input.teams,
-      billingPeriod: input.billingPeriod,
-      seats: input.seats,
-      pricePerSeat: input.pricePerSeat,
-      slug: input.slug,
-    });
+  protected async validatePermissions(input: PermissionCheckInput): Promise<boolean> {
+    return this.permissionService.validatePermissions(input);
   }
 
-  async createPaymentIntent(input: CreatePaymentIntentInput) {
+  async createPaymentIntent(
+    input: CreatePaymentIntentInput,
+    organizationOnboarding: OrganizationOnboardingForPaymentIntent
+  ) {
     log.debug("createPaymentIntent", safeStringify(input));
-    await this.permissionService.validatePermissions(input);
 
-    const shouldCreateCustomPrice =
-      this.permissionService.hasPermissionToModifyDefaultPayment() &&
-      this.permissionService.hasModifiedDefaultPayment(input);
+    const { teams: _teams, invitedMembers, logo, bio } = input;
 
+    const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
+    const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
+
+    const {
+      orgOwnerEmail,
+      pricePerSeat,
+      slug,
+      billingPeriod,
+      seats,
+      isComplete: isOnboardingComplete,
+    } = organizationOnboarding;
+    if (isOnboardingComplete) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        // TODO: Consider redirecting to the organization settings page or maybe confirm if org exists and then redirect to the success page.
+        // If any error in creatng the organization, that must be shown there and user can fix that maybe
+        message: "Organization onboarding is already complete",
+      });
+    }
     // We know admin permissions have been validated in the above step so we can safely normalize the input
-    const paymentConfig = this.normalizePaymentConfig(input);
+    if (this.user.role === "ADMIN") {
+      log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
+      return {
+        organizationOnboarding,
+        subscription: null,
+        checkoutUrl: null,
+        sessionId: null,
+      };
+    }
 
-    const stripeCustomerId = await this.getOrCreateStripeCustomerId(input.orgOwnerEmail);
+    await this.validatePermissions({
+      orgOwnerEmail,
+      teams,
+      billingPeriod,
+      seats,
+      pricePerSeat,
+      slug,
+    });
 
-    const organizationOnboarding = await this.createOrganizationOnboarding(
-      input,
-      paymentConfig,
-      stripeCustomerId
+    const hasModifiedDefaultPayment = this.permissionService.hasModifiedDefaultPayment({
+      billingPeriod,
+      pricePerSeat,
+      seats,
+    });
+
+    const paymentConfigFromOnboarding = {
+      pricePerSeat,
+      billingPeriod,
+      seats,
+    };
+
+    // Get unique members count from existing teams
+    const uniqueMembersCount = await this.getUniqueTeamMembersCount(teamIds);
+
+    // Create new config with updated seats if necessary
+    const updatedConfig = {
+      ...paymentConfigFromOnboarding,
+      seats: Math.max(paymentConfigFromOnboarding.seats, uniqueMembersCount),
+    };
+
+    log.debug(
+      "Creating subscription",
+      safeStringify({
+        paymentConfigFromOnboarding,
+      })
     );
 
     const { priceId } = await this.getOrCreatePrice(
-      paymentConfig,
+      updatedConfig,
       organizationOnboarding.id,
-      shouldCreateCustomPrice
+      // Whether modified default payment is allowed or not is checked as part of this.createPaymentIntent and onboarding entry is only created after that.
+      hasModifiedDefaultPayment
     );
+
+    const stripeCustomerId = await this.getOrCreateStripeCustomerId(organizationOnboarding.orgOwnerEmail);
 
     const subscription = await this.createSubscription(
       stripeCustomerId,
       priceId,
-      paymentConfig,
+      updatedConfig,
       organizationOnboarding.id,
       new URLSearchParams({
-        orgOwnerEmail: input.orgOwnerEmail,
+        orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
       })
     );
 
+    log.debug("Updating onboarding");
+
+    await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+      bio: bio ?? null,
+      logo: logo ?? null,
+      invitedMembers: invitedMembers,
+      teams,
+      stripeCustomerId,
+      ...updatedConfig,
+    });
+
     return {
       organizationOnboarding,
+      subscription,
       checkoutUrl: subscription.checkoutUrl,
       sessionId: subscription.sessionId,
     };

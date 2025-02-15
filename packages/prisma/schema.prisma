@@ -1840,8 +1840,9 @@ enum BillingPeriod {
 }
 
 model OrganizationOnboarding {
-  id        Int        @id @default(autoincrement())
-  
+  // TODO: Use uuid for id
+   id        String        @id @default(uuid())
+
   // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
   // TODO:  To be added when we start creating organizationOnboarding on intentToCreateOrg
   // userId    Int         @unique
@@ -1860,6 +1861,7 @@ model OrganizationOnboarding {
   billingPeriod BillingPeriod
   pricePerSeat  Float
   seats         Int
+  
   isPlatform    Boolean @default(false)
 
   // Organization info
@@ -1867,6 +1869,8 @@ model OrganizationOnboarding {
   slug String  @unique
   logo String?
   bio  String?
+  isDomainConfigured Boolean @default(false)
+  error String?
 
   // Set when payment intent is there.
   stripeCustomerId     String? @unique

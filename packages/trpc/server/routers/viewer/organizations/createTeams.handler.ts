@@ -106,7 +106,6 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
             ...organization,
             ownerId: organizationOwner.id,
           },
-          ctx,
           creationSource,
         });
       })

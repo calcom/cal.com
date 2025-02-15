@@ -8,30 +8,7 @@ export type UpdateArguments = {
   where: FindManyArgs["where"];
   data: Prisma.SelectedCalendarUpdateManyArgs["data"];
 };
-export type FindManyArgs = {
-  // https://github.com/microsoft/TypeScript/issues/55217 It crashes atoms build with this if we become too generic here. Seems like a TS bug with complex prisma types.
-  where?: {
-    userId?:
-      | number
-      | {
-          in: number[];
-        };
-    credentialId?: number | null;
-    integration?: string;
-    externalId?: string;
-    eventTypeId?: number | null;
-    googleChannelId?:
-      | string
-      | null
-      | {
-          not: null;
-        };
-  };
-  orderBy?: {
-    userId?: "asc" | "desc";
-  };
-  select?: Prisma.SelectedCalendarSelect;
-};
+export type FindManyArgs = any;
 
 const ensureUserLevelWhere = {
   eventTypeId: null,

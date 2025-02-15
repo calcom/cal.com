@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createOrganizationFromOnboarding } from "@calcom/features/ee/organizations/lib/server/createOrganizationFromOnboarding";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 
 import type { SWHMap } from "./__handler";
@@ -32,14 +33,27 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     };
   }
 
-  const { organization } = await createOrganizationFromOnboarding({
-    organizationOnboarding,
-    paymentSubscriptionId: invoice.subscription,
-  });
+  try {
+    const { organization } = await createOrganizationFromOnboarding({
+      organizationOnboarding,
+      paymentSubscriptionId: invoice.subscription,
+    });
 
-  logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
-  await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
-  return { success: true };
+    logger.debug(`Marking onboarding as complete for organization ${organization.id}`);
+    await OrganizationOnboardingRepository.markAsComplete(organizationOnboarding.id);
+    return { success: true };
+  } catch (error) {
+    if (error instanceof Error) {
+      await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+        error: error.message,
+      });
+    }
+    logger.error(
+      `Error creating organization from onboarding:${organizationOnboarding.id}`,
+      safeStringify({ error: error instanceof Error ? error.message : error })
+    );
+    throw error;
+  }
 };
 
 export default handler;

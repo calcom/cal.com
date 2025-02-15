@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import type { z } from "zod";
 
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
@@ -947,5 +948,20 @@ export class UserRepository {
       },
     });
     return users.map(withSelectedCalendars);
+  }
+
+  static async updateCustomerId({
+    id,
+    stripeCustomerId,
+    existingMetadata,
+  }: {
+    id: number;
+    stripeCustomerId: string;
+    existingMetadata: z.infer<typeof userMetadata>;
+  }) {
+    return prisma.user.update({
+      where: { id },
+      data: { metadata: { ...existingMetadata, stripeCustomerId } },
+    });
   }
 }

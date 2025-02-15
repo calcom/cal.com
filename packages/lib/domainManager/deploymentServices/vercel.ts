@@ -5,6 +5,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 
 import logger from "../../logger";
 
+const log = logger.getSubLogger({ prefix: ["Vercel/DomainManager"] });
 const vercelApiForProjectUrl = `https://api.vercel.com/v9/projects/${process.env.PROJECT_ID_VERCEL}`;
 const vercelDomainApiResponseSchema = z.object({
   error: z
@@ -17,7 +18,7 @@ const vercelDomainApiResponseSchema = z.object({
 
 export const createDomain = async (domain: string) => {
   assertVercelEnvVars(process.env);
-  logger.info(`Creating domain in Vercel: ${domain}`);
+  log.info(`Creating domain in Vercel: ${domain}`);
   const response = await fetch(`${vercelApiForProjectUrl}/domains?teamId=${process.env.TEAM_ID_VERCEL}`, {
     body: JSON.stringify({ name: domain }),
     headers: {
@@ -37,7 +38,7 @@ export const createDomain = async (domain: string) => {
 };
 
 export const deleteDomain = async (domain: string) => {
-  logger.info(`Deleting domain in Vercel: ${domain}`);
+  log.info(`Deleting domain in Vercel: ${domain}`);
   assertVercelEnvVars(process.env);
 
   const response = await fetch(
@@ -62,7 +63,7 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
   // Domain is already owned by another team but you can request delegation to access it
   if (error.code === "forbidden") {
     const errorMessage = "Domain is already owned by another team";
-    logger.error(
+    log.error(
       safeStringify({
         errorMessage,
         vercelError: error,
@@ -76,7 +77,7 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
 
   if (error.code === "domain_taken") {
     const errorMessage = "Domain is already being used by a different project";
-    logger.error(
+    log.error(
       safeStringify({
         errorMessage,
         vercelError: error,
@@ -94,7 +95,7 @@ function handleDomainCreationError(error: { code?: string | null; domain?: strin
   }
 
   const errorMessage = `Failed to create domain on Vercel: ${error.domain}`;
-  logger.error(safeStringify({ errorMessage, vercelError: error }));
+  log.error(safeStringify({ errorMessage, vercelError: error }));
   throw new HttpError({
     message: errorMessage,
     statusCode: 400,
@@ -110,7 +111,7 @@ function handleDomainDeletionError(error: { code?: string | null; domain?: strin
   // Domain is already owned by another team but you can request delegation to access it
   if (error.code === "forbidden") {
     const errorMessage = "Domain is owned by another team";
-    logger.error(
+    log.error(
       safeStringify({
         errorMessage,
         vercelError: error,
@@ -123,7 +124,7 @@ function handleDomainDeletionError(error: { code?: string | null; domain?: strin
   }
 
   const errorMessage = `Failed to take action for domain: ${error.domain}`;
-  logger.error(safeStringify({ errorMessage, vercelError: error }));
+  log.error(safeStringify({ errorMessage, vercelError: error }));
   throw new HttpError({
     message: errorMessage,
     statusCode: 400,

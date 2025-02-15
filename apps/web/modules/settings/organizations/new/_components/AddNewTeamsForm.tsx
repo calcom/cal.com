@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useOnboardingStore } from "@calcom/features/ee/organizations/lib/onboardingStore";
+import { useOnboarding } from "@calcom/features/ee/organizations/lib/onboardingStore";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -72,6 +72,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
   const { t } = useLocale();
   const router = useRouter();
   const [counter, setCounter] = useState(1);
+  const useOnboardingStore = useOnboarding();
   const { slug: orgSlug, setTeams, teams: teamsFromStore } = useOnboardingStore();
   const teamsToCreateFromStore = teamsFromStore.filter((team) => !team.isBeingMigrated);
   const teamsToMigrateFromStore = teamsFromStore.filter((team) => team.isBeingMigrated);
