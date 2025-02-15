@@ -19,7 +19,7 @@ import { OrgUsersOOORepository } from "@/modules/organizations/controllers/users
 import { OrgUsersOOOService } from "@/modules/organizations/controllers/users/ooo/services/organization-users-ooo.service";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
-import { OrganizationsDwdController } from "@/modules/organizations/dwd/dwd.controller";
+import { OrganizationsDwdModule } from "@/modules/organizations/dwd/organizations-dwd.module";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/repositories/attributes/organization-attribute-option.repository";
 import { OrganizationAttributesRepository } from "@/modules/organizations/repositories/attributes/organization-attribute.repository";
@@ -63,6 +63,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
+    OrganizationsDwdModule,
   ],
   providers: [
     OrganizationsRepository,
@@ -129,7 +130,6 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
-    OrganizationsDwdController,
   ],
 })
 export class OrganizationsModule {}

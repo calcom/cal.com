@@ -1,37 +1,38 @@
-import { Expose, Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsObject } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsString, IsNotEmpty, ValidateNested, IsObject, IsBoolean, IsOptional } from "class-validator";
 
 class ServiceAccountKeyInput {
   @IsString()
   @IsNotEmpty()
-  @Expose()
+  @ApiProperty()
   private_key!: string;
 
   @IsString()
   @IsNotEmpty()
-  @Expose()
+  @ApiProperty()
   client_email!: string;
 
   @IsString()
   @IsNotEmpty()
-  @Expose()
+  @ApiProperty()
   client_id!: string;
 }
 
 export class CreateDwdInput {
   @IsString()
   @IsNotEmpty()
-  @Expose()
+  @ApiProperty()
   workspacePlatformSlug!: string;
 
   @IsString()
   @IsNotEmpty()
-  @Expose()
+  @ApiProperty()
   domain!: string;
 
   @IsObject()
   @ValidateNested()
   @Type(() => ServiceAccountKeyInput)
-  @Expose()
+  @ApiProperty({ type: ServiceAccountKeyInput })
   serviceAccountKey!: ServiceAccountKeyInput;
 }

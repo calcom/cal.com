@@ -1076,6 +1076,53 @@
         "tags": ["Orgs / dwd"]
       }
     },
+    "/v2/organizations/{orgId}/dwd/{dwdId}": {
+      "patch": {
+        "operationId": "OrganizationsDwdController_updateDwd",
+        "summary": "Update a dwd",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "dwdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDwdInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateDwdOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / dwd"]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
       "post": {
         "operationId": "OrganizationsEventTypesController_createTeamEventType",
@@ -12687,99 +12734,6 @@
           }
         }
       },
-      "ServiceAccountKeyInput": {
-        "type": "object",
-        "properties": {
-          "private_key": {
-            "type": "string"
-          },
-          "client_email": {
-            "type": "string"
-          },
-          "client_id": {
-            "type": "string"
-          }
-        },
-        "required": ["private_key", "client_email", "client_id"]
-      },
-      "CreateDwdInput": {
-        "type": "object",
-        "properties": {
-          "workspacePlatformSlug": {
-            "type": "string"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "serviceAccountKey": {
-            "$ref": "#/components/schemas/ServiceAccountKeyInput"
-          }
-        },
-        "required": ["workspacePlatformSlug", "domain", "serviceAccountKey"]
-      },
-      "WorkspacePlatformDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
-          }
-        },
-        "required": ["name", "slug"]
-      },
-      "DwdOutput": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "domain": {
-            "type": "string"
-          },
-          "organizationId": {
-            "type": "number"
-          },
-          "workspacePlatform": {
-            "$ref": "#/components/schemas/WorkspacePlatformDto"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "enabled",
-          "domain",
-          "organizationId",
-          "workspacePlatform",
-          "createdAt",
-          "updatedAt"
-        ]
-      },
-      "CreateDwdOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": ["success", "error"]
-          },
-          "data": {
-            "$ref": "#/components/schemas/DwdOutput"
-          }
-        },
-        "required": ["status", "data"]
-      },
       "StripConnectOutputDto": {
         "type": "object",
         "properties": {
@@ -13051,6 +13005,122 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "ServiceAccountKeyInput": {
+        "type": "object",
+        "properties": {
+          "private_key": {
+            "type": "string"
+          },
+          "client_email": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": ["private_key", "client_email", "client_id"]
+      },
+      "CreateDwdInput": {
+        "type": "object",
+        "properties": {
+          "workspacePlatformSlug": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "serviceAccountKey": {
+            "$ref": "#/components/schemas/ServiceAccountKeyInput"
+          }
+        },
+        "required": ["workspacePlatformSlug", "domain", "serviceAccountKey"]
+      },
+      "WorkspacePlatformDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "slug"]
+      },
+      "DwdOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "organizationId": {
+            "type": "number"
+          },
+          "workspacePlatform": {
+            "$ref": "#/components/schemas/WorkspacePlatformDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "enabled",
+          "domain",
+          "organizationId",
+          "workspacePlatform",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "UpdateDwdInput": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": ["enabled"]
+      },
+      "UpdateDwdOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DwdOutput"
           }
         },
         "required": ["status", "data"]
