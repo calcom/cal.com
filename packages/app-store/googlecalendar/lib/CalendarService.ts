@@ -246,9 +246,10 @@ export default class GoogleCalendarService implements Calendar {
       if (!this.credential.user?.email) {
         this.log.error("DWD: No email to impersonate found for domain wide delegation");
       } else {
+        const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{22}/;
         dwdAuthedCalendar = await this.getAuthedCalendarFromDwd({
           domainWideDelegation: this.credential.delegatedTo,
-          emailToImpersonate: this.credential.user.email,
+          emailToImpersonate: this.credential.user.email.replace(oauthClientIdAliasRegex, ""),
         });
       }
     }
