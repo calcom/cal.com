@@ -950,7 +950,7 @@ export class UserRepository {
     return users.map(withSelectedCalendars);
   }
 
-  static async updateCustomerId({
+  static async updateStripeCustomerId({
     id,
     stripeCustomerId,
     existingMetadata,

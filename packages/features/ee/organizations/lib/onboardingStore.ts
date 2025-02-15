@@ -80,10 +80,12 @@ export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status"
 
   const requireOnboardingIdInStore = step !== "start" && step !== "status";
 
-  if (!onboardingIdFromStore && requireOnboardingIdInStore) {
-    console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
-    router.push("/settings/organizations/new");
-  }
+  useEffect(() => {
+    if (!onboardingIdFromStore && requireOnboardingIdInStore) {
+      console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
+      router.push("/settings/organizations/new");
+    }
+  }, [onboardingIdFromStore, requireOnboardingIdInStore, router]);
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(

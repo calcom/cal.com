@@ -27,6 +27,8 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     logger.error(
       `NonRecoverableError: No onboarding record found for stripe customer id: ${invoice.customer}.`
     );
+    
+    // Don't throw as we don't want to retry.
     return {
       success: false,
       error: `No onboarding record found for stripe customer id: ${invoice.customer}.`,

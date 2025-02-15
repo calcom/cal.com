@@ -65,6 +65,7 @@ async function createOrganizationWithExistingUserAsOwner({
   orgData: OrganizationData;
 }) {
   const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
+  // We prefer ID which would be available if it is a retry of createOrganizationFromOnboarding and earlier organization was created and connected with Onboarding
   let organization = orgData.id
     ? await OrganizationRepository.findById({ id: orgData.id })
     : await OrganizationRepository.findBySlug({ slug: orgData.slug });
@@ -285,7 +286,7 @@ async function ensureStripeCustomerIdIsUpdated({
 }) {
   const parsedMetadata = userMetadata.parse(owner.metadata);
 
-  await UserRepository.updateCustomerId({
+  await UserRepository.updateStripeCustomerId({
     id: owner.id,
     stripeCustomerId: stripeCustomerId,
     existingMetadata: parsedMetadata,

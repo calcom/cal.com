@@ -155,11 +155,6 @@ export class OrganizationRepository {
         },
         metadata: {
           isPlatform: orgData.isPlatform,
-          // All this info is in the OrganizationOnboarding schema
-          // orgSeats: orgData.seats,
-          // orgPricePerSeat: orgData.pricePerSeat,
-          // billingPeriod: orgData.billingPeriod,
-
           // We set it here as required by various places in app. We could plan to move it to OrganizationOnboarding later
           subscriptionId: orgData.paymentSubscriptionId,
         },

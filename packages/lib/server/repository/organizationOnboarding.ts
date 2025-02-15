@@ -20,7 +20,8 @@ const teamSchema = z.object({
 });
 
 export type CreateOrganizationOnboardingInput = {
-  organizationId: number | null;
+  createdById: number;
+  organizationId?: number | null;
   billingPeriod: BillingPeriod;
   pricePerSeat: number;
   seats: number;
@@ -29,8 +30,8 @@ export type CreateOrganizationOnboardingInput = {
   slug: string;
   logo?: string | null;
   bio?: string | null;
-  stripeCustomerId: string;
-  stripeSubscriptionId: string;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
   invitedMembers?: { email: string; name?: string }[];
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
   error?: string | null;
@@ -63,6 +64,7 @@ export class OrganizationOnboardingRepository {
         stripeSubscriptionId: data.stripeSubscriptionId,
         invitedMembers: data.invitedMembers || [],
         teams: data.teams || [],
+        createdById: data.createdById,
       },
     });
   }

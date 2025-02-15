@@ -33,6 +33,7 @@ type CreateOnboardingInput = {
   billingPeriod?: BillingPeriod;
   seats?: number | null;
   pricePerSeat?: number | null;
+  createdByUserId: number;
 };
 
 type PermissionCheckInput = {
@@ -103,7 +104,7 @@ export class OrganizationPaymentService {
 
     const stripeCustomerId = customer.stripeCustomerId;
     if (existingCustomer && parsedMetadata) {
-      await UserRepository.updateCustomerId({
+      await UserRepository.updateStripeCustomerId({
         id: existingCustomer.id,
         stripeCustomerId,
         existingMetadata: parsedMetadata,
@@ -166,15 +167,14 @@ export class OrganizationPaymentService {
     const config = this.normalizePaymentConfig(input);
 
     // Create new onboarding record if none exists
-    return await prisma.organizationOnboarding.create({
-      data: {
+    return await OrganizationOnboardingRepository.create({
         name: input.name,
         slug: input.slug,
         orgOwnerEmail: input.orgOwnerEmail,
         billingPeriod: config.billingPeriod,
         seats: config.seats,
         pricePerSeat: config.pricePerSeat,
-      },
+        createdById: input.createdByUserId,
     });
   }
 

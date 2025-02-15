@@ -64,7 +64,10 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   });
 
   const paymentService = new OrganizationPaymentService(ctx.user);
-  const organizationOnboarding = await paymentService.createOrganizationOnboarding(input);
+  const organizationOnboarding = await paymentService.createOrganizationOnboarding({
+    ...input,
+    createdByUserId: loggedInUser.id,
+  });
 
   log.debug("Organization creation intent successful", safeStringify({ slug, orgOwnerId: orgOwner.id }));
   return {

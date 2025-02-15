@@ -378,6 +378,7 @@ model User {
   updatedWatchlists          Watchlist[]                  @relation("UpdatedWatchlists")
   BookingInternalNote        BookingInternalNote[]
   creationSource             CreationSource?
+  createdOrganizationOnboardings OrganizationOnboarding[] @relation("CreatedOrganizationOnboardings")
 
   @@unique([email])
   @@unique([email, username])
@@ -1844,15 +1845,17 @@ model OrganizationOnboarding {
   id String @id @default(uuid())
 
   // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
-  // TODO:  To be added when we start creating organizationOnboarding on intentToCreateOrg
-  // userId    Int         @unique
+  createdBy User @relation("CreatedOrganizationOnboardings", fields: [createdById], references: [id], onDelete: Cascade)
+  createdById Int @unique
+  createdAt DateTime @default(now())
+
 
   // We keep the email only here and don't need to connect it with user because on User deletion, we don't delete the entry here.
   orgOwnerEmail String  @unique
   error         String?
 
-  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // TODO: updatedBy to be added when we support marking updatedBy using webhook too, as webhook also updates it
 
   // Set after organization payment is done and the organization is created
   organizationId Int?  @unique

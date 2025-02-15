@@ -1,5 +1,6 @@
 import { HttpCode } from "./__handler";
 import type { LazyModule, SWHMap } from "./__handler";
+import logger from "@calcom/lib/logger";
 
 type Data = SWHMap["invoice.paid"]["data"];
 
@@ -8,11 +9,13 @@ type Handlers = Record<`prod_${string}`, () => LazyModule<Data>>;
 // We can't crash here if STRIPE_ORG_PRODUCT_ID is not set, because not all self-hosters use Organizations and it might break the build on import of this module.
 const STRIPE_ORG_PRODUCT_ID = process.env.STRIPE_ORG_PRODUCT_ID || "";
 
+const log = logger.getSubLogger({ prefix: ["stripe-webhook-invoice-paid"] });
+
 const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) => {
   const invoice = data.object;
   // Only handle subscription invoices
   if (!invoice.subscription) {
-    console.log("Not a subscription invoice, skipping");
+    log.warn("Not a subscription invoice, skipping");
     return { success: true };
   }
 
@@ -21,7 +24,7 @@ const stripeWebhookProductHandler = (handlers: Handlers) => async (data: Data) =
   const productId = firstItem?.price?.product as string; // prod_xxxxx
 
   if (!productId) {
-    console.log("No product ID found in invoice, skipping");
+    log.error("No product ID found in invoice, skipping");
     return { success: true };
   }
 

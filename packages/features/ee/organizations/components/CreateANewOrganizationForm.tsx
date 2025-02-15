@@ -88,8 +88,6 @@ const CreateANewOrganizationFormChild = ({
     },
   });
 
-  // const utils = trpc.useUtils();
-  // TODO: Rename .create to .intentToCreateOrg and accordingly update the handler
   const intentToCreateOrgMutation = trpc.viewer.organizations.intentToCreateOrg.useMutation({
     onSuccess: async (data) => {
       // TODO: To be moved to _invoice.paid.org.ts
