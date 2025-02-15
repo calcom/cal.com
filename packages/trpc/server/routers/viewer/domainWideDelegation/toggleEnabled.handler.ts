@@ -8,10 +8,52 @@ import type { ServiceAccountKey } from "@calcom/lib/server/repository/domainWide
 import type { DomainWideDelegationToggleEnabledSchema } from "./schema";
 import { ensureNoServiceAccountKey } from "./utils";
 
-function hasServiceAccountKey<T extends { serviceAccountKey: ServiceAccountKey | null }>(
-  domainWideDelegation: T
-): domainWideDelegation is T & { serviceAccountKey: ServiceAccountKey } {
-  return domainWideDelegation.serviceAccountKey !== null;
+type LoggedInUser = {
+  id: number;
+  email: string;
+  locale: string;
+  emailVerified: Date | null;
+  organizationId: number | null;
+};
+
+export default async function toggleEnabledHandler({
+  ctx,
+  input,
+}: {
+  ctx: {
+    user: LoggedInUser;
+  };
+  input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>;
+}) {
+  const { user: loggedInUser } = ctx;
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  if (!loggedInUser.emailVerified) {
+    throw new Error(t("verify_your_email"));
+  }
+
+  return toggleDwdEnabled(loggedInUser, input);
+}
+
+export async function toggleDwdEnabled(
+  loggedInUser: Omit<LoggedInUser, "locale" | "emailVerified">,
+  input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>
+) {
+  if (input.enabled) {
+    await assertWorkspaceConfigured({
+      domainWideDelegationId: input.id,
+      user: loggedInUser,
+    });
+  }
+
+  const updatedDomainWideDelegation = await DomainWideDelegationRepository.updateById({
+    id: input.id,
+    data: {
+      enabled: input.enabled,
+    },
+  });
+
+  return ensureNoServiceAccountKey(updatedDomainWideDelegation);
 }
 
 const assertWorkspaceConfigured = async ({
@@ -43,41 +85,8 @@ const assertWorkspaceConfigured = async ({
   }
 };
 
-export default async function toggleEnabledHandler({
-  ctx,
-  input,
-}: {
-  ctx: {
-    user: {
-      id: number;
-      email: string;
-      locale: string;
-      emailVerified: Date | null;
-      organizationId: number | null;
-    };
-  };
-  input: z.infer<typeof DomainWideDelegationToggleEnabledSchema>;
-}) {
-  const { user: loggedInUser } = ctx;
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
-
-  if (!loggedInUser.emailVerified) {
-    throw new Error(t("verify_your_email"));
-  }
-
-  if (input.enabled) {
-    await assertWorkspaceConfigured({
-      domainWideDelegationId: input.id,
-      user: loggedInUser,
-    });
-  }
-
-  const updatedDomainWideDelegation = await DomainWideDelegationRepository.updateById({
-    id: input.id,
-    data: {
-      enabled: input.enabled,
-    },
-  });
-
-  return ensureNoServiceAccountKey(updatedDomainWideDelegation);
+function hasServiceAccountKey<T extends { serviceAccountKey: ServiceAccountKey | null }>(
+  domainWideDelegation: T
+): domainWideDelegation is T & { serviceAccountKey: ServiceAccountKey } {
+  return domainWideDelegation.serviceAccountKey !== null;
 }

@@ -273,3 +273,4 @@ export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
 export { addDwd };
 
 export { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
+export { toggleDwdEnabled } from "@calcom/trpc/server/routers/viewer/domainWideDelegation/toggleEnabled.handler";
