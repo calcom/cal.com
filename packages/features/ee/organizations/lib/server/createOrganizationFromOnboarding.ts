@@ -1,5 +1,5 @@
 import { z } from "zod";
-
+import type { Prisma } from "@calcom/prisma/client";
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -23,7 +23,7 @@ import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
 const creationSource = CreationSource.WEBAPP;
 type OrganizationOnboardingId = string;
@@ -293,6 +293,60 @@ async function ensureStripeCustomerIdIsUpdated({
   });
 }
 
+
+/**
+ * Temporary till we adapt all other code reading from metadata about stripeSubscriptionId and stripeSubscriptionItemId
+ */
+async function backwardCompatibilityForSubscriptionDetails({
+  organization,
+  paymentSubscriptionId,
+  paymentSubscriptionItemId,
+}: {
+  organization: {
+    id: number;
+    metadata: Prisma.JsonValue;
+  }
+  paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
+}) {
+  const existingMetadata = teamMetadataSchema.parse(organization.metadata);
+  await OrganizationRepository.updateStripeSubscriptionDetails({
+    id: organization.id,
+    stripeSubscriptionId: paymentSubscriptionId,
+    stripeSubscriptionItemId: paymentSubscriptionItemId,
+    existingMetadata,
+  });
+}
+
+async function updateSubscriptionDetails({
+  organization  ,
+  paymentSubscriptionId,
+  paymentSubscriptionItemId,
+  organizationOnboardingId,
+}: {
+  organization: {
+    id: number;
+    metadata: Prisma.JsonValue;
+  }
+  organizationOnboardingId: string;
+  paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
+}) {
+   // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.
+   await OrganizationOnboardingRepository.update(organizationOnboardingId, {
+    organizationId: organization.id,
+    stripeSubscriptionId: paymentSubscriptionId,
+    stripeSubscriptionItemId: paymentSubscriptionItemId,
+  });
+
+  
+  await backwardCompatibilityForSubscriptionDetails({
+    organization,
+    paymentSubscriptionId,
+    paymentSubscriptionItemId,
+  });
+}
+
 /**
  * This function is used by stripe webhook, so it should expect to be called multiple times till the entire flow completes without any error.
  * So, it should be idempotent.
@@ -300,6 +354,7 @@ async function ensureStripeCustomerIdIsUpdated({
 export const createOrganizationFromOnboarding = async ({
   organizationOnboarding,
   paymentSubscriptionId,
+  paymentSubscriptionItemId,
 }: {
   organizationOnboarding: Pick<
     OrganizationOnboarding,
@@ -320,6 +375,7 @@ export const createOrganizationFromOnboarding = async ({
     | "isDomainConfigured"
   >;
   paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
 }) => {
   let owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
   const orgOwnerTranslation = await getTranslation(owner?.locale || "en", "common");
@@ -373,16 +429,18 @@ export const createOrganizationFromOnboarding = async ({
   }
 
   if (organizationOnboarding.stripeCustomerId) {
+    // Mostly needed for newly created user through the flow
     await ensureStripeCustomerIdIsUpdated({
       owner,
       stripeCustomerId: organizationOnboarding.stripeCustomerId,
     });
   }
 
-  // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.
-  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
-    organizationId: organization.id,
-    stripeSubscriptionId: paymentSubscriptionId,
+  await updateSubscriptionDetails({
+    organizationOnboardingId: organizationOnboarding.id,
+    paymentSubscriptionId,
+    paymentSubscriptionItemId,
+    organization,
   });
 
   const invitedMembers = z

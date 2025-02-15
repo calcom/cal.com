@@ -1878,6 +1878,7 @@ model OrganizationOnboarding {
   stripeCustomerId     String? @unique
   // TODO: Can we make it required
   stripeSubscriptionId String?
+  stripeSubscriptionItemId String?
 
   // Invited members - stored as JSON
   invitedMembers Json @default("[]")

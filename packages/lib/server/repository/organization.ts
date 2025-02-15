@@ -5,7 +5,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-
+import { z } from "zod";
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
@@ -155,6 +155,9 @@ export class OrganizationRepository {
         },
         metadata: {
           isPlatform: orgData.isPlatform,
+          orgSeats: orgData.seats,
+          orgPricePerSeat: orgData.pricePerSeat,
+          billingPeriod: orgData.billingPeriod,
           // We set it here as required by various places in app. We could plan to move it to OrganizationOnboarding later
           subscriptionId: orgData.paymentSubscriptionId,
         },
@@ -403,6 +406,19 @@ export class OrganizationRepository {
     return await prisma.team.update({
       where: { id, isOrganization: true },
       data: { slug },
+    });
+  }
+
+  static async updateStripeSubscriptionDetails({ id, stripeSubscriptionId, stripeSubscriptionItemId, existingMetadata }: { id: number; stripeSubscriptionId: string; stripeSubscriptionItemId: string; existingMetadata: z.infer<typeof teamMetadataSchema> }) {
+    return await prisma.team.update({
+      where: { id, isOrganization: true },
+      data: {
+        metadata: {
+          ...existingMetadata,
+          subscriptionId: stripeSubscriptionId,
+          subscriptionItemId: stripeSubscriptionItemId,
+        }
+      },
     });
   }
 }

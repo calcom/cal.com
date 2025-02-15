@@ -32,6 +32,7 @@ export type CreateOrganizationOnboardingInput = {
   bio?: string | null;
   stripeCustomerId?: string;
   stripeSubscriptionId?: string;
+  stripeSubscriptionItemId?: string;
   invitedMembers?: { email: string; name?: string }[];
   teams?: { id: number; name: string; isBeingMigrated: boolean; slug: string | null }[];
   error?: string | null;
@@ -134,6 +135,15 @@ export class OrganizationOnboardingRepository {
     });
   }
 
+  static async findByOrganizationId(organizationId: number) {
+    logger.debug("Finding organization onboarding by organization id", safeStringify({ organizationId }));
+    return await prisma.organizationOnboarding.findUnique({
+      where: {
+        organizationId,
+      },
+    });
+  }
+  
   static async delete(id: OnboardingId) {
     logger.debug("Deleting organization onboarding", { id });
     return await prisma.organizationOnboarding.delete({

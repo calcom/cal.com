@@ -69,6 +69,15 @@ export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status"
     state.onboardingId,
     state.setOnboardingId,
   ]);
+  const requireOnboardingIdInStore = step !== "start" && step !== "status";
+
+  useEffect(() => {
+    const onboardingId = onboardingIdFromParams || onboardingIdFromStore;
+    if (!onboardingId && requireOnboardingIdInStore) {
+      console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
+      router.push("/settings/organizations/new");
+    }
+  }, [onboardingIdFromStore, requireOnboardingIdInStore, router]);
 
   const onboardingIdFromParams = searchParams?.get("onboardingId");
 
@@ -78,14 +87,8 @@ export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status"
     return;
   }
 
-  const requireOnboardingIdInStore = step !== "start" && step !== "status";
 
-  useEffect(() => {
-    if (!onboardingIdFromStore && requireOnboardingIdInStore) {
-      console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
-      router.push("/settings/organizations/new");
-    }
-  }, [onboardingIdFromStore, requireOnboardingIdInStore, router]);
+ 
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
@@ -140,6 +143,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
       const searchString = !searchParams ? "" : `${searchParams.toString()}`;
       router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
     }
-  }, [session, router, path, searchParams]);
+  }, [session, router, path]);
   return useOnboardingStore;
 };

@@ -21,6 +21,7 @@ CREATE TABLE "OrganizationOnboarding" (
     "isDomainConfigured" BOOLEAN NOT NULL DEFAULT false,
     "stripeCustomerId" TEXT,
     "stripeSubscriptionId" TEXT,
+    "stripeSubscriptionItemId" TEXT,
     "invitedMembers" JSONB NOT NULL DEFAULT '[]',
     "teams" JSONB NOT NULL DEFAULT '[]',
     "isComplete" BOOLEAN NOT NULL DEFAULT false,
