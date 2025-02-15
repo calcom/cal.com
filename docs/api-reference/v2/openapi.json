@@ -5145,7 +5145,7 @@
         "tags": ["Selected Calendars"]
       },
       "delete": {
-        "operationId": "SelectedCalendarsController_removeSelectedCalendar",
+        "operationId": "SelectedCalendarsController_deleteSelectedCalendar",
         "summary": "Delete a selected calendar",
         "parameters": [
           {

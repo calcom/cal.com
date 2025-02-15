@@ -1,5 +1,3 @@
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -11,14 +9,13 @@ import {
   SelectedCalendarOutputResponseDto,
   SelectedCalendarOutputDto,
 } from "@/modules/selected-calendars/outputs/selected-calendars.output";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { SelectedCalendarsService } from "@/modules/selected-calendars/services/selected-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { SelectedCalendarRepository } from "@calcom/platform-libraries";
 
 @Controller({
   path: "/v2/selected-calendars",
@@ -26,11 +23,7 @@ import { SelectedCalendarRepository } from "@calcom/platform-libraries";
 })
 @DocsTags("Selected Calendars")
 export class SelectedCalendarsController {
-  constructor(
-    private readonly calendarsRepository: CalendarsRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly calendarsService: CalendarsService
-  ) {}
+  constructor(private readonly selectedCalendarsService: SelectedCalendarsService) {}
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
@@ -39,40 +32,24 @@ export class SelectedCalendarsController {
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = input;
-    const data = await SelectedCalendarRepository.upsert({
-      userId: user.id,
-      integration,
-      externalId,
-      credentialId,
-      domainWideDelegationCredentialId,
-      eventTypeId: null,
-    });
+    const selectedCalendar = await this.selectedCalendarsService.addSelectedCalendar(user, input);
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(SelectedCalendarOutputDto, data, { strategy: "excludeAll" }),
+      data: plainToClass(SelectedCalendarOutputDto, selectedCalendar, { strategy: "excludeAll" }),
     };
   }
 
   @Delete("/")
   @UseGuards(ApiAuthGuard)
   @ApiOperation({ summary: "Delete a selected calendar" })
-  async removeSelectedCalendar(
+  async deleteSelectedCalendar(
     @Query() queryParams: SelectedCalendarsQueryParamsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId, domainWideDelegationCredentialId } = queryParams;
-
-    if (!domainWideDelegationCredentialId) {
-      await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
-    }
-
-    const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
-      user.id,
-      integration,
-      externalId,
-      domainWideDelegationCredentialId
+    const removedCalendarEntry = await this.selectedCalendarsService.deleteSelectedCalendar(
+      queryParams,
+      user
     );
 
     return {
