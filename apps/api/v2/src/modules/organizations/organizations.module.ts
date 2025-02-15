@@ -7,7 +7,6 @@ import { UserOOORepository } from "@/modules/ooo/repositories/ooo.repository";
 import { UserOOOService } from "@/modules/ooo/services/ooo.service";
 import { OrganizationsOptionsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes-options.controller";
 import { OrganizationsAttributesController } from "@/modules/organizations/controllers/attributes/organizations-attributes.controller";
-import { OrganizationsDWDController } from "@/modules/organizations/controllers/dwd/dwd.controller";
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsMembershipsController } from "@/modules/organizations/controllers/memberships/organizations-membership.controller";
 import { OutputTeamEventTypesResponsePipe } from "@/modules/organizations/controllers/pipes/event-types/team-event-types-response.transformer";
@@ -20,6 +19,7 @@ import { OrgUsersOOORepository } from "@/modules/organizations/controllers/users
 import { OrgUsersOOOService } from "@/modules/organizations/controllers/users/ooo/services/organization-users-ooo.service";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsWebhooksController } from "@/modules/organizations/controllers/webhooks/organizations-webhooks.controller";
+import { OrganizationsDwdController } from "@/modules/organizations/dwd/dwd.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationAttributeOptionRepository } from "@/modules/organizations/repositories/attributes/organization-attribute-option.repository";
 import { OrganizationAttributesRepository } from "@/modules/organizations/repositories/attributes/organization-attribute.repository";
@@ -129,7 +129,7 @@ import { Module } from "@nestjs/common";
     OrganizationsWebhooksController,
     OrganizationsTeamsSchedulesController,
     OrganizationsUsersOOOController,
-    OrganizationsDWDController,
+    OrganizationsDwdController,
   ],
 })
 export class OrganizationsModule {}
