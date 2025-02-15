@@ -4,7 +4,18 @@ import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { Booker, useEventTypes, useTeamEventTypes, useTeams } from "@calcom/atoms";
+import {
+  Booker,
+  useEventTypes,
+  useTeamEventTypes,
+  useTeams,
+  useMe,
+  useBookings,
+  useBooking,
+  useConnectedCalendars,
+  useEventTypeById,
+  useEvent,
+} from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,10 +26,67 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const [isTeamEvent, setIsTeamEvent] = useState<boolean>(false);
   const router = useRouter();
   const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypes(props.calUsername);
-  const { data: teams } = useTeams();
+  const { data: teams, isLoading: isLoadingTeams } = useTeams();
   const { isLoading: isLoadingTeamEvents, data: teamEventTypes } = useTeamEventTypes(teams?.[0]?.id || 0);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
+  const { data: userData, isLoading: isLoadingUser } = useMe();
+  const { isLoading: isLoadingBookingssssss, data: generalBookings } = useBookings({
+    // status: ["upcoming"],
+    // status: ["unconfirmed"],
+  });
+  const { isLoading: isLoadingBooking, data: bookingSpecific } = useBooking("nChHoxEm1GXVPzi7TNAuWc");
+  const { isLoading: isLoadingConnectedCalendars, data: connectedCalendars } = useConnectedCalendars({});
+  const { isLoading: isLoadingEventType, data: eventType } = useEventTypeById(1339);
+  const { isLoading: isLoadingEvent, data: eventData } = useEvent(
+    props.calUsername,
+    "thirty-minutes-video",
+    false
+  );
+
+  // useEventTypes returns all event types for a user, provided you pass in the correct username
+  // useTeamEventTypes returns all event types for a team, provided you pass in the correct teamId
+  // useTeams returns all teams info
+  // useMe returns the current user's info
+  // useBookings returns all bookings of a user or team
+  // useBooking returns a specific booking provided you pass in the correct bookingUid
+
+  // useCancelBooking returns a mutation function which can be used to cancel a booking
+  // this function accepts an object with the following properties:
+  // id, uid, cancellationReason, allRemainingBookings
+  // out of all these id is mandatory
+
+  // useConnectedCalendars is very imp for calendar details
+  // useConnectedCalendars returns an object containing all connected calendars of a user and the destination calendar
+  // it contains properties such as credentialId, externalId and integration which should be a string which can be used in the useAddSelectedCalendar, useRemoveSelectedCalendar hook
+  //   {
+  //     "credentialId": 15,
+  //     "integration": "apple_calendar",
+  //     "externalId": "https://caldav.icloud.com/20961146906/calendars/1644411A-1945-4248-BBC0-4F0F23B97A7E/"
+  // }
+  // above is example object that needs to be passed to add or remove selected calendars
+
+  // useDeleteCalendarCredentials returns a mutation function which can be used to delete a calendar credentials
+  // this function accepts an object with the following properties:
+  // id here is the credential id , and calendar is the name of the calendar which can be either google, office365 or apple
+
+  // useEventTypeById returns data for a specific event type, provided you pass in the correct event type id
+
+  console.log(eventTypes, "event types from useEventTypes", "is loading", isLoadingEvents);
+  console.log(teamEventTypes, "event types from teamEventTypes", "is loading", isLoadingTeamEvents);
+  console.log(teams, "teams from useTeams", "is loading", isLoadingTeams);
+  console.log(userData?.data, "teams from useMe", " isLoadingUser", isLoadingUser);
+  console.log(generalBookings, "bookings from useBookings", "is loading bookings", isLoadingBookingssssss);
+  console.log(bookingSpecific, "bookings from useBookingggg", "is loading bookinggg", isLoadingBooking);
+  console.log(
+    connectedCalendars,
+    "connected calendars",
+    "is loading connected calendars",
+    isLoadingConnectedCalendars
+  );
+
+  console.log(eventType, "event type", "is loading event type", isLoadingEventType);
+  console.log(eventData, "event type", "is LoadingEvent", isLoadingEvent);
 
   return (
     <main
