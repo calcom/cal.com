@@ -487,9 +487,9 @@ model Team {
 
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                Json?
-  includeManagedEventsInLimits Boolean              @default(false)
+  includeManagedEventsInLimits Boolean                 @default(false)
   internalNotePresets          InternalNotePreset[]
-  organizationOnboarding     OrganizationOnboarding?
+  organizationOnboarding       OrganizationOnboarding?
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1841,34 +1841,34 @@ enum BillingPeriod {
 
 model OrganizationOnboarding {
   // TODO: Use uuid for id
-   id        String        @id @default(uuid())
+  id String @id @default(uuid())
 
   // User who started the onboarding. It is different from orgOwnerEmail in case Cal.com admin is doing the onboarding for someone else.
   // TODO:  To be added when we start creating organizationOnboarding on intentToCreateOrg
   // userId    Int         @unique
 
   // We keep the email only here and don't need to connect it with user because on User deletion, we don't delete the entry here.
-  orgOwnerEmail String @unique
+  orgOwnerEmail String  @unique
   error         String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Set after organization payment is done and the organization is created
-  organizationId Int? @unique
+  organizationId Int?  @unique
   organization   Team? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  
+
   billingPeriod BillingPeriod
   pricePerSeat  Float
   seats         Int
-  
-  isPlatform    Boolean @default(false)
+
+  isPlatform Boolean @default(false)
 
   // Organization info
-  name String
-  slug String  @unique
-  logo String?
-  bio  String?
+  name               String
+  slug               String  @unique
+  logo               String?
+  bio                String?
   isDomainConfigured Boolean @default(false)
 
   // Set when payment intent is there.
