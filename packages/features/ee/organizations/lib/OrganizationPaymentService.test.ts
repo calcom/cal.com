@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import { ORGANIZATION_SELF_SERVE_MIN_SEATS, ORGANIZATION_SELF_SERVE_PRICE } from "@calcom/lib/constants";
+import { ORGANIZATION_SELF_SERVE_MIN_SEATS } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -9,9 +9,20 @@ import type { IOrganizationPermissionService } from "./OrganizationPermissionSer
 
 vi.stubEnv("STRIPE_ORG_PRODUCT_ID", "STRIPE_ORG_PRODUCT_ID");
 vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
+const defaultOrgOnboarding = {
+  id: "onboard-id-1",
+  name: "Test Org",
+  slug: "test-org",
+  orgOwnerEmail: "test@example.com",
+  billingPeriod: "MONTHLY",
+  seats: 5,
+  pricePerSeat: 20,
+  isComplete: false,
+  stripeCustomerId: "mock_stripe_customer_id",
+};
 
-vi.mock("@calcom/prisma", () => ({
-  prisma: {
+vi.mock("@calcom/prisma", () => {
+  const prismaMock = {
     organizationOnboarding: {
       findFirst: vi.fn(),
       create: vi.fn(),
@@ -22,9 +33,14 @@ vi.mock("@calcom/prisma", () => ({
     },
     user: {
       findUnique: vi.fn(),
+      update: vi.fn(),
     },
-  },
-}));
+  };
+  return {
+    prisma: prismaMock,
+    default: prismaMock,
+  };
+});
 
 vi.mock("@calcom/features/ee/billing/stripe-billling-service", () => ({
   StripeBillingService: vi.fn().mockImplementation(() => ({
@@ -75,10 +91,8 @@ describe("OrganizationPaymentService", () => {
 
   describe("createPaymentIntent", () => {
     const baseInput = {
-      id: 1,
-      name: "Test Org",
-      slug: "test-org",
-      orgOwnerEmail: "test@example.com",
+      bio: "BIO",
+      logo: "LOGO",
       teams: [{ id: 1, isBeingMigrated: true, name: "Team 1", slug: "team1" }],
     };
 
@@ -88,10 +102,13 @@ describe("OrganizationPaymentService", () => {
       );
 
       await expect(
-        service.createPaymentIntent({
-          ...baseInput,
-          pricePerSeat: 1000, // Trying to modify price
-        })
+        service.createPaymentIntent(
+          {
+            ...baseInput,
+            pricePerSeat: 1000, // Trying to modify price
+          },
+          defaultOrgOnboarding
+        )
       ).rejects.toThrow("You do not have permission to modify the default payment settings");
     });
 
@@ -103,18 +120,38 @@ describe("OrganizationPaymentService", () => {
         { userId: 3, user: { email: "user3@example.com" } },
       ]);
 
-      const result = await service.createPaymentIntent({
-        ...baseInput,
-        invitedMembers: [{ email: "invited1@example.com" }], // Adding 1 invited member
-      });
+      const result = await service.createPaymentIntent(
+        {
+          ...baseInput,
+          invitedMembers: [{ email: "invited1@example.com" }], // Adding 1 invited member
+        },
+        defaultOrgOnboarding
+      );
 
       expect(result).toBeDefined();
-      expect(prisma.organizationOnboarding.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          seats: Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
-          billingPeriod: "MONTHLY",
-          pricePerSeat: Number(ORGANIZATION_SELF_SERVE_PRICE),
-        }),
+      const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
+      expect(updateCall.where).toEqual({ id: "onboard-id-1" });
+      const { updatedAt, ...data } = updateCall.data;
+      expect(data).toEqual({
+        bio: "BIO",
+        logo: "LOGO",
+        teams: [
+          {
+            id: 1,
+            isBeingMigrated: true,
+            name: "Team 1",
+            slug: "team1",
+          },
+        ],
+        invitedMembers: [
+          {
+            email: "invited1@example.com",
+          },
+        ],
+        stripeCustomerId: "mock_stripe_customer_id",
+        pricePerSeat: defaultOrgOnboarding.pricePerSeat,
+        billingPeriod: "MONTHLY",
+        seats: Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
       });
     });
 
@@ -127,22 +164,42 @@ describe("OrganizationPaymentService", () => {
         }))
       );
 
-      const result = await service.createPaymentIntent({
-        ...baseInput,
+      const result = await service.createPaymentIntent(
+        {
+          ...baseInput,
+          invitedMembers: [
+            { email: "invited1@example.com" },
+            { email: "invited2@example.com" },
+            { email: "invited3@example.com" },
+          ], // Adding 3 invited members, total should be 7 as these new invites are pending
+        },
+        defaultOrgOnboarding
+      );
+
+      expect(result).toBeDefined();
+      const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
+      expect(updateCall.where).toEqual({ id: "onboard-id-1" });
+      const { updatedAt, ...data } = updateCall.data;
+      expect(data).toEqual({
+        bio: "BIO",
+        logo: "LOGO",
+        teams: [
+          {
+            id: 1,
+            isBeingMigrated: true,
+            name: "Team 1",
+            slug: "team1",
+          },
+        ],
         invitedMembers: [
           { email: "invited1@example.com" },
           { email: "invited2@example.com" },
           { email: "invited3@example.com" },
-        ], // Adding 3 invited members, total should be 7 as these new invites are pending
-      });
-
-      expect(result).toBeDefined();
-      expect(prisma.organizationOnboarding.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          seats: 7,
-          billingPeriod: "MONTHLY",
-          pricePerSeat: Number(ORGANIZATION_SELF_SERVE_PRICE),
-        }),
+        ],
+        stripeCustomerId: "mock_stripe_customer_id",
+        pricePerSeat: defaultOrgOnboarding.pricePerSeat,
+        billingPeriod: "MONTHLY",
+        seats: 7,
       });
     });
 
@@ -157,63 +214,97 @@ describe("OrganizationPaymentService", () => {
 
       it("should allow admin to override minimum seats to a lower value", async () => {
         const customSeats = 3;
-        const result = await service.createPaymentIntent({
-          ...baseInput,
-          seats: customSeats,
-        });
-
-        expect(result).toBeDefined();
-        expect(prisma.organizationOnboarding.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
+        await service.createPaymentIntent(
+          {
+            ...baseInput,
             seats: customSeats,
-            billingPeriod: "MONTHLY",
-            pricePerSeat: Number(ORGANIZATION_SELF_SERVE_PRICE),
-            name: "Test Org",
-            slug: "test-org",
-            orgOwnerEmail: "test@example.com",
-            teams: [{ id: 1, isBeingMigrated: true, name: "Team 1", slug: "team1" }],
-          }),
+          },
+          {
+            ...defaultOrgOnboarding,
+            seats: customSeats,
+          }
+        );
+
+        expect(vi.mocked(prisma.organizationOnboarding.update)).toHaveBeenCalled();
+        const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
+        expect(updateCall.where).toEqual({ id: "onboard-id-1" });
+        const { updatedAt, ...data } = updateCall.data;
+        expect(data).toEqual({
+          bio: "BIO",
+          logo: "LOGO",
+          teams: [
+            {
+              id: 1,
+              isBeingMigrated: true,
+              name: "Team 1",
+              slug: "team1",
+            },
+          ],
+          stripeCustomerId: "mock_stripe_customer_id",
+          pricePerSeat: defaultOrgOnboarding.pricePerSeat,
+          billingPeriod: "MONTHLY",
+          seats: customSeats,
         });
       });
 
       it("should allow admin to override price per seat", async () => {
         const customPrice = 1000;
-        const result = await service.createPaymentIntent({
-          ...baseInput,
+        const result = await service.createPaymentIntent(baseInput, {
+          ...defaultOrgOnboarding,
           pricePerSeat: customPrice,
         });
 
         expect(result).toBeDefined();
-        expect(prisma.organizationOnboarding.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
-            seats: Number(ORGANIZATION_SELF_SERVE_MIN_SEATS),
-            billingPeriod: "MONTHLY",
-            pricePerSeat: customPrice,
-            name: "Test Org",
-            slug: "test-org",
-            orgOwnerEmail: "test@example.com",
-            teams: [{ id: 1, isBeingMigrated: true, name: "Team 1", slug: "team1" }],
-          }),
+        const updateCall = vi.mocked(prisma.organizationOnboarding.update).mock.calls[0][0];
+        expect(updateCall.where).toEqual({ id: "onboard-id-1" });
+        const { updatedAt, ...data } = updateCall.data;
+        expect(data).toEqual({
+          bio: "BIO",
+          logo: "LOGO",
+          teams: [
+            {
+              id: 1,
+              isBeingMigrated: true,
+              name: "Team 1",
+              slug: "team1",
+            },
+          ],
+          stripeCustomerId: "mock_stripe_customer_id",
+          pricePerSeat: customPrice,
+          billingPeriod: "MONTHLY",
+          seats: 5,
         });
       });
 
       it("should create custom price in Stripe when admin overrides price", async () => {
         const customPrice = 1500;
 
-        await service.createPaymentIntent({
-          ...baseInput,
-          pricePerSeat: customPrice,
-        });
+        await service.createPaymentIntent(
+          {
+            ...baseInput,
+            pricePerSeat: customPrice,
+          },
+          {
+            ...defaultOrgOnboarding,
+            pricePerSeat: customPrice,
+          }
+        );
 
         // Verify a custom price was created in Stripe
-        expect(vi.mocked(service["billingService"].createPrice)).toHaveBeenCalledWith({
-          amount: customPrice * 100, // Convert to cents for Stripe
-          currency: "usd",
-          interval: "month",
-          productId: "STRIPE_ORG_PRODUCT_ID",
-          metadata: expect.any(Object),
-          nickname: expect.any(String),
-        });
+        expect(vi.mocked(service["billingService"].createPrice)).toHaveBeenCalledWith(
+          expect.objectContaining({
+            amount: customPrice * 100, // Convert to cents for Stripe
+            currency: "usd",
+            interval: "month",
+            productId: "STRIPE_ORG_PRODUCT_ID",
+            nickname: expect.stringContaining("Custom Organization Price"),
+            metadata: expect.objectContaining({
+              billingPeriod: "MONTHLY",
+              organizationOnboardingId: "onboard-id-1",
+              pricePerSeat: customPrice,
+            }),
+          })
+        );
       });
     });
   });
