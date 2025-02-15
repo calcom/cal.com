@@ -25,10 +25,13 @@ export const AdminOnboardingHandover = () => {
     <div className="bg-subtle rounded-md p-4">
       <div className="flex items-center gap-2">
         <span className="text-emphasis font-medium">Onboarding URL</span>
-        <code className="bg-default text-default flex w-full items-center truncate rounded-md px-3 py-2 font-mono text-sm">
+        <code
+          data-testid="onboarding-url"
+          className="bg-default text-default flex w-full items-center truncate rounded-md px-3 py-2 font-mono text-sm">
           {onboardingUrl}
         </code>
         <Button
+          data-testid="copy-onboarding-url"
           type="button"
           variant="icon"
           color="secondary"
