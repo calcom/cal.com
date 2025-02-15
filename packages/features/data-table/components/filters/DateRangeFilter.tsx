@@ -147,7 +147,7 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="items-center capitalize">
+        <Button color="secondary" className="items-center capitalize" EndIcon="chevron-down">
           {!isCustomPreset && <span>{t(selectedPreset.labelKey, selectedPreset.i18nOptions)}</span>}
           {isCustomPreset &&
             (endDate ? (
@@ -157,7 +157,6 @@ export const DateRangeFilter = ({ column }: DateRangeFilterProps) => {
             ) : (
               <span>{format(startDate.toDate(), "LLL dd, y")} - End</span>
             ))}
-          <Icon name="chevron-down" className="ml-2 h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="flex w-fit p-0" align="end">
