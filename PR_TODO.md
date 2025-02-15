@@ -1,3 +1,12 @@
+Description:
+- Org is now created only through stripe webhook and thus code has been adapted to be idempotent in case of retries from Stripe when failure happens.
+- We store the complete progress of the onboarding in OrganizationOnboarding table including any error that last happened and the end of lifecycle with isComplete set to true.
+- Admin can configure a custom price for a customer(identified by email) and handover the onboarding to the customer(through a handover onboarding link). In this way, the customer still setups the onboarding himself but pays a custom price.
+- Admin Doing organization onboarding on behalf of an email that doesn't exist in our system, is temporarily disabled. [Can be enabled in the future if needed]
+
+Deprecations/Removals:
+- NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE env variable is removed and user must set NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW with the difference that it doesn't have 00 in the end (37 instead of 3700 now). Reason was that 00 is a stripe specific thing and also because we store the price in DB with OrganizationOnboarding record and it doesn't make sense for it to be 3700 when infact it is 37.
+
 Deployment Plan:
 - [ ] Need Stripe Product ID in Env variable
 - [ ] Set NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW to 37
@@ -52,6 +61,7 @@ Testing:
 
 Followup Improvements:
  - [ ] If due to the number of people being invited during the onboarding if the seats increase, we should show that as a toast in the last onboarding step
+ - [ ] Allow admin to change the price of an existing onboarding. This is important because the admin might need to change the price of the onboarding after it is created and there can only be one onboarding for an orgOwner email.
  - [ ] Logo upload isn't working form onboarding(Existing bug)
  - [ ] Send telemetry event for org creation,
  - [ ]  What if renewal of plan fails? Need to handle that.
