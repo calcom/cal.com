@@ -29,6 +29,7 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/repositories/organizations-webhooks.repository";
+import { OrganizationsRoutingFormsModule } from "@/modules/organizations/routing-forms/organizations-routing-forms-responses.module";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
 import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
@@ -62,6 +63,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
+    OrganizationsRoutingFormsModule,
   ],
   providers: [
     OrganizationsRepository,

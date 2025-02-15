@@ -5030,6 +5030,37 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/forms/{formId}/responses": {
+      "get": {
+        "operationId": "OrganizationsRoutingFormsResponsesController_getRoutingFormResponses",
+        "summary": "Get routing form responses",
+        "parameters": [
+          {
+            "name": "formId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Routing Forms"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -12698,8 +12729,7 @@
           }
         },
         "required": [
-          "callId",
-          "agentId"
+          "callId"
         ]
       },
       "CreatePhoneCallOutput": {
@@ -14296,6 +14326,61 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "RoutingFormResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "formId": {
+            "type": "string"
+          },
+          "formFillerId": {
+            "type": "string"
+          },
+          "routedToBookingUid": {
+            "type": "string"
+          },
+          "response": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "formId",
+          "formFillerId",
+          "routedToBookingUid",
+          "response",
+          "createdAt"
+        ]
+      },
+      "GetRoutingFormResponsesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseDto"
+            }
           }
         },
         "required": [
