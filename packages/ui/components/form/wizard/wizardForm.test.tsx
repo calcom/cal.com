@@ -118,9 +118,10 @@ describe("Tests for WizardForm component", () => {
   test("Should disable 'Next step' button if current step navigation is not enabled", async () => {
     currentStepNavigation = 1;
     const { nextLabel } = props;
-    const { getByText } = renderComponent();
+    const { getByRole } = renderComponent();
 
-    expect(getByText(nextLabel)).toBeDisabled();
+    const nextButton = getByRole("button", { name: nextLabel });
+    expect(nextButton).toBeDisabled();
   });
 
   test("Should handle when navigation is disabled", async () => {
