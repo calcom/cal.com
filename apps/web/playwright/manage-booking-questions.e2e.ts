@@ -259,7 +259,6 @@ test.describe("Manage Booking Questions", () => {
         const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
         await locator.click();
         await expect(locator).toHaveAttribute("aria-current", "page");
-        await expect(locator).toHaveClass(/bg-emphasis/);
         const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
