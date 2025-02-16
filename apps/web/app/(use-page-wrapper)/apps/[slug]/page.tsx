@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { getStaticProps } from "@lib/apps/[slug]/getStaticProps";
+import { decodeParams } from "@lib/buildLegacyCtx";
 
 import AppView from "~/apps/[slug]/slug-view";
 
@@ -12,7 +13,7 @@ const paramsSchema = z.object({
 });
 
 export const generateMetadata = async ({ params }: _PageProps) => {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(decodeParams(params));
 
   if (!p.success) {
     return notFound();
@@ -28,12 +29,15 @@ export const generateMetadata = async ({ params }: _PageProps) => {
   return await generateAppMetadata(
     { slug: logo, name, description },
     () => name,
-    () => description
+    () => description,
+    undefined,
+    undefined,
+    `/apps/${p.data.slug}`
   );
 };
 
 async function Page({ params }: _PageProps) {
-  const p = paramsSchema.safeParse(params);
+  const p = paramsSchema.safeParse(decodeParams(params));
 
   if (!p.success) {
     return notFound();

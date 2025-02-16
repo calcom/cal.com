@@ -4,6 +4,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { decodeParams } from "@lib/buildLegacyCtx";
+
 import { validStatuses } from "~/bookings/lib/validStatuses";
 import BookingsList from "~/bookings/views/bookings-listing-view";
 
@@ -11,14 +13,17 @@ const querySchema = z.object({
   status: z.enum(validStatuses),
 });
 
-export const generateMetadata = async () =>
+export const generateMetadata = async ({ params }: PageProps) =>
   await _generateMetadata(
     (t) => t("bookings"),
-    (t) => t("bookings_description")
+    (t) => t("bookings_description"),
+    undefined,
+    undefined,
+    `/bookings/${decodeParams(params).status}`
   );
 
 const Page = async ({ params }: PageProps) => {
-  const parsed = querySchema.safeParse(params);
+  const parsed = querySchema.safeParse(decodeParams(params));
   if (!parsed.success) {
     redirect("/bookings/upcoming");
   }

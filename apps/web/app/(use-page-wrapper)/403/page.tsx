@@ -6,7 +6,10 @@ import { Button } from "@calcom/ui";
 export const generateMetadata = () =>
   _generateMetadata(
     (t) => `${t("access_denied")} | ${APP_NAME}`,
-    () => ""
+    () => "",
+    undefined,
+    undefined,
+    "/403"
   );
 
 async function Error403() {
