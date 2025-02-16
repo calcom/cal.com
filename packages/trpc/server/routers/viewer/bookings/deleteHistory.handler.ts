@@ -19,6 +19,12 @@ export const deleteHistoryHandler = async ({ ctx: _ctx, input }: DeleteOptions) 
     },
   });
 
+  await prisma.bookingSeat.deleteMany({
+    where: {
+      bookingId: id,
+    },
+  });
+
   await prisma.bookingReference.deleteMany({
     where: {
       bookingId: id,
