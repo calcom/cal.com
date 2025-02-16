@@ -3,6 +3,7 @@
 import { keepPreviousData } from "@tanstack/react-query";
 import { getCoreRowModel, useReactTable, type ColumnDef } from "@tanstack/react-table";
 import { Trans } from "next-i18next";
+import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState } from "react-hook-form";
 
@@ -40,7 +41,13 @@ interface OutOfOfficeEntry {
   user: { id: number; avatarUrl: string; username: string; email: string; name: string } | null;
 }
 
-export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: number }) => {
+export const OutOfOfficeEntriesList = ({
+  oooEntriesAdded,
+  setOOOEntriesAdded,
+}: {
+  oooEntriesAdded: number;
+  setOOOEntriesAdded: Dispatch<SetStateAction<number>>;
+}) => {
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
@@ -331,7 +338,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
               ? t("ooo_team_empty_description")
               : t("ooo_empty_description")
           }
-          buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
+          buttonRaw={<CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} size="sm" />}
           customIcon={
             <div className="mt-4 h-[102px]">
               <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">

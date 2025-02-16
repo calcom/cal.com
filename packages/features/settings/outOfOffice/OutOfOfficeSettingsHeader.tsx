@@ -33,7 +33,7 @@ export const OutOfOfficeSettingsHeader = () => {
           />
         </div>
       }>
-      <OutOfOfficeEntriesList oooEntriesAdded={oooEntriesAdded} />
+      <OutOfOfficeEntriesList oooEntriesAdded={oooEntriesAdded} setOOOEntriesAdded={setOOOEntriesAdded} />
     </SettingsHeader>
   );
 };

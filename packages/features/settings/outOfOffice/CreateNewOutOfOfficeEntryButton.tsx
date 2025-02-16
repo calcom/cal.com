@@ -17,7 +17,7 @@ const CreateNewOutOfOfficeEntry = ({
 }: {
   size?: ButtonProps["size"];
   "data-testid"?: string;
-  setOOOEntriesAdded?: Dispatch<SetStateAction<number>>;
+  setOOOEntriesAdded: Dispatch<SetStateAction<number>>;
 }) => {
   const { t } = useLocale();
 
