@@ -48,6 +48,10 @@ export class CreateBookingInput {
   @IsOptional()
   end?: string;
 
+  @IsInt()
+  @IsOptional()
+  lengthInMinutes?: number;
+
   @IsString()
   start!: string;
 

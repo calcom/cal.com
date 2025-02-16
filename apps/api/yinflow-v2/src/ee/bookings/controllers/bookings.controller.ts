@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpException,
   InternalServerErrorException,
   NotFoundException,
@@ -17,8 +16,7 @@ import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
-import logger from "@calcom/lib/logger";
-import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { BookingResponse, HttpError } from "@calcom/platform-libraries";
 import { ApiResponse, CancelBookingInput, GetBookingsInput } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
@@ -36,7 +34,6 @@ type BookingRequest = Request & {
   userId?: number;
 };
 
-const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 @Controller({
   path: "/v2/bookings",
   version: API_VERSIONS_VALUES,
@@ -93,9 +90,14 @@ export class BookingsController {
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const { bookingUid, end, start, orgSlug, user, responses, metadata, userId, ...otherParams } = body;
+    const { bookingUid, start, orgSlug, user, responses, metadata, userId, lengthInMinutes, ...otherParams } =
+      body;
 
     req.headers["x-cal-force-slug"] = orgSlug;
+
+    const end = dayjs(start)
+      .add(lengthInMinutes || 50, "minutes")
+      .toISOString();
 
     try {
       const { data: eventType } = await supabase
