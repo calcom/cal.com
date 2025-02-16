@@ -5,6 +5,7 @@ import { CalendarService as IcsFeedCalendarService } from "@calcom/app-store/ics
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { CredentialDataWithTeamName, LocationOption } from "@calcom/app-store/utils";
+import getApps from "@calcom/app-store/utils";
 import AttendeeCancelledEmail from "@calcom/emails/templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "@calcom/emails/templates/attendee-declined-email";
 import AttendeeRequestEmail from "@calcom/emails/templates/attendee-request-email";
@@ -61,6 +62,10 @@ import {
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { App } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
+
+export { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+
+export { getApps };
 
 export {
   getFirstDwdConferencingCredentialAppLocation,
