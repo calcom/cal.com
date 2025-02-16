@@ -653,7 +653,7 @@ export const EventLimitsTab = ({ eventType, customClassNames }: EventLimitsTabPr
                   onChange({});
                 }
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6 pr-1.5 [@media(max-width:436px)]:pl-1.5">
                 <IntervalLimitsManager
                   propertyName="durationLimits"
                   defaultLimit={60}
@@ -922,7 +922,7 @@ export const IntervalLimitsManager = <K extends "durationLimits" | "bookingLimit
         };
 
         return (
-          <ul ref={animateRef}>
+          <ul className="[@media(max-width:416px)]:w-[346px]" ref={animateRef}>
             {currentIntervalLimits &&
               watchIntervalLimits &&
               Object.entries(currentIntervalLimits)
