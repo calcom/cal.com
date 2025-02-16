@@ -16,8 +16,13 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+// These are the routes that are allowed to use POST method
+// non-api routes are allowed because "revalidatePath()" is used to revalidate the cache for them
+const ROUTES_ALLOWED_POST_METHODS = ["/api/auth/signup", "/api/trpc/:path*", "/settings/my-account/general"];
+
 export function checkPostMethod(req: NextRequest) {
-  if (!req.nextUrl.pathname.startsWith("/api") && req.method === "POST") {
+  const pathname = req.nextUrl.pathname;
+  if (!ROUTES_ALLOWED_POST_METHODS.some((route) => pathname.startsWith(route)) && req.method === "POST") {
     return new NextResponse(null, {
       status: 405,
       statusText: "Method Not Allowed",
