@@ -101,6 +101,9 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
         accepted: true,
         role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
       },
+      select: {
+        id: true,
+      },
     })) !== null;
 
   return {

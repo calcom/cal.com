@@ -195,6 +195,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }
       }}>
       <DialogContent
+        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -234,7 +235,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       value={searchMember}
                       disabled={!!currentlyEditingOutOfOfficeEntry}
                     />
-                    <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
                       {oooMemberListOptions.map((member) => (
                         <label
                           key={member.value}
@@ -375,7 +376,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(e) => setSearchRedirectMember(e.target.value)}
                       value={searchRedirectMember}
                     />
-                    <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
                       {redirectToMemberListOptions
                         .filter((member) => member.value !== getValues("forUserId"))
                         .map((member) => (

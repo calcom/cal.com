@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge, Button, Icon, Tooltip } from "@calcom/ui";
+import { Badge, Button, Tooltip } from "@calcom/ui";
 
 export interface FilterToggleProps {
   setIsFiltersVisible: Dispatch<SetStateAction<boolean>>;
@@ -19,8 +19,7 @@ export function FilterToggle({ setIsFiltersVisible }: FilterToggleProps) {
   }
 
   return (
-    <Button color="secondary" onClick={toggleFiltersVisibility} className="mb-4">
-      <Icon name="filter" className="h-4 w-4" />
+    <Button color="secondary" onClick={toggleFiltersVisibility} className="mb-4" StartIcon="filter">
       <Tooltip content={t("filters")}>
         <div className="mx-2">{t("filters")}</div>
       </Tooltip>

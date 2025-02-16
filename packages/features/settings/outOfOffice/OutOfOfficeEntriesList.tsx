@@ -15,6 +15,7 @@ import { trpc } from "@calcom/trpc/react";
 import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOfficeEntriesList.schema";
 import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
 
+import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
 import type { BookingRedirectForm } from "./CreateOrEditOutOfOfficeModal";
 import { OutOfOfficeTab } from "./OutOfOfficeToggleGroup";
@@ -201,7 +202,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                   <Button
                     className="self-center rounded-lg border"
                     type="button"
-                    color="minimal"
+                    color="secondary"
                     variant="icon"
                     data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                     StartIcon="pencil"
@@ -237,7 +238,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                   <Button
                     className="self-center rounded-lg border"
                     type="button"
-                    color="minimal"
+                    color="destructive"
                     variant="icon"
                     disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
                     StartIcon="trash-2"
@@ -330,6 +331,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
               ? t("ooo_team_empty_description")
               : t("ooo_empty_description")
           }
+          buttonRaw={<CreateNewOutOfOfficeEntryButton size="sm" />}
           customIcon={
             <div className="mt-4 h-[102px]">
               <div className="flex h-full flex-col items-center justify-center p-2 md:mt-0 md:p-0">
@@ -340,7 +342,7 @@ export const OutOfOfficeEntriesList = ({ oooEntriesAdded }: { oooEntriesAdded: n
                   <div className="dark:bg-darkgray-50 absolute -top-3 left-3 -z-10 h-[70px] w-[70px] rotate-[24deg] rounded-3xl border-2 border-[#e5e7eb] p-8 opacity-60 dark:opacity-90">
                     <div className="w-12" />
                   </div>
-                  <div className="dark:bg-darkgray-50 relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
+                  <div className="dark:bg-darkgray-50 text-inverted relative z-0 flex h-[70px] w-[70px] items-center justify-center rounded-3xl border-2 border-[#e5e7eb] bg-white">
                     <Icon name="clock" size={28} />
                     <div className="dark:bg-darkgray-50 absolute right-4 top-5 h-[12px] w-[12px] rotate-[56deg] bg-white text-lg font-bold" />
                     <span className="absolute right-4 top-3 font-sans text-sm font-extrabold">z</span>

@@ -27,7 +27,10 @@ export const OutOfOfficeSettingsHeader = () => {
       CTA={
         <div className="flex gap-2">
           <OutOfOfficeToggleGroup />
-          <CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} />
+          <CreateNewOutOfOfficeEntryButton
+            setOOOEntriesAdded={setOOOEntriesAdded}
+            data-testid="add_entry_ooo"
+          />
         </div>
       }>
       <OutOfOfficeEntriesList oooEntriesAdded={oooEntriesAdded} />
