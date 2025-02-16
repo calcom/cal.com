@@ -47,7 +47,7 @@ export const getTranslate = async () => {
   const headersList = await headers();
   // If "x-locale" does not exist in header,
   // ensure that config.matcher in middleware includes the page you are testing
-  const locale = headersList.get("x-locale") ?? (await getLocale(buildLegacyRequest(headersList, cookies())));
+  const locale = await getLocale(buildLegacyRequest(headersList, cookies()));
   const t = await getTranslationWithCache(locale ?? "en");
   return t;
 };
@@ -60,9 +60,9 @@ const _generateMetadataWithoutImage = async (
   pathname?: string
 ) => {
   const h = headers();
-  const _pathname = h.get("x-pathname") ?? pathname ?? "";
+  const _pathname = pathname ?? "";
   const canonical = buildCanonical({ path: _pathname, origin: origin ?? CAL_URL });
-  const locale = h.get("x-locale") ?? (await getLocale(buildLegacyRequest(h, cookies()))) ?? "en";
+  const locale = (await getLocale(buildLegacyRequest(h, cookies()))) ?? "en";
   const t = await getTranslationWithCache(locale);
 
   const title = getTitle(t);
@@ -90,9 +90,16 @@ export const _generateMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
   const image =
     SEO_IMG_OGIMG +
     constructGenericImage({
@@ -140,9 +147,16 @@ export const generateAppMetadata = async (
   getTitle: (t: TFunction<string, undefined>) => string,
   getDescription: (t: TFunction<string, undefined>) => string,
   hideBranding?: boolean,
-  origin?: string
+  origin?: string,
+  pathname?: string
 ) => {
-  const metadata = await _generateMetadataWithoutImage(getTitle, getDescription, hideBranding, origin);
+  const metadata = await _generateMetadataWithoutImage(
+    getTitle,
+    getDescription,
+    hideBranding,
+    origin,
+    pathname
+  );
 
   const image = SEO_IMG_OGIMG + constructAppImage({ ...app, description: metadata.description });
 

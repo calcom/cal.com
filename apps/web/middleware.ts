@@ -3,7 +3,6 @@ import { collectEvents } from "next-collect/server";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { extendEventData, nextCollectBasicSettings } from "@calcom/lib/telemetry";
 
 import { csp } from "./lib/csp";
@@ -96,12 +95,6 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
     }
   }
 
-  requestHeaders.set("x-pathname", url.pathname);
-
-  const locale = await getLocale(req);
-
-  requestHeaders.set("x-locale", locale);
-
   const res = NextResponse.next({
     request: {
       headers: requestHeaders,
@@ -164,49 +157,17 @@ export const config = {
   // Next.js Doesn't support spread operator in config matcher, so, we must list all paths explicitly here.
   // https://github.com/vercel/next.js/discussions/42458
   matcher: [
-    "/",
-    "/403",
-    "/500",
-    "/icons",
-    "/d/:path*",
-    "/more/:path*",
-    "/maintenance/:path*",
-    "/enterprise/:path*",
-    "/upgrade/:path*",
-    "/connect-and-join/:path*",
-    "/insights/:path*",
     "/:path*/embed",
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
-    "/auth/:path*",
+    "/auth/login",
+    "/auth/logout",
     /**
      * Paths required by routingForms.handle
      */
     "/apps/routing_forms/:path*",
-
-    "/event-types/:path*",
     "/apps/installed/:category/",
-    "/apps/installation/:path*",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
-    "/workflows/:path*",
-    "/getting-started/:path*",
-    "/apps",
-    "/bookings/:path*",
-    "/video/:path*",
-    "/teams/:path*",
-    "/signup/:path*",
-    "/settings/:path*",
-    "/reschedule/:path*",
-    "/availability/:path*",
-    "/booking/:path*",
-    "/payment/:path*",
-    "/routing-forms/:path*",
-    "/team/:path*",
-    "/org/:path*",
   ],
 };
 

@@ -13,7 +13,10 @@ import TeamsView, { TeamsCTA } from "~/teams/teams-view";
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("teams"),
-    (t) => t("create_manage_teams_collaborative")
+    (t) => t("create_manage_teams_collaborative"),
+    undefined,
+    undefined,
+    "/teams"
   );
 
 const getData = withAppDirSsr<ClientPageProps>(getServerSideProps);

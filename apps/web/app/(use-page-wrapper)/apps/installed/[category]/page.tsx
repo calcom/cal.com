@@ -5,6 +5,8 @@ import { z } from "zod";
 
 import { AppCategories } from "@calcom/prisma/enums";
 
+import { decodeParams } from "@lib/buildLegacyCtx";
+
 import InstalledApps from "~/apps/installed/[category]/installed-category-view";
 
 const querySchema = z.object({
@@ -19,7 +21,7 @@ export const generateMetadata = async () => {
 };
 
 const InstalledAppsWrapper = async ({ params }: PageProps) => {
-  const parsedParams = querySchema.safeParse(params);
+  const parsedParams = querySchema.safeParse(decodeParams(params));
 
   if (!parsedParams.success) {
     redirect("/apps/installed/calendar");

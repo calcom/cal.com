@@ -12,7 +12,10 @@ import { ShellMainAppDir } from "../ShellMainAppDir";
 export const generateMetadata = async () => {
   return await _generateMetadata(
     (t) => t("availability"),
-    (t) => t("configure_availability")
+    (t) => t("configure_availability"),
+    undefined,
+    undefined,
+    "/availability"
   );
 };
 

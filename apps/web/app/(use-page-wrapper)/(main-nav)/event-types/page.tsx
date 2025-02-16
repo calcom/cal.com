@@ -15,7 +15,10 @@ import EventTypes, { EventTypesCTA } from "~/event-types/views/event-types-listi
 export const generateMetadata = async () =>
   await _generateMetadata(
     (t) => t("event_types_page_title"),
-    (t) => t("event_types_page_subtitle")
+    (t) => t("event_types_page_subtitle"),
+    undefined,
+    undefined,
+    "/event-types"
   );
 
 const Page = async ({ params, searchParams }: PageProps) => {
