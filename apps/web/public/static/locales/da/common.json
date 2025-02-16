@@ -2953,9 +2953,5 @@
   "desc": "Faldende",
   "verify_email": "Bekræft e-mail",
   "verify_email_change": "Bekræft ændring af e-mail",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Slet bookinghistorik",
-  "delete_history_description": "Er du sikker på, at du vil slette dette fra din bookinghistorik?",
-  "unable_to_delete_booking": "Kan ikke slette reservation",
-  "booking_delete_successfully": "Reservationen blev slettet"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Tilføj dine nye strenge ovenfor her ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

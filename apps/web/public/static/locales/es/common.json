@@ -2953,9 +2953,5 @@
   "desc": "Desc",
   "verify_email": "Verificar correo",
   "verify_email_change": "Verificar cambio de correo electrónico",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Eliminar historial de reservas",
-  "delete_history_description": "¿Estás seguro de que quieres eliminar esto de tu historial de reservas?",
-  "unable_to_delete_booking": "No se puede eliminar la reserva",
-  "booking_delete_successfully": "Reserva eliminada con éxito"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Agregue sus nuevas cadenas arriba ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

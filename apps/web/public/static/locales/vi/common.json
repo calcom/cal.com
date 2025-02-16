@@ -2953,9 +2953,5 @@
   "desc": "Giảm dần",
   "verify_email": "Xác thực email",
   "verify_email_change": "Xác minh thay đổi email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Xóa lịch sử đặt chỗ",
-  "delete_history_description": "Bạn có chắc chắn muốn xóa điều này khỏi lịch sử đặt chỗ của mình không?",
-  "unable_to_delete_booking": "Không thể xóa đặt chỗ",
-  "booking_delete_successfully": "Đặt chỗ đã được xóa thành công"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

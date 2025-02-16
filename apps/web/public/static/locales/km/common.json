@@ -2953,9 +2953,5 @@
   "desc": "ចុះ",
   "verify_email": "ផ្ទៀងផ្ទាត់អ៊ីមែល",
   "verify_email_change": "ផ្ទៀងផ្ទាត់ការផ្លាស់ប្តូរអ៊ីមែល",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "លុបប្រវត្តិការកក់",
-  "delete_history_description": "តើអ្នកប្រាកដថាចង់លុបវាចេញពីប្រវត្តិការកក់របស់អ្នកឬ?",
-  "unable_to_delete_booking": "មិនអាចលុបការកក់បានទេ",
-  "booking_delete_successfully": "ការកក់ត្រូវបានលុបដោយជោគជ័យ"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ បន្ថែមខ្សែអក្សរថ្មីរបស់អ្នកនៅខាងលើនេះ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

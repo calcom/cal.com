@@ -2953,9 +2953,5 @@
   "desc": "Beherantz",
   "verify_email": "Egiaztatu emaila",
   "verify_email_change": "Egiaztatu posta elektronikoaren aldaketa",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Ezabatu erreserben historia",
-  "delete_history_description": "Ziur zaude hau zure erreserba-historiatik ezabatu nahi duzula?",
-  "unable_to_delete_booking": "Ezin da erreserba ezabatu",
-  "booking_delete_successfully": "Erreserba ongi ezabatu da"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Gehitu zure kate berriak honen gainean ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

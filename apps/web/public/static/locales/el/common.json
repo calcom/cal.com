@@ -2953,9 +2953,5 @@
   "desc": "Φθίνουσα",
   "verify_email": "Επαλήθευση email",
   "verify_email_change": "Επαλήθευση αλλαγής email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Διαγραφή ιστορικού κρατήσεων",
-  "delete_history_description": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό από το ιστορικό κρατήσεών σας;",
-  "unable_to_delete_booking": "Δεν είναι δυνατή η διαγραφή της κράτησης",
-  "booking_delete_successfully": "Η κράτηση διαγράφηκε με επιτυχία"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

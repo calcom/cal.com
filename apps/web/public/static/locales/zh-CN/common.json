@@ -2953,9 +2953,5 @@
   "desc": "降序",
   "verify_email": "验证邮箱",
   "verify_email_change": "验证邮箱变更",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "删除预订历史",
-  "delete_history_description": "您确定要从您的预订历史中删除此项吗？",
-  "unable_to_delete_booking": "无法删除预订",
-  "booking_delete_successfully": "预订已成功删除"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 在此上方添加您的新字符串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

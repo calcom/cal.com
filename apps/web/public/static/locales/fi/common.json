@@ -2953,9 +2953,5 @@
   "desc": "Laskeva",
   "verify_email": "Vahvista sähköposti",
   "verify_email_change": "Vahvista sähköpostin muutos",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Poista varauksen historia",
-  "delete_history_description": "Oletko varma, että haluat poistaa tämän varaus historiastasi?",
-  "unable_to_delete_booking": "Varausta ei voi poistaa",
-  "booking_delete_successfully": "Varaus poistettu onnistuneesti"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Lisää uudet merkkijonot tämän yläpuolelle ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -2953,10 +2953,6 @@
   "desc": "Decrescente",
   "verify_email": "Verifica email",
   "verify_email_change": "Verifica la modifica dell'email",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Elimina cronologia prenotazioni",
-  "delete_history_description": "Sei sicuro di voler eliminare questo dalla tua cronologia delle prenotazioni?",
-  "unable_to_delete_booking": "Impossibile eliminare la prenotazione",
-  "booking_delete_successfully": "Prenotazione eliminata con successo"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Aggiungi le tue nuove stringhe qui sopra ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 
 }

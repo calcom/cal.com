@@ -2953,9 +2953,5 @@
   "desc": "Azalan",
   "verify_email": "E-poçtu təsdiqlə",
   "verify_email_change": "E-poçt dəyişikliyini təsdiqlə",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Rezervasiya tarixçəsini sil",
-  "delete_history_description": "Rezervasiya tarixçənizdən bunu silmək istədiyinizə əminsiniz?",
-  "unable_to_delete_booking": "Rezervasiyanı silmək mümkün olmadı",
-  "booking_delete_successfully": "Rezervasiya uğurla silindi"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni sətirləri bura əlavə edin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

@@ -151,9 +151,5 @@
   "ooo_select_reason": "Izvēlieties iemeslu",
   "enterprise_license_locally": "Jūs varat testēt šo funkciju vietēji, bet ne ražošanas vidē.",
   "enterprise_license_sales": "Lai uzlabotu uz uzņēmuma izdevumu, lūdzu, sazinieties ar mūsu pārdošanas komandu. Ja licences atslēga jau ir, lūdzu, sazinieties ar support@cal.com uz palīdzību.",
-  "apply_to_all_event_types": "Piemēroties visiem, ieskaitot arī nākotnes notikumu veidus",
-  "delete_history_title": "Dzēst rezervācijas vēsturi",
-  "delete_history_description": "Vai esat pārliecināts, ka vēlaties to dzēst no savas rezervāciju vēstures?",
-  "unable_to_delete_booking": "Nevar izdzēst rezervāciju",
-  "booking_delete_successfully": "Rezervācija veiksmīgi izdzēsta"
+  "apply_to_all_event_types": "Piemēroties visiem, ieskaitot arī nākotnes notikumu veidus"
 }
