@@ -7,7 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -44,22 +44,27 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
+    "data-testid": "upcoming",
   },
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
+    "data-testid": "unconfirmed",
   },
   {
     name: "recurring",
     href: "/bookings/recurring",
+    "data-testid": "recurring",
   },
   {
     name: "past",
     href: "/bookings/past",
+    "data-testid": "past",
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
+    "data-testid": "cancelled",
   },
 ];
 
@@ -95,11 +100,18 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -243,7 +255,12 @@ function BookingsContent({ status }: BookingsProps) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
-        <HorizontalTabs tabs={tabs} />
+        <HorizontalTabs
+          tabs={tabs.map((tab) => ({
+            ...tab,
+            name: t(tab.name),
+          }))}
+        />
         <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />

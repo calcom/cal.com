@@ -525,7 +525,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     );
   }
   return (
-    <DropdownMenuItem>
+    <DropdownMenuItem className="hover:bg-[initial]">
       <Component
         ref={forwardedRef}
         {...actionProps}
