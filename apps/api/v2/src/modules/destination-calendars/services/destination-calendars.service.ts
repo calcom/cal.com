@@ -19,7 +19,7 @@ export class DestinationCalendarsService {
     // note(Lauris): todo remove the log but leaving this now to confirm domainWideDelegationCredentialId is received
     console.log("debug: domainWideDelegationCredentialId", domainWideDelegationCredentialId);
     const userCalendars = await this.calendarsService.getCalendars(userId);
-    const allCalendars = userCalendars.connectedCalendars
+    const allCalendars: Calendar[] = userCalendars.connectedCalendars
       .map((cal: ConnectedCalendar) => cal.calendars ?? [])
       .flat();
     const credentialId = allCalendars.find(
@@ -27,12 +27,26 @@ export class DestinationCalendarsService {
         cal.externalId === externalId && cal.integration === integration && cal.readOnly === false
     )?.credentialId;
 
-    if (!credentialId) {
+    if (!domainWideDelegationCredentialId && !credentialId) {
       throw new NotFoundException(`Could not find calendar ${externalId}`);
     }
 
-    const primaryEmail =
-      allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email ?? null;
+    const dwdCalendar = domainWideDelegationCredentialId
+      ? allCalendars.find(
+          (cal: Calendar) =>
+            cal.externalId === externalId &&
+            cal.integration === integration &&
+            cal.domainWideDelegationCredentialId === domainWideDelegationCredentialId
+        )
+      : undefined;
+
+    if (domainWideDelegationCredentialId && !dwdCalendar) {
+      throw new NotFoundException(`Could not find calendar ${externalId}`);
+    }
+
+    const primaryEmail = dwdCalendar
+      ? (dwdCalendar.primary && dwdCalendar?.email) || undefined
+      : allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email;
 
     const {
       integration: updatedCalendarIntegration,
@@ -42,9 +56,10 @@ export class DestinationCalendarsService {
     } = await this.destinationCalendarsRepository.updateCalendar(
       integration,
       externalId,
-      credentialId,
       userId,
-      primaryEmail
+      primaryEmail ?? null,
+      credentialId,
+      domainWideDelegationCredentialId
     );
 
     return {
