@@ -58,8 +58,8 @@ export class DestinationCalendarsService {
       externalId,
       userId,
       primaryEmail ?? null,
-      credentialId,
-      domainWideDelegationCredentialId
+      dwdCalendar ? undefined : credentialId,
+      dwdCalendar ? domainWideDelegationCredentialId : undefined
     );
 
     return {
