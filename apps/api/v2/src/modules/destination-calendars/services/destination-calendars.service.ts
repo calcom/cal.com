@@ -10,7 +10,14 @@ export class DestinationCalendarsService {
     private readonly destinationCalendarsRepository: DestinationCalendarsRepository
   ) {}
 
-  async updateDestinationCalendars(integration: string, externalId: string, userId: number) {
+  async updateDestinationCalendars(
+    integration: string,
+    externalId: string,
+    userId: number,
+    domainWideDelegationCredentialId?: string
+  ) {
+    // note(Lauris): todo remove the log but leaving this now to confirm domainWideDelegationCredentialId is received
+    console.log("debug: domainWideDelegationCredentialId", domainWideDelegationCredentialId);
     const userCalendars = await this.calendarsService.getCalendars(userId);
     const allCalendars = userCalendars.connectedCalendars
       .map((cal: ConnectedCalendar) => cal.calendars ?? [])
