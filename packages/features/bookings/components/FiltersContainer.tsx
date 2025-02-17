@@ -28,7 +28,7 @@ export function FiltersContainer({ isFiltersVisible }: FiltersContainerProps) {
   return (
     <div ref={animationParentRef}>
       {isFiltersVisible ? (
-        <div className="no-scrollbar flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
+        <div className="no-scrollbar mb-2 flex w-full space-x-2 overflow-x-scroll rtl:space-x-reverse">
           <PeopleFilter />
           <EventTypeFilter />
           <TeamsFilter />
