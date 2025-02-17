@@ -14528,11 +14528,21 @@
         "properties": {
           "enabled": {
             "type": "boolean"
+          },
+          "serviceAccountKey": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
           }
-        },
-        "required": [
-          "enabled"
-        ]
+        }
       },
       "UpdateDwdOutput": {
         "type": "object",
