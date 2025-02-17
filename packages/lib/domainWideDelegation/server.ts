@@ -37,7 +37,7 @@ interface User {
   id: number;
 }
 
-const checkWorkspaceSlug = (slug: string) => {
+const isValidWorkspaceSlug = (slug: string) => {
   return WORKSPACE_PLATFORM_SLUGS.includes(slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE);
 };
 
@@ -45,13 +45,13 @@ const getDwdAppMetadata = (slug: WORKSPACE_PLATFORM_SLUGS_TYPE, isConferencing?:
   switch (slug) {
     case GOOGLE_WORKSPACE_SLUG:
       return isConferencing
-        ? { type: googleMeetMetadata.type, appId: googleMeetMetadata.type }
-        : { type: googleCalendarMetadata.type, appId: googleCalendarMetadata.type };
+        ? { type: googleMeetMetadata.type, appId: googleMeetMetadata.slug }
+        : { type: googleCalendarMetadata.type, appId: googleCalendarMetadata.slug };
 
     case OFFICE365_WORKSPACE_SLUG:
       return isConferencing
-        ? { type: office365VideoMetaData.type, appId: office365VideoMetaData.type }
-        : { type: office365CalendarMetaData.type, appId: office365CalendarMetaData.type };
+        ? { type: office365VideoMetaData.type, appId: office365VideoMetaData.slug }
+        : { type: office365CalendarMetaData.type, appId: office365CalendarMetaData.slug };
 
     default:
       throw new Error("App metadata does not exist");
@@ -90,8 +90,9 @@ const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
 
 const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
+  console.log("dwd.workspacePlatform.slug", dwd.workspacePlatform, dwd);
   // TODO: Build for other platforms as well
-  if (!checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+  if (!isValidWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
         dwd.workspacePlatform.slug
@@ -100,7 +101,7 @@ const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation;
     return null;
   }
   return {
-    ...getDwdAppMetadata(dwd.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE, true),
+    ...getDwdAppMetadata(dwd.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE, false),
     ..._buildCommonUserCredential({ dwd, user }),
   };
 };
@@ -126,7 +127,7 @@ const _buildDwdCalendarCredentialWithServiceAccountKey = ({
 
 const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   // TODO: Build for other platforms as well
-  if (!checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+  if (!isValidWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
         dwd.workspacePlatform.slug
@@ -162,6 +163,8 @@ export async function getAllDwdCredentialsForUser({ user }: { user: { email: str
     _buildDwdCalendarCredential({ dwd, user }),
     _buildDwdConferencingCredential({ dwd, user }),
   ].filter((credential): credential is NonNullable<typeof credential> => credential !== null);
+
+  console.log("domainWideDelegationCredentials", _buildDwdCalendarCredential({ dwd, user }));
 
   log.debug("Returned", safeStringify({ domainWideDelegationCredentials }));
   return domainWideDelegationCredentials;
@@ -222,11 +225,7 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   dwd: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) {
-  if (
-    WORKSPACE_PLATFORM_SLUGS.includes(
-      dwd.workspacePlatform.slug as unknown as (typeof WORKSPACE_PLATFORM_SLUGS)[number]
-    )
-  ) {
+  if (!isValidWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
         dwd.workspacePlatform.slug
