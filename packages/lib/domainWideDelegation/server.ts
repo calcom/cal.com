@@ -12,6 +12,9 @@ import { buildNonDwdCredentials, isDwdCredential } from "./clientAndServer";
 
 export { buildNonDwdCredentials, buildNonDwdCredential } from "./clientAndServer";
 
+const WORKSPACE_PLATFORM_SLUGS = ["google", "office365"] as const;
+type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
+
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
 interface DomainWideDelegation {
   id: string;
@@ -29,6 +32,11 @@ interface User {
   email: string;
   id: number;
 }
+
+const checkWorkspaceSlug = (slug: string) => {
+  return WORKSPACE_PLATFORM_SLUGS.includes(slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE);
+};
+
 const _isConferencingCredential = (credential: CredentialPayload) => {
   return (
     credential.type.endsWith("_video") ||
@@ -62,8 +70,12 @@ const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
 const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
   // TODO: Build for other platforms as well
-  if (dwd.workspacePlatform.slug !== "google") {
-    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
+  if (checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+    log.warn(
+      `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
+        dwd.workspacePlatform.slug
+      }`
+    );
     return null;
   }
   return {
@@ -94,8 +106,12 @@ const _buildDwdCalendarCredentialWithServiceAccountKey = ({
 
 const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   // TODO: Build for other platforms as well
-  if (dwd.workspacePlatform.slug !== "google") {
-    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
+  if (checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+    log.warn(
+      `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
+        dwd.workspacePlatform.slug
+      }`
+    );
     return null;
   }
 
@@ -187,8 +203,16 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
   dwd: DomainWideDelegationWithSensitiveServiceAccountKey;
   user: User;
 }) {
-  if (dwd.workspacePlatform.slug !== "google") {
-    log.warn(`Only Google Platform is supported here, skipping ${dwd.workspacePlatform.slug}`);
+  if (
+    WORKSPACE_PLATFORM_SLUGS.includes(
+      dwd.workspacePlatform.slug as unknown as (typeof WORKSPACE_PLATFORM_SLUGS)[number]
+    )
+  ) {
+    log.warn(
+      `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
+        dwd.workspacePlatform.slug
+      }`
+    );
     return false;
   }
 
