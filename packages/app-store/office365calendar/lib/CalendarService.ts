@@ -13,7 +13,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
-import type { Office365CredentialPayload } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithTenantId } from "@calcom/types/Credential";
 
 import { OAuthManager } from "../../_utils/oauth/OAuthManager";
 import { getTokenObjectFromCredential } from "../../_utils/oauth/getTokenObjectFromCredential";
@@ -53,9 +53,9 @@ export default class Office365CalendarService implements Calendar {
   private log: typeof logger;
   private auth: OAuthManager;
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
-  private credential: Office365CredentialPayload;
+  private credential: CredentialForCalendarServiceWithTenantId;
 
-  constructor(credential: Office365CredentialPayload) {
+  constructor(credential: CredentialForCalendarServiceWithTenantId) {
     this.integrationName = "office365_calendar";
     const tokenResponse = getTokenObjectFromCredential(credential);
 

@@ -11,10 +11,26 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
   delegatedToId?: string | null;
 };
 
-export type CredentialForCalendarService = CredentialPayload & {
+export type CredentialForCalendarService =
+  | CredentialForCalendarServiceWithEmail
+  | CredentialForCalendarServiceWithTenantId;
+
+export type CredentialForCalendarServiceWithEmail = CredentialPayload & {
   delegatedTo: {
     serviceAccountKey: {
       client_email: string;
+      tenant_id?: undefined;
+      client_id: string;
+      private_key: string;
+    };
+  } | null;
+};
+
+export type CredentialForCalendarServiceWithTenantId = CredentialPayload & {
+  delegatedTo: {
+    serviceAccountKey: {
+      client_email?: undefined;
+      tenant_id: string;
       client_id: string;
       private_key: string;
     };
