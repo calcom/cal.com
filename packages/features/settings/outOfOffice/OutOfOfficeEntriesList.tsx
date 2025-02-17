@@ -145,7 +145,7 @@ export const OutOfOfficeEntriesList = ({
     columns.push({
       id: "outOfOffice",
       header: `${t("out_of_office")} (${totalDBRowCount})`,
-      size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 670,
+      size: selectedTab === OutOfOfficeTab.TEAM ? 370 : 660,
       cell: ({ row }) => {
         const item = row.original;
         return (
@@ -249,6 +249,7 @@ export const OutOfOfficeEntriesList = ({
                     variant="icon"
                     disabled={deleteOutOfOfficeEntryMutation.isPending || isPending || isFetching}
                     StartIcon="trash-2"
+                    data-testid={`ooo-delete-${item.toUser?.username || "n-a"}`}
                     onClick={() => {
                       deleteOutOfOfficeEntryMutation.mutate({
                         outOfOfficeUid: item.uuid,
