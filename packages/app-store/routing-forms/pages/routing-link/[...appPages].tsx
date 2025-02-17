@@ -97,7 +97,14 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
   const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
     onSuccess: async (data) => {
-      const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
+      const {
+        teamMembersMatchingAttributeLogic,
+        formResponse,
+        attributeRoutingConfig,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
+      } = data;
       const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
       if (!chosenRouteWithFormResponse) {
         return;
@@ -113,6 +120,9 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         searchParams: new URLSearchParams(window.location.search),
         teamMembersMatchingAttributeLogic,
         attributeRoutingConfig: attributeRoutingConfig ?? null,
+        crmContactOwnerEmail,
+        crmContactOwnerRecordType,
+        crmAppSlug,
       });
       const chosenRoute = chosenRouteWithFormResponse.route;
       const decidedAction = chosenRoute.action;
