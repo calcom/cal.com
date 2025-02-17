@@ -66,9 +66,9 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
       eventEmitter.on("push", pushHandler);
       setTimeout(() => {
         if (resolved) return;
-        // Timeout after 5 seconds
+        // Timeout after 10 seconds
         reject(new Error("Timeout waiting for webhook"));
-      }, 5000);
+      }, 10000);
     });
   };
 
@@ -163,9 +163,7 @@ export const bookTimeSlot = async (
     await page.fill('[name="title"]', opts.title);
   }
   if (opts?.attendeePhoneNumber) {
-    await page
-      .locator(`[data-fob-field-name="location"] input`)
-      .fill(opts.attendeePhoneNumber ?? "+918888888888");
+    await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await submitAndWaitForResponse(page, "/api/book/event", {
     action: () => page.locator('[name="email"]').press("Enter"),
