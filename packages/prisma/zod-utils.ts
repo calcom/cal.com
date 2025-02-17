@@ -813,8 +813,9 @@ export const bookingSeatDataSchema = z.object({
 export const serviceAccountKeySchema = z
   .object({
     private_key: z.string(),
-    client_email: z.string(),
+    client_email: z.string().optional(),
     client_id: z.string(),
+    tenant_id: z.string().optional(),
   })
   .passthrough();
 

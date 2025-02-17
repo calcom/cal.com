@@ -10,9 +10,10 @@ export { serviceAccountKeySchema };
 // Schema for encrypted service account key (our storage format)
 export const encryptedServiceAccountKeySchema = z
   .object({
-    client_email: z.string(),
+    client_email: z.string().optional(),
     client_id: z.string(),
     encrypted_credentials: z.string(),
+    tenant_id: z.string().optional(),
   })
   .passthrough();
 
