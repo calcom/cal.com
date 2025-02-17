@@ -70,7 +70,7 @@ test.describe("Event Types tests", () => {
       await expect(firstEventTitle).toBe(eventTitle);
     });
 
-    test("enabling recurring event comes with default options @test", async ({ page }) => {
+    test("enabling recurring event comes with default options", async ({ page }) => {
       const nonce = randomString(3);
       const eventTitle = `my recurring event ${nonce}`;
       await createNewEventType(page, { eventTitle });
