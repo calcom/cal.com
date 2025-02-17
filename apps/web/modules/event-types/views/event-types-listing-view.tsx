@@ -911,12 +911,19 @@ const InfiniteScrollMain = ({
     return <InfiniteSkeletonLoader />;
   }
 
-  const tabs = eventTypeGroups.map((item) => ({
-    name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
-    avatar: item.profile.image,
-    "data-testid": item.profile.name ?? "",
-  }));
+  const tabs = eventTypeGroups.map((item, index) => {
+    let href = item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam";
+    // If it's the first tab and no teamId is in the URL, set href to just /event-types
+    if (index === 0 && searchParams && !searchParams.has("teamId") && !searchParams.has("noTeam")) {
+      href = "/event-types";
+    }
+    return {
+      name: item.profile.name ?? "",
+      href: href,
+      avatar: item.profile.image,
+      "data-testid": item.profile.name ?? "",
+    };
+  });
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
