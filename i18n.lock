@@ -26,6 +26,8 @@ checksums:
     verify_email_email_header: 5c96f738bd6153ee07b72094cdfd2b98
     verify_email_email_button: 42dcab68d931f9145d9b6d76740a5c66
     cal_ai_assistant: b015d2022d06f05133b6fd6de0e04de7
+    send_cal_video_transcription_emails: 72bb1e50955446a1a3e69be24193578d
+    description_send_cal_video_transcription_emails: c91f20c86fbaa270441badcb2b04edd9
     verify_email_change_description: 21e50aab7ae115057a90847a36cf79ac
     verify_email_change_success_toast: e7e1e80adcf69038b6fc4cd8cad1ab6a
     verify_email_change_failure_toast: b75e83b28d79a0879eea5bf10f7334a2
@@ -110,6 +112,7 @@ checksums:
     accept_license: 1a83a54fdc1248f7a8f48386020e7c98
     still_waiting_for_approval: 9a2d726b0c04f779cdea51bc2a41365a
     event_is_still_waiting: ff866d6d3fbe18bdacdc79956c6adbbb
+    no_result_found_for: ba54128bee4b5bc59760ea5ef5c0dc34
     no_more_results: 1adb2c45a869a814fa64ed45fe7ff3ce
     no_results: 0e9b73265c6542240f5a3bf6b43e9280
     load_more_results: 0ca3ac0fd1450284ce8dbd609e3b5b56
@@ -2077,6 +2080,7 @@ checksums:
     looking_for_more_insights: f245400c6511b85e78c316bacefe8a47
     filters: acf5accc113ff3c1992688058576732c
     filter: 626325a05e4c8800f7ede7012b0cadaf
+    add_a_member: 6c80773c5249975ed6564ab1dc2a7e56
     add_filter: ed5d8e9bfcb05cd1e10e4c403befbae6
     add_rule: 7b6b4f30c6359cd00c1b60ddce4d0417
     add_rule_group: 77298c5cc51f6b31f02c9466f17f6b63
@@ -2928,6 +2932,9 @@ checksums:
     choose_an_option: 1c57b133afef47a60666d5d37b9b321e
     enter_option_value: 03bdf1e9fd1bdba6f895bf6f85d2fd28
     remove_option: 42e52c46cc51e56ebb5540bfb6f19b95
+    use_attribute_weights: 26aa25c847579b5b7c9980d501026d68
+    if_enabled_ignore_event_type_weights: bd201588ed639cd69075f67ea2fcbe74
+    attribute_for_weights: e7f77d055272820d78353bf9bf76311b
     managed_users: c6db1c3bb5c9b451471ca9b8d7dc8366
     managed_users_description: 45fea5321847b0c8ee72ce33684c1283
     select_oAuth_client: 0ebdcf296c0f68eca626cdb153204607

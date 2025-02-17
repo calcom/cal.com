@@ -81,7 +81,7 @@ test.describe("Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
       const formId = await addForm(page);
 
-      await page.click('[href*="/forms"]');
+      await page.click('[data-test-id="routing"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list

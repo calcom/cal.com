@@ -200,8 +200,6 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
-      const inputClassName =
-        "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle bg-default";
       return (
         <>
           {value.length ? (
@@ -216,7 +214,6 @@ export const Components: Record<FieldType, Component> = {
                       id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
-                      className={inputClassName}
                       onChange={(e) => {
                         value[index] = e.target.value.toLowerCase();
                         setValue(value);

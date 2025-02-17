@@ -70,7 +70,6 @@ function WorkflowsPage({ filteredList }: PageProps) {
           subtitle={t("workflows_to_automate_notifications")}
           title={t("workflows")}
           description={t("workflows_to_automate_notifications")}
-          hideHeadingOnMobile
           CTA={
             session.data?.hasValidLicense ? (
               <CreateButtonWithTeamsList

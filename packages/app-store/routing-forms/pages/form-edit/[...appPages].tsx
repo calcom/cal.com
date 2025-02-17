@@ -11,7 +11,6 @@ import getLocationsOptionsForSelect from "@calcom/features/bookings/lib/getLocat
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { BookingField } from "@calcom/features/form-builder/schema";
-import Shell from "@calcom/features/shell/Shell";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -509,11 +508,3 @@ export default function FormEditPage({
     />
   );
 }
-
-FormEditPage.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

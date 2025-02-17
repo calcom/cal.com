@@ -5,9 +5,10 @@ import mapKeys from "lodash/mapKeys";
 import startCase from "lodash/startCase";
 
 import {
-  zodFields as routingFormFieldsSchema,
-  routingFormResponseInDbSchema,
-} from "@calcom/app-store/routing-forms/zod";
+  RoutingFormFieldType,
+  isValidRoutingFormFieldType,
+} from "@calcom/app-store/routing-forms/lib/FieldTypes";
+import { zodFields as routingFormFieldsSchema } from "@calcom/app-store/routing-forms/zod";
 import dayjs from "@calcom/dayjs";
 import type { ColumnFilter, TypedColumnFilter } from "@calcom/features/data-table";
 import { ColumnFilterType } from "@calcom/features/data-table";
@@ -67,6 +68,23 @@ class RoutingEventsInsights {
       teamIds = [organizationId, ...teamsFromOrg.map((t) => t.id)];
     } else if (teamId) {
       teamIds = [teamId];
+    }
+
+    // Filter teamIds to only include teams the user has access to
+    if (teamIds.length > 0) {
+      const accessibleTeams = await prisma.membership.findMany({
+        where: {
+          userId: userId ?? -1,
+          teamId: {
+            in: teamIds,
+          },
+          accepted: true,
+        },
+        select: {
+          teamId: true,
+        },
+      });
+      teamIds = accessibleTeams.map((membership) => membership.teamId);
     }
 
     // Base where condition for forms
@@ -144,7 +162,7 @@ class RoutingEventsInsights {
     isAll,
     organizationId,
   }: {
-    userId?: number;
+    userId: number;
     teamId?: number;
     isAll: boolean;
     organizationId?: number | undefined;
@@ -620,195 +638,40 @@ class RoutingEventsInsights {
     });
 
     const fields = routingFormFieldsSchema.parse(routingForms.map((f) => f.fields).flat());
-    const headers = fields?.map((f) => {
-      return {
-        id: f.id,
-        label: f.label,
-        type: f.type,
-        options: f.options,
-      };
-    });
-
-    return headers;
-  }
-
-  static async getRawData({
-    teamId,
-    startDate,
-    endDate,
-    isAll,
-    organizationId,
-    routingFormId,
-    userId,
-    memberUserId,
-    bookingStatus,
-    fieldFilter,
-    take,
-    skip,
-  }: Omit<RoutingFormInsightsFilter, "columnFilters"> & { take?: number; skip?: number }) {
-    const formsWhereCondition = await this.getWhereForTeamOrAllTeams({
-      userId,
-      teamId,
-      isAll,
-      organizationId,
-      routingFormId,
-    });
-
-    // First get all forms and their fields to build a mapping
-    const forms = await prisma.app_RoutingForms_Form.findMany({
-      where: formsWhereCondition,
-      select: {
-        id: true,
-        name: true,
-        fields: true,
-      },
-    });
-
-    // Create a mapping of form ID to fields
-    type FormFieldOption = {
-      label: string;
-      type: string;
-      options: Record<string, string>;
-    };
-
-    type FormFieldsMap = Record<string, Record<string, FormFieldOption>>;
-
-    const formFieldsMap = forms.reduce((acc, form) => {
-      const fields = routingFormFieldsSchema.parse(form.fields);
-      acc[form.id] =
-        fields?.reduce((fieldMap: Record<string, FormFieldOption>, field) => {
-          fieldMap[field.id] = {
-            label: field.label,
-            type: field.type,
-            options:
-              field.options?.reduce((optMap, opt) => {
-                if (opt.id !== null) {
-                  optMap[opt.id] = opt.label;
-                }
-                return optMap;
-              }, {} as Record<string, string>) ?? {},
-          };
-          return fieldMap;
-        }, {}) || {};
-      return acc;
-    }, {} as FormFieldsMap);
-
-    const responsesWhereCondition: Prisma.App_RoutingForms_FormResponseWhereInput = {
-      ...(startDate &&
-        endDate && {
-          createdAt: {
-            gte: dayjs(startDate).startOf("day").toDate(),
-            lte: dayjs(endDate).endOf("day").toDate(),
-          },
-        }),
-      ...(memberUserId || bookingStatus
-        ? {
-            ...(bookingStatus === "NO_BOOKING"
-              ? { routedToBooking: null }
-              : {
-                  routedToBooking: {
-                    ...(memberUserId && { userId: memberUserId }),
-                    ...(bookingStatus && { status: bookingStatus }),
-                  },
-                }),
-          }
-        : {}),
-      ...(fieldFilter && {
-        response: {
-          path: [fieldFilter.fieldId, "value"],
-          array_contains: [fieldFilter.optionId],
-        },
-      }),
-      form: formsWhereCondition,
-    };
-
-    const responses = await prisma.app_RoutingForms_FormResponse.findMany({
-      select: {
-        id: true,
-        response: true,
-        createdAt: true,
-        form: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        routedToBooking: {
-          select: {
-            uid: true,
-            status: true,
-            createdAt: true,
-            startTime: true,
-            endTime: true,
-            attendees: {
-              select: {
-                email: true,
-                name: true,
-                timeZone: true,
-              },
-            },
-            user: {
-              select: {
-                name: true,
-                email: true,
-              },
-            },
-            assignmentReason: {
-              select: {
-                reasonString: true,
-              },
-            },
-          },
-        },
-      },
-      where: responsesWhereCondition,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: take,
-      skip: skip,
-    });
-
-    // Transform the data into a flat structure suitable for CSV
-    return responses.map((response) => {
-      const parsedResponse = routingFormResponseInDbSchema.parse(response.response);
-      const formFields = formFieldsMap[response.form.id];
-
-      const flatResponse: Record<string, unknown> = {
-        "Response ID": response.id,
-        "Form Name": response.form.name,
-        "Submitted At": response.createdAt.toISOString(),
-        "Has Booking": !!response.routedToBooking,
-        "Booking Status": response.routedToBooking?.status || "NO_BOOKING",
-        "Booking Created At": response.routedToBooking?.createdAt?.toISOString() || "",
-        "Booking Start Time": response.routedToBooking?.startTime?.toISOString() || "",
-        "Booking End Time": response.routedToBooking?.endTime?.toISOString() || "",
-        "Attendee Name": response.routedToBooking?.attendees[0]?.name || "",
-        "Attendee Email": response.routedToBooking?.attendees[0]?.email || "",
-        "Attendee Timezone": response.routedToBooking?.attendees[0]?.timeZone || "",
-        "Assignment Reason": response.routedToBooking?.assignmentReason[0].reasonString || "",
-        "Routed To Name": response.routedToBooking?.user?.name || "",
-        "Routed To Email": response.routedToBooking?.user?.email || "",
-      };
-
-      // Add form fields as columns with their labels
-      Object.entries(parsedResponse).forEach(([fieldId, field]) => {
-        const fieldInfo = formFields[fieldId];
-        if (fieldInfo) {
-          const fieldLabel = fieldInfo.label;
-          if (Array.isArray(field.value)) {
-            // For multi-select fields, map the IDs to labels
-            const values = field.value.map((val) => fieldInfo.options[val] || val);
-            flatResponse[fieldLabel] = values.join(", ");
-          } else {
-            // For single-select fields, map the ID to label
-            flatResponse[fieldLabel] = fieldInfo.options[field.value] || field.value;
-          }
+    const ids = new Set<string>();
+    const headers = (fields || [])
+      .map((f) => {
+        return {
+          id: f.id,
+          label: f.label,
+          type: f.type,
+          options: f.options,
+        };
+      })
+      .filter((field) => {
+        if (!field.label || !isValidRoutingFormFieldType(field.type)) {
+          return false;
+        }
+        if (
+          field.type === RoutingFormFieldType.SINGLE_SELECT ||
+          field.type === RoutingFormFieldType.MULTI_SELECT
+        ) {
+          return field.options && field.options.length > 0;
+        }
+        return true;
+      })
+      .filter((field) => {
+        // Remove duplicate fields
+        // because we aggregate fields from multiple routing forms.
+        if (ids.has(field.id)) {
+          return false;
+        } else {
+          ids.add(field.id);
+          return true;
         }
       });
 
-      return flatResponse;
-    });
+    return headers;
   }
 
   static async routedToPerPeriod({

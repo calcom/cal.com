@@ -14,6 +14,18 @@ export const enum RoutingFormFieldType {
   BOOLEAN = "boolean",
 }
 
+export const isValidRoutingFormFieldType = (type: string): type is RoutingFormFieldType => {
+  return [
+    RoutingFormFieldType.TEXT,
+    RoutingFormFieldType.NUMBER,
+    RoutingFormFieldType.TEXTAREA,
+    RoutingFormFieldType.SINGLE_SELECT,
+    RoutingFormFieldType.MULTI_SELECT,
+    RoutingFormFieldType.PHONE,
+    RoutingFormFieldType.EMAIL,
+  ].includes(type as RoutingFormFieldType);
+};
+
 export const FieldTypes = [
   {
     label: "Short Text",

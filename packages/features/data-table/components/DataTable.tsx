@@ -306,15 +306,15 @@ const TableHeadLabel = ({ header }: { header: Header<any, any> }) => {
   const canSort = header.column.getCanSort();
 
   if (!canSort && !canHide) {
-    return (
-      <div
-        className="truncate px-2 py-1"
-        title={
-          typeof header.column.columnDef.header === "string" ? header.column.columnDef.header : undefined
-        }>
-        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-      </div>
-    );
+    if (typeof header.column.columnDef.header === "string") {
+      return (
+        <div className="truncate px-2 py-1" title={header.column.columnDef.header}>
+          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+        </div>
+      );
+    } else {
+      return header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext());
+    }
   }
 
   return (

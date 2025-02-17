@@ -120,9 +120,8 @@ const InfiniteTeamsTab: FC<InfiniteTeamsTabProps> = (props) => {
   return (
     <div>
       <TextField
-        className="max-w-64 bg-subtle !border-muted mb-4 mr-auto rounded-md !pl-0 focus:!ring-offset-0"
+        className="max-w-64"
         addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
-        addOnClassname="!border-muted"
         containerClassName="max-w-64 focus:!ring-offset-0 mb-4"
         type="search"
         value={searchTerm}
@@ -457,9 +456,9 @@ export const InfiniteEventTypeList = ({
     if (isPending) return <InfiniteSkeletonLoader />;
 
     return group.teamId ? (
-      <EmptyEventTypeList group={group} />
+      <EmptyEventTypeList group={group} searchTerm={debouncedSearchTerm} />
     ) : !group.profile.eventTypesLockedByOrg ? (
-      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} searchTerm={debouncedSearchTerm} />
     ) : (
       <></>
     );
@@ -600,7 +599,8 @@ export const InfiniteEventTypeList = ({
                                   variant="icon"
                                   color="secondary"
                                   StartIcon="ellipsis"
-                                  className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
+                                  // Unsual practice to use radix state open but for some reason this dropdown and only thi dropdown clears the border radius of this button.
+                                  className="ltr:radix-state-open:rounded-r-[--btn-group-radius] rtl:radix-state-open:rounded-l-[--btn-group-radius]"
                                 />
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
@@ -818,13 +818,13 @@ export const InfiniteEventTypeList = ({
   );
 };
 
-const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
+const CreateFirstEventTypeView = ({ slug, searchTerm }: { slug: string; searchTerm?: string }) => {
   const { t } = useLocale();
 
   return (
     <EmptyScreen
       Icon="link"
-      headline={t("new_event_type_heading")}
+      headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
       buttonRaw={
@@ -863,12 +863,18 @@ const CTA = ({
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: EventTypeGroup | InfiniteEventTypeGroup }) => {
+const EmptyEventTypeList = ({
+  group,
+  searchTerm,
+}: {
+  group: EventTypeGroup | InfiniteEventTypeGroup;
+  searchTerm?: string;
+}) => {
   const { t } = useLocale();
   return (
     <>
       <EmptyScreen
-        headline={t("team_no_event_types")}
+        headline={searchTerm ? t("no_result_found_for", { searchTerm }) : t("team_no_event_types")}
         buttonRaw={
           <Button
             href={`?dialog=new&eventPage=${group.profile.slug}&teamId=${group.teamId}`}
@@ -909,6 +915,7 @@ const InfiniteScrollMain = ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
     avatar: item.profile.image,
+    "data-testid": item.profile.name ?? "",
   }));
 
   const activeEventTypeGroup =
@@ -928,12 +935,8 @@ const InfiniteScrollMain = ({
 
   return (
     <>
-      {eventTypeGroups.length >= 1 && (
-        <>
-          <HorizontalTabs tabs={tabs} />
-          <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
-        </>
-      )}
+      {eventTypeGroups.length > 1 && <HorizontalTabs tabs={tabs} />}
+      {eventTypeGroups.length >= 1 && <InfiniteTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
