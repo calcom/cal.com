@@ -134,7 +134,8 @@ const Actions = ({
           tooltip={t("delete")}
           tooltipSide="bottom"
         />
-        <FormActionsDropdown>
+        {typeformApp?.isInstalled ? (
+         <FormActionsDropdown>
           <FormAction
             data-testid="copy-redirect-url"
             routingForm={form}
@@ -145,6 +146,7 @@ const Actions = ({
             {t("copy_redirect_url")}
           </FormAction>
         </FormActionsDropdown>
+        ) : null}
       </ButtonGroup>
 
       <div className="flex md:hidden">
