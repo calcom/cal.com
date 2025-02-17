@@ -61,6 +61,14 @@ test.describe("Unpublished Organization Redirection", () => {
       });
     });
 
+    test("testing few things", async ({ page, users }) => {
+      const orgOwner = await createUserWithOrganizationAndTeam(users);
+      const { team } = await orgOwner.getFirstTeamMembership();
+
+      const response = await page.goto(`/${orgOwner.username}`);
+      expect(response?.status()).toBe(404);
+    });
+
     // TODO: Enable this test once the hydration error is fixed.
     test.skip("should be able to see team profile and book event with orgRedirection=true query param", async ({
       page,
