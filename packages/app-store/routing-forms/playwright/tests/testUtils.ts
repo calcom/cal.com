@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { addField } from "routing-forms/playwright/tests/basic.e2e";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 
@@ -37,39 +38,46 @@ export async function addForm(
 export async function addOneFieldAndDescriptionAndSaveForm(
   formId: string,
   page: Page,
-  form: { description?: string; field?: { typeIndex: number; label: string } }
+  form: { description?: string; field: { typeIndex: number; label: string } }
 ) {
+  // go to form
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await page.click('[data-testid="add-field"]');
+
+  // add description if provided
   if (form.description) {
     await page.fill('[data-testid="description"]', form.description);
   }
 
-  // Verify all Options of SelectBox
-  const { optionsInUi: types } = await verifySelectOptions(
+  // verify select options
+  await page.click('[data-testid="add-field"]');
+  const { optionsInUi: fieldTypesByValue } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
     page
   );
-
-  const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
-
-  if (form.field) {
-    await page.fill(`[data-testid="fields.${nextFieldIndex}.label"]`, form.field.label);
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator(".data-testid-field-type")
-      .click();
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator('[id*="react-select-"][aria-disabled]')
-      .nth(form.field.typeIndex)
-      .click();
+  if ((await page.locator('[data-testid="dialog-rejection"]').count()) > 0) {
+    await page.locator('[data-testid="dialog-rejection"]').click();
   }
+
+  // add field
+  const label = form.field.label;
+  const fieldTypeTestId = fieldTypesByValue[form.field.typeIndex].toLowerCase();
+  const identifier = fieldTypeTestId;
+
+  await addField({
+    page,
+    label,
+    fieldTypeTestIdLabel: fieldTypeTestId,
+    identifier,
+  });
+
+  // save form
   await saveCurrentForm(page);
+
+  // return field details
   return {
-    types,
+    label,
+    fieldTypeTestId,
+    identifier,
   };
 }
 
