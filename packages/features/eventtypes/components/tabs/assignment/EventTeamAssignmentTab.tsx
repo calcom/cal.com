@@ -210,7 +210,8 @@ const FixedHosts = ({
           toggleSwitchAtTheEnd={true}
           title={t("fixed_hosts")}
           description={FixedHostHelper}
-          checked={isDisabled}
+          checked={isDisabled && !assignAllTeamMembers}
+          hideSwitch={assignAllTeamMembers}
           labelClassName={classNames("text-sm", customClassNames?.label)}
           descriptionClassName={classNames("text-sm text-subtle", customClassNames?.description)}
           switchContainerClassName={customClassNames?.container}
@@ -227,6 +228,7 @@ const FixedHosts = ({
           <div className="border-subtle flex flex-col gap-6 rounded-bl-md rounded-br-md border border-t-0 px-6">
             <AddMembersWithSwitch
               data-testid="fixed-hosts-select"
+              placeholder={t("add_a_member")}
               teamId={teamId}
               teamMembers={teamMembers}
               customClassNames={customClassNames?.addMembers}
@@ -299,6 +301,10 @@ const RoundRobinHosts = ({
     control,
     name: "isRRWeightsEnabled",
   });
+  const rrSegmentQueryValue = useWatch({
+    control,
+    name: "rrSegmentQueryValue",
+  });
 
   return (
     <div className={classNames("rounded-lg")}>
@@ -319,41 +325,41 @@ const RoundRobinHosts = ({
         </p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        {!assignRRMembersUsingSegment && (
-          <>
-            <Controller<FormValues>
-              name="isRRWeightsEnabled"
-              render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
-                <SettingsToggle
-                  title={t("enable_weights")}
-                  description={weightDescription}
-                  checked={isRRWeightsEnabled}
-                  switchContainerClassName={customClassNames?.enableWeights?.container}
-                  labelClassName={customClassNames?.enableWeights?.label}
-                  descriptionClassName={customClassNames?.enableWeights?.description}
-                  onCheckedChange={(active) => {
-                    onChange(active);
-                    const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
-                    const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                    setValue("hosts", sortedRRHosts);
-                  }}>
-                  {!assignRRMembersUsingSegment ? (
-                    <EditWeightsForAllTeamMembers
-                      teamMembers={teamMembers}
-                      value={value}
-                      onChange={(hosts) => {
-                        const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
-                        setValue("hosts", sortedRRHosts, { shouldDirty: true });
-                      }}
-                      assignAllTeamMembers={assignAllTeamMembers}
-                    />
-                  ) : null}
-                </SettingsToggle>
-              )}
-            />
-          </>
-        )}
+        <>
+          <Controller<FormValues>
+            name="isRRWeightsEnabled"
+            render={({ field: { value: isRRWeightsEnabled, onChange } }) => (
+              <SettingsToggle
+                title={t("enable_weights")}
+                description={weightDescription}
+                checked={isRRWeightsEnabled}
+                switchContainerClassName={customClassNames?.enableWeights?.container}
+                labelClassName={customClassNames?.enableWeights?.label}
+                descriptionClassName={customClassNames?.enableWeights?.description}
+                onCheckedChange={(active) => {
+                  onChange(active);
+                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                  const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+                  setValue("hosts", sortedRRHosts);
+                }}>
+                <EditWeightsForAllTeamMembers
+                  teamMembers={teamMembers}
+                  value={value}
+                  onChange={(hosts) => {
+                    const sortedRRHosts = hosts.sort((a, b) => sortHosts(a, b, true));
+                    setValue("hosts", sortedRRHosts, { shouldDirty: true });
+                  }}
+                  assignAllTeamMembers={assignAllTeamMembers}
+                  assignRRMembersUsingSegment={assignRRMembersUsingSegment}
+                  teamId={teamId}
+                  queryValue={rrSegmentQueryValue}
+                />
+              </SettingsToggle>
+            )}
+          />
+        </>
         <AddMembersWithSwitch
+          placeholder={t("add_a_member")}
           teamId={teamId}
           teamMembers={teamMembers}
           value={value}

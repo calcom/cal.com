@@ -10,6 +10,7 @@ import { SeatsAvailabilityText } from "@calcom/features/bookings/components/Seat
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { CURRENT_TIMEZONE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTMLClient } from "@calcom/lib/markdownToSafeHTMLClient";
 import type { EventTypeTranslation } from "@calcom/prisma/client";
@@ -47,6 +48,7 @@ export const EventMeta = ({
   event,
   isPending,
   isPlatform = true,
+  isPrivateLink,
   classNames,
   locale,
 }: {
@@ -55,7 +57,7 @@ export const EventMeta = ({
     | "lockTimeZoneToggleOnBookingPage"
     | "schedule"
     | "seatsPerTimeSlot"
-    | "users"
+    | "subsetOfUsers"
     | "length"
     | "schedulingType"
     | "profile"
@@ -73,6 +75,7 @@ export const EventMeta = ({
     | "autoTranslateDescriptionEnabled"
   > | null;
   isPending: boolean;
+  isPrivateLink: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
@@ -150,9 +153,10 @@ export const EventMeta = ({
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
           <EventMembers
             schedulingType={event.schedulingType}
-            users={event.users}
+            users={event.subsetOfUsers}
             profile={event.profile}
             entity={event.entity}
+            isPrivateLink={isPrivateLink}
           />
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>
             {translatedTitle ?? event?.title}
@@ -210,13 +214,14 @@ export const EventMeta = ({
                     menuPosition="absolute"
                     timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
                     classNames={{
-                      control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
+                      control: () =>
+                        "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0 shadow-none!",
                       menu: () => "!w-64 max-w-[90vw] mb-1 ",
                       singleValue: () => "text-text py-1",
                       indicatorsContainer: () => "ml-auto",
                       container: () => "max-w-full",
                     }}
-                    value={timezone}
+                    value={event.lockTimeZoneToggleOnBookingPage ? CURRENT_TIMEZONE : timezone}
                     onChange={({ value }) => {
                       setTimezone(value);
                       setBookerStoreTimezone(value);

@@ -27,9 +27,9 @@ export function defaultResponder<T>(
       const error = getServerErrorFromUnknown(err);
       // we don't want to report Bad Request errors to Sentry / console
       if (!(error.statusCode >= 400 && error.statusCode < 500)) {
-        console.error(err);
+        console.error(error);
         const captureException = (await import("@sentry/nextjs")).captureException;
-        captureException(err);
+        captureException(error);
       }
       return res
         .status(error.statusCode)

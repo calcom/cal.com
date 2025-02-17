@@ -34,6 +34,6 @@ export class StripeBillingService implements BillingService {
     const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
     if (!subscription || !subscription.status) return false;
 
-    return subscription.status === "active";
+    return subscription.status === "active" || subscription.status === "past_due";
   }
 }

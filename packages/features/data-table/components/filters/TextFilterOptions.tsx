@@ -6,31 +6,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Form, Input, Select, Button } from "@calcom/ui";
 
 import { useFilterValue, useDataTable } from "../../hooks";
-import type { FilterableColumn, TextFilterOperator } from "../../lib/types";
-import { ZTextFilterValue } from "../../lib/types";
-
-export type TextFilterOperatorOption = {
-  label: string;
-  value: TextFilterOperator;
-  requiresOperand: boolean;
-};
-
-const useTextFilterOperatorOptions = (): TextFilterOperatorOption[] => {
-  const { t } = useLocale();
-  return [
-    { value: "equals", label: t("filter_operator_is"), requiresOperand: true },
-    { value: "notEquals", label: t("filter_operator_is_not"), requiresOperand: true },
-    { value: "contains", label: t("filter_operator_contains"), requiresOperand: true },
-    { value: "notContains", label: t("filter_operator_does_not_contain"), requiresOperand: true },
-    { value: "startsWith", label: t("filter_operator_starts_with"), requiresOperand: true },
-    { value: "endsWith", label: t("filter_operator_ends_with"), requiresOperand: true },
-    { value: "isEmpty", label: t("filter_operator_is_empty"), requiresOperand: false },
-    { value: "isNotEmpty", label: t("filter_operator_not_empty"), requiresOperand: false },
-  ];
-};
+import type { FilterableColumn } from "../../lib/types";
+import { ZTextFilterValue, ColumnFilterType } from "../../lib/types";
+import { useTextFilterOperatorOptions } from "./utils";
 
 export type TextFilterOptionsProps = {
-  column: Extract<FilterableColumn, { type: "text" }>;
+  column: Extract<FilterableColumn, { type: ColumnFilterType.TEXT }>;
 };
 
 export function TextFilterOptions({ column }: TextFilterOptionsProps) {
@@ -55,7 +36,7 @@ export function TextFilterOptions({ column }: TextFilterOptionsProps) {
         handleSubmit={({ operatorOption, operand }) => {
           if (operatorOption) {
             updateFilter(column.id, {
-              type: "text",
+              type: ColumnFilterType.TEXT,
               data: {
                 operator: operatorOption.value,
                 operand: operatorOption.requiresOperand ? operand : "",
