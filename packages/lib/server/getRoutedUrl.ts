@@ -117,6 +117,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
   let teamMembersMatchingAttributeLogic = null;
   let formResponseId = null;
   let attributeRoutingConfig = null;
+  let crmContactOwnerEmail: string | null = null;
+  let crmContactOwnerRecordType: string | null = null;
+  let crmAppSlug: string | null = null;
   try {
     const result = await handleResponse({
       form: serializableForm,
@@ -125,6 +128,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
     });
+    console.log("🚀 ~ file: getRoutedUrl.ts:131 ~ getRoutedUrl ~ result:", result);
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
@@ -132,6 +136,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       ...timeTaken,
       ...result.timeTaken,
     };
+    crmContactOwnerEmail = result.crmContactOwner;
+    crmContactOwnerRecordType = result.crmContactOwnerRecordType;
+    crmAppSlug = result.crmAppSlug;
   } catch (e) {
     if (e instanceof TRPCError) {
       return {
@@ -163,6 +170,14 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       serializableForm.fields
     );
 
+    console.log(
+      "🚀 ~ file: getRoutedUrl.ts:190 ~ getRoutedUrl ~ crmContactOwnerRecordType:",
+      crmContactOwnerRecordType
+    );
+    console.log(
+      "🚀 ~ file: getRoutedUrl.ts:190 ~ getRoutedUrl ~ crmContactOwnerEmail:",
+      crmContactOwnerEmail
+    );
     return {
       redirect: {
         destination: getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
@@ -180,6 +195,9 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
             attributeRoutingConfig: attributeRoutingConfig ?? null,
             teamId: form?.teamId,
             orgId: form.team?.parentId,
+            crmContactOwnerEmail,
+            crmContactOwnerRecordType,
+            crmAppSlug,
           }),
           isEmbed: pageProps.isEmbed,
         }),
