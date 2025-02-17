@@ -155,22 +155,11 @@ export const config = {
     "/api/auth/signup",
     "/api/trpc/:path*",
     "/login",
+    "/apps/:path*",
     "/auth/:path*",
-    /**
-     * Paths required by routingForms.handle
-     */
-    "/apps/routing_forms/:path*",
-
     "/event-types/:path*",
-    "/apps/installed/:category/",
-    "/apps/installation/:path*",
-    "/apps/:slug/",
-    "/apps/:slug/setup/",
-    "/apps/categories/",
-    "/apps/categories/:category/",
     "/workflows/:path*",
     "/getting-started/:path*",
-    "/apps",
     "/bookings/:path*",
     "/video/:path*",
     "/teams/:path*",
