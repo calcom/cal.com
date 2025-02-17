@@ -91,7 +91,7 @@ const _buildCommonUserCredential = ({ dwd, user }: { dwd: DomainWideDelegation; 
 const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   log.debug("buildDomainWideDelegationCredential", safeStringify({ dwd, user }));
   // TODO: Build for other platforms as well
-  if (checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+  if (!checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
         dwd.workspacePlatform.slug
@@ -126,7 +126,7 @@ const _buildDwdCalendarCredentialWithServiceAccountKey = ({
 
 const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegation; user: User }) => {
   // TODO: Build for other platforms as well
-  if (checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
+  if (!checkWorkspaceSlug(dwd.workspacePlatform.slug)) {
     log.warn(
       `Only ${WORKSPACE_PLATFORM_SLUGS.toString()} Platforms are supported here, skipping ${
         dwd.workspacePlatform.slug
