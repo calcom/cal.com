@@ -15,8 +15,6 @@ const SettingsLayoutAppDirClient = dynamic(() => import("./SettingsLayoutAppDirC
 
 type SettingsLayoutAppDirProps = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
 
-type SettingsLayoutAppDir = Omit<SettingsLayoutProps, "currentOrg" | "otherTeams">;
-
 export default async function SettingsLayoutAppDir(props: SettingsLayoutAppDirProps) {
   const session = await getServerSession({ req: buildLegacyRequest(headers(), cookies()) });
   const userId = session?.user?.id ?? -1;
