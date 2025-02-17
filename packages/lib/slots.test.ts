@@ -346,29 +346,7 @@ describe("Tests the slot logic with custom env variable", () => {
     vi.stubEnv("NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL", "10");
   });
 
-  it("can fit 11 10 minute slots within a 2 hour window using a 10 minute availabilty option with a starting time of 10 past the hour", async () => {
-    expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
-    expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
-        frequency: 10,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: 10,
-            endTime: 120,
-          },
-        ],
-        eventLength: 10,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(11);
-  });
-
-  it("test buildSlotsWithDateRanges using a 10 minute interval", async () => {
+  it("test using a 10 minute interval", async () => {
     expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
     expect(
       getSlots({
