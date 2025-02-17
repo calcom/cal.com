@@ -26,6 +26,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
+  console.log("🚀 ~ file: getServerSideProps.tsx:29 ~ getServerSideProps ~ query:", query);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
@@ -63,17 +64,39 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
-  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
+  const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
+  console.log(
+    "🚀 ~ file: getServerSideProps.tsx:67 ~ getServerSideProps ~ crmContactOwnerEmail:",
+    crmContactOwnerEmail
   );
-  const {
-    email: teamMemberEmail,
-    recordType: crmOwnerRecordType,
-    crmAppSlug,
-  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-    query,
-    eventData,
-  });
+  const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
+  console.log(
+    "🚀 ~ file: getServerSideProps.tsx:69 ~ getServerSideProps ~ crmContactOwnerRecordType:",
+    crmContactOwnerRecordType
+  );
+  let crmAppSlug = query["cal.crmAppSlug"];
+  console.log("🚀 ~ file: getServerSideProps.tsx:71 ~ getServerSideProps ~ crmAppSlug:", crmAppSlug);
+
+  let teamMemberEmail = crmContactOwnerEmail;
+  let crmOwnerRecordType = crmContactOwnerRecordType;
+
+  if (!teamMemberEmail && crmOwnerRecordType && crmAppSlug) {
+    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    );
+    const {
+      email,
+      recordType,
+      crmAppSlug: crmAppSlugQuery,
+    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+      query,
+      eventData,
+    });
+
+    teamMemberEmail = teamMemberEmail ?? null;
+    crmOwnerRecordType = crmOwnerRecordType ?? null;
+    crmAppSlug = crmAppSlugQuery ?? null;
+  }
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
