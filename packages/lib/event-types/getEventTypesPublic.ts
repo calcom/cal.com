@@ -36,14 +36,15 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
     SELECT data."id", data."title", data."description", data."length", data."schedulingType"::text,
       data."recurringEvent", data."slug", data."hidden", data."price", data."currency",
       data."lockTimeZoneToggleOnBookingPage", data."requiresConfirmation", data."requiresBookerEmailVerification",
-      data."metadata"
+      data."metadata", data."canSendCalVideoTranscriptionEmails"
       FROM (
         SELECT "EventType"."id", "EventType"."title", "EventType"."description",
           "EventType"."position", "EventType"."length", "EventType"."schedulingType"::text,
           "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
           "EventType"."price", "EventType"."currency",
           "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
-          "EventType"."requiresBookerEmailVerification", "EventType"."metadata"
+          "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
+          "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL AND "EventType"."userId" = ${userId}
         UNION
@@ -52,7 +53,8 @@ const getEventTypesWithHiddenFromDB = async (userId: number) => {
         "EventType"."recurringEvent", "EventType"."slug", "EventType"."hidden",
         "EventType"."price", "EventType"."currency",
         "EventType"."lockTimeZoneToggleOnBookingPage", "EventType"."requiresConfirmation",
-        "EventType"."requiresBookerEmailVerification", "EventType"."metadata"
+        "EventType"."requiresBookerEmailVerification", "EventType"."metadata",
+        "EventType"."canSendCalVideoTranscriptionEmails"
         FROM "EventType"
         WHERE "EventType"."teamId" IS NULL
         AND "EventType"."id" IN (
