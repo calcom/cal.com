@@ -6,7 +6,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
 import { buildLegacyRequest } from "@lib/buildLegacyCtx";
 
-import SettingsLayoutAppDir from "../(settings-layout)/SettingsLayoutAppDir";
+import SettingsLayoutAppDir from "../(settings-layout)/layout";
 import type { AdminLayoutProps } from "./AdminLayoutAppDirClient";
 
 const AdminLayoutAppDirClient = dynamic(() => import("./AdminLayoutAppDirClient"), {
