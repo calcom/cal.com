@@ -608,7 +608,7 @@ async function createCredentialInDb({
   delegatedTo = null,
 }: {
   user?: { email: string | null };
-  delegatedTo?: NonNullable<CredentialForCalendarService["delegatedTo"]> | null;
+  delegatedTo?: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]> | null;
 } = {}): Promise<CredentialForCalendarService> {
   const defaultUser = await prismock.user.create({
     data: {
