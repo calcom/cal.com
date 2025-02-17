@@ -9,4 +9,8 @@ export const generateMetadata = async () => {
   );
 };
 
-export default PlatformBillingUpgrade;
+const ServerPageWrapper = () => {
+  return <PlatformBillingUpgrade />;
+};
+
+export default ServerPageWrapper;

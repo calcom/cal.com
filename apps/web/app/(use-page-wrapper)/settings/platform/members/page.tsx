@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     (t) => t("platform_members_description")
   );
 
-export default PlatformMembersView;
+const ServerPageWrapper = () => {
+  return <PlatformMembersView />;
+};
+
+export default ServerPageWrapper;

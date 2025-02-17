@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-export default EditView;
+const ServerPageWrapper = () => {
+  return <EditView />;
+};
+
+export default ServerPageWrapper;

@@ -9,4 +9,8 @@ export const generateMetadata = async () => {
   );
 };
 
-export default PlatformPlansView;
+const ServerPageWrapper = () => {
+  return <PlatformPlansView />;
+};
+
+export default ServerPageWrapper;

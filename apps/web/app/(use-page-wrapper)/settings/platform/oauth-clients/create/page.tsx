@@ -9,4 +9,8 @@ export const generateMetadata = async () => {
   );
 };
 
-export default CreateNewView;
+const ServerPageWrapper = () => {
+  return <CreateNewView />;
+};
+
+export default ServerPageWrapper;

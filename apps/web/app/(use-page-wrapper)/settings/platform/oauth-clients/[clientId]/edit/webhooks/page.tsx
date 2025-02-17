@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-export default EditWebhooksView;
+const ServerPageWrapper = () => {
+  return <EditWebhooksView />;
+};
+
+export default ServerPageWrapper;

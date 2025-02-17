@@ -8,4 +8,8 @@ export const generateMetadata = async () =>
     (t) => t("platform_members_description")
   );
 
-export default ManagedUsersView;
+const ServerPageWrapper = () => {
+  return <ManagedUsersView />;
+};
+
+export default ServerPageWrapper;
