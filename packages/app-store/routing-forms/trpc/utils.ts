@@ -26,7 +26,11 @@ if (typeof window === "undefined") {
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/trpc/utils"] });
 
-type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
+type SelectFieldWebhookResponse =
+  | string
+  | number
+  | string[]
+  | { label: string; id: string | null | undefined };
 export type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
   string,
   {
