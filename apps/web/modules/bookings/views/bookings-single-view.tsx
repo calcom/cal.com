@@ -991,7 +991,6 @@ export default function Success(props: PageProps) {
                             Deseja fazer alguma alteração?
                           </span>
                           <>
-                            {/* {!props.recurringBookings && ( */}
                             <span className="text-default inline">
                               <span className="underline" data-testid="reschedule-link">
                                 <Link
@@ -1002,13 +1001,12 @@ export default function Success(props: PageProps) {
                                   {t("reschedule")}
                                 </Link>
                               </span>
-                              {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                              {!isEventCancelled && !isPastBooking && (
                                 <span className="mx-2">{t("or_lowercase")}</span>
                               )}
                             </span>
-                            {/* )} */}
 
-                            {!isEventCancelled && !isPastBooking && !isntAuthenticated && (
+                            {!isEventCancelled && !isPastBooking && (
                               <button
                                 data-testid="cancel"
                                 className={classNames(
