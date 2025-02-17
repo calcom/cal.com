@@ -205,11 +205,13 @@ test.describe("Event Types tests", () => {
         await saveEventType(page);
         await gotoBookingPage(page);
         await selectFirstAvailableTimeSlotNextMonth(page);
-
-        await bookTimeSlot(page, { attendeePhoneNumber: "+918888888888" });
+        const locationInput = page.locator(`[data-fob-field-name="location"] input`);
+        await locationInput.clear();
+        await locationInput.fill("+19199999999");
+        await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+918888888888")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
       });
 
       test("Can add Organzer Phone Number location and book with it", async ({ page }) => {
@@ -219,7 +221,8 @@ test.describe("Event Types tests", () => {
         await page.locator(`text="Organizer Phone Number"`).click();
         const locationInputName = "locations[0].hostPhoneNumber";
         await page.locator(`input[name="${locationInputName}"]`).waitFor();
-        await page.locator(`input[name="${locationInputName}"]`).fill("+918888888888");
+        await page.locator(`input[name="${locationInputName}"]`).clear();
+        await page.locator(`input[name="${locationInputName}"]`).fill("+19199999999");
 
         await saveEventType(page);
         await gotoBookingPage(page);
@@ -228,7 +231,7 @@ test.describe("Event Types tests", () => {
         await bookTimeSlot(page);
 
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-        await expect(page.locator("text=+918888888888")).toBeVisible();
+        await expect(page.locator("text=+19199999999")).toBeVisible();
       });
 
       test("Can add Cal video location and book with it", async ({ page }) => {
