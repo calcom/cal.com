@@ -47,7 +47,7 @@ const ServerPage = async ({ params, searchParams }: ServerPageProps) => {
 
   return (
     <Shell withoutMain withoutSeo>
-      <LayoutHandler {...componentProps} />;
+      <LayoutHandler {...componentProps} />
     </Shell>
   );
 };
