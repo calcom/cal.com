@@ -14,7 +14,13 @@ import type {
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
-import type { ZohoAuthCredentials, FreeBusy, ZohoCalendarListResp } from "../types/ZohoCalendar";
+import {
+  type ZohoAuthCredentials,
+  type FreeBusy,
+  type ZohoCalendarListResp,
+  type ZohoEventAttendee,
+  ZohoAttendeeAttendance,
+} from "../types/ZohoCalendar";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 export default class ZohoCalendarService implements Calendar {
@@ -458,6 +464,21 @@ export default class ZohoCalendarService implements Calendar {
   }
 
   private translateEvent = (event: CalendarEvent) => {
+    const attendees: ZohoEventAttendee[] = [];
+
+    event.attendees.forEach((attendee) => {
+      attendees.push({
+        email: attendee.email,
+      });
+    });
+
+    event.team?.optionalGuests.forEach((guest) => {
+      attendees.push({
+        email: guest.email,
+        attendance: ZohoAttendeeAttendance["Optional participant"],
+      });
+    });
+
     const zohoEvent = {
       title: event.title,
       description: getRichDescription(event),
@@ -466,7 +487,7 @@ export default class ZohoCalendarService implements Calendar {
         end: dayjs(event.endTime).format("YYYYMMDDTHHmmssZZ"),
         timezone: event.organizer.timeZone,
       },
-      attendees: event.attendees.map((attendee) => ({ email: attendee.email })),
+      attendees: attendees,
       isprivate: event.seatsShowAttendees,
       reminders: [
         {
