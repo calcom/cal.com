@@ -8,7 +8,7 @@ import "vitest-fetch-mock";
 
 import { CalendarCache } from "@calcom/features/calendar-cache/calendar-cache";
 import { SelectedCalendarRepository } from "@calcom/lib/server/repository/selectedCalendar";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 
 import CalendarService from "./CalendarService";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
@@ -609,7 +609,7 @@ async function createCredentialInDb({
 }: {
   user?: { email: string | null };
   delegatedTo?: NonNullable<CredentialForCalendarServiceWithEmail["delegatedTo"]> | null;
-} = {}): Promise<CredentialForCalendarService> {
+} = {}): Promise<CredentialForCalendarServiceWithEmail> {
   const defaultUser = await prismock.user.create({
     data: {
       email: user?.email ?? "",
@@ -654,7 +654,7 @@ async function createCredentialInDb({
     ...credentialInDb,
     delegatedTo: delegatedTo ?? null,
     user: user ? { email: user.email ?? "" } : null,
-  } as CredentialForCalendarService;
+  } as CredentialForCalendarServiceWithEmail;
 }
 
 describe("GoogleCalendarService credential handling", () => {
