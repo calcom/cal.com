@@ -136,7 +136,7 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       ...timeTaken,
       ...result.timeTaken,
     };
-    crmContactOwnerEmail = result.crmContactOwner;
+    crmContactOwnerEmail = result.crmContactOwnerEmail;
     crmContactOwnerRecordType = result.crmContactOwnerRecordType;
     crmAppSlug = result.crmAppSlug;
   } catch (e) {
