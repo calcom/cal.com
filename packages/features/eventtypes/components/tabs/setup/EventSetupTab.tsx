@@ -129,7 +129,7 @@ export const EventSetupTab = (
                   {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("description")}
                 </Label>
                 <Editor
-                  getText={() => md.render(formMethods.getValues("description") || "")}
+                  getText={() => md.render(formMethods.getValues("description").replace(/\n/g, "<br>") || "")}
                   setText={(value: string) =>
                     formMethods.setValue("description", turndown(value), { shouldDirty: true })
                   }
