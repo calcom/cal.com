@@ -90,34 +90,36 @@ model EventType {
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  team                                    Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                                  Int?
-  hashedLink                              HashedLink[]
-  bookings                                Booking[]
-  availability                            Availability[]
-  webhooks                                Webhook[]
-  destinationCalendar                     DestinationCalendar?
-  useEventLevelSelectedCalendars          Boolean                   @default(false)
-  eventName                               String?
-  customInputs                            EventTypeCustomInput[]
-  parentId                                Int?
-  parent                                  EventType?                @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                                EventType[]               @relation("managed_eventtype")
+  team                               Team?                  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                             Int?
+  hashedLink                         HashedLink[]
+  bookings                           Booking[]
+  availability                       Availability[]
+  webhooks                           Webhook[]
+  destinationCalendar                DestinationCalendar?
+  useEventLevelSelectedCalendars     Boolean                @default(false)
+  eventName                          String?
+  customInputs                       EventTypeCustomInput[]
+  parentId                           Int?
+  parent                             EventType?             @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                           EventType[]            @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
-  bookingFields                           Json?
-  timeZone                                String?
-  periodType                              PeriodType                @default(UNLIMITED)
+  bookingFields                      Json?
+  timeZone                           String?
+  periodType                         PeriodType             @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
-  periodStartDate                         DateTime?
+  periodStartDate                    DateTime?
   /// @zod.custom(imports.coerceToDate)
-  periodEndDate                           DateTime?
-  periodDays                              Int?
-  periodCountCalendarDays                 Boolean?
-  lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
-  requiresConfirmation                    Boolean                   @default(false)
-  requiresConfirmationWillBlockSlot       Boolean                   @default(false)
-  requiresConfirmationForFreeEmail        Boolean                   @default(false)
-  requiresBookerEmailVerification         Boolean                   @default(false)
+  periodEndDate                      DateTime?
+  periodDays                         Int?
+  periodCountCalendarDays            Boolean?
+  lockTimeZoneToggleOnBookingPage    Boolean                @default(false)
+  requiresConfirmation               Boolean                @default(false)
+  requiresConfirmationWillBlockSlot  Boolean                @default(false)
+  requiresConfirmationForFreeEmail   Boolean                @default(false)
+  requiresBookerEmailVerification    Boolean                @default(false)
+  canSendCalVideoTranscriptionEmails Boolean                @default(true)
+
   autoTranslateDescriptionEnabled         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
   recurringEvent                          Json?
@@ -339,6 +341,7 @@ model User {
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
+  updatedRoutingForms  App_RoutingForms_Form[] @relation("updated-routing-form")
   verifiedNumbers      VerifiedNumber[]
   verifiedEmails       VerifiedEmail[]
   hosts                Host[]
@@ -640,7 +643,7 @@ model Booking {
   attendees                    Attendee[]
   location                     String?
   createdAt                    DateTime                       @default(now())
-  updatedAt                    DateTime?
+  updatedAt                    DateTime?                      @updatedAt
   status                       BookingStatus                  @default(ACCEPTED)
   paid                         Boolean                        @default(false)
   payment                      Payment[]
@@ -1003,6 +1006,8 @@ model App_RoutingForms_Form {
   name                     String
   fields                   Json?
   user                     User                                        @relation("routing-form", fields: [userId], references: [id], onDelete: Cascade)
+  updatedBy                User?                                       @relation("updated-routing-form", fields: [updatedById], references: [id], onDelete: SetNull)
+  updatedById              Int?
   // This is the user who created the form and also the user who has read-write access to the form
   // If teamId is set, the members of the team would also have access to form readOnly or read-write depending on their permission level as team member.
   userId                   Int

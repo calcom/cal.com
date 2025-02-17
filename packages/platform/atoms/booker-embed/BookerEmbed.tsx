@@ -12,6 +12,19 @@ export const BookerEmbed = (
         routingFormUrl: string;
         bannerUrl?: BookerPlatformWrapperAtomPropsForTeam["bannerUrl"];
         customClassNames?: BookerPlatformWrapperAtomPropsForTeam["customClassNames"];
+        onCreateBookingSuccess?: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingSuccess"];
+        onCreateBookingError?: BookerPlatformWrapperAtomPropsForTeam["onCreateBookingError"];
+        onCreateRecurringBookingSuccess?: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingSuccess"];
+        onCreateRecurringBookingError?: BookerPlatformWrapperAtomPropsForTeam["onCreateRecurringBookingError"];
+        onReserveSlotSuccess?: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotSuccess"];
+        onReserveSlotError?: BookerPlatformWrapperAtomPropsForTeam["onReserveSlotError"];
+        onDeleteSlotSuccess?: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotSuccess"];
+        onDeleteSlotError?: BookerPlatformWrapperAtomPropsForTeam["onDeleteSlotError"];
+        view?: BookerPlatformWrapperAtomPropsForTeam["view"];
+        onDryRunSuccess?: BookerPlatformWrapperAtomPropsForTeam["onDryRunSuccess"];
+        hostsLimit?: BookerPlatformWrapperAtomPropsForTeam["hostsLimit"];
+        metadata?: BookerPlatformWrapperAtomPropsForTeam["metadata"];
+        handleCreateBooking?: BookerPlatformWrapperAtomPropsForTeam["handleCreateBooking"];
       }
     | (BookerPlatformWrapperAtomPropsForIndividual & {
         organizationId?: undefined;
@@ -27,8 +40,13 @@ export const BookerEmbed = (
       teamId: routingTeamId,
       eventTypeSlug,
       username,
+      defaultFormValues,
+      teamMemberEmail,
+      crmOwnerRecordType,
+      crmAppSlug,
       ...routingFormSearchParams
     } = routingFormUrlProps;
+    const { onDryRunSuccess, ...rest } = props;
     return (
       <CalProvider
         clientId={import.meta.env.VITE_BOOKER_EMBED_OAUTH_CLIENT_ID}
@@ -44,25 +62,31 @@ export const BookerEmbed = (
                 isTeamEvent: true,
                 teamId: routingTeamId || 0,
                 username: "",
-                customClassNames: props?.customClassNames,
               }
             : {
                 eventSlug: eventTypeSlug,
                 username: username ?? "",
                 isTeamEvent: false,
-                customClassNames: props?.customClassNames,
               })}
           routingFormSearchParams={routingFormSearchParams}
-          bannerUrl={props.bannerUrl}
+          defaultFormValues={defaultFormValues}
+          teamMemberEmail={teamMemberEmail}
+          crmOwnerRecordType={crmOwnerRecordType}
+          crmAppSlug={crmAppSlug}
           onDryRunSuccess={() => {
-            window.location.href = `https://app.cal.com/booking/dry-run-successful`;
+            if (onDryRunSuccess) {
+              onDryRunSuccess();
+            } else {
+              window.location.href = `https://app.cal.com/booking/dry-run-successful`;
+            }
           }}
+          {...rest}
         />
       </CalProvider>
     );
   }
 
-  // If Not For From Routing Form, Use Props
+  // If Not For From Routing, Use Props
   if (props?.routingFormUrl === undefined) {
     return (
       <CalProvider
