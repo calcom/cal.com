@@ -4,7 +4,7 @@ import {
   MicrosoftServiceAccountKeyInput,
 } from "@/modules/organizations/dwd/inputs/service-account-key.input";
 import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
+import { Expose, Type } from "class-transformer";
 import { IsString, IsNotEmpty, ValidateNested, Validate } from "class-validator";
 
 export class CreateDwdInput {
@@ -20,7 +20,7 @@ export class CreateDwdInput {
   @Expose()
   domain!: string;
 
-  @ValidateNested()
+  @Validate(ServiceAccountKeyValidator)
   @ApiProperty({
     type: [GoogleServiceAccountKeyInput, MicrosoftServiceAccountKeyInput],
     oneOf: [
@@ -29,6 +29,6 @@ export class CreateDwdInput {
     ],
   })
   @Expose()
-  @Validate(ServiceAccountKeyValidator)
+  @Type(() => Object)
   serviceAccountKey!: GoogleServiceAccountKeyInput | MicrosoftServiceAccountKeyInput;
 }
