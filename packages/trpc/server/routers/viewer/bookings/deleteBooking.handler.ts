@@ -1,7 +1,7 @@
 import { prisma } from "@calcom/prisma";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TDeleteInputSchema } from "./deleteHistory.schema";
+import type { TDeleteInputSchema } from "./deleteBooking.schema";
 
 type DeleteOptions = {
   ctx: {
@@ -10,24 +10,13 @@ type DeleteOptions = {
   input: TDeleteInputSchema;
 };
 
-export const deleteHistoryHandler = async ({ ctx: _ctx, input }: DeleteOptions) => {
+export const deleteBookingHandler = async ({ ctx, input }: DeleteOptions) => {
+  const { user } = ctx;
   const { id } = input;
-
   await prisma.booking.delete({
     where: {
+      userId: user.id,
       id,
-    },
-  });
-
-  await prisma.bookingSeat.deleteMany({
-    where: {
-      bookingId: id,
-    },
-  });
-
-  await prisma.bookingReference.deleteMany({
-    where: {
-      bookingId: id,
     },
   });
 

@@ -263,6 +263,7 @@ export const useEventTypeForm = ({
   };
 
   const handleSubmit = async (values: FormValues) => {
+    console.log("handlesubmit invoked!");
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;

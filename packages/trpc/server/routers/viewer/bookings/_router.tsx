@@ -3,7 +3,7 @@ import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZAddGuestsInputSchema } from "./addGuests.schema";
 import { ZConfirmInputSchema } from "./confirm.schema";
-import { ZDeleteHistoryInputSchema } from "./deleteHistory.schema";
+import { ZDeleteBookingInputSchema } from "./deleteBooking.schema";
 import { ZEditLocationInputSchema } from "./editLocation.schema";
 import { ZFindInputSchema } from "./find.schema";
 import { ZGetInputSchema } from "./get.schema";
@@ -17,7 +17,7 @@ type BookingsRouterHandlerCache = {
   requestReschedule?: typeof import("./requestReschedule.handler").requestRescheduleHandler;
   editLocation?: typeof import("./editLocation.handler").editLocationHandler;
   addGuests?: typeof import("./addGuests.handler").addGuestsHandler;
-  deleteHistory?: typeof import("./deleteHistory.handler").deleteHistoryHandler;
+  deleteBooking?: typeof import("./deleteBooking.handler").deleteBookingHandler;
   confirm?: typeof import("./confirm.handler").confirmHandler;
   getBookingAttendees?: typeof import("./getBookingAttendees.handler").getBookingAttendeesHandler;
   find?: typeof import("./find.handler").getHandler;
@@ -95,21 +95,21 @@ export const bookingsRouter = router({
       input,
     });
   }),
-  deleteHistory: authedProcedure.input(ZDeleteHistoryInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.deleteHistory) {
-      // Dynamically import the deleteHistory handler
-      UNSTABLE_HANDLER_CACHE.deleteHistory = await import("./deleteHistory.handler").then(
-        (mod) => mod.deleteHistoryHandler
+  deleteBooking: authedProcedure.input(ZDeleteBookingInputSchema).mutation(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.deleteBooking) {
+      // Dynamically import the deleteBooking handler
+      UNSTABLE_HANDLER_CACHE.deleteBooking = await import("./deleteBooking.handler").then(
+        (mod) => mod.deleteBookingHandler
       );
     }
 
     // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.deleteHistory) {
+    if (!UNSTABLE_HANDLER_CACHE.deleteBooking) {
       throw new Error("Failed to load handler");
     }
 
     // Execute the handler with the context and input
-    return UNSTABLE_HANDLER_CACHE.deleteHistory({
+    return UNSTABLE_HANDLER_CACHE.deleteBooking({
       ctx,
       input,
     });
