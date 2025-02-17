@@ -69,7 +69,7 @@ export default class Office365CalendarService implements Calendar {
           "Invalid DomainWideDelegation Settings: tenantId is missing"
         );
       }
-      return delegatedTo && !tenantId
+      return delegatedTo && tenantId
         ? `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
         : "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     }
