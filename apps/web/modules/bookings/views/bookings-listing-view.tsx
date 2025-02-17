@@ -7,9 +7,7 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-// eslint-disable-next-line no-restricted-imports
-import { debounce } from "lodash";
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -30,6 +28,8 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
+import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues";
+import { useProperHeightForMobile } from "~/bookings/hooks/useProperHeightForMobile";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
 type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
@@ -248,12 +248,15 @@ function BookingsContent({ status }: BookingsProps) {
     return merged;
   }, [bookingsToday, flatData, status]);
 
+  const getFacetedUniqueValues = useFacetedUniqueValues();
+
   const table = useReactTable<RowData>({
     data: finalData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFacetedUniqueValues,
   });
 
   return (
@@ -309,40 +312,4 @@ function BookingsContent({ status }: BookingsProps) {
       </main>
     </div>
   );
-}
-
-// Dynamically adjusts DataTable height on mobile to prevent nested scrolling
-// and ensure the table fits within the viewport without overflowing (hacky)
-function useProperHeightForMobile(ref: React.RefObject<HTMLDivElement>) {
-  const lastOffsetY = useRef<number>();
-  const lastWindowHeight = useRef<number>();
-  const BOTTOM_NAV_HEIGHT = 64;
-  const BUFFER = 32;
-
-  const updateHeight = useCallback(
-    debounce(() => {
-      if (!ref.current || window.innerWidth >= 640) return;
-      const rect = ref.current.getBoundingClientRect();
-      if (rect.top !== lastOffsetY.current || window.innerHeight !== lastWindowHeight.current) {
-        lastOffsetY.current = rect.top;
-        lastWindowHeight.current = window.innerHeight;
-        const height = window.innerHeight - lastOffsetY.current - BOTTOM_NAV_HEIGHT - BUFFER;
-        ref.current.style.height = `${height}px`;
-      }
-    }, 200),
-    [ref.current]
-  );
-
-  useEffect(() => {
-    const handleResize = () => {
-      updateHeight();
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, [updateHeight]);
-
-  updateHeight();
 }
