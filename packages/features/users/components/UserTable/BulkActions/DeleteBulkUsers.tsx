@@ -6,7 +6,7 @@ import { ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@ca
 import type { UserTableUser } from "../types";
 
 interface Props {
-  users: UserTableUser[];
+  users: Array<{ id: UserTableUser["id"] }>;
   onRemove: () => void;
 }
 
@@ -39,7 +39,9 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DataTableSelectionBar.Button icon="ban">{t("Delete")}</DataTableSelectionBar.Button>
+        <DataTableSelectionBar.Button icon="ban" color="destructive">
+          {t("Delete")}
+        </DataTableSelectionBar.Button>
       </DialogTrigger>
       <ConfirmationDialogContent
         variety="danger"

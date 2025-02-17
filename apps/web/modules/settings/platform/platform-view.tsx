@@ -7,15 +7,11 @@ import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
-import {
-  useOAuthClients,
-  useGetOAuthClientManagedUsers,
-} from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
+import { useOAuthClients } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
-import { ManagedUserList } from "@components/settings/platform/dashboard/managed-user-list";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
@@ -28,11 +24,6 @@ export default function Platform() {
   const [initialClientName, setInitialClientName] = useState("");
 
   const { data, isLoading: isOAuthClientLoading, refetch: refetchClients } = useOAuthClients();
-  const {
-    isLoading: isManagedUserLoading,
-    data: managedUserData,
-    refetch: refetchManagedUsers,
-  } = useGetOAuthClientManagedUsers(initialClientId);
 
   const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
     useGetUserAttributes();
@@ -41,7 +32,6 @@ export default function Platform() {
     onSuccess: () => {
       showToast(t("oauth_client_deletion_message"), "success");
       refetchClients();
-      refetchManagedUsers();
     },
   });
 
@@ -81,23 +71,11 @@ export default function Platform() {
             subtitle={t("platform_description")}
             title={t("platform")}
             description={t("platform_description")}
-            hideHeadingOnMobile
+            withoutSeo={true}
             withoutMain={false}
             isPlatformUser={true}>
             <HelpCards />
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
-            <ManagedUserList
-              oauthClients={data}
-              managedUsers={managedUserData}
-              isManagedUserLoading={isManagedUserLoading}
-              initialClientName={initialClientName}
-              initialClientId={initialClientId}
-              handleChange={(id: string, name: string) => {
-                setInitialClientId(id);
-                setInitialClientName(name);
-                refetchManagedUsers();
-              }}
-            />
           </Shell>
         </div>
       </QueryClientProvider>
@@ -110,8 +88,8 @@ export default function Platform() {
         // we want to hide org banner and have different sidebar tabs for platform clients
         // hence we pass isPlatformUser boolean as prop
         isPlatformUser={true}
-        hideHeadingOnMobile
         withoutMain={false}
+        withoutSeo={true}
         SidebarContainer={<></>}>
         <NoPlatformPlan />
       </Shell>

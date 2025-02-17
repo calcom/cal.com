@@ -62,7 +62,7 @@ export class Task {
       orderBy: {
         scheduledAt: "asc",
       },
-      take: 100,
+      take: 1000,
     });
   }
 

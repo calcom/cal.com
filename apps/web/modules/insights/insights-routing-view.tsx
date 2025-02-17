@@ -1,17 +1,20 @@
 "use client";
 
-import { FailedBookingsByField, RoutingFormResponsesTable, RoutedToPerPeriod } from "@calcom/features/insights/components";
-import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
+import { DataTableProvider } from "@calcom/features/data-table";
+import {
+  RoutingFormResponsesTable,
+  FailedBookingsByField,
+  RoutedToPerPeriod,
+} from "@calcom/features/insights/components";
+import { InsightsOrgTeamsProvider } from "@calcom/features/insights/context/InsightsOrgTeamsProvider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-
-import InsightsLayout from "./layout";
 
 export default function InsightsRoutingFormResponsesPage() {
   const { t } = useLocale();
 
   return (
-    <InsightsLayout>
-      <FiltersProvider>
+    <DataTableProvider>
+      <InsightsOrgTeamsProvider>
         <div className="mb-4 space-y-4">
           <RoutingFormResponsesTable />
 
@@ -29,7 +32,7 @@ export default function InsightsRoutingFormResponsesPage() {
             </a>
           </small>
         </div>
-      </FiltersProvider>
-    </InsightsLayout>
+      </InsightsOrgTeamsProvider>
+    </DataTableProvider>
   );
 }

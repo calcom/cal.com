@@ -5,10 +5,10 @@ import { OrganizationsUsersRepository } from "@/modules/organizations/repositori
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
+import { Team, CreationSource } from "@prisma/client";
 import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
@@ -56,6 +56,7 @@ export class OrganizationsUsersService {
         },
       ],
       teamId: org.id,
+      creationSource: CreationSource.API_V2,
       isOrg: true,
       parentId: null,
       autoAcceptEmailDomain: "not-required-for-this-endpoint",

@@ -1,5 +1,6 @@
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import type { PrismaClient } from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
@@ -21,26 +22,6 @@ const getAllAcceptedMemberships = async ({ prisma, email }: { prisma: PrismaClie
   });
 };
 
-const getVerifiedOrganizationByAutoAcceptEmailDomain = async ({
-  prisma,
-  domain,
-}: {
-  prisma: PrismaClient;
-  domain: string;
-}) => {
-  return await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        isOrganizationVerified: true,
-        orgAutoAcceptEmail: domain,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-};
-
 export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
   const { connectionController } = await jackson();
 
@@ -54,7 +35,7 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
       });
 
     const domain = email.split("@")[1];
-    const organization = await getVerifiedOrganizationByAutoAcceptEmailDomain({ prisma, domain });
+    const organization = await OrganizationRepository.getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
 
     if (!organization)
       throw new TRPCError({
@@ -62,15 +43,16 @@ export const ssoTenantProduct = async (prisma: PrismaClient, email: string) => {
         message: "no_account_exists",
       });
 
-    const organizationId = organization.id;
     const createUsersAndConnectToOrgProps = {
       emailsToCreate: [email],
-      organizationId,
       identityProvider: IdentityProvider.SAML,
       identityProviderId: email,
     };
 
-    await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
+    await createUsersAndConnectToOrg({
+      createUsersAndConnectToOrgProps,
+      org: organization,
+    });
     memberships = await getAllAcceptedMemberships({ prisma, email });
 
     if (!memberships || memberships.length === 0)

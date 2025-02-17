@@ -31,6 +31,8 @@ import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCr
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt, symmetricDecrypt } from "@calcom/lib/crypto";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
+import { getRoutedUrl } from "@calcom/lib/server/getRoutedUrl";
+import { getTeamMemberEmailForResponseOrContactUsingUrlQuery } from "@calcom/lib/server/getTeamMemberEmailFromCrm";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -53,6 +55,7 @@ export type UpdateScheduleOutputType = Awaited<
     typeof import("@calcom/trpc/server/routers/viewer/availability/schedule/update.handler").updateHandler
   >
 >;
+
 export { getEventTypeById } from "@calcom/lib/event-types/getEventTypeById";
 export { getEventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export { getEventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
@@ -126,7 +129,7 @@ export { EventTypeMetaDataSchema, userMetadata, bookingMetadataSchema } from "@c
 
 export {
   // note(Lauris): Api to internal
-  transformBookingFieldsApiRequestToInternal,
+  transformBookingFieldsApiToInternal,
   transformLocationsApiToInternal,
   transformIntervalLimitsApiToInternal,
   transformFutureBookingLimitsApiToInternal,
@@ -155,6 +158,9 @@ export {
   systemBeforeFieldEmail,
   systemBeforeFieldLocation,
   systemAfterFieldRescheduleReason,
+  systemAfterFieldTitle,
+  systemAfterFieldNotes,
+  systemAfterFieldGuests,
 } from "@calcom/lib/event-types/transformers";
 
 export type {
@@ -229,3 +235,7 @@ export { handleDeleteCredential };
 export { getBulkEventTypes };
 
 export { getBookingFieldsWithSystemFields };
+
+export { getRoutedUrl };
+
+export { getTeamMemberEmailForResponseOrContactUsingUrlQuery };
