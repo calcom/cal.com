@@ -121,6 +121,9 @@ export const handleResponse = async ({
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
     console.log("🚀 ~ file: handleResponse.ts:121 ~ chosenRoute:", chosenRoute);
     let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
+    let crmContactOwnerEmail: string | null = null;
+    let crmContactOwnerRecordType: string | null = null;
+    let crmAppSlug: string | null = null;
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
       if (isRouter(chosenRoute)) {
@@ -130,44 +133,53 @@ export const handleResponse = async ({
         });
       }
 
-      const contactOwnerEmail = await routerGetCrmContactOwnerEmail({
-        attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-        response,
-        action: chosenRoute.action,
-      });
+      await Promise.all([
+        (async () => {
+          const contactOwnerQuery = await routerGetCrmContactOwnerEmail({
+            attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+            response,
+            action: chosenRoute.action,
+          });
+          console.log("🚀 ~ file: handleResponse.ts:143 ~ contactOwnerQuery:", contactOwnerQuery);
+          crmContactOwnerEmail = contactOwnerQuery.email;
+          crmContactOwnerRecordType = contactOwnerQuery.recordType;
+          crmAppSlug = contactOwnerQuery.crmAppSlug;
+        })(),
+        (async () => {
+          const teamMembersMatchingAttributeLogicWithResult =
+            formTeamId && formOrgId
+              ? await findTeamMembersMatchingAttributeLogic(
+                  {
+                    dynamicFieldValueOperands: {
+                      response,
+                      fields: form.fields || [],
+                    },
+                    attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+                    fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
+                    teamId: formTeamId,
+                    orgId: formOrgId,
+                  },
+                  {
+                    enablePerf: true,
+                  }
+                )
+              : null;
 
-      const teamMembersMatchingAttributeLogicWithResult =
-        formTeamId && formOrgId
-          ? await findTeamMembersMatchingAttributeLogic(
-              {
-                dynamicFieldValueOperands: {
-                  response,
-                  fields: form.fields || [],
-                },
-                attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
-                teamId: formTeamId,
-                orgId: formOrgId,
-              },
-              {
-                enablePerf: true,
-              }
-            )
-          : null;
+          moduleLogger.debug(
+            "teamMembersMatchingAttributeLogic",
+            safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+          );
 
-      moduleLogger.debug(
-        "teamMembersMatchingAttributeLogic",
-        safeStringify({ teamMembersMatchingAttributeLogicWithResult })
-      );
+          teamMemberIdsMatchingAttributeLogic =
+            teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+              ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+                  (member) => member.userId
+                )
+              : null;
 
-      teamMemberIdsMatchingAttributeLogic =
-        teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-          ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
-              (member) => member.userId
-            )
-          : null;
-
-      timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+          timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+        })(),
+      ]);
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
@@ -207,6 +219,9 @@ export const handleResponse = async ({
       isPreview: !!isPreview,
       formResponse: dbFormResponse,
       teamMembersMatchingAttributeLogic: teamMemberIdsMatchingAttributeLogic,
+      crmContactOwnerEmail,
+      crmContactOwnerRecordType,
+      crmAppSlug,
       attributeRoutingConfig: chosenRoute
         ? "attributeRoutingConfig" in chosenRoute
           ? chosenRoute.attributeRoutingConfig
