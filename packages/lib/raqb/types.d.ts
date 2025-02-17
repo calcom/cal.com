@@ -25,7 +25,7 @@ export type dynamicFieldValueOperands = {
     label: string;
     type: string;
     options?: {
-      id: string | null | undefined;
+      id?: string | null | undefined;
       label: string;
     }[];
   }[];
