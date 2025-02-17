@@ -1,6 +1,8 @@
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { metadata as googleCalendarMetadata } from "@calcom/app-store/googlecalendar/_metadata";
 import { metadata as googleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
+import { metadata as office365CalendarMetaData } from "@calcom/app-store/office365calendar/_metadata";
+import { metadata as office365VideoMetaData } from "@calcom/app-store/office365video/_metadata";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
@@ -12,7 +14,9 @@ import { buildNonDwdCredentials, isDwdCredential } from "./clientAndServer";
 
 export { buildNonDwdCredentials, buildNonDwdCredential } from "./clientAndServer";
 
-const WORKSPACE_PLATFORM_SLUGS = ["google", "office365"] as const;
+const GOOGLE_WORKSPACE_SLUG = "google";
+const OFFICE365_WORKSPACE_SLUG = "office365";
+const WORKSPACE_PLATFORM_SLUGS = [GOOGLE_WORKSPACE_SLUG, OFFICE365_WORKSPACE_SLUG] as const;
 type WORKSPACE_PLATFORM_SLUGS_TYPE = (typeof WORKSPACE_PLATFORM_SLUGS)[number];
 
 const log = logger.getSubLogger({ prefix: ["lib/domainWideDelegation/server"] });
@@ -35,6 +39,23 @@ interface User {
 
 const checkWorkspaceSlug = (slug: string) => {
   return WORKSPACE_PLATFORM_SLUGS.includes(slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE);
+};
+
+const getDwdAppMetadata = (slug: WORKSPACE_PLATFORM_SLUGS_TYPE, isConferencing?: boolean) => {
+  switch (slug) {
+    case GOOGLE_WORKSPACE_SLUG:
+      return isConferencing
+        ? { type: googleMeetMetadata.type, appId: googleMeetMetadata.type }
+        : { type: googleCalendarMetadata.type, appId: googleCalendarMetadata.type };
+
+    case OFFICE365_WORKSPACE_SLUG:
+      return isConferencing
+        ? { type: office365VideoMetaData.type, appId: office365VideoMetaData.type }
+        : { type: office365CalendarMetaData.type, appId: office365CalendarMetaData.type };
+
+    default:
+      throw new Error("App metadata does not exist");
+  }
 };
 
 const _isConferencingCredential = (credential: CredentialPayload) => {
@@ -79,8 +100,7 @@ const _buildDwdCalendarCredential = ({ dwd, user }: { dwd: DomainWideDelegation;
     return null;
   }
   return {
-    type: googleCalendarMetadata.type,
-    appId: googleCalendarMetadata.slug,
+    ...getDwdAppMetadata(dwd.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE, true),
     ..._buildCommonUserCredential({ dwd, user }),
   };
 };
@@ -116,8 +136,7 @@ const _buildDwdConferencingCredential = ({ dwd, user }: { dwd: DomainWideDelegat
   }
 
   return {
-    type: googleMeetMetadata.type,
-    appId: googleMeetMetadata.slug,
+    ...getDwdAppMetadata(dwd.workspacePlatform.slug as unknown as WORKSPACE_PLATFORM_SLUGS_TYPE, true),
     ..._buildCommonUserCredential({ dwd, user }),
   };
 };
@@ -221,12 +240,12 @@ export async function checkIfSuccessfullyConfiguredInWorkspace({
     user,
   });
 
-  const googleCalendar = await getCalendar(credential);
+  const calendar = await getCalendar(credential);
 
-  if (!googleCalendar) {
+  if (!calendar) {
     throw new Error("Google Calendar App not found");
   }
-  return await googleCalendar?.testDomainWideDelegationSetup?.();
+  return await calendar?.testDomainWideDelegationSetup?.();
 }
 
 export async function getAllDwdCredentialsForUserByAppType({
@@ -436,6 +455,9 @@ export function getFirstDwdConferencingCredentialAppLocation({
   const dwdConferencingCredential = getFirstDwdConferencingCredential({ credentials });
   if (dwdConferencingCredential?.appId === googleMeetMetadata.slug) {
     return googleMeetMetadata.appData?.location?.type ?? null;
+  }
+  if (dwdConferencingCredential?.appId === office365VideoMetaData.slug) {
+    return office365VideoMetaData.appData?.location?.type ?? null;
   }
   return null;
 }
