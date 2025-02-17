@@ -80,6 +80,10 @@ export default class ExchangeCalendarService implements Calendar {
         });
       }
 
+      event.team?.optionalGuests.forEach((guest) => {
+        appointment.OptionalAttendees.Add(new Attendee(guest.email));
+      });
+
       await appointment.Save(SendInvitationsMode.SendToAllAndSaveCopy);
 
       return {
@@ -109,14 +113,21 @@ export default class ExchangeCalendarService implements Calendar {
       appointment.End = DateTime.Parse(event.endTime); // moment string
       appointment.Location = event.location || "Location not defined!";
       appointment.Body = new MessageBody(event.description || ""); // you can not use any special character or escape the content
+
       for (let i = 0; i < event.attendees.length; i++) {
         appointment.RequiredAttendees.Add(new Attendee(event.attendees[i].email));
       }
+
       if (event.team?.members) {
         event.team.members.forEach((member) => {
           appointment.RequiredAttendees.Add(new Attendee(member.email));
         });
       }
+
+      event.team?.optionalGuests.forEach((guest) => {
+        appointment.OptionalAttendees.Add(new Attendee(guest.email));
+      });
+
       appointment.Update(
         ConflictResolutionMode.AlwaysOverwrite,
         SendInvitationsOrCancellationsMode.SendToAllAndSaveCopy
