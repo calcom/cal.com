@@ -152,18 +152,9 @@ export function ShellMain(props: LayoutProps) {
               variant="icon"
               size="sm"
               color="minimal"
-              onClick={() => {
-                if (typeof props.backPath === "string") {
-                  // Prevents weird crash when navigating from /routing to /routing/forms
-                  if (props.backPath.startsWith("/routing")) {
-                    window.location.href = props.backPath;
-                  } else {
-                    router.push(props.backPath as string);
-                  }
-                } else {
-                  router.back();
-                }
-              }}
+              onClick={() =>
+                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+              }
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
