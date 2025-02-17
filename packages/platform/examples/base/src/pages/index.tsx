@@ -40,6 +40,7 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
                 console.log("stripe account connected successfully".toLocaleUpperCase());
               }}
             />
+            <Connect.Calendars side="top" />
           </div>
         </div>
         <div className="hidden lg:block">
