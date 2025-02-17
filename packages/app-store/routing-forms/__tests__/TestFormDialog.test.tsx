@@ -9,6 +9,26 @@ vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
+const randomUUIDSpy = vi.fn(() => {
+  console.log("randomUUID was called from:", new Error().stack);
+  return "123e4567-e89b-12d3-a456-426614174000";
+});
+
+const cryptoMock = new Proxy(
+  {},
+  {
+    get: (target, prop) => {
+      console.log("Crypto property accessed:", prop);
+      console.log("Stack trace:", new Error().stack);
+      return prop === "randomUUID" ? randomUUIDSpy : undefined;
+    },
+  }
+);
+
+vi.mock("crypto", () => ({
+  default: cryptoMock,
+}));
+
 function mockMatchingRoute(route: any) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
     ...route,
