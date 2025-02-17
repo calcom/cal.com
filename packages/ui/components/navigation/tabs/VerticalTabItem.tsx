@@ -75,13 +75,13 @@ const VerticalTabItem = ({
               />
             )}
             <div className="h-fit min-w-0 flex-1">
-              <span className="flex items-center gap-2 truncate">
+              <span className="flex items-center gap-2">
                 {name}
                 {props.isExternalLink ? <Icon name="external-link" data-testid="external-link" /> : null}
               </span>
               {info && (
                 // TODO: I don't think having apps-info as a data-test-id is right here as this is meant to be dumb component.
-                <p data-testid="apps-info" className="mt-1 truncate text-xs font-normal">
+                <p data-testid="apps-info" className="mt-1 text-xs font-normal">
                   {info}
                 </p>
               )}
