@@ -119,7 +119,6 @@ export const handleResponse = async ({
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
-    console.log("🚀 ~ file: handleResponse.ts:121 ~ chosenRoute:", chosenRoute);
     let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
     let crmContactOwnerEmail: string | null = null;
     let crmContactOwnerRecordType: string | null = null;

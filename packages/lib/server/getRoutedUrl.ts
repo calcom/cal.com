@@ -128,7 +128,6 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       chosenRouteId: matchingRoute.id,
       isPreview: isBookingDryRun,
     });
-    console.log("🚀 ~ file: getRoutedUrl.ts:131 ~ getRoutedUrl ~ result:", result);
     teamMembersMatchingAttributeLogic = result.teamMembersMatchingAttributeLogic;
     formResponseId = result.formResponse.id;
     attributeRoutingConfig = result.attributeRoutingConfig;
@@ -168,15 +167,6 @@ export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "que
       decidedAction.value,
       response,
       serializableForm.fields
-    );
-
-    console.log(
-      "🚀 ~ file: getRoutedUrl.ts:190 ~ getRoutedUrl ~ crmContactOwnerRecordType:",
-      crmContactOwnerRecordType
-    );
-    console.log(
-      "🚀 ~ file: getRoutedUrl.ts:190 ~ getRoutedUrl ~ crmContactOwnerEmail:",
-      crmContactOwnerEmail
     );
     return {
       redirect: {

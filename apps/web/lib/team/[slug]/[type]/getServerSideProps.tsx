@@ -26,7 +26,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const session = await getServerSession({ req });
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(params);
   const { rescheduleUid, isInstantMeeting: queryIsInstantMeeting, email } = query;
-  console.log("🚀 ~ file: getServerSideProps.tsx:29 ~ getServerSideProps ~ query:", query);
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(req, params?.orgSlug);
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
 
@@ -65,22 +64,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
   const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
-  console.log(
-    "🚀 ~ file: getServerSideProps.tsx:67 ~ getServerSideProps ~ crmContactOwnerEmail:",
-    crmContactOwnerEmail
-  );
   const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
-  console.log(
-    "🚀 ~ file: getServerSideProps.tsx:69 ~ getServerSideProps ~ crmContactOwnerRecordType:",
-    crmContactOwnerRecordType
-  );
   let crmAppSlug = query["cal.crmAppSlug"];
-  console.log("🚀 ~ file: getServerSideProps.tsx:71 ~ getServerSideProps ~ crmAppSlug:", crmAppSlug);
-
   let teamMemberEmail = crmContactOwnerEmail;
   let crmOwnerRecordType = crmContactOwnerRecordType;
 
-  if (!teamMemberEmail && crmOwnerRecordType && crmAppSlug) {
+  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
     const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
       "@calcom/lib/server/getTeamMemberEmailFromCrm"
     );
@@ -93,9 +82,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       eventData,
     });
 
-    teamMemberEmail = teamMemberEmail ?? null;
-    crmOwnerRecordType = crmOwnerRecordType ?? null;
-    crmAppSlug = crmAppSlugQuery ?? null;
+    teamMemberEmail = email ?? undefined;
+    crmOwnerRecordType = recordType ?? undefined;
+    crmAppSlug = crmAppSlugQuery ?? undefined;
   }
 
   const organizationSettings = getOrganizationSEOSettings(team);
