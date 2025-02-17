@@ -34,7 +34,7 @@ import SingleForm, {
 import { FieldTypes } from "../../lib/FieldTypes";
 
 export { getServerSideProps };
-type SelectOption = { label: string; id: string | null };
+type SelectOption = { label: string; id?: string | null | undefined };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
 const appendArray = <T,>({
