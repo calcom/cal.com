@@ -1,4 +1,4 @@
-import Page from "app/team/[slug]/[type]/page";
+import Page from "app/(use-page-wrapper)/team/[slug]/[type]/page";
 
-export { generateMetadata } from "app/team/[slug]/[type]/page";
+export { generateMetadata } from "app/(use-page-wrapper)/team/[slug]/[type]/page";
 export default Page;
