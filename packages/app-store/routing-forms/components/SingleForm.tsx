@@ -135,17 +135,17 @@ const Actions = ({
           tooltipSide="bottom"
         />
         {typeformApp?.isInstalled ? (
-         <FormActionsDropdown>
-          <FormAction
-            data-testid="copy-redirect-url"
-            routingForm={form}
-            action="copyRedirectUrl"
-            color="minimal"
-            type="button"
-            StartIcon="link">
-            {t("copy_redirect_url")}
-          </FormAction>
-        </FormActionsDropdown>
+          <FormActionsDropdown>
+            <FormAction
+              data-testid="copy-redirect-url"
+              routingForm={form}
+              action="copyRedirectUrl"
+              color="minimal"
+              type="button"
+              StartIcon="link">
+              {t("copy_redirect_url")}
+            </FormAction>
+          </FormActionsDropdown>
         ) : null}
       </ButtonGroup>
 
