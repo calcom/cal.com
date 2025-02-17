@@ -460,7 +460,6 @@ describe("Bookings Endpoints 2024-08-13", () => {
               // eslint-disable-next-line
               // @ts-ignore
               const data: GetSeatedBookingOutput_2024_08_13 = responseBody.data;
-              console.log("asap data", JSON.stringify(data, null, 2));
               expect(data.attendees[0].name).toEqual(`${splitName.firstName} ${splitName.lastName}`);
               expect(data.attendees[0].bookingFieldsResponses.name).toEqual(splitName);
             } else {

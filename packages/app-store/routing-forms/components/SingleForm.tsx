@@ -42,6 +42,7 @@ import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
@@ -680,7 +681,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
-
+  const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
   const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
@@ -752,7 +753,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             ...data,
           });
         }}>
-        <FormActionsProvider appUrl={appUrl}>
+        <FormActionsProvider
+          appUrl={appUrl}
+          newFormDialogState={newFormDialogState}
+          setNewFormDialogState={setNewFormDialogState}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
             heading={
@@ -766,7 +770,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </div>
             }
             subtitle={form.description || ""}
-            backPath={`/${appUrl}/forms`}
+            backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
