@@ -4,7 +4,7 @@ import type { Page } from "@playwright/test";
 import dayjs from "@calcom/dayjs";
 import { APP_CREDENTIAL_SHARING_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import type { CredentialForCalendarService } from "@calcom/types/Credential";
+import type { CredentialForCalendarServiceWithEmail } from "@calcom/types/Credential";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectSecondAvailableTimeSlotNextMonth } from "@calcom/web/playwright/lib/testUtils";
 
@@ -17,7 +17,7 @@ test.describe("Google Calendar", async () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.describe.skip("Test using the primary calendar", async () => {
     let qaUsername: string;
-    let qaGCalCredential: CredentialForCalendarService;
+    let qaGCalCredential: CredentialForCalendarServiceWithEmail;
     test.beforeAll(async () => {
       let runIntegrationTest = false;
       const errorMessage = "Could not run test";
@@ -59,7 +59,7 @@ test.describe("Google Calendar", async () => {
             },
           })),
           delegatedTo: null,
-        } as CredentialForCalendarService;
+        } as CredentialForCalendarServiceWithEmail;
         test.skip(!qaGCalCredential?.id, "Google QA credential not found");
 
         const qaUserQuery = await prisma.user.findFirstOrThrow({
