@@ -3,6 +3,8 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsDate, IsInt, IsOptional, IsString, IsEnum, isDate } from "class-validator";
 
+import { SkipTakePagination } from "@calcom/platform-types";
+
 export enum OutOfOfficeReason {
   UNSPECIFIED = "unspecified",
   VACATION = "vacation",
@@ -80,3 +82,47 @@ export class CreateOutOfOfficeEntryDto {
 }
 
 export class UpdateOutOfOfficeEntryDto extends PartialType(CreateOutOfOfficeEntryDto) {}
+
+export enum SortOrder {
+  asc = "asc",
+  desc = "desc",
+}
+type SortOrderType = keyof typeof SortOrder;
+
+export class GetOutOfOfficeEntryFiltersDTO extends SkipTakePagination {
+  @IsOptional()
+  @IsEnum(SortOrder, {
+    message: 'SortStart must be either "asc" or "desc".',
+  })
+  @ApiProperty({
+    required: false,
+    description: "Sort results by their start time in ascending or descending order.",
+    example: "?sortStart=asc OR ?sortStart=desc",
+    enum: SortOrder,
+  })
+  sortStart?: SortOrderType;
+
+  @IsOptional()
+  @IsEnum(SortOrder, {
+    message: 'SortEnd must be either "asc" or "desc".',
+  })
+  @ApiProperty({
+    required: false,
+    description: "Sort results by their end time in ascending or descending order.",
+    example: "?sortEnd=asc OR ?sortEnd=desc",
+    enum: SortOrder,
+  })
+  sortEnd?: SortOrderType;
+}
+
+export class GetOrgUsersOutOfOfficeEntryFiltersDTO extends GetOutOfOfficeEntryFiltersDTO {
+  @IsString()
+  @IsOptional()
+  @ApiProperty({
+    type: String,
+    required: false,
+    description: "Filter ooo entries by the user email address. user must be within your organization.",
+    example: "example@domain.com",
+  })
+  email?: string;
+}

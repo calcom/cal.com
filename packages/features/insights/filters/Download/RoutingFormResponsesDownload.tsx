@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import type { Dayjs } from "@calcom/dayjs";
-import type { ColumnFilter, SortingState } from "@calcom/features/data-table";
+import dayjs from "@calcom/dayjs";
+import type { SortingState } from "@calcom/features/data-table";
 import { downloadAsCsv } from "@calcom/lib/csvUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
@@ -9,17 +9,11 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
+import { useInsightsParameters } from "../../hooks/useInsightsParameters";
+
 type RoutingData = RouterOutputs["viewer"]["insights"]["routingFormResponsesForDownload"]["data"][number];
 
 type Props = {
-  teamId: number | undefined;
-  userId: number | undefined;
-  memberUserId: number | undefined;
-  routingFormId: string | undefined;
-  isAll: boolean;
-  startDate: Dayjs;
-  endDate: Dayjs;
-  columnFilters: ColumnFilter[];
   sorting: SortingState;
 };
 
@@ -28,18 +22,10 @@ type Batch = {
   nextCursor: number | undefined;
 };
 
-export const RoutingFormResponsesDownload = ({
-  teamId,
-  userId,
-  memberUserId,
-  routingFormId,
-  isAll,
-  startDate,
-  endDate,
-  columnFilters,
-  sorting,
-}: Props) => {
+export const RoutingFormResponsesDownload = ({ sorting }: Props) => {
   const { t } = useLocale();
+  const { teamId, userId, memberUserIds, routingFormId, isAll, startDate, endDate, columnFilters } =
+    useInsightsParameters();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const utils = trpc.useUtils();
@@ -52,11 +38,11 @@ export const RoutingFormResponsesDownload = ({
   }> => {
     const { data, nextCursor } = await utils.viewer.insights.routingFormResponsesForDownload.fetch({
       teamId,
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
+      startDate,
+      endDate,
       userId,
-      memberUserId,
-      isAll: isAll ?? false,
+      memberUserIds,
+      isAll: isAll,
       routingFormId,
       columnFilters,
       sorting,
@@ -84,9 +70,9 @@ export const RoutingFormResponsesDownload = ({
       }
 
       if (allData.length > 0) {
-        const filename = `RoutingFormResponses-${startDate.format("YYYY-MM-DD")}-${endDate.format(
-          "YYYY-MM-DD"
-        )}.csv`;
+        const filename = `RoutingFormResponses-${dayjs(startDate).format("YYYY-MM-DD")}-${dayjs(
+          endDate
+        ).format("YYYY-MM-DD")}.csv`;
         downloadAsCsv(allData as Record<string, unknown>[], filename);
       }
     } catch (error) {

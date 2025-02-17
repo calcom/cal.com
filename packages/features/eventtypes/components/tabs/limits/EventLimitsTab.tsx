@@ -327,7 +327,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
-          className={classNames("mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2", customClassNames?.input)}
+          className={classNames("mb-0 h-9 ltr:mr-2 rtl:ml-2", customClassNames?.input)}
           min={0}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
