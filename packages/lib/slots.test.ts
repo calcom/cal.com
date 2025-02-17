@@ -1,7 +1,6 @@
 import { describe, expect, it, beforeAll, vi } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import { MINUTES_DAY_END, MINUTES_DAY_START } from "@calcom/lib/availability";
 
 import type { DateRange } from "./date-ranges";
 import getSlots from "./slots";
@@ -23,7 +22,7 @@ beforeAll(() => {
   ];
 });
 
-describe("Tests the date-range slot logic", () => {
+describe("Tests the slot logic", () => {
   it("can fit 24 hourly slots for an empty day", async () => {
     expect(
       getSlots({
@@ -342,145 +341,12 @@ describe("Tests the date-range slot logic", () => {
   });
 });
 
-describe("Tests the slot logic", () => {
-  it("can fit 24 hourly slots for an empty day", async () => {
-    // 24h in a day.
-    expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
-        frequency: 60,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: MINUTES_DAY_START,
-            endTime: MINUTES_DAY_END,
-          },
-        ],
-        eventLength: 60,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(24);
-  });
-
-  // TODO: This test is sound; it should pass!
-  it("only shows future booking slots on the same day", async () => {
-    // The mock date is 1s to midday, so 12 slots should be open given 0 booking notice.
-    expect(
-      getSlots({
-        inviteeDate: dayjs.utc(),
-        frequency: 60,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: MINUTES_DAY_START,
-            endTime: MINUTES_DAY_END,
-          },
-        ],
-        eventLength: 60,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(12);
-  });
-
-  it("can cut off dates that due to invitee timezone differences fall on the next day", async () => {
-    expect(
-      getSlots({
-        inviteeDate: dayjs().tz("Europe/Amsterdam").startOf("day"), // time translation +01:00
-        frequency: 60,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: [0],
-            startTime: 23 * 60, // 23h
-            endTime: MINUTES_DAY_END,
-          },
-        ],
-        eventLength: 60,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(0);
-  });
-
-  it("can cut off dates that due to invitee timezone differences fall on the previous day", async () => {
-    const workingHours = [
-      {
-        userId: 1,
-        days: [0],
-        startTime: MINUTES_DAY_START,
-        endTime: 1 * 60, // 1h
-      },
-    ];
-    expect(
-      getSlots({
-        inviteeDate: dayjs().tz("Atlantic/Cape_Verde").startOf("day"), // time translation -01:00
-        frequency: 60,
-        minimumBookingNotice: 0,
-        workingHours,
-        eventLength: 60,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(0);
-  });
-
-  it("adds minimum booking notice correctly", async () => {
-    // 24h in a day.
-    expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
-        frequency: 60,
-        minimumBookingNotice: 1500,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: MINUTES_DAY_START,
-            endTime: MINUTES_DAY_END,
-          },
-        ],
-        eventLength: 60,
-        offsetStart: 0,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(11);
-  });
-
-  it("can fit 48 25 minute slots with a 5 minute offset for an empty day", async () => {
-    expect(
-      getSlots({
-        inviteeDate: dayjs.utc().add(1, "day"),
-        frequency: 25,
-        minimumBookingNotice: 0,
-        workingHours: [
-          {
-            userId: 1,
-            days: Array.from(Array(7).keys()),
-            startTime: MINUTES_DAY_START,
-            endTime: MINUTES_DAY_END,
-          },
-        ],
-        eventLength: 25,
-        offsetStart: 5,
-        organizerTimeZone: "America/Toronto",
-      })
-    ).toHaveLength(48);
-  });
-});
-
-describe("Tests the date-range slot logic with custom env variable", () => {
+describe("Tests the slot logic with custom env variable", () => {
   beforeAll(() => {
     vi.stubEnv("NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL", "10");
   });
 
-  it("can fit 11 10 minute slots within a 2 hour window using a 10 mintue availabilty option with a starting time of 10 past the hour", async () => {
+  it("can fit 11 10 minute slots within a 2 hour window using a 10 minute availabilty option with a starting time of 10 past the hour", async () => {
     expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
     expect(
       getSlots({
@@ -502,7 +368,7 @@ describe("Tests the date-range slot logic with custom env variable", () => {
     ).toHaveLength(11);
   });
 
-  it("test buildSlotsWithDateRanges using a 10 mintue interval", async () => {
+  it("test buildSlotsWithDateRanges using a 10 minute interval", async () => {
     expect(Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL)).toBe(10);
     expect(
       getSlots({
