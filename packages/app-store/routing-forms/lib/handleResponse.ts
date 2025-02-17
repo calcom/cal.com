@@ -14,6 +14,7 @@ import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/ro
 import isRouter from "../lib/isRouter";
 import { onFormSubmission } from "../trpc/utils";
 import type { FormResponse, SerializableForm } from "../types/types";
+import routerGetCrmContactOwnerEmail from "./crmRouting/routerGetCrmContactOwnerEmail";
 
 export type Form = SerializableForm<
   App_RoutingForms_Form & {
@@ -118,6 +119,7 @@ export const handleResponse = async ({
     }
 
     const chosenRoute = serializableFormWithFields.routes?.find((route) => route.id === chosenRouteId);
+    console.log("🚀 ~ file: handleResponse.ts:121 ~ chosenRoute:", chosenRoute);
     let teamMemberIdsMatchingAttributeLogic: number[] | null = null;
     let timeTaken: Record<string, number | null> = {};
     if (chosenRoute) {
@@ -127,6 +129,12 @@ export const handleResponse = async ({
           message: "Chosen route is a router",
         });
       }
+
+      const contactOwnerEmail = await routerGetCrmContactOwnerEmail({
+        attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+        response,
+        action: chosenRoute.action,
+      });
 
       const teamMembersMatchingAttributeLogicWithResult =
         formTeamId && formOrgId
