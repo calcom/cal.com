@@ -12,8 +12,7 @@ export class ManagedOrganizationsService {
   constructor(
     private readonly managedOrganizationsRepository: ManagedOrganizationsRepository,
     private readonly organizationsRepository: OrganizationsRepository,
-    private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
-    private readonly organizationsMembershipService: OrganizationsMembershipService
+    private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService
   ) {}
 
   async createManagedOrganization(
@@ -25,16 +24,6 @@ export class ManagedOrganizationsService {
     if (!isManagerOrganizationPlatform) {
       throw new ForbiddenException(
         "Manager organization must be a platform organization. Normal organizations can't create managed organizations yet."
-      );
-    }
-
-    const authUserPartOfOrg = await this.organizationsMembershipService.getOrgMembershipByUserId(
-      authUserId,
-      managerOrganizationId
-    );
-    if (!authUserPartOfOrg) {
-      throw new ForbiddenException(
-        `Authenticated user with id=${authUserId} does not have a membership in the manager organization with id=${managerOrganizationId}.`
       );
     }
 
