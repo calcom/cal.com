@@ -465,7 +465,6 @@ test.describe("Out of office", () => {
     await test.step("As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'", async () => {
       await addOOOButton.click();
       await reasonListRespPromise;
-      //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
       await dateButton.click();
       await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
       await expect(
@@ -571,7 +570,7 @@ test.describe("Out of office", () => {
 
         await dateButton.click();
         await selectDateAndCreateOOO(page, "1", "3", undefined, 200, true, "previous-month", true);
-        //Switch to previous tab and check if the entry is visible
+        //Switch to 'previous' tab and check if the entry is visible
         await page.locator(`data-testid=toggle-group-item-previous`).click();
         await expect(
           page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
