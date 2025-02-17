@@ -1,4 +1,4 @@
-import BillingPage, { generateMetadata } from "app/settings/(settings-layout)/billing/page";
+import BillingPage, { generateMetadata } from "../../../billing/page";
 
 export { generateMetadata };
 export default BillingPage;
