@@ -18,7 +18,7 @@ const Page = async () => {
     <SettingsHeader
       title={t("out_of_office")}
       description={t("out_of_office_description")}
-      CTA={<CreateNewOutOfOfficeEntryButton />}>
+      CTA={<CreateNewOutOfOfficeEntryButton data-testid="add_entry_ooo" />}>
       <OutOfOfficeEntriesList />
     </SettingsHeader>
   );
