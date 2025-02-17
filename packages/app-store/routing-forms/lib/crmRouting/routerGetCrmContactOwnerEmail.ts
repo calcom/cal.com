@@ -5,8 +5,8 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { ZResponseInputSchema } from "@calcom/trpc/server/routers/viewer/routing-forms/response.schema";
 
+import type { LocalRoute } from "../../types/types";
 import { enabledAppSlugs } from "../enabledApps";
-import type { LocalRoute } from "../types/types";
 
 export default async function routerGetCrmContactOwnerEmail({
   attributeRoutingConfig,
@@ -21,11 +21,11 @@ export default async function routerGetCrmContactOwnerEmail({
   if (attributeRoutingConfig?.skipCrmContactCheck) return null;
 
   // Check if email is present
-  let prospectEmail = null;
+  let prospectEmail: string | null = null;
   for (const field of Object.keys(response)) {
     const fieldResponse = response[field];
     if (fieldResponse.identifier === "email") {
-      prospectEmail = fieldResponse.value;
+      prospectEmail = fieldResponse.value as string;
       break;
     }
   }
@@ -40,7 +40,11 @@ export default async function routerGetCrmContactOwnerEmail({
   const eventTypeMetadata = eventType.metadata;
   if (!eventTypeMetadata) return null;
 
-  let contactOwner = null;
+  let contactOwner: { email: string | null; recordType: string | null; crmAppSlug: string | null } = {
+    email: null,
+    recordType: null,
+    crmAppSlug: null,
+  };
   //   Determine if there is a CRM option enabled in the chosen route
   for (const appSlug of enabledAppSlugs) {
     const routingOptions = attributeRoutingConfig?.[appSlug];
@@ -55,7 +59,7 @@ export default async function routerGetCrmContactOwnerEmail({
       const ownerQuery = await appHandler(prospectEmail, attributeRoutingConfig, action.eventTypeId);
 
       if (ownerQuery?.email) {
-        contactOwner = ownerQuery;
+        contactOwner = { ...ownerQuery, crmAppSlug: appSlug };
         break;
       }
     }

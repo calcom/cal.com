@@ -139,9 +139,9 @@ export const handleResponse = async ({
             response,
             action: chosenRoute.action,
           });
-          crmContactOwnerEmail = contactOwnerQuery?.email;
-          crmContactOwnerRecordType = contactOwnerQuery?.recordType;
-          crmAppSlug = contactOwnerQuery?.crmAppSlug;
+          crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
+          crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
+          crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
         })(),
         (async () => {
           const teamMembersMatchingAttributeLogicWithResult =
