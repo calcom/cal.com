@@ -1,1 +1,1 @@
-export { DefaultToast, ErrorToast, SuccessToast, WarningToast, showToast } from "./showToast";
+export { ErrorToast, SuccessToast, WarningToast, showToast } from "./showToast";
