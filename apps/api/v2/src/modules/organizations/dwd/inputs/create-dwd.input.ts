@@ -1,38 +1,34 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import { IsString, IsNotEmpty, ValidateNested, IsObject, IsBoolean, IsOptional } from "class-validator";
-
-class ServiceAccountKeyInput {
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  private_key!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  client_email!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty()
-  client_id!: string;
-}
+import {
+  GoogleServiceAccountKeyInput,
+  ServiceAccountKeyValidator,
+  MicrosoftServiceAccountKeyInput,
+} from "@/modules/organizations/dwd/inputs/service-account-key.input";
+import { ApiProperty, getSchemaPath } from "@nestjs/swagger";
+import { Expose } from "class-transformer";
+import { IsString, IsNotEmpty, ValidateNested, Validate } from "class-validator";
 
 export class CreateDwdInput {
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
+  @Expose()
   workspacePlatformSlug!: string;
 
   @IsString()
   @IsNotEmpty()
   @ApiProperty()
+  @Expose()
   domain!: string;
 
-  @IsObject()
   @ValidateNested()
-  @Type(() => ServiceAccountKeyInput)
-  @ApiProperty({ type: ServiceAccountKeyInput })
-  serviceAccountKey!: ServiceAccountKeyInput;
+  @ApiProperty({
+    type: [GoogleServiceAccountKeyInput, MicrosoftServiceAccountKeyInput],
+    oneOf: [
+      { $ref: getSchemaPath(GoogleServiceAccountKeyInput) },
+      { $ref: getSchemaPath(MicrosoftServiceAccountKeyInput) },
+    ],
+  })
+  @Expose()
+  @Validate(ServiceAccountKeyValidator)
+  serviceAccountKey!: GoogleServiceAccountKeyInput | MicrosoftServiceAccountKeyInput;
 }

@@ -21,6 +21,16 @@ export type CredentialForCalendarService = CredentialPayload & {
   } | null;
 };
 
+export type Office365CredentialPayload = CredentialPayload & {
+  delegatedTo: {
+    serviceAccountKey: {
+      tenant_id: string;
+      client_id: string;
+      private_key: string;
+    };
+  } | null;
+};
+
 export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   key?: never;

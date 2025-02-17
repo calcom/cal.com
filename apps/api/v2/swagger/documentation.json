@@ -14403,7 +14403,7 @@
           "data"
         ]
       },
-      "ServiceAccountKeyInput": {
+      "GoogleServiceAccountKeyInput": {
         "type": "object",
         "properties": {
           "private_key": {
@@ -14432,7 +14432,17 @@
             "type": "string"
           },
           "serviceAccountKey": {
-            "$ref": "#/components/schemas/ServiceAccountKeyInput"
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/GoogleServiceAccountKeyInput"
+                },
+                {
+                  "$ref": "#/components/schemas/MicrosoftServiceAccountKeyInput"
+                }
+              ]
+            }
           }
         },
         "required": [
