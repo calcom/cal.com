@@ -25,7 +25,10 @@ const cryptoMock = new Proxy(
   }
 );
 
-vi.mock("crypto", () => ({
+vi.mock("@calcom/lib/crypto", () => ({
+  symmetricDecrypt: () => `{
+      "userApiKey": "test"
+    }`,
   default: cryptoMock,
 }));
 
