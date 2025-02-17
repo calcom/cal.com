@@ -3,7 +3,7 @@ items:
   - 1.png
   - 2.png
   - 3.png
-  - https://docs.n8n.io/_images/integrations/builtin/credentials/cal/getting-api-key.gif
+  - 4.gif
 ---
 
 <p>You can use these credentials to authenticate the following nodes with Cal.</p>

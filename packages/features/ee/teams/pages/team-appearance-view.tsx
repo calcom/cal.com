@@ -14,7 +14,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Button, Form, Meta, showToast, SettingsToggle } from "@calcom/ui";
+import { Button, Form, showToast, SettingsToggle } from "@calcom/ui";
 
 import ThemeLabel from "../../../settings/ThemeLabel";
 
@@ -91,8 +91,8 @@ const ProfileView = ({ team }: ProfileViewProps) => {
             }}>
             <div className="border-subtle mt-6 flex items-center rounded-t-xl border p-6 text-sm">
               <div>
-                <p className="font-semibold">{t("theme")}</p>
-                <p className="text-default">{t("theme_applies_note")}</p>
+                <p className="mt-0.5 text-base font-semibold leading-none">{t("theme")}</p>
+                <p className="text-default text-sm leading-normal">{t("theme_applies_note")}</p>
               </div>
             </div>
             <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">

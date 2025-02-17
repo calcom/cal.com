@@ -33,7 +33,7 @@ import {
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
-import { type fieldsSchema, excludeEmailSchema } from "./schema";
+import { type fieldsSchema, excludeOrRequireEmailSchema } from "./schema";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
 import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
@@ -248,7 +248,6 @@ export const FormBuilder = function FormBuilder({
                         onCheckedChange={(checked) => {
                           update(index, { ...field, hidden: !checked });
                         }}
-                        classNames={{ container: "p-2 hover:bg-subtle rounded transition" }}
                         tooltip={t("show_on_booking_page")}
                       />
                     )}
@@ -487,12 +486,9 @@ function FieldEditDialog({
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent
-        className="max-h-none p-0"
-        data-testid="edit-field-dialog"
-        forceOverlayWhenNoModal={true}>
+      <DialogContent className="max-h-none" data-testid="edit-field-dialog" forceOverlayWhenNoModal={true}>
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
-          <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
+          <div className="h-auto max-h-[85vh] overflow-auto">
             <DialogHeader title={t("add_a_booking_question")} subtitle={t("booking_questions_description")} />
             <SelectField
               defaultValue={fieldTypesConfigMap.text}
@@ -576,11 +572,32 @@ function FieldEditDialog({
 
                     {formFieldType === "email" && (
                       <InputField
+                        {...fieldForm.register("requireEmails")}
+                        containerClassName="mt-6"
+                        onChange={(e) => {
+                          try {
+                            excludeOrRequireEmailSchema.parse(e.target.value);
+                            fieldForm.clearErrors("requireEmails");
+                          } catch (err) {
+                            if (err instanceof ZodError) {
+                              fieldForm.setError("requireEmails", {
+                                message: err.errors[0]?.message || "Invalid input",
+                              });
+                            }
+                          }
+                        }}
+                        label={t("require_emails_that_contain")}
+                        placeholder="gmail.com, hotmail.com, ..."
+                      />
+                    )}
+
+                    {formFieldType === "email" && (
+                      <InputField
                         {...fieldForm.register("excludeEmails")}
                         containerClassName="mt-6"
                         onChange={(e) => {
                           try {
-                            excludeEmailSchema.parse(e.target.value);
+                            excludeOrRequireEmailSchema.parse(e.target.value);
                             fieldForm.clearErrors("excludeEmails");
                           } catch (err) {
                             if (err instanceof ZodError) {
@@ -627,7 +644,7 @@ function FieldEditDialog({
             })()}
           </div>
 
-          <DialogFooter className="relative rounded px-8" showDivider>
+          <DialogFooter className="relative">
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
@@ -784,7 +801,7 @@ function VariantFields({
           onCheckedChange={(checked) => {
             fieldForm.setValue("variant", checked ? otherVariant : defaultVariant);
           }}
-          classNames={{ container: "p-2 mt-2 sm:hover:bg-muted rounded transition" }}
+          classNames={{ container: "mt-2" }}
           tooltip={t("Toggle Variant")}
         />
       ) : (

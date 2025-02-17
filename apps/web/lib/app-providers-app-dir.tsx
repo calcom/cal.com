@@ -1,8 +1,8 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { TrpcProvider } from "app/_trpc/trpc-provider";
+import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
-import { SessionProvider, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
 import type { SSRConfig } from "next-i18next";
 import { appWithTranslation } from "next-i18next";
@@ -12,17 +12,15 @@ import type { ReadonlyURLSearchParams } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import CacheProvider from "react-inlinesvg/provider";
 
 import DynamicPostHogProvider from "@calcom/features/ee/event-tracking/lib/posthog/providerDynamic";
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
-import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import useIsThemeSupported from "@lib/hooks/useIsThemeSupported";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -50,7 +48,6 @@ export type AppProps = Omit<
 > & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
-    isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
     getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
@@ -131,7 +128,7 @@ type CalcomThemeProps = Readonly<{
   themeBasis: string | null;
   nonce: string | undefined;
   children: React.ReactNode;
-  isThemeSupported?: boolean;
+  isThemeSupported: boolean;
 }>;
 
 const CalcomThemeProvider = (props: CalcomThemeProps) => {
@@ -179,7 +176,7 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
  * - There is a side effect of so many factors in `storageKey` that many localStorage keys will be created if a user goes through all these scenarios(e.g like booking a lot of different users)
  * - Some might recommend disabling localStorage persistence but that doesn't give good UX as then we would default to light theme always for a few seconds before switching to dark theme(if that's the user's preference).
  * - We can't disable [`storage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/storage_event) event handling as well because changing theme in one tab won't change the theme without refresh in other tabs. That's again a bad UX
- * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simulatenously opened with pages A and B. Note the timeline and keep in mind that it happened
+ * - Theme flickering becomes infinitely ongoing in case of embeds because of the browser's delay in processing `storage` event within iframes. Consider two embeds simultaneously opened with pages A and B. Note the timeline and keep in mind that it happened
  *  because 'setItem(A)' and 'Receives storageEvent(A)' allowed executing setItem(B) in b/w because of the delay.
  *    - t1 -> setItem(A) & Fires storageEvent(A) - On Page A) - Current State(A)
  *    - t2 -> setItem(B) & Fires storageEvent(B) - On Page B) - Current State(B)
@@ -198,8 +195,7 @@ function getThemeProviderProps({
 }) {
   const themeSupport = props.isBookingPage
     ? ThemeSupport.Booking
-    : // if isThemeSupported is explicitly false, we don't use theme there
-    props.isThemeSupported === false
+    : props.isThemeSupported === false
     ? ThemeSupport.None
     : ThemeSupport.App;
 
@@ -265,45 +261,42 @@ function OrgBrandProvider({ children }: { children: React.ReactNode }) {
 const AppProviders = (props: PageWrapperProps) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
+  const isThemeSupported = useIsThemeSupported();
 
   const RemainingProviders = (
-    <TrpcProvider dehydratedState={props.dehydratedState}>
-      <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-        <SessionProvider>
-          <CustomI18nextProvider i18n={props.i18n}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <CalcomThemeProvider
-                themeBasis={props.themeBasis}
-                nonce={props.nonce}
-                isThemeSupported={/* undefined gets treated as true */ props.isThemeSupported}
-                isBookingPage={props.isBookingPage || isBookingPage}>
-                <FeatureFlagsProvider>
-                  <OrgBrandProvider>
-                    {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-                    <CacheProvider>
-                      <MetaProvider>{props.children}</MetaProvider>
-                    </CacheProvider>
-                  </OrgBrandProvider>
-                </FeatureFlagsProvider>
-              </CalcomThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
-        </SessionProvider>
-      </EventCollectionProvider>
-    </TrpcProvider>
+    <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
+      <CustomI18nextProvider i18n={props.i18n}>
+        <TooltipProvider>
+          {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+          <CalcomThemeProvider
+            themeBasis={props.themeBasis}
+            nonce={props.nonce}
+            isThemeSupported={isThemeSupported}
+            isBookingPage={props.isBookingPage || isBookingPage}>
+            <FeatureFlagsProvider>
+              <OrgBrandProvider>{props.children}</OrgBrandProvider>
+            </FeatureFlagsProvider>
+          </CalcomThemeProvider>
+        </TooltipProvider>
+      </CustomI18nextProvider>
+    </EventCollectionProvider>
+  );
+  const Hydrated = props.dehydratedState ? (
+    <HydrateClient state={props.dehydratedState}>{RemainingProviders}</HydrateClient>
+  ) : (
+    RemainingProviders
   );
 
   if (isBookingPage) {
-    return RemainingProviders;
+    return Hydrated;
   }
 
   return (
-    <DynamicHelpscoutProvider>
-      <DynamicIntercomProvider>
-        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
-      </DynamicIntercomProvider>
-    </DynamicHelpscoutProvider>
+    <>
+      <DynamicHelpscoutProvider>
+        <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
+      </DynamicHelpscoutProvider>
+    </>
   );
 };
 

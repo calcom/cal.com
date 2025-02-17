@@ -7,6 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { buildEventType } from "@calcom/lib/test/builder";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { CompleteEventType, CompleteWorkflowsOnEventTypes } from "@calcom/prisma/zod";
 
 const mockFindFirstEventType = (data?: Partial<CompleteEventType>) => {
@@ -190,6 +191,7 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           locations: [],
           scheduleId: null,
@@ -350,6 +352,7 @@ describe("handleChildrenEventTypes", () => {
         data: {
           ...rest,
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           locations: [],
           hashedLink: {
@@ -399,7 +402,27 @@ describe("handleChildrenEventTypes", () => {
           } as CompleteWorkflowsOnEventTypes,
         ],
       });
-      prismaMock.$transaction.mockResolvedValue([{ id: 2 }]);
+
+      // Mock the event type that will be returned for existing users
+      const mockUpdatedEventType = {
+        id: 2,
+        userId: 4,
+        timeZone: "UTC",
+        teamId: 1,
+        autoTranslateDescriptionEnabled: false,
+        secondaryEmailId: null,
+        schedulingType: SchedulingType.MANAGED,
+        requiresBookerEmailVerification: false,
+        lockTimeZoneToggleOnBookingPage: false,
+        useEventTypeDestinationCalendarEmail: false,
+        workflows: [],
+        parentId: 1,
+        locations: [],
+        ...evType,
+      };
+
+      prismaMock.eventType.update.mockResolvedValue(mockUpdatedEventType);
+
       await updateChildrenEventTypes({
         eventTypeId: 1,
         oldEventType: { children: [{ userId: 4 }], team: { name: "" } },
@@ -428,11 +451,7 @@ describe("handleChildrenEventTypes", () => {
           parentId: 1,
           userId: 5,
           users: {
-            connect: [
-              {
-                id: 5,
-              },
-            ],
+            connect: [{ id: 5 }],
           },
           workflows: {
             create: [{ workflowId: 11 }],
@@ -440,6 +459,7 @@ describe("handleChildrenEventTypes", () => {
           hashedLink: undefined,
           rrSegmentQueryValue: undefined,
           assignRRMembersUsingSegment: false,
+          useEventLevelSelectedCalendars: false,
         },
       });
       const { profileId, ...rest } = evType;
@@ -449,6 +469,7 @@ describe("handleChildrenEventTypes", () => {
           ...rest,
           locations: [],
           assignRRMembersUsingSegment: undefined,
+          useEventLevelSelectedCalendars: undefined,
           rrSegmentQueryValue: undefined,
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,

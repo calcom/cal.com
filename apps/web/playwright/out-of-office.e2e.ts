@@ -7,7 +7,7 @@ import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { submitAndWaitForResponse } from "./lib/testUtils";
+import { submitAndWaitForResponse, localize } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
@@ -20,9 +20,19 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
+
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -67,9 +77,19 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    await page.goto(`/settings/my-account/out-of-office`);
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
+
     await page.getByTestId("reason_select").click();
 
     await page.getByTestId("select-option-4").click();
@@ -144,7 +164,12 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
-    await page.goto(`/settings/my-account/out-of-office`);
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
@@ -203,9 +228,18 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.locator('[data-testid="date-range"]').click();
 
@@ -243,9 +277,18 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.locator('[data-testid="date-range"]').click();
 
@@ -256,7 +299,9 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
+    await entriesListRespPromise;
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.locator('[data-testid="date-range"]').click();
 
@@ -273,9 +318,18 @@ test.describe("Out of office", () => {
 
     await user.apiLogin();
 
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
     await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
 
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.locator('[data-testid="date-range"]').click();
 
@@ -286,7 +340,9 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
 
     // add another entry
+    await entriesListRespPromise;
     await page.getByTestId("add_entry_ooo").click();
+    await reasonListRespPromise;
 
     await page.locator('[data-testid="date-range"]').click();
 
@@ -294,6 +350,137 @@ test.describe("Out of office", () => {
 
     // send request
     await saveAndWaitForResponse(page, 409);
+  });
+
+  test("User can create separate out of office entries for consecutive dates", async ({ page, users }) => {
+    const user = await users.create({ name: "userOne" });
+    await user.apiLogin();
+
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
+
+    //Creates 2 OOO entries:
+    //First OOO is created on Next month 1st - 3rd
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "3");
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(0)).toBeVisible();
+
+    //Second OOO is created on Next month 4th - 6th
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "4", "6");
+    await expect(page.locator(`data-testid=table-redirect-n-a`).nth(1)).toBeVisible();
+  });
+
+  test("User can create consecutive reverse redirect OOOs", async ({ page, users }) => {
+    const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
+    const owner = await users.create(
+      { name: "owner" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: teamMatesObj,
+      }
+    );
+    const member1User = users.get().find((user) => user.name === "member-1");
+
+    await owner.apiLogin();
+
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
+
+    //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "3", "member-1");
+    await expect(
+      page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
+    ).toBeVisible();
+
+    //As member1, OOO is created on Next month 4th - 5th, forwarding to 'owner'
+    await member1User?.apiLogin();
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "4", "5", "owner");
+    await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
+  });
+
+  test("User cannot create infinite or overlapping reverse redirect OOOs", async ({ page, users }) => {
+    const t = await localize("en");
+    const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }];
+    const owner = await users.create(
+      { name: "owner" },
+      {
+        hasTeam: true,
+        isOrg: true,
+        teammates: teamMatesObj,
+      }
+    );
+    const member1User = users.get().find((user) => user.name === "member-1");
+
+    await owner.apiLogin();
+
+    const entriesListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+    );
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+
+    const addOOOButton = page.getByTestId("add_entry_ooo");
+    const dateButton = page.locator('[data-testid="date-range"]');
+    const reasonListRespPromise = page.waitForResponse(
+      (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+    );
+    await addOOOButton.click();
+    await reasonListRespPromise;
+
+    //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "1", "3", "member-1");
+    await expect(
+      page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
+    ).toBeVisible();
+
+    //As member1, expect error while OOO is created on Next month 2nd - 5th, forwarding to 'owner'
+    await member1User?.apiLogin();
+    await page.goto("/settings/my-account/out-of-office");
+    await page.waitForLoadState("domcontentloaded");
+    await entriesListRespPromise;
+    await addOOOButton.click();
+    await reasonListRespPromise;
+    await dateButton.click();
+    await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
+    await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
   });
 });
 
@@ -309,6 +496,29 @@ async function selectToAndFromDates(page: Page, fromDate: string, toDate: string
 
   await page.locator(`button[name="${month}-month"]`).click();
 
-  await page.locator(`button[name="day"]:has-text("${fromDate}")`).nth(0).click();
-  await page.locator(`button[name="day"]:has-text("${toDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
+}
+
+async function selectDateAndCreateOOO(
+  page: Page,
+  fromDate: string,
+  toDate: string,
+  redirectToUser?: string,
+  expectedStatusCode = 200
+) {
+  const t = await localize("en");
+  await page.locator(`button[name="next-month"]`).click();
+  await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
+  await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
+  await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  await page.getByTestId("reason_select").click();
+  await page.getByTestId("select-option-4").click();
+  await page.getByTestId("notes_input").click();
+  await page.getByTestId("notes_input").fill("Demo notes");
+  if (redirectToUser) {
+    await page.getByTestId("profile-redirect-switch").click();
+    await page.locator(`text=${redirectToUser}`).click();
+  }
+  await saveAndWaitForResponse(page, expectedStatusCode);
 }

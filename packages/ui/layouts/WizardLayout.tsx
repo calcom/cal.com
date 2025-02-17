@@ -31,9 +31,7 @@ export function WizardLayout({
   }, [pathname]);
 
   return (
-    <div
-      className="dark:bg-brand dark:text-brand-contrast text-emphasis min-h-screen"
-      data-testid="onboarding">
+    <div className="bg-default text-emphasis min-h-screen" data-testid="onboarding">
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -56,7 +54,7 @@ export function WizardLayout({
                   </>
                 )}
               </header>
-              <Steps maxSteps={maxSteps} currentStep={currentStep} navigateToStep={noop} />
+              <Steps maxSteps={maxSteps} currentStep={currentStep} nextStep={noop} />
             </div>
             <StepCard>{children}</StepCard>
           </div>

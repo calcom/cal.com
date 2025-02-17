@@ -4,24 +4,30 @@ import classNames from "@calcom/lib/classNames";
 
 type Props = { children: React.ReactNode; combined?: boolean; containerProps?: JSX.IntrinsicElements["div"] };
 
-/**
- * Breakdown of Tailwind Magic below
- * [&_button]:border-l-0 [&_a]:border-l-0 -> Selects all buttons/a tags and applies a border left of 0
- * [&>*:first-child]:rounded-l-md [&>*:first-child]:border-l -> Selects the first child of the content
- * ounds the left side
- * [&>*:last-child]:rounded-r-md -> Selects the last child of the content and rounds the right side
- * We dont need to add border to the right as we never remove it
- */
+const sizeToRadius = {
+  lg: "12px",
+  base: "8px",
+  sm: "10px",
+  xs: "8px",
+} as const;
 
 export function ButtonGroup({ children, combined = false, containerProps }: Props) {
+  // Get the size from the first button child if it exists
+  const firstButton = React.Children.toArray(children)[0] as React.ReactElement;
+  const size = firstButton?.props?.size || "base";
+  const radius = sizeToRadius[size as keyof typeof sizeToRadius];
+
+  const style = combined ? ({ "--btn-group-radius": radius } as React.CSSProperties) : undefined;
+
   return (
     <div
       {...containerProps}
+      style={style}
       className={classNames(
         "flex",
         !combined
           ? "space-x-2 rtl:space-x-reverse"
-          : "ltr:[&>*:first-child]:ml-0 ltr:[&>*:first-child]:rounded-l-md ltr:[&>*:first-child]:border-l rtl:[&>*:first-child]:rounded-r-md rtl:[&>*:first-child]:border-r ltr:[&>*:last-child]:rounded-r-md rtl:[&>*:last-child]:rounded-l-md [&>a]:-ml-[1px] hover:[&>a]:z-[1] [&>button]:-ml-[1px] hover:[&>button]:z-[1] [&_a]:rounded-none [&_button]:rounded-none",
+          : "[&>*:first-child]:rounded-l-[var(--btn-group-radius)] rtl:[&>*:first-child]:rounded-l-none rtl:[&>*:first-child]:rounded-r-[var(--btn-group-radius)] [&>*:last-child]:rounded-r-[var(--btn-group-radius)] rtl:[&>*:last-child]:rounded-l-[var(--btn-group-radius)] rtl:[&>*:last-child]:rounded-r-none [&>*:not(:first-child)]:-ml-[1px] [&>*]:rounded-none [&>*]:border hover:[&>*]:z-[1]",
         containerProps?.className
       )}>
       {children}

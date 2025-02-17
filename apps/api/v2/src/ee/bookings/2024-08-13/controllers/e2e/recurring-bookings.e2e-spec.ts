@@ -17,6 +17,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -41,11 +42,13 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 3;
     let recurringEventTypeId: number;
+    const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomString()}`;
+    let createdRecurringBooking: RecurringBookingOutput_2024_08_13[];
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -67,7 +70,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `recurring-bookings-2024-08-13-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -80,7 +85,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
@@ -89,8 +94,8 @@ describe("Bookings Endpoints 2024-08-13", () => {
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          title: `recurring-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
         },
@@ -181,6 +186,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -201,6 +207,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.recurringBookingUid).toBeDefined();
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -256,6 +263,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(firstBooking.eventTypeId).toEqual(recurringEventTypeId);
             expect(firstBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -277,6 +285,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(secondBooking.recurringBookingUid).toBeDefined();
             expect(secondBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -296,6 +305,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             expect(thirdBooking.recurringBookingUid).toBeDefined();
             expect(thirdBooking.attendees[0]).toEqual({
               name: body.attendee.name,
+              email: body.attendee.email,
               timeZone: body.attendee.timeZone,
               language: body.attendee.language,
               absent: false,
@@ -339,7 +349,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 4;
@@ -375,7 +385,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `recurring-bookings-2024-08-13-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -388,17 +400,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
+      const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomString()}`;
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          title: `recurring-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
         },
@@ -546,7 +559,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
     let oAuthClient: PlatformOAuthClient;
     let teamRepositoryFixture: TeamRepositoryFixture;
 
-    const userEmail = "bookings-controller-e2e@api.com";
+    const userEmail = `recurring-bookings-2024-08-13-user-${randomString()}@api.com`;
     let user: User;
 
     const maxRecurrenceCount = 4;
@@ -582,7 +595,9 @@ describe("Bookings Endpoints 2024-08-13", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-      organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+      organization = await teamRepositoryFixture.create({
+        name: `recurring-bookings-2024-08-13-organization-${randomString()}`,
+      });
       oAuthClient = await createOAuthClient(organization.id);
 
       user = await userRepositoryFixture.create({
@@ -595,17 +610,18 @@ describe("Bookings Endpoints 2024-08-13", () => {
       });
 
       const userSchedule: CreateScheduleInput_2024_04_15 = {
-        name: "working time",
+        name: `recurring-bookings-2024-08-13-schedule-${randomString()}`,
         timeZone: "Europe/Rome",
         isDefault: true,
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
 
+      const recurringEventSlug = `recurring-bookings-2024-08-13-event-type-${randomString()}`;
       const recurringEvent = await eventTypesRepositoryFixture.create(
         // note(Lauris): freq 2 means weekly, interval 1 means every week and count 3 means 3 weeks in a row
         {
-          title: "peer coding recurring",
-          slug: "peer-coding-recurring",
+          title: `recurring-bookings-2024-08-13-event-type-${randomString()}`,
+          slug: recurringEventSlug,
           length: 60,
           recurringEvent: { freq: 2, count: maxRecurrenceCount, interval: 1 },
         },

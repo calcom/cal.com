@@ -1,6 +1,5 @@
-import { getFixedT, _generateMetadata } from "app/_utils";
+import { getTranslate, _generateMetadata } from "app/_utils";
 
-import { getServerSessionForAppDir } from "@calcom/feature-auth/lib/get-server-session-for-app-dir";
 import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 
@@ -11,9 +10,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = async () => {
-  const session = await getServerSessionForAppDir();
-
-  const t = await getFixedT(session?.user.locale || "en");
+  const t = await getTranslate();
 
   return (
     <SettingsHeader

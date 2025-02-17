@@ -1,0 +1,179 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Cal.com Help",
+  "logo": {
+    "dark": "https://cal.com/calcom-help-light.svg",
+    "light": "https://cal.com/calcom-help.svg"
+  },
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#111827",
+    "light": "#d6d6d6",
+    "dark": "#111827",
+    "anchors": {
+      "from": "#111827",
+      "to": "#d6d6d6"
+    }
+  },
+  "feedback": {
+    "thumbsRating": true,
+    "suggestEdit": true
+  },
+  "modeToggle": {
+    "default": "light",
+    "isHidden": true
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "https://go.cal.com/support"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.cal.com"
+  },
+  "anchors": [
+    {
+      "name": "Developer",
+      "icon": "code",
+      "url": "https://cal.com/docs"
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/calcom/cal.com"
+    },
+    {
+      "name": "Blog",
+      "icon": "newspaper",
+      "url": "https://cal.com/blog"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Documentation",
+      "pages": [
+        "welcome",
+        {
+          "group": "Quick Start",
+          "icon": "play",
+          "iconType": "solid",
+          "pages": [
+            "quick-start/quickstart",
+            "quick-start/sign-up",
+            "quick-start/complete-onboarding",
+            "quick-start/customization",
+            "quick-start/calendar"
+          ]
+        },
+        {
+          "group": "Event Types",
+          "icon": "calendar",
+          "iconType": "solid",
+          "pages": [
+            "event-types/event-types",
+            "event-types/booking-questions",
+            "event-types/add-events",
+            "event-types/managed-events",
+            "event-types/adding-zoom",
+            "event-types/booking-frequency",
+            "event-types/round-robin",
+            "event-types/dynamic",
+            "event-types/collective-events",
+            "event-types/create-first-event",
+            "event-types/create-recurring",
+            "event-types/create-secret",
+            "event-types/custom-name",
+            "event-types/custom-time-slots",
+            "event-types/disable-confirmation",
+            "event-types/disable-guests",
+            "event-types/display-issues",
+            "event-types/dynamic",
+            "event-types/event-buffer",
+            "event-types/hide-notes",
+            "event-types/how-to-add-location",
+            "event-types/how-to-receive-payments",
+            "event-types/how-to-requires",
+            "event-types/how-to-set-buffer",
+            "event-types/how-to-time-slot-intervals",
+            "event-types/limit-future-bookings",
+            "event-types/location-of-event",
+            "event-types/min-notice",
+            "event-types/multiple-durations",
+            "event-types/offer-seats",
+            "event-types/recurring-events",
+            "event-types/require-criteria",
+            "event-types/secret-events",
+            "event-types/setup-location",
+            "event-types/single-use",
+            "event-types/split-name",
+            "event-types/sponsor",
+            "event-types/symbolic-issues"
+          ]
+        },
+        {
+          "group": "Availabilities",
+          "icon": "magnifying-glass",
+          "iconType": "solid",
+          "pages": [
+            "availabilities/date-overrides",
+            "availabilities/multiple-schedules",
+            "availabilities/multiple-slots"
+          ]
+        },
+        {
+          "group": "Bookings",
+          "icon": "calendar-check",
+          "iconType": "solid",
+          "pages": ["bookings/no-show", "bookings/paid-bookings", "bookings/prefill-fields"]
+        },
+        {
+          "group": "Embedding",
+          "icon": "code",
+          "iconType": "solid",
+          "pages": [
+            "embedding/adding-embed",
+            "embedding/adding-slots",
+            "embedding/embed-events",
+            "embedding/embed-instructions",
+            "embedding/embed-snippet-generator",
+            "embedding/prefill-booking-form-embed"
+          ]
+        },
+        {
+          "group": "Auth and Provisioning",
+          "icon": "user-lock",
+          "iconType": "solid",
+          "pages": ["auth-and-provision/scim-okta", "auth-and-provision/oidc-with-okta"]
+        },
+        {
+          "group": "Apps and Integrations",
+          "icon": "code-branch",
+          "iconType": "solid",
+          "pages": [
+            "apps-and-integrations/apps",
+            "apps-and-integrations/app-store",
+            "apps-and-integrations/adding-first-app",
+            "apps-and-integrations/assign-people",
+            "apps-and-integrations/build-greeter-app",
+            "apps-and-integrations/how-to-build-an-app",
+            "apps-and-integrations/syncing-third-party",
+            "apps-and-integrations/attio"
+          ]
+        },
+        {
+          "group": "Developers",
+          "icon": "terminal",
+          "iconType": "solid",
+          "pages": ["apps-and-integrations/oauth", "apps-and-integrations/open-source", "webhooks"]
+        }
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/calcom",
+    "github": "https://github.com/calcom",
+    "linkedin": "https://www.linkedin.com/company/cal-com"
+  }
+}

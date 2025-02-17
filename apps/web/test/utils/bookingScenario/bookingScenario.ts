@@ -24,7 +24,7 @@ import type {
   WorkflowTriggerEvents,
   WorkflowMethods,
 } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
+import type { PaymentOption, SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -47,6 +47,7 @@ logger.settings.minLevel = 1;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
 
 type InputWebhook = {
+  id?: string;
   appId: string | null;
   userId?: number | null;
   teamId?: number | null;
@@ -54,6 +55,8 @@ type InputWebhook = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   subscriberUrl: string;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 type InputWorkflow = {
@@ -69,6 +72,21 @@ type InputWorkflow = {
   time?: number | null;
   timeUnit?: TimeUnit | null;
   sendTo?: string;
+};
+
+type InputPayment = {
+  id?: number;
+  uid: string;
+  appId?: string | null;
+  bookingId: number;
+  amount: number;
+  fee: number;
+  currency: string;
+  success: boolean;
+  refunded: boolean;
+  data: Record<string, any>;
+  externalId: string;
+  paymentOption?: PaymentOption;
 };
 
 type InputWorkflowReminder = {
@@ -105,13 +123,16 @@ export type ScenarioData = {
   bookings?: InputBooking[];
   webhooks?: InputWebhook[];
   workflows?: InputWorkflow[];
+  payment?: InputPayment[];
 };
 
 type InputCredential = typeof TestData.credentials.google & {
   id?: number;
 };
 
-type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
+type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof TestData.selectedCalendars] & {
+  eventTypeId?: number | null;
+};
 
 type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
@@ -145,6 +166,12 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   weekStart?: string;
   profiles?: Prisma.ProfileUncheckedCreateWithoutUserInput[];
   completedOnboarding?: boolean;
+  outOfOffice?: {
+    dateRanges: {
+      start: string;
+      end: string;
+    }[];
+  };
 };
 
 export type InputEventType = {
@@ -155,6 +182,7 @@ export type InputEventType = {
   slotInterval?: number;
   userId?: number;
   minimumBookingNotice?: number;
+  useEventLevelSelectedCalendars?: boolean;
   /**
    * These user ids are `ScenarioData["users"]["id"]`
    */
@@ -249,7 +277,7 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
 export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
-    "users" | "worflows" | "destinationCalendar" | "schedule"
+    "users" | "workflows" | "destinationCalendar" | "schedule"
   > & {
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -529,6 +557,12 @@ async function addWebhooksToDb(webhooks: any[]) {
   });
 }
 
+async function addPaymentToDb(payment: InputPayment[]) {
+  await prismock.payment.createMany({
+    data: payment,
+  });
+}
+
 async function addWebhooks(webhooks: InputWebhook[]) {
   log.silly("TestData: Creating Webhooks", safeStringify(webhooks));
 
@@ -624,13 +658,32 @@ export async function addWorkflowReminders(workflowReminders: InputWorkflowRemin
   });
 }
 
-export async function addUsersToDb(
-  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
-) {
+export async function addUsersToDb(users: InputUser[]) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
   });
+
+  // Create OutOfOfficeEntry for users with outOfOffice data
+  for (const user of users) {
+    if (user.outOfOffice) {
+      log.debug("Creating OutOfOfficeEntry for user", user.id);
+      for (const dateRange of user.outOfOffice.dateRanges) {
+        await prismock.outOfOfficeEntry.create({
+          data: {
+            uuid: uuidv4(),
+            start: new Date(dateRange.start),
+            end: new Date(dateRange.end),
+            user: {
+              connect: {
+                id: user.id,
+              },
+            },
+          },
+        });
+      }
+    }
+  }
 
   const allUsers = await prismock.user.findMany({
     include: {
@@ -804,6 +857,7 @@ export async function createBookingScenario(data: ScenarioData) {
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
   const workflows = await addWorkflows(data.workflows || []);
+  await addPaymentToDb(data.payment || []);
 
   return {
     eventTypes,
@@ -1245,6 +1299,7 @@ export function getOrganizer({
   metadata,
   smsLockState,
   completedOnboarding,
+  username,
 }: {
   name: string;
   email: string;
@@ -1260,10 +1315,13 @@ export function getOrganizer({
   metadata?: userMetadataType;
   smsLockState?: SMSLockState;
   completedOnboarding?: boolean;
+  username?: string;
 }) {
+  username = username ?? TestData.users.example.username;
   return {
     ...TestData.users.example,
     name,
+    username,
     email,
     id,
     schedules,
@@ -1290,21 +1348,31 @@ export function getScenarioData(
     eventTypes,
     usersApartFromOrganizer = [],
     apps = [],
+    users: _users,
     webhooks,
     workflows,
     bookings,
+    payment,
   }: {
-    organizer: ReturnType<typeof getOrganizer>;
+    organizer?: ReturnType<typeof getOrganizer>;
     eventTypes: ScenarioData["eventTypes"];
     apps?: ScenarioData["apps"];
+    users?: ScenarioData["users"];
     usersApartFromOrganizer?: ScenarioData["users"];
     webhooks?: ScenarioData["webhooks"];
     workflows?: ScenarioData["workflows"];
     bookings?: ScenarioData["bookings"];
+    payment?: ScenarioData["payment"];
   },
   org?: { id: number | null } | undefined | null
 ) {
-  const users = [organizer, ...usersApartFromOrganizer];
+  if (_users && (usersApartFromOrganizer.length || organizer)) {
+    throw new Error("When users are provided, usersApartFromOrganizer and organizer should not be provided");
+  }
+  const users = _users ? _users : organizer ? [organizer, ...usersApartFromOrganizer] : [];
+  if (!users.length) {
+    throw new Error("No users are specified in any way");
+  }
   if (org) {
     const orgId = org.id;
     if (!orgId) {
@@ -1355,6 +1423,7 @@ export function getScenarioData(
     webhooks,
     bookings: bookings || [],
     workflows,
+    payment,
   } satisfies ScenarioData;
 }
 

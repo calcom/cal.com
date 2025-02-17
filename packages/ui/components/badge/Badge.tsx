@@ -20,11 +20,12 @@ export const badgeStyles = cva("font-medium inline-flex items-center justify-cen
       red: "bg-error text-error",
       error: "bg-error text-error",
       grayWithoutHover: "bg-gray-100 text-gray-800 dark:bg-darkgray-200 dark:text-darkgray-800",
+      purple: "bg-purple-50 text-purple-800",
     },
     size: {
-      sm: "px-1 py-0.5 text-xs leading-3",
-      md: "py-1 px-1.5 text-xs leading-3",
-      lg: "py-1 px-2 text-sm leading-4",
+      sm: "px-1 py-1 text-[10px] leading-none",
+      md: "py-1 px-1.5 text-xs leading-none",
+      lg: "py-1 px-1.5 text-sm leading-none rounded-lg",
     },
   },
   defaultVariants: {

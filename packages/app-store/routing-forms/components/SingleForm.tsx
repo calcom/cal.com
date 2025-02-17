@@ -8,10 +8,12 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import cn from "@calcom/lib/classNames";
+import { IS_CALCOM } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Brand } from "@calcom/types/utils";
 import {
@@ -40,8 +42,10 @@ import { RoutingPages } from "../lib/RoutingPages";
 import { isFallbackRoute } from "../lib/isFallbackRoute";
 import { findMatchingRoute } from "../lib/processRoute";
 import type { FormResponse, NonRouterRoute, SerializableForm } from "../types/types";
+import type { NewFormDialogState } from "./FormActions";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
+import { InfoLostWarningDialog } from "./InfoLostWarningDialog";
 import RoutingNavBar from "./RoutingNavBar";
 import { getServerSidePropsForSingleFormView } from "./getServerSidePropsSingleForm";
 
@@ -255,9 +259,11 @@ type MembersMatchResultType = {
 const TeamMembersMatchResult = ({
   membersMatchResult,
   chosenRouteName,
+  showAllData,
 }: {
   membersMatchResult: MembersMatchResultType;
   chosenRouteName: string;
+  showAllData: boolean;
 }) => {
   const { t } = useLocale();
   if (!membersMatchResult) return null;
@@ -284,6 +290,7 @@ const TeamMembersMatchResult = ({
 
   const renderQueue = () => {
     if (isNoLogicFound(membersMatchResult.teamMembersMatchingAttributeLogic)) {
+      if (!showAllData) return <div className="mt-4">{t("no_active_queues")}asdf</div>;
       if (membersMatchResult.checkedFallback) {
         return (
           <span className="font-semibold">
@@ -311,12 +318,14 @@ const TeamMembersMatchResult = ({
               <thead>
                 <tr className="border-b text-left">
                   <th className="py-2 pr-4">#</th>
-                  <th className="py-2 pr-4">Email</th>
-                  <th className="py-2 pr-4">Bookings</th>
-                  {membersMatchResult.perUserData.weights ? <th className="py-2">Weight</th> : null}
-                  {membersMatchResult.perUserData.calibrations ? <th className="py-2">Calibration</th> : null}
+                  <th className="py-2 pr-4">{t("email")}</th>
+                  <th className="py-2 pr-4">{t("bookings")}</th>
+                  {membersMatchResult.perUserData.weights ? <th className="py-2">{t("weight")}</th> : null}
+                  {membersMatchResult.perUserData.calibrations ? (
+                    <th className="py-2">{t("calibration")}</th>
+                  ) : null}
                   {membersMatchResult.perUserData.bookingShortfalls ? (
-                    <th className="border-l py-2 pl-2">Shortfall</th>
+                    <th className="border-l py-2 pl-2">{t("shortfall")}</th>
                   ) : null}
                 </tr>
               </thead>
@@ -353,41 +362,61 @@ const TeamMembersMatchResult = ({
 
   return (
     <div className="text-default mt-2 space-y-2">
-      <div data-testid="chosen-route">
-        {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
-      </div>
-      <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
-        {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
-        {hasMainWarnings && (
-          <Alert className="mt-2" severity="warning" title={membersMatchResult.mainWarnings?.join(", ")} />
-        )}
-      </div>
-      <div data-testid="attribute-logic-fallback-matched" className={cn(hasFallbackWarnings && "text-error")}>
-        {t("attribute_logic_fallback_matched")}:{" "}
-        <span className="font-semibold">{renderFallbackLogicStatus()}</span>
-        {hasFallbackWarnings && (
-          <Alert
-            className="mt-2"
-            severity="warning"
-            title={membersMatchResult.fallbackWarnings?.join(", ")}
-          />
-        )}
-      </div>
+      {showAllData ? (
+        <>
+          <div data-testid="chosen-route">
+            {t("chosen_route")}: <span className="font-semibold">{chosenRouteName}</span>
+          </div>
+          <div data-testid="attribute-logic-matched" className={cn(hasMainWarnings && "text-error")}>
+            {t("attribute_logic_matched")}: <span className="font-semibold">{renderMainLogicStatus()}</span>
+            {hasMainWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.mainWarnings?.join(", ")}
+              />
+            )}
+          </div>
+          <div
+            data-testid="attribute-logic-fallback-matched"
+            className={cn(hasFallbackWarnings && "text-error")}>
+            {t("attribute_logic_fallback_matched")}:{" "}
+            <span className="font-semibold">{renderFallbackLogicStatus()}</span>
+            {hasFallbackWarnings && (
+              <Alert
+                className="mt-2"
+                severity="warning"
+                title={membersMatchResult.fallbackWarnings?.join(", ")}
+              />
+            )}
+          </div>
+        </>
+      ) : (
+        <></>
+      )}
       <div className="mt-4">
         {membersMatchResult.contactOwnerEmail ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}:{" "}
             <span className="font-semibold">{membersMatchResult.contactOwnerEmail}</span>
           </div>
-        ) : (
+        ) : showAllData ? (
           <div data-testid="contact-owner-email">
             {t("contact_owner")}: <span className="font-semibold">Not found</span>
           </div>
+        ) : (
+          <></>
         )}
         <div className="mt-2" data-testid="matching-members">
-          {membersMatchResult.isUsingAttributeWeights
-            ? t("matching_members_queue_using_attribute_weights")
-            : t("matching_members_queue_using_event_assignee_weights")}
+          {showAllData ? (
+            <>
+              {membersMatchResult.isUsingAttributeWeights
+                ? t("matching_members_queue_using_attribute_weights")
+                : t("matching_members_queue_using_event_assignee_weights")}
+            </>
+          ) : (
+            <></>
+          )}
           {renderQueue()}
         </div>
       </div>
@@ -410,14 +439,14 @@ type UptoDateForm = Brand<
   "UptoDateForm"
 >;
 
-export const TestFormDialog = ({
+export const TestForm = ({
   form,
-  isTestPreviewOpen,
-  setIsTestPreviewOpen,
+  showAllData = true,
+  renderFooter,
 }: {
-  form: UptoDateForm;
-  isTestPreviewOpen: boolean;
-  setIsTestPreviewOpen: (value: boolean) => void;
+  form: UptoDateForm | RoutingForm;
+  showAllData?: boolean;
+  renderFooter?: (onClose: () => void) => React.ReactNode;
 }) => {
   const { t } = useLocale();
   const [response, setResponse] = useState<FormResponse>({});
@@ -458,12 +487,15 @@ export const TestFormDialog = ({
     let eventTypeRedirectUrl: string | null = null;
 
     if (route?.action?.type === "eventTypeRedirectUrl") {
-      eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
-        eventTypeRedirectUrl: route.action.value,
-        form,
-        allURLSearchParams: new URLSearchParams(),
-      });
-      setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      // only needed in routing form testing (type UptoDateForm)
+      if ("team" in form) {
+        eventTypeRedirectUrl = getAbsoluteEventTypeRedirectUrl({
+          eventTypeRedirectUrl: route.action.value,
+          form,
+          allURLSearchParams: new URLSearchParams(),
+        });
+        setEventTypeUrlWithoutParams(eventTypeRedirectUrl);
+      }
     }
 
     setChosenRoute(route || null);
@@ -481,7 +513,7 @@ export const TestFormDialog = ({
     }
   }
 
-  const renderTestResult = () => {
+  const renderTestResult = (showAllData: boolean) => {
     if (!form.routes || !chosenRoute) return null;
 
     const chosenRouteIndex = form.routes.findIndex((route) => route.id === chosenRoute.id);
@@ -492,6 +524,33 @@ export const TestFormDialog = ({
       }
       return `Route ${chosenRouteIndex + 1}`;
     };
+
+    const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
+      if (!isTeamForm) return null;
+      if (isPending) return <div>Loading...</div>;
+
+      return (
+        <div>
+          <TeamMembersMatchResult
+            chosenRouteName={chosenRouteName()}
+            membersMatchResult={membersMatchResult}
+            showAllData={showAllData}
+          />
+        </div>
+      );
+    };
+
+    if (!showAllData) {
+      if (
+        chosenRoute.action.type !== "customPageMessage" &&
+        chosenRoute.action.type !== "externalRedirectUrl"
+      ) {
+        {
+          return renderTeamMembersMatchResult(false, findTeamMembersMatchingAttributeLogicMutation.isPending);
+        }
+      }
+      return <div className="mt-4">{t("no_active_queues")}</div>;
+    }
 
     return (
       <div className="bg-subtle text-default mt-5 rounded-md p-3">
@@ -539,18 +598,10 @@ export const TestFormDialog = ({
                   {chosenRoute.action.value}
                 </a>
               </span>
-              {isTeamForm ? (
-                !findTeamMembersMatchingAttributeLogicMutation.isPending ? (
-                  <div>
-                    <TeamMembersMatchResult
-                      chosenRouteName={chosenRouteName()}
-                      membersMatchResult={membersMatchResult}
-                    />
-                  </div>
-                ) : (
-                  <div>Loading...</div>
-                )
-              ) : null}
+              {renderTeamMembersMatchResult(
+                showAllData,
+                findTeamMembersMatchingAttributeLogicMutation.isPending
+              )}
             </div>
           )}
         </div>
@@ -558,36 +609,68 @@ export const TestFormDialog = ({
     );
   };
 
+  const onClose = () => {
+    setChosenRoute(null);
+    setResponse({});
+  };
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        resetMembersMatchResult();
+        testRouting();
+      }}>
+      <div className="px-1">
+        {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+      </div>
+      {!renderFooter ? (
+        <div className="mt-4">
+          <Button type="submit">{t("show_matching_hosts")}</Button>
+        </div>
+      ) : (
+        <></>
+      )}
+      <div>{renderTestResult(showAllData)}</div>
+      {renderFooter?.(onClose)}
+    </form>
+  );
+};
+
+export const TestFormDialog = ({
+  form,
+  isTestPreviewOpen,
+  setIsTestPreviewOpen,
+}: {
+  form: UptoDateForm;
+  isTestPreviewOpen: boolean;
+  setIsTestPreviewOpen: (value: boolean) => void;
+}) => {
+  const { t } = useLocale();
+
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
         <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
         <div>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              resetMembersMatchResult();
-              testRouting();
-            }}>
-            <div className="px-1">
-              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-            </div>
-            <div>{renderTestResult()}</div>
-            <DialogFooter>
-              <DialogClose
-                color="secondary"
-                onClick={() => {
-                  setIsTestPreviewOpen(false);
-                  setChosenRoute(null);
-                  setResponse({});
-                }}>
-                {t("close")}
-              </DialogClose>
-              <Button type="submit" data-testid="test-routing">
-                {t("test_routing")}
-              </Button>
-            </DialogFooter>
-          </form>
+          <TestForm
+            form={form}
+            renderFooter={(onClose) => (
+              <DialogFooter>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    onClose();
+                  }}>
+                  {t("close")}
+                </DialogClose>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
+              </DialogFooter>
+            )}
+          />
         </div>
       </DialogContent>
     </Dialog>
@@ -597,8 +680,11 @@ export const TestFormDialog = ({
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
+  const { data: user } = useMeQuery();
+  const [newFormDialogState, setNewFormDialogState] = useState<NewFormDialogState>(null);
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
   const [skipFirstUpdate, setSkipFirstUpdate] = useState(true);
+  const [showInfoLostDialog, setShowInfoLostDialog] = useState(false);
   const hookForm = useFormContext<RoutingFormWithResponseCount>();
 
   useEffect(() => {
@@ -667,7 +753,10 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             ...data,
           });
         }}>
-        <FormActionsProvider appUrl={appUrl}>
+        <FormActionsProvider
+          appUrl={appUrl}
+          newFormDialogState={newFormDialogState}
+          setNewFormDialogState={setNewFormDialogState}>
           <Meta title={form.name} description={form.description || ""} />
           <ShellMain
             heading={
@@ -681,7 +770,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
               </div>
             }
             subtitle={form.description || ""}
-            backPath={`/${appUrl}/forms`}
+            backPath={`${appUrl}/forms`}
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
@@ -819,13 +908,27 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                     </div>
                   ) : null}
 
-                  <div className="mt-6">
+                  <div className="mt-6 flex gap-2">
                     <Button
                       color="secondary"
                       data-testid="test-preview"
                       onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
+                    {IS_CALCOM && (
+                      <Tooltip content={t("contact_our_support_team")} side="right">
+                        <Button
+                          target="_blank"
+                          color="minimal"
+                          href={`https://i.cal.com/support/routing-support-session?email=${encodeURIComponent(
+                            user?.email ?? ""
+                          )}&name=${encodeURIComponent(user?.name ?? "")}&form=${encodeURIComponent(
+                            form.id
+                          )}`}>
+                          {t("need_help")}
+                        </Button>
+                      </Tooltip>
+                    )}
                   </div>
                   {form.routes?.every(isFallbackRoute) && (
                     <Alert
@@ -847,7 +950,12 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   )}
                 </div>
                 <div className="border-subtle bg-muted w-full rounded-md border p-8">
-                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <RoutingNavBar
+                    appUrl={appUrl}
+                    form={form}
+                    hookForm={hookForm}
+                    setShowInfoLostDialog={setShowInfoLostDialog}
+                  />
                   <Page hookForm={hookForm} form={form} appUrl={appUrl} />
                 </div>
               </div>
@@ -855,6 +963,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
           </ShellMain>
         </FormActionsProvider>
       </Form>
+      {showInfoLostDialog && (
+        <InfoLostWarningDialog
+          goToRoute={`${appUrl}/route-builder/${form?.id}`}
+          isOpenInfoLostDialog={showInfoLostDialog}
+          setIsOpenInfoLostDialog={setShowInfoLostDialog}
+        />
+      )}
       <TestFormDialog
         form={uptoDateForm}
         isTestPreviewOpen={isTestPreviewOpen}

@@ -38,12 +38,10 @@ function CreateAttributesPage() {
         <AttributeForm
           header={<CreateAttributeHeader isPending={mutation.isPending} />}
           onSubmit={(values) => {
-            // Create set of attributes to get unique values
-            const uniqueAttributes = new Set(values.options.map((option) => option.value));
+            const { attrName, ...rest } = values;
             mutation.mutate({
-              name: values.attrName,
-              type: values.type,
-              options: Array.from(uniqueAttributes).map((value) => ({ value })),
+              ...rest,
+              name: attrName,
             });
           }}
         />
