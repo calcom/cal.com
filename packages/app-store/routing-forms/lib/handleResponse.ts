@@ -140,10 +140,9 @@ export const handleResponse = async ({
             response,
             action: chosenRoute.action,
           });
-          console.log("🚀 ~ file: handleResponse.ts:143 ~ contactOwnerQuery:", contactOwnerQuery);
-          crmContactOwnerEmail = contactOwnerQuery.email;
-          crmContactOwnerRecordType = contactOwnerQuery.recordType;
-          crmAppSlug = contactOwnerQuery.crmAppSlug;
+          crmContactOwnerEmail = contactOwnerQuery?.email;
+          crmContactOwnerRecordType = contactOwnerQuery?.recordType;
+          crmAppSlug = contactOwnerQuery?.crmAppSlug;
         })(),
         (async () => {
           const teamMembersMatchingAttributeLogicWithResult =
