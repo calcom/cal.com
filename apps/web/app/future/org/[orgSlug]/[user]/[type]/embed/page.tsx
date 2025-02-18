@@ -1,7 +1,7 @@
 import Page from "@pages/org/[orgSlug]/[user]/[type]/embed";
 import withEmbedSsrAppDir from "app/WithEmbedSSR";
 import { WithLayout } from "app/layoutHOC";
-import type { OrgTypePageProps } from "app/(use-page-wrapper)/org/[orgSlug]/[user]/[type]/page";
+import type { OrgTypePageProps } from "app/(booking-page-wrapper)/org/[orgSlug]/[user]/[type]/page";
 
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/[type]/getServerSideProps";
 

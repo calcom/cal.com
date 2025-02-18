@@ -143,27 +143,3 @@ export const generateAppMetadata = async (
     },
   };
 };
-
-export function checkIfBookingPage(): boolean {
-  const headersList = headers();
-  // This special header exists only in Staging and Production
-  const matchedPath = headersList.get("x-matched-path");
-
-  const routes = [
-    "/booking",
-    "/cancel",
-    "/reschedule",
-    "/d", // Private Link of booking page
-    "/apps/routing-forms/routing-link", // Routing Form page
-    "/forms/", // Rewrites to /apps/routing-forms/routing-link
-    "/team", // Team Booking Pages
-    "/[user]", // User Booking page,
-    "/[user]/[type]", // User Booking Type page,
-    "/org/[orgSlug]/team", // Org Team Booking page,
-    "/org/[orgSlug]/[user]", // Org User Booking page,
-    "/org/[orgSlug]/[user]/[type]", // Org User Booking Type page,
-    "/org/[orgSlug]/instant-meeting", // Org Instant Meeting page,
-  ];
-
-  return routes.some((route) => matchedPath?.startsWith(route));
-}

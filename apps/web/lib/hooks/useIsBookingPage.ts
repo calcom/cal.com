@@ -7,7 +7,6 @@ export default function useIsBookingPage(): boolean {
   const isBookingPage = [
     "/booking",
     "/cancel",
-    "/team",
     "/reschedule",
     "/d", // Private Link of booking page
     "/apps/routing-forms/routing-link", // Routing Form page
