@@ -120,7 +120,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           !isPlatformPages && "max-h-screen"
         )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
-          <header className="taurify:-mt-3 taurify:flex-col-reverse items-center justify-between md:hidden lg:flex">
+          <header className="taurify:-mt-3 todesktop:-mt-3 taurify:flex-col-reverse todesktop:flex-col-reverse items-center justify-between md:hidden lg:flex">
             {user?.org ? (
               !ENABLE_PROFILE_SWITCHER ? (
                 <Link href="/settings/organizations/profile" className="w-full px-1.5">
@@ -139,7 +139,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
                 <ProfileDropdown />
               )
             ) : (
-              <div data-testid="user-dropdown-trigger" className="taurify:mt-4 w-full">
+              <div data-testid="user-dropdown-trigger" className="taurify:mt-4 todesktop:mt-4 w-full">
                 <span className="hidden lg:inline">
                   <UserDropdown />
                 </span>
@@ -152,7 +152,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="taurify:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
+                className="taurify:block todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <Icon
                   name="arrow-left"
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"
@@ -161,7 +161,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="taurify:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
+                className="taurify:block todesktop:block hover:text-emphasis text-subtle group hidden text-sm font-medium">
                 <Icon
                   name="arrow-right"
                   className="group-hover:text-emphasis text-subtle h-4 w-4 flex-shrink-0"

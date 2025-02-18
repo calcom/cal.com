@@ -344,7 +344,7 @@ export default function Signup({
               <div className="flex w-fit lg:-mt-12">
                 <Button
                   color="minimal"
-                  className="hover:bg-subtle taurify:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
+                  className="hover:bg-subtle taurify:mt-10 todesktop:mt-10 mb-6 flex h-6 max-h-6 w-full items-center rounded-md px-3 py-2"
                   StartIcon="arrow-left"
                   data-testid="signup-back-button"
                   onClick={() => {
@@ -628,7 +628,7 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12 dark:bg-none">
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
@@ -679,7 +679,7 @@ export default function Signup({
                 </div>
               </>
             )}
-            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] lg:block lg:py-[6px] lg:pl-[6px] dark:bg-white/5">
+            <div className="border-default hidden rounded-bl-2xl rounded-br-none rounded-tl-2xl border border-r-0 border-dashed bg-black/[3%] dark:bg-white/5 lg:block lg:py-[6px] lg:pl-[6px]">
               <img className="block dark:hidden" src="/mock-event-type-list.svg" alt="Cal.com Booking Page" />
               <img
                 className="hidden dark:block"
@@ -690,7 +690,7 @@ export default function Signup({
             <div className="mr-12 mt-8 hidden h-full w-full grid-cols-3 gap-4 overflow-hidden lg:grid">
               {FEATURES.map((feature) => (
                 <>
-                  <div className="mb-8 flex max-w-52 flex-col leading-none sm:mb-0">
+                  <div className="max-w-52 mb-8 flex flex-col leading-none sm:mb-0">
                     <div className="text-emphasis items-center">
                       <Icon name={feature.icon} className="mb-1 h-4 w-4" />
                       <span className="text-sm font-medium">{t(feature.title)}</span>

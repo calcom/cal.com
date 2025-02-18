@@ -117,7 +117,65 @@ body  {
 }
 
 /*
-  Desktop App specific CSS
+  Desktop App specific CSS (todesktop)
+    https://docs.todesktop.com/
+*/
+
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+  background: inherit !important;
+}
+
+/* disable user selection on buttons, links and images on desktop app */
+html.todesktop button,
+html.todesktop a,
+html.todesktop img,
+html.todesktop header {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  cursor: default !important;
+}
+
+html.todesktop,
+html.todesktop div {
+  cursor: default !important;
+}
+
+/* make header draggable on desktop app */
+html.todesktop header {
+  -webkit-app-region: drag;
+}
+
+html.todesktop header button,
+html.todesktop header a {
+  -webkit-app-region: no-drag;
+}
+
+html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
+  background: transparent !important;
+}
+
+html.todesktop-platform-darwin.dark main.bg-default {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+html.todesktop-platform-darwin.light main.bg-default {
+  background: rgba(255, 255, 255, 0.8) !important;
+}
+
+html.todesktop.light {
+  --cal-bg-emphasis: hsla(0, 0%, 11%, 0.1);
+}
+
+html.todesktop.dark {
+  --cal-bg-emphasis: hsla(220, 2%, 26%, 0.3);
+}
+
+/*
+  Desktop App specific CSS (Taurify)
     https://taurify.app/
 */
 

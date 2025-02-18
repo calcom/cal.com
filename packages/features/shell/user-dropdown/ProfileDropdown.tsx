@@ -47,7 +47,7 @@ export function ProfileDropdown() {
         <button
           data-testid="user-dropdown-trigger-button"
           className={classNames(
-            "hover:bg-emphasis taurify:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
+            "hover:bg-emphasis taurify:!bg-transparent todesktop:!bg-transparent group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full px-2 py-1.5 text-left outline-none transition focus:outline-none focus:ring-0 md:rounded-none lg:rounded"
           )}>
           <span className="flex w-full flex-grow items-center justify-around gap-2 text-sm font-medium leading-none">
             <Avatar alt={currentOption.label || ""} size="xsm" />

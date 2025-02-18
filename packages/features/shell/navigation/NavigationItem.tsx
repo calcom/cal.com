@@ -60,7 +60,7 @@ export const NavigationItem: React.FC<{
           aria-label={t(item.name)}
           target={item.target}
           className={classNames(
-            "taurify:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
+            "taurify:py-[7px] todesktop:py-[7px] text-default group flex items-center rounded-md px-2 py-1.5 text-sm font-medium transition",
             item.child ? `[&[aria-current='page']]:!bg-transparent` : `[&[aria-current='page']]:bg-emphasis`,
             isChild
               ? `[&[aria-current='page']]:text-emphasis [&[aria-current='page']]:bg-emphasis hidden h-8 pl-16 lg:flex lg:pl-11 ${
@@ -68,7 +68,7 @@ export const NavigationItem: React.FC<{
                 }`
               : "[&[aria-current='page']]:text-emphasis mt-0.5 text-sm",
             isLocaleReady
-              ? "hover:bg-subtle taurify:[&[aria-current='page']]:bg-emphasis taurify:hover:bg-transparent hover:text-emphasis"
+              ? "hover:bg-subtle taurify:[ todesktop:[&[aria-current='page']]:bg-emphasis taurify:hover:bg-transparent todesktop:hover:bg-transparent hover:text-emphasis"
               : ""
           )}
           aria-current={current ? "page" : undefined}>
@@ -76,7 +76,7 @@ export const NavigationItem: React.FC<{
             <Icon
               name={item.isLoading ? "rotate-cw" : item.icon}
               className={classNames(
-                "taurify:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
+                "taurify:!text-blue-500 todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit",
                 item.isLoading && "animate-spin"
               )}
               aria-hidden="true"
