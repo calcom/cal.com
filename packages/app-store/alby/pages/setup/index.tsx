@@ -2,7 +2,7 @@ import { auth, Client, webln } from "@getalby/sdk";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 
 import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
