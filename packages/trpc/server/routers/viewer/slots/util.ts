@@ -356,22 +356,22 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
 
   let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
-      input,
-      eventType,
-      hosts: allHosts,
-      loggerWithEventDetails,
-      // adjust start time so we can check for available slots in the first two weeks
-      startTime:
-        hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
-          ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
-          : startTime,
-      // adjust end time so we can check for available slots in the first two weeks
-      endTime:
-        hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
-          ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
-          : endTime,
-      bypassBusyCalendarTimes,
-      shouldServeCache,
+    input,
+    eventType,
+    hosts: allHosts,
+    loggerWithEventDetails,
+    // adjust start time so we can check for available slots in the first two weeks
+    startTime:
+      hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
+        ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+        : startTime,
+    // adjust end time so we can check for available slots in the first two weeks
+    endTime:
+      hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+        ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+        : endTime,
+    bypassBusyCalendarTimes,
+    shouldServeCache,
   });
 
   let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
@@ -397,7 +397,12 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
           bypassBusyCalendarTimes,
           shouldServeCache,
         });
-        if (!firstTwoWeeksAvailabilities.aggregatedAvailability.length) {
+        if (
+          !getAggregatedAvailability(
+            firstTwoWeeksAvailabilities.allUsersAvailability,
+            eventType.schedulingType
+          ).length
+        ) {
           diff = 1;
         }
       }
@@ -415,18 +420,16 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
     if (diff > 0) {
       // if the first available slot is more than 2 weeks from now, round robin as normal
-      ({ allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities(
-        {
-          input,
-          eventType,
-          hosts: [...allFallbackRRHosts, ...fixedHosts],
-          loggerWithEventDetails,
-          startTime,
-          endTime,
-          bypassBusyCalendarTimes,
-          shouldServeCache,
-        }
-      ));
+      ({ allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
+        input,
+        eventType,
+        hosts: [...allFallbackRRHosts, ...fixedHosts],
+        loggerWithEventDetails,
+        startTime,
+        endTime,
+        bypassBusyCalendarTimes,
+        shouldServeCache,
+      }));
       aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
     }
   }
