@@ -1,5 +1,6 @@
+import type { TFunction } from "i18next";
 import { z } from "zod";
-import type { Prisma } from "@calcom/prisma/client";
+
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -17,16 +18,17 @@ import { OrganizationRepository } from "@calcom/lib/server/repository/organizati
 import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 import type { Team, User } from "@calcom/prisma/client";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
 import { userMetadata } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+
 // Onboarding can only be done from webapp currently and so we consider the source for User as WEBAPP
 const creationSource = CreationSource.WEBAPP;
-type OrganizationOnboardingId = string;
 const log = logger.getSubLogger({ prefix: ["createOrganizationFromOnboarding"] });
 // Types for organization data
 type OrganizationData = {
@@ -42,7 +44,6 @@ type OrganizationData = {
   logoUrl: string | null;
   bio: string | null;
   billingPeriod?: "MONTHLY" | "ANNUALLY";
-  paymentSubscriptionId: string;
 };
 
 type TeamData = {
@@ -57,6 +58,37 @@ type InvitedMember = {
   name?: string;
 };
 
+type OrgOwner = Awaited<ReturnType<typeof findUserToBeOrgOwner>>;
+
+type OrganizationOnboardingArg = Pick<
+  OrganizationOnboarding,
+  | "id"
+  | "organizationId"
+  | "name"
+  | "slug"
+  | "orgOwnerEmail"
+  | "seats"
+  | "pricePerSeat"
+  | "billingPeriod"
+  | "invitedMembers"
+  | "teams"
+  | "isPlatform"
+  | "logo"
+  | "bio"
+  | "stripeCustomerId"
+  | "isDomainConfigured"
+>;
+
+const invitedMembersSchema = z.array(z.object({ email: z.string().email(), name: z.string().optional() }));
+const teamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    slug: z.string(),
+  })
+);
+
 async function createOrganizationWithExistingUserAsOwner({
   owner,
   orgData,
@@ -66,9 +98,7 @@ async function createOrganizationWithExistingUserAsOwner({
 }) {
   const orgOwnerTranslation = await getTranslation(owner.locale || "en", "common");
   // We prefer ID which would be available if it is a retry of createOrganizationFromOnboarding and earlier organization was created and connected with Onboarding
-  let organization = orgData.id
-    ? await OrganizationRepository.findById({ id: orgData.id })
-    : await OrganizationRepository.findBySlug({ slug: orgData.slug });
+  let organization = orgData.id ? await OrganizationRepository.findById({ id: orgData.id }) : null;
 
   if (organization) {
     log.debug(
@@ -96,9 +126,7 @@ async function createOrganizationWithExistingUserAsOwner({
   const canSetSlug = slugConflictType === "teamUserIsMemberOfExists" ? false : true;
 
   log.debug(
-    `Creating organization for owner ${owner.email} with slug/requestedSlug ${
-      canSetSlug ? orgData.slug : "null"
-    } and canSetSlug=${canSetSlug}`
+    `Creating organization for owner ${owner.email} with slug ${orgData.slug} and canSetSlug=${canSetSlug}`
   );
 
   try {
@@ -106,7 +134,7 @@ async function createOrganizationWithExistingUserAsOwner({
     const orgCreationResult = await OrganizationRepository.createWithExistingUserAsOwner({
       orgData: {
         ...orgData,
-        ...(canSetSlug ? { slug: orgData.slug } : { slug: null }),
+        ...(canSetSlug ? { slug: orgData.slug } : { slug: null, requestedSlug: orgData.slug }),
       },
       owner: {
         id: owner.id,
@@ -293,7 +321,6 @@ async function ensureStripeCustomerIdIsUpdated({
   });
 }
 
-
 /**
  * Temporary till we adapt all other code reading from metadata about stripeSubscriptionId and stripeSubscriptionItemId
  */
@@ -305,7 +332,7 @@ async function backwardCompatibilityForSubscriptionDetails({
   organization: {
     id: number;
     metadata: Prisma.JsonValue;
-  }
+  };
   paymentSubscriptionId: string;
   paymentSubscriptionItemId: string;
 }) {
@@ -318,68 +345,24 @@ async function backwardCompatibilityForSubscriptionDetails({
   });
 }
 
-async function updateSubscriptionDetails({
-  organization  ,
-  paymentSubscriptionId,
-  paymentSubscriptionItemId,
-  organizationOnboardingId,
-}: {
-  organization: {
-    id: number;
-    metadata: Prisma.JsonValue;
+async function hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
+  const organization = await OrganizationRepository.findBySlugIncludeOnboarding({ slug });
+  if (!organization?.organizationOnboarding) {
+    // Old organizations created without onboarding,
+    return false;
   }
-  organizationOnboardingId: string;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
-}) {
-   // Connect the organization onboarding to the organization so that for further attempts after a failed update, we can use the organizationId itself from the onboarding.
-   await OrganizationOnboardingRepository.update(organizationOnboardingId, {
-    organizationId: organization.id,
-    stripeSubscriptionId: paymentSubscriptionId,
-    stripeSubscriptionItemId: paymentSubscriptionItemId,
-  });
 
-  
-  await backwardCompatibilityForSubscriptionDetails({
-    organization,
-    paymentSubscriptionId,
-    paymentSubscriptionItemId,
-  });
+  // Different onboardingId means existing organization is owned by someone else
+  return organization.organizationOnboarding.id !== onboardingId;
 }
 
-/**
- * This function is used by stripe webhook, so it should expect to be called multiple times till the entire flow completes without any error.
- * So, it should be idempotent.
- */
-export const createOrganizationFromOnboarding = async ({
+async function handleDomainSetup({
   organizationOnboarding,
-  paymentSubscriptionId,
-  paymentSubscriptionItemId,
+  orgOwnerTranslation,
 }: {
-  organizationOnboarding: Pick<
-    OrganizationOnboarding,
-    | "id"
-    | "organizationId"
-    | "name"
-    | "slug"
-    | "orgOwnerEmail"
-    | "seats"
-    | "pricePerSeat"
-    | "billingPeriod"
-    | "invitedMembers"
-    | "teams"
-    | "isPlatform"
-    | "logo"
-    | "bio"
-    | "stripeCustomerId"
-    | "isDomainConfigured"
-  >;
-  paymentSubscriptionId: string;
-  paymentSubscriptionItemId: string;
-}) => {
-  let owner = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
-  const orgOwnerTranslation = await getTranslation(owner?.locale || "en", "common");
-
+  organizationOnboarding: OrganizationOnboardingArg;
+  orgOwnerTranslation: TFunction;
+}) {
   if (!organizationOnboarding.isDomainConfigured) {
     // Important: Setup Domain first before creating the organization as Vercel/Cloudflare might not allow the domain to be created and that could cause organization booking pages to not actually work
     await setupDomain({
@@ -393,11 +376,21 @@ export const createOrganizationFromOnboarding = async ({
   await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
     isDomainConfigured: true,
   });
+}
 
+async function handleOrganizationCreation({
+  organizationOnboarding,
+  owner,
+}: {
+  organizationOnboarding: OrganizationOnboardingArg;
+  owner: OrgOwner;
+}) {
   let organization;
   const orgData = {
     id: organizationOnboarding.organizationId,
     name: organizationOnboarding.name,
+    // Create organization with slug=null, so that org slug doesn't conflict with existing team that is probably being migrated and thus would not be a conflict any more
+    // Remember one can have a subteam with same slug as some organization, but regular team and organization can't have same slug
     slug: organizationOnboarding.slug,
     isOrganizationConfigured: true,
     // We believe that as the payment has been accepted first and we also restrict the emails to company emails, it is safe to set this to true.
@@ -410,9 +403,9 @@ export const createOrganizationFromOnboarding = async ({
     billingPeriod: organizationOnboarding.billingPeriod,
     logoUrl: organizationOnboarding.logo,
     bio: organizationOnboarding.bio,
-    paymentSubscriptionId,
   };
 
+  log.debug("handleOrganizationCreation", safeStringify({ orgData }));
   if (!owner) {
     const result = await createOrganizationWithNonExistentUserAsOwner({
       email: organizationOnboarding.orgOwnerEmail,
@@ -429,45 +422,71 @@ export const createOrganizationFromOnboarding = async ({
   }
 
   if (organizationOnboarding.stripeCustomerId) {
-    // Mostly needed for newly created user through the flow
+    // Mostly needed for newly created user through the flow, existing user would have it already when checkout was created
+    // We need to set it there to ensure that for the same user new customerId is not created again
     await ensureStripeCustomerIdIsUpdated({
       owner,
       stripeCustomerId: organizationOnboarding.stripeCustomerId,
     });
   }
 
-  await updateSubscriptionDetails({
-    organizationOnboardingId: organizationOnboarding.id,
-    paymentSubscriptionId,
-    paymentSubscriptionItemId,
-    organization,
+  return { organization, owner };
+}
+
+/**
+ * This function is used by stripe webhook, so it should expect to be called multiple times till the entire flow completes without any error.
+ * So, it should be idempotent.
+ */
+export const createOrganizationFromOnboarding = async ({
+  organizationOnboarding,
+  paymentSubscriptionId,
+  paymentSubscriptionItemId,
+}: {
+  organizationOnboarding: OrganizationOnboardingArg;
+  paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
+}) => {
+  if (
+    await hasConflictingOrganization({
+      slug: organizationOnboarding.slug,
+      onboardingId: organizationOnboarding.id,
+    })
+  ) {
+    throw new Error("organization_already_exists_with_this_slug");
+  }
+
+  // We know admin permissions have been validated in the above step so we can safely normalize the input
+  const userFromEmail = await findUserToBeOrgOwner(organizationOnboarding.orgOwnerEmail);
+  const orgOwnerTranslation = await getTranslation(userFromEmail?.locale || "en", "common");
+
+  await handleDomainSetup({
+    organizationOnboarding,
+    orgOwnerTranslation,
   });
 
-  const invitedMembers = z
-    .array(z.object({ email: z.string().email(), name: z.string().optional() }))
-    .parse(organizationOnboarding.invitedMembers);
+  const { organization, owner } = await handleOrganizationCreation({
+    organizationOnboarding,
+    owner: userFromEmail,
+  });
 
-  const teams = z
-    .array(
-      z.object({
-        id: z.number(),
-        name: z.string(),
-        isBeingMigrated: z.boolean(),
-        slug: z.string(),
-      })
-    )
-    .parse(organizationOnboarding.teams);
+  await backwardCompatibilityForSubscriptionDetails({
+    organization,
+    paymentSubscriptionId,
+    paymentSubscriptionItemId,
+  });
 
-  await inviteMembers(invitedMembers, organization);
+  await inviteMembers(invitedMembersSchema.parse(organizationOnboarding.invitedMembers), organization);
 
-  await createOrMoveTeamsToOrganization(teams, owner, organization.id);
-  // We have moved the teams through `createOrMoveTeamsToOrganization`, so we if need to set the slug, this is the best time to do it.
-  if (!organization.slug) {
-    await OrganizationRepository.setSlug({
-      id: organization.id,
-      slug: organizationOnboarding.slug,
-    });
-  }
+  await createOrMoveTeamsToOrganization(
+    teamsSchema.parse(organizationOnboarding.teams),
+    owner,
+    organization.id
+  );
+
+  await OrganizationRepository.setSlug({
+    id: organization.id,
+    slug: organizationOnboarding.slug,
+  });
 
   return { organization, owner };
 };

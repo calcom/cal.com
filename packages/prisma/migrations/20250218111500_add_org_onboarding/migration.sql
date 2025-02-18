@@ -30,16 +30,10 @@ CREATE TABLE "OrganizationOnboarding" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "OrganizationOnboarding_createdById_key" ON "OrganizationOnboarding"("createdById");
-
--- CreateIndex
 CREATE UNIQUE INDEX "OrganizationOnboarding_orgOwnerEmail_key" ON "OrganizationOnboarding"("orgOwnerEmail");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OrganizationOnboarding_organizationId_key" ON "OrganizationOnboarding"("organizationId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "OrganizationOnboarding_slug_key" ON "OrganizationOnboarding"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "OrganizationOnboarding_stripeCustomerId_key" ON "OrganizationOnboarding"("stripeCustomerId");

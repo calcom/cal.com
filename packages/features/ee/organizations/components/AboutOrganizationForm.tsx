@@ -11,7 +11,7 @@ export const AboutOrganizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const useOnboardingStore = useOnboarding();
+  const { useOnboardingStore } = useOnboarding();
   const { setLogo, setBio, bio: bioFromStore, logo: logoFromStore } = useOnboardingStore();
 
   const aboutOrganizationFormMethods = useForm<{
@@ -19,8 +19,8 @@ export const AboutOrganizationForm = () => {
     bio: string;
   }>({
     defaultValues: {
-      logo: logoFromStore,
-      bio: bioFromStore,
+      logo: logoFromStore ?? "",
+      bio: bioFromStore ?? "",
     },
   });
 

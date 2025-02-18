@@ -59,7 +59,7 @@ const useCheckout = () => {
 
 export const AddNewTeamMembersForm = () => {
   const { t } = useLocale();
-  const useOnboardingStore = useOnboarding();
+  const { useOnboardingStore } = useOnboarding();
   const {
     addInvitedMember,
     removeInvitedMember,
@@ -139,7 +139,7 @@ export const AddNewTeamMembersForm = () => {
                 placeholder="colleague@company.com"
               />
             </div>
-            <Button type="submit" StartIcon="plus" className="mb-2" color="secondary">
+            <Button type="submit" StartIcon="plus" color="secondary">
               {t("add")}
             </Button>
           </form>

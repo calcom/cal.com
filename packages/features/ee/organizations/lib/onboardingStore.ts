@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { trpc } from "@calcom/trpc/react";
 
 enum BillingPeriod {
   MONTHLY = "MONTHLY",
@@ -21,8 +22,8 @@ interface OnboardingAdminStoreState {
 interface OnboardingUserStoreState {
   name: string;
   slug: string;
-  logo?: string;
-  bio?: string;
+  logo?: string | null;
+  bio?: string | null;
   onboardingId: string | null;
   invitedMembers: { email: string; name?: string }[];
   teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[];
@@ -48,7 +49,7 @@ interface OnboardingStoreState extends OnboardingAdminStoreState, OnboardingUser
   // Actions for team state
   setTeams: (teams: { id: number; name: string; slug: string | null; isBeingMigrated: boolean }[]) => void;
   // Reset state
-  reset: () => void;
+  reset: (state?: Partial<OnboardingStoreState>) => void;
 }
 
 const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
@@ -69,15 +70,6 @@ export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status"
     state.onboardingId,
     state.setOnboardingId,
   ]);
-  const requireOnboardingIdInStore = step !== "start" && step !== "status";
-
-  useEffect(() => {
-    const onboardingId = onboardingIdFromParams || onboardingIdFromStore;
-    if (!onboardingId && requireOnboardingIdInStore) {
-      console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
-      router.push("/settings/organizations/new");
-    }
-  }, [onboardingIdFromStore, requireOnboardingIdInStore, router]);
 
   const onboardingIdFromParams = searchParams?.get("onboardingId");
 
@@ -86,9 +78,6 @@ export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status"
     setOnboardingId(onboardingIdFromParams);
     return;
   }
-
-
- 
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
@@ -121,7 +110,13 @@ export const useOnboardingStore = create<OnboardingStoreState>()(
       setTeams: (teams) => set({ teams }),
 
       // Reset action
-      reset: () => set(initialState),
+      reset: (state) => {
+        if (state) {
+          set(state);
+        } else {
+          set(initialState);
+        }
+      },
     }),
     {
       name: "org-creation-onboarding",
@@ -134,7 +129,39 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const router = useRouter();
   const path = usePathname();
   const searchParams = useSearchParams();
-  useSetOnboardingIdFromParam({ step: params?.step ?? null });
+  const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
+    trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
+  const { reset, onboardingId } = useOnboardingStore();
+  const step = params?.step ?? null;
+  useEffect(() => {
+    if (isLoadingOrgOnboarding) {
+      return;
+    }
+    if (organizationOnboarding) {
+      if (!window.isOrgOnboardingSynced) {
+        window.isOrgOnboardingSynced = true;
+        // Must reset with current state of onboarding in DB for the user
+        reset({
+          onboardingId: organizationOnboarding.id,
+          billingPeriod: organizationOnboarding.billingPeriod as BillingPeriod,
+          pricePerSeat: organizationOnboarding.pricePerSeat,
+          seats: organizationOnboarding.seats,
+          orgOwnerEmail: organizationOnboarding.orgOwnerEmail,
+          name: organizationOnboarding.name,
+          slug: organizationOnboarding.slug,
+          bio: organizationOnboarding.bio,
+          logo: organizationOnboarding.logo,
+        });
+      }
+    } else {
+      const requireOnboardingId = step !== "start" && step !== "status";
+      if (!onboardingId && requireOnboardingId) {
+        console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
+        router.push("/settings/organizations/new");
+      }
+    }
+  }, [organizationOnboarding, onboardingId, reset, step, router]);
+
   useEffect(() => {
     if (session.status === "loading") {
       return;
@@ -143,6 +170,6 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
       const searchString = !searchParams ? "" : `${searchParams.toString()}`;
       router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
     }
-  }, [session, router, path]);
-  return useOnboardingStore;
+  }, [session, router, path, searchParams]);
+  return { useOnboardingStore, isLoadingOrgOnboarding };
 };

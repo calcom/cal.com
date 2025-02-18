@@ -4,6 +4,7 @@ import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -30,9 +31,12 @@ function extractDomainFromEmail(email: string) {
 
 export const CreateANewOrganizationForm = () => {
   const session = useSession();
-  if (!session.data) {
+
+  const { isLoadingOrgOnboarding, useOnboardingStore } = useOnboarding({ step: "start" });
+  if (!session.data || isLoadingOrgOnboarding) {
     return null;
   }
+
   return <CreateANewOrganizationFormChild session={session} />;
 };
 
@@ -41,34 +45,20 @@ enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
-const CreateANewOrganizationFormChild = ({
-  session,
-}: {
-  session: Ensure<SessionContextValue, "data">;
-  isPlatformOrg?: boolean;
-}) => {
+const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const router = useRouter();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const defaultOrgOwnerEmail = session.data.user.email ?? "";
-
-  const useOnboardingStore = useOnboarding({ step: "start" });
-  const {
-    setBillingPeriod,
-    setPricePerSeat,
-    setSeats,
-    setOrgOwnerEmail,
-    setName,
-    setSlug,
-    slug,
-    name,
-    orgOwnerEmail,
-    billingPeriod,
-    pricePerSeat,
-    seats,
-    setOnboardingId,
-  } = useOnboardingStore();
+  const { useOnboardingStore } = useOnboarding({ step: "start" });
+  const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
+    useOnboardingStore();
+  useEffect(() => {
+    if (isAdmin) {
+      reset();
+    }
+  }, [isAdmin, reset]);
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -92,13 +82,15 @@ const CreateANewOrganizationFormChild = ({
     onSuccess: async (data) => {
       // TODO: To be moved to _invoice.paid.org.ts
       // telemetry.event(telemetryEventTypes.org_created);
-      setBillingPeriod(data.billingPeriod);
-      setPricePerSeat(data.pricePerSeat ?? null);
-      setSeats(data.seats ?? null);
-      setOrgOwnerEmail(data.orgOwnerEmail);
-      setName(data.name);
-      setSlug(data.slug);
-      setOnboardingId(data.organizationOnboardingId);
+      reset({
+        onboardingId: data.organizationOnboardingId,
+        billingPeriod: data.billingPeriod,
+        pricePerSeat: data.pricePerSeat ?? null,
+        seats: data.seats ?? null,
+        orgOwnerEmail: data.orgOwnerEmail,
+        name: data.name,
+        slug: data.slug,
+      });
 
       if (isAdmin) {
         router.push("/settings/organizations/new/handover");
@@ -119,6 +111,8 @@ const CreateANewOrganizationFormChild = ({
       }
     },
   });
+
+  const needToCreateOnboarding = !onboardingId;
   return (
     <>
       <Form
@@ -126,7 +120,9 @@ const CreateANewOrganizationFormChild = ({
         className="space-y-5"
         id="createOrg"
         handleSubmit={async (v) => {
-          if (!intentToCreateOrgMutation.isPending) {
+          if (!needToCreateOnboarding) {
+            router.push("/settings/organizations/new/about");
+          } else if (!intentToCreateOrgMutation.isPending) {
             setServerErrorMessage(null);
             intentToCreateOrgMutation.mutate({ ...v, creationSource: CreationSource.WEBAPP });
           }

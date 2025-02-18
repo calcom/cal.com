@@ -14,7 +14,7 @@ const PaymentStatusView = () => {
   const searchParams = useSearchParams();
   const paymentStatus = searchParams?.get("paymentStatus");
   const paymentError = searchParams?.get("error");
-  const useOnboardingStore = useOnboarding({
+  const { useOnboardingStore } = useOnboarding({
     step: "status",
   });
   const [organizationCreated, setOrganizationCreated] = useState<boolean>(false);

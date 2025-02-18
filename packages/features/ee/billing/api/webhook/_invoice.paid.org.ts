@@ -12,13 +12,29 @@ const invoicePaidSchema = z.object({
     customer: z.string(),
     subscription: z.string(),
     lines: z.object({
-      data: z.array(z.object({
-        subscription_item: z.string(),
-      })),
+      data: z.array(
+        z.object({
+          subscription_item: z.string(),
+        })
+      ),
     }),
   }),
 });
 
+async function handlePaymentReceivedForOnboarding({
+  organizationOnboarding,
+  paymentSubscriptionId,
+  paymentSubscriptionItemId,
+}: {
+  organizationOnboarding: { id: string };
+  paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
+}) {
+  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+    stripeSubscriptionId: paymentSubscriptionId,
+    stripeSubscriptionItemId: paymentSubscriptionItemId,
+  });
+}
 
 const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const { object: invoice } = invoicePaidSchema.parse(data);
@@ -31,11 +47,12 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
   const organizationOnboarding = await OrganizationOnboardingRepository.findByStripeCustomerId(
     invoice.customer
   );
+
   if (!organizationOnboarding) {
     logger.error(
       `NonRecoverableError: No onboarding record found for stripe customer id: ${invoice.customer}.`
     );
-    
+
     // Don't throw as we don't want to retry.
     return {
       success: false,
@@ -43,11 +60,20 @@ const handler = async (data: SWHMap["invoice.paid"]["data"]) => {
     };
   }
 
+  const paymentSubscriptionId = subscriptionId;
+  const paymentSubscriptionItemId = subscriptionItemId;
+
+  await handlePaymentReceivedForOnboarding({
+    organizationOnboarding,
+    paymentSubscriptionId,
+    paymentSubscriptionItemId,
+  });
+
   try {
     const { organization } = await createOrganizationFromOnboarding({
       organizationOnboarding,
-      paymentSubscriptionId: subscriptionId,
-      paymentSubscriptionItemId: subscriptionItemId,
+      paymentSubscriptionId,
+      paymentSubscriptionItemId,
     });
 
     logger.debug(`Marking onboarding as complete for organization ${organization.id}`);

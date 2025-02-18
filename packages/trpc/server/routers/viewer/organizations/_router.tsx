@@ -34,6 +34,14 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
+  getOrganizationOnboarding: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getOrganizationOnboarding"),
+      () => import("./getOrganizationOnboarding.handler")
+    );
+    return handler(opts);
+  }),
+
   create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);

@@ -1,3 +1,5 @@
+import type { z } from "zod";
+
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -5,7 +7,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { CreationSource } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { z } from "zod";
+
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
@@ -34,8 +36,7 @@ export class OrganizationRepository {
       billingPeriod?: "MONTHLY" | "ANNUALLY";
       logoUrl: string | null;
       bio: string | null;
-      // Required for Organization and not for platform
-      paymentSubscriptionId: string | null;
+      requestedSlug?: string | null;
     };
     owner: {
       id: number;
@@ -44,9 +45,6 @@ export class OrganizationRepository {
     };
   }) {
     logger.debug("createWithExistingUserAsOwner", safeStringify({ orgData, owner }));
-    if (!orgData.isPlatform && !orgData.paymentSubscriptionId) {
-      throw new Error("paymentSubscriptionId is required for non-platform organizations");
-    }
     const organization = await this.create(orgData);
     const ownerProfile = await createAProfileForAnExistingUser({
       user: {
@@ -85,7 +83,6 @@ export class OrganizationRepository {
       isPlatform: boolean;
       logoUrl: string | null;
       bio: string | null;
-      paymentSubscriptionId: string | null;
     };
     owner: {
       email: string;
@@ -93,9 +90,6 @@ export class OrganizationRepository {
     creationSource: CreationSource;
   }) {
     logger.debug("createWithNonExistentOwner", safeStringify({ orgData, owner }));
-    if (!orgData.isPlatform && !orgData.paymentSubscriptionId) {
-      throw new Error("paymentSubscriptionId is required for non-platform organizations");
-    }
     const organization = await this.create(orgData);
     const ownerUsernameInOrg = getOrgUsernameFromEmail(owner.email, orgData.autoAcceptEmail);
     const ownerInDb = await UserRepository.create({
@@ -135,7 +129,7 @@ export class OrganizationRepository {
     isPlatform: boolean;
     logoUrl: string | null;
     bio: string | null;
-    paymentSubscriptionId: string | null;
+    requestedSlug?: string | null;
   }) {
     return await prisma.team.create({
       data: {
@@ -155,11 +149,16 @@ export class OrganizationRepository {
         },
         metadata: {
           isPlatform: orgData.isPlatform,
+
+          // We still have a case where we don't have slug set directly on organization. The reason is because we want to create an org first(with same slug as another regular team) and then move the team to org.
+          // Because in such cases there is a fallback existing at multiple places to use requestedSlug, we set it here still :(
+          requestedSlug: orgData.requestedSlug,
+
+          // We set these here still because some parts of code read it from metadata. This data exists in OrganizationOnboarding as well and should be used from there ideally
+          // We also need to think about existing Organizations that might not have OrganizationOnboarding, before taking any decision
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
           billingPeriod: orgData.billingPeriod,
-          // We set it here as required by various places in app. We could plan to move it to OrganizationOnboarding later
-          subscriptionId: orgData.paymentSubscriptionId,
         },
         isPlatform: orgData.isPlatform,
       },
@@ -181,6 +180,24 @@ export class OrganizationRepository {
       where: {
         slug,
         isOrganization: true,
+      },
+    });
+  }
+
+  static async findBySlugIncludeOnboarding({ slug }: { slug: string }) {
+    return prisma.team.findFirst({
+      where: { slug, isOrganization: true },
+      include: {
+        organizationOnboarding: {
+          select: {
+            id: true,
+            isDomainConfigured: true,
+            isPlatform: true,
+            slug: true,
+            teams: true,
+            invitedMembers: true,
+          },
+        },
       },
     });
   }
@@ -409,7 +426,17 @@ export class OrganizationRepository {
     });
   }
 
-  static async updateStripeSubscriptionDetails({ id, stripeSubscriptionId, stripeSubscriptionItemId, existingMetadata }: { id: number; stripeSubscriptionId: string; stripeSubscriptionItemId: string; existingMetadata: z.infer<typeof teamMetadataSchema> }) {
+  static async updateStripeSubscriptionDetails({
+    id,
+    stripeSubscriptionId,
+    stripeSubscriptionItemId,
+    existingMetadata,
+  }: {
+    id: number;
+    stripeSubscriptionId: string;
+    stripeSubscriptionItemId: string;
+    existingMetadata: z.infer<typeof teamMetadataSchema>;
+  }) {
     return await prisma.team.update({
       where: { id, isOrganization: true },
       data: {
@@ -417,7 +444,7 @@ export class OrganizationRepository {
           ...existingMetadata,
           subscriptionId: stripeSubscriptionId,
           subscriptionItemId: stripeSubscriptionItemId,
-        }
+        },
       },
     });
   }

@@ -52,6 +52,7 @@ export class OrganizationOnboardingRepository {
     }
 
     return await prisma.organizationOnboarding.create({
+      // HEKOP
       data: {
         billingPeriod: data.billingPeriod,
         pricePerSeat: data.pricePerSeat,
@@ -108,6 +109,7 @@ export class OrganizationOnboardingRepository {
         id,
       },
       data: {
+        error: null,
         isComplete: true,
       },
     });
@@ -143,7 +145,15 @@ export class OrganizationOnboardingRepository {
       },
     });
   }
-  
+
+  static async findAllBySlug(slug: string) {
+    logger.debug("Finding all organization onboardings by slug", safeStringify({ slug }));
+    return await prisma.organizationOnboarding.findMany({
+      where: {
+        slug,
+      },
+    });
+  }
   static async delete(id: OnboardingId) {
     logger.debug("Deleting organization onboarding", { id });
     return await prisma.organizationOnboarding.delete({

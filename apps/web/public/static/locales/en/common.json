@@ -2978,5 +2978,9 @@
   "payment_successful": "Payment successful",
   "handover_onboarding_page_title": "Handover onboarding",
   "handover_onboarding_page_description": "Handover onboarding to the user",
+  "organization_already_exists_with_this_slug": "Organization already exists with this slug",
+  "you_do_not_have_permission_to_create_an_organization_for_this_email": "You do not have permission to create an organization for this email",
+  "you_do_not_have_permission_to_migrate_one_or_more_of_the_teams": "You do not have permission to migrate one or more of the teams",
+  "organization_has_subscription_already": "Organization has a subscription already",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

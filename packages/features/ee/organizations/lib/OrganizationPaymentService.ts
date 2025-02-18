@@ -164,17 +164,18 @@ export class OrganizationPaymentService {
 
     await this.permissionService.validatePermissions(input);
 
+    // We know admin permissions have been validated in the above step so we can safely normalize the input
     const config = this.normalizePaymentConfig(input);
 
     // Create new onboarding record if none exists
     return await OrganizationOnboardingRepository.create({
-        name: input.name,
-        slug: input.slug,
-        orgOwnerEmail: input.orgOwnerEmail,
-        billingPeriod: config.billingPeriod,
-        seats: config.seats,
-        pricePerSeat: config.pricePerSeat,
-        createdById: input.createdByUserId,
+      name: input.name,
+      slug: input.slug,
+      orgOwnerEmail: input.orgOwnerEmail,
+      billingPeriod: config.billingPeriod,
+      seats: config.seats,
+      pricePerSeat: config.pricePerSeat,
+      createdById: input.createdByUserId,
     });
   }
 
@@ -276,23 +277,8 @@ export class OrganizationPaymentService {
     const teams = _teams?.filter((team) => team.id === -1 || team.isBeingMigrated) || [];
     const teamIds = teams.filter((team) => team.id > 0).map((team) => team.id);
 
-    const {
-      orgOwnerEmail,
-      pricePerSeat,
-      slug,
-      billingPeriod,
-      seats,
-      isComplete: isOnboardingComplete,
-    } = organizationOnboarding;
-    if (isOnboardingComplete) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        // TODO: Consider redirecting to the organization settings page or maybe confirm if org exists and then redirect to the success page.
-        // If any error in creatng the organization, that must be shown there and user can fix that maybe
-        message: "Organization onboarding is already complete",
-      });
-    }
-    // We know admin permissions have been validated in the above step so we can safely normalize the input
+    const { orgOwnerEmail, pricePerSeat, slug, billingPeriod, seats } = organizationOnboarding;
+
     if (this.user.role === "ADMIN") {
       log.debug("Admin flow, skipping checkout", safeStringify({ organizationOnboarding }));
       return {

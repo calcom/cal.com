@@ -72,7 +72,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
   const { t } = useLocale();
   const router = useRouter();
   const [counter, setCounter] = useState(1);
-  const useOnboardingStore = useOnboarding();
+  const { useOnboardingStore } = useOnboarding();
   const { slug: orgSlug, setTeams, teams: teamsFromStore } = useOnboardingStore();
   const teamsToCreateFromStore = teamsFromStore.filter((team) => !team.isBeingMigrated);
   const teamsToMigrateFromStore = teamsFromStore.filter((team) => team.isBeingMigrated);
@@ -237,9 +237,7 @@ const AddNewTeamsFormChild = ({ teams }: { teams: { id: number; name: string; sl
           type="submit"
           color="primary"
           className="mt-6 w-full justify-center"
-          data-testId="continue_or_checkout"
-          // Form submitted means navigation is happening and new Form would render when that occurs, so keep it in loading state
-          loading={form.formState.isSubmitted}>
+          data-testId="continue_or_checkout">
           {t("continue")}
         </Button>
       </Form>

@@ -29,6 +29,13 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
+  if (organizationOnboarding.stripeSubscriptionId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "organization_has_subscription_already",
+    });
+  }
+
   if (!isAdmin && organizationOnboarding.orgOwnerEmail !== ctx.user.email) {
     log.warn(
       "Organization onboarding there but not have access",

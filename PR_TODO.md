@@ -14,7 +14,8 @@ Deployment Plan:
 
 
 TODO:
-- [ ] Change onboarding.id to a uuid
+- [ ] Show the pricing to user set by admin
+- [x] Make sure that a slug that is taken by another organization isn't able to be checkout 
 - [x] PLATFORM: We need to create the organization without requiring payment first.
 - [x] BUG: logo and bio not bieng saved to Onboarding/Organization
 - [x] Verify if we have the logic to allow creating an organization with owner as the email for which the user doesn't have an account already.
