@@ -4,6 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import { getRoutedTeamMemberIdsFromSearchParams } from "@calcom/lib/bookings/getRoutedTeamMemberIdsFromSearchParams";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
+import type { RoutingFormSearchParams } from "@calcom/platform-types";
 
 import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
 
@@ -26,6 +27,7 @@ export type BookingOptions = {
   crmOwnerRecordType?: string | null;
   crmAppSlug?: string | null;
   orgSlug?: string;
+  routingFormSearchParams?: RoutingFormSearchParams;
 };
 
 export const mapBookingToMutationInput = ({
@@ -46,8 +48,9 @@ export const mapBookingToMutationInput = ({
   crmOwnerRecordType,
   crmAppSlug,
   orgSlug,
+  routingFormSearchParams,
 }: BookingOptions): BookingCreateBody => {
-  const searchParams = new URLSearchParams(window.location.search);
+  const searchParams = new URLSearchParams(routingFormSearchParams ?? window.location.search);
   const routedTeamMemberIds = getRoutedTeamMemberIdsFromSearchParams(searchParams);
   const routingFormResponseIdParam = searchParams.get("cal.routingFormResponseId");
   const routingFormResponseId = routingFormResponseIdParam ? Number(routingFormResponseIdParam) : undefined;
