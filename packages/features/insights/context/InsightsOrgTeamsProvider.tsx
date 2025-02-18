@@ -3,6 +3,8 @@
 import { useSession } from "next-auth/react";
 import { createContext, useState } from "react";
 
+import { MembershipRole } from "@calcom/prisma/enums";
+
 import type { OrgTeamsType } from "../filters/OrgTeamsFilter";
 
 export type InsightsOrgTeamsContextType = {
@@ -17,7 +19,11 @@ export const InsightsOrgTeamsContext = createContext<InsightsOrgTeamsContextType
 export function InsightsOrgTeamsProvider({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const currentOrgId = session.data?.user.org?.id;
-  const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(currentOrgId ? "org" : "yours");
+  const orgRole = session?.data?.user?.org?.role;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
+  const [orgTeamsType, setOrgTeamsType] = useState<OrgTeamsType>(
+    isAdminOrOwner && currentOrgId ? "org" : "yours"
+  );
   const [selectedTeamId, setSelectedTeamId] = useState<number | undefined>();
 
   return (
