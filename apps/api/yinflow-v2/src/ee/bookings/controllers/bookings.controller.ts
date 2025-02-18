@@ -90,8 +90,7 @@ export class BookingsController {
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
-    const { bookingUid, start, orgSlug, user, responses, metadata, userId, lengthInMinutes, ...otherParams } =
-      body;
+    const { start, orgSlug, metadata, lengthInMinutes } = body;
 
     req.headers["x-cal-force-slug"] = orgSlug;
 
@@ -108,28 +107,39 @@ export class BookingsController {
 
       if (!eventType) throw new NotFoundException("Event type not found.");
 
-      const uid = randomBytes(16).toString("hex");
+      try {
+        const response = await fetch("https://agenda.yinflow.life/api/create-booking", {
+          body: JSON.stringify({
+            eventTypeId: req.body.eventTypeId,
+            start: req.body.start,
+            end,
+            responses: {
+              CPF: req.body.bookingFieldsResponses.CPF,
+              name: req.body.attendee.name,
+              email: req.body.attendee.email,
+            },
+            metadata: metadata || {},
+            timeZone: req.body.attendee.timeZone,
+            language: req.body.attendee.language,
+            title: eventType.title,
+          }),
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-      const { data: booking, error } = await supabase
-        .from("Booking")
-        .insert({
-          ...otherParams,
-          uid: bookingUid || uid,
-          endTime: end,
-          userId,
-          title: eventType.title,
-          startTime: start,
-          user: JSON.stringify(user),
-          responses: JSON.stringify(responses),
-          metadata: JSON.stringify(metadata),
-        })
-        .select("*")
-        .single();
+        if (!response.ok) throw new HttpError(response.statusText, response.status);
 
-      return {
-        status: SUCCESS_STATUS,
-        data: booking || error,
-      };
+        const responseData = await response.json();
+
+        return {
+          status: SUCCESS_STATUS,
+          data: responseData,
+        };
+      } catch (err) {
+        this.handleBookingErrors(err);
+      }
     } catch (err) {
       this.handleBookingErrors(err);
     }
