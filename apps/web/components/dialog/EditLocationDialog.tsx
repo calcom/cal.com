@@ -324,25 +324,25 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }}
               />
               {selectedLocation && SelectedLocationInput}
+              <DialogFooter showDivider className="mt-8">
+                <Button
+                  onClick={() => {
+                    setShowLocationModal(false);
+                    setSelectedLocation?.(undefined);
+                    setEditingLocationType?.("");
+                    locationFormMethods.unregister(["locationType", "locationLink"]);
+                  }}
+                  type="button"
+                  color="secondary">
+                  {t("cancel")}
+                </Button>
+                <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
+                  {t("update")}
+                </Button>
+              </DialogFooter>
             </Form>
           </div>
         </div>
-        <DialogFooter showDivider className="mt-8">
-          <Button
-            onClick={() => {
-              setShowLocationModal(false);
-              setSelectedLocation?.(undefined);
-              setEditingLocationType?.("");
-              locationFormMethods.unregister(["locationType", "locationLink"]);
-            }}
-            type="button"
-            color="secondary">
-            {t("cancel")}
-          </Button>
-          <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
-            {t("update")}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
