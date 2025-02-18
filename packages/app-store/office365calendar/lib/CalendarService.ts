@@ -144,7 +144,7 @@ export default class Office365CalendarService implements Calendar {
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
         const isDomainWideDelegated = Boolean(credential?.delegatedTo);
-        if (!refreshToken) {
+        if (!isDomainWideDelegated && !refreshToken) {
           return null;
         }
         const { client_id, client_secret } = await getOfficeAppKeys();
@@ -167,10 +167,12 @@ export default class Office365CalendarService implements Calendar {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
-            scope: "User.Read Calendars.Read Calendars.ReadWrite",
+            scope: isDomainWideDelegated
+              ? "https://graph.microsoft.com/.default"
+              : "User.Read Calendars.Read Calendars.ReadWrite",
             client_id: dwdClientId ?? client_id,
-            refresh_token: refreshToken,
-            grant_type: "refresh_token",
+            ...(isDomainWideDelegated ? {} : { refresh_token: refreshToken ?? "" }),
+            grant_type: isDomainWideDelegated ? "client_credentials" : "refresh_token",
             client_secret: dwdClientSecret ?? client_secret,
           }),
         });
