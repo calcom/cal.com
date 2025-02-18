@@ -13,7 +13,7 @@ type IToast = {
 export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm"
+      "data-testid-toast-success bg-default dark:bg-inverted text-emphasis dark:text-inverted shadow-elevation-low border-subtle mb-2 flex h-auto space-x-2 rounded-lg border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
@@ -31,7 +31,7 @@ export const SuccessToast = ({ message, onClose, toastId }: IToast) => (
 export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-error text-error text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm"
+      "animate-fade-in-up bg-semantic-error-subtle text-semantic-error shadow-elevation-low border-semantic-error-subtle mb-2 flex h-auto space-x-2 rounded-md border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
@@ -49,7 +49,7 @@ export const ErrorToast = ({ message, onClose, toastId }: IToast) => (
 export const WarningToast = ({ message, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm"
+      "animate-fade-in-up bg-semantic-attention-subtle text-semantic-attention shadow-elevation-low border-semantic-attention-subtle mb-2 flex h-auto space-x-2 rounded-md border px-3 py-2.5 text-sm font-semibold rtl:space-x-reverse md:max-w-sm"
     )}
     onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
@@ -58,16 +58,6 @@ export const WarningToast = ({ message, onClose, toastId }: IToast) => (
     <p data-testid="toast-warning" className="m-0 w-full text-left">
       {message}
     </p>
-  </button>
-);
-
-export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
-  <button
-    className={classNames(
-      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
-      toastVisible && "animate-fade-in-up cursor-pointer"
-    )}
-    onClick={() => onClose(toastId)}>
     <span className="mt-0.5">
       <Icon name="x" className="text-semantic-attention h-4 w-4 hover:cursor-pointer" />
     </span>
@@ -84,7 +74,6 @@ export function showToast(
   // Options or duration (duration for backwards compatibility reasons)
   options: number | ToastT = TOAST_VISIBLE_DURATION
 ) {
-  //
   const _options: ToastT = typeof options === "number" ? { duration: options, id: "" } : options;
   if (!_options.duration) _options.duration = TOAST_VISIBLE_DURATION;
   if (!_options.position) _options.position = "bottom-center";
@@ -101,7 +90,7 @@ export function showToast(
 
   return toast.custom(
     toastElements[variant] ||
-      ((toastId) => <DefaultToast message={message} onClose={onClose} toastId={toastId} />),
+      ((toastId) => <SuccessToast message={message} onClose={onClose} toastId={toastId} />),
     _options
   );
 }
