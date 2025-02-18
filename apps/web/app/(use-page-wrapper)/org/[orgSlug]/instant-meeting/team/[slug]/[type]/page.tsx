@@ -1,7 +1,6 @@
 import { withAppDirSsr } from "app/WithAppDirSsr";
 import type { PageProps as _PageProps } from "app/_types";
 import { generateMeetingMetadata } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
 import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -48,4 +47,10 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
 };
 
 const getData = withAppDirSsr<Props>(getServerSideProps);
-export default WithLayout({ getData, Page, isBookingPage: true })<"P">;
+
+const ServerPage = async ({ params, searchParams }: _PageProps) => {
+  const props = await getData(buildLegacyCtx(headers(), cookies(), params, searchParams));
+  return <Page {...props} />;
+};
+
+export default ServerPage;
