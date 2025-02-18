@@ -103,7 +103,7 @@ export const filterHostsByLeadThreshold = async <T extends BaseHost<BaseUser>>({
   if (maxLeadThreshold === 0) {
     throw new Error(errorCodes.MAX_LEAD_THRESHOLD_FALSY);
   }
-  if (maxLeadThreshold === null) {
+  if (maxLeadThreshold === null || !hosts.length) {
     return hosts; // don't apply filter.
   }
 
