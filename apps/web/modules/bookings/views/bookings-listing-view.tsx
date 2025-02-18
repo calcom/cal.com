@@ -117,13 +117,6 @@ function BookingsContent({ status }: BookingsProps) {
     }
   }, [user, filterQuery.status]);
 
-  useEffect(() => {
-    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
-      setIsFiltersVisible(true);
-      pushItemToKey("userIds", user?.id);
-    }
-  }, [user, filterQuery.status]);
-
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
