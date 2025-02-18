@@ -165,6 +165,7 @@ module.exports = {
     },
   },
   plugins: [
+    require("@todesktop/tailwind-variants"),
     taurifyVariants(),
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
