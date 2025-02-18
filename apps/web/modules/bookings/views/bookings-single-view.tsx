@@ -946,7 +946,6 @@ export default function Success(props: PageProps) {
                               placeholder="rick.astley@cal.com"
                             />
                             <Button
-                              size="lg"
                               type="submit"
                               className="min-w-max rounded-none rounded-r-md"
                               color="primary">
