@@ -20,14 +20,16 @@ export function FilterToggle({ setIsFiltersVisible }: FilterToggleProps) {
 
   return (
     <Button color="secondary" onClick={toggleFiltersVisibility} className="mb-4" StartIcon="filter">
-      <Tooltip content={t("filters")}>
-        <div className="mx-2">{t("filters")}</div>
-      </Tooltip>
-      {(teamIds || userIds || eventTypeIds) && (
-        <Badge variant="gray" rounded>
-          {(teamIds ? 1 : 0) + (userIds ? 1 : 0) + (eventTypeIds ? 1 : 0)}
-        </Badge>
-      )}
+      <div className="flex items-center">
+        <Tooltip content={t("filters")}>
+          <div className="mx-2">{t("filters")}</div>
+        </Tooltip>
+        {(teamIds || userIds || eventTypeIds) && (
+          <Badge variant="gray" rounded>
+            {(teamIds ? 1 : 0) + (userIds ? 1 : 0) + (eventTypeIds ? 1 : 0)}
+          </Badge>
+        )}
+      </div>
     </Button>
   );
 }
