@@ -210,7 +210,13 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   addToSelectedDate: (days: number) => {
     const currentSelection = dayjs(get().selectedDate);
-    const newSelection = currentSelection.add(days, "day");
+    let newSelection = currentSelection.add(days, "day");
+
+    // If newSelection is before the current date, set it to today
+    if (newSelection.isBefore(dayjs(), "day")) {
+      newSelection = dayjs();
+    }
+
     const newSelectionFormatted = newSelection.format("YYYY-MM-DD");
 
     if (newSelection.month() !== currentSelection.month()) {
