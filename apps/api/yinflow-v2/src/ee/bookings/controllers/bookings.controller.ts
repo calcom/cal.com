@@ -12,7 +12,6 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { randomBytes } from "crypto";
 import dayjs from "dayjs";
 import { Request } from "express";
 
@@ -114,13 +113,13 @@ export class BookingsController {
             start: req.body.start,
             end,
             responses: {
-              CPF: req.body.bookingFieldsResponses.CPF,
-              name: req.body.attendee.name,
-              email: req.body.attendee.email,
+              CPF: "12345678901",
+              name: "Felippe Fernandes",
+              email: "luiz.felippe@yangflow.us",
             },
             metadata: metadata || {},
-            timeZone: req.body.attendee.timeZone,
-            language: req.body.attendee.language,
+            timeZone: "America/Sao_Paulo",
+            language: "pt-BR",
             title: eventType.title,
           }),
           method: "POST",
