@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import { emailSchema } from "@calcom/lib/emailSchema";
 import logger from "@calcom/lib/logger";
 import { findTeamMembersMatchingAttributeLogic } from "@calcom/lib/raqb/findTeamMembersMatchingAttributeLogic";
@@ -30,7 +31,11 @@ export type Form = SerializableForm<
 
 const moduleLogger = logger.getSubLogger({ prefix: ["routing-forms/lib/handleResponse"] });
 
-export const handleResponse = async ({
+export const handleResponse = (...args: Parameters<typeof _handleResponse>) => {
+  return monitorCallbackAsync(_handleResponse, ...args);
+};
+
+const _handleResponse = async ({
   response,
   form,
   // Unused but probably should be used
@@ -132,52 +137,55 @@ export const handleResponse = async ({
         });
       }
 
-      await Promise.all([
-        (async () => {
-          const contactOwnerQuery = await routerGetCrmContactOwnerEmail({
-            attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
-            response,
-            action: chosenRoute.action,
-          });
-          crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
-          crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
-          crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
-        })(),
-        (async () => {
-          const teamMembersMatchingAttributeLogicWithResult =
-            formTeamId && formOrgId
-              ? await findTeamMembersMatchingAttributeLogic(
-                  {
-                    dynamicFieldValueOperands: {
-                      response,
-                      fields: form.fields || [],
+      const getRoutedMembers = async () =>
+        await Promise.all([
+          (async () => {
+            const contactOwnerQuery = await routerGetCrmContactOwnerEmail({
+              attributeRoutingConfig: chosenRoute.attributeRoutingConfig,
+              response,
+              action: chosenRoute.action,
+            });
+            crmContactOwnerEmail = contactOwnerQuery?.email ?? null;
+            crmContactOwnerRecordType = contactOwnerQuery?.recordType ?? null;
+            crmAppSlug = contactOwnerQuery?.crmAppSlug ?? null;
+          })(),
+          (async () => {
+            const teamMembersMatchingAttributeLogicWithResult =
+              formTeamId && formOrgId
+                ? await findTeamMembersMatchingAttributeLogic(
+                    {
+                      dynamicFieldValueOperands: {
+                        response,
+                        fields: form.fields || [],
+                      },
+                      attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
+                      fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
+                      teamId: formTeamId,
+                      orgId: formOrgId,
                     },
-                    attributesQueryValue: chosenRoute.attributesQueryValue ?? null,
-                    fallbackAttributesQueryValue: chosenRoute.fallbackAttributesQueryValue,
-                    teamId: formTeamId,
-                    orgId: formOrgId,
-                  },
-                  {
-                    enablePerf: true,
-                  }
-                )
-              : null;
+                    {
+                      enablePerf: true,
+                    }
+                  )
+                : null;
 
-          moduleLogger.debug(
-            "teamMembersMatchingAttributeLogic",
-            safeStringify({ teamMembersMatchingAttributeLogicWithResult })
-          );
+            moduleLogger.debug(
+              "teamMembersMatchingAttributeLogic",
+              safeStringify({ teamMembersMatchingAttributeLogicWithResult })
+            );
 
-          teamMemberIdsMatchingAttributeLogic =
-            teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
-              ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
-                  (member) => member.userId
-                )
-              : null;
+            teamMemberIdsMatchingAttributeLogic =
+              teamMembersMatchingAttributeLogicWithResult?.teamMembersMatchingAttributeLogic
+                ? teamMembersMatchingAttributeLogicWithResult.teamMembersMatchingAttributeLogic.map(
+                    (member) => member.userId
+                  )
+                : null;
 
-          timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
-        })(),
-      ]);
+            timeTaken = teamMembersMatchingAttributeLogicWithResult?.timeTaken ?? {};
+          })(),
+        ]);
+
+      await monitorCallbackAsync(getRoutedMembers);
     } else {
       // It currently happens for a Router route. Such a route id isn't present in the form.routes
     }
@@ -194,7 +202,8 @@ export const handleResponse = async ({
         },
       });
 
-      await onFormSubmission(
+      await monitorCallbackAsync(
+        onFormSubmission,
         { ...serializableFormWithFields, userWithEmails },
         dbFormResponse.response as FormResponse,
         dbFormResponse.id,

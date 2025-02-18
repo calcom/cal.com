@@ -14,6 +14,7 @@ import { substituteVariables } from "@calcom/app-store/routing-forms/lib/substit
 import { getFieldResponseForJsonLogic } from "@calcom/app-store/routing-forms/lib/transformResponse";
 import { getUrlSearchParamsToForward } from "@calcom/app-store/routing-forms/pages/routing-link/getUrlSearchParamsToForward";
 import type { FormResponse } from "@calcom/app-store/routing-forms/types/types";
+import monitorCallbackAsync from "@calcom/core/sentryWrapper";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isAuthorizedToViewFormOnOrgDomain } from "@calcom/features/routing-forms/lib/isAuthorizedToViewForm";
 import logger from "@calcom/lib/logger";
@@ -32,7 +33,11 @@ function hasEmbedPath(pathWithQuery: string) {
   return onlyPath.endsWith("/embed") || onlyPath.endsWith("/embed/");
 }
 
-export const getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+export const getRoutedUrl = (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
+  return monitorCallbackAsync(_getRoutedUrl, context);
+};
+
+const _getRoutedUrl = async (context: Pick<GetServerSidePropsContext, "query" | "req">) => {
   const queryParsed = querySchema.safeParse(context.query);
   const isEmbed = hasEmbedPath(context.req.url || "");
   const pageProps = {
