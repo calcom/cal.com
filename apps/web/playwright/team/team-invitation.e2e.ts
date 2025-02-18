@@ -29,7 +29,7 @@ test.describe("Team", () => {
       });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator(`button:text("${t("send_invite")}")`).click();
+      await page.getByText(t("send_invite")).click();
       const inviteLink = await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -110,7 +110,7 @@ test.describe("Team", () => {
       });
       await page.getByTestId("new-member-button").click();
       await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
-      await page.locator(`button:text("${t("send_invite")}")`).click();
+      await page.getByText(t("send_invite")).click();
       await expectInvitationEmailToBeReceived(
         page,
         emails,
@@ -155,7 +155,7 @@ test.describe("Team", () => {
     await page.goto(`/settings/teams/${team.id}/members`);
     await page.getByTestId("new-member-button").click();
     await page.locator('input[name="inviteUser"]').fill(invitedMember.email);
-    await page.locator(`button:text("${t("send_invite")}")`).click();
+    await page.getByText(t("send_invite")).click();
 
     await invitedMember.apiLogin();
     await page.goto(`/teams`);

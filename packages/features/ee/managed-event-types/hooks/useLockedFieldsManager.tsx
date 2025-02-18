@@ -31,7 +31,7 @@ export const LockedSwitch = (
         setUnlockedFields(fieldName, !enabled || undefined);
       }}
       checked={fieldState[fieldName]}
-      small={!options.simple}
+      size="sm"
     />
   ) : null;
 };
@@ -58,7 +58,7 @@ export const LockedIndicator = (
           <Badge
             variant={isLocked ? "gray" : "green"}
             className={classNames(
-              "ml-2 transform justify-between gap-1.5 p-1",
+              "ml-2 transform justify-between p-1",
               isManagedEventType && !options.simple && "w-28"
             )}>
             {!options.simple && (
@@ -78,7 +78,7 @@ export const LockedIndicator = (
                   setUnlockedFields(fieldName, !enabled || undefined);
                 }}
                 checked={isLocked}
-                small={!options.simple}
+                size="sm"
               />
             )}
           </Badge>

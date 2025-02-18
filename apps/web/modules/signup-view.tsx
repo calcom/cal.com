@@ -126,7 +126,6 @@ function UsernameField({
         {...props}
         {...register("username")}
         data-testid="signup-usernamefield"
-        addOnFilled={false}
       />
       {(!formState.isSubmitting || !formState.isSubmitted) && (
         <div className="text-gray text-default flex items-center text-sm">
