@@ -6,6 +6,7 @@ import alby_config_json from "./alby/config.json";
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
+import attio_config_json from "./attio/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
 import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
@@ -36,6 +37,7 @@ import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metad
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import granola_config_json from "./granola/config.json";
 import gtm_config_json from "./gtm/config.json";
+import hitpay_config_json from "./hitpay/config.json";
 import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
@@ -108,6 +110,7 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
+  attio: attio_config_json,
   autocheckin: autocheckin_config_json,
   "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
@@ -138,6 +141,7 @@ export const appStoreMetadata = {
   googlevideo: googlevideo__metadata_ts,
   granola: granola_config_json,
   gtm: gtm_config_json,
+  hitpay: hitpay_config_json,
   "horizon-workrooms": horizon_workrooms_config_json,
   hubspot: hubspot__metadata_ts,
   huddle01video: huddle01video__metadata_ts,

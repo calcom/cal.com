@@ -3,7 +3,10 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import {
+  getAggregatedAvailability,
+  getAggregatedAvailabilityNew,
+} from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
@@ -183,6 +186,20 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
+const groupTimeSlotsByDay = (timeSlots: { time: Dayjs }[]) => {
+  return timeSlots.reduce((acc: Record<string, string[]>, { time }) => {
+    const day = time.format("YYYY-MM-DD"); // Group by date
+    const formattedTime = time.format("HH:mm"); // Format as HH:mm
+
+    if (!acc[day]) {
+      acc[day] = [];
+    }
+    acc[day].push(formattedTime);
+
+    return acc;
+  }, {});
+};
+
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
   const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
   Object.keys(occupiedSeatsCount).forEach((date) => {
@@ -310,6 +327,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 
   const loggerWithEventDetails = logger.getSubLogger({
+    type: "json",
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
@@ -350,18 +368,19 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     contactOwnerEmail,
   });
 
-  let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-    await calculateHostsAndAvailabilities({
-      input,
-      eventType,
-      hosts: routedHostsWithContactOwnerAndFixedHosts,
-      contactOwnerEmail,
-      loggerWithEventDetails,
-      startTime,
-      endTime,
-      bypassBusyCalendarTimes,
-      shouldServeCache,
-    });
+  let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
+    input,
+    eventType,
+    hosts: routedHostsWithContactOwnerAndFixedHosts,
+    contactOwnerEmail,
+    loggerWithEventDetails,
+    startTime,
+    endTime,
+    bypassBusyCalendarTimes,
+    shouldServeCache,
+  });
+
+  let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
   // If contact skipping, determine if there's availability within two weeks
   if (contactOwnerEmail && aggregatedAvailability.length > 0) {
@@ -375,8 +394,8 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
 
       if (routedHostsAndFixedHosts.length > 0) {
         // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-          await calculateHostsAndAvailabilities({
+        ({ allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities(
+          {
             input,
             eventType,
             hosts: routedHostsAndFixedHosts,
@@ -386,7 +405,9 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
             endTime,
             bypassBusyCalendarTimes,
             shouldServeCache,
-          }));
+          }
+        ));
+        aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
       }
     }
   }
@@ -401,6 +422,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -411,6 +433,47 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
+
+  const aggregatedAvailabilityNew = getAggregatedAvailabilityNew(
+    allUsersAvailability,
+    eventType.schedulingType
+  );
+
+  const timeSlotsNew = monitorCallbackSync(getSlots, {
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    offsetStart: eventType.offsetStart,
+    dateRanges: aggregatedAvailabilityNew,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+  });
+
+  const ts = groupTimeSlotsByDay(timeSlots),
+    tsNew = groupTimeSlotsByDay(timeSlotsNew);
+
+  const differences = Object.keys({ ...ts, ...tsNew }).reduce(
+    (acc: Record<string, { onlyInTimeSlots: string[]; onlyInTimeSlotsNew: string[] }>, day) => {
+      const t1 = ts[day] || [],
+        t2 = tsNew[day] || [];
+      const missingInNew = t1.filter((t) => !t2.includes(t));
+      const missingInOld = t2.filter((t) => !t1.includes(t));
+
+      if (missingInNew.length || missingInOld.length) {
+        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
+      }
+
+      return acc;
+    },
+    {}
+  );
+
+  if (Object.keys(differences).length) {
+    loggerWithEventDetails.info({
+      routedTeamMemberIds,
+      differences,
+    });
+  }
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
@@ -548,11 +611,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     );
   });
 
-  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+  loggerWithEventDetails.debug({ slotsMappedToDate });
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
-  loggerWithEventDetails.debug(safeStringify({ availableDates }));
+  loggerWithEventDetails.debug({ availableDates });
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -716,6 +779,7 @@ async function getExistingBookings(
         seatsPerTimeSlot: true,
         requiresConfirmationWillBlockSlot: true,
         requiresConfirmation: true,
+        allowReschedulingPastBookings: true,
       },
     },
     ...(!!eventType?.seatsPerTimeSlot && {
@@ -1023,14 +1087,7 @@ const calculateHostsAndAvailabilities = async ({
     }
   );
 
-  const aggregatedAvailability = monitorCallbackSync(
-    getAggregatedAvailability,
-    allUsersAvailability,
-    eventType.schedulingType
-  );
-
   return {
-    aggregatedAvailability,
     allUsersAvailability,
     usersWithCredentials,
     currentSeats,

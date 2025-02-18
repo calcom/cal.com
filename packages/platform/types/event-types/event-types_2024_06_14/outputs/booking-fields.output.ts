@@ -23,6 +23,7 @@ import {
   NotesDefaultFieldInput_2024_06_14,
   RescheduleReasonDefaultFieldInput_2024_06_14,
   TitleDefaultFieldInput_2024_06_14,
+  SplitNameDefaultFieldInput_2024_06_14,
 } from "../inputs";
 
 export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_2024_06_14 {
@@ -49,6 +50,28 @@ export class NameDefaultFieldOutput_2024_06_14 extends NameDefaultFieldInput_202
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+}
+
+export class SplitNameDefaultFieldOutput_2024_06_14 extends SplitNameDefaultFieldInput_2024_06_14 {
+  @IsBoolean()
+  @DocsProperty({
+    description: "This property is always true because it's a default field",
+    example: true,
+    default: true,
+  })
+  isDefault = true;
+
+  @IsString()
+  @DocsProperty({
+    default: "splitName",
+  })
+  slug!: "splitName";
+
+  @IsString()
+  @DocsProperty({
+    default: "splitName",
+  })
+  type!: "splitName";
 }
 
 export class EmailDefaultFieldOutput_2024_06_14 extends EmailDefaultFieldInput_2024_06_14 {
@@ -348,6 +371,33 @@ export class PhoneDefaultFieldOutput_2024_06_14 {
   @IsBoolean()
   @DocsProperty()
   required!: boolean;
+
+  @IsBoolean()
+  @DocsProperty({
+    description:
+      "If true show under event type settings but don't show this booking field in the Booker. If false show in both.",
+  })
+  hidden!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  label?: string;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+
+  @IsBoolean()
+  @ApiProperty({
+    type: Boolean,
+    description:
+      "Disable this booking field if the URL contains query parameter with key equal to the slug and prefill it with the provided value.\
+      For example, if URL contains query parameter `&attendeePhoneNumber=+37122222222`,\
+      the guests field will be prefilled with this value and disabled.",
+  })
+  disableOnPrefill!: boolean;
 }
 
 export class PhoneFieldOutput_2024_06_14 extends PhoneFieldInput_2024_06_14 {
@@ -550,6 +600,7 @@ export class OutputUnknownBookingField_2024_06_14 {
 
 export type DefaultFieldOutput_2024_06_14 =
   | NameDefaultFieldOutput_2024_06_14
+  | SplitNameDefaultFieldOutput_2024_06_14
   | EmailDefaultFieldOutput_2024_06_14
   | LocationDefaultFieldOutput_2024_06_14
   | RescheduleReasonDefaultFieldOutput_2024_06_14
@@ -584,6 +635,7 @@ class OutputBookingFieldValidator_2024_06_14 implements ValidatorConstraintInter
 
   private defaultOutputNameMap: { [key: string]: new () => DefaultFieldOutput_2024_06_14 } = {
     name: NameDefaultFieldOutput_2024_06_14,
+    splitName: SplitNameDefaultFieldOutput_2024_06_14,
     email: EmailDefaultFieldOutput_2024_06_14,
     location: LocationDefaultFieldOutput_2024_06_14,
     rescheduleReason: RescheduleReasonDefaultFieldOutput_2024_06_14,

@@ -1,5 +1,5 @@
 import { _generateMetadata, getTranslate } from "app/_utils";
-import { WithLayout } from "app/layoutHOC";
+import { type ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { headers } from "next/headers";
 import Link from "next/link";
 
@@ -9,6 +9,8 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
+
+import PageWrapper from "@components/PageWrapperAppDir";
 
 enum PageType {
   ORG = "ORG",
@@ -20,7 +22,22 @@ enum PageType {
 function getPageInfo(pathname: string, host: string) {
   const { isValidOrgDomain, currentOrgDomain } = getOrgDomainConfigFromHostname({ hostname: host });
   const [routerUsername] = pathname?.replace("%20", "-").split(/[?#]/) ?? [];
-  if (!routerUsername || (isValidOrgDomain && currentOrgDomain)) {
+  if (routerUsername && (!isValidOrgDomain || !currentOrgDomain)) {
+    const splitPath = routerUsername.split("/");
+    if (splitPath[1] === "team" && splitPath.length === 3) {
+      return {
+        username: splitPath[2],
+        pageType: PageType.TEAM,
+        url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
+      };
+    } else {
+      return {
+        username: routerUsername,
+        pageType: PageType.USER,
+        url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
+      };
+    }
+  } else {
     return {
       username: currentOrgDomain ?? "",
       pageType: PageType.ORG,
@@ -29,28 +46,11 @@ function getPageInfo(pathname: string, host: string) {
       }`,
     };
   }
-
-  const splitPath = routerUsername.split("/");
-  if (splitPath[1] === "team" && splitPath.length === 3) {
-    return {
-      username: splitPath[2],
-      pageType: PageType.TEAM,
-      url: `${WEBSITE_URL}/signup?callbackUrl=settings/teams/new%3Fslug%3D${splitPath[2].replace("/", "")}`,
-    };
-  }
-
-  return {
-    username: routerUsername,
-    pageType: PageType.USER,
-    url: `${WEBSITE_URL}/signup?username=${routerUsername.replace("/", "")}`,
-  };
 }
 
-async function NotFound() {
-  const t = await getTranslate();
-  const headersList = headers();
-  const host = headersList.get("x-forwarded-host") ?? "";
-  const pathname = headersList.get("x-pathname") ?? "";
+function NotFound({ t, headers }: { t: any; headers: ReadonlyHeaders }) {
+  const host = headers.get("x-forwarded-host") ?? "";
+  const pathname = headers.get("x-pathname") ?? "";
 
   // This makes more sense after full migration to App Router
   // if (!pathname) {
@@ -122,11 +122,11 @@ async function NotFound() {
             <span className="mt-2 inline-block text-lg">{t("check_spelling_mistakes_or_go_back")}</span>
           ) : IS_CALCOM ? (
             <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-              {t(`404_the_${pageType.toLowerCase()}`)}
-
+              {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
-                  <strong className="text-blue-500">{username}</strong> {t("is_still_available")}{" "}
+                  <strong className="text-blue-500">{username}</strong>
+                  {` ${t("is_still_available")} `}
                   <span className="text-blue-500">{t("register_now")}</span>.
                 </>
               ) : null}
@@ -136,7 +136,7 @@ async function NotFound() {
               {t(`404_the_${pageType.toLowerCase()}`)}{" "}
               {username ? (
                 <>
-                  <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                  <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
                   {t("is_still_available")}
                 </>
               ) : null}
@@ -241,6 +241,14 @@ export const generateMetadata = async () => {
   };
 };
 
-export default WithLayout({
-  ServerPage: NotFound,
-});
+const ServerPage = async () => {
+  const t = await getTranslate();
+  const h = headers();
+  const nonce = h.get("x-nonce") ?? undefined;
+  return (
+    <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null}>
+      <NotFound t={t} headers={h} />
+    </PageWrapper>
+  );
+};
+export default ServerPage;
