@@ -61,17 +61,20 @@ export default class Office365CalendarService implements Calendar {
     this.integrationName = "office365_calendar";
     const tokenResponse = getTokenObjectFromCredential(credential);
 
-    function getAuthUrl(delegatedTo?: boolean, tenantId?: string) {
-      console.log("tenantId: ", tenantId);
-      console.log("delegatedTo: ", delegatedTo);
-      if (delegatedTo && !tenantId) {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
-          "Invalid DomainWideDelegation Settings: tenantId is missing"
-        );
+    function getAuthUrl(delegatedTo?: boolean, tenantId?: string): string {
+      console.log("tenantId:", tenantId);
+      console.log("delegatedTo:", delegatedTo);
+
+      if (delegatedTo) {
+        if (!tenantId) {
+          throw new CalendarAppDomainWideDelegationInvalidGrantError(
+            "Invalid DomainWideDelegation Settings: tenantId is missing"
+          );
+        }
+        return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
       }
-      return delegatedTo && tenantId
-        ? `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`
-        : "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+
+      return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     }
 
     this.auth = new OAuthManager({
