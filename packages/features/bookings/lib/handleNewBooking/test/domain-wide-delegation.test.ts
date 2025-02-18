@@ -94,7 +94,7 @@ describe("handleNewBooking", () => {
           teams: payloadToMakePartOfOrganization,
           // No regular credentials provided
           credentials: [],
-          destinationCalendar: [TestData.selectedCalendars.google],
+          destinationCalendar: TestData.selectedCalendars.google,
         });
 
         const dwd = await createDwdCredential(org.id);
@@ -226,6 +226,204 @@ describe("handleNewBooking", () => {
           location: BookingLocations.GoogleMeet,
           subscriberUrl: "http://my-webhook.example.com",
           videoCallUrl: "https://GOOGLE_MEET_URL_IN_CALENDAR_EVENT",
+        });
+      },
+      timeout
+    );
+
+    test.skip(
+      `should create a successful booking using the office365 domain wide delegation credential
+      1. Should create a booking in the database with reference having DWD credential
+      2. Should create an event in Outlook calendar with DWD credential
+      3. [TODO] Should use MS Teams as the location even when not explicitly set.
+`,
+      async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+
+        const org = await createOrganization({
+          name: "Test Org",
+          slug: "testorg",
+        });
+
+        const payloadToMakePartOfOrganization = [
+          {
+            membership: {
+              accepted: true,
+              role: MembershipRole.ADMIN,
+            },
+            team: {
+              id: org.id,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ];
+
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          selectedCalendars: [TestData.selectedCalendars.office365],
+          // User must be part of organization to be able to use that organization's DWD credential
+          teams: payloadToMakePartOfOrganization,
+          // No regular credentials provided
+          credentials: [],
+          destinationCalendar: TestData.selectedCalendars.office365,
+        });
+
+        const dwd = await createDwdCredential(org.id, "office365");
+        const payloadToCreateUserEventTypeForOrganizer = {
+          id: 1,
+          slotInterval: 30,
+          length: 30,
+          users: [
+            {
+              id: organizer.id,
+            },
+          ],
+        };
+
+        await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            workflows: [
+              {
+                userId: organizer.id,
+                trigger: "NEW_EVENT",
+                action: "EMAIL_HOST",
+                template: "REMINDER",
+                activeOn: [1],
+              },
+            ],
+            eventTypes: [payloadToCreateUserEventTypeForOrganizer],
+            organizer,
+            apps: [TestData.apps["daily-video"], TestData.apps["office365-calendar"]],
+          })
+        );
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        // Mock a Scenario where iCalUID isn't returned by Google Calendar in which case booking UID is used as the ics UID
+        const calendarMock = mockCalendarToHaveNoBusySlots("office365calendar", {
+          create: {
+            id: "OFFICE_365_CALENDAR_EVENT_ID",
+            uid: "MOCK_ID",
+            appSpecificData: {
+              office365Calendar: {
+                url: "http://mock-dailyvideo.example.com/meeting-1",
+              },
+            },
+          },
+        });
+
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        const createdBooking = await handleNewBooking(req);
+
+        expect(createdBooking.responses).toEqual(
+          expect.objectContaining({
+            email: booker.email,
+            name: booker.name,
+          })
+        );
+
+        expect(createdBooking).toEqual(
+          expect.objectContaining({
+            location: BookingLocations.CalVideo,
+          })
+        );
+
+        console.log("createdBooking", createdBooking);
+
+        await expectBookingToBeInDatabase({
+          description: "",
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          uid: createdBooking.uid!,
+          eventTypeId: mockBookingData.eventTypeId,
+          status: BookingStatus.ACCEPTED,
+          references: [
+            {
+              type: appStoreMetadata.dailyvideo.type,
+              uid: "MOCK_ID",
+              meetingId: "MOCK_ID",
+              meetingPassword: "MOCK_PASS",
+              meetingUrl: "http://mock-dailyvideo.example.com/meeting-1",
+            },
+            {
+              type: appStoreMetadata.office365calendar.type,
+              uid: "OFFICE_365_CALENDAR_EVENT_ID",
+              meetingId: "OFFICE_365_CALENDAR_EVENT_ID",
+              meetingPassword: "MOCK_PASSWORD",
+              meetingUrl: "https://UNUSED_URL",
+              // Verify DWD credential was used
+              domainWideDelegationCredentialId: dwd.id,
+            },
+          ],
+          iCalUID: createdBooking.iCalUID,
+        });
+
+        expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
+        expectSuccessfulCalendarEventCreationInCalendar(calendarMock, {
+          credential: buildDwdCredential({ serviceAccountKey: dwd.serviceAccountKey }),
+          calendarId: TestData.selectedCalendars.office365.externalId,
+          // There would be no videoCallUrl in this case as it is not a dedicated conferencing case and hangoutLink is used instead
+          videoCallUrl: null,
+        });
+
+        const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+
+        expectSuccessfulBookingCreationEmails({
+          booking: {
+            uid: createdBooking.uid!,
+          },
+          booker,
+          organizer,
+          emails,
+          iCalUID,
+        });
+
+        expectBookingCreatedWebhookToHaveBeenFired({
+          booker,
+          organizer,
+          location: BookingLocations.CalVideo,
+          subscriberUrl: "http://my-webhook.example.com",
+          videoCallUrl: "http://mock-dailyvideo.example.com/meeting-1",
         });
       },
       timeout
@@ -441,7 +639,7 @@ describe("handleNewBooking", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
           teams: payloadToMakePartOfOrganization,
           credentials: [],
-          destinationCalendar: [TestData.selectedCalendars.google],
+          destinationCalendar: TestData.selectedCalendars.google,
         });
 
         const groupUser2 = getOrganizer({
@@ -453,7 +651,7 @@ describe("handleNewBooking", () => {
           selectedCalendars: [TestData.selectedCalendars.google],
           teams: payloadToMakePartOfOrganization,
           credentials: [],
-          destinationCalendar: [TestData.selectedCalendars.google],
+          destinationCalendar: TestData.selectedCalendars.google,
         });
 
         const dwd = await createDwdCredential(org.id);

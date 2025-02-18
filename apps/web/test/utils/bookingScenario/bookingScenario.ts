@@ -1112,6 +1112,10 @@ export const TestData = {
       integration: "google_calendar",
       externalId: "john@example.com",
     },
+    office365: {
+      integration: "office365_calendar",
+      externalId: "john@example.com",
+    },
   },
   credentials: {
     google: getGoogleCalendarCredential(),
@@ -1241,6 +1245,16 @@ export const TestData = {
         client_id: "client_id",
         client_secret: "client_secret",
         redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
+    "office365-calendar": {
+      ...appStoreMetadata.office365calendar,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
       },
     },
     "google-meet": {
@@ -1534,6 +1548,9 @@ export function mockCalendar(
         googleCalendar?: {
           hangoutLink?: string;
         };
+        office365Calendar?: {
+          url?: string;
+        };
       };
     };
     update?: {
@@ -1543,6 +1560,9 @@ export function mockCalendar(
       appSpecificData?: {
         googleCalendar?: {
           hangoutLink?: string;
+        };
+        office365Calendar?: {
+          url?: string;
         };
       };
     };
@@ -2193,65 +2213,110 @@ export const getDefaultBookingFields = ({
   ] as Fields;
 };
 
-export const createDwdCredential = async (orgId: number) => {
-  const encryptedServiceAccountKey = {
-    type: "service_account",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    client_id: "CLIENT_ID",
-    token_uri: "https://oauth2.googleapis.com/token",
-    project_id: "PROJECT_ID",
-    encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
-    client_email: "CLIENT_EMAIL",
-    private_key_id: "PRIVATE_KEY_ID",
-    universe_domain: "googleapis.com",
-    client_x509_cert_url: "CLIENT_X509_CERT_URL",
-    auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
-  };
+export const createDwdCredential = async (orgId: number, type: "google" | "office365" = "google") => {
+  if (type === "google") {
+    const encryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
 
-  const workspace = await prismock.workspacePlatform.create({
-    data: {
-      name: "Test Workspace",
-      slug: "google",
-      description: "Test Workspace",
-      defaultServiceAccountKey: encryptedServiceAccountKey,
-      enabled: true,
-    },
-  });
-
-  const decryptedServiceAccountKey = {
-    type: "service_account",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    client_id: "CLIENT_ID",
-    token_uri: "https://oauth2.googleapis.com/token",
-    project_id: "PROJECT_ID",
-    private_key: "PRIVATE_KEY",
-    client_email: "CLIENT_EMAIL",
-    private_key_id: "PRIVATE_KEY_ID",
-    universe_domain: "googleapis.com",
-    client_x509_cert_url: "CLIENT_X509_CERT_URL",
-    auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
-  };
-
-  const dwd = await prismock.domainWideDelegation.create({
-    data: {
-      workspacePlatform: {
-        connect: {
-          id: workspace.id,
-        },
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "google",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
       },
-      domain: "example.com",
-      enabled: true,
-      organization: {
-        connect: {
-          id: orgId,
-        },
-      },
-      // @ts-expect-error - TODO: fix this
-      serviceAccountKey: workspace.defaultServiceAccountKey,
-    },
-  });
+    });
 
-  return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+    const decryptedServiceAccountKey = {
+      type: "service_account",
+      auth_uri: "https://accounts.google.com/o/oauth2/auth",
+      client_id: "CLIENT_ID",
+      token_uri: "https://oauth2.googleapis.com/token",
+      project_id: "PROJECT_ID",
+      private_key: "PRIVATE_KEY",
+      client_email: "CLIENT_EMAIL",
+      private_key_id: "PRIVATE_KEY_ID",
+      universe_domain: "googleapis.com",
+      client_x509_cert_url: "CLIENT_X509_CERT_URL",
+      auth_provider_x509_cert_url: "AUTH_PROVIDER_X509_CERT_URL",
+    };
+
+    const dwd = await prismock.domainWideDelegation.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+  } else if (type === "office365") {
+    const encryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      encrypted_credentials: `{"private_key": "PRIVATE_KEY"}`,
+      tenant_id: "TENANT_ID",
+    };
+
+    const workspace = await prismock.workspacePlatform.create({
+      data: {
+        name: "Test Workspace",
+        slug: "office365",
+        description: "Test Workspace",
+        defaultServiceAccountKey: encryptedServiceAccountKey,
+        enabled: true,
+      },
+    });
+
+    const decryptedServiceAccountKey = {
+      client_id: "CLIENT_ID",
+      private_key: "PRIVATE_KEY",
+      tenant_id: "TENANT_ID",
+    };
+
+    const dwd = await prismock.domainWideDelegation.create({
+      data: {
+        workspacePlatform: {
+          connect: {
+            id: workspace.id,
+          },
+        },
+        domain: "example.com",
+        enabled: true,
+        organization: {
+          connect: {
+            id: orgId,
+          },
+        },
+        // @ts-expect-error - TODO: fix this
+        serviceAccountKey: workspace.defaultServiceAccountKey,
+      },
+    });
+
+    return { ...dwd, serviceAccountKey: decryptedServiceAccountKey };
+  }
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
