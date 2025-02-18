@@ -156,7 +156,7 @@ const AddNewTeamsFormChild = ({
       orgId: org.id,
       moveTeams,
       teamNames: fields.map((field) => field.name),
-      creationSource: CreationSource.WEBAPP,
+      creationSource: CreationSource.WEBAPP_NEW_ORG,
     });
   };
 
