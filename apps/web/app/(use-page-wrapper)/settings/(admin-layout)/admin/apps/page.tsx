@@ -8,7 +8,7 @@ export const generateMetadata = async () =>
   );
 
 const Page = () => {
-  redirect("/[category]");
+  redirect("/settings/admin/apps/calendar");
 };
 
 export default Page;
