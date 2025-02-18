@@ -5,7 +5,7 @@ import { Trans } from "next-i18next";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { FC } from "react";
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState, useMemo } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
@@ -903,6 +903,24 @@ const InfiniteScrollMain = ({
   const { data } = useTypedQuery(querySchema);
   const orgBranding = useOrgBranding();
 
+  const tabs = useMemo(() => {
+    return (
+      eventTypeGroups?.map((item, index) => {
+        let href = item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam";
+        // If it's the first tab and no teamId is in the URL, set href to just /event-types
+        if (index === 0 && searchParams && !searchParams.has("teamId") && !searchParams.has("noTeam")) {
+          href = "/event-types";
+        }
+        return {
+          name: item.profile.name ?? "",
+          href,
+          avatar: item.profile.image,
+          "data-testid": item.profile.name ?? "",
+        };
+      }) ?? []
+    );
+  }, [eventTypeGroups, searchParams]);
+
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
@@ -910,13 +928,6 @@ const InfiniteScrollMain = ({
   if (!eventTypeGroups || !profiles || status === "pending") {
     return <InfiniteSkeletonLoader />;
   }
-
-  const tabs = eventTypeGroups.map((item) => ({
-    name: item.profile.name ?? "",
-    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
-    avatar: item.profile.image,
-    "data-testid": item.profile.name ?? "",
-  }));
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];

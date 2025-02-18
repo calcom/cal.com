@@ -81,7 +81,7 @@ const Actions = ({
         <VerticalDivider />
       </div>
       <ButtonGroup combined containerProps={{ className: "hidden md:inline-flex items-center" }}>
-        <Tooltip content={t("preview")}>
+        <Tooltip sideOffset={4} content={t("preview")} side="bottom">
           <FormAction
             routingForm={form}
             color="secondary"
@@ -101,9 +101,9 @@ const Actions = ({
           type="button"
           StartIcon="link"
           tooltip={t("copy_link_to_form")}
+          tooltipSide="bottom"
         />
-
-        <Tooltip content={t("download_responses")}>
+        <Tooltip sideOffset={4} content={t("download_responses")} side="bottom">
           <FormAction
             data-testid="download-responses"
             routingForm={form}
@@ -121,6 +121,7 @@ const Actions = ({
           variant="icon"
           StartIcon="code"
           tooltip={t("embed")}
+          tooltipSide="bottom"
         />
         <DropdownMenuSeparator />
         <FormAction
@@ -132,6 +133,7 @@ const Actions = ({
           color="secondary"
           type="button"
           tooltip={t("delete")}
+          tooltipSide="bottom"
         />
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown>
@@ -142,7 +144,7 @@ const Actions = ({
               color="minimal"
               type="button"
               StartIcon="link">
-              {t("Copy Typeform Redirect Url")}
+              {t("copy_redirect_url")}
             </FormAction>
           </FormActionsDropdown>
         ) : null}
