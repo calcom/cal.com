@@ -2,11 +2,14 @@ import type z from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { checkIfEmailIsBlockedInWatchlistController } from "@calcom/features/watchlist/operations/check-if-email-in-watchlist.controller";
+import { getBlockedEmailsInWatchlist } from "@calcom/features/watchlist/operations/get-blocked-emails-in-watchlist";
 import logger from "@calcom/lib/logger";
 import { randomString } from "@calcom/lib/random";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { CreationSource, MembershipRole } from "@calcom/prisma/enums";
 import type { UserPermissionRole, IdentityProvider } from "@calcom/prisma/enums";
 import type { userMetadata } from "@calcom/prisma/zod-utils";
+import type { getOrgConnectionInfo } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 import slugify from "../../slugify";
 import { UserRepository } from "../repository/user";
@@ -114,5 +117,93 @@ export class UserCreationService {
 
   static slugifyUsername(username: string) {
     return `${slugify(username)}-${randomString(6).toLowerCase()}`;
+  }
+
+  static async createUsersUnderTeamOrOrg({
+    usersToCreate,
+    isOrg,
+    teamId,
+    parentId,
+    autoAcceptEmailDomain,
+    orgConnectInfoByUsernameOrEmail,
+    isPlatformManaged,
+    timeFormat,
+    weekStart,
+    timeZone,
+    language,
+    creationSource,
+  }: {
+    usersToCreate: { email: string; role: MembershipRole }[];
+    isOrg: boolean;
+    teamId: number;
+    parentId?: number | null;
+    autoAcceptEmailDomain: string | null;
+    orgConnectInfoByUsernameOrEmail: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
+    isPlatformManaged?: boolean;
+    timeFormat?: number;
+    weekStart?: string;
+    timeZone?: string;
+    language: string;
+    creationSource: CreationSource;
+  }) {
+    const userCreationData = [];
+
+    // Compare emails in invites to the watchlist
+    const { emails: blockedEmails, domains: blockedDomains } = await getBlockedEmailsInWatchlist(
+      usersToCreate.map((user) => user.email)
+    );
+
+    for (const userToCreate of usersToCreate) {
+      // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
+      const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[userToCreate.email];
+      const [emailUser, emailDomain] = userToCreate.email.split("@");
+      const [domainName, TLD] = emailDomain.split(".");
+
+      const shouldLockUser =
+        blockedEmails.includes(userToCreate.email) || blockedDomains.includes(domainName);
+
+      // An org member can't change username during signup, so we set the username
+      const orgMemberUsername =
+        emailDomain === autoAcceptEmailDomain
+          ? slugify(emailUser)
+          : slugify(`${emailUser}-${domainName}${isPlatformManaged ? `-${TLD}` : ""}`);
+
+      // As a regular team member is allowed to change username during signup, we don't set any username for him
+      const regularTeamMemberUsername = null;
+
+      const isBecomingAnOrgMember = parentId || isOrg;
+
+      const t = await getTranslation(language ?? "en", "common");
+      const defaultScheduleName = t("default_schedule_name");
+
+      const data = {
+        data: {
+          username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
+          email: userToCreate.email,
+          verified: true,
+          invitedTo: teamId,
+          isPlatformManaged: !!isPlatformManaged,
+          timeFormat,
+          weekStart,
+          timeZone,
+          creationSource,
+          organizationId: orgId || null, // If the user is invited to a child team, they are automatically added to the parent org
+          locked: shouldLockUser,
+        },
+        teamData: {
+          id: teamId,
+          orgId,
+          role: userToCreate.role,
+          accepted: autoAccept,
+          parentId,
+        },
+        defaultScheduleName,
+      };
+      userCreationData.push(data);
+    }
+
+    const createdUsers = await UserRepository.createUsersUnderTeamOrOrg(userCreationData);
+
+    return;
   }
 }
