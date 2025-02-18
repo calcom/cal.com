@@ -962,4 +962,82 @@ export class UserRepository {
     });
     return users.map(withSelectedCalendars);
   }
+
+  static async createUsersUnderTeamOrOrg(
+    userCreationData: {
+      data: Omit<Prisma.UserCreateInput, "password" | "organization" | "movedToProfile"> & {
+        username: string | null;
+        invitedTo: number;
+        creationSource: CreationSource;
+        locked: boolean;
+        isPlatformManaged: boolean;
+      };
+      teamData: {
+        id: number;
+        orgId?: number | null;
+        role: MembershipRole;
+        accepted: boolean;
+        parentId?: number | null;
+      };
+      defaultScheduleName: string;
+    }[]
+  ) {
+    const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+    return await prisma.$transaction(
+      userCreationData.map((user) => {
+        return prisma.user.create({
+          data: {
+            ...user.data,
+            schedules: {
+              create: {
+                name: user.defaultScheduleName,
+                availability: {
+                  createMany: {
+                    data: availability,
+                  },
+                },
+              },
+            },
+            ...(user.teamData?.orgId
+              ? {
+                  profiles: {
+                    create: {
+                      uid: ProfileRepository.generateProfileUid(),
+                      username: user.data.username,
+                      organizationId: user.teamData.orgId,
+                    },
+                  },
+                }
+              : {}),
+            teams: {
+              create: [
+                {
+                  team: {
+                    connect: {
+                      id: user.teamData.id,
+                    },
+                  },
+                  role: user.teamData.role,
+                  accepted: user.teamData.accepted,
+                },
+                ...(user.teamData.parentId
+                  ? [
+                      {
+                        team: {
+                          connect: {
+                            id: user.teamData.parentId,
+                          },
+                        },
+                        role: MembershipRole.MEMBER,
+                        accepted: user.teamData.accepted,
+                      },
+                    ]
+                  : []),
+              ],
+            },
+          },
+        });
+      })
+    );
+  }
 }

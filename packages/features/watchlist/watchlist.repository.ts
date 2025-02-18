@@ -39,4 +39,23 @@ export class WatchlistRepository implements IWatchlistRepository {
       throw err;
     }
   }
+
+  async getBlockedEmailsAndDomains(emails: string[]) {
+    try {
+      const domains = emails.map((email) => email.split("@")[1]);
+      const blockedEmailsAndDomains = await db.watchlist.findMany({
+        where: {
+          severity: WatchlistSeverity.CRITICAL,
+          OR: [
+            { type: WatchlistType.EMAIL, value: { in: emails } },
+            { type: WatchlistType.DOMAIN, value: { in: domains } },
+          ],
+        },
+      });
+      return blockedEmailsAndDomains;
+    } catch (err) {
+      captureException(err);
+      throw err;
+    }
+  }
 }

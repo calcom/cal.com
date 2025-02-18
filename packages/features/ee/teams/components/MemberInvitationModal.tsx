@@ -513,7 +513,7 @@ export const MemberInvitationModalWithoutMembers = ({
             language: i18n.language,
             role: values.role,
             usernameOrEmail: values.emailOrUsername,
-            creationSource: CreationSource.WEBAPP,
+            creationSource: CreationSource.WEBAPP_TEAM_INVITE,
           },
           {
             onSuccess: async (data) => {
