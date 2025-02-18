@@ -3,7 +3,10 @@ import type { DefaultBodyType } from "msw";
 
 import dayjs from "@calcom/dayjs";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
-import { CalendarAppDomainWideDelegationInvalidGrantError } from "@calcom/lib/CalendarAppError";
+import {
+  CalendarAppDomainWideDelegationInvalidGrantError,
+  CalendarAppDomainWideDelegationConfigurationError,
+} from "@calcom/lib/CalendarAppError";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
@@ -98,20 +101,25 @@ export default class Office365CalendarService implements Calendar {
 
   // It would error if the domain wide delegation is not set up correctly
   async testDomainWideDelegationSetup() {
-    const { client_id, client_secret } = await getOfficeAppKeys();
+    const dwdClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
+    const dwdClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
     const url = this.getAuthUrl(
       !!this.credential?.delegatedTo,
       this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
     );
     console.log("url: ", url);
+
+    if (!dwdClientId || !dwdClientSecret) {
+      return false;
+    }
     const loginResponse = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        scope: "User.Read Calendars.Read Calendars.ReadWrite",
-        client_id,
-        grant_type: "refresh_token",
-        client_secret,
+        scope: "https://graph.microsoft.com/.default",
+        client_id: dwdClientId,
+        grant_type: "client_credentials",
+        client_secret: dwdClientSecret,
       }),
     });
     console.log("loginResponse: ", loginResponse);
@@ -135,25 +143,35 @@ export default class Office365CalendarService implements Calendar {
       appSlug: metadata.slug,
       currentTokenObject: tokenResponse,
       fetchNewTokenObject: async ({ refreshToken }: { refreshToken: string | null }) => {
+        const isDomainWideDelegated = Boolean(credential?.delegatedTo);
         if (!refreshToken) {
           return null;
         }
         const { client_id, client_secret } = await getOfficeAppKeys();
         const url = this.getAuthUrl(
-          !!credential?.delegatedTo,
+          isDomainWideDelegated,
           credential?.delegatedTo?.serviceAccountKey?.tenant_id
         );
 
         console.log("url: ", url);
+        const dwdClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
+        const dwdClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+
+        if (isDomainWideDelegated && (dwdClientId || dwdClientSecret)) {
+          throw new CalendarAppDomainWideDelegationConfigurationError(
+            "Domain Wide Delegated credential without clientId or Secret"
+          );
+        }
+
         const loginResponse = await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             scope: "User.Read Calendars.Read Calendars.ReadWrite",
-            client_id,
+            client_id: dwdClientId ?? client_id,
             refresh_token: refreshToken,
             grant_type: "refresh_token",
-            client_secret,
+            client_secret: dwdClientSecret ?? client_secret,
           }),
         });
         console.log("loginResponse: ", loginResponse);
