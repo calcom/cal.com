@@ -167,6 +167,7 @@ describe("Bookings Endpoints 2024-08-13", () => {
             timeZone: "Europe/Rome",
           },
         },
+        rating: 10,
       });
 
       app = moduleRef.createNestApplication();
@@ -544,6 +545,30 @@ describe("Bookings Endpoints 2024-08-13", () => {
               expect(data.location).toEqual(createdBooking.location);
               expect(data.absentHost).toEqual(createdBooking.absentHost);
               expect(data.createdAt).toEqual(createdBooking.createdAt);
+            } else {
+              throw new Error(
+                "Invalid response data - expected booking but received array of possibily recurring bookings"
+              );
+            }
+          });
+      });
+
+      it("should should get a booking with rating", async () => {
+        return request(app.getHttpServer())
+          .get(`/v2/bookings/${bookingInThePast.uid}`)
+          .set(CAL_API_VERSION_HEADER, VERSION_2024_08_13)
+          .expect(200)
+          .then(async (response) => {
+            const responseBody: GetBookingOutput_2024_08_13 = response.body;
+            expect(responseBody.status).toEqual(SUCCESS_STATUS);
+            expect(responseBody.data).toBeDefined();
+            expect(responseDataIsBooking(responseBody.data)).toBe(true);
+
+            if (responseDataIsBooking(responseBody.data)) {
+              const data: BookingOutput_2024_08_13 = responseBody.data;
+              expect(data.id).toEqual(bookingInThePast.id);
+              expect(data.uid).toEqual(bookingInThePast.uid);
+              expect(data.rating).toEqual(bookingInThePast.rating);
             } else {
               throw new Error(
                 "Invalid response data - expected booking but received array of possibily recurring bookings"

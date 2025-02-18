@@ -184,7 +184,7 @@ export default function RequiresConfirmationController({
                                           );
                                         }}
                                         className={classNames(
-                                          "border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                          "border-default h-8! !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                           customClassNames?.conditionalConfirmationRadio?.timeInput
                                         )}
                                         defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
