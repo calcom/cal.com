@@ -204,6 +204,6 @@ export class UserCreationService {
 
     const createdUsers = await UserRepository.createUsersUnderTeamOrOrg(userCreationData);
 
-    return;
+    return createdUsers.map(({ locked, ...user }) => user);
   }
 }
