@@ -146,7 +146,8 @@ export const generateAppMetadata = async (
 
 export function checkIfBookingPage(): boolean {
   const headersList = headers();
-  const matchedPath = headersList.get("x-matched-path"); // Exists only in Staging and Prod
+  // This special header exists only in Staging and Production
+  const matchedPath = headersList.get("x-matched-path");
 
   const routes = [
     "/booking",
