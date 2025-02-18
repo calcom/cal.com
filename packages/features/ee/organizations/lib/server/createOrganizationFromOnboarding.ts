@@ -1,5 +1,4 @@
 import type { TFunction } from "i18next";
-import { z } from "zod";
 
 import { sendOrganizationCreationEmail } from "@calcom/emails/email-manager";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
@@ -22,7 +21,11 @@ import type { Prisma } from "@calcom/prisma/client";
 import type { Team, User } from "@calcom/prisma/client";
 import type { OrganizationOnboarding } from "@calcom/prisma/client";
 import { MembershipRole, CreationSource } from "@calcom/prisma/enums";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import {
+  userMetadata,
+  orgOnboardingInvitedMembersSchema,
+  orgOnboardingTeamsSchema,
+} from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { createTeamsHandler } from "@calcom/trpc/server/routers/viewer/organizations/createTeams.handler";
 import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
@@ -50,7 +53,7 @@ type TeamData = {
   id: number;
   name: string;
   isBeingMigrated: boolean;
-  slug: string;
+  slug: string | null;
 };
 
 type InvitedMember = {
@@ -79,15 +82,8 @@ type OrganizationOnboardingArg = Pick<
   | "isDomainConfigured"
 >;
 
-const invitedMembersSchema = z.array(z.object({ email: z.string().email(), name: z.string().optional() }));
-const teamsSchema = z.array(
-  z.object({
-    id: z.number(),
-    name: z.string(),
-    isBeingMigrated: z.boolean(),
-    slug: z.string(),
-  })
-);
+const invitedMembersSchema = orgOnboardingInvitedMembersSchema;
+const teamsSchema = orgOnboardingTeamsSchema;
 
 async function createOrganizationWithExistingUserAsOwner({
   owner,
@@ -429,6 +425,11 @@ async function handleOrganizationCreation({
       stripeCustomerId: organizationOnboarding.stripeCustomerId,
     });
   }
+
+  // Connect the organization to the onboarding
+  await OrganizationOnboardingRepository.update(organizationOnboarding.id, {
+    organizationId: organization.id,
+  });
 
   return { organization, owner };
 }

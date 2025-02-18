@@ -5,6 +5,7 @@ import {
 } from "@calcom/features/ee/organizations/lib/server/orgCreationUtils";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { OrganizationOnboardingRepository } from "@calcom/lib/server/repository/organizationOnboarding";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -56,6 +57,11 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   }
   log.debug("Found organization owner", safeStringify({ orgOwnerId: orgOwner.id, email: orgOwner.email }));
 
+  let organizationOnboarding = await OrganizationOnboardingRepository.findByOrgOwnerEmail(orgOwner.email);
+  if (organizationOnboarding) {
+    throw new Error("organization_onboarding_already_exists");
+  }
+
   await assertCanCreateOrg({
     slug,
     isPlatform,
@@ -64,7 +70,7 @@ export const intentToCreateOrgHandler = async ({ input, ctx }: CreateOptions) =>
   });
 
   const paymentService = new OrganizationPaymentService(ctx.user);
-  const organizationOnboarding = await paymentService.createOrganizationOnboarding({
+  organizationOnboarding = await paymentService.createOrganizationOnboarding({
     ...input,
     createdByUserId: loggedInUser.id,
   });

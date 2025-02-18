@@ -28,8 +28,6 @@ const PaymentStatusView = () => {
   useEffect(() => {
     if (organization) {
       setOrganizationCreated(true);
-      // Clear persisted store data after successful checkout as it is now in DB
-      useOnboardingStore.persist.clearStorage();
       // Organization is created, redirect to next step
       router.push(`/settings/organizations`);
     }

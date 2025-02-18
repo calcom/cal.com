@@ -4,7 +4,6 @@ import type { SessionContextValue } from "next-auth/react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -32,7 +31,7 @@ function extractDomainFromEmail(email: string) {
 export const CreateANewOrganizationForm = () => {
   const session = useSession();
 
-  const { isLoadingOrgOnboarding, useOnboardingStore } = useOnboarding({ step: "start" });
+  const { isLoadingOrgOnboarding } = useOnboarding({ step: "start" });
   if (!session.data || isLoadingOrgOnboarding) {
     return null;
   }
@@ -54,11 +53,6 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
   const { useOnboardingStore } = useOnboarding({ step: "start" });
   const { slug, name, orgOwnerEmail, billingPeriod, pricePerSeat, seats, onboardingId, reset } =
     useOnboardingStore();
-  useEffect(() => {
-    if (isAdmin) {
-      reset();
-    }
-  }, [isAdmin, reset]);
 
   const newOrganizationFormMethods = useForm<{
     name: string;
@@ -71,7 +65,7 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
     defaultValues: {
       billingPeriod: billingPeriod ?? BillingPeriod.MONTHLY,
       slug: slug ?? (!isAdmin ? deriveSlugFromEmail(defaultOrgOwnerEmail) : undefined),
-      orgOwnerEmail: orgOwnerEmail ?? (!isAdmin ? defaultOrgOwnerEmail : undefined),
+      orgOwnerEmail: orgOwnerEmail || (!isAdmin ? defaultOrgOwnerEmail : undefined),
       name: name ?? (!isAdmin ? deriveOrgNameFromEmail(defaultOrgOwnerEmail) : undefined),
       seats: seats ?? null,
       pricePerSeat: pricePerSeat ?? null,
@@ -322,7 +316,13 @@ const CreateANewOrganizationFormChild = ({ session }: { session: Ensure<SessionC
                 </RadioArea.Item>
                 <RadioArea.Item className={classNames("bg-default w-full text-sm")} value="ORGANIZATION">
                   <strong className="mb-1 block">{t("organization")}</strong>
-                  <p>{t("organization_price_per_user_month")}</p>
+                  {pricePerSeat && seats ? (
+                    <p>{`$${pricePerSeat} per user per month (${seats} seats minimum) ${
+                      billingPeriod === BillingPeriod.ANNUALLY ? "(billed annually)" : ""
+                    }`}</p>
+                  ) : (
+                    <p>{t("organization_price_per_user_month")}</p>
+                  )}
                 </RadioArea.Item>
               </RadioArea.Group>
             </div>

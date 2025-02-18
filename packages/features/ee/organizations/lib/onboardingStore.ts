@@ -5,6 +5,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 
 enum BillingPeriod {
@@ -58,26 +59,13 @@ const initialState: OnboardingAdminStoreState & OnboardingUserStoreState = {
   slug: "",
   logo: "",
   bio: "",
+  orgOwnerEmail: "",
+  seats: null,
+  pricePerSeat: null,
+  billingPeriod: undefined,
   onboardingId: null,
   invitedMembers: [],
   teams: [],
-};
-
-export const useSetOnboardingIdFromParam = ({ step }: { step: "start" | "status" | null }) => {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [onboardingIdFromStore, setOnboardingId] = useOnboardingStore((state) => [
-    state.onboardingId,
-    state.setOnboardingId,
-  ]);
-
-  const onboardingIdFromParams = searchParams?.get("onboardingId");
-
-  // Set only if the store didn't have it already
-  if (onboardingIdFromParams && !onboardingIdFromStore) {
-    setOnboardingId(onboardingIdFromParams);
-    return;
-  }
 };
 
 export const useOnboardingStore = create<OnboardingStoreState>()(
@@ -128,6 +116,7 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
   const session = useSession();
   const router = useRouter();
   const path = usePathname();
+  const isAdmin = session.data?.user?.role === UserPermissionRole.ADMIN;
   const searchParams = useSearchParams();
   const { data: organizationOnboarding, isPending: isLoadingOrgOnboarding } =
     trpc.viewer.organizations.getOrganizationOnboarding.useQuery();
@@ -137,7 +126,9 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
     if (isLoadingOrgOnboarding) {
       return;
     }
+
     if (organizationOnboarding) {
+      // Must not keep resetting state on each step change as every step doesn't save at the moment and this would reset user's changes
       if (!window.isOrgOnboardingSynced) {
         window.isOrgOnboardingSynced = true;
         // Must reset with current state of onboarding in DB for the user
@@ -154,13 +145,21 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
         });
       }
     } else {
-      const requireOnboardingId = step !== "start" && step !== "status";
+      // First step doesn't require onboardingId
+      const requireOnboardingId = step !== "start";
+
+      // Reset to first step if onboardingId isn't available
       if (!onboardingId && requireOnboardingId) {
         console.warn("No onboardingId found in store, redirecting to /settings/organizations/new");
         router.push("/settings/organizations/new");
       }
     }
-  }, [organizationOnboarding, onboardingId, reset, step, router]);
+
+    // Admin must start fresh, so that they can create organization with any email and data doesn't mix from different org creations
+    if (isAdmin) {
+      reset();
+    }
+  }, [organizationOnboarding, isLoadingOrgOnboarding, isAdmin, onboardingId, reset, step, router]);
 
   useEffect(() => {
     if (session.status === "loading") {
@@ -171,5 +170,5 @@ export const useOnboarding = (params?: { step?: "start" | "status" | null }) => 
       router.push(`/auth/login?callbackUrl=${WEBAPP_URL}${path}${searchString ? `?${searchString}` : ""}`);
     }
   }, [session, router, path, searchParams]);
-  return { useOnboardingStore, isLoadingOrgOnboarding };
+  return { useOnboardingStore, isLoadingOrgOnboarding, dbOnboarding: organizationOnboarding };
 };

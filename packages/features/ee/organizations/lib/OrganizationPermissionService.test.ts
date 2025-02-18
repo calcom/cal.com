@@ -13,6 +13,9 @@ vi.mock("@calcom/prisma", () => ({
     membership: {
       findMany: vi.fn(),
     },
+    team: {
+      findFirst: vi.fn(),
+    },
   },
 }));
 
@@ -89,7 +92,7 @@ describe("OrganizationPermissionService", () => {
         service.validatePermissions({
           orgOwnerEmail: "other@example.com",
         })
-      ).rejects.toThrow("You do not have permission to create an organization for this email");
+      ).rejects.toThrow("you_do_not_have_permission_to_create_an_organization_for_this_email");
     });
   });
 });

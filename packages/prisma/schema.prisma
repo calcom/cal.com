@@ -1881,10 +1881,10 @@ model OrganizationOnboarding {
   stripeSubscriptionId     String?
   stripeSubscriptionItemId String?
 
-  // Invited members - stored as JSON
+  /// @zod.custom(imports.invitedMembersSchema)
   invitedMembers Json @default("[]")
 
-  // Teams to migrate - stored as JSON
+  /// @zod.custom(imports.teamsSchema)
   teams Json @default("[]")
 
   // Completion status

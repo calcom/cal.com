@@ -60,6 +60,20 @@ export const bookerLayouts = z
   })
   .nullable();
 
+export const orgOnboardingInvitedMembersSchema = z.array(
+  z.object({ email: z.string().email(), name: z.string().optional() })
+);
+
+export const orgOnboardingTeamsSchema = z.array(
+  z.object({
+    id: z.number(),
+    name: z.string(),
+    isBeingMigrated: z.boolean(),
+    // "slug" is null for new teams
+    slug: z.string().nullable(),
+  })
+);
+
 export const defaultBookerLayoutSettings = {
   defaultLayout: BookerLayouts.MONTH_VIEW,
   // if the user has no explicit layouts set (not in user profile and not in event settings), all layouts are enabled.

@@ -14,7 +14,7 @@ Deployment Plan:
 
 
 TODO:
-- [ ] Show the pricing to user set by admin
+- [x] Show the pricing to user set by admin
 - [x] Make sure that a slug that is taken by another organization isn't able to be checkout 
 - [x] PLATFORM: We need to create the organization without requiring payment first.
 - [x] BUG: logo and bio not bieng saved to Onboarding/Organization

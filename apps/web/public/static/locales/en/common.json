@@ -2974,6 +2974,7 @@
   "payment_failed_description": "Your payment has failed. Please try again.",
   "creating_your_organization": "Creating your organization",
   "organization_onboarding_already_completed": "Organization onboarding already completed",
+  "organization_onboarding_already_exists": "Organization onboarding already exists",
   "organization_onboarding_not_found": "Organization onboarding not found",
   "payment_successful": "Payment successful",
   "handover_onboarding_page_title": "Handover onboarding",

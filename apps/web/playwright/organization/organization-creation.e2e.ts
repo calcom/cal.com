@@ -142,7 +142,7 @@ test.describe("Organization", () => {
 
     await test.step("Handover", async () => {
       const onboardingUrl = await page.getByTestId("onboarding-url").textContent();
-      expect(onboardingUrl).toContain("?onboardingId=");
+      expect(onboardingUrl).toContain("settings/organizations/new");
     });
   });
 
