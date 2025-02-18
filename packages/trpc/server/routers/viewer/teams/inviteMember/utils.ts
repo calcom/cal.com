@@ -15,6 +15,7 @@ import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
+import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
@@ -931,12 +932,17 @@ export async function handleNewUsersInvites({
 }) {
   const translation = await getTranslation(language, "common");
 
-  await createNewUsersConnectToOrgIfExists({
-    invitations: invitationsForNewUsers,
+  invitationsForNewUsers.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
+
+  await UserCreationService.createUsersUnderTeamOrOrg({
+    usersToCreate: invitationsForNewUsers.map((invitation) => ({
+      email: invitation.usernameOrEmail,
+      role: MembershipRole.MEMBER,
+    })),
     isOrg,
-    teamId: teamId,
+    teamId,
     orgConnectInfoByUsernameOrEmail,
-    autoAcceptEmailDomain: autoAcceptEmailDomain,
+    autoAcceptEmailDomain,
     parentId: team.parentId,
     language,
     creationSource,
