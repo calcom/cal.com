@@ -29,7 +29,6 @@ import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { OrganizationsWebhooksRepository } from "@/modules/organizations/repositories/organizations-webhooks.repository";
-import { OrganizationsRoutingFormsModule } from "@/modules/organizations/routing-forms/organizations-routing-forms-responses.module";
 import { OrganizationAttributeOptionService } from "@/modules/organizations/services/attributes/organization-attributes-option.service";
 import { OrganizationAttributesService } from "@/modules/organizations/services/attributes/organization-attributes.service";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
@@ -42,6 +41,7 @@ import { OrganizationsTeamsService } from "@/modules/organizations/services/orga
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
 import { OrganizationsWebhooksService } from "@/modules/organizations/services/organizations-webhooks.service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
+import { OrganizationsTeamsRoutingFormsModule } from "@/modules/organizations/teams/routing-forms/organizations-teams-routing-forms-responses.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -63,7 +63,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
-    OrganizationsRoutingFormsModule,
+    OrganizationsTeamsRoutingFormsModule,
   ],
   providers: [
     OrganizationsRepository,
