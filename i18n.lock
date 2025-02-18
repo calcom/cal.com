@@ -1990,7 +1990,7 @@ checksums:
     delete_form_action: da5c9924cbeb6409a29e044f7a8577d9
     delete_form_confirmation: 2758877c8c82f9a9cfbf19e6e73d24f2
     delete_form_confirmation_2: d99e294f332e4d41494d52cad3fe4173
-    typeform_redirect_url_copied: 67b8feebd92c352ac29ac780e4a77dd5
+    typeform_redirect_url_copied: 6ee71a0e30cf0cbe966efd451d2a3a15
     modifications_in_fields_warning: b146cf707935fb16136d91dc32eb0bd9
     connected_forms: b53d6c6fd998ca46ea0c222a013534ec
     form_modifications_warning: fe466749a4e05d34d45d9a2c56398d3e
@@ -2853,6 +2853,7 @@ checksums:
     routing_form_insights_booking_status: 08b945804d902b55184884401a840d57
     routing_form_insights_booking_at: ca8a804eb7068845bede9adbb6bb7d3b
     routing_form_insights_submitted_at: b95063c78796a32900c35743237512c4
+    copy_redirect_url: fe8a7495a0c603851e00750342721f4e
     total_bookings_per_period: 4ddd62a03c104739a99c23bf60545367
     routed_to_per_period: a950330d2a551b4840bf77f044d4dd64
     per_day: 861a51979a317ed5ce9e2a584c4d85a3
