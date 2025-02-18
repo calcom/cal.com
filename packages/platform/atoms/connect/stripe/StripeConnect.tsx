@@ -77,6 +77,7 @@ export const StripeConnect: FC<Partial<StripeConnectProps>> = ({
         disabled={isClickable ? false : isDisabled}
         className={cn(
           "",
+          "md:rounded-md",
           className,
           isChecking && "animate-pulse",
           isDisabled && "cursor-not-allowed",

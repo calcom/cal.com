@@ -71,7 +71,22 @@ const buildBaseWhereCondition = async ({
         id: true,
       },
     });
-    if (teamsFromOrg.length === 0) return { whereCondition, isEmptyResponse: true };
+
+    if (teamsFromOrg.length === 0) {
+      return {
+        whereCondition: {
+          ...whereCondition,
+          OR: [
+            ...(whereCondition.OR ?? []),
+            {
+              teamId: ctx.userOrganizationId,
+              isTeamBooking: true,
+            },
+          ],
+        },
+        isEmptyResponse: true,
+      };
+    }
 
     const teamConditional = {
       id: {
@@ -1070,17 +1085,13 @@ export const insightsRouter = router({
   userList: authedProcedure
     .input(
       z.object({
-        teamId: z.coerce.number().nullable(),
+        teamId: z.number().optional(),
         isAll: z.boolean().nullable(),
       })
     )
     .query(async ({ ctx, input }) => {
       const user = ctx.user;
       const { teamId, isAll } = input;
-
-      if (!teamId) {
-        return [];
-      }
 
       if (isAll && user.organizationId && user.organization.isOrgAdmin) {
         const usersInTeam = await ctx.insightsDb.membership.findMany({
@@ -1097,6 +1108,10 @@ export const insightsRouter = router({
           distinct: ["userId"],
         });
         return usersInTeam.map((membership) => membership.user);
+      }
+
+      if (!teamId) {
+        return [];
       }
 
       const membership = await ctx.insightsDb.membership.findFirst({
@@ -1635,7 +1650,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       const { userId, teamId, isAll } = input;
       return await RoutingEventsInsights.getRoutingFormsForFilters({
-        userId,
+        userId: ctx.user.id,
         teamId,
         isAll,
         organizationId: ctx.user.organizationId ?? undefined,
@@ -1652,7 +1667,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId,
+        userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit,
         columnFilters: input.columnFilters,
@@ -1670,7 +1685,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId,
+        userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit,
         columnFilters: input.columnFilters,
@@ -1688,7 +1703,7 @@ export const insightsRouter = router({
         organizationId: ctx.user.organizationId ?? null,
         routingFormId: input.routingFormId,
         cursor: input.cursor,
-        userId: input.userId,
+        userId: ctx.user.id,
         memberUserIds: input.memberUserIds,
         limit: input.limit ?? BATCH_SIZE,
         columnFilters: input.columnFilters,
@@ -1707,6 +1722,7 @@ export const insightsRouter = router({
     .query(async ({ input, ctx }) => {
       const options = await RoutingEventsInsights.getRoutingFormFieldOptions({
         ...input,
+        userId: ctx.user.id,
         organizationId: ctx.user.organizationId ?? null,
       });
       return options;
@@ -1723,6 +1739,7 @@ export const insightsRouter = router({
     .query(async ({ ctx, input }) => {
       return await RoutingEventsInsights.getFailedBookingsByRoutingFormGroup({
         ...input,
+        userId: ctx.user.id,
         organizationId: ctx.user.organizationId ?? null,
       });
     }),
@@ -1737,7 +1754,7 @@ export const insightsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const headers = await RoutingEventsInsights.getRoutingFormHeaders({
-        userId: input.userId ?? null,
+        userId: ctx.user.id,
         teamId: input.teamId ?? null,
         isAll: input.isAll,
         organizationId: ctx.user.organizationId ?? null,
@@ -1766,7 +1783,7 @@ export const insightsRouter = router({
         input;
 
       return await RoutingEventsInsights.routedToPerPeriod({
-        userId: userId ?? null,
+        userId: ctx.user.id,
         teamId: teamId ?? null,
         startDate,
         endDate,
@@ -1792,7 +1809,7 @@ export const insightsRouter = router({
       const { startDate, endDate } = input;
       try {
         const csvData = await RoutingEventsInsights.routedToPerPeriodCsv({
-          userId: input.userId ?? null,
+          userId: ctx.user.id,
           teamId: input.teamId ?? null,
           startDate,
           endDate,
