@@ -1,6 +1,6 @@
 import { prisma } from "@calcom/prisma";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TrpcSessionUser } from "../../../trpc";
 import type { TDeleteInputSchema } from "./deleteBooking.schema";
 
 type DeleteOptions = {
