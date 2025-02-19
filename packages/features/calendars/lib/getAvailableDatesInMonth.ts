@@ -1,5 +1,6 @@
+import type { Dayjs } from "dayjs";
+
 import dayjs from "@calcom/dayjs";
-import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 
 // calculate the available dates in the month:
 // *) Intersect with included dates.
@@ -10,28 +11,31 @@ export function getAvailableDatesInMonth({
   minDate = new Date(),
   includedDates,
 }: {
-  browsingDate: Date;
+  browsingDate: Dayjs; // in the future this could be TimezonedDate
   minDate?: Date;
   includedDates?: string[];
 }) {
+  // get minDate but with the same UTC offset as the browsingDate.
+  const minDayjs = dayjs(minDate).utcOffset(browsingDate.utcOffset());
+
+  let date = dayjs.max(browsingDate, minDayjs);
+
   const dates = [];
-  const lastDateOfMonth = new Date(
-    browsingDate.getFullYear(),
-    browsingDate.getMonth(),
-    daysInMonth(browsingDate)
-  );
+  const lastDateOfMonth = date.endOf("month");
   for (
-    let date = browsingDate > minDate ? browsingDate : minDate;
-    // Check if date is before the last date of the month
+    ;
+    /* date already defined; no initializer needed */ // Check if date is before the last date of the month
     // or is the same day, in the same month, in the same year.
-    date < lastDateOfMonth || dayjs(date).isSame(lastDateOfMonth, "day");
-    date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
+    date < lastDateOfMonth || date.isSame(lastDateOfMonth, "day");
+    // startOf next day, this happens after passing current date
+    date = date.add(1, "day")
   ) {
+    const dateString = date.format("YYYY-MM-DD");
     // intersect included dates
-    if (includedDates && !includedDates.includes(yyyymmdd(date))) {
+    if (includedDates && !includedDates.includes(dateString)) {
       continue;
     }
-    dates.push(yyyymmdd(date));
+    dates.push(dateString);
   }
   return dates;
 }
