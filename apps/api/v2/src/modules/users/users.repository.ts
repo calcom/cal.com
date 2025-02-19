@@ -4,6 +4,7 @@ import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-us
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import type { Profile, User, Team, Prisma } from "@prisma/client";
+import { CreationSource } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
@@ -30,6 +31,7 @@ export class UsersRepository {
           connect: { id: oAuthClientId },
         },
         isPlatformManaged,
+        creationSource: CreationSource.API_V2,
       },
     });
   }
@@ -263,6 +265,29 @@ export class UsersRepository {
       },
 
       where: { id: userId },
+    });
+  }
+
+  async findUserOOORedirectEligible(userId: number, toTeamUserId: number) {
+    return await this.dbRead.prisma.user.findUnique({
+      where: {
+        id: toTeamUserId,
+        teams: {
+          some: {
+            team: {
+              members: {
+                some: {
+                  userId: userId,
+                  accepted: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
     });
   }
 }

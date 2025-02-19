@@ -12,7 +12,6 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -20,7 +19,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
+import { Avatar, Button, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import type { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
@@ -29,14 +28,7 @@ import type { inferSSRProps } from "@lib/types/inferSSRProps";
 import Team from "@components/team/screens/Team";
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({
-  team,
-  considerUnpublished,
-  markdownStrippedBio,
-  isValidOrgDomain,
-  currentOrgDomain,
-  isSEOIndexable,
-}: PageProps) {
+function TeamPage({ team, considerUnpublished, isValidOrgDomain }: PageProps) {
   useTheme(team.theme);
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
@@ -82,7 +74,7 @@ function TeamPage({
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
+            "bg-default hover:bg-muted border-subtle group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
           <div className="px-6 py-4 ">
@@ -165,23 +157,7 @@ function TeamPage({
 
   return (
     <>
-      <HeadSeo
-        origin={getOrgFullOrigin(currentOrgDomain)}
-        title={teamName}
-        description={teamName}
-        meeting={{
-          title: markdownStrippedBio,
-          profile: {
-            name: `${team.name}`,
-            image: profileImageSrc,
-          },
-        }}
-        nextSeoProps={{
-          nofollow: !isSEOIndexable,
-          noindex: !isSEOIndexable,
-        }}
-      />
-      <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
+      <main className="dark:bg-default bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
             <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
@@ -232,9 +208,7 @@ function TeamPage({
                         <div className="border-subtle w-full border-t" />
                       </div>
                       <div className="relative flex justify-center">
-                        <span className="dark:bg-darkgray-50 bg-subtle text-subtle px-2 text-sm">
-                          {t("or")}
-                        </span>
+                        <span className="bg-subtle text-subtle px-2 text-sm">{t("or")}</span>
                       </div>
                     </div>
 
