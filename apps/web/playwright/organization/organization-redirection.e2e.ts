@@ -38,6 +38,30 @@ async function createUserWithOrganizationAndTeam(users: ReturnType<typeof create
   );
   return orgOwnerUser;
 }
+async function createUserWithPlatformAndTeam(users: ReturnType<typeof createUsersFixture>) {
+  const orgOwnerUsernamePrefix = "owner";
+  const orgOwnerEmail = users.trackEmail({
+    username: orgOwnerUsernamePrefix,
+    domain: `example.com`,
+  });
+  const orgOwnerUser = await users.create(
+    {
+      username: orgOwnerUsernamePrefix,
+      email: orgOwnerEmail,
+      role: "ADMIN",
+      roleInOrganization: "OWNER",
+    },
+    {
+      isOrg: true,
+      isPlatform: true,
+      isUnpublished: true,
+      orgRequestedSlug: orgSlug,
+      hasSubteam: true,
+      hasTeam: true,
+    }
+  );
+  return orgOwnerUser;
+}
 
 test.describe("Unpublished Organization Redirection", () => {
   test.afterEach(({ orgs, users }) => {
@@ -62,7 +86,7 @@ test.describe("Unpublished Organization Redirection", () => {
     });
 
     test("testing few things", async ({ page, users }) => {
-      const orgOwner = await createUserWithOrganizationAndTeam(users);
+      const orgOwner = await createUserWithPlatformAndTeam(users);
       const { team } = await orgOwner.getFirstTeamMembership();
 
       const response = await page.goto(`/${orgOwner.username}`);
