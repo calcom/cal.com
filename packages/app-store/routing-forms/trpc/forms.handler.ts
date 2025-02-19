@@ -1,12 +1,16 @@
+import type { z } from "zod";
+
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { entityPrismaWhereClause, canEditEntity } from "@calcom/lib/entityPermissionUtils";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { entries } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
+import type { zodFields, zodRoutes } from "../zod";
 import type { TFormSchema } from "./forms.schema";
 
 interface FormsHandlerOptions {
@@ -55,7 +59,8 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     }),
   });
 
-  const serializableForms = await Promise.all(
+  // Avoid crash of one form to crash entire listing
+  const settledFormsWithReadonlyStatus = await Promise.allSettled(
     forms.map(async (form) => {
       const [hasWriteAccess, serializedForm] = await Promise.all([
         canEditEntity(form, user.id),
@@ -69,8 +74,35 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     })
   );
 
+  const formsWithReadonlyStatus = settledFormsWithReadonlyStatus.map((result, index) => {
+    if (result.status === "fulfilled") {
+      return {
+        ...result.value,
+        hasError: false,
+      };
+    }
+
+    const form = forms[index];
+    log.error(`Error getting form ${form.id}: ${safeStringify(result.reason)}`);
+
+    return {
+      form: {
+        ...form,
+        // Usually the error is in parsing routes/fields as they are JSON. So, we just set them empty, so that form can be still listed.
+        routes: [] as z.infer<typeof zodRoutes>,
+        fields: [] as z.infer<typeof zodFields>,
+        _count: {
+          responses: 0,
+        },
+      },
+      // Consider it readonly as we don't know the status due to error
+      readOnly: true,
+      hasError: true,
+    };
+  });
+
   return {
-    filtered: serializableForms,
+    filtered: formsWithReadonlyStatus,
     totalCount: totalForms,
   };
 };
