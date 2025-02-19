@@ -224,6 +224,13 @@ export async function getBookings({
         // On prisma 5.4.2 passing undefined to where "AND" causes an error
         .filter(Boolean);
 
+  const filtersCombinedExceptUserIds: Prisma.BookingWhereInput[] = !filters
+    ? []
+    : Object.keys(filters)
+        .filter((key) => key !== "userIds")
+        .map((key) => bookingWhereInputFilters[key])
+        .filter(Boolean);
+
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
@@ -325,6 +332,21 @@ export async function getBookings({
     },
   };
 
+  let attendeeEmailIds = [user.email];
+  if (filters?.userIds && filters.userIds.length > 0) {
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: filters.userIds,
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+    attendeeEmailIds = users && users.length > 0 ? users.map((user) => user.email) : [];
+  }
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
@@ -359,12 +381,12 @@ export async function getBookings({
           {
             attendees: {
               some: {
-                email: user.email,
+                email: { in: attendeeEmailIds },
               },
             },
           },
         ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
+        AND: [passedBookingsStatusFilter, ...filtersCombinedExceptUserIds],
       },
       orderBy,
       take: take + 1,
