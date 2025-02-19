@@ -7,8 +7,10 @@ import { ZDeleteFormInputSchema } from "./deleteForm.schema";
 import { ZFormMutationInputSchema } from "./formMutation.schema";
 import { ZFormQueryInputSchema } from "./formQuery.schema";
 import { ZGetAttributesForTeamInputSchema } from "./getAttributesForTeam.schema";
+import { ZGetIncompleteBookingSettingsInputSchema } from "./getIncompleteBookingSettings.schema";
 import { forms } from "./procedures/forms";
 import { ZReportInputSchema } from "./report.schema";
+import { ZSaveIncompleteBookingSettingsInputSchema } from "./saveIncompleteBookingSettings.schema";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 const UNSTABLE_HANDLER_CACHE: Record<string, Function> = {};
@@ -85,6 +87,26 @@ const appRoutingForms = router({
       const handler = await getHandler(
         "getAttributesForTeam",
         () => import("./getAttributesForTeam.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  getIncompleteBookingSettings: authedProcedure
+    .input(ZGetIncompleteBookingSettingsInputSchema)
+    .query(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "getIncompleteBookingSettings",
+        () => import("./getIncompleteBookingSettings.handler")
+      );
+      return handler({ ctx, input });
+    }),
+
+  saveIncompleteBookingSettings: authedProcedure
+    .input(ZSaveIncompleteBookingSettingsInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await getHandler(
+        "saveIncompleteBookingSettings",
+        () => import("./saveIncompleteBookingSettings.handler")
       );
       return handler({ ctx, input });
     }),

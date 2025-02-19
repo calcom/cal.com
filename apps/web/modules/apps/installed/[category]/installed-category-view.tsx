@@ -56,11 +56,12 @@ const IntegrationsContainer = ({
 
   const handleUpdateUserDefaultConferencingApp = ({
     appSlug,
+    appLink,
     onSuccessCallback,
     onErrorCallback,
   }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
-      { appSlug },
+      { appSlug, appLink },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");

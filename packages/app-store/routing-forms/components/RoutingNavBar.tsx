@@ -38,6 +38,10 @@ export default function RoutingNavBar({
       target: "_blank",
       href: `${appUrl}/reporting/${form?.id}`,
     },
+    {
+      name: "Incomplete Booking",
+      href: `${appUrl}/incomplete-booking/${form?.id}`,
+    },
   ];
   return (
     <div className="mb-4">

@@ -195,10 +195,10 @@ export function EditForm({
             />
           </div>
           <Divider />
-          <TextField label={t("name")} {...form.register("name")} />
-          <TextField label={t("username")} {...form.register("username")} />
-          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24" />
-          <div>
+          <TextField label={t("name")} {...form.register("name")} className="mb-6" />
+          <TextField label={t("username")} {...form.register("username")} className="mb-6" />
+          <TextAreaField label={t("about")} {...form.register("bio")} className="min-h-24 mb-6" />
+          <div className="mb-6">
             <Label>{t("role")}</Label>
             <ToggleGroup
               isFullWidth
@@ -210,7 +210,7 @@ export function EditForm({
               }}
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-6">
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
@@ -392,7 +392,7 @@ function AttributesList(props: { selectedUserId: number }) {
                                 <>
                                   <div key={option.value} className="flex items-center justify-between">
                                     <Label
-                                      htmlFor={`attributes.${index}.otions.${idx}.weight`}
+                                      htmlFor={`attributes.${index}.options.${idx}.weight`}
                                       className="text-subtle">
                                       {option.label}
                                     </Label>
