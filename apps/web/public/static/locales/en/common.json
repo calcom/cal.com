@@ -2956,7 +2956,7 @@
   "desc": "Desc",
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
-  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
   "recurring_event_doesnt_support_seats": "Recurring event doesn't support seats option",
   "seats_doesnt_support_recurring": "Seats doesn't support recurring event"
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
 }
