@@ -4320,6 +4320,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/jenil-demo@workspace:packages/app-store/jenil-demo":
+  version: 0.0.0-use.local
+  resolution: "@calcom/jenil-demo@workspace:packages/app-store/jenil-demo"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo":
   version: 0.0.0-use.local
   resolution: "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo"
@@ -4417,6 +4426,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/millis-ai@workspace:packages/app-store/millis-ai":
+  version: 0.0.0-use.local
+  resolution: "@calcom/millis-ai@workspace:packages/app-store/millis-ai"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/mirotalk@workspace:packages/app-store/mirotalk":
   version: 0.0.0-use.local
   resolution: "@calcom/mirotalk@workspace:packages/app-store/mirotalk"
@@ -4429,6 +4447,15 @@ __metadata:
 "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app":
   version: 0.0.0-use.local
   resolution: "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/monobot@workspace:packages/app-store/monobot":
+  version: 0.0.0-use.local
+  resolution: "@calcom/monobot@workspace:packages/app-store/monobot"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
