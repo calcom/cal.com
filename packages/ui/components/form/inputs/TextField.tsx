@@ -127,7 +127,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       if (props.type === "number") {
-        const formattedValue = formatNumberByLocale(value, i18n.language || "en");
+        const locale = isLocaleReady ? i18n.language : "en";
+        const formattedValue = formatNumberByLocale(value, locale);
         setInputValue(formattedValue);
 
         const syntheticEvent = {
