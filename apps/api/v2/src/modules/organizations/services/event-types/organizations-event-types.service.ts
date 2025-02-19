@@ -64,8 +64,12 @@ export class OrganizationsEventTypesService {
     return this.teamsEventTypesService.getTeamEventType(teamId, eventTypeId);
   }
 
-  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string): Promise<DatabaseTeamEventType | null> {
-    return this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventTypeSlug);
+  async getTeamEventTypeBySlug(
+    teamId: number,
+    eventTypeSlug: string,
+    hostsLimit?: number
+  ): Promise<DatabaseTeamEventType | null> {
+    return this.teamsEventTypesService.getTeamEventTypeBySlug(teamId, eventTypeSlug, hostsLimit);
   }
 
   async getTeamEventTypes(teamId: number): Promise<DatabaseTeamEventType[]> {

@@ -1,10 +1,13 @@
 import type { IncomingMessage } from "http";
+import { SessionProvider } from "next-auth/react";
 import type { AppContextType } from "next/dist/shared/lib/utils";
 import React, { useEffect } from "react";
+import CacheProvider from "react-inlinesvg/provider";
 
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
+import PlainChat from "@lib/plain/dynamicProvider";
 
 import "../styles/globals.css";
 
@@ -17,9 +20,15 @@ function MyApp(props: AppProps) {
     }
   }, []);
 
-  const content = Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />;
-
-  return content;
+  return (
+    <SessionProvider session={pageProps.session ?? undefined}>
+      <PlainChat />
+      {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+      <CacheProvider>
+        {Component.PageWrapper ? <Component.PageWrapper {...props} /> : <Component {...pageProps} />}
+      </CacheProvider>
+    </SessionProvider>
+  );
 }
 
 declare global {

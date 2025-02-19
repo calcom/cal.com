@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -12,21 +11,10 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useNotifications } from "@calcom/lib/hooks/useNotifications";
-import {
-  Avatar,
-  Button,
-  ButtonOrLink,
-  Credits,
-  Icon,
-  SkeletonText,
-  Tooltip,
-  Logo,
-  showToast,
-} from "@calcom/ui";
+import { UserPermissionRole } from "@calcom/prisma/enums";
+import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo, showToast } from "@calcom/ui";
 
 import { KBarTrigger } from "../kbar/Kbar";
-import type { LayoutProps } from "./Shell";
 import { Navigation } from "./navigation/Navigation";
 import { type NavigationItemType } from "./navigation/NavigationItem";
 import { ProfileDropdown } from "./user-dropdown/ProfileDropdown";
@@ -59,11 +47,13 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
+  const session = useSession();
   const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const [isReferalLoading, setIsReferalLoading] = useState(false);
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
 
@@ -115,6 +105,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           },
           icon: "gift",
           isLoading: isReferalLoading,
+        }
+      : null,
+    isAdmin
+      ? {
+          name: "impersonation",
+          href: "/settings/admin/impersonation",
+          icon: "lock",
         }
       : null,
     {
@@ -239,98 +236,5 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
         )}
       </aside>
     </div>
-  );
-}
-
-export function ShellMain(props: LayoutProps) {
-  const router = useRouter();
-  const { isLocaleReady, t } = useLocale();
-
-  const { buttonToShow, isLoading, enableNotifications, disableNotifications } = useNotifications();
-
-  return (
-    <>
-      {(props.heading || !!props.backPath) && (
-        <div
-          className={classNames(
-            "flex items-center md:mb-6 md:mt-0",
-            props.smallHeading ? "lg:mb-7" : "lg:mb-8",
-            props.hideHeadingOnMobile ? "mb-0" : "mb-6"
-          )}>
-          {!!props.backPath && (
-            <Button
-              variant="icon"
-              size="sm"
-              color="minimal"
-              onClick={() =>
-                typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-              }
-              StartIcon="arrow-left"
-              aria-label="Go Back"
-              className="rounded-md ltr:mr-2 rtl:ml-2"
-              data-testid="go-back-button"
-            />
-          )}
-          {props.heading && (
-            <header
-              className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
-              {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-              <div
-                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
-                {props.heading && (
-                  <h3
-                    className={classNames(
-                      "font-cal max-w-28 sm:max-w-72 md:max-w-80 text-emphasis inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
-                      props.smallHeading ? "text-base" : "text-xl",
-                      props.hideHeadingOnMobile && "hidden"
-                    )}>
-                    {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
-                  </h3>
-                )}
-                {props.subtitle && (
-                  <p className="text-default hidden text-sm md:block" data-testid="subtitle">
-                    {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
-                  </p>
-                )}
-              </div>
-              {props.beforeCTAactions}
-              {props.CTA && (
-                <div
-                  className={classNames(
-                    props.backPath
-                      ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
-                    "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
-                  )}>
-                  {isLocaleReady && props.CTA}
-                </div>
-              )}
-              {props.actions && props.actions}
-              {/* TODO: temporary hide push notifications {props.heading === "Bookings" && buttonToShow && (
-                <Button
-                  color="primary"
-                  onClick={buttonToShow === ButtonState.ALLOW ? enableNotifications : disableNotifications}
-                  loading={isLoading}
-                  disabled={buttonToShow === ButtonState.DENIED}
-                  tooltipSide="bottom"
-                  tooltip={
-                    buttonToShow === ButtonState.DENIED ? t("you_have_denied_notifications") : undefined
-                  }>
-                  {t(
-                    buttonToShow === ButtonState.DISABLE
-                      ? "disable_browser_notifications"
-                      : "allow_browser_notifications"
-                  )}
-                </Button>
-              )} */}
-            </header>
-          )}
-        </div>
-      )}
-      {props.afterHeading && <>{props.afterHeading}</>}
-      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {props.children}
-      </div>
-    </>
   );
 }

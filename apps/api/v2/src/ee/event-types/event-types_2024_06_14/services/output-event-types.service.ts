@@ -128,6 +128,7 @@ export class OutputEventTypesService_2024_06_14 {
     const bookingFields = databaseEventType.bookingFields
       ? this.transformBookingFields(databaseEventType.bookingFields)
       : this.getDefaultBookingFields(isOrgTeamEvent);
+
     const recurrence = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users || []);
