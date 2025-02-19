@@ -57,7 +57,7 @@ export async function getBookings({
   take,
   skip,
 }: {
-  user: { id: number; email: string; name: string };
+  user: { id: number; email: string; name: string | null };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
@@ -193,13 +193,17 @@ export async function getBookings({
             },
           },
         },
-        {
-          attendees: {
-            some: {
-              name: user.name,
-            },
-          },
-        },
+        ...(user.name
+          ? [
+              {
+                attendees: {
+                  some: {
+                    name: user.name,
+                  },
+                },
+              },
+            ]
+          : []),
         {
           eventTypeId: {
             in: eventTypeIdsWhereUserIsAdminOrOwener,
@@ -245,15 +249,19 @@ export async function getBookings({
                       in: filters.userIds,
                     },
                   },
-                  {
-                    // Include booking if current user is an attendee,
-                    // regardless of user ID filter
-                    attendees: {
-                      some: {
-                        name: user.name,
-                      },
-                    },
-                  },
+                  ...(user.name
+                    ? [
+                        {
+                          // Include booking if current user is an attendee,
+                          // regardless of user ID filter
+                          attendees: {
+                            some: {
+                              name: user.name,
+                            },
+                          },
+                        },
+                      ]
+                    : []),
                   {
                     // Include booking if current user is an attendee,
                     // regardless of user ID filter
