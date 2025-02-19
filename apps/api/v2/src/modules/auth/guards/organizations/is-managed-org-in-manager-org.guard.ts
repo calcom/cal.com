@@ -17,7 +17,7 @@ export class IsManagedOrgInManagerOrg implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { managedOrganization: Team }>();
     const managedOrgId: string = request.params.managedOrganizationId;
-    const managerOrgId: string = request.params.managerOrganizationId;
+    const managerOrgId: string = request.params.orgId;
 
     if (!managerOrgId) {
       throw new ForbiddenException("No manager org id found in request params.");
@@ -27,7 +27,7 @@ export class IsManagedOrgInManagerOrg implements CanActivate {
       throw new ForbiddenException("No managed org id found in request params.");
     }
 
-    const managedOrganization = await this.managedOrganizationsRepository.getByManagedManagerIds(
+    const managedOrganization = await this.managedOrganizationsRepository.getByManagerManagedIds(
       Number(managerOrgId),
       Number(managedOrgId)
     );

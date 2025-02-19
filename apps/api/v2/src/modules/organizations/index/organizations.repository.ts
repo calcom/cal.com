@@ -21,6 +21,17 @@ export class OrganizationsRepository {
     });
   }
 
+  async findByIds(organizationIds: number[]) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        id: {
+          in: organizationIds,
+        },
+        isOrganization: true,
+      },
+    });
+  }
+
   async findByIdIncludeBilling(orgId: number) {
     return this.dbRead.prisma.team.findUnique({
       where: {

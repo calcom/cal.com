@@ -19,14 +19,16 @@ export class ManagedOrganizationOutput {
   @DocsProperty()
   readonly slug!: string;
 
-  @IsString()
-  @Expose()
-  @DocsProperty()
-  readonly apiKey!: string;
-
   @IsOptional()
   @IsString()
   @Expose()
   @ApiPropertyOptional()
   readonly metadata?: string;
+}
+
+export class ManagedOrganizationWithApiKeyOutput extends ManagedOrganizationOutput {
+  @IsString()
+  @Expose()
+  @DocsProperty()
+  readonly apiKey!: string;
 }

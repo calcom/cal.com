@@ -13,4 +13,12 @@ export class ApiKeyRepository {
       },
     });
   }
+
+  async getTeamApiKeys(teamId: number) {
+    return this.dbRead.prisma.apiKey.findMany({
+      where: {
+        teamId,
+      },
+    });
+  }
 }

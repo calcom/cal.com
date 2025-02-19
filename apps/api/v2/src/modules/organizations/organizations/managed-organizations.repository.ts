@@ -23,13 +23,21 @@ export class ManagedOrganizationsRepository {
     });
   }
 
-  async getByManagedManagerIds(managerOrganizationId: number, managedOrganizationId: number) {
+  async getByManagerManagedIds(managerOrganizationId: number, managedOrganizationId: number) {
     return this.dbRead.prisma.managedOrganization.findUnique({
       where: {
         managerOrganizationId_managedOrganizationId: {
           managerOrganizationId,
           managedOrganizationId,
         },
+      },
+    });
+  }
+
+  async getByManagerOrganizationId(managerOrganizationId: number) {
+    return this.dbRead.prisma.managedOrganization.findMany({
+      where: {
+        managerOrganizationId,
       },
     });
   }

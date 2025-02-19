@@ -9,9 +9,14 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
 import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
-import { ManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/managed-organization.output";
+import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
+import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
+import {
+  ManagedOrganizationOutput,
+  ManagedOrganizationWithApiKeyOutput,
+} from "@/modules/organizations/organizations/outputs/managed-organization.output";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
-import { Controller, UseGuards, Param, ParseIntPipe, Post, Body } from "@nestjs/common";
+import { Controller, UseGuards, Param, ParseIntPipe, Post, Body, Get } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
@@ -26,7 +31,7 @@ const SCALE = "SCALE";
 @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Orgs / Orgs")
 export class OrganizationsOrganizationsController {
-  constructor(private managedOrganizationsService: ManagedOrganizationsService) {}
+  constructor(private readonly managedOrganizationsService: ManagedOrganizationsService) {}
 
   @Post()
   @Roles("ORG_ADMIN")
@@ -45,39 +50,46 @@ export class OrganizationsOrganizationsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+      data: plainToClass(ManagedOrganizationWithApiKeyOutput, organization, { strategy: "excludeAll" }),
     };
   }
 
   // todo(Lauris): add endpoint to update api key and when creatingOrg allow to set when does apikey expire
+  // and another endpoint to retrive api keys of an organization.
 
-  //   @UseGuards(IsManagedOrgInManagerOrg)
-  //   @Roles("TEAM_ADMIN")
-  //   @PlatformPlan(PLATFORM_PLAN)
-  //   @Get("/:managedOrganizationId")
-  //   @ApiOperation({ summary: "Get an organization within an organization" })
-  //   async getOrganization(@Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number): Promise<OrgTeamOutputResponseDto> {
-  //     return {
-  //       status: SUCCESS_STATUS,
-  //       data: plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" }),
-  //     };
-  //   }
+  @Roles("ORG_ADMIN")
+  @PlatformPlan(SCALE)
+  @Get("/:managedOrganizationId")
+  @ApiOperation({ summary: "Get an organization within an organization" })
+  async getOrganization(
+    @Param("orgId", ParseIntPipe) managerOrganizationId: number,
+    @Param("managedOrganizationId", ParseIntPipe) managedOrganizationId: number
+  ): Promise<GetManagedOrganizationOutput> {
+    const organization = await this.managedOrganizationsService.getManagedOrganization(
+      managerOrganizationId,
+      managedOrganizationId
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+    };
+  }
 
-  //   @Get()
-  //   @ApiOperation({ summary: "Get all organizations" })
-  //   @Roles("ORG_ADMIN")
-  //   @PlatformPlan(PLATFORM_PLAN)
-  //   async getOrganizations(
-  //     @Param("orgId", ParseIntPipe) orgId: number,
-  //     @Query() queryParams: SkipTakePagination
-  //   ): Promise<OrgTeamsOutputResponseDto> {
-  //     const { skip, take } = queryParams;
-  //     const teams = await this.organizationsTeamsService.getPaginatedOrgTeams(orgId, skip ?? 0, take ?? 250);
-  //     return {
-  //       status: SUCCESS_STATUS,
-  //       data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
-  //     };
-  //   }
+  @Roles("ORG_ADMIN")
+  @PlatformPlan(SCALE)
+  @Get("/")
+  @ApiOperation({ summary: "Get all organizations within an organization" })
+  async getOrganizations(
+    @Param("orgId", ParseIntPipe) managerOrganizationId: number
+  ): Promise<GetManagedOrganizationsOutput> {
+    const organization = await this.managedOrganizationsService.getManagedOrganizations(
+      managerOrganizationId
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+    };
+  }
 
   //   @UseGuards(IsTeamInOrg)
   //   @Roles("ORG_ADMIN")

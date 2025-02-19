@@ -1623,13 +1623,13 @@
         ]
       }
     },
-    "/v2/organizations/{managerOrganizationId}/organizations": {
+    "/v2/organizations/{orgId}/organizations": {
       "post": {
         "operationId": "OrganizationsOrganizationsController_createOrganization",
         "summary": "Create an organization within an organization",
         "parameters": [
           {
-            "name": "managerOrganizationId",
+            "name": "orgId",
             "required": true,
             "in": "path",
             "schema": {
@@ -1654,6 +1654,74 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Orgs"
+        ]
+      },
+      "get": {
+        "operationId": "OrganizationsOrganizationsController_getOrganizations",
+        "summary": "Get all organizations within an organization",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationsOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Orgs"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/organizations/{managedOrganizationId}": {
+      "get": {
+        "operationId": "OrganizationsOrganizationsController_getOrganization",
+        "summary": "Get an organization within an organization",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
                 }
               }
             }
@@ -14311,7 +14379,7 @@
           "name"
         ]
       },
-      "ManagedOrganizationOutput": {
+      "ManagedOrganizationWithApiKeyOutput": {
         "type": "object",
         "properties": {
           "id": {
@@ -14324,10 +14392,10 @@
           "slug": {
             "type": "string"
           },
-          "apiKey": {
+          "metadata": {
             "type": "string"
           },
-          "metadata": {
+          "apiKey": {
             "type": "string"
           }
         },
@@ -14350,7 +14418,73 @@
             ]
           },
           "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationWithApiKeyOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "ManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "GetManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
             "$ref": "#/components/schemas/ManagedOrganizationOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetManagedOrganizationsOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ManagedOrganizationOutput"
+            }
           }
         },
         "required": [

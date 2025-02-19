@@ -1,3 +1,4 @@
+import { ApiKeyModule } from "@/modules/api-key/api-key.module";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -13,7 +14,7 @@ import { StripeModule } from "@/modules/stripe/stripe.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, RedisModule, StripeModule, MembershipsModule],
+  imports: [PrismaModule, RedisModule, StripeModule, MembershipsModule, ApiKeyModule],
   providers: [
     ManagedOrganizationsService,
     ManagedOrganizationsRepository,

@@ -3,7 +3,10 @@ import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
 import { hashAPIKey, stripApiKey } from "@/lib/api-key";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
-import { ManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/managed-organization.output";
+import {
+  ManagedOrganizationWithApiKeyOutput,
+  ManagedOrganizationOutput,
+} from "@/modules/organizations/organizations/outputs/managed-organization.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -37,7 +40,7 @@ describe("Organizations Organizations Endpoints", () => {
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
 
   let managerOrg: Team;
-  let managedOrg: ManagedOrganizationOutput;
+  let managedOrg: ManagedOrganizationWithApiKeyOutput;
 
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
   let managerOrgAdmin: User;
@@ -105,7 +108,7 @@ describe("Organizations Organizations Endpoints", () => {
       } satisfies CreateOrganizationInput)
       .expect(201)
       .then(async (response) => {
-        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput> = response.body;
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
@@ -168,11 +171,45 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgApiKeys?.length).toEqual(1);
         expect(managedOrgApiKeys?.[0]?.id).toBeDefined();
         const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
-        const hashedKey = `${hashAPIKey(stripApiKey(managedOrg?.apiKey, apiKeyPrefix))}`;
-        expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedKey);
+        const hashedApiKey = `${hashAPIKey(stripApiKey(managedOrg?.apiKey, apiKeyPrefix))}`;
+        expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedApiKey);
         expect(managedOrgApiKeys?.[0]?.note).toEqual(
           `Managed organization API key. ManagerOrgId: ${managerOrg.id}. ManagedOrgId: ${managedOrg.id}`
         );
+      });
+  });
+
+  it("should get managed organization", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrg = responseBody.data;
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.name).toEqual(managedOrg.name);
+        expect(responseManagedOrg?.slug).toEqual(managedOrg.slug);
+        expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+      });
+  });
+
+  it("should get managed organizations", async () => {
+    return request(app.getHttpServer())
+      .get(`/v2/organizations/${managerOrg.id}/organizations`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationOutput[]> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrgs = responseBody.data;
+        expect(responseManagedOrgs?.length).toEqual(1);
+        const responseManagedOrg = responseManagedOrgs[0];
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.name).toEqual(managedOrg.name);
+        expect(responseManagedOrg?.slug).toEqual(managedOrg.slug);
+        expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
       });
   });
 
