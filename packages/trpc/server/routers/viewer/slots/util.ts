@@ -3,7 +3,10 @@ import { countBy } from "lodash";
 import type { Logger } from "tslog";
 import { v4 as uuid } from "uuid";
 
-import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
+import {
+  getAggregatedAvailability,
+  getAggregatedAvailabilityNew,
+} from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, GetAvailabilityUser, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
@@ -11,15 +14,12 @@ import monitorCallbackAsync, { monitorCallbackSync } from "@calcom/core/sentryWr
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
+import { checkForConflicts } from "@calcom/features/bookings/lib/conflictChecker/checkForConflicts";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { getShouldServeCache } from "@calcom/features/calendar-cache/lib/getShouldServeCache";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { findQualifiedHosts } from "@calcom/lib/bookings/findQualifiedHosts";
-import {
-  findMatchingHostsWithEventSegment,
-  getRoutedHostsWithContactOwnerAndFixedHosts,
-} from "@calcom/lib/bookings/getRoutedUsers";
-import { isRerouting, shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
+import { shouldIgnoreContactOwner } from "@calcom/lib/bookings/routing/utils";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -46,55 +46,6 @@ import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 const log = logger.getSubLogger({ prefix: ["[slots/util]"] });
-
-export const checkIfIsAvailable = ({
-  time,
-  busy,
-  eventLength,
-  currentSeats,
-}: {
-  time: Dayjs;
-  busy: EventBusyDate[];
-  eventLength: number;
-  currentSeats?: CurrentSeats;
-}): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
-  const slotEndTime = time.add(eventLength, "minutes").utc();
-  const slotStartTime = time.utc();
-
-  return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
-
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
-
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
-
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
-    return true;
-  });
-};
 
 async function getEventTypeId({
   slug,
@@ -231,6 +182,20 @@ const selectSelectedSlots = Prisma.validator<Prisma.SelectedSlotsDefaultArgs>()(
 
 type SelectedSlots = Prisma.SelectedSlotsGetPayload<typeof selectSelectedSlots>;
 
+const groupTimeSlotsByDay = (timeSlots: { time: Dayjs }[]) => {
+  return timeSlots.reduce((acc: Record<string, string[]>, { time }) => {
+    const day = time.format("YYYY-MM-DD"); // Group by date
+    const formattedTime = time.format("HH:mm"); // Format as HH:mm
+
+    if (!acc[day]) {
+      acc[day] = [];
+    }
+    acc[day].push(formattedTime);
+
+    return acc;
+  }, {});
+};
+
 function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSeats: SelectedSlots[]) {
   const occupiedSeatsCount = countBy(occupiedSeats, (item) => item.slotUtcStartDate.toISOString());
   Object.keys(occupiedSeatsCount).forEach((date) => {
@@ -260,48 +225,15 @@ export interface IGetAvailableSlots {
   troubleshooter?: any;
 }
 
-/**
- * Returns (Contact Owner plus Fixed Hosts) OR All Hosts
- */
-export function getUsersWithCredentialsConsideringContactOwner({
-  contactOwnerEmail,
+export function getUsersWithCredentials({
   hosts,
 }: {
-  contactOwnerEmail: string | null | undefined;
   hosts: {
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
 }) {
-  const contactOwnerHost = hosts.find((host) => host.user.email === contactOwnerEmail);
-  /**
-   * It could still have contact owner, if it was one of the assigned hosts of the event.
-   * In case of routedTeamMemberIds, hosts will only have the Routed Team Members and in that case, contact owner would be here only if it matches
-   */
-  const allHosts = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-
-  const contactOwnerExists = contactOwnerEmail && contactOwnerHost;
-
-  if (!contactOwnerExists) {
-    return allHosts;
-  }
-
-  if (contactOwnerHost?.isFixed) {
-    // If contact owner is a fixed host, we return all hosts which also includes contact owner
-    return allHosts;
-  }
-
-  const contactOwnerAndFixedHosts = hosts.reduce(
-    (usersArray: (GetAvailabilityUser & { isFixed?: boolean })[], host) => {
-      if (host.isFixed || host.user.email === contactOwnerEmail)
-        usersArray.push({ ...host.user, isFixed: host.isFixed });
-
-      return usersArray;
-    },
-    []
-  );
-
-  return contactOwnerAndFixedHosts;
+  return hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 }
 
 const getStartTime = (startTimeInput: string, timeZone?: string, minimumBookingNotice?: number) => {
@@ -322,6 +254,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     _enableTroubleshooter: enableTroubleshooter = false,
     _bypassCalendarBusyTimes: bypassBusyCalendarTimes = false,
     _shouldServeCache,
+    routingFormResponseId,
   } = input;
   const orgDetails = input?.orgSlug
     ? {
@@ -358,6 +291,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
       : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 
   const loggerWithEventDetails = logger.getSubLogger({
+    type: "json",
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
 
@@ -372,19 +306,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-
-  const eventHosts = await monitorCallbackAsync(
-    findQualifiedHosts<GetAvailabilityUser>,
-    eventType,
-    !!input.rescheduleUid
-  );
-  const hostsAfterSegmentMatching = await findMatchingHostsWithEventSegment({
-    eventType,
-    normalizedHosts: eventHosts,
-  });
+  // when an empty array is given we should prefer to have it handled as if this wasn't given at all
+  // we don't want to return no availability in this case.
+  const routedTeamMemberIds = input.routedTeamMemberIds ?? [];
   const contactOwnerEmailFromInput = input.teamMemberEmail ?? null;
 
-  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
   const skipContactOwner = shouldIgnoreContactOwner({
     skipContactOwner: input.skipContactOwner ?? null,
     rescheduleUid: input.rescheduleUid ?? null,
@@ -392,50 +318,119 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   });
 
   const contactOwnerEmail = skipContactOwner ? null : contactOwnerEmailFromInput;
-  const routedHostsWithContactOwnerAndFixedHosts = getRoutedHostsWithContactOwnerAndFixedHosts({
-    hosts: hostsAfterSegmentMatching,
-    routedTeamMemberIds,
-    contactOwnerEmail,
+
+  let routingFormResponse = null;
+  if (routingFormResponseId) {
+    routingFormResponse = await prisma.app_RoutingForms_FormResponse.findUnique({
+      where: {
+        id: routingFormResponseId,
+      },
+      select: {
+        response: true,
+        form: {
+          select: {
+            routes: true,
+            fields: true,
+          },
+        },
+        chosenRouteId: true,
+      },
+    });
+  }
+
+  const { qualifiedRRHosts, allFallbackRRHosts, fixedHosts } = await monitorCallbackAsync(
+    findQualifiedHosts<GetAvailabilityUser>,
+    {
+      eventType,
+      rescheduleUid: input.rescheduleUid ?? null,
+      routedTeamMemberIds,
+      contactOwnerEmail,
+      routingFormResponse,
+    }
+  );
+
+  const allHosts = [...qualifiedRRHosts, ...fixedHosts];
+
+  const twoWeeksFromNow = dayjs().add(2, "week");
+
+  const hasFallbackRRHosts = allFallbackRRHosts && allFallbackRRHosts.length > qualifiedRRHosts.length;
+
+  let { allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
+    input,
+    eventType,
+    hosts: allHosts,
+    loggerWithEventDetails,
+    // adjust start time so we can check for available slots in the first two weeks
+    startTime:
+      hasFallbackRRHosts && startTime.isBefore(twoWeeksFromNow)
+        ? getStartTime(dayjs().format(), input.timeZone, eventType.minimumBookingNotice)
+        : startTime,
+    // adjust end time so we can check for available slots in the first two weeks
+    endTime:
+      hasFallbackRRHosts && endTime.isBefore(twoWeeksFromNow)
+        ? getStartTime(twoWeeksFromNow.format(), input.timeZone, eventType.minimumBookingNotice)
+        : endTime,
+    bypassBusyCalendarTimes,
+    shouldServeCache,
   });
 
-  let { aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-    await calculateHostsAndAvailabilities({
-      input,
-      eventType,
-      hosts: routedHostsWithContactOwnerAndFixedHosts,
-      contactOwnerEmail,
-      loggerWithEventDetails,
-      startTime,
-      endTime,
-      bypassBusyCalendarTimes,
-      shouldServeCache,
-    });
+  let aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
 
-  // If contact skipping, determine if there's availability within two weeks
-  if (contactOwnerEmail && aggregatedAvailability.length > 0) {
-    const twoWeeksFromNow = dayjs().add(2, "week");
-    const diff = aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day");
+  // Fairness and Contact Owner have fallbacks because we check for within 2 weeks
+  if (hasFallbackRRHosts) {
+    let diff = 0;
+    if (startTime.isBefore(twoWeeksFromNow)) {
+      //check if first two week have availability
+      diff =
+        aggregatedAvailability.length > 0 ? aggregatedAvailability[0].start.diff(twoWeeksFromNow, "day") : 1; // no aggregatedAvailability so we diff to +1
+    } else {
+      // if start time is not within first two weeks, check if there are any available slots
+      if (!aggregatedAvailability.length) {
+        // if no available slots check if first two weeks are available, otherwise fallback
+        const firstTwoWeeksAvailabilities = await calculateHostsAndAvailabilities({
+          input,
+          eventType,
+          hosts: [...qualifiedRRHosts, ...fixedHosts],
+          loggerWithEventDetails,
+          startTime: dayjs(),
+          endTime: twoWeeksFromNow,
+          bypassBusyCalendarTimes,
+          shouldServeCache,
+        });
+        if (
+          !getAggregatedAvailability(
+            firstTwoWeeksAvailabilities.allUsersAvailability,
+            eventType.schedulingType
+          ).length
+        ) {
+          diff = 1;
+        }
+      }
+    }
+
+    if (input.email) {
+      loggerWithEventDetails.info({
+        email: input.email,
+        contactOwnerEmail,
+        qualifiedRRHosts: qualifiedRRHosts.map((host) => host.user.id),
+        fallbackRRHosts: allFallbackRRHosts.map((host) => host.user.id),
+        fallBackActive: diff > 0,
+      });
+    }
 
     if (diff > 0) {
-      const routedHostsAndFixedHosts = routedHostsWithContactOwnerAndFixedHosts.filter(
-        (host) => host.email !== contactOwnerEmail
-      );
-
-      if (routedHostsAndFixedHosts.length > 0) {
-        // if the first available slot is more than 2 weeks from now, round robin as normal
-        ({ aggregatedAvailability, allUsersAvailability, usersWithCredentials, currentSeats } =
-          await calculateHostsAndAvailabilities({
-            input,
-            eventType,
-            hosts: routedHostsAndFixedHosts,
-            contactOwnerEmail,
-            loggerWithEventDetails,
-            startTime,
-            endTime,
-            bypassBusyCalendarTimes,
-            shouldServeCache,
-          }));
-      }
+      // if the first available slot is more than 2 weeks from now, round robin as normal
+      ({ allUsersAvailability, usersWithCredentials, currentSeats } = await calculateHostsAndAvailabilities({
+        input,
+        eventType,
+        hosts: [...allFallbackRRHosts, ...fixedHosts],
+        loggerWithEventDetails,
+        startTime,
+        endTime,
+        bypassBusyCalendarTimes,
+        shouldServeCache,
+      }));
+      aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
     }
   }
 
@@ -449,6 +444,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
   // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
   const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
+
   const timeSlots = monitorCallbackSync(getSlots, {
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -459,6 +455,47 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
+
+  const aggregatedAvailabilityNew = getAggregatedAvailabilityNew(
+    allUsersAvailability,
+    eventType.schedulingType
+  );
+
+  const timeSlotsNew = monitorCallbackSync(getSlots, {
+    inviteeDate: startTime,
+    eventLength: input.duration || eventType.length,
+    offsetStart: eventType.offsetStart,
+    dateRanges: aggregatedAvailabilityNew,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    frequency: eventType.slotInterval || input.duration || eventType.length,
+    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
+  });
+
+  const ts = groupTimeSlotsByDay(timeSlots),
+    tsNew = groupTimeSlotsByDay(timeSlotsNew);
+
+  const differences = Object.keys({ ...ts, ...tsNew }).reduce(
+    (acc: Record<string, { onlyInTimeSlots: string[]; onlyInTimeSlotsNew: string[] }>, day) => {
+      const t1 = ts[day] || [],
+        t2 = tsNew[day] || [];
+      const missingInNew = t1.filter((t) => !t2.includes(t));
+      const missingInOld = t2.filter((t) => !t1.includes(t));
+
+      if (missingInNew.length || missingInOld.length) {
+        acc[day] = { onlyInTimeSlots: missingInNew, onlyInTimeSlotsNew: missingInOld };
+      }
+
+      return acc;
+    },
+    {}
+  );
+
+  if (Object.keys(differences).length) {
+    loggerWithEventDetails.info({
+      routedTeamMemberIds,
+      differences,
+    });
+  }
 
   let availableTimeSlots: typeof timeSlots = [];
   // Load cached busy slots
@@ -524,7 +561,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
         }, []);
 
         if (
-          checkIfIsAvailable({
+          !checkForConflicts({
             time: slot.time,
             busy,
             ...availabilityCheckProps,
@@ -596,11 +633,11 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
     );
   });
 
-  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+  loggerWithEventDetails.debug({ slotsMappedToDate });
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = monitorCallbackSync(getAllDatesWithBookabilityStatus, availableDates);
-  loggerWithEventDetails.debug(safeStringify({ availableDates }));
+  loggerWithEventDetails.debug({ availableDates });
 
   const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -682,7 +719,7 @@ async function _getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<I
               userId: user.id,
             };
           }),
-          hostsAfterSegmentMatching: hostsAfterSegmentMatching.map((host) => ({
+          hostsAfterSegmentMatching: allHosts.map((host) => ({
             userId: host.user.id,
           })),
         },
@@ -744,7 +781,7 @@ async function getExistingBookings(
       in: "ACCEPTED"[];
     };
   },
-  usersWithCredentials: ReturnType<typeof getUsersWithCredentialsConsideringContactOwner>,
+  usersWithCredentials: ReturnType<typeof getUsersWithCredentials>,
   allUserIds: number[]
 ) {
   const bookingsSelect = Prisma.validator<Prisma.BookingSelect>()({
@@ -764,6 +801,7 @@ async function getExistingBookings(
         seatsPerTimeSlot: true,
         requiresConfirmationWillBlockSlot: true,
         requiresConfirmation: true,
+        allowReschedulingPastBookings: true,
       },
     },
     ...(!!eventType?.seatsPerTimeSlot && {
@@ -914,7 +952,6 @@ const calculateHostsAndAvailabilities = async ({
   input,
   eventType,
   hosts,
-  contactOwnerEmail,
   loggerWithEventDetails,
   startTime,
   endTime,
@@ -927,38 +964,13 @@ const calculateHostsAndAvailabilities = async ({
     isFixed?: boolean;
     user: GetAvailabilityUser;
   }[];
-  contactOwnerEmail: string | null;
   loggerWithEventDetails: Logger<unknown>;
   startTime: ReturnType<typeof getStartTime>;
   endTime: Dayjs;
   bypassBusyCalendarTimes: boolean;
   shouldServeCache?: boolean;
 }) => {
-  const routedTeamMemberIds = input.routedTeamMemberIds ?? null;
-  if (
-    input.rescheduleUid &&
-    eventType.rescheduleWithSameRoundRobinHost &&
-    eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-    // If it is rerouting, we should not force reschedule with same host.
-    // It will be unexpected plus could cause unavailable slots as original host might not be part of routedTeamMemberIds
-    !isRerouting({ rescheduleUid: input.rescheduleUid, routedTeamMemberIds })
-  ) {
-    const originalRescheduledBooking = await prisma.booking.findFirst({
-      where: {
-        uid: input.rescheduleUid,
-        status: {
-          in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
-        },
-      },
-      select: {
-        userId: true,
-      },
-    });
-    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
-  }
-
-  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentialsConsideringContactOwner, {
-    contactOwnerEmail,
+  const usersWithCredentials = monitorCallbackSync(getUsersWithCredentials, {
     hosts,
   });
 
@@ -986,22 +998,18 @@ const calculateHostsAndAvailabilities = async ({
   };
 
   const allUserIds = usersWithCredentials.map((user) => user.id);
-  const currentBookingsAllUsers = await monitorCallbackAsync(
-    getExistingBookings,
-    startTimeDate,
-    endTimeDate,
-    eventType,
-    sharedQuery,
-    usersWithCredentials,
-    allUserIds
-  );
-
-  const outOfOfficeDaysAllUsers = await monitorCallbackAsync(
-    getOOODates,
-    startTimeDate,
-    endTimeDate,
-    allUserIds
-  );
+  const [currentBookingsAllUsers, outOfOfficeDaysAllUsers] = await Promise.all([
+    monitorCallbackAsync(
+      getExistingBookings,
+      startTimeDate,
+      endTimeDate,
+      eventType,
+      sharedQuery,
+      usersWithCredentials,
+      allUserIds
+    ),
+    monitorCallbackAsync(getOOODates, startTimeDate, endTimeDate, allUserIds),
+  ]);
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
   const durationLimits = parseDurationLimit(eventType?.durationLimits);
@@ -1075,14 +1083,7 @@ const calculateHostsAndAvailabilities = async ({
     }
   );
 
-  const aggregatedAvailability = monitorCallbackSync(
-    getAggregatedAvailability,
-    allUsersAvailability,
-    eventType.schedulingType
-  );
-
   return {
-    aggregatedAvailability,
     allUsersAvailability,
     usersWithCredentials,
     currentSeats,

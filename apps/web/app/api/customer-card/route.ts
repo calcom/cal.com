@@ -1,6 +1,7 @@
 import { cardExamples } from "@pages/api/plain/example-cards";
 import { createHmac } from "crypto";
 import { headers } from "next/headers";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,28 +11,35 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 
 const inputSchema = z.object({
   customer: z.object({
+    name: z.string().optional(),
     email: z.string().email(),
     username: z.string().optional(),
     timeZone: z.string().optional(),
     emailVerified: z.boolean().optional(),
     identityProvider: z.string().optional(),
     twoFactorEnabled: z.boolean().optional(),
+    lastActiveAt: z.string().optional(),
+    teamName: z.string().optional(),
+    teamSlug: z.string().optional(),
+    isOrganization: z.boolean().optional(),
+    stripeCustomerId: z.string().optional(),
   }),
   cardKeys: z.array(z.string()),
 });
 
-export async function handler(request: Request) {
+async function handler(request: NextRequest) {
   const headersList = headers();
   const requestBody = await request.json();
 
   // HMAC verification
   const incomingSignature = headersList.get("plain-request-signature");
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const expectedSignature = createHmac("sha-256", process.env.PLAIN_HMAC_SECRET_KEY!)
     .update(JSON.stringify(requestBody))
     .digest("hex");
 
   if (incomingSignature !== expectedSignature) {
-    return new Response("Forbidden", { status: 403 });
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   // Validate request body
@@ -52,188 +60,10 @@ export async function handler(request: Request) {
               },
             },
             {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Email",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentText: {
-                      text: customer.email || "Unknown",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Email Verified?",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentBadge: {
-                      badgeLabel:
-                        customer.emailVerified === undefined
-                          ? "Unknown"
-                          : customer.emailVerified
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.emailVerified === undefined
-                          ? "YELLOW"
-                          : customer.emailVerified
-                          ? "GREEN"
-                          : "RED",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Username",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentText: {
-                      text: customer.username || "Unknown",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "User ID",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentText: {
-                      text: "Unknown",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Time Zone",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentText: {
-                      text: customer.timeZone || "Unknown",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Two Factor Enabled?",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentBadge: {
-                      badgeLabel:
-                        customer.twoFactorEnabled === undefined
-                          ? "Unknown"
-                          : customer.twoFactorEnabled
-                          ? "Yes"
-                          : "No",
-                      badgeColor:
-                        customer.twoFactorEnabled === undefined
-                          ? "YELLOW"
-                          : customer.twoFactorEnabled
-                          ? "GREEN"
-                          : "RED",
-                    },
-                  },
-                ],
-              },
-            },
-            {
-              componentSpacer: {
-                spacerSize: "M",
-              },
-            },
-            {
-              componentRow: {
-                rowMainContent: [
-                  {
-                    componentText: {
-                      text: "Identity Provider",
-                      textColor: "MUTED",
-                    },
-                  },
-                ],
-                rowAsideContent: [
-                  {
-                    componentText: {
-                      text: customer.identityProvider || "Unknown",
-                    },
-                  },
-                ],
+              componentText: {
+                textSize: "L",
+                textColor: "MUTED",
+                text: "User does not exist!",
               },
             },
           ],
@@ -242,18 +72,29 @@ export async function handler(request: Request) {
     });
   }
 
+  // Fetch team details including userId and team name
+  const teamMemberships = await UserRepository.findTeamsByUserId({ userId: user.id });
+  const firstTeam = teamMemberships.teams[0] ?? null;
+
   // Parse user metadata
   const parsedMetadata = userMetadata.parse(user.metadata);
 
   const cards = await Promise.all(
     cardExamples.map(async (cardFn) => {
       return cardFn(
+        user.name || "Unknown",
         user.email,
         user.id.toString(),
         user.username || "Unknown",
         user.timeZone,
         user.emailVerified,
-        user.twoFactorEnabled
+        user.twoFactorEnabled,
+        user.identityProvider,
+        user.lastActiveAt,
+        firstTeam?.name || "Unknown",
+        firstTeam?.slug || "Unknown",
+        firstTeam?.isOrganization || false,
+        (user.metadata as { stripeCustomerId?: string })?.stripeCustomerId || "Unknown"
       );
     })
   );

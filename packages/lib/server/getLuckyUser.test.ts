@@ -872,6 +872,7 @@ describe("attribute weights and virtual queues", () => {
           {
             //chosen route
             id: routeId,
+            attributeIdForWeights: attributeId,
             action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
             queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
             attributesQueryValue: {
@@ -920,7 +921,7 @@ describe("attribute weights and virtual queues", () => {
       chosenRouteId: routeId,
     };
 
-    prismaMock.attribute.findFirst.mockResolvedValue({
+    prismaMock.attribute.findUnique.mockResolvedValue({
       name: "Headquaters",
       id: attributeId,
       type: AttributeType.SINGLE_SELECT,
@@ -1040,6 +1041,7 @@ describe("attribute weights and virtual queues", () => {
             id: routeId,
             action: { type: "eventTypeRedirectUrl", value: "team/team1/team1-event-1", eventTypeId: 29 },
             queryValue: { id: "a98ab8a9-4567-489a-bcde-f1932649bb8b", type: "group" },
+            attributeIdForWeights: attributeId,
             attributesQueryValue: {
               id: "b8ab8ba9-0123-4456-b89a-b1932649bb8b",
               type: "group",
@@ -1141,7 +1143,7 @@ describe("attribute weights and virtual queues", () => {
       },
     ]);
 
-    prismaMock.attribute.findFirst.mockResolvedValue({
+    prismaMock.attribute.findUnique.mockResolvedValue({
       name: "Company Size",
       id: attributeId,
       type: AttributeType.SINGLE_SELECT,

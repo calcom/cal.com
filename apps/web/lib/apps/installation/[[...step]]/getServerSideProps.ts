@@ -88,6 +88,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
     position: true,
     recurringEvent: true,
     requiresConfirmation: true,
+    canSendCalVideoTranscriptionEmails: true,
     team: { select: { slug: true } },
     schedulingType: true,
     teamId: true,
@@ -199,7 +200,7 @@ const getAppInstallsBySlug = async (appSlug: string, userId: number, teamIds?: n
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res, query, params } = context;
+  const { req, query, params } = context;
   let eventTypeGroups: TEventTypeGroup[] | null = null;
   let isOrg = false;
   const stepsEnum = z.enum(STEPS);
@@ -207,7 +208,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const parsedStepParam = z.coerce.string().parse(params?.step);
   const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
   const _ = stepsEnum.parse(parsedStepParam);
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
   if (!session?.user?.id) return { redirect: { permanent: false, destination: "/auth/login" } };
   const locale = await getLocale(context.req);
   const app = await getAppBySlug(parsedAppSlug);

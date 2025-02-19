@@ -18,7 +18,7 @@ export const DatePicker = ({
   scrollToTimeSlots,
 }: {
   event: {
-    data?: { users: Pick<User, "weekStart">[] } | null;
+    data?: { subsetOfUsers: Pick<User, "weekStart">[] } | null;
   };
   schedule: useScheduleForEventReturnType;
   classNames?: {
@@ -77,15 +77,15 @@ export const DatePicker = ({
       }}
       className={classNames?.datePickerContainer}
       isPending={schedule.isPending}
-      onChange={(date: Dayjs | null) => {
-        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+      onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
+        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}
       locale={i18n.language}
       browsingDate={month ? dayjs(month) : undefined}
       selected={dayjs(selectedDate)}
-      weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
+      weekStart={weekdayToWeekIndex(event?.data?.subsetOfUsers?.[0]?.weekStart)}
       slots={schedule?.data?.slots}
       scrollToTimeSlots={scrollToTimeSlots}
     />
