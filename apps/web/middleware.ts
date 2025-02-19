@@ -18,6 +18,7 @@ const safeGet = async <T = any>(key: string): Promise<T | undefined> => {
   }
 };
 
+const STATIC_ROUTES = ["/maintenance"];
 const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const url = req.nextUrl;
   const requestHeaders = new Headers(req.headers);
@@ -77,6 +78,17 @@ const middleware = async (req: NextRequest): Promise<NextResponse<unknown>> => {
   const locale = await getLocale(req);
 
   requestHeaders.set("x-locale", locale);
+
+  if (STATIC_ROUTES.some((route) => url.pathname.startsWith(route))) {
+    const localeUrl = new URL(req.url);
+    localeUrl.pathname = `/static/${locale}${url.pathname}`;
+    const res = NextResponse.rewrite(localeUrl, {
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    return responseWithHeaders({ url, res, req });
+  }
 
   const res = NextResponse.next({
     request: {
@@ -146,7 +158,7 @@ export const config = {
     "/icons",
     "/d/:path*",
     "/more/:path*",
-    "/maintenance/:path*",
+    "/maintenance",
     "/enterprise/:path*",
     "/upgrade/:path*",
     "/connect-and-join/:path*",
