@@ -4320,15 +4320,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/jenil-demo@workspace:packages/app-store/jenil-demo":
-  version: 0.0.0-use.local
-  resolution: "@calcom/jenil-demo@workspace:packages/app-store/jenil-demo"
-  dependencies:
-    "@calcom/lib": "*"
-    "@calcom/types": "*"
-  languageName: unknown
-  linkType: soft
-
 "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo":
   version: 0.0.0-use.local
   resolution: "@calcom/jitsivideo@workspace:packages/app-store/jitsivideo"
