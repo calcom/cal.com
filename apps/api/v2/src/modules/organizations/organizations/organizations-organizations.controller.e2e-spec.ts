@@ -15,6 +15,8 @@ import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { PlatformBilling, User } from "@prisma/client";
+import { advanceTo, clear } from "jest-date-mock";
+import { DateTime } from "luxon";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
@@ -48,6 +50,8 @@ describe("Organizations Organizations Endpoints", () => {
   let managerOrgAdminApiKey: string;
 
   let managerOrgBilling: PlatformBilling;
+
+  const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -91,10 +95,16 @@ describe("Organizations Organizations Endpoints", () => {
     app = moduleRef.createNestApplication();
     bootstrap(app as NestExpressApplication);
 
+    advanceTo(newDate);
+
     await app.init();
   });
 
-  it("should create managed organization ", async () => {
+  afterAll(() => {
+    clear();
+  });
+
+  it("should create managed organization", async () => {
     const suffix = randomString();
 
     const orgName = `organizations organizations org ${suffix}`;
@@ -194,6 +204,8 @@ describe("Organizations Organizations Endpoints", () => {
         const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
         const hashedApiKey = `${hashAPIKey(stripApiKey(managedOrg?.apiKey, apiKeyPrefix))}`;
         expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedApiKey);
+        const expectedExpiresAt = DateTime.fromJSDate(newDate).setZone("utc").plus({ days: 30 }).toJSDate();
+        expect(managedOrgApiKeys?.[0]?.expiresAt).toEqual(expectedExpiresAt);
         expect(managedOrgApiKeys?.[0]?.note).toEqual(
           `Managed organization API key. ManagerOrgId: ${managerOrg.id}. ManagedOrgId: ${managedOrg.id}`
         );

@@ -54,9 +54,8 @@ export class ManagedOrganizationsService {
       );
     }
 
-    const expiresAfterDays = organizationInput.apiKeyDaysValid ? organizationInput.apiKeyDaysValid : 30;
-    const expiresAt = DateTime.utc().plus({ days: expiresAfterDays }).toJSDate();
-
+    const apiKeyExpiresAfterDays = organizationInput.apiKeyDaysValid ? organizationInput.apiKeyDaysValid : 30;
+    const apiKeyExpiresAt = DateTime.utc().plus({ days: apiKeyExpiresAfterDays }).toJSDate();
     const apiKey = await createApiKeyHandler({
       ctx: {
         user: {
@@ -66,7 +65,7 @@ export class ManagedOrganizationsService {
       input: {
         note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
         neverExpires: !!organizationInput.apiKeyNeverExpires,
-        expiresAt,
+        expiresAt: apiKeyExpiresAt,
         teamId: organization.id,
       },
     });
