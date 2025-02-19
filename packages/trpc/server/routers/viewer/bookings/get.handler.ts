@@ -77,7 +77,6 @@ export async function getBookings({
   skip: number;
 }) {
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
-  // let attendeeEmailIds = [user.email];
 
   if (filters?.teamIds && filters.teamIds.length > 0) {
     bookingWhereInputFilters.teamIds = {
