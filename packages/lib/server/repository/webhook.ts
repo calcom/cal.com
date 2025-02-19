@@ -32,11 +32,9 @@ const filterWebhooks = (webhook: Webhook) => {
 export class WebhookRepository {
   static async getAllWebhooksByUserId({
     userId,
-    organizationId,
     userRole,
   }: {
     userId: number;
-    organizationId?: number | null;
     userRole?: UserPermissionRole;
   }) {
     const user = await prisma.user.findUnique({
