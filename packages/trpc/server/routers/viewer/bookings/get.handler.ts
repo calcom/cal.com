@@ -77,6 +77,7 @@ export async function getBookings({
   skip: number;
 }) {
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
+  let attendeeEmailIds = [user.email];
 
   const membershipIdsWhereUserIsAdminOwner = (
     await prisma.membership.findMany({
@@ -122,6 +123,18 @@ export async function getBookings({
   }
 
   if (filters?.userIds && filters.userIds.length > 0) {
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          in: filters.userIds,
+        },
+      },
+      select: {
+        email: true,
+      },
+    });
+    attendeeEmailIds = users && users.length > 0 ? users.map((user) => user.email) : [];
+
     bookingWhereInputFilters.userIds = {
       AND: [
         {
@@ -331,41 +344,6 @@ export async function getBookings({
       take: 1,
     },
   };
-
-  // const membershipIdsWhereUserIsAdminOwner = (
-  //   await prisma.membership.findMany({
-  //     where: {
-  //       userId: user.id,
-  //       role: {
-  //         in: ["ADMIN", "OWNER"],
-  //       },
-  //     },
-  //     select: {
-  //       id: true,
-  //     },
-  //   })
-  // ).map((membership) => membership.id);
-
-  // const membershipConditionWhereUserIsAdminOwner = {
-  //   some: {
-  //     id: { in: membershipIdsWhereUserIsAdminOwner },
-  //   },
-  // };
-
-  let attendeeEmailIds = [user.email];
-  if (filters?.userIds && filters.userIds.length > 0) {
-    const users = await prisma.user.findMany({
-      where: {
-        id: {
-          in: filters.userIds,
-        },
-      },
-      select: {
-        email: true,
-      },
-    });
-    attendeeEmailIds = users && users.length > 0 ? users.map((user) => user.email) : [];
-  }
 
   const [
     // Quering these in parallel to save time.
