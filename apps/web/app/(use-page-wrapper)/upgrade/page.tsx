@@ -1,6 +1,6 @@
 import { _generateMetadata } from "app/_utils";
 
-import UpgradePage from "~/upgrade/upgrade-view";
+import LegacyPage from "~/upgrade/upgrade-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -8,8 +8,4 @@ export const generateMetadata = async () =>
     () => ""
   );
 
-const ServerPage = async () => {
-  return <UpgradePage />;
-};
-
-export default ServerPage;
+export default LegacyPage;
