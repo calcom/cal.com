@@ -305,7 +305,6 @@ test.describe("Bookings", () => {
     users,
     bookings,
   }) => {
-    const t = await localize("en");
     const firstUser = await users.create(
       { name: "First", email: "first@cal.com" },
       {
@@ -339,7 +338,7 @@ test.describe("Bookings", () => {
       { teamEventSlug: "team-event-slug" }
     );
 
-    //Create a Team EventType booking where ThirdUser is attendee
+    //Create a TeamEventType booking where ThirdUser is attendee
     const thirdUserAttendeeTeamEventBookingFixture = await createBooking({
       title: "ThirdUser is Attendee for TeamEvent",
       bookingsFixture: bookings,
@@ -350,7 +349,7 @@ test.describe("Bookings", () => {
     });
     const thirdUserAttendeeTeamEvent = await thirdUserAttendeeTeamEventBookingFixture.self();
 
-    //Create a Individual EventType booking where ThirdUser,SecondUser are attendees and ThirdUser is organizer
+    //Create a IndividualEventType booking where ThirdUser,SecondUser are attendees and FirstUser is organizer
     const thirdUserAttendeeIndividualBookingFixture = await createBooking({
       title: "ThirdUser is Attendee and FirstUser is Organizer",
       bookingsFixture: bookings,
@@ -364,7 +363,7 @@ test.describe("Bookings", () => {
     });
     const thirdUserAttendeeIndividualBooking = await thirdUserAttendeeIndividualBookingFixture.self();
 
-    //Create a Individual EventType booking where ThirdUser is organizer and FirstUser,SecondUser are attendees
+    //Create a IndividualEventType booking where ThirdUser is organizer and FirstUser,SecondUser are attendees
     const thirdUserOrganizerBookingFixture = await createBooking({
       title: "ThirdUser is Organizer and FirstUser is Attendee",
       bookingsFixture: bookings,
