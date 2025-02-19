@@ -3,8 +3,8 @@ import { _generateMetadata, getTranslate } from "app/_utils";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { Button } from "@calcom/ui";
 
-export const generateMetadata = () =>
-  _generateMetadata(
+export const generateMetadata = async () =>
+  await _generateMetadata(
     (t) => `${t("access_denied")} | ${APP_NAME}`,
     () => ""
   );
@@ -27,3 +27,4 @@ async function Error403() {
 }
 
 export default Error403;
+export const dynamic = "force-static";

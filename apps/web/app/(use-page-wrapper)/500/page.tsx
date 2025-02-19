@@ -5,8 +5,8 @@ import { Button } from "@calcom/ui";
 
 import CopyButton from "./copy-button";
 
-export const generateMetadata = () =>
-  _generateMetadata(
+export const generateMetadata = async () =>
+  await _generateMetadata(
     (t) => `${t("something_unexpected_occurred")} | ${APP_NAME}`,
     () => ""
   );
@@ -42,3 +42,4 @@ async function Error500({ searchParams }: { searchParams: { error?: string } }) 
 }
 
 export default Error500;
+export const dynamic = "force-static";

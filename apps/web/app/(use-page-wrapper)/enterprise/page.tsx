@@ -8,4 +8,9 @@ export const generateMetadata = async () =>
     (t) => t("create_your_org_description")
   );
 
-export default EnterprisePage;
+async function ServerPage() {
+  return <EnterprisePage />;
+}
+
+export default ServerPage;
+export const dynamic = "force-static";

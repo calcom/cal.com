@@ -14,3 +14,5 @@ const ServerPageWrapper = async () => {
 };
 
 export default ServerPageWrapper;
+
+export const dynamic = "force-static";
