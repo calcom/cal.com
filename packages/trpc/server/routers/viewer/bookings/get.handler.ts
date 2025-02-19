@@ -332,6 +332,26 @@ export async function getBookings({
     },
   };
 
+  // const membershipIdsWhereUserIsAdminOwner = (
+  //   await prisma.membership.findMany({
+  //     where: {
+  //       userId: user.id,
+  //       role: {
+  //         in: ["ADMIN", "OWNER"],
+  //       },
+  //     },
+  //     select: {
+  //       id: true,
+  //     },
+  //   })
+  // ).map((membership) => membership.id);
+
+  // const membershipConditionWhereUserIsAdminOwner = {
+  //   some: {
+  //     id: { in: membershipIdsWhereUserIsAdminOwner },
+  //   },
+  // };
+
   let attendeeEmailIds = [user.email];
   if (filters?.userIds && filters.userIds.length > 0) {
     const users = await prisma.user.findMany({
