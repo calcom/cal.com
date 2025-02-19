@@ -26,7 +26,7 @@ export function getAvailableDatesInMonth({
     ;
     /* date already defined; no initializer needed */ // Check if date is before the last date of the month
     // or is the same day, in the same month, in the same year.
-    date < lastDateOfMonth || date.isSame(lastDateOfMonth, "day");
+    date.valueOf() <= lastDateOfMonth.valueOf();
     // startOf next day, this happens after passing current date
     date = date.add(1, "day")
   ) {
