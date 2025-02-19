@@ -17,8 +17,8 @@ export function getAvailableDatesInMonth({
 }) {
   // get minDate but with the same UTC offset as the browsingDate.
   const minDayjs = dayjs(minDate).utcOffset(browsingDate.utcOffset());
-
-  let date = dayjs.max(browsingDate, minDayjs);
+  // Get the later date (the one that is not in the past) + lose the time part.
+  let date = dayjs.max(browsingDate.startOf("day"), minDayjs.startOf("day"));
 
   const dates = [];
   const lastDateOfMonth = date.endOf("month");
