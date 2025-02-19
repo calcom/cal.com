@@ -1,5 +1,6 @@
 /**
- * This route is used only by "Test Preview" button
+ * This route is used only by "Test Preview" button and Virtual Queues
+ * Also, it is applicable only for sub-teams. Regular teams and user Routing Forms don't hit this endpoint.
  * Live mode uses findTeamMembersMatchingAttributeLogicOfRoute fn directly
  */
 import type { App_RoutingForms_Form } from "@prisma/client";
@@ -67,7 +68,7 @@ export const findTeamMembersMatchingAttributeLogicOfRouteHandler = async ({
 }: FindTeamMembersMatchingAttributeLogicOfRouteHandlerOptions) => {
   const { prisma, user } = ctx;
   const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/web/lib/getTeamMemberEmailFromCrm"
+    "@calcom/lib/server/getTeamMemberEmailFromCrm"
   );
 
   const { formId, response, route, isPreview, _enablePerf, _concurrency } = input;
