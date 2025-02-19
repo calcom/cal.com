@@ -78,6 +78,26 @@ export async function getBookings({
 }) {
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
 
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
+  };
+
   if (filters?.teamIds && filters.teamIds.length > 0) {
     bookingWhereInputFilters.teamIds = {
       AND: [
@@ -131,6 +151,13 @@ export async function getBookings({
                       in: filters.userIds,
                     },
                   },
+                },
+              },
+            },
+            {
+              eventType: {
+                team: {
+                  members: membershipConditionWhereUserIsAdminOwner,
                 },
               },
             },
@@ -224,13 +251,6 @@ export async function getBookings({
         // On prisma 5.4.2 passing undefined to where "AND" causes an error
         .filter(Boolean);
 
-  const filtersCombinedExceptUserIds: Prisma.BookingWhereInput[] = !filters
-    ? []
-    : Object.keys(filters)
-        .filter((key) => key !== "userIds")
-        .map((key) => bookingWhereInputFilters[key])
-        .filter(Boolean);
-
   const bookingSelect = {
     ...bookingMinimalSelect,
     uid: true,
@@ -312,26 +332,6 @@ export async function getBookings({
     },
   };
 
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
-
-  const membershipConditionWhereUserIsAdminOwner = {
-    some: {
-      id: { in: membershipIdsWhereUserIsAdminOwner },
-    },
-  };
-
   let attendeeEmailIds = [user.email];
   if (filters?.userIds && filters.userIds.length > 0) {
     const users = await prisma.user.findMany({
@@ -386,7 +386,7 @@ export async function getBookings({
             },
           },
         ],
-        AND: [passedBookingsStatusFilter, ...filtersCombinedExceptUserIds],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
       },
       orderBy,
       take: take + 1,
