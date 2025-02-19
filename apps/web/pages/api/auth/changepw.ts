@@ -8,7 +8,7 @@ import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const session = await getServerSession({ req, res });
+  const session = await getServerSession({ req });
 
   if (!session || !session.user || !session.user.email) {
     res.status(401).json({ message: "Not authenticated" });

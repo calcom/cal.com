@@ -7,7 +7,6 @@ import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import { WEBAPP_URL } from "./constants";
 import getLabelValueMapFromResponses from "./getLabelValueMapFromResponses";
 import isSmsCalEmail from "./isSmsCalEmail";
-import { markdownToSafeHTML } from "./markdownToSafeHTML";
 
 const translator = short();
 
@@ -55,10 +54,8 @@ export const getWho = (
       return `
 ${attendee?.name || t("guest")}
 ${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
-
 `;
     })
-
     .join("");
 
   const organizer = `
@@ -133,8 +130,9 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
+  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
   return `\n${t("description")}
-    ${markdownToSafeHTML(calEvent.description)}
+    ${plainText}
     `;
 };
 export const getLocation = (

@@ -63,98 +63,6 @@
         ]
       }
     },
-    "/v2/gcal/oauth/auth-url": {
-      "get": {
-        "operationId": "GcalController_redirect",
-        "summary": "Get auth URL",
-        "parameters": [
-          {
-            "name": "Authorization",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalAuthUrlOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
-    "/v2/gcal/oauth/save": {
-      "get": {
-        "operationId": "GcalController_save",
-        "summary": "Connect a calendar",
-        "parameters": [
-          {
-            "name": "state",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "code",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalSaveRedirectOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
-    "/v2/gcal/check": {
-      "get": {
-        "operationId": "GcalController_check",
-        "summary": "Check a calendar connection status",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GcalCheckOutput"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Platform / Google Calendar"
-        ]
-      }
-    },
     "/v2/oauth-clients/{clientId}/users": {
       "get": {
         "operationId": "OAuthClientUsersController_getManagedUsers",
@@ -1251,6 +1159,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -2211,6 +2128,182 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/bookings": {
+      "get": {
+        "operationId": "OrganizationsTeamsBookingsController_getAllOrgTeamBookings",
+        "summary": "Get organization team bookings",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by status. If you want to filter by multiple statuses, separate them with a comma.",
+            "example": "?status=upcoming,past",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "upcoming",
+                  "recurring",
+                  "past",
+                  "cancelled",
+                  "unconfirmed"
+                ]
+              }
+            }
+          },
+          {
+            "name": "attendeeEmail",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's email address.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attendeeName",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by the attendee's name.",
+            "example": "John Doe",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeIds",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type ids belonging to the team. Event type ids must be separated by a comma.",
+            "example": "?eventTypeIds=100,200",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings by event type id belonging to the team.",
+            "example": "?eventTypeId=100",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "afterStart",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with start after this date string.",
+            "example": "?afterStart=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeEnd",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings with end before this date string.",
+            "example": "?beforeEnd=2025-03-07T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortCreated",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
+            "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "minimum": 1,
+              "maximum": 250,
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetBookingsOutput_2024_08_13"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Bookings"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
       "get": {
         "operationId": "OrganizationsTeamsMembershipsController_getAllOrgTeamMemberships",
@@ -2516,6 +2609,8 @@
             "description": "The number of items to return",
             "example": 10,
             "schema": {
+              "minimum": 1,
+              "maximum": 1000,
               "type": "number"
             }
           },
@@ -2526,6 +2621,7 @@
             "description": "The number of items to skip",
             "example": 0,
             "schema": {
+              "minimum": 0,
               "type": "number"
             }
           },
@@ -2681,6 +2777,256 @@
         },
         "tags": [
           "Orgs / Users"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUserOOO",
+        "summary": "Get all ooo entries of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersOOOController_createOrganizationUserOOO",
+        "summary": "Create an ooo entry for user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}/ooo/{oooId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersOOOController_updateOrganizationUserOOO",
+        "summary": "Update ooo entry of a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOutOfOfficeEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersOOOController_deleteOrganizationUserOOO",
+        "summary": "Delete ooo entry of a user",
+        "parameters": [
+          {
+            "name": "oooId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/ooo": {
+      "get": {
+        "operationId": "OrganizationsUsersOOOController_getOrganizationUsersOOO",
+        "summary": "Get all OOO entries of org users",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortStart",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their start time in ascending or descending order.",
+            "example": "?sortStart=asc OR ?sortStart=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortEnd",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their end time in ascending or descending order.",
+            "example": "?sortEnd=asc OR ?sortEnd=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "description": "Filter ooo entries by the user email address. user must be within your organization.",
+            "example": "example@domain.com",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Orgs / Users / OOO"
         ]
       }
     },
@@ -3040,6 +3386,26 @@
             }
           },
           {
+            "name": "afterUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated after this date string.",
+            "example": "?afterUpdatedAt=2025-03-07T10:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "beforeUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filter bookings that have been updated before this date string.",
+            "example": "?beforeUpdatedAt=2025-03-14T11:00:00.000Z",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sortStart",
             "required": false,
             "in": "query",
@@ -3073,6 +3439,20 @@
             "in": "query",
             "description": "Sort results by their creation time (when booking was made) in ascending or descending order.",
             "example": "?sortCreated=asc OR ?sortCreated=desc",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortUpdatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Sort results by their updated time (for example when booking status changes) in ascending or descending order.",
+            "example": "?sortUpdated=asc OR ?sortUpdated=desc",
             "schema": {
               "enum": [
                 "asc",
@@ -3683,7 +4063,7 @@
     "/v2/calendars/{calendar}/connect": {
       "get": {
         "operationId": "CalendarsController_redirect",
-        "summary": "Get connect URL",
+        "summary": "Get oAuth connect URL",
         "parameters": [
           {
             "name": "Authorization",
@@ -3698,6 +4078,10 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": [
+                "office365",
+                "google"
+              ],
               "type": "string"
             }
           }
@@ -3722,7 +4106,7 @@
     "/v2/calendars/{calendar}/save": {
       "get": {
         "operationId": "CalendarsController_save",
-        "summary": "Save a calendar",
+        "summary": "Save an oAuth calendar credentials",
         "parameters": [
           {
             "name": "state",
@@ -3745,6 +4129,10 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": [
+                "office365",
+                "google"
+              ],
               "type": "string"
             }
           }
@@ -3769,6 +4157,9 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": [
+                "apple"
+              ],
               "type": "string"
             }
           }
@@ -3793,6 +4184,11 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": [
+                "apple",
+                "google",
+                "office365"
+              ],
               "type": "string"
             }
           }
@@ -3824,6 +4220,11 @@
             "required": true,
             "in": "path",
             "schema": {
+              "enum": [
+                "apple",
+                "google",
+                "office365"
+              ],
               "type": "string"
             }
           }
@@ -5014,43 +5415,219 @@
         ]
       }
     },
-    "/v2/slots/reserve": {
+    "/v2/slots": {
+      "get": {
+        "operationId": "SlotsController_2024_09_04_getAvailableSlots",
+        "summary": "Find out when is an event type ready to be booked.",
+        "description": "\n      There are 4 ways to get available slots:\n      \n      1. By event type id. Event type id can be of user and team event types. Example '/v2/slots?eventTypeId=10&start=2050-09-05&end=2050-09-06&timeZone=Europe/Rome'\n\n      2. By event type slug + username. Example '/v2/slots?eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      3. By event type slug + username + organization slug when searching within an organization. Example '/v2/slots?organizationSlug=org-slug&eventTypeSlug=intro&username=bob&start=2050-09-05&end=2050-09-06'\n\n      4. By usernames only (used for dynamic event type - there is no specific event but you want to know when 2 or more people are available). Example '/v2/slots?usernames=alice,bob&username=bob&organizationSlug=org-slug&start=2050-09-05&end=2050-09-06'. As you see you also need to provide the slug of the organization to which each user in the 'usernames' array belongs.\n\n      All of them require \"start\" and \"end\" query parameters which define the time range for which available slots should be checked.\n      Optional parameters are:\n      - timeZone: Time zone in which the available slots should be returned. Defaults to UTC.\n      - duration: Only use for event types that allow multiple durations or for dynamic event types. If not passed for multiple duration event types defaults to default duration. For dynamic event types defaults to 30 aka each returned slot is 30 minutes long. So duration=60 means that returned slots will be each 60 minutes long.\n      - slotFormat: Format of the slots. By default return is an object where each key is date and value is array of slots as string. If you want to get start and end of each slot use \"range\" as value.\n      ",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "start",
+            "required": true,
+            "in": "query",
+            "description": "\n      Time starting from which available slots should be checked.\n    \n      Must be in UTC timezone as ISO 8601 datestring.\n      \n      You can pass date without hours which defaults to start of day or specify hours:\n      2024-08-13 (will have hours 00:00:00 aka at very beginning of the date) or you can specify hours manually like 2024-08-13T09:00:00Z.",
+            "example": "2050-09-05",
+            "schema": {}
+          },
+          {
+            "name": "end",
+            "required": true,
+            "in": "query",
+            "description": "\n    Time until which available slots should be checked.\n    \n    Must be in UTC timezone as ISO 8601 datestring.\n    \n    You can pass date without hours which defaults to end of day or specify hours:\n    2024-08-20 (will have hours 23:59:59 aka at the very end of the date) or you can specify hours manually like 2024-08-20T18:00:00Z.",
+            "example": "2050-09-06",
+            "schema": {}
+          },
+          {
+            "name": "username",
+            "required": false,
+            "in": "query",
+            "description": "The username of the user to get event types for.",
+            "example": "bob",
+            "schema": {}
+          },
+          {
+            "name": "eventTypeSlug",
+            "required": false,
+            "in": "query",
+            "description": "The slug of the event type for which available slots should be checked. If slug is provided then username must be provided too.",
+            "example": "event-type-slug",
+            "schema": {}
+          },
+          {
+            "name": "eventTypeId",
+            "required": false,
+            "in": "query",
+            "description": "The ID of the event type for which available slots should be checked.",
+            "example": "100",
+            "schema": {}
+          },
+          {
+            "name": "usernames",
+            "required": false,
+            "in": "query",
+            "description": "The usernames for which available slots should be checked separated by a comma.\n    \n    Checking slots by usernames is used mainly for dynamic events where there is no specific event but we just want to know when 2 or more people are available.\n    \n    Must contain at least 2 usernames.",
+            "example": "alice,bob",
+            "schema": {}
+          },
+          {
+            "name": "slotFormat",
+            "required": false,
+            "in": "query",
+            "description": "Format of slot times in response. Use 'range' to get start and end times. Use 'time' or omit this query parameter to get only start time.",
+            "example": "range",
+            "schema": {}
+          },
+          {
+            "name": "duration",
+            "required": false,
+            "in": "query",
+            "description": "If event type has multiple possible durations then you can specify the desired duration here. Also, if you are fetching slots for a dynamic event then you can specify the duration her which defaults to 30, meaning that returned slots will be each 30 minutes long.",
+            "example": "60",
+            "schema": {}
+          },
+          {
+            "name": "timeZone",
+            "required": false,
+            "in": "query",
+            "description": "Time zone in which the available slots should be returned. Defaults to UTC.",
+            "example": "Europe/Rome",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A map of available slots indexed by date, where each date is associated with an array of time slots. If format=range is specified, each slot will be an object with start and end properties denoting start and end of the slot.\n      For seated slots each object will have attendeesCount and bookingUid properties.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "title": "Default format (or with format=time)",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "example": {
+                        "status": "success",
+                        "data": {
+                          "2050-09-05": [
+                            {
+                              "start": "2050-09-05T09:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-05T10:00:00.000+02:00"
+                            }
+                          ],
+                          "2050-09-06": [
+                            {
+                              "start": "2050-09-06T09:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-06T10:00:00.000+02:00"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "title": "Range format (when format=range)",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "start": {
+                              "type": "string"
+                            },
+                            "end": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "status": "success",
+                        "data": {
+                          "2050-09-05": [
+                            {
+                              "start": "2050-09-05T09:00:00.000+02:00",
+                              "end": "2050-09-05T10:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-05T10:00:00.000+02:00",
+                              "end": "2050-09-05T11:00:00.000+02:00"
+                            }
+                          ],
+                          "2050-09-06": [
+                            {
+                              "start": "2050-09-06T09:00:00.000+02:00",
+                              "end": "2050-09-06T10:00:00.000+02:00"
+                            },
+                            {
+                              "start": "2050-09-06T10:00:00.000+02:00",
+                              "end": "2050-09-06T11:00:00.000+02:00"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      }
+    },
+    "/v2/slots/reservations": {
       "post": {
-        "operationId": "SlotsController_reserveSlot",
+        "operationId": "SlotsController_2024_09_04_reserveSlot",
         "summary": "Reserve a slot",
-        "parameters": [],
+        "description": "Make a slot not available for others to book for a certain period of time.",
+        "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReserveSlotInput"
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Successful response returning uid of reserved slot.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "success"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "uid": {
-                          "type": "string",
-                          "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6"
-                        }
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/ReserveSlotOutputResponse_2024_09_04"
                 }
               }
             }
@@ -5061,17 +5638,24 @@
         ]
       }
     },
-    "/v2/slots/selected-slot": {
-      "delete": {
-        "operationId": "SlotsController_deleteSelectedSlot",
-        "summary": "Delete a selected slot",
+    "/v2/slots/reservations/{uid}": {
+      "get": {
+        "operationId": "SlotsController_2024_09_04_getReservedSlot",
+        "summary": "Get reserved slot",
         "parameters": [
+          {
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "uid",
             "required": true,
-            "in": "query",
-            "description": "Unique identifier for the slot to be removed.",
-            "example": "e2a7bcf9-cc7b-40a0-80d3-657d391775a6",
+            "in": "path",
             "schema": {
               "type": "string"
             }
@@ -5079,17 +5663,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Response deleting reserved slot by uid.",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "success"
-                    }
-                  }
+                  "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
                 }
               }
             }
@@ -5098,199 +5676,85 @@
         "tags": [
           "Slots"
         ]
-      }
-    },
-    "/v2/slots/available": {
-      "get": {
-        "operationId": "SlotsController_getAvailableSlots",
-        "summary": "Get available slots",
+      },
+      "patch": {
+        "operationId": "SlotsController_2024_09_04_updateReservedSlot",
+        "summary": "Updated reserved a slot",
         "parameters": [
           {
-            "name": "startTime",
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
             "required": true,
-            "in": "query",
-            "description": "Start date string starting from which to fetch slots in UTC timezone.",
-            "example": "2022-06-14T00:00:00.000Z",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "endTime",
+            "name": "uid",
             "required": true,
-            "in": "query",
-            "description": "End date string until which to fetch slots in UTC timezone.",
-            "example": "2022-06-14T23:59:59.999Z",
+            "in": "path",
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "eventTypeId",
-            "required": false,
-            "in": "query",
-            "description": "Event Type ID for which slots are being fetched.",
-            "example": 100,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "eventTypeSlug",
-            "required": false,
-            "in": "query",
-            "description": "Slug of the event type for which slots are being fetched. If event slug is provided then username must be provided too as query parameter `usernameList[]=username`",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "usernameList",
-            "required": false,
-            "in": "query",
-            "description": "Only if eventTypeSlug is provided or for dynamic events - list of usernames for which slots are being fetched.",
-            "example": "usernameList[]=bob",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReserveSlotInput_2024_09_04"
               }
             }
-          },
-          {
-            "name": "debug",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "boolean"
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReserveSlotOutputResponse_2024_09_04"
+                }
+              }
             }
-          },
+          }
+        },
+        "tags": [
+          "Slots"
+        ]
+      },
+      "delete": {
+        "operationId": "SlotsController_2024_09_04_deleteReservedSlot",
+        "parameters": [
           {
-            "name": "duration",
-            "required": false,
-            "in": "query",
-            "description": "Only for dynamic events - length of returned slots.",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "rescheduleUid",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "nullable": true,
-              "type": "string"
-            }
-          },
-          {
-            "name": "timeZone",
-            "required": false,
-            "in": "query",
+            "name": "cal-api-version",
+            "in": "header",
+            "description": "Must be set to `2024-09-04`",
+            "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "orgSlug",
-            "required": false,
-            "in": "query",
-            "description": "Organization slug.",
+            "name": "uid",
+            "required": true,
+            "in": "path",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "slotFormat",
-            "required": false,
-            "in": "query",
-            "description": "Format of slot times in response. Use 'range' to get start and end times.",
-            "example": "range",
-            "schema": {
-              "enum": [
-                "range",
-                "time"
-              ],
               "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Available time slots retrieved successfully",
+            "description": "",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {
-                    "status": {
-                      "type": "string",
-                      "example": "success"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "slots": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "oneOf": [
-                                {
-                                  "properties": {
-                                    "time": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "example": "2024-09-25T08:00:00.000Z"
-                                    }
-                                  }
-                                },
-                                {
-                                  "properties": {
-                                    "startTime": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "example": "2024-09-25T08:00:00.000Z"
-                                    },
-                                    "endTime": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "example": "2024-09-25T08:30:00.000Z"
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  },
                   "example": {
-                    "status": "success",
-                    "data": {
-                      "slots": {
-                        "2024-09-25": [
-                          {
-                            "time": "2024-09-25T08:00:00.000Z"
-                          },
-                          {
-                            "time": "2024-09-25T08:15:00.000Z"
-                          }
-                        ],
-                        "2024-09-26": [
-                          {
-                            "startTime": "2024-09-26T08:00:00.000Z",
-                            "endTime": "2024-09-26T08:30:00.000Z"
-                          },
-                          {
-                            "startTime": "2024-09-26T08:15:00.000Z",
-                            "endTime": "2024-09-26T08:45:00.000Z"
-                          }
-                        ]
-                      }
-                    }
+                    "status": "success"
                   }
                 }
               }
@@ -5635,6 +6099,15 @@
             "description": "Slug of team event type to return.",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "hostsLimit",
+            "required": false,
+            "in": "query",
+            "description": "Specifies the maximum number of hosts to include in the response. This limit helps optimize performance. If not provided, all Hosts will be fetched.",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -7748,7 +8221,7 @@
           "type": {
             "type": "string",
             "example": "name",
-            "description": "only allowed value for type is `name`"
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name."
           },
           "label": {
             "type": "string"
@@ -7778,6 +8251,9 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object"
+          },
           "placeholder": {
             "type": "string"
           },
@@ -7789,6 +8265,7 @@
         "required": [
           "type",
           "label",
+          "required",
           "placeholder"
         ]
       },
@@ -8241,7 +8718,6 @@
         },
         "required": [
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug"
         ]
@@ -8488,6 +8964,10 @@
           "label": {
             "type": "string"
           },
+          "required": {
+            "type": "object",
+            "default": true
+          },
           "placeholder": {
             "type": "string"
           },
@@ -8504,16 +8984,13 @@
           "slug": {
             "type": "string",
             "default": "email"
-          },
-          "required": {
-            "type": "boolean"
           }
         },
         "required": [
           "type",
+          "required",
           "isDefault",
-          "slug",
-          "required"
+          "slug"
         ]
       },
       "NameDefaultFieldOutput_2024_06_14": {
@@ -8537,7 +9014,7 @@
               "boolean"
             ],
             "example": "name",
-            "description": "only allowed value for type is `name`",
+            "description": "only allowed value for type is `name`. Used for having 1 booking field for both first name and last name.",
             "default": "name"
           },
           "label": {
@@ -10112,7 +10589,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -10129,10 +10606,7 @@
             "description": "A valid URL where the booker will redirect to, once the booking is completed successfully",
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
-        },
-        "required": [
-          "lengthInMinutesOptions"
-        ]
+        }
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -11734,7 +12208,6 @@
         },
         "required": [
           "lengthInMinutes",
-          "lengthInMinutesOptions",
           "title",
           "slug",
           "schedulingType",
@@ -12246,8 +12719,7 @@
           }
         },
         "required": [
-          "callId",
-          "agentId"
+          "callId"
         ]
       },
       "CreatePhoneCallOutput": {
@@ -12538,7 +13010,7 @@
           },
           "customName": {
             "type": "string",
-            "description": "Customizable event name with valid variables: \n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name}, \n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION}, \n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
+            "description": "Customizable event name with valid variables:\n      {Event type title}, {Organiser}, {Scheduler}, {Location}, {Organiser first name},\n      {Scheduler first name}, {Scheduler last name}, {Event duration}, {LOCATION},\n      {HOST/ATTENDEE}, {HOST}, {ATTENDEE}, {USER}",
             "example": "{Event type title} between {Organiser} and {Scheduler}"
           },
           "destinationCalendar": {
@@ -12565,10 +13037,7 @@
             "type": "boolean",
             "description": "If true, all current and future team members will be assigned to this event type"
           }
-        },
-        "required": [
-          "lengthInMinutesOptions"
-        ]
+        }
       },
       "UpdateTeamEventTypeOutput": {
         "type": "object",
@@ -13449,6 +13918,88 @@
           }
         }
       },
+      "CreateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": [
+              "unspecified",
+              "vacation",
+              "travel",
+              "sick",
+              "public_holiday"
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "UpdateOutOfOfficeEntryDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The start date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-01T00:00:00.000Z"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The end date and time of the out of office period in ISO 8601 format in UTC timezone.",
+            "example": "2023-05-10T23:59:59.999Z"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the out of office entry.",
+            "example": "Vacation in Hawaii"
+          },
+          "toUserId": {
+            "type": "number",
+            "description": "The ID of the user covering for the out of office period, if applicable.",
+            "example": 2
+          },
+          "reason": {
+            "type": "string",
+            "description": "the reason for the out of office entry, if applicable",
+            "example": "vacation",
+            "enum": [
+              "unspecified",
+              "vacation",
+              "travel",
+              "sick",
+              "public_holiday"
+            ]
+          }
+        }
+      },
       "StripConnectOutputDto": {
         "type": "object",
         "properties": {
@@ -13770,64 +14321,6 @@
         "required": [
           "status",
           "data"
-        ]
-      },
-      "AuthUrlData": {
-        "type": "object",
-        "properties": {
-          "authUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "authUrl"
-        ]
-      },
-      "GcalAuthUrlOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/AuthUrlData"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GcalSaveRedirectOutput": {
-        "type": "object",
-        "properties": {
-          "url": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "url"
-        ]
-      },
-      "GcalCheckOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
         ]
       },
       "ProviderVerifyClientData": {
@@ -14471,6 +14964,11 @@
             "description": "The time zone of the attendee.",
             "example": "America/New_York"
           },
+          "phoneNumber": {
+            "type": "string",
+            "description": "The phone number of the attendee in international format.",
+            "example": "+919876543210"
+          },
           "language": {
             "type": "string",
             "enum": [
@@ -14524,7 +15022,6 @@
         },
         "required": [
           "name",
-          "email",
           "timeZone"
         ]
       },
@@ -14757,6 +15254,10 @@
             "type": "string",
             "example": "Jane Doe"
           },
+          "email": {
+            "type": "string",
+            "example": "jane100@example.com"
+          },
           "username": {
             "type": "string",
             "example": "jane100"
@@ -14769,6 +15270,7 @@
         "required": [
           "id",
           "name",
+          "email",
           "username",
           "timeZone"
         ]
@@ -14829,9 +15331,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -14876,11 +15386,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -14921,6 +15439,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses"
         ]
@@ -14964,9 +15483,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15011,11 +15538,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -15060,6 +15595,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "bookingFieldsResponses",
           "recurringBookingUid"
@@ -15132,6 +15668,10 @@
             "type": "boolean",
             "example": false
           },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+1234567890"
+          },
           "seatUid": {
             "type": "string",
             "example": "3be561a9-31f1-4b8e-aefc-9d9a085f0dd1"
@@ -15198,9 +15738,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15245,11 +15793,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "seatUid": {
             "type": "string",
@@ -15277,6 +15833,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees"
         ]
@@ -15320,9 +15877,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15367,11 +15932,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "seatUid": {
             "type": "string",
@@ -15403,6 +15976,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "seatUid",
           "attendees",
           "recurringBookingUid"
@@ -15487,9 +16061,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15534,11 +16116,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -15562,6 +16152,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees"
         ]
       },
@@ -15604,9 +16195,17 @@
             "type": "string",
             "example": "User requested cancellation"
           },
+          "cancelledByEmail": {
+            "type": "string",
+            "example": "canceller@example.com"
+          },
           "reschedulingReason": {
             "type": "string",
             "example": "User rescheduled the event"
+          },
+          "rescheduledByEmail": {
+            "type": "string",
+            "example": "rescheduler@example.com"
           },
           "rescheduledFromUid": {
             "type": "string",
@@ -15651,11 +16250,19 @@
             "type": "string",
             "example": "2024-08-13T15:30:00Z"
           },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-08-13T15:30:00Z"
+          },
           "metadata": {
             "type": "object",
             "example": {
               "key": "value"
             }
+          },
+          "rating": {
+            "type": "number",
+            "example": 4
           },
           "attendees": {
             "type": "array",
@@ -15683,6 +16290,7 @@
           "location",
           "absentHost",
           "createdAt",
+          "updatedAt",
           "attendees",
           "recurringBookingUid"
         ]
@@ -16154,33 +16762,127 @@
           "data"
         ]
       },
-      "ReserveSlotInput": {
+      "ReserveSlotInput_2024_09_04": {
         "type": "object",
         "properties": {
           "eventTypeId": {
             "type": "number",
-            "description": "Event Type ID for which timeslot is being reserved.",
-            "example": 100
+            "example": 1,
+            "description": "The ID of the event type for which slot should be reserved."
           },
-          "slotUtcStartDate": {
+          "slotStart": {
             "type": "string",
-            "description": "Start date of the slot in UTC timezone.",
-            "example": "2022-06-14T00:00:00.000Z"
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
           },
-          "slotUtcEndDate": {
-            "type": "string",
-            "description": "End date of the slot in UTC timezone.",
-            "example": "2022-06-14T00:30:00.000Z"
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here as a number in minutes. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
           },
-          "bookingUid": {
-            "type": "string",
-            "description": "Optional but only for events with seats. Used to retrieve booking of a seated event."
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "ONLY for authenticated requests with api key, access token or OAuth credentials (ID + secret).\n      \n      For how many minutes the slot should be reserved - for this long time noone else can book this event type at `start` time. If not provided, defaults to 5 minutes."
           }
         },
         "required": [
           "eventTypeId",
-          "slotUtcStartDate",
-          "slotUtcEndDate"
+          "slotStart"
+        ]
+      },
+      "ReserveSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number",
+            "example": 1,
+            "description": "The ID of the event type for which slot was reserved."
+          },
+          "slotStart": {
+            "type": "string",
+            "example": "2024-09-04T09:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing available slot."
+          },
+          "slotEnd": {
+            "type": "string",
+            "example": "2024-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing slot end."
+          },
+          "slotDuration": {
+            "type": "number",
+            "example": "30",
+            "description": "By default slot duration is equal to event type length, but if you want to reserve a slot for an event type that has a variable length you can specify it here. If you don't have this set explicitly that event type can have one of many lengths you can omit this."
+          },
+          "reservationUid": {
+            "type": "string",
+            "example": "e84be5a3-4696-49e3-acc7-b2f3999c3b94",
+            "description": "The unique identifier of the reservation. Use it to update, get or delete the reservation."
+          },
+          "reservationDuration": {
+            "type": "number",
+            "example": 5,
+            "description": "For how many minutes the slot is reserved - for this long time noone else can book this event type at `start` time."
+          },
+          "reservationUntil": {
+            "type": "string",
+            "example": "2023-09-04T10:00:00Z",
+            "description": "ISO 8601 datestring in UTC timezone representing time until which the slot is reserved."
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "slotStart",
+          "slotEnd",
+          "slotDuration",
+          "reservationUid",
+          "reservationDuration",
+          "reservationUntil"
+        ]
+      },
+      "ReserveSlotOutputResponse_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReserveSlotOutput_2024_09_04"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetReservedSlotOutput_2024_09_04": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GetReservedSlotOutput_2024_09_04"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "UserWebhookOutputDto": {
