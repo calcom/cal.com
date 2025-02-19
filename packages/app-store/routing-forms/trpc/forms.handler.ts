@@ -59,52 +59,54 @@ export const formsHandler = async ({ ctx, input }: FormsHandlerOptions) => {
     }),
   });
 
-  // Avoid crash of one form to crash entire listing
-  const settledFormsWithReadonlyStatus = await Promise.allSettled(
-    forms.map(async (form) => {
-      const [hasWriteAccess, serializedForm] = await Promise.all([
-        canEditEntity(form, user.id),
-        getSerializableForm({ form }),
-      ]);
-
-      return {
-        form: serializedForm,
-        readOnly: !hasWriteAccess,
-      };
-    })
-  );
-
-  const formsWithReadonlyStatus = settledFormsWithReadonlyStatus.map((result, index) => {
-    if (result.status === "fulfilled") {
-      return {
-        ...result.value,
-        hasError: false,
-      };
-    }
-
-    const form = forms[index];
-    log.error(`Error getting form ${form.id}: ${safeStringify(result.reason)}`);
-
-    return {
-      form: {
-        ...form,
-        // Usually the error is in parsing routes/fields as they are JSON. So, we just set them empty, so that form can be still listed.
-        routes: [] as z.infer<typeof zodRoutes>,
-        fields: [] as z.infer<typeof zodFields>,
-        _count: {
-          responses: 0,
-        },
-      },
-      // Consider it readonly as we don't know the status due to error
-      readOnly: true,
-      hasError: true,
-    };
-  });
-
   return {
-    filtered: formsWithReadonlyStatus,
+    filtered: await buildFormsWithReadOnlyStatus(),
     totalCount: totalForms,
   };
+
+  async function buildFormsWithReadOnlyStatus() {
+    // Avoid crash of one form to crash entire listing
+    const settledFormsWithReadonlyStatus = await Promise.allSettled(
+      forms.map(async (form) => {
+        const [hasWriteAccess, serializedForm] = await Promise.all([
+          canEditEntity(form, user.id),
+          getSerializableForm({ form }),
+        ]);
+
+        return {
+          form: serializedForm,
+          readOnly: !hasWriteAccess,
+        };
+      })
+    );
+
+    const formsWithReadonlyStatus = settledFormsWithReadonlyStatus.map((result, index) => {
+      if (result.status === "fulfilled") {
+        // Normal case
+        return {
+          ...result.value,
+          hasError: false,
+        };
+      }
+
+      // Error case
+      const form = forms[index];
+      log.error(`Error getting form ${form.id}: ${safeStringify(result.reason)}`);
+
+      return {
+        form: {
+          ...form,
+          // Usually the error is in parsing routes/fields as they are JSON. So, we just set them empty, so that form can be still listed.
+          routes: [] as z.infer<typeof zodRoutes>,
+          fields: [] as z.infer<typeof zodFields>,
+        },
+        // Consider it readonly as we don't know the status due to error
+        readOnly: true,
+        hasError: true,
+      };
+    });
+    return formsWithReadonlyStatus;
+  }
 };
 
 export default formsHandler;
