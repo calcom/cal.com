@@ -69,6 +69,7 @@ export class WebhookRepository {
                   },
                 },
                 webhooks: true,
+                logoUrl: true,
               },
             },
           },
