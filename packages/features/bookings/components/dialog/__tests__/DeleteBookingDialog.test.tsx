@@ -47,8 +47,8 @@ describe("DeleteBookingDialog", () => {
 
   it("renders the dialog when open", () => {
     render(<DeleteBookingDialog {...mockProps} />);
-    expect(screen.getByText("delete_history_title")).toBeInTheDocument();
-    expect(screen.getByText("delete_history_description")).toBeInTheDocument();
+    expect(screen.getByText("delete_booking_title")).toBeInTheDocument();
+    expect(screen.getByText("delete_booking_description")).toBeInTheDocument();
   });
 
   it("closes the dialog when cancel is clicked", async () => {

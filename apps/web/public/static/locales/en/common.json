@@ -2958,8 +2958,8 @@
   "verify_email": "Verify email",
   "verify_email_change": "Verify email change",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑",
-  "delete_history_title": "Delete booking history",
-  "delete_history_description": "Are you sure you want to delete this from your booking history?",
+  "delete_booking_title": "Delete booking?",
+  "delete_booking_description": "Are you sure you want to delete this booking?",
   "unable_to_delete_booking": "Unable to delete booking",
   "booking_delete_successfully": "Booking deleted successfully"
 }

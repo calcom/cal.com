@@ -295,7 +295,7 @@ function BookingListItem(booking: BookingItemProps) {
   if (isBookingInPast) {
     editBookingActions.push({
       id: "delete_history",
-      label: t("delete_history_title"),
+      label: t("delete"),
       onClick: () => {
         setIsOpenDeleteBookingDialog(true);
       },

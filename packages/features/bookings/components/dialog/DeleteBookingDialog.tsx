@@ -33,13 +33,13 @@ export const DeleteBookingDialog = (props: IDeleteBookingDialog) => {
       <ConfirmationDialogContent
         isPending={deleteBookingMutation.isPending}
         variety="danger"
-        title={t("delete_history_title")}
+        title={t("delete_booking_title")}
         confirmBtnText={t("confirm")}
         onConfirm={(e) => {
           e.preventDefault();
           deleteBookingMutation.mutate({ id: bookingId });
         }}>
-        {t("delete_history_description")}
+        {t("delete_booking_description")}
       </ConfirmationDialogContent>
     </Dialog>
   );
