@@ -12,7 +12,7 @@ type SortOptions = {
 };
 type GetOptions = {
   ctx: {
-    user: { id: number; email: string };
+    user: { id: number; email: string; name: string };
     prisma: PrismaClient;
   };
   bookingListingByStatus: InputByStatus[];
