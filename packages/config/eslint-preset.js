@@ -26,6 +26,15 @@ module.exports = {
     "playwright/no-page-pause": "error",
     "react/jsx-curly-brace-presence": ["error", { props: "never", children: "never" }],
     "react/self-closing-comp": ["error", { component: true, html: true }],
+
+    // In a newer version of react/no-danger, this is a valid config
+    // to allow errors in custom components
+    // but it would error anyway, because of a bug, not yet fixed
+    // PR that enables this config: https://github.com/jsx-eslint/eslint-plugin-react/pull/3748
+    // Issue still not fixed: https://github.com/jsx-eslint/eslint-plugin-react/issues/3833
+    // "react/no-danger": ["error", { customComponentNames: ["*"] }],
+
+    "react/no-danger": "error",
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {
@@ -76,6 +85,13 @@ module.exports = {
           rules: {
             /** TODO: Remove once website router is migrated  */
             "@calcom/eslint/deprecated-imports-next-router": "off",
+          },
+        },
+        {
+          files: ["packages/trpc/**/*.{tsx,ts}"],
+          rules: {
+            "@typescript-eslint/ban-types": "warn",
+            "@typescript-eslint/no-explicit-any": "warn",
           },
         },
       ],

@@ -9,7 +9,12 @@ import {
   RecurringBookingOutput_2024_08_13,
 } from "@calcom/platform-types";
 
-@ApiExtraModels(BookingOutput_2024_08_13, RecurringBookingOutput_2024_08_13)
+@ApiExtraModels(
+  BookingOutput_2024_08_13,
+  RecurringBookingOutput_2024_08_13,
+  GetSeatedBookingOutput_2024_08_13,
+  GetRecurringSeatedBookingOutput_2024_08_13
+)
 export class GetBookingsOutput_2024_08_13 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])

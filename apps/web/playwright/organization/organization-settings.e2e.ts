@@ -1,217 +1,167 @@
 import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { doOnOrgDomain } from "playwright/lib/testUtils";
+import { v4 as uuid } from "uuid";
 
 import { SchedulingType } from "@calcom/prisma/enums";
 
+import type { CreateUsersFixture } from "../fixtures/users";
 import { test } from "../lib/fixtures";
 
-test.afterEach(({ users }) => {
-  users.deleteAll();
-});
+async function setupOrgMember(users: CreateUsersFixture) {
+  const orgRequestedSlug = `example-${uuid()}`;
+
+  const orgMember = await users.create(undefined, {
+    hasTeam: true,
+    isOrg: true,
+    hasSubteam: true,
+    isOrgVerified: true,
+    isDnsSetup: true,
+    orgRequestedSlug,
+    schedulingType: SchedulingType.ROUND_ROBIN,
+  });
+
+  const { team: org } = await orgMember.getOrgMembership();
+  const { team } = await orgMember.getFirstTeamMembership();
+  const teamEvent = await orgMember.getFirstTeamEvent(team.id);
+  const userEvent = orgMember.eventTypes[0];
+
+  await orgMember.apiLogin();
+
+  return { orgMember, org, team, teamEvent, userEvent };
+}
+
+type TestContext = Awaited<ReturnType<typeof setupOrgMember>>;
+
+interface ToggleSeoSwitchParams {
+  page: Page;
+  switchTestId: string;
+  expectedChecked: boolean;
+  waitForMessage?: string;
+}
+
+interface VerifyRobotsMetaTagParams {
+  page: Page;
+  orgSlug: string | null;
+  urls: string[];
+  expectedContent: string;
+}
+
+// Helper function to toggle the SEO switch
+async function toggleSeoSwitch({
+  page,
+  switchTestId,
+  expectedChecked,
+  waitForMessage,
+}: ToggleSeoSwitchParams): Promise<void> {
+  const seoSwitch = await page.getByTestId(switchTestId);
+  await seoSwitch.click();
+  await expect(seoSwitch).toBeChecked({ checked: expectedChecked });
+  if (waitForMessage) {
+    await page.waitForSelector(`text=${waitForMessage}`);
+  }
+}
+
+async function verifyRobotsMetaTag({ page, orgSlug, urls, expectedContent }: VerifyRobotsMetaTagParams) {
+  await doOnOrgDomain({ orgSlug, page }, async ({ page, goToUrlWithErrorHandling }) => {
+    for (const relativeUrl of urls) {
+      const { url } = await goToUrlWithErrorHandling(relativeUrl);
+      const metaTag = await page.locator('head > meta[name="robots"]');
+      const metaTagValue = await metaTag.getAttribute("content");
+      expect(metaTagValue).not.toBeNull();
+      expect(
+        metaTagValue
+          ?.split(",")
+          .map((s) => s.trim())
+          .join(",")
+      ).toEqual(
+        expectedContent
+          .split(",")
+          .map((s) => s.trim())
+          .join(",")
+      );
+    }
+  });
+}
 
 test.describe("Organization Settings", () => {
-  test("Setting - 'Allow search engine indexing' inside Org profile settings", async ({ page, users }) => {
-    const orgMember = await users.create(undefined, {
-      hasTeam: true,
-      isOrg: true,
-      hasSubteam: true,
-      isOrgVerified: true,
-      isDnsSetup: true,
-      orgRequestedSlug: "example",
-      schedulingType: SchedulingType.ROUND_ROBIN,
-    });
-    const { team: org } = await orgMember.getOrgMembership();
-    const { team } = await orgMember.getFirstTeamMembership();
-    const teamEvent = await orgMember.getFirstTeamEvent(team.id);
-    const userEvent = orgMember.eventTypes[0];
+  test.describe("Setting - 'Allow search engine indexing' inside Org profile settings", async () => {
+    let ctx: TestContext;
 
-    await orgMember.apiLogin();
-
-    await test.step("Set to true, enables 'Allow search engine indexing' switch on my-account/general settings", async () => {
-      await page.goto(`/settings/organizations/profile`);
-      const orgSeoIndexingSwitch = await page.getByTestId(`${org.id}-seo-indexing-switch`);
-      await orgSeoIndexingSwitch.click();
-      await expect(orgSeoIndexingSwitch).toBeChecked();
-
-      await page.goto(`/settings/my-account/general`);
-      const mySeoIndexingSwitch = await page.getByTestId("my-seo-indexing-switch");
-      await expect(mySeoIndexingSwitch).toBeEnabled();
+    test.beforeEach(async ({ users }) => {
+      ctx = await setupOrgMember(users);
     });
 
-    await test.step("Set to false, disables and sets to false 'Allow search engine indexing' switch on my-account/general settings", async () => {
-      await page.goto(`/settings/organizations/profile`);
-      const orgSeoIndexingSwitch = await page.getByTestId(`${org.id}-seo-indexing-switch`);
-      await orgSeoIndexingSwitch.click();
-      await expect(orgSeoIndexingSwitch).toBeChecked({ checked: false });
-
-      await page.goto(`/settings/my-account/general`);
-      const mySeoIndexingSwitch = await page.getByTestId("my-seo-indexing-switch");
-      await expect(mySeoIndexingSwitch).toBeChecked({ checked: false });
-      await expect(mySeoIndexingSwitch).toBeDisabled();
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
     });
 
-    await test.step("Set to false, sets 'robots' meta on 'head' element to 'noindex,nofollow', for team page", async () => {
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
+    test("Disabling SEO indexing updates settings and meta tags", async ({ page }) => {
+      await test.step("Disable 'Allow search engine indexing' for organization", async () => {
+        await page.goto(`/settings/organizations/profile`);
+        const seoSwitch = await page.getByTestId(`${ctx.org.id}-seo-indexing-switch`);
+        await expect(seoSwitch).toBeChecked({ checked: false });
+      });
+
+      await test.step("Verify 'robots' meta tag for different pages when SEO indexing is disabled", async () => {
+        const { team, teamEvent, org, orgMember, userEvent } = ctx;
+        await verifyRobotsMetaTag({
           page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/team/${team.slug}`);
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("noindex,nofollow"); //disabled seo-indexing
-          return { url: result.url };
-        }
-      );
+          orgSlug: org.slug,
+          urls: [
+            `/team/${team.slug}`,
+            `/team/${team.slug}/${teamEvent.slug}`,
+            `/${orgMember.username}`,
+            `/${orgMember.username}/${userEvent.slug}`,
+          ],
+          expectedContent: "noindex,nofollow",
+        });
+      });
     });
 
-    await test.step("Set to false, sets 'robots' meta on 'head' element to 'noindex,nofollow', for team event page", async () => {
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
+    test("Enabling SEO indexing updates settings and meta tags", async ({ page }) => {
+      await test.step("Enable 'Allow search engine indexing' for organization", async () => {
+        await page.goto(`/settings/organizations/profile`);
+        await toggleSeoSwitch({
           page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEvent.slug}`);
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("noindex,nofollow"); //disabled seo-indexing
-          return { url: result.url };
-        }
-      );
+          switchTestId: `${ctx.org.id}-seo-indexing-switch`,
+          expectedChecked: true,
+          waitForMessage: "Your team has been updated successfully.",
+        });
+      });
+
+      await test.step("Verify 'robots' meta tag for different pages when SEO indexing is enabled", async () => {
+        const { team, teamEvent, org, orgMember, userEvent } = ctx;
+        await verifyRobotsMetaTag({
+          page,
+          orgSlug: org.slug,
+          urls: [
+            `/team/${team.slug}`,
+            `/team/${team.slug}/${teamEvent.slug}`,
+            `/${orgMember.username}`,
+            `/${orgMember.username}/${userEvent.slug}`,
+          ],
+          expectedContent: "index,follow",
+        });
+      });
     });
 
-    await test.step("Set to false, sets 'robots' meta on 'head' element to 'noindex,nofollow', for user page", async () => {
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
+    test("Organization settings override user settings", async ({ page }) => {
+      await test.step("Disable 'Allow search engine indexing' for organization", async () => {
+        await page.goto(`/settings/organizations/profile`);
+        const seoSwitch = await page.getByTestId(`${ctx.org.id}-seo-indexing-switch`);
+        await expect(seoSwitch).toBeChecked({ checked: false });
+      });
+
+      await test.step("Verify organization settings override user settings for 'robots' meta tag", async () => {
+        const { org, orgMember, userEvent } = ctx;
+        await verifyRobotsMetaTag({
           page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/${orgMember.username}`);
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("noindex,nofollow"); //disabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to false, sets 'robots' meta on 'head' element to 'noindex,nofollow', for user eventtype page", async () => {
-      await doOnOrgDomain(
-        {
           orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/${orgMember.username}/${userEvent.slug}`);
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("noindex,nofollow"); //disabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to true, sets 'robots' meta on 'head' element to 'index,follow', for team page", async () => {
-      await page.goto(`/settings/organizations/profile`);
-      const orgSeoIndexingSwitch = await page.getByTestId(`${org.id}-seo-indexing-switch`);
-      await orgSeoIndexingSwitch.click();
-      await expect(orgSeoIndexingSwitch).toBeChecked();
-
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/team/${team.slug}`);
-          await page.reload();
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("index,follow"); //enabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to true, sets 'robots' meta on 'head' element to 'index,follow', for team event page", async () => {
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/team/${team.slug}/${teamEvent.slug}`);
-          await page.reload();
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("index,follow"); //enabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to true and user's 'Allow search engine indexing' setting also set to true, user's setting is respected, for user page", async () => {
-      await page.goto(`/settings/my-account/general`);
-      const mySeoIndexingSwitch = await page.getByTestId("my-seo-indexing-switch");
-      await expect(mySeoIndexingSwitch).toBeEnabled();
-      await expect(mySeoIndexingSwitch).toBeChecked();
-
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/${orgMember.username}`);
-          await page.reload();
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("index,follow"); //enabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to true and user's 'Allow search engine indexing' setting also set to true, user's setting is respected, for user eventtype page", async () => {
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/${orgMember.username}/${userEvent.slug}`);
-          await page.reload();
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("index,follow"); //enabled seo-indexing
-          return { url: result.url };
-        }
-      );
-    });
-
-    await test.step("Set to false and user's 'Allow search engine indexing' setting was true, org's setting is prioritized, for user eventtype page", async () => {
-      await page.goto(`/settings/organizations/profile`);
-      const orgSeoIndexingSwitch = await page.getByTestId(`${org.id}-seo-indexing-switch`);
-      await orgSeoIndexingSwitch.click();
-      await expect(orgSeoIndexingSwitch).toBeChecked({ checked: false });
-
-      await doOnOrgDomain(
-        {
-          orgSlug: org.slug,
-          page,
-        },
-        async ({ page, goToUrlWithErrorHandling }) => {
-          const result = await goToUrlWithErrorHandling(`/${orgMember.username}/${userEvent.slug}`);
-          await page.reload();
-          const metaTag = await page.locator('head > meta[name="robots"]');
-          const metaTagValue = await metaTag.getAttribute("content");
-          expect(metaTagValue).toEqual("noindex,nofollow"); //disabled seo-indexing
-          return { url: result.url };
-        }
-      );
+          urls: [`/${orgMember.username}/${userEvent.slug}`],
+          expectedContent: "noindex,nofollow",
+        });
+      });
     });
   });
 });

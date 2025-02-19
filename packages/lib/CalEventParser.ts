@@ -23,14 +23,18 @@ export const getWhen = (
   calEvent: Pick<CalendarEvent, "organizer" | "attendees" | "seatsPerTimeSlot">,
   t: TFunction
 ) => {
+  const organizerTimezone = calEvent.organizer?.timeZone ?? "UTC";
+  const defaultTimezone = organizerTimezone;
+  const attendeeTimezone = calEvent.attendees?.[0]?.timeZone ?? defaultTimezone;
+
   return calEvent.seatsPerTimeSlot
     ? `
 ${t("organizer_timezone")}:
-${calEvent.organizer.timeZone}
+${organizerTimezone}
   `
     : `
 ${t("invitee_timezone")}:
-${calEvent.attendees[0].timeZone}
+${attendeeTimezone}
   `;
 };
 
@@ -50,10 +54,8 @@ export const getWho = (
       return `
 ${attendee?.name || t("guest")}
 ${!isSmsCalEmail(attendee.email) ? `${attendee.email}\n` : `${attendee.phoneNumber}\n`}
-
 `;
     })
-
     .join("");
 
   const organizer = `
@@ -128,8 +130,9 @@ export const getDescription = (calEvent: Pick<CalendarEvent, "description">, t: 
   if (!calEvent.description) {
     return "";
   }
+  const plainText = calEvent.description.replace(/<\/?[^>]+(>|$)/g, "").replace(/_/g, " ");
   return `\n${t("description")}
-    ${calEvent.description}
+    ${plainText}
     `;
 };
 export const getLocation = (
@@ -378,7 +381,7 @@ export const getPublicVideoCallUrl = (calEvent: Pick<CalendarEvent, "uid">): str
 
 export const getVideoCallUrlFromCalEvent = (
   calEvent: Parameters<typeof getPublicVideoCallUrl>[0] &
-    Pick<CalendarEvent, "videoCallData" | "additionalInformation">
+    Pick<CalendarEvent, "videoCallData" | "additionalInformation" | "location">
 ): string => {
   if (calEvent.videoCallData) {
     if (isDailyVideoCall(calEvent)) {
@@ -388,6 +391,9 @@ export const getVideoCallUrlFromCalEvent = (
   }
   if (calEvent.additionalInformation?.hangoutLink) {
     return calEvent.additionalInformation.hangoutLink;
+  }
+  if (calEvent.location?.startsWith("http")) {
+    return calEvent.location;
   }
   return "";
 };

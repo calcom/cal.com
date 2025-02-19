@@ -29,6 +29,9 @@ export const getScheduleSchema = z
     skipContactOwner: z.boolean().nullish(),
     _enableTroubleshooter: z.boolean().optional(),
     _bypassCalendarBusyTimes: z.boolean().optional(),
+    _shouldServeCache: z.boolean().optional(),
+    routingFormResponseId: z.number().optional(),
+    email: z.string().nullish(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API

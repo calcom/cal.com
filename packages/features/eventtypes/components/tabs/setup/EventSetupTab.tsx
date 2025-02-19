@@ -142,17 +142,19 @@ export const EventSetupTab = (
               </>
             )}
           </div>
-          <div className="[&_label]:my-1 [&_label]:font-normal">
-            <SettingsToggle
-              title={t("translate_description_button")}
-              checked={!!autoTranslateDescriptionEnabled}
-              onCheckedChange={(value) => {
-                formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
-              }}
-              disabled={!orgId}
-              tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
-            />
-          </div>
+          {!isPlatform && (
+            <div className="[&_label]:my-1 [&_label]:font-normal">
+              <SettingsToggle
+                title={t("translate_description_button")}
+                checked={!!autoTranslateDescriptionEnabled}
+                onCheckedChange={(value) => {
+                  formMethods.setValue("autoTranslateDescriptionEnabled", value, { shouldDirty: true });
+                }}
+                disabled={!orgId}
+                tooltip={!orgId ? t("orgs_upgrade_to_enable_feature") : undefined}
+              />
+            </div>
+          )}
           <TextField
             required
             label={isPlatform ? "Slug" : t("URL")}

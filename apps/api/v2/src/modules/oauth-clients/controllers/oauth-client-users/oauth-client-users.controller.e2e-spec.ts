@@ -22,6 +22,7 @@ import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repo
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
@@ -84,10 +85,10 @@ describe("OAuth Client Users Endpoints", () => {
 
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const platformAdminEmail = "platform-sensei@mail.com";
+    const platformAdminEmail = `oauth-client-users-admin-${randomString()}@api.com`;
     let platformAdmin: User;
 
-    const userEmail = "oauth-client-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -110,7 +111,7 @@ describe("OAuth Client Users Endpoints", () => {
       platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
 
       organization = await teamRepositoryFixture.create({
-        name: "organization",
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
         isOrganization: true,
       });
@@ -159,6 +160,7 @@ describe("OAuth Client Users Endpoints", () => {
         email: userEmail,
         timeZone: "incorrect-time-zone",
         name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       await request(app.getHttpServer())
@@ -191,6 +193,7 @@ describe("OAuth Client Users Endpoints", () => {
         timeFormat: 24,
         locale: Locales.FR,
         name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       const response = await request(app.getHttpServer())
@@ -211,12 +214,14 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
       expect(responseBody.data.user.locale).toEqual(requestBody.locale);
+      expect(responseBody.data.user.avatarUrl).toEqual(requestBody.avatarUrl);
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
       await userConnectedToOAuth(responseBody.data.user.email);
       await userHasDefaultEventTypes(responseBody.data.user.id);
       await userHasDefaultSchedule(responseBody.data.user.id, responseBody.data.user.defaultScheduleId);
+      await userHasOnlyOneSchedule(responseBody.data.user.id);
     });
 
     async function userConnectedToOAuth(userEmail: string) {
@@ -257,6 +262,11 @@ describe("OAuth Client Users Endpoints", () => {
       expect(schedule?.userId).toEqual(userId);
     }
 
+    async function userHasOnlyOneSchedule(userId: number) {
+      const schedules = await schedulesRepositoryFixture.getByUserId(userId);
+      expect(schedules?.length).toEqual(1);
+    }
+
     it(`should fail /POST using already used managed user email`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
@@ -265,6 +275,7 @@ describe("OAuth Client Users Endpoints", () => {
         timeFormat: 24,
         locale: Locales.FR,
         name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       const response = await request(app.getHttpServer())
@@ -382,7 +393,7 @@ describe("OAuth Client Users Endpoints", () => {
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let postResponseData: CreateManagedUserOutput["data"];
 
-    const userEmail = "oauth-client-users-user@gmail.com";
+    const userEmail = `oauth-client-users-user-${randomString()}@api.com`;
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -401,20 +412,20 @@ describe("OAuth Client Users Endpoints", () => {
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       organization = await teamRepositoryFixture.create({
-        name: "Testy Organization",
-        isOrganization: true,
+        name: `oauth-client-users-organization-${randomString()}`,
         isPlatform: true,
+        isOrganization: true,
       });
 
       owner = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
+        email: `oauth-client-users-admin-${randomString()}@api.com`,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: { connect: { id: organization.id } },
       });
 
       await profileRepositoryFixture.create({
         uid: `usr-${owner.id}`,
-        username: userEmail,
+        username: `oauth-client-users-admin-${randomString()}@api.com`,
         organization: {
           connect: {
             id: organization.id,
@@ -535,6 +546,7 @@ describe("OAuth Client Users Endpoints", () => {
         timeFormat: 24,
         locale: Locales.FR,
         name: "Alice Smith",
+        avatarUrl: "https://cal.com/api/avatar/2b735186-b01b-46d3-87da-019b8f61776b.png",
       };
 
       const response = await request(app.getHttpServer())

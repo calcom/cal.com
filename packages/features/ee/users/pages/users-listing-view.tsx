@@ -2,7 +2,6 @@
 
 import NoSSR from "@calcom/core/components/NoSSR";
 
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import { UsersTable } from "../components/UsersTable";
 
 const DeploymentUsersListPage = () => {
@@ -14,7 +13,5 @@ const DeploymentUsersListPage = () => {
     </>
   );
 };
-
-DeploymentUsersListPage.getLayout = getLayout;
 
 export default DeploymentUsersListPage;

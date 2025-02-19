@@ -1,0 +1,33 @@
+---
+title: Custom toasts
+description: Replace default cal.com toasts with your own
+---
+
+It is possible to disable default toasts for the `AvailabilitySettings` and `EventTypeSettings` atoms to then use hooks => callbacks
+and listen for updates to then render your own toasts.
+
+If we use the `AvailabilitySettings` atom, make changes and press "Save" a confirmation appears:
+
+<img src="/images/platform/guides/replacing-toasts/availability-settings.png" />
+
+We can disable them using `disableToasts` prop:
+
+```js
+<AvailabilitySettings
+    disableToasts={true}
+/>
+```
+
+Now when changes happen and Save is clicked the toast will not appear.
+
+You can then create functions and pass them to hooks:
+```js
+<AvailabilitySettings
+    disableToasts={true}
+    onUpdateSuccess={updateSuccessHandler}
+    onUpdateError={updateErrorHandler}
+    onDeleteSuccess={deleteSucessHandler}
+    onDeleteError={deleteErrorHandler}
+/>
+```
+in case of success response is passed to your functions and in case of error and error.

@@ -3,16 +3,14 @@
 import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
-import type { UpdateDefaultConferencingAppParams } from "@calcom/features/apps/components/AppList";
-import { AppList } from "@calcom/features/apps/components/AppList";
+import { AppList, type HandleDisconnect } from "@calcom/features/apps/components/AppList";
+import type { UpdateUsersDefaultConferencingAppParams } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { RemoveAppParams } from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import type { BulkUpdatParams } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppCategories } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Icon } from "@calcom/ui";
 import {
   AppSkeletonLoader as SkeletonLoader,
@@ -23,7 +21,6 @@ import {
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
-import type { querySchemaType, getServerSideProps } from "@lib/apps/installed/[category]/getServerSideProps";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
@@ -31,7 +28,7 @@ import InstalledAppsLayout from "@components/apps/layouts/InstalledAppsLayout";
 interface IntegrationsContainerProps {
   variant?: AppCategories;
   exclude?: AppCategories[];
-  handleDisconnect: (credentialId: number) => void;
+  handleDisconnect: HandleDisconnect;
 }
 
 const IntegrationsContainer = ({
@@ -54,17 +51,26 @@ const IntegrationsContainer = ({
 
   const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation();
 
-  const handleUpdateDefaultConferencingApp = ({ appSlug, callback }: UpdateDefaultConferencingAppParams) => {
+  const { data: eventTypesQueryData, isFetching: isEventTypesFetching } =
+    trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+
+  const handleUpdateUserDefaultConferencingApp = ({
+    appSlug,
+    appLink,
+    onSuccessCallback,
+    onErrorCallback,
+  }: UpdateUsersDefaultConferencingAppParams) => {
     updateDefaultAppMutation.mutate(
-      { appSlug },
+      { appSlug, appLink },
       {
         onSuccess: () => {
           showToast("Default app updated successfully", "success");
           utils.viewer.getUsersDefaultConferencingApp.invalidate();
-          callback();
+          onSuccessCallback();
         },
         onError: (error) => {
           showToast(`Error: ${error.message}`, "error");
+          onErrorCallback();
         },
       }
     );
@@ -82,6 +88,14 @@ const IntegrationsContainer = ({
         },
       }
     );
+  };
+
+  const handleConnectDisconnectIntegrationMenuToggle = () => {
+    utils.viewer.integrations.invalidate();
+  };
+
+  const handleBulkEditDialogToggle = () => {
+    utils.viewer.getUsersDefaultConferencingApp.invalidate();
   };
 
   // TODO: Refactor and reuse getAppCategories?
@@ -146,9 +160,13 @@ const IntegrationsContainer = ({
               data={data}
               variant={variant}
               defaultConferencingApp={defaultConferencingApp}
-              handleUpdateDefaultConferencingApp={handleUpdateDefaultConferencingApp}
+              handleUpdateUserDefaultConferencingApp={handleUpdateUserDefaultConferencingApp}
               handleBulkUpdateDefaultLocation={handleBulkUpdateDefaultLocation}
               isBulkUpdateDefaultLocationPending={updateDefaultAppMutation.isPending}
+              eventTypes={eventTypesQueryData?.eventTypes}
+              isEventTypesFetching={isEventTypesFetching}
+              handleConnectDisconnectIntegrationMenuToggle={handleConnectDisconnectIntegrationMenuToggle}
+              handleBulkEditDialogToggle={handleBulkEditDialogToggle}
             />
           </div>
         );
@@ -163,13 +181,13 @@ type ModalState = {
   teamId?: number;
 };
 
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
+type PageProps = {
+  category: AppCategories;
+};
 
-export default function InstalledApps(props: PageProps) {
-  const searchParams = useCompatSearchParams();
+export default function InstalledApps({ category }: PageProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const category = searchParams?.get("category") as querySchemaType["category"];
   const categoryList: AppCategories[] = Object.values(AppCategories).filter((category) => {
     // Exclude calendar and other from categoryList, we handle those slightly differently below
     return !(category in { other: null, calendar: null });
@@ -187,7 +205,7 @@ export default function InstalledApps(props: PageProps) {
     updateData({ isOpen: false, credentialId: null });
   };
 
-  const handleDisconnect = (credentialId: number, teamId?: number) => {
+  const handleDisconnect = (credentialId: number, app: string, teamId?: number) => {
     updateData({ isOpen: true, credentialId, teamId });
   };
 

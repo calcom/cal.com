@@ -71,7 +71,7 @@ const EmailFactory = (props: WidgetProps | undefined) => {
         props.setValue(val);
       }}
       containerClassName="w-full"
-      className="dark:placeholder:text-darkgray-600 focus:border-brand border-subtle dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:placeholder:text-default focus:border-brand border-subtle dark:text-default disabled:dark:text-muted block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500"
       {...props}
     />
   );
@@ -116,16 +116,21 @@ function withFactoryWidgets(widgets: WidgetsWithoutFactory) {
   return widgetsWithFactory;
 }
 
+// These are components and components reference when changed causes remounting of components. So, ensure that renderField and others are defined only once
+const sharedSettingsProps: Partial<Settings> = {
+  renderField: (props) => renderComponent(props, FieldSelect),
+  renderOperator: (props) => renderComponent(props, FieldSelect),
+  renderFunc: (props) => renderComponent(props, FieldSelect),
+  renderConjs: (props) => renderComponent(props, Conjs),
+  renderButton: (props) => renderComponent(props, Button),
+  renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
+  renderProvider: (props) => renderComponent(props, Provider),
+};
+
 function withRenderFnsSettings(settings: Settings) {
   const settingsWithRenderFns: Settings = {
     ...settings,
-    renderField: (props) => renderComponent(props, FieldSelect),
-    renderOperator: (props) => renderComponent(props, FieldSelect),
-    renderFunc: (props) => renderComponent(props, FieldSelect),
-    renderConjs: (props) => renderComponent(props, Conjs),
-    renderButton: (props) => renderComponent(props, Button),
-    renderButtonGroup: (props) => renderComponent(props, ButtonGroup),
-    renderProvider: (props) => renderComponent(props, Provider),
+    ...sharedSettingsProps,
   };
   return settingsWithRenderFns;
 }

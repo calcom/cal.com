@@ -1,58 +1,28 @@
-import { type Table } from "@tanstack/react-table";
+"use client";
 
-import type { FilterableColumn, FilterValue, SelectFilterValue, TextFilterValue } from "../../lib/types";
-import type { ActiveFilter, FiltersSearchState, SetFiltersSearchState } from "../../lib/utils";
+import type { FilterableColumn } from "../../lib/types";
+import { ColumnFilterType } from "../../lib/types";
+import { DateRangeFilter } from "./DateRangeFilter";
 import { MultiSelectFilterOptions } from "./MultiSelectFilterOptions";
+import { NumberFilterOptions } from "./NumberFilterOptions";
+import { SingleSelectFilterOptions } from "./SingleSelectFilterOptions";
 import { TextFilterOptions } from "./TextFilterOptions";
 
-export type FilterOptionsProps<TData> = {
+export type FilterOptionsProps = {
   column: FilterableColumn;
-  filter: ActiveFilter;
-  state: FiltersSearchState;
-  setState: SetFiltersSearchState;
-  table: Table<TData>;
 };
 
-export function FilterOptions<TData>({ column, filter, state, setState, table }: FilterOptionsProps<TData>) {
-  const filterValue = table.getColumn(column.id)?.getFilterValue() as FilterValue | undefined;
-
-  const setMultiSelectFilterValue = (value: SelectFilterValue) => {
-    setState({
-      activeFilters: state.activeFilters.map((item) => (item.f === filter.f ? { ...item, v: value } : item)),
-    });
-    table.getColumn(column.id)?.setFilterValue(value);
-  };
-
-  const setTextFilterValue = (value: TextFilterValue) => {
-    setState({
-      activeFilters: state.activeFilters.map((item) => (item.f === filter.f ? { ...item, v: value } : item)),
-    });
-    table.getColumn(column.id)?.setFilterValue(value);
-  };
-
-  const removeFilter = (columnId: string) => {
-    setState({ activeFilters: (state.activeFilters || []).filter((filter) => filter.f !== columnId) });
-    table.getColumn(columnId)?.setFilterValue(undefined);
-  };
-
-  if (column.filterType === "text") {
-    return (
-      <TextFilterOptions
-        column={column}
-        filterValue={filterValue as TextFilterValue | undefined}
-        setFilterValue={setTextFilterValue}
-        removeFilter={removeFilter}
-      />
-    );
-  } else if (column.filterType === "select") {
-    return (
-      <MultiSelectFilterOptions
-        column={column}
-        filterValue={filterValue as SelectFilterValue | undefined}
-        setFilterValue={setMultiSelectFilterValue}
-        removeFilter={removeFilter}
-      />
-    );
+export function FilterOptions({ column }: FilterOptionsProps) {
+  if (column.type === ColumnFilterType.TEXT) {
+    return <TextFilterOptions column={column} />;
+  } else if (column.type === ColumnFilterType.MULTI_SELECT) {
+    return <MultiSelectFilterOptions column={column} />;
+  } else if (column.type === ColumnFilterType.SINGLE_SELECT) {
+    return <SingleSelectFilterOptions column={column} />;
+  } else if (column.type === ColumnFilterType.NUMBER) {
+    return <NumberFilterOptions column={column} />;
+  } else if (column.type === ColumnFilterType.DATE_RANGE) {
+    return <DateRangeFilter column={column} />;
   } else {
     return null;
   }

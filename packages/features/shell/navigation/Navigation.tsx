@@ -40,6 +40,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
           name: "members",
           href: `/settings/organizations/${orgBranding.slug}/members`,
           icon: "building",
+          moreOnMobile: true,
         } satisfies NavigationItemType,
       ]
     : []),
@@ -54,6 +55,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "apps",
     href: "/apps",
     icon: "grid-3x3",
+    moreOnMobile: true,
     isCurrent: ({ pathname: path, item }) => {
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (path?.startsWith(item.href) ?? false) && !(path?.includes("routing-forms/") ?? false);
@@ -86,21 +88,24 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "ellipsis",
   },
   {
-    name: "routing_forms",
-    href: "/apps/routing-forms/forms",
-    icon: "file-text",
-    isCurrent: ({ pathname }) => pathname?.startsWith("/apps/routing-forms/") ?? false,
+    name: "routing",
+    href: "/routing",
+    icon: "split",
+    isCurrent: ({ pathname }) => pathname?.startsWith("/routing") ?? false,
+    moreOnMobile: true,
   },
   {
     name: "workflows",
     href: "/workflows",
     icon: "zap",
+    moreOnMobile: true,
   },
   {
     name: "insights",
     href: "/insights",
     icon: "chart-bar",
     isCurrent: ({ pathname: path, item }) => path?.startsWith(item.href) ?? false,
+    moreOnMobile: true,
     child: [
       {
         name: "bookings",
@@ -111,6 +116,11 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
         name: "routing",
         href: "/insights/routing",
         isCurrent: ({ pathname: path }) => path?.startsWith("/insights/routing") ?? false,
+      },
+      {
+        name: "router_position",
+        href: "/insights/virtual-queues",
+        isCurrent: ({ pathname: path }) => path?.startsWith("/insights/virtual-queues") ?? false,
       },
     ],
   },
@@ -150,36 +160,33 @@ const platformNavigationItems: NavigationItemType[] = [
     name: "Billing",
     href: "/settings/platform/billing",
     icon: "credit-card",
+    moreOnMobile: true,
   },
   {
     name: "Members",
     href: "/settings/platform/members",
     icon: "users",
+    moreOnMobile: true,
+  },
+  {
+    name: "Managed Users",
+    href: "/settings/platform/managed-users",
+    icon: "users",
+    moreOnMobile: true,
   },
 ];
 
 const useNavigationItems = (isPlatformNavigation = false) => {
   const orgBranding = useOrgBranding();
   return useMemo(() => {
-    const navigationType = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
-    const moreSeparatorIndex = navigationType.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
+    const items = !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems;
 
-    const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = (
-      !isPlatformNavigation ? getNavigationItems(orgBranding) : platformNavigationItems
-    ).reduce<Record<string, NavigationItemType[]>>(
-      (items, item, index) => {
-        // We filter out the "more" separator in` desktop navigation
-        if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
-        // Items for mobile bottom navigation
-        if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) {
-          items.mobileNavigationBottomItems.push(item);
-        } // Items for the "more" menu in mobile navigation
-        else {
-          items.mobileNavigationMoreItems.push(item);
-        }
-        return items;
-      },
-      { desktopNavigationItems: [], mobileNavigationBottomItems: [], mobileNavigationMoreItems: [] }
+    const desktopNavigationItems = items.filter((item) => item.name !== MORE_SEPARATOR_NAME);
+    const mobileNavigationBottomItems = items.filter(
+      (item) => (!item.moreOnMobile && !item.onlyDesktop) || item.name === MORE_SEPARATOR_NAME
+    );
+    const mobileNavigationMoreItems = items.filter(
+      (item) => item.moreOnMobile && !item.onlyDesktop && item.name !== MORE_SEPARATOR_NAME
     );
 
     return { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems };
@@ -219,7 +226,7 @@ const MobileNavigation = ({ isPlatformNavigation = false }: { isPlatformNavigati
     <>
       <nav
         className={classNames(
-          "pwa:pb-[max(0.625rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "pwa:pb-[max(0.25rem,env(safe-area-inset-bottom))] pwa:-mx-2 bg-muted border-subtle fixed bottom-0 left-0 z-30 flex w-full border-t bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (

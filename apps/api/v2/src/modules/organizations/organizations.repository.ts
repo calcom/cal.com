@@ -131,4 +131,14 @@ export class OrganizationsRepository {
       },
     });
   }
+
+  async findOrgBySlug(slug: string) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        slug,
+        parentId: null,
+        isOrganization: true,
+      },
+    });
+  }
 }

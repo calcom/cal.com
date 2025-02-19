@@ -5,9 +5,8 @@ import prisma from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { moveUserToOrg } from "@lib/orgMigration";
-
 import { test } from "../lib/fixtures";
+import { moveUserToOrg } from "../lib/orgMigration";
 import { bookTeamEvent, doOnOrgDomain, expectPageToBeNotFound, getInviteLink } from "../lib/testUtils";
 import { expectInvitationEmailToBeReceived } from "./expects";
 
@@ -547,7 +546,7 @@ async function inviteAnEmail(page: Page, invitedUserEmail: string, teamPage?: bo
   }
   await page.locator('input[name="inviteUser"]').fill(invitedUserEmail);
   const submitPromise = page.waitForResponse("/api/trpc/teams/inviteMember?batch=1");
-  await page.locator('button:text("Send invite")').click();
+  await page.getByTestId("invite-new-member-button").click();
   const response = await submitPromise;
   expect(response.status()).toBe(200);
 }

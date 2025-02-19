@@ -8,6 +8,7 @@ type SortOptions = {
   sortStart?: "asc" | "desc";
   sortEnd?: "asc" | "desc";
   sortCreated?: "asc" | "desc";
+  sortUpdated?: "asc" | "desc";
 };
 type GetOptions = {
   ctx: {
@@ -126,6 +127,9 @@ function getOrderBy(
   }
   if (sort?.sortCreated) {
     return { createdAt: sort.sortCreated };
+  }
+  if (sort?.sortUpdated) {
+    return { updatedAt: sort.sortUpdated };
   }
 
   return { startTime: "asc" };

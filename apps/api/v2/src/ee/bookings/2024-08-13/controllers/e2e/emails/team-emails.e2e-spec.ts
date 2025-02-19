@@ -23,6 +23,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { randomString } from "test/utils/randomString";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_08_13 } from "@calcom/platform-constants";
@@ -34,6 +35,7 @@ import {
   OrganizerCancelledEmail,
   AttendeeCancelledEmail,
   OrganizerReassignedEmail,
+  AttendeeUpdatedEmail,
 } from "@calcom/platform-libraries";
 import {
   CreateBookingInput_2024_08_13,
@@ -61,9 +63,11 @@ jest
 jest
   .spyOn(OrganizerCancelledEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
-
 jest
   .spyOn(OrganizerReassignedEmail.prototype, "getHtml")
+  .mockImplementation(() => Promise.resolve("<p>email</p>"));
+jest
+  .spyOn(AttendeeUpdatedEmail.prototype, "getHtml")
   .mockImplementation(() => Promise.resolve("<p>email</p>"));
 
 type EmailSetup = {
@@ -100,7 +104,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
   let emailsEnabledSetup: EmailSetup;
   let emailsDisabledSetup: EmailSetup;
 
-  const authEmail = "admin@example.com";
+  const authEmail = "team-emails-2024-08-13-user-admin@example.com";
 
   beforeAll(async () => {
     const moduleRef = await withApiAuth(
@@ -125,7 +129,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     hostsRepositoryFixture = new HostsRepositoryFixture(moduleRef);
     schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
-    organization = await teamRepositoryFixture.create({ name: "organization bookings" });
+    organization = await teamRepositoryFixture.create({ name: `team-emails-organization-${randomString()}` });
 
     await setupEnabledEmails();
     await setupDisabledEmails();
@@ -149,7 +153,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsEnabled = await createOAuthClient(organization.id, true);
 
     const team = await teamRepositoryFixture.create({
-      name: "team 1",
+      name: `team-emails-team-${randomString()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -160,7 +164,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: "alice@gmail.com",
+      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -169,7 +173,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: "bob@gmail.com",
+      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsEnabled.id,
@@ -178,7 +182,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `team-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -234,8 +238,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Collective Event Type",
-      slug: "collective-event-type",
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -275,8 +279,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Round Robin Event Type",
-      slug: "round-robin-event-type",
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -333,7 +337,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     const oAuthClientEmailsDisabled = await createOAuthClient(organization.id, false);
 
     const team = await teamRepositoryFixture.create({
-      name: "team 2",
+      name: `team-emails-2024-08-13-team-${randomString()}`,
       isOrganization: false,
       parent: { connect: { id: organization.id } },
       createdByOAuthClient: {
@@ -344,7 +348,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member1 = await userRepositoryFixture.create({
-      email: "charlie@gmail.com",
+      email: `team-emails-2024-08-13-member1-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -353,7 +357,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const member2 = await userRepositoryFixture.create({
-      email: "dean@gmail.com",
+      email: `team-emails-2024-08-13-member2-${randomString()}@api.com`,
       platformOAuthClients: {
         connect: {
           id: oAuthClientEmailsDisabled.id,
@@ -362,7 +366,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
     });
 
     const userSchedule: CreateScheduleInput_2024_04_15 = {
-      name: "working time",
+      name: `team-emails-2024-08-13-schedule-${randomString()}`,
       timeZone: "Europe/Rome",
       isDefault: true,
     };
@@ -418,8 +422,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Collective Event Type",
-      slug: "collective-event-type",
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: true,
       bookingFields: [],
@@ -459,8 +463,8 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       team: {
         connect: { id: team.id },
       },
-      title: "Round Robin Event Type",
-      slug: "round-robin-event-type",
+      title: `team-emails-2024-08-13-event-type-${randomString()}`,
+      slug: `team-emails-2024-08-13-event-type-${randomString()}`,
       length: 60,
       assignAllTeamMembers: false,
       bookingFields: [],
@@ -681,6 +685,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.data).toBeDefined();
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
             emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
           });
       });
@@ -697,6 +702,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerReassignedEmail.prototype.getHtml).not.toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).not.toHaveBeenCalled();
           });
       });
     });
@@ -898,6 +904,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(responseBody.data).toBeDefined();
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
             emailsDisabledSetup.roundRobinEventType.currentHostId = reassignToId;
           });
       });
@@ -914,6 +921,7 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
             expect(AttendeeCancelledEmail.prototype.getHtml).not.toHaveBeenCalled();
             expect(OrganizerScheduledEmail.prototype.getHtml).toHaveBeenCalled();
             expect(OrganizerReassignedEmail.prototype.getHtml).toHaveBeenCalled();
+            expect(AttendeeUpdatedEmail.prototype.getHtml).toHaveBeenCalled();
           });
       });
     });
@@ -958,17 +966,19 @@ describe("Bookings Endpoints 2024-08-13 team emails", () => {
       });
     });
   });
+
   afterAll(async () => {
     await teamRepositoryFixture.delete(organization.id);
+    await userRepositoryFixture.deleteByEmail(authEmail);
     await userRepositoryFixture.deleteByEmail(emailsEnabledSetup.member1.email);
-    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member1.email);
+    await userRepositoryFixture.deleteByEmail(emailsDisabledSetup.member2.email);
     await bookingsRepositoryFixture.deleteAllBookings(
       emailsEnabledSetup.member1.id,
       emailsEnabledSetup.member1.email
     );
     await bookingsRepositoryFixture.deleteAllBookings(
       emailsDisabledSetup.member1.id,
-      emailsDisabledSetup.member1.email
+      emailsDisabledSetup.member2.email
     );
     await app.close();
   });

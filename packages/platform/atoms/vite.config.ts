@@ -52,6 +52,7 @@ export default defineConfig(({ mode }) => {
         path: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         os: resolve("../../../node_modules/rollup-plugin-node-builtins"),
         "@": path.resolve(__dirname, "./src"),
+        "@calcom/lib/markdownToSafeHTML": "@calcom/atoms/monorepo",
         ".prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@prisma/client": path.resolve(__dirname, "../../prisma-client"),
         "@calcom/prisma": path.resolve(__dirname, "../../prisma"),

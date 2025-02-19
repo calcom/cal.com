@@ -42,7 +42,8 @@ function Calendar({
           buttonClasses({ color: "minimal" }),
           "w-8 h-8 md:h-11 md:w-11 p-0 text-sm font-medium aria-selected:opacity-100 inline-flex items-center justify-center"
         ),
-        day_range_end: "day-range-end",
+        day_range_end: "hover:!bg-inverted hover:!text-inverted",
+        day_range_start: "hover:!bg-inverted hover:!text-inverted",
         day_selected: "bg-inverted text-inverted",
         day_today: "",
         day_outside: "",
