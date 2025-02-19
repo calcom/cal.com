@@ -404,6 +404,7 @@ export async function getBookings({
     `fetching all bookings for ${user.id}`,
     safeStringify({
       ids: plainBookings.map((booking) => booking.id),
+      filters,
       orderBy,
       take,
       skip,
