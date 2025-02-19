@@ -29,7 +29,7 @@ const AssignAllTeamMembers = ({
         <SettingsToggle
           data-testid="assign-all-team-members-toggle"
           title={t("automatically_add_all_team_members")}
-          labelClassName={classNames("mt-0.5 font-normal", customClassNames?.label)}
+          labelClassName={classNames("mt-[3px] text-sm", customClassNames?.label)}
           switchContainerClassName={customClassNames?.container}
           checked={assignAllTeamMembers}
           onCheckedChange={(active) => {
