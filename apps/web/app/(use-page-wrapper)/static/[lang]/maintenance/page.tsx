@@ -8,7 +8,7 @@ import { getSeverTranslation } from "../dictionaries";
 import { generateMetadataStatic } from "../metadata";
 
 export const generateMetadata = async ({ params }: PageProps) => {
-  const { t } = await getSeverTranslation(params.lang as string);
+  const { t } = getSeverTranslation(params.lang as string);
   return await generateMetadataStatic(
     "/maintenance",
     t("under_maintenance"),
@@ -17,7 +17,7 @@ export const generateMetadata = async ({ params }: PageProps) => {
 };
 
 const ServerPage = async ({ params }: PageProps) => {
-  const { t } = await getSeverTranslation(params.lang as string);
+  const { t } = getSeverTranslation(params.lang as string);
 
   return (
     <div className="bg-subtle flex h-screen">

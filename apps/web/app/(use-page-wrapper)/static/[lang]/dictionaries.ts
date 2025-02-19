@@ -53,10 +53,8 @@ const dictionaries = {
 
 type LocaleType = keyof typeof dictionaries;
 
-const getDictionary = async (locale: LocaleType) => dictionaries[locale as LocaleType]();
-
-export async function getSeverTranslation(locale: string) {
-  const dict = await getDictionary(locale as LocaleType);
+export function getSeverTranslation(locale: string) {
+  const dict = dictionaries[locale as LocaleType]();
 
   return {
     t: (key: string, interpolation?: Record<string, string | number>) => {
