@@ -77,27 +77,7 @@ export async function getBookings({
   skip: number;
 }) {
   const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {};
-  let attendeeEmailIds = [user.email];
-
-  const membershipIdsWhereUserIsAdminOwner = (
-    await prisma.membership.findMany({
-      where: {
-        userId: user.id,
-        role: {
-          in: ["ADMIN", "OWNER"],
-        },
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((membership) => membership.id);
-
-  const membershipConditionWhereUserIsAdminOwner = {
-    some: {
-      id: { in: membershipIdsWhereUserIsAdminOwner },
-    },
-  };
+  // let attendeeEmailIds = [user.email];
 
   if (filters?.teamIds && filters.teamIds.length > 0) {
     bookingWhereInputFilters.teamIds = {
@@ -133,7 +113,7 @@ export async function getBookings({
         email: true,
       },
     });
-    attendeeEmailIds = users && users.length > 0 ? users.map((user) => user.email) : [];
+    const attendeeEmailIds = users && users.length > 0 ? users.map((user) => user.email) : [];
 
     bookingWhereInputFilters.userIds = {
       AND: [
@@ -167,13 +147,17 @@ export async function getBookings({
                 },
               },
             },
-            {
-              eventType: {
-                team: {
-                  members: membershipConditionWhereUserIsAdminOwner,
-                },
-              },
-            },
+            ...(attendeeEmailIds.length > 0
+              ? [
+                  {
+                    attendees: {
+                      some: {
+                        email: { in: attendeeEmailIds },
+                      },
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ],
@@ -345,6 +329,26 @@ export async function getBookings({
     },
   };
 
+  const membershipIdsWhereUserIsAdminOwner = (
+    await prisma.membership.findMany({
+      where: {
+        userId: user.id,
+        role: {
+          in: ["ADMIN", "OWNER"],
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+  ).map((membership) => membership.id);
+
+  const membershipConditionWhereUserIsAdminOwner = {
+    some: {
+      id: { in: membershipIdsWhereUserIsAdminOwner },
+    },
+  };
+
   const [
     // Quering these in parallel to save time.
     // Note that because we are applying `take` to individual queries, we will usually get more bookings then we need. It is okay to have more bookings faster than having what we need slower
@@ -379,7 +383,7 @@ export async function getBookings({
           {
             attendees: {
               some: {
-                email: { in: attendeeEmailIds },
+                email: user.email,
               },
             },
           },
