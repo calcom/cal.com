@@ -22,6 +22,7 @@ import { OrganizationsService } from "@/modules/organizations/index/organization
 import { OrganizationsMembershipsController } from "@/modules/organizations/memberships/organizations-membership.controller";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/memberships/organizations-membership.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
+import { OrganizationsOrganizationsModule } from "@/modules/organizations/organizations/organizations-organizations.module";
 import { OrganizationsSchedulesController } from "@/modules/organizations/schedules/organizations-schedules.controller";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/schedules/organizations-schedules.repository";
 import { OrganizationsSchedulesService } from "@/modules/organizations/schedules/services/organizations-schedules.service";
@@ -62,6 +63,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_06_14,
     TeamsEventTypesModule,
     TeamsModule,
+    OrganizationsOrganizationsModule,
   ],
   providers: [
     OrganizationsRepository,

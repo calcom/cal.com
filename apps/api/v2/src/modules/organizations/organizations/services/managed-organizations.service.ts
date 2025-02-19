@@ -12,13 +12,14 @@ export class ManagedOrganizationsService {
   constructor(
     private readonly managedOrganizationsRepository: ManagedOrganizationsRepository,
     private readonly organizationsRepository: OrganizationsRepository,
-    private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService
+    private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
+    private readonly organizationsMembershipService: OrganizationsMembershipService
   ) {}
 
   async createManagedOrganization(
     authUserId: number,
     managerOrganizationId: number,
-    organizationInpit: CreateOrganizationInput
+    organizationInput: CreateOrganizationInput
   ) {
     const isManagerOrganizationPlatform = await this.isManagerOrganizationPlatform(managerOrganizationId);
     if (!isManagerOrganizationPlatform) {
@@ -27,9 +28,11 @@ export class ManagedOrganizationsService {
       );
     }
 
+    const isOrganization = true;
+    const isPlatform = true;
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(
       managerOrganizationId,
-      organizationInpit
+      { ...organizationInput, isOrganization, isPlatform }
     );
 
     await this.organizationsMembershipService.createOrgMembership(organization.id, {

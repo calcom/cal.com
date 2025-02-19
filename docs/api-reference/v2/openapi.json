@@ -1545,6 +1545,45 @@
         "tags": ["Orgs / Memberships"]
       }
     },
+    "/v2/organizations/{managerOrganizationId}/organizations": {
+      "post": {
+        "operationId": "OrganizationsOrganizationsController_createOrganization",
+        "summary": "Create an organization within an organization",
+        "parameters": [
+          {
+            "name": "managerOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Orgs"]
+      }
+    },
     "/v2/organizations/{orgId}/schedules": {
       "get": {
         "operationId": "OrganizationsSchedulesController_getOrganizationSchedules",
@@ -12854,6 +12893,62 @@
           },
           "data": {
             "$ref": "#/components/schemas/TeamOutputDto"
+          }
+        },
+        "required": ["status", "data"]
+      },
+      "CreateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug",
+            "example": "cal-tel"
+          },
+          "metadata": {
+            "type": "string"
+          }
+        },
+        "required": ["name"]
+      },
+      "ManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "apiKey": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "slug", "apiKey"]
+      },
+      "CreateManagedOrganizationOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ManagedOrganizationOutput"
           }
         },
         "required": ["status", "data"]
