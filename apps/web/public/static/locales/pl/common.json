@@ -2899,5 +2899,10 @@
   "calibration": "Kalibracja",
   "shortfall": "Niedobór",
   "routing_form": "Formularz routingu",
+  "something_unexpected_occurred": "Wystąpił nieoczekiwany błąd",
+  "500_error_message": "To nie Twoja wina, to nasza.",
+  "dry_run_mode_active": "Wykonujesz testową rezerwację.",
+  "icon_showcase": "Prezentacja ikon",
+  "icons_showcase": "Prezentacja ikon",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

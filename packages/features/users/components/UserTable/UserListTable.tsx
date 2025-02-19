@@ -118,7 +118,7 @@ function UserListTableContent() {
   const { data: session } = useSession();
   const { isPlatformUser } = useGetUserAttributes();
   const { data: org } = trpc.viewer.organizations.listCurrent.useQuery();
-  const { data: attributes } = trpc.viewer.attributes.list.useQuery();
+  const { data: attributes, isSuccess: isSuccessAttributes } = trpc.viewer.attributes.list.useQuery();
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const { data: facetedTeamValues } = trpc.viewer.organizations.getFacetedValues.useQuery();
 
@@ -163,7 +163,6 @@ function UserListTableContent() {
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]) as UserTableUser[];
-  const totalFetched = flatData.length;
 
   const memorisedColumns = useMemo(() => {
     const permissions = {
@@ -542,6 +541,11 @@ function UserListTableContent() {
       setIsDownloading(false);
     }
   };
+
+  if (!isSuccessAttributes) {
+    // do not render the table until the attributes are fetched
+    return null;
+  }
 
   return (
     <>

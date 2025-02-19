@@ -395,6 +395,11 @@ const nextConfig = {
       value: "cross-origin",
     };
 
+    const ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = {
+      key: "Access-Control-Allow-Origin",
+      value: "*",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -464,7 +469,7 @@ const nextConfig = {
         },
         {
           source: "/icons/sprite.svg",
-          headers: [CORP_CROSS_ORIGIN_HEADER],
+          headers: [CORP_CROSS_ORIGIN_HEADER, ACCESS_CONTROL_ALLOW_ORIGIN_HEADER],
         },
       ],
       ...(isOrganizationsEnabled

@@ -2899,5 +2899,10 @@
   "calibration": "보정",
   "shortfall": "부족",
   "routing_form": "라우팅 양식",
+  "something_unexpected_occurred": "예기치 않은 오류가 발생했습니다",
+  "500_error_message": "사용자의 문제가 아닙니다. 저희 쪽 문제입니다.",
+  "dry_run_mode_active": "테스트 예약을 진행하고 있습니다.",
+  "icon_showcase": "아이콘 쇼케이스",
+  "icons_showcase": "아이콘 쇼케이스",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 여기에 새 문자열을 추가하세요 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

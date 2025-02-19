@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrácia",
   "shortfall": "Deficit",
   "routing_form": "Smerovací formulár",
+  "something_unexpected_occurred": "Vyskytla sa neočakávaná chyba",
+  "500_error_message": "Nie je to vami, je to nami.",
+  "dry_run_mode_active": "Robíte testovaciu rezerváciu.",
+  "icon_showcase": "Ukážka ikony",
+  "icons_showcase": "Ukážka ikon",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Pridajte svoje nové reťazce nad túto líniu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

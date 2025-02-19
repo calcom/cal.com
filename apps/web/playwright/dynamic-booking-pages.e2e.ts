@@ -11,6 +11,8 @@ import {
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
+test.describe.configure({ mode: "parallel" });
+
 test.afterEach(({ users }) => users.deleteAll());
 
 test("dynamic booking", async ({ page, users }) => {

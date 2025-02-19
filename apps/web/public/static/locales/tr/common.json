@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrasyon",
   "shortfall": "Açık",
   "routing_form": "Yönlendirme formu",
+  "something_unexpected_occurred": "Beklenmedik bir durum oluştu",
+  "500_error_message": "Sorun sizde değil, bizde.",
+  "dry_run_mode_active": "Test rezervasyonu yapıyorsunuz.",
+  "icon_showcase": "İkon vitrini",
+  "icons_showcase": "İkonlar vitrini",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Yeni dizelerinizi yukarıya ekleyin ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

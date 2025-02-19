@@ -20,7 +20,7 @@ const inputSchema = z.object({
   cardKeys: z.array(z.string()),
 });
 
-export async function handler(request: Request) {
+async function handler(request: Request) {
   const headersList = headers();
   const requestBody = await request.json();
 

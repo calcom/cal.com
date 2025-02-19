@@ -14,6 +14,11 @@ export const useInViewObserver = (onInViewCallback: () => void, root?: Element |
       return;
     }
 
+    if (node && node.getBoundingClientRect().top < window.innerHeight) {
+      // Trigger callback immediately if element is already in view on mount
+      onInViewCallback();
+    }
+
     let observer: IntersectionObserver;
     if (node && node.parentElement) {
       observer = new IntersectionObserver(
@@ -35,7 +40,7 @@ export const useInViewObserver = (onInViewCallback: () => void, root?: Element |
         observer.disconnect();
       }
     };
-  }, [node]);
+  }, [onInViewCallback, node]);
 
   return {
     ref: setRef,

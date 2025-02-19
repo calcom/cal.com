@@ -1019,6 +1019,30 @@ model App_RoutingForms_FormResponse {
   @@index([formId])
 }
 
+view RoutingFormResponse {
+  id                               Int            @unique
+  response                         Json
+  responseLowercase                Json
+  formId                           String
+  formName                         String
+  formTeamId                       Int?
+  formUserId                       Int?
+  bookingUid                       String?
+  bookingStatus                    BookingStatus?
+  bookingStatusOrder               Int?
+  bookingCreatedAt                 DateTime?
+  bookingAttendees                 Json? // Array of {timeZone: string, email: string}
+  bookingUserId                    Int?
+  bookingUserName                  String?
+  bookingUserEmail                 String?
+  bookingUserAvatarUrl             String?
+  bookingAssignmentReason          String?
+  bookingAssignmentReasonLowercase String?
+  bookingStartTime                 DateTime?
+  bookingEndTime                   DateTime?
+  createdAt                        DateTime
+}
+
 model Feedback {
   id      Int      @id @default(autoincrement())
   date    DateTime @default(now())

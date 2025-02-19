@@ -2899,5 +2899,10 @@
   "calibration": "Калібрування",
   "shortfall": "Дефіцит",
   "routing_form": "Форма маршрутизації",
+  "something_unexpected_occurred": "Сталося щось неочікуване",
+  "500_error_message": "Справа не у вас, а в нас.",
+  "dry_run_mode_active": "Ви робите тестове бронювання.",
+  "icon_showcase": "Галерея іконок",
+  "icons_showcase": "Галерея іконок",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

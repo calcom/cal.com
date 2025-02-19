@@ -2899,5 +2899,10 @@
   "calibration": "Βαθμονόμηση",
   "shortfall": "Έλλειμμα",
   "routing_form": "Φόρμα δρομολόγησης",
+  "something_unexpected_occurred": "Συνέβη κάτι απρόσμενο",
+  "500_error_message": "Δεν φταίτε εσείς, εμείς φταίμε.",
+  "dry_run_mode_active": "Κάνετε μια δοκιμαστική κράτηση.",
+  "icon_showcase": "Παρουσίαση εικονιδίων",
+  "icons_showcase": "Παρουσίαση εικονιδίων",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Προσθέστε τις νέες συμβολοσειρές σας πάνω από εδώ ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

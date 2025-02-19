@@ -25,7 +25,7 @@ type Props = {
     "profile" | "users"
   > & {
     profile: {
-      image: string | undefined;
+      image: string | null;
       name: string | null;
       username: string | null;
     };
@@ -158,7 +158,7 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
         multipleDuration: [15, 30, 45, 60, 90],
       },
       profile: {
-        image: eventData.profile.image,
+        image: eventData.profile.image ?? null,
         name: eventData.profile.name ?? null,
         username: eventData.profile.username ?? null,
       },
@@ -254,7 +254,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
       length: eventData.length,
       metadata: eventData.metadata,
       profile: {
-        image: eventData.profile.image,
+        image: eventData.profile.image ?? null,
         name: eventData.profile.name ?? null,
         username: eventData.profile.username ?? null,
       },

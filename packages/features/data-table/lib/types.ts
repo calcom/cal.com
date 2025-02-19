@@ -24,7 +24,7 @@ export type SingleSelectFilterValue = z.infer<typeof ZSingleSelectFilterValue>;
 
 export const ZMultiSelectFilterValue = z.object({
   type: z.literal("multi_select"),
-  data: z.array(z.string()),
+  data: z.union([z.string(), z.number()]).array(),
 });
 
 export type MultiSelectFilterValue = z.infer<typeof ZMultiSelectFilterValue>;
@@ -125,3 +125,10 @@ export type ExternalFilter = {
   titleKey: string;
   component: () => React.ReactNode;
 };
+
+export const ZSorting = z.object({
+  id: z.string(),
+  desc: z.boolean(),
+});
+
+export type SortingState = Array<z.infer<typeof ZSorting>>;

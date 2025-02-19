@@ -2899,5 +2899,10 @@
   "calibration": "Kalibreerimine",
   "shortfall": "Puudujääk",
   "routing_form": "Marsruutimise vorm",
+  "something_unexpected_occurred": "Midagi ootamatut juhtus",
+  "500_error_message": "Viga ei ole sinus, vaid meis.",
+  "dry_run_mode_active": "Teed proovibroneeringut.",
+  "icon_showcase": "Ikoonide ülevaade",
+  "icons_showcase": "Ikoonide ülevaade",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

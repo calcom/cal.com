@@ -2899,5 +2899,10 @@
   "calibration": "Calibração",
   "shortfall": "Déficit",
   "routing_form": "Formulário de roteamento",
+  "something_unexpected_occurred": "Algo inesperado aconteceu",
+  "500_error_message": "Não é você, somos nós.",
+  "dry_run_mode_active": "Você está fazendo uma reserva de teste.",
+  "icon_showcase": "Mostruário de ícones",
+  "icons_showcase": "Mostruário de ícones",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

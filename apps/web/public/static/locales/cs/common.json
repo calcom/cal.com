@@ -2899,5 +2899,10 @@
   "calibration": "Kalibrace",
   "shortfall": "Nedostatek",
   "routing_form": "Směrovací formulář",
+  "something_unexpected_occurred": "Došlo k neočekávané chybě",
+  "500_error_message": "Není to vámi, je to námi.",
+  "dry_run_mode_active": "Provádíte testovací rezervaci.",
+  "icon_showcase": "Ukázka ikon",
+  "icons_showcase": "Ukázka ikon",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
