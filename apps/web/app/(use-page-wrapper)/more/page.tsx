@@ -1,6 +1,7 @@
-import { _generateMetadata } from "app/_utils";
+import { _generateMetadata, getTranslate } from "app/_utils";
 
-import Page from "~/more/more-page-view";
+import Shell from "@calcom/features/shell/Shell";
+import { MobileNavigationMoreItems } from "@calcom/features/shell/navigation/Navigation";
 
 export const generateMetadata = async () => {
   return await _generateMetadata(
@@ -10,7 +11,15 @@ export const generateMetadata = async () => {
 };
 
 const ServerPageWrapper = async () => {
-  return <Page />;
+  const t = await getTranslate();
+  return (
+    <Shell withoutSeo={true}>
+      <div className="max-w-screen-lg">
+        <MobileNavigationMoreItems />
+        <p className="text-subtle mt-6 text-xs leading-tight md:hidden">{t("more_page_footer")}</p>
+      </div>
+    </Shell>
+  );
 };
 
 export default ServerPageWrapper;
