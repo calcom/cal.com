@@ -2959,7 +2959,7 @@
   "verify_email_change": "Verify email change",
   "organization_slug_taken": "Organization slug is already taken",
   "you_cannot_create_an_organization_as_you_are_already_part_of_an_organization": "You cannot create an organization as you are already a part of an organization",
-  "you_need_to_complete_onboarding_before_creating_an_organization": "You need to complete onboarding before creating an organization",
+  "you_need_to_complete_user_onboarding_before_creating_an_organization": "You need to complete user onboarding before creating an organization",
   "use_company_email_to_create_an_organization": "Use company email to create an organization",
   "you_cannot_create_a_platform_organization_as_you_are_already_part_of_a_team": "You cannot create a platform organization as you are already a part of a team",
   "you_need_to_have_minimum_published_teams": "You need to have minimum published teams",

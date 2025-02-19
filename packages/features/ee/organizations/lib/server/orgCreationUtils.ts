@@ -186,10 +186,10 @@ export async function assertCanCreateOrg({
   const verifiedUser = orgOwner.completedOnboarding && !!orgOwner.emailVerified;
   if (!verifiedUser) {
     log.warn(
-      "you_need_to_complete_onboarding_before_creating_an_organization",
+      "you_need_to_complete_user_onboarding_before_creating_an_organization",
       safeStringify({ userId: orgOwner.id })
     );
-    throw new OrgCreationError("you_need_to_complete_onboarding_before_creating_an_organization");
+    throw new OrgCreationError("you_need_to_complete_user_onboarding_before_creating_an_organization");
   }
 
   if (isNotACompanyEmail(orgOwner.email) && !isPlatform) {

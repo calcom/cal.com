@@ -333,12 +333,13 @@ async function backwardCompatibilityForSubscriptionDetails({
   paymentSubscriptionItemId: string;
 }) {
   const existingMetadata = teamMetadataSchema.parse(organization.metadata);
-  await OrganizationRepository.updateStripeSubscriptionDetails({
+  const updatedOrganization = await OrganizationRepository.updateStripeSubscriptionDetails({
     id: organization.id,
     stripeSubscriptionId: paymentSubscriptionId,
     stripeSubscriptionItemId: paymentSubscriptionItemId,
     existingMetadata,
   });
+  return updatedOrganization;
 }
 
 async function hasConflictingOrganization({ slug, onboardingId }: { slug: string; onboardingId: string }) {
@@ -377,9 +378,13 @@ async function handleDomainSetup({
 async function handleOrganizationCreation({
   organizationOnboarding,
   owner,
+  paymentSubscriptionId,
+  paymentSubscriptionItemId,
 }: {
   organizationOnboarding: OrganizationOnboardingArg;
   owner: OrgOwner;
+  paymentSubscriptionId: string;
+  paymentSubscriptionItemId: string;
 }) {
   let organization;
   const orgData = {
@@ -431,7 +436,19 @@ async function handleOrganizationCreation({
     organizationId: organization.id,
   });
 
-  return { organization, owner };
+  const updatedOrganization = await backwardCompatibilityForSubscriptionDetails({
+    organization,
+    paymentSubscriptionId,
+    paymentSubscriptionItemId,
+  });
+
+  return {
+    organization: {
+      ...organization,
+      metadata: updatedOrganization.metadata,
+    },
+    owner,
+  };
 }
 
 /**
@@ -468,10 +485,6 @@ export const createOrganizationFromOnboarding = async ({
   const { organization, owner } = await handleOrganizationCreation({
     organizationOnboarding,
     owner: userFromEmail,
-  });
-
-  await backwardCompatibilityForSubscriptionDetails({
-    organization,
     paymentSubscriptionId,
     paymentSubscriptionItemId,
   });
