@@ -443,10 +443,12 @@ type UptoDateForm = Brand<
 
 export const TestForm = ({
   form,
+  supportsTeamMembersMatchingLogic,
   showAllData = true,
   renderFooter,
 }: {
   form: UptoDateForm | RoutingForm;
+  supportsTeamMembersMatchingLogic: boolean;
   showAllData?: boolean;
   renderFooter?: (onClose: () => void) => React.ReactNode;
 }) => {
@@ -455,7 +457,6 @@ export const TestForm = ({
   const [chosenRoute, setChosenRoute] = useState<NonRouterRoute | null>(null);
   const [eventTypeUrlWithoutParams, setEventTypeUrlWithoutParams] = useState("");
   const searchParams = useCompatSearchParams();
-  const isTeamForm = !!form.teamId;
   const [membersMatchResult, setMembersMatchResult] = useState<MembersMatchResultType | null>(null);
 
   const resetMembersMatchResult = () => {
@@ -504,7 +505,7 @@ export const TestForm = ({
 
     if (!route) return;
 
-    if (isTeamForm) {
+    if (supportsTeamMembersMatchingLogic) {
       findTeamMembersMatchingAttributeLogicMutation.mutate({
         formId: form.id,
         response,
@@ -528,7 +529,7 @@ export const TestForm = ({
     };
 
     const renderTeamMembersMatchResult = (showAllData: boolean, isPending: boolean) => {
-      if (!isTeamForm) return null;
+      if (!supportsTeamMembersMatchingLogic) return null;
       if (isPending) return <div>Loading...</div>;
 
       return (
@@ -649,7 +650,7 @@ export const TestFormDialog = ({
   setIsTestPreviewOpen: (value: boolean) => void;
 }) => {
   const { t } = useLocale();
-
+  const isSubTeamForm = !!form.team?.parentId;
   return (
     <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
       <DialogContent size="md" enableOverflow>
@@ -657,6 +658,7 @@ export const TestFormDialog = ({
         <div>
           <TestForm
             form={form}
+            supportsTeamMembersMatchingLogic={isSubTeamForm}
             renderFooter={(onClose) => (
               <DialogFooter>
                 <DialogClose
