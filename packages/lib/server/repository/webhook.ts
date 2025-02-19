@@ -1,7 +1,6 @@
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
 import type { UserPermissionRole } from "@calcom/prisma/enums";
@@ -84,7 +83,6 @@ export class WebhookRepository {
     let userWebhooks = user.webhooks;
     userWebhooks = userWebhooks.filter(filterWebhooks);
     let webhookGroups: WebhookGroup[] = [];
-    const bookerUrl = await getBookerBaseUrl(organizationId ?? null);
 
     webhookGroups.push({
       teamId: null,
@@ -145,7 +143,7 @@ export class WebhookRepository {
         profile: {
           slug: "Platform",
           name: "Platform",
-          image,
+          image: getPlaceholderAvatar(null, "Platform"),
         },
         webhooks: platformWebhooks,
         metadata: {
