@@ -441,37 +441,10 @@ export class EventTypeRepository {
     });
   }
 
-  static async findTitleById({ id, userId }: { id: number; userId: number }) {
-    return await prisma.eventType.findFirst({
+  static async findTitleById({ id }: { id: number }) {
+    return await prisma.eventType.findUnique({
       where: {
-        AND: [
-          {
-            OR: [
-              {
-                users: {
-                  some: {
-                    id: userId,
-                  },
-                },
-              },
-              {
-                team: {
-                  members: {
-                    some: {
-                      userId: userId,
-                    },
-                  },
-                },
-              },
-              {
-                userId: userId,
-              },
-            ],
-          },
-          {
-            id,
-          },
-        ],
+        id,
       },
       select: {
         title: true,
@@ -515,6 +488,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresConfirmationForFreeEmail: true,
+      canSendCalVideoTranscriptionEmails: true,
       requiresConfirmationWillBlockSlot: true,
       requiresBookerEmailVerification: true,
       autoTranslateDescriptionEnabled: true,
@@ -830,6 +804,7 @@ export class EventTypeRepository {
         metadata: true,
         assignRRMembersUsingSegment: true,
         rrSegmentQueryValue: true,
+        isRRWeightsEnabled: true,
         maxLeadThreshold: true,
         useEventLevelSelectedCalendars: true,
         team: {
@@ -877,6 +852,8 @@ export class EventTypeRepository {
           select: {
             isFixed: true,
             createdAt: true,
+            weight: true,
+            priority: true,
             user: {
               select: {
                 credentials: { select: credentialForCalendarServiceSelect },

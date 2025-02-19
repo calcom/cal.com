@@ -51,6 +51,7 @@ import linear_config_json from "./linear/config.json";
 import make_config_json from "./make/config.json";
 import matomo_config_json from "./matomo/config.json";
 import metapixel_config_json from "./metapixel/config.json";
+import millis_ai_config_json from "./millis-ai/config.json";
 import mirotalk_config_json from "./mirotalk/config.json";
 import mock_payment_app_config_json from "./mock-payment-app/config.json";
 import n8n_config_json from "./n8n/config.json";
@@ -155,6 +156,7 @@ export const appStoreMetadata = {
   make: make_config_json,
   matomo: matomo_config_json,
   metapixel: metapixel_config_json,
+  "millis-ai": millis_ai_config_json,
   mirotalk: mirotalk_config_json,
   "mock-payment-app": mock_payment_app_config_json,
   n8n: n8n_config_json,

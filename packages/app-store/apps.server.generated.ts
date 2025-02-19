@@ -51,6 +51,7 @@ export const apiHandlers = {
   make: import("./make/api"),
   matomo: import("./matomo/api"),
   metapixel: import("./metapixel/api"),
+  "millis-ai": import("./millis-ai/api"),
   mirotalk: import("./mirotalk/api"),
   "mock-payment-app": import("./mock-payment-app/api"),
   n8n: import("./n8n/api"),
