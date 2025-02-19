@@ -1,4 +1,6 @@
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
@@ -83,13 +85,14 @@ export class WebhookRepository {
     let webhookGroups: WebhookGroup[] = [];
     const bookerUrl = await getBookerBaseUrl(organizationId ?? null);
 
-    const image = user?.username ? `${bookerUrl}/${user.username}/avatar.png` : undefined;
     webhookGroups.push({
       teamId: null,
       profile: {
         slug: user.username,
         name: user.name,
-        image,
+        image: getUserAvatarUrl({
+          avatarUrl: user.avatarUrl,
+        }),
       },
       webhooks: userWebhooks,
       metadata: {
@@ -115,7 +118,7 @@ export class WebhookRepository {
               ? `/team`
               : `${membership.team.slug}`
             : null,
-          image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
+          image: getPlaceholderAvatar(membership.team.logoUrl, membership.team.name),
         },
         metadata: {
           readOnly:
