@@ -14,6 +14,7 @@ Deployment Plan:
 
 
 TODO:
+- [ ] If there is still conflict in creating the organization due to slu(because team with conflicting slug wasn't mgirated, rename the team)
 - [x] Show the pricing to user set by admin
 - [x] Make sure that a slug that is taken by another organization isn't able to be checkout 
 - [x] PLATFORM: We need to create the organization without requiring payment first.
