@@ -324,7 +324,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 }}
               />
               {selectedLocation && SelectedLocationInput}
-              <DialogFooter className="relative">
+              <DialogFooter showDivider className="mt-8">
                 <Button
                   onClick={() => {
                     setShowLocationModal(false);
@@ -336,7 +336,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                   color="secondary">
                   {t("cancel")}
                 </Button>
-
                 <Button data-testid="update-location" type="submit" disabled={isLocationUpdating}>
                   {t("update")}
                 </Button>
