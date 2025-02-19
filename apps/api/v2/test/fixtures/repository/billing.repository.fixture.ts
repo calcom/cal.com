@@ -35,6 +35,15 @@ export class PlatformBillingRepositoryFixture {
     });
   }
 
+  async getByCustomerSubscriptionIds(customerId: string, subscriptionId: string) {
+    return this.prismaWriteClient.platformBilling.findMany({
+      where: {
+        customerId,
+        subscriptionId,
+      },
+    });
+  }
+
   async deleteSubscriptionForTeam(teamId: number) {
     // silently try to delete the subscription
     try {

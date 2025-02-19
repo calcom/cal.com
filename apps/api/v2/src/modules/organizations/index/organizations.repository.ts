@@ -4,6 +4,8 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
+import { Prisma } from "@calcom/prisma/client";
+
 @Injectable()
 export class OrganizationsRepository {
   constructor(
@@ -139,6 +141,25 @@ export class OrganizationsRepository {
       },
       select: {
         isAdminAPIEnabled: true,
+      },
+    });
+  }
+
+  async update(organizationId: number, data: Prisma.TeamUpdateInput) {
+    return this.dbWrite.prisma.team.update({
+      where: {
+        id: organizationId,
+        isOrganization: true,
+      },
+      data,
+    });
+  }
+
+  async delete(organizationId: number) {
+    return this.dbWrite.prisma.team.delete({
+      where: {
+        id: organizationId,
+        isOrganization: true,
       },
     });
   }

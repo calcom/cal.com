@@ -1,15 +1,14 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsBoolean, IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { IsOptional, IsString, IsUrl, Length } from "class-validator";
 
 export class CreateOrganizationInput {
   @IsString()
   @Length(1)
-  @ApiProperty({ description: "Name of the organization", example: "CalTeam", required: true })
+  @ApiProperty({ description: "Name of the organization", example: "CalTeam" })
   readonly name!: string;
 
-  @IsOptional()
   @IsString()
-  @ApiPropertyOptional({ type: String, description: "Organization slug", example: "cal-tel" })
+  @ApiProperty({ type: String, description: "Organization slug", example: "cal-tel" })
   readonly slug!: string;
 
   @IsOptional()

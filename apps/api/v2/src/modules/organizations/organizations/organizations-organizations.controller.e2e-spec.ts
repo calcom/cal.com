@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
 import { hashAPIKey, stripApiKey } from "@/lib/api-key";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
+import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-organization.input";
 import {
   ManagedOrganizationWithApiKeyOutput,
   ManagedOrganizationOutput,
@@ -13,7 +14,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
+import { PlatformBilling, User } from "@prisma/client";
 import * as request from "supertest";
 import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repository.fixture";
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
@@ -46,6 +47,8 @@ describe("Organizations Organizations Endpoints", () => {
   let managerOrgAdmin: User;
   let managerOrgAdminApiKey: string;
 
+  let managerOrgBilling: PlatformBilling;
+
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule, PrismaModule, UsersModule, TokensModule],
@@ -70,7 +73,7 @@ describe("Organizations Organizations Endpoints", () => {
       isPlatform: true,
     });
 
-    await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
+    managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
 
     await membershipsRepositoryFixture.create({
       role: "ADMIN",
@@ -151,8 +154,18 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managerOrgBilling?.id).toBeDefined();
         const customerId = managerOrgBilling?.customerId;
         expect(customerId).toBeDefined();
+        if (!customerId) {
+          throw new Error(
+            "organizations-organizations.controller.e2e-spec.ts: PlatformBilling customerId is not defined"
+          );
+        }
         const subscriptionId = managerOrgBilling?.subscriptionId;
         expect(subscriptionId).toBeDefined();
+        if (!subscriptionId) {
+          throw new Error(
+            "organizations-organizations.controller.e2e-spec.ts: PlatformBilling subscriptionId is not defined"
+          );
+        }
         const plan = managerOrgBilling?.plan;
         expect(plan).toEqual("SCALE");
 
@@ -165,6 +178,14 @@ describe("Organizations Organizations Endpoints", () => {
 
         expect(managerOrgBilling?.managedBillings?.length).toEqual(1);
         expect(managerOrgBilling?.managedBillings?.[0]?.id).toEqual(managedOrgBilling?.id);
+
+        const billings = await platformBillingRepositoryFixture.getByCustomerSubscriptionIds(
+          customerId,
+          subscriptionId
+        );
+        expect(billings).toBeDefined();
+        // note(Lauris): manager and manager organizaitons billings because managed organization client and subscription ids are same as manager organization billing row.
+        expect(billings?.length).toEqual(2);
 
         // note(Lauris): check that in database api key is generated for managed org
         const managedOrgApiKeys = await apiKeysRepositoryFixture.getTeamApiKeys(managedOrg.id);
@@ -210,6 +231,67 @@ describe("Organizations Organizations Endpoints", () => {
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
         expect(responseManagedOrg?.slug).toEqual(managedOrg.slug);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
+      });
+  });
+
+  it("should update managed organization ", async () => {
+    const suffix = randomString();
+
+    const newOrgName = `new organizations organizations org ${suffix}`;
+
+    return request(app.getHttpServer())
+      .patch(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .send({
+        name: newOrgName,
+      } satisfies UpdateOrganizationInput)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrg = responseBody.data;
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.name).toEqual(newOrgName);
+
+        const managedOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managedOrg.id);
+        expect(managedOrgInDb).toBeDefined();
+        expect(managedOrgInDb?.name).toEqual(newOrgName);
+
+        managedOrg = { ...managedOrg, name: newOrgName };
+      });
+  });
+
+  it("should delete managed organization ", async () => {
+    return request(app.getHttpServer())
+      .delete(`/v2/organizations/${managerOrg.id}/organizations/${managedOrg.id}`)
+      .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseManagedOrg = responseBody.data;
+        expect(responseManagedOrg?.id).toBeDefined();
+        expect(responseManagedOrg?.id).toEqual(managedOrg.id);
+        expect(responseManagedOrg?.name).toEqual(managedOrg.name);
+
+        const managedOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managedOrg.id);
+        expect(managedOrgInDb).toEqual(null);
+
+        const billings = await platformBillingRepositoryFixture.getByCustomerSubscriptionIds(
+          managerOrgBilling.customerId,
+          managerOrgBilling.subscriptionId!
+        );
+        expect(billings).toBeDefined();
+        // note(Lauris): only manager billing is left
+        expect(billings?.length).toEqual(1);
+
+        const managerOrgInDb =
+          await managedOrganizationsRepositoryFixture.getOrganizationWithManagedOrganizations(managerOrg.id);
+        expect(managerOrgInDb).toBeDefined();
+        expect(managerOrgInDb?.id).toEqual(managerOrg.id);
+        expect(managerOrgInDb?.managedOrganizations?.length).toEqual(0);
       });
   });
 
