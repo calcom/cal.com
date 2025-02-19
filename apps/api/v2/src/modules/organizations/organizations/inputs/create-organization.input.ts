@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
 export class CreateOrganizationInput {
   @IsString()
@@ -15,4 +15,18 @@ export class CreateOrganizationInput {
   @IsString()
   @ApiPropertyOptional()
   readonly metadata?: string;
+
+  @IsOptional()
+  @IsInt()
+  @ApiPropertyOptional({
+    description: "For how many days is managed organization api key valid. Defaults to 30 days.",
+    example: 60,
+    default: 30,
+  })
+  readonly apiKeyDaysValid?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({ description: "If true, organization api key never expires.", example: true })
+  readonly apiKeyNeverExpires?: boolean;
 }

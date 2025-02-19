@@ -4,7 +4,8 @@ import { OrganizationsMembershipService } from "@/modules/organizations/membersh
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { DateTime } from "luxon";
 
 import { createApiKeyHandler } from "@calcom/platform-libraries";
 
@@ -47,6 +48,15 @@ export class ManagedOrganizationsService {
       organization.id
     );
 
+    if (organizationInput.apiKeyDaysValid && organizationInput.apiKeyNeverExpires) {
+      throw new BadRequestException(
+        "Cannot set both apiKeyDaysValid and apiKeyNeverExpires in the request body."
+      );
+    }
+
+    const expiresAfterDays = organizationInput.apiKeyDaysValid ? organizationInput.apiKeyDaysValid : 30;
+    const expiresAt = DateTime.utc().plus({ days: expiresAfterDays }).toJSDate();
+
     const apiKey = await createApiKeyHandler({
       ctx: {
         user: {
@@ -55,7 +65,8 @@ export class ManagedOrganizationsService {
       },
       input: {
         note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
-        neverExpires: true,
+        neverExpires: !!organizationInput.apiKeyNeverExpires,
+        expiresAt,
         teamId: organization.id,
       },
     });
