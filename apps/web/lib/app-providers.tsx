@@ -20,7 +20,6 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
-import PlainChat from "@lib/plain/dynamicProvider";
 import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
@@ -295,7 +294,6 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <PlainChat />
       <CustomI18nextProvider {...propsWithoutNonce}>
         <TooltipProvider>
           <CalcomThemeProvider
