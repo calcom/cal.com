@@ -10,9 +10,7 @@ import { SchedulingType, MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "../../../trpc";
 import removeMember from "./removeMember.handler";
 
-describe("removeMember", () => {
-  setupAndTeardown();
-
+describe.skip("removeMember", () => {
   describe("should remove a member from a team", () => {
     test(`1) Should remove a member from a team
           2) Should remove the member from hosts

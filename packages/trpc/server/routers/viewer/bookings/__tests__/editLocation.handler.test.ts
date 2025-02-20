@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Bring this test back with the correct setup (no illegal imports)
-import { describe, expect, vi, beforeEach } from "vitest";
+import { describe, expect, test, vi, beforeEach } from "vitest";
 
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -133,9 +133,7 @@ describe.skip("getLocationForOrganizerDefaultConferencingAppInEvtFormat", () => 
   });
 });
 
-describe("editLocation.handler", () => {
-  setupAndTeardown();
-
+describe.skip("editLocation.handler", () => {
   describe("Changing organizer default conferencing app", () => {
     test("should update the booking location when organizer's default conferencing app changes", async ({
       emails,

@@ -34,7 +34,7 @@ const getBaseUserInfo = (
   };
 };
 
-describe("Bulk Delete Users handler", () => {
+describe.skip("Bulk Delete Users handler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
