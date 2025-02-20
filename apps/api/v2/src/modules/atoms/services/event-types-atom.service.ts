@@ -122,9 +122,18 @@ export class EventTypesAtomService {
   async updateEventType(eventTypeId: number, body: TUpdateEventTypeInputSchema, user: UserWithProfile) {
     await this.eventTypeService.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.eventTypeService.getUserToUpdateEvent(user);
+    const bookingFields = body.bookingFields ? [...body.bookingFields] : undefined;
+
+    if (
+      bookingFields?.length &&
+      !bookingFields.find((field) => field.type === "email") &&
+      !bookingFields.find((field) => field.type === "phone")
+    ) {
+      bookingFields.push(systemBeforeFieldEmail);
+    }
 
     const eventType = await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: { id: eventTypeId, ...body, bookingFields },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
