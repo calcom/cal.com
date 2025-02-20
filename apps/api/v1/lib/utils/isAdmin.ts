@@ -18,9 +18,9 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       accepted: true,
       team: {
         isOrganization: true,
-        organizationSettings: {
-          isAdminAPIEnabled: true,
-        },
+        // organizationSettings: {
+        //   isAdminAPIEnabled: true,
+        // },
       },
       OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
     },
@@ -33,6 +33,7 @@ export const isAdminGuard = async (req: NextApiRequest) => {
       },
     },
   });
+  console.log("orgOwnerOrAdminMemberships", orgOwnerOrAdminMemberships);
   if (orgOwnerOrAdminMemberships.length > 0) return { isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin };
 
   return { isAdmin: false, scope: null };
