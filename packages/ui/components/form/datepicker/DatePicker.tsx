@@ -2,8 +2,8 @@ import * as Popover from "@radix-ui/react-popover";
 import { format } from "date-fns";
 
 import { classNames as cn } from "@calcom/lib";
+import { Button } from "@calcom/ui";
 
-import { Button } from "../../button";
 import { Calendar } from "../date-range-picker/Calendar";
 
 type Props = {
@@ -38,7 +38,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
       <Popover.Root>
         <Popover.Trigger asChild>
           <Button
-            data-testid="date-range"
+            data-testid="pick-date"
             color="secondary"
             EndIcon="calendar"
             className={cn("justify-between text-left font-normal", !date && "text-subtle")}>
