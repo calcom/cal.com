@@ -34,7 +34,7 @@ export interface SpacerComponent extends CanvasComponent {
 export interface TextComponent extends CanvasComponent {
   type: "text";
   text: string;
-  style: "header" | "body" | "error" | "muted";
+  style: "header" | "paragraph" | "error" | "muted";
   align: "left" | "center" | "right";
 }
 
