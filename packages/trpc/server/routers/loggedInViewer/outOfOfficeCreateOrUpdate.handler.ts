@@ -243,18 +243,14 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
     });
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
-    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(
-      new Date(createdOrUpdatedOutOfOffice.start)
-    );
-    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(
-      new Date(createdOrUpdatedOutOfOffice.end)
-    );
+    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.start);
+    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.end);
 
     const existingFormattedStartDate = previousOutOfOfficeEntry
-      ? new Intl.DateTimeFormat("en-US").format(new Date(previousOutOfOfficeEntry.start))
+      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.start)
       : "";
     const existingFormattedEndDate = previousOutOfOfficeEntry
-      ? new Intl.DateTimeFormat("en-US").format(new Date(previousOutOfOfficeEntry.end))
+      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.end)
       : "";
 
     const existingRedirectedUser = previousOutOfOfficeEntry?.toUser

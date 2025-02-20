@@ -134,7 +134,7 @@ type InputSelectedCalendar = (typeof TestData.selectedCalendars)[keyof typeof Te
   eventTypeId?: number | null;
 };
 
-export type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
+type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
   id: number;
   defaultScheduleId?: number | null;
   credentials?: InputCredential[];

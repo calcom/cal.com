@@ -562,21 +562,6 @@ test.describe("Out of office", () => {
         ).toBeVisible();
       });
 
-      await test.step("Edit OOO and change date to previous month", async () => {
-        await page.getByTestId(`ooo-edit-${member3User?.username}`).click();
-        await reasonListRespPromise;
-        await legacyListMembersRespPromise;
-        await legacyListMembersRespPromise;
-
-        await dateButton.click();
-        await selectDateAndCreateOOO(page, "1", "3", undefined, 200, true, "previous-month", true);
-        //Switch to 'previous' tab and check if the entry is visible
-        await page.locator(`data-testid=toggle-group-item-previous`).click();
-        await expect(
-          page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
-        ).toBeVisible();
-      });
-
       await test.step("Delete OOO successfully", async () => {
         await page.getByTestId(`ooo-delete-${member3User?.username}`).click();
         expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();

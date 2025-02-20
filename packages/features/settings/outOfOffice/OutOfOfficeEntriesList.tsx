@@ -13,8 +13,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { OutOfOfficeRecordType } from "@calcom/trpc/server/routers/loggedInViewer/outOfOfficeEntriesList.schema";
-import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, ToggleGroup, Tooltip } from "@calcom/ui";
+import { Avatar, Button, EmptyScreen, Icon, showToast, SkeletonText, Tooltip } from "@calcom/ui";
 
 import CreateNewOutOfOfficeEntryButton from "./CreateNewOutOfOfficeEntryButton";
 import { CreateOrEditOutOfOfficeEntryModal } from "./CreateOrEditOutOfOfficeModal";
@@ -51,11 +50,6 @@ export const OutOfOfficeEntriesList = ({
   const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [oooEntriesUpdated, setOOOEntriesUpdated] = useState(0);
-  const [recordType, setRecordType] = useState(OutOfOfficeRecordType.CURRENT);
-  const toggleGroupOptions = [
-    { value: OutOfOfficeRecordType.CURRENT, label: t("current") },
-    { value: OutOfOfficeRecordType.PREVIOUS, label: t("previous") },
-  ];
   const [searchTerm, setSearchTerm] = useState("");
   const [deletedEntry, setDeletedEntry] = useState(0);
   const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
@@ -75,7 +69,6 @@ export const OutOfOfficeEntriesList = ({
         limit: 10,
         fetchTeamMembersEntries: selectedTab === OutOfOfficeTab.TEAM,
         searchTerm: selectedTab === OutOfOfficeTab.TEAM ? searchTerm : undefined,
-        recordType: recordType,
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -312,32 +305,14 @@ export const OutOfOfficeEntriesList = ({
 
   return (
     <>
-      <div className="mb-2 mt-2 flex justify-start">
-        <ToggleGroup
-          className="hidden md:block"
-          defaultValue={recordType}
-          onValueChange={(value) => setRecordType(value as OutOfOfficeRecordType)}
-          options={toggleGroupOptions}
-        />
-      </div>
       {data === null ||
       (data?.pages?.length !== 0 && data?.pages[0].meta.totalRowCount === 0 && searchTerm === "") ||
       (data === undefined && !isPending) ? (
         <EmptyScreen
           className="mt-6"
-          headline={
-            recordType === OutOfOfficeRecordType.PREVIOUS
-              ? t("previous_ooo_empty_title")
-              : selectedTab === OutOfOfficeTab.TEAM
-              ? t("ooo_team_empty_title")
-              : t("ooo_empty_title")
-          }
+          headline={selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_title") : t("ooo_empty_title")}
           description={
-            recordType === OutOfOfficeRecordType.PREVIOUS
-              ? ""
-              : selectedTab === OutOfOfficeTab.TEAM
-              ? t("ooo_team_empty_description")
-              : t("ooo_empty_description")
+            selectedTab === OutOfOfficeTab.TEAM ? t("ooo_team_empty_description") : t("ooo_empty_description")
           }
           buttonRaw={<CreateNewOutOfOfficeEntryButton setOOOEntriesAdded={setOOOEntriesAdded} size="sm" />}
           customIcon={
