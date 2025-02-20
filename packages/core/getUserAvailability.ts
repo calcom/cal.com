@@ -566,7 +566,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     end: dayjs(busy.end),
   }));
 
-  const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+  // Don't subtract busy times from dateRanges when user is OOO
+  const dateRangesInWhichUserIsAvailable =
+    Object.keys(datesOutOfOffice).length > 0 ? dateRanges : subtract(dateRanges, formattedBusyTimes);
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
   const result = {
