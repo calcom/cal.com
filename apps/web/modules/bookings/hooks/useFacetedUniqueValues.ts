@@ -11,12 +11,7 @@ export function useFacetedUniqueValues() {
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
       if (columnId === "eventTypeId") {
-        return convertFacetedValuesToMap(
-          (eventTypes.data || []).map((eventType) => ({
-            value: eventType.id,
-            label: eventType.title,
-          })) ?? []
-        );
+        return convertFacetedValuesToMap(eventTypes || []);
       }
       return new Map<FacetedValue, number>();
     },

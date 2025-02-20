@@ -101,11 +101,11 @@ export type FilterableColumn = {
 } & (
   | {
       type: ColumnFilterType.SINGLE_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.MULTI_SELECT;
-      options: Array<{ label: string; value: string | number }>;
+      options: FacetedValue[];
     }
   | {
       type: ColumnFilterType.TEXT;

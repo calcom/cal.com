@@ -16,7 +16,12 @@ import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle"
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { DataTableProvider, DataTableWrapper, ColumnFilterType } from "@calcom/features/data-table";
+import {
+  DataTableProvider,
+  DataTableWrapper,
+  DataTableFilters,
+  ColumnFilterType,
+} from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -135,8 +140,9 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor("eventTypeId", {
+      columnHelper.accessor((row) => ("booking" in row ? row.booking.eventType.id : row.type), {
         id: "eventTypeId",
+        header: t("event_type"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
@@ -182,7 +188,7 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
     ];
-  }, [user, status]);
+  }, [user, status, t]);
 
   const isEmpty = useMemo(() => !query.data?.pages[0]?.bookings.length, [query.data]);
 
@@ -309,6 +315,13 @@ function BookingsContent({ status }: BookingsProps) {
                 fetchNextPage={query.fetchNextPage}
                 isFetching={query.isFetching}
                 variant="compact"
+                ToolbarLeft={
+                  <>
+                    <DataTableFilters.AddFilterButton table={table} />
+                    <DataTableFilters.ActiveFilters table={table} />
+                    <DataTableFilters.ClearFiltersButton />
+                  </>
+                }
               />
             </>
           )}
