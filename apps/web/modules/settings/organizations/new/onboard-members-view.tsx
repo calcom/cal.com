@@ -4,10 +4,10 @@ import { WizardLayout } from "@calcom/ui";
 
 import AddNewTeamMembers from "./_components/OnboardMembersView";
 
-export const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <WizardLayout currentStep={4} maxSteps={5}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

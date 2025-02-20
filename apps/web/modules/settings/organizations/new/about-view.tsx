@@ -3,10 +3,10 @@
 import { AboutOrganizationForm } from "@calcom/features/ee/organizations/components";
 import { WizardLayout } from "@calcom/ui";
 
-export const LayoutWrapper = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <WizardLayout currentStep={2} maxSteps={5}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

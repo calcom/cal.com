@@ -96,6 +96,7 @@ export class OrganizationRepository {
       email: owner.email,
       username: ownerUsernameInOrg,
       organizationId: organization.id,
+      locked: false,
       creationSource,
     });
 

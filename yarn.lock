@@ -4142,7 +4142,7 @@ __metadata:
     "@calcom/trpc": "*"
     "@calcom/ui": "*"
     bcryptjs: ^2.4.3
-    dub: ^0.46.15
+    dub: ^0.49.1
     handlebars: ^4.7.7
     jose: ^4.13.1
     lru-cache: ^9.0.3
@@ -4417,6 +4417,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/millis-ai@workspace:packages/app-store/millis-ai":
+  version: 0.0.0-use.local
+  resolution: "@calcom/millis-ai@workspace:packages/app-store/millis-ai"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/mirotalk@workspace:packages/app-store/mirotalk":
   version: 0.0.0-use.local
   resolution: "@calcom/mirotalk@workspace:packages/app-store/mirotalk"
@@ -4429,6 +4438,15 @@ __metadata:
 "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app":
   version: 0.0.0-use.local
   resolution: "@calcom/mock-payment-app@workspace:packages/app-store/mock-payment-app"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/monobot@workspace:packages/app-store/monobot":
+  version: 0.0.0-use.local
+  resolution: "@calcom/monobot@workspace:packages/app-store/monobot"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -23564,12 +23582,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dub@npm:^0.46.15":
-  version: 0.46.15
-  resolution: "dub@npm:0.46.15"
+"dub@npm:^0.49.1":
+  version: 0.49.1
+  resolution: "dub@npm:0.49.1"
   peerDependencies:
     zod: ">= 3"
-  checksum: 36b1260bc3115e5a9122bd165785ecfcc208ff6e6f8dc38c339d9b98132e3d49fe05740659106dcf870cc0bc8037ff6181620347076186e1a82644fb9513983b
+  checksum: 10a59c1240bbfc6de108e49e42d58a1e762979f19b3e3eb9df94279e5942d55ca18825f19e99a991121dfce0550d92eef50f9eef4e905d151f3379ff78261cff
   languageName: node
   linkType: hard
 
