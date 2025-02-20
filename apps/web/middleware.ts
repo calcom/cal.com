@@ -170,10 +170,6 @@ export const config = {
     "/booking/:path*",
     "/payment/:path*",
     "/routing-forms/:path*",
-    "/team/:path*",
-    "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
   ],
 };
 
