@@ -1617,6 +1617,33 @@
         "summary": "Get an organization within an organization",
         "parameters": [
           {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Orgs"]
+      },
+      "patch": {
+        "operationId": "OrganizationsOrganizationsController_updateOrganization",
+        "summary": "Update an organization within an organization",
+        "parameters": [
+          {
             "name": "orgId",
             "required": true,
             "in": "path",
@@ -1624,6 +1651,43 @@
               "type": "number"
             }
           },
+          {
+            "name": "managedOrganizationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedOrganizationOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Orgs / Orgs"]
+      },
+      "delete": {
+        "operationId": "OrganizationsOrganizationsController_deleteOrganization",
+        "summary": "Delete an organization within an organization",
+        "parameters": [
           {
             "name": "managedOrganizationId",
             "required": true,
@@ -6937,6 +7001,46 @@
           }
         },
         "required": ["refreshToken"]
+      },
+      "RefreshApiKeyInput": {
+        "type": "object",
+        "properties": {
+          "apiKeyDaysValid": {
+            "type": "number",
+            "minimum": 1,
+            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
+            "example": 60,
+            "default": 30
+          },
+          "apiKeyNeverExpires": {
+            "type": "boolean",
+            "description": "If true, organization api key never expires.",
+            "example": true
+          }
+        }
+      },
+      "ApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "apiKey": {
+            "type": "string"
+          }
+        },
+        "required": ["apiKey"]
+      },
+      "RefreshApiKeyOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": ["success", "error"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ApiKeyOutput"
+          }
+        },
+        "required": ["status", "data"]
       },
       "InputAddressLocation_2024_06_14": {
         "type": "object",
@@ -12964,6 +13068,18 @@
       "CreateOrganizationInput": {
         "type": "object",
         "properties": {
+          "apiKeyDaysValid": {
+            "type": "number",
+            "minimum": 1,
+            "description": "For how many days is managed organization api key valid. Defaults to 30 days.",
+            "example": 60,
+            "default": 30
+          },
+          "apiKeyNeverExpires": {
+            "type": "boolean",
+            "description": "If true, organization api key never expires.",
+            "example": true
+          },
           "name": {
             "type": "string",
             "minLength": 1,
@@ -12979,7 +13095,7 @@
             "type": "string"
           }
         },
-        "required": ["name"]
+        "required": ["name", "slug"]
       },
       "ManagedOrganizationWithApiKeyOutput": {
         "type": "object",
@@ -13066,6 +13182,25 @@
           }
         },
         "required": ["status", "data"]
+      },
+      "UpdateOrganizationInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Name of the organization",
+            "example": "CalTeam"
+          },
+          "slug": {
+            "type": "string",
+            "description": "Organization slug",
+            "example": "cal-tel"
+          },
+          "metadata": {
+            "type": "string"
+          }
+        }
       },
       "ProviderVerifyClientData": {
         "type": "object",

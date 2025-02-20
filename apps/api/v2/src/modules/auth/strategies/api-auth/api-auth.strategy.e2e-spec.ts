@@ -1,5 +1,5 @@
 import appConfig from "@/config/app";
-import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
+import { ApiKeysRepository } from "@/modules/api-keys/api-keys-repository";
 import { DeploymentsRepository } from "@/modules/deployments/deployments.repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { JwtService } from "@/modules/jwt/jwt.service";
@@ -65,7 +65,7 @@ describe("ApiAuthStrategy", () => {
         ConfigService,
         OAuthFlowService,
         UsersRepository,
-        ApiKeyRepository,
+        ApiKeysRepository,
         DeploymentsService,
         OAuthClientRepository,
         PrismaReadService,

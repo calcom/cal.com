@@ -1,13 +1,11 @@
+import { ApiKeysService } from "@/modules/api-keys/services/api-keys.service";
 import { ManagedOrganizationsBillingService } from "@/modules/billing/services/managed-organizations.billing.service";
 import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-organization.input";
+import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
-import { DateTime } from "luxon";
-
-import { createApiKeyHandler } from "@calcom/platform-libraries";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -15,7 +13,8 @@ export class ManagedOrganizationsService {
     private readonly managedOrganizationsRepository: ManagedOrganizationsRepository,
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
-    private readonly organizationsMembershipService: OrganizationsMembershipService
+    private readonly organizationsMembershipService: OrganizationsMembershipService,
+    private readonly apiKeysService: ApiKeysService
   ) {}
 
   async createManagedOrganization(
@@ -30,11 +29,9 @@ export class ManagedOrganizationsService {
       );
     }
 
-    const isOrganization = true;
-    const isPlatform = true;
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(
       managerOrganizationId,
-      { ...organizationInput, isOrganization, isPlatform }
+      { ...organizationInput, isOrganization: true, isPlatform: true }
     );
 
     await this.organizationsMembershipService.createOrgMembership(organization.id, {
@@ -48,26 +45,11 @@ export class ManagedOrganizationsService {
       organization.id
     );
 
-    if (organizationInput.apiKeyDaysValid && organizationInput.apiKeyNeverExpires) {
-      throw new BadRequestException(
-        "Cannot set both apiKeyDaysValid and apiKeyNeverExpires in the request body."
-      );
-    }
-
-    const apiKeyExpiresAfterDays = organizationInput.apiKeyDaysValid ? organizationInput.apiKeyDaysValid : 30;
-    const apiKeyExpiresAt = DateTime.utc().plus({ days: apiKeyExpiresAfterDays }).toJSDate();
-    const apiKey = await createApiKeyHandler({
-      ctx: {
-        user: {
-          id: authUserId,
-        },
-      },
-      input: {
-        note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
-        neverExpires: !!organizationInput.apiKeyNeverExpires,
-        expiresAt: apiKeyExpiresAt,
-        teamId: organization.id,
-      },
+    const apiKey = await this.apiKeysService.createApiKey(authUserId, {
+      apiKeyDaysValid: organizationInput.apiKeyDaysValid,
+      apiKeyNeverExpires: organizationInput.apiKeyNeverExpires,
+      note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
+      teamId: organization.id,
     });
 
     return {

@@ -2,8 +2,9 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
 import { hashAPIKey, stripApiKey } from "@/lib/api-key";
-import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-organization.input";
-import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-organization.input";
+import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
+import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
+import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import {
   ManagedOrganizationWithApiKeyOutput,
   ManagedOrganizationOutput,
@@ -44,12 +45,12 @@ describe("Organizations Organizations Endpoints", () => {
 
   let managerOrg: Team;
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
-
   const managerOrgAdminEmail = `organizations-organizations-admin-${randomString()}@api.com`;
   let managerOrgAdmin: User;
   let managerOrgAdminApiKey: string;
-
   let managerOrgBilling: PlatformBilling;
+
+  let managedOrgApiKey: string;
 
   const newDate = new Date(2035, 0, 9, 15, 0, 0);
 
@@ -209,6 +210,7 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgApiKeys?.[0]?.note).toEqual(
           `Managed organization API key. ManagerOrgId: ${managerOrg.id}. ManagedOrgId: ${managedOrg.id}`
         );
+        managedOrgApiKey = managedOrg?.apiKey;
       });
   });
 
@@ -271,6 +273,35 @@ describe("Organizations Organizations Endpoints", () => {
         expect(managedOrgInDb?.name).toEqual(newOrgName);
 
         managedOrg = { ...managedOrg, name: newOrgName };
+      });
+  });
+
+  it("should refresh api key for managed organization with a custom duration", async () => {
+    return request(app.getHttpServer())
+      .post(`/v2/api-keys/refresh`)
+      .send({ apiKeyDaysValid: 60 })
+      .set("Authorization", `Bearer ${managedOrgApiKey}`)
+      .expect(200)
+      .then(async (response) => {
+        const responseBody: RefreshApiKeyOutput = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseData = responseBody.data;
+        const newApiKey = responseData?.apiKey;
+        expect(newApiKey).toBeDefined();
+        expect(newApiKey).not.toEqual(managedOrgApiKey);
+
+        const managedOrgApiKeys = await apiKeysRepositoryFixture.getTeamApiKeys(managedOrg.id);
+        expect(managedOrgApiKeys?.length).toEqual(1);
+        expect(managedOrgApiKeys?.[0]?.id).toBeDefined();
+        const apiKeyPrefix = getEnv("API_KEY_PREFIX", "cal_");
+        const hashedApiKey = `${hashAPIKey(stripApiKey(newApiKey, apiKeyPrefix))}`;
+        expect(managedOrgApiKeys?.[0]?.hashedKey).toEqual(hashedApiKey);
+        const expectedExpiresAt = DateTime.fromJSDate(newDate).setZone("utc").plus({ days: 60 }).toJSDate();
+        expect(managedOrgApiKeys?.[0]?.expiresAt).toEqual(expectedExpiresAt);
+        expect(managedOrgApiKeys?.[0]?.note).toEqual(
+          `Managed organization API key. ManagerOrgId: ${managerOrg.id}. ManagedOrgId: ${managedOrg.id}`
+        );
+        managedOrgApiKey = newApiKey;
       });
   });
 
