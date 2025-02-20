@@ -1,9 +1,7 @@
-import type { App_RoutingForms_Form } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { RoutingFormEmbedButton, RoutingFormEmbedDialog } from "@calcom/features/embed/RoutingFormEmbed";
@@ -34,15 +32,24 @@ import {
 } from "@calcom/ui";
 
 import getFieldIdentifier from "../lib/getFieldIdentifier";
-import type { SerializableForm } from "../types/types";
 
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+type FormField = {
+  identifier?: string;
+  id: string;
+  type: string;
+  label: string;
+  routerId?: string | null;
+};
+
+type RoutingForm = {
+  id: string;
+  name: string;
+  disabled: boolean;
+  fields?: FormField[];
+};
+
 export type NewFormDialogState = { action: "new" | "duplicate"; target: string | null } | null;
 export type SetNewFormDialogState = React.Dispatch<React.SetStateAction<NewFormDialogState>>;
-const newFormModalQuerySchema = z.object({
-  action: z.literal("new").or(z.literal("duplicate")),
-  target: z.string().optional(),
-});
 
 function NewFormDialog({
   appUrl,
@@ -525,7 +532,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     );
   }
   return (
-    <DropdownMenuItem>
+    <DropdownMenuItem className="hover:bg-[initial]">
       <Component
         ref={forwardedRef}
         {...actionProps}
