@@ -16,7 +16,7 @@ import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle"
 import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
-import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
+import { DataTableProvider, DataTableWrapper, ColumnFilterType } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -135,6 +135,17 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
+      columnHelper.accessor("eventTypeId", {
+        id: "eventTypeId",
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
       columnHelper.display({
         id: "custom-view",
         cell: (props) => {
@@ -253,6 +264,11 @@ function BookingsContent({ status }: BookingsProps) {
   const table = useReactTable<RowData>({
     data: finalData,
     columns,
+    initialState: {
+      columnVisibility: {
+        eventTypeId: false,
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
