@@ -60,80 +60,9 @@ export default class Office365CalendarService implements Calendar {
   private credential: CredentialForCalendarServiceWithTenantId;
   private azureUserId?: string;
 
-  private getAuthUrl(delegatedTo?: boolean, tenantId?: string): string {
-    console.log("tenantId:", tenantId);
-    console.log("delegatedTo:", delegatedTo);
-
-    if (delegatedTo) {
-      if (!tenantId) {
-        throw new CalendarAppDomainWideDelegationInvalidGrantError(
-          "Invalid DomainWideDelegation Settings: tenantId is missing"
-        );
-      }
-      return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
-    }
-
-    return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
-  }
-
-  private async setAzureUserId(token: string) {
-    const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
-    const email = this.credential?.user?.email.replace(oauthClientIdAliasRegex, "");
-    const queryParams = encodeURIComponent(`$filter=mail eq '${email}'`);
-
-    const response = await fetch(`https://graph.microsoft.com/v1.0/users?${queryParams}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const parsedBody = await response.json();
-    console.log("parsedBody", parsedBody, "azure id", parsedBody?.value?.[0]?.id);
-    if (!parsedBody?.value?.[0]?.id) {
-      throw new CalendarAppDomainWideDelegationInvalidGrantError(
-        "User might not exist in Microsoft Azure Active Directory"
-      );
-    }
-    this.azureUserId = parsedBody.value[0].id;
-  }
-
-  // It would error if the domain wide delegation is not set up correctly
-  async testDomainWideDelegationSetup() {
-    const dwdClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
-    const dwdClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
-    const url = this.getAuthUrl(
-      !!this.credential?.delegatedTo,
-      this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
-    );
-    console.log("url: ", url);
-
-    if (!dwdClientId || !dwdClientSecret) {
-      return false;
-    }
-    const loginResponse = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        scope: "https://graph.microsoft.com/.default",
-        client_id: dwdClientId,
-        grant_type: "client_credentials",
-        client_secret: dwdClientSecret,
-      }),
-    });
-    console.log("loginResponse: ", loginResponse);
-    const parsedLoginResponse = await loginResponse.json();
-    console.log("parsedLoginResponse: ", parsedLoginResponse);
-    const token = parsedLoginResponse?.access_token;
-    console.log("token: ", token);
-    return Boolean(token);
-  }
-
   constructor(credential: CredentialForCalendarServiceWithTenantId) {
     this.integrationName = "office365_calendar";
     const tokenResponse = getTokenObjectFromCredential(credential);
-
     this.auth = new OAuthManager({
       credentialSyncVariables: oAuthManagerHelper.credentialSyncVariables,
       resourceOwner: {
@@ -148,22 +77,22 @@ export default class Office365CalendarService implements Calendar {
           return null;
         }
         const { client_id, client_secret } = await getOfficeAppKeys();
+
         const url = this.getAuthUrl(
           isDomainWideDelegated,
           credential?.delegatedTo?.serviceAccountKey?.tenant_id
         );
 
-        console.log("url: ", url);
-        const dwdClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
-        const dwdClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+        const dwdClientId = credential?.delegatedTo?.serviceAccountKey?.client_id;
+        const dwdClientSecret = credential?.delegatedTo?.serviceAccountKey?.private_key;
 
-        if (isDomainWideDelegated && (dwdClientId || dwdClientSecret)) {
+        if (isDomainWideDelegated && (!dwdClientId || !dwdClientSecret)) {
           throw new CalendarAppDomainWideDelegationConfigurationError(
             "Domain Wide Delegated credential without clientId or Secret"
           );
         }
 
-        const loginResponse = await fetch(url, {
+        return await fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
@@ -176,17 +105,6 @@ export default class Office365CalendarService implements Calendar {
             client_secret: dwdClientSecret ?? client_secret,
           }),
         });
-        console.log("loginResponse: ", loginResponse);
-        const parsedLoginResponse = await loginResponse.json();
-        console.log("parsedLoginResponse: ", parsedLoginResponse);
-        const token = parsedLoginResponse?.access_token;
-        console.log("token: ", token);
-
-        if (!this.azureUserId && this.credential?.delegatedTo) {
-          await this.setAzureUserId(token);
-          console.log("Azure user Id", this.azureUserId);
-        }
-        return loginResponse;
       },
       isTokenObjectUnusable: async function () {
         // TODO: Implement this. As current implementation of CalendarService doesn't handle it. It hasn't been handled in the OAuthManager implementation as well.
@@ -200,16 +118,116 @@ export default class Office365CalendarService implements Calendar {
 
       invalidateTokenObject: () => oAuthManagerHelper.invalidateCredential(credential.id),
       expireAccessToken: () => oAuthManagerHelper.markTokenAsExpired(credential),
-      updateTokenObject: (tokenObject) =>
-        oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id }),
+      updateTokenObject: (tokenObject) => {
+        if (!Boolean(credential.delegatedTo)) {
+          return oAuthManagerHelper.updateTokenObject({ tokenObject, credentialId: credential.id });
+        }
+        return Promise.resolve();
+      },
     });
-
     this.credential = credential;
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  getUserEndpoint(): string {
-    return this.azureUserId ? `/users/${this.azureUserId}` : "/me";
+  private getAuthUrl(delegatedTo: boolean, tenantId?: string): string {
+    if (delegatedTo) {
+      if (!tenantId) {
+        throw new CalendarAppDomainWideDelegationInvalidGrantError(
+          "Invalid DomainWideDelegation Settings: tenantId is missing"
+        );
+      }
+      return `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    }
+
+    return "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+  }
+
+  private async getAzureUserId(credential: CredentialForCalendarServiceWithTenantId) {
+    if (this.azureUserId) return this.azureUserId;
+
+    const isDomainWideDelegated = Boolean(credential?.delegatedTo);
+
+    if (!isDomainWideDelegated) return;
+
+    const url = this.getAuthUrl(isDomainWideDelegated, credential?.delegatedTo?.serviceAccountKey?.tenant_id);
+
+    const dwdClientId = credential.delegatedTo?.serviceAccountKey?.client_id;
+    const dwdClientSecret = credential.delegatedTo?.serviceAccountKey?.private_key;
+
+    if (!dwdClientId || !dwdClientSecret) {
+      throw new CalendarAppDomainWideDelegationConfigurationError(
+        "Domain Wide Delegated credential without clientId or Secret"
+      );
+    }
+    const loginResponse = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        scope: "https://graph.microsoft.com/.default",
+        client_id: dwdClientId,
+        grant_type: "client_credentials",
+        client_secret: dwdClientSecret,
+      }),
+    });
+
+    if (!this.azureUserId && credential?.delegatedTo) {
+      const clonedResponse = loginResponse.clone();
+      const parsedLoginResponse = await clonedResponse.json();
+      const token = parsedLoginResponse?.access_token;
+      const oauthClientIdAliasRegex = /\+[a-zA-Z0-9]{25}/;
+      const email = this.credential?.user?.email.replace(oauthClientIdAliasRegex, "");
+      const encodedFilter = encodeURIComponent(`mail eq '${email}'`);
+      const queryParams = `$filter=${encodedFilter}`;
+
+      const response = await fetch(`https://graph.microsoft.com/v1.0/users?${queryParams}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const parsedBody = await response.json();
+
+      if (!parsedBody?.value?.[0]?.id) {
+        throw new CalendarAppDomainWideDelegationInvalidGrantError(
+          "User might not exist in Microsoft Azure Active Directory"
+        );
+      }
+      this.azureUserId = parsedBody.value[0].id;
+    }
+    return this.azureUserId;
+  }
+
+  // It would error if the domain wide delegation is not set up correctly
+  async testDomainWideDelegationSetup(): Promise<boolean> {
+    const dwdClientId = this.credential.delegatedTo?.serviceAccountKey?.client_id;
+    const dwdClientSecret = this.credential.delegatedTo?.serviceAccountKey?.private_key;
+    const url = this.getAuthUrl(
+      Boolean(this.credential?.delegatedTo),
+      this.credential?.delegatedTo?.serviceAccountKey?.tenant_id
+    );
+
+    if (!dwdClientId || !dwdClientSecret) {
+      return false;
+    }
+    const loginResponse = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        scope: "https://graph.microsoft.com/.default",
+        client_id: dwdClientId,
+        grant_type: "client_credentials",
+        client_secret: dwdClientSecret,
+      }),
+    });
+    const parsedLoginResponse = await loginResponse.json();
+    return Boolean(parsedLoginResponse?.access_token);
+  }
+
+  async getUserEndpoint(): Promise<string> {
+    const azureUserId = await this.getAzureUserId(this.credential);
+    return azureUserId ? `/users/${this.azureUserId}` : "/me";
   }
 
   async createEvent(event: CalendarEvent, credentialId: number): Promise<NewCalendarEventType> {
@@ -219,8 +237,8 @@ export default class Office365CalendarService implements Calendar {
       : undefined;
     try {
       const eventsUrl = mainHostDestinationCalendar?.externalId
-        ? `${this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
-        : `${this.getUserEndpoint()}/calendar/events`;
+        ? `${await this.getUserEndpoint()}/calendars/${mainHostDestinationCalendar?.externalId}/events`
+        : `${await this.getUserEndpoint()}/calendar/events`;
 
       const response = await this.fetcher(eventsUrl, {
         method: "POST",
@@ -239,7 +257,7 @@ export default class Office365CalendarService implements Calendar {
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
     try {
-      const response = await this.fetcher(`${this.getUserEndpoint()}/calendar/events/${uid}`, {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "PATCH",
         body: JSON.stringify(this.translateEvent(event)),
       });
@@ -256,7 +274,7 @@ export default class Office365CalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      const response = await this.fetcher(`${this.getUserEndpoint()}/calendar/events/${uid}`, {
+      const response = await this.fetcher(`${await this.getUserEndpoint()}/calendar/events/${uid}`, {
         method: "DELETE",
       });
 
@@ -298,11 +316,12 @@ export default class Office365CalendarService implements Calendar {
       const ids = await (selectedCalendarIds.length === 0
         ? this.listCalendars().then((cals) => cals.map((e_2) => e_2.externalId).filter(Boolean) || [])
         : Promise.resolve(selectedCalendarIds));
-      const requests = ids.map((calendarId, id) => ({
+      const requestsPromises = ids.map(async (calendarId, id) => ({
         id,
         method: "GET",
-        url: `${this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
+        url: `${await this.getUserEndpoint()}/calendars/${calendarId}/calendarView${filter}&${calendarSelectParams}`,
       }));
+      const requests = await Promise.all(requestsPromises);
       const response = await this.apiGraphBatchCall(requests);
       const responseBody = await this.handleErrorJsonOffice365Calendar(response);
       let responseBatchApi: IBatchResponse = { responses: [] };
@@ -324,7 +343,6 @@ export default class Office365CalendarService implements Calendar {
 
       return alreadySuccessResponse ? this.processBusyTimes(alreadySuccessResponse) : [];
     } catch (err) {
-      console.log(err);
       return Promise.reject([]);
     }
   }
@@ -336,7 +354,7 @@ export default class Office365CalendarService implements Calendar {
     const calendarFilterParam = "$select=id,name,isDefaultCalendar,canEdit";
 
     // Store @odata.nextLink if in response
-    let requestLink = `${this.getUserEndpoint()}/calendars?${calendarFilterParam}`;
+    let requestLink = `${await this.getUserEndpoint()}/calendars?${calendarFilterParam}`;
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);
@@ -357,7 +375,7 @@ export default class Office365CalendarService implements Calendar {
       }
     }
 
-    const user = await this.fetcher(`${this.getUserEndpoint()}`);
+    const user = await this.fetcher(`${await this.getUserEndpoint()}`);
     const userResponseBody = await handleErrorsJson<User>(user);
     const email = userResponseBody.mail ?? userResponseBody.userPrincipalName;
 
