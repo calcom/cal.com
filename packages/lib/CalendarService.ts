@@ -97,8 +97,13 @@ const getDuration = (start: string, end: string): DurationObject => ({
   minutes: dayjs(end).diff(dayjs(start), "minute"),
 });
 
-const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[]): Attendee[] =>
-  attendees.map(({ email, name }) => ({ name, email, partstat: "NEEDS-ACTION" }));
+const mapAttendees = (attendees: AttendeeInCalendarEvent[] | TeamMember[], isOptional = false): Attendee[] =>
+  attendees.map(({ email, name }) => ({
+    name,
+    email,
+    partstat: "NEEDS-ACTION",
+    role: isOptional ? "OPT-PARTICIPANT" : "REQ-PARTICIPANT",
+  }));
 
 export default abstract class BaseCalendarService implements Calendar {
   private url = "";
@@ -134,6 +139,13 @@ export default abstract class BaseCalendarService implements Calendar {
         (member) => member.email !== this.credential.user?.email
       );
       attendees.push(...mapAttendees(teamAttendeesWithoutCurrentUser));
+    }
+
+    if (event.team?.optionalGuests) {
+      const guestWithoutCurrentUser = event.team.optionalGuests.filter(
+        (guest) => guest.email !== this.credential.user?.email
+      );
+      attendees.push(...mapAttendees(guestWithoutCurrentUser, true));
     }
 
     return attendees;
