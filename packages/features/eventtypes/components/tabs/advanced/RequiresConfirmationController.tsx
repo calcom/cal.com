@@ -164,7 +164,7 @@ export default function RequiresConfirmationController({
                                 defaults="When booked with less than <time></time> notice"
                                 components={{
                                   time: (
-                                    <div className="mx-2 inline-flex">
+                                    <div className="mx-2 inline-flex items-center">
                                       <Input
                                         type="number"
                                         min={1}
@@ -184,7 +184,7 @@ export default function RequiresConfirmationController({
                                           );
                                         }}
                                         className={classNames(
-                                          "border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
+                                          "border-default !m-0 block h-9 w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r",
                                           customClassNames?.conditionalConfirmationRadio?.timeInput
                                         )}
                                         defaultValue={metadata?.requiresConfirmationThreshold?.time || 30}
@@ -201,7 +201,7 @@ export default function RequiresConfirmationController({
                                           className={
                                             customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
                                           }
-                                          innerClassNames={{ control: "rounded-l-none bg-subtle" }}
+                                          innerClassNames={{ control: "rounded-l-none h-9 px-3 bg-subtle" }}
                                           onChange={(opt) => {
                                             setRequiresConfirmationSetup({
                                               time:
