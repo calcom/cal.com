@@ -11,7 +11,7 @@ import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
 
-const formatNumberByLocale = (value: string, locale: string): string => {
+export const formatNumberByLocale = (value: string, locale: string): string => {
   if (!value) return "";
 
   const cleanNumber = value.replace(/[^0-9.]/g, "");
@@ -31,7 +31,7 @@ const formatNumberByLocale = (value: string, locale: string): string => {
   }
 };
 
-const getRawValue = (formattedValue: string): string => {
+export const getRawValue = (formattedValue: string): string => {
   return formattedValue.replace(/[^0-9.]/g, "");
 };
 
