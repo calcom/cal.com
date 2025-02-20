@@ -22,7 +22,7 @@ const AddCertificate = () => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
-      router.replace("/event-types");
+      router.replace("/signup-success");
     },
     onError: () => {
       showToast("Erro ao atualizar seu usuário.", "error");
