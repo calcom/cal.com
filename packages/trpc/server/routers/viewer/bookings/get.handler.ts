@@ -229,24 +229,32 @@ export async function getBookings({
               {
                 OR: [
                   {
-                    eventTypeId: {
-                      in: eventTypeIdsFromUserIdsFilter,
-                    },
-                  },
-                  {
                     userId: {
                       in: filters.userIds,
                     },
                   },
-                  {
-                    attendees: {
-                      some: {
-                        email: {
-                          in: attendeeEmailsFromUserIdsFilter,
+                  ...(eventTypeIdsFromUserIdsFilter?.length
+                    ? [
+                        {
+                          eventTypeId: {
+                            in: eventTypeIdsFromUserIdsFilter,
+                          },
                         },
-                      },
-                    },
-                  },
+                      ]
+                    : []),
+                  ...(attendeeEmailsFromUserIdsFilter?.length
+                    ? [
+                        {
+                          attendees: {
+                            some: {
+                              email: {
+                                in: attendeeEmailsFromUserIdsFilter,
+                              },
+                            },
+                          },
+                        },
+                      ]
+                    : []),
                 ],
               },
             ]
