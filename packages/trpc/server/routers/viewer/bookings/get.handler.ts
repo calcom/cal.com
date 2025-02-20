@@ -34,7 +34,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   const bookingListingByStatus = [input.filters.status || defaultStatus];
 
   const { bookings, recurringInfo, nextCursor } = await getAllUserBookings({
-    ctx: { user: { id: user.id, email: user.email, name: user.name }, prisma: prisma },
+    ctx: { user: { id: user.id, email: user.email }, prisma: prisma },
     bookingListingByStatus: bookingListingByStatus,
     take: take,
     skip: skip,
@@ -57,7 +57,7 @@ export async function getBookings({
   take,
   skip,
 }: {
-  user: { id: number; email: string; name: string | null };
+  user: { id: number; email: string };
   filters: TGetInputSchema["filters"];
   prisma: PrismaClient;
   passedBookingsStatusFilter: Prisma.BookingWhereInput;
@@ -168,13 +168,13 @@ export async function getBookings({
 
   const [
     eventTypeIdsFromTeamIdsFilter,
-    eventTypeIdsFromUserIdsFilter,
+    { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter },
     eventTypeIdsFromEventTypeIdsFilter,
     eventTypeIdsWhereUserIsAdminOrOwener,
     userIdsWhereUserIsOrgAdminOrOwener,
   ] = await Promise.all([
     getEventTypeIdsFromTeamIdsFilter(prisma, filters?.teamIds),
-    getEventTypeIdsFromUserIdsFilter(prisma, filters?.userIds),
+    getIdsFromUserIdsFilter(prisma, user.email, filters?.userIds),
     getEventTypeIdsFromEventTypeIdsFilter(prisma, filters?.eventTypeIds),
     getEventTypeIdsWhereUserIsAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
     getUserIdsWhereUserIsOrgAdminOrOwner(prisma, membershipConditionWhereUserIsAdminOwner),
@@ -193,17 +193,6 @@ export async function getBookings({
             },
           },
         },
-        ...(user.name
-          ? [
-              {
-                attendees: {
-                  some: {
-                    name: user.name,
-                  },
-                },
-              },
-            ]
-          : []),
         {
           eventTypeId: {
             in: eventTypeIdsWhereUserIsAdminOrOwener,
@@ -249,25 +238,12 @@ export async function getBookings({
                       in: filters.userIds,
                     },
                   },
-                  ...(user.name
-                    ? [
-                        {
-                          // Include booking if current user is an attendee,
-                          // regardless of user ID filter
-                          attendees: {
-                            some: {
-                              name: user.name,
-                            },
-                          },
-                        },
-                      ]
-                    : []),
                   {
-                    // Include booking if current user is an attendee,
-                    // regardless of user ID filter
                     attendees: {
                       some: {
-                        email: user.email,
+                        email: {
+                          in: attendeeEmailsFromUserIdsFilter,
+                        },
                       },
                     },
                   },
@@ -470,41 +446,62 @@ async function getEventTypeIdsFromTeamIdsFilter(prisma: PrismaClient, teamIds?: 
   ).map((eventType) => eventType.id);
 }
 
-async function getEventTypeIdsFromUserIdsFilter(prisma: PrismaClient, userIds?: number[]) {
+async function getIdsFromUserIdsFilter(prisma: PrismaClient, userEmail: string, userIds?: number[]) {
   if (!userIds || userIds.length === 0) {
-    return undefined;
+    return {
+      eventTypeIdsFromUserIdsFilter: undefined,
+      attendeeEmailsFromUserIdsFilter: undefined,
+    };
   }
 
-  return (
-    await prisma.eventType.findMany({
-      where: {
-        OR: [
-          {
-            hosts: {
-              some: {
-                userId: {
-                  in: userIds,
+  const [attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter] = await Promise.all([
+    prisma.user
+      .findMany({
+        where: {
+          id: {
+            in: userIds,
+          },
+        },
+        select: {
+          email: true,
+        },
+      })
+      // Include booking if current user is an attendee, regardless of user ID filter
+      .then((users) => users.map((user) => user.email).concat([userEmail])),
+
+    prisma.eventType
+      .findMany({
+        where: {
+          OR: [
+            {
+              hosts: {
+                some: {
+                  userId: {
+                    in: userIds,
+                  },
+                  isFixed: true,
                 },
-                isFixed: true,
               },
             },
-          },
-          {
-            users: {
-              some: {
-                id: {
-                  in: userIds,
+            {
+              users: {
+                some: {
+                  id: {
+                    in: userIds,
+                  },
                 },
               },
             },
-          },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    })
-  ).map((eventType) => eventType.id);
+          ],
+        },
+        select: {
+          id: true,
+        },
+      })
+      .then((eventTypes) => eventTypes.map((eventType) => eventType.id)),
+  ]);
+
+  return { attendeeEmailsFromUserIdsFilter, eventTypeIdsFromUserIdsFilter };
 }
 
 async function getEventTypeIdsFromEventTypeIdsFilter(prisma: PrismaClient, eventTypeIds?: number[]) {
