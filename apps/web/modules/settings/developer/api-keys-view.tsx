@@ -64,12 +64,7 @@ const ApiKeysView = () => {
   }, []);
 
   if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("api_keys")}
-        description={t("create_first_api_key_description", { appName: APP_NAME })}
-      />
-    );
+    return <SkeletonLoader />;
   }
 
   return (
