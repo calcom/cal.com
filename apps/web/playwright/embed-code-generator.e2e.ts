@@ -336,7 +336,7 @@ async function goToReactCodeTab(page: Page) {
   // To prevent early timeouts
   // eslint-disable-next-line playwright/no-wait-for-timeout
   await page.waitForTimeout(1000);
-  await page.locator("[data-testid=horizontal-tab-React]").click();
+  await page.locator("[data-testid=horizontal-tab-react]").click();
 }
 
 async function clickEmbedButton(page: Page) {
