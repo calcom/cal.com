@@ -180,7 +180,7 @@ export default function SignupSuccess() {
           </span>
           <a
             href={PAINEL_URL}
-            className="mt-[24px] flex h-[58px] w-[292px] cursor-pointer items-center justify-center gap-[20px] rounded-[4px] bg-[#00A587] text-sm font-bold hover:bg-[#008C73]">
+            className="mt-[24px] flex h-[58px] w-[292px] cursor-pointer items-center justify-center gap-[20px] rounded-[4px] bg-[#00A587] text-sm font-bold text-white hover:bg-[#008C73]">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M1 8L14 8" stroke="white" stroke-width="2" stroke-linecap="round" />
               <path
