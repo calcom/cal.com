@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/getServerSideProps";
 
@@ -30,7 +30,8 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
     () => profile.name,
     () => markdownStrippedBio,
     false,
-    getOrgFullOrigin(entity.orgSlug ?? null)
+    getOrgFullOrigin(entity.orgSlug ?? null),
+    `/${decodeParams(params).user}`
   );
 
   return {

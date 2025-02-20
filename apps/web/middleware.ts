@@ -172,8 +172,6 @@ export const config = {
     "/routing-forms/:path*",
     "/team/:path*",
     "/org/:path*",
-    "/:user/:type/",
-    "/:user/",
   ],
 };
 
