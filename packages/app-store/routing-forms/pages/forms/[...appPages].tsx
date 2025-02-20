@@ -9,7 +9,7 @@ import SkeletonLoaderTeamList from "@calcom/features/ee/teams/components/Skeleto
 import { FilterResults } from "@calcom/features/filters/components/FilterResults";
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
-import Shell, { ShellMain } from "@calcom/features/shell/Shell";
+import { ShellMain } from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
@@ -201,7 +201,10 @@ export default function RoutingForms({
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly }, index) => {
+                    {forms?.map(({ form, readOnly, hasError }, index) => {
+                      // Make the form read only if it has an error
+                      // TODO: Consider showing error in UI so user can report and get it fixed.
+                      readOnly = readOnly || hasError;
                       if (!form) {
                         return null;
                       }
@@ -345,19 +348,5 @@ export default function RoutingForms({
     </LicenseRequired>
   );
 }
-
-const ShellContainer = ({ page }: { page: React.ReactElement }) => {
-  const { t } = useLocale();
-
-  return (
-    <Shell title={t("routing_forms")} description={t("routing_forms_description")} withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};
-
-RoutingForms.getLayout = (page: React.ReactElement) => {
-  return <ShellContainer page={page} />;
-};
 
 export { getServerSideProps };

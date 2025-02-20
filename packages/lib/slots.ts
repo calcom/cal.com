@@ -1,17 +1,13 @@
 import type { IFromUser, IOutOfOfficeData, IToUser } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
-import { getWorkingHours } from "./availability";
 import { getTimeZone } from "./date-fns";
 import type { DateRange } from "./date-ranges";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
-  workingHours?: WorkingHours[];
-  dateOverrides?: DateOverride[];
   dateRanges?: DateRange[];
   minimumBookingNotice: number;
   eventLength: number;
@@ -373,8 +369,6 @@ const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
-  workingHours = [],
-  dateOverrides = [],
   dateRanges,
   eventLength,
   offsetStart = 0,
@@ -411,115 +405,8 @@ const getSlots = ({
       datesOutOfOffice,
     });
   }
-
-  if (!organizerTimeZone) {
-    throw new Error("organizerTimeZone is required during getSlots call without dateRanges");
-  }
-
-  // current date in invitee tz
-  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
-
-  // This code is ran client side, startOf() does some conversions based on the
-  // local tz of the client. Sometimes this shifts the day incorrectly.
-  const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
-  const startOfInviteeDay = inviteeDate.startOf("day");
-  // checks if the start date is in the past
-
-  /**
-   * TODO: change "day" for "hour" to stop displaying 1 day before today
-   * This is displaying a day as available as sometimes difference between two dates is < 24 hrs.
-   * But when doing timezones an available day for an owner can be 2 days available in other users tz.
-   *
-   * */
-  if (inviteeDate.isBefore(startDate, "day")) {
-    return [];
-  }
-
-  const timeZone: string = getTimeZone(inviteeDate);
-  const workingHoursUTC = workingHours.map((schedule) => ({
-    userId: schedule.userId,
-    days: schedule.days,
-    startTime: /* Why? */ startOfDayUTC.add(schedule.startTime, "minute"),
-    endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
-  }));
-
-  const localWorkingHours = getWorkingHours(
-    {
-      // initialize current day with timeZone without conversion, just parse.
-      utcOffset: -dayjs.tz(dayjs(), timeZone).utcOffset(),
-    },
-    workingHoursUTC
-  ).filter((hours) => hours.days.includes(inviteeDate.day()));
-
-  // Here we split working hour in chunks for every frequency available that can fit in whole working hours
-  const computedLocalAvailability: TimeFrame[] = [];
-  let tempComputeTimeFrame: TimeFrame | undefined;
-  const computeLength = localWorkingHours.length - 1;
-  const makeTimeFrame = (item: (typeof localWorkingHours)[0]): TimeFrame => ({
-    userIds: item.userId ? [item.userId] : [],
-    startTime: item.startTime,
-    endTime: item.endTime,
-  });
-
-  localWorkingHours.forEach((item, index) => {
-    if (!tempComputeTimeFrame) {
-      tempComputeTimeFrame = makeTimeFrame(item);
-    } else {
-      // please check the comment in splitAvailableTime func for the added 1 minute
-      if (tempComputeTimeFrame.endTime + 1 === item.startTime) {
-        // to deal with time that across the day, e.g. from 11:59 to to 12:01
-        tempComputeTimeFrame.endTime = item.endTime;
-      } else {
-        computedLocalAvailability.push(tempComputeTimeFrame);
-        tempComputeTimeFrame = makeTimeFrame(item);
-      }
-    }
-    if (index == computeLength) {
-      computedLocalAvailability.push(tempComputeTimeFrame);
-    }
-  });
-  // an override precedes all the local working hour availability logic.
-  const activeOverrides = dateOverrides.filter((override) => {
-    return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
-  });
-
-  if (activeOverrides.length) {
-    const overrides = activeOverrides.flatMap((override) => ({
-      userIds: override.userId ? [override.userId] : [],
-      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
-      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
-    }));
-    // unset all working hours that relate to this user availability override
-    overrides.forEach((override) => {
-      let i = -1;
-      const indexes: number[] = [];
-      while (
-        (i = computedLocalAvailability.findIndex(
-          fromIndex(
-            (a) => !a.userIds?.length || (!!override.userIds[0] && a.userIds?.includes(override.userIds[0])),
-            i + 1
-          )
-        )) != -1
-      ) {
-        indexes.push(i);
-      }
-      // work backwards as splice modifies the original array.
-      indexes.reverse().forEach((idx) => computedLocalAvailability.splice(idx, 1));
-    });
-    // and push all overrides as new computed availability
-    computedLocalAvailability.push(...overrides);
-  }
-
-  return buildSlots({
-    computedLocalAvailability,
-    startOfInviteeDay,
-    startDate,
-    frequency,
-    eventLength,
-    offsetStart,
-    organizerTimeZone,
-    inviteeTimeZone: timeZone,
-  });
+  // just to ensure we don't call this anywhere. APIv1/v2 + webapp use dateRanges.
+  throw new Error("Deprecated invocation of getSlots, use dateRanges instead.");
 };
 
 export default getSlots;
