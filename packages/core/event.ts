@@ -86,7 +86,6 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     const bookingFieldValue = eventNameObj.bookingFields[variable as keyof typeof eventNameObj.bookingFields];
 
     if (bookingFieldValue) {
-      console.log({ bookingFieldValue });
       let fieldValue;
 
       if (typeof bookingFieldValue === "object") {
