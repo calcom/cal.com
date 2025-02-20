@@ -1,10 +1,10 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { SuccessToast, ErrorToast, WarningToast, DefaultToast } from "./showToast";
+import { SuccessToast, ErrorToast, WarningToast } from "./showToast";
 
 describe("Tests for Toast Components", () => {
-  const testToastComponent = (Component: typeof DefaultToast, toastTestId: string) => {
+  const testToastComponent = (Component: typeof SuccessToast, toastTestId: string) => {
     const message = "This is a test message";
     const toastId = "some-id";
 
@@ -20,11 +20,10 @@ describe("Tests for Toast Components", () => {
     expect(onCloseMock).toHaveBeenCalledWith(toastId);
   };
 
-  const toastComponents: [string, typeof DefaultToast, string][] = [
+  const toastComponents: [string, typeof SuccessToast, string][] = [
     ["SuccessToast", SuccessToast, "toast-success"],
     ["ErrorToast", ErrorToast, "toast-error"],
     ["WarningToast", WarningToast, "toast-warning"],
-    ["DefaultToast", DefaultToast, "toast-default"],
   ];
 
   test.each(toastComponents)("Should render and close %s component", (_, ToastComponent, expectedClass) => {
