@@ -21,7 +21,7 @@ interface ReserveSlotOptions {
 export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => {
   const { prisma, req, res } = ctx;
   const uid = req?.cookies?.uid || uuid();
-  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid } = input;
+  const { slotUtcStartDate, slotUtcEndDate, eventTypeId, bookingUid, _isDryRun } = input;
   const releaseAt = dayjs.utc().add(parseInt(MINUTES_TO_BOOK), "minutes").format();
   const eventType = await prisma.eventType.findUnique({
     where: { id: eventTypeId },
@@ -54,7 +54,7 @@ export const reserveSlotHandler = async ({ ctx, input }: ReserveSlotOptions) => 
     }
   }
 
-  if (eventType && shouldReserveSlot) {
+  if (eventType && shouldReserveSlot && !_isDryRun) {
     try {
       await Promise.all(
         eventType.users.map((user) =>
