@@ -213,15 +213,15 @@ test.describe("Bookings", () => {
   test("Admin bookings filtered by default", async ({ page, users, bookings }) => {
     const t = await localize("en");
     const firstUser = await users.create(
-      { name: "First", email: "first@cal.com" },
+      { name: "First" },
       {
         hasTeam: true,
         teamRole: MembershipRole.ADMIN,
       }
     );
     const teamId = (await firstUser.getFirstTeamMembership()).teamId;
-    const secondUser = await users.create({ name: "Second", email: "second@cal.com" });
-    const thirdUser = await users.create({ name: "Third", email: "third@cal.com" });
+    const secondUser = await users.create({ name: "Second" });
+    const thirdUser = await users.create({ name: "Third" });
     // Add teammates to the team
     await prisma.membership.createMany({
       data: [
@@ -241,7 +241,7 @@ test.describe("Bookings", () => {
     });
 
     //Create a single booking for FirstUser(admin)
-    const firstUserBookingFixture = await createBooking({
+    await createBooking({
       title: "FirstUser as Organizer Meeting",
       bookingsFixture: bookings,
       relativeDate: 3,
@@ -252,10 +252,9 @@ test.describe("Bookings", () => {
         { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
       ],
     });
-    const firstUserBooking = await firstUserBookingFixture.self();
 
     //Create 2 bookings for SecondUser
-    await createBooking({
+    const secondUserBookingFixture = await createBooking({
       title: "SecondUser as Organizer Meeting 1",
       bookingsFixture: bookings,
       organizer: secondUser,
@@ -266,6 +265,8 @@ test.describe("Bookings", () => {
         { name: "Third", email: thirdUser.email, timeZone: "Europe/Berlin" },
       ],
     });
+    const secondUserBooking = await secondUserBookingFixture.self();
+
     await createBooking({
       title: "SecondUser as Organizer Meeting 2",
       bookingsFixture: bookings,
@@ -292,11 +293,11 @@ test.describe("Bookings", () => {
     const upcomingBookingsTable = page.locator('[data-testid="upcoming-bookings"]');
     const bookingListItems = upcomingBookingsTable.locator('[data-testid="booking-item"]');
     const bookingListCount = await bookingListItems.count();
-    expect(bookingListCount).toBe(1);
+    expect(bookingListCount).toBe(3);
     const firstUpcomingBooking = bookingListItems.nth(0);
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      firstUpcomingBooking.locator(`text=${firstUserBooking!.title}`)
+      firstUpcomingBooking.locator(`text=${secondUserBooking!.title}`)
     ).toBeVisible();
   });
 
@@ -306,15 +307,15 @@ test.describe("Bookings", () => {
     bookings,
   }) => {
     const firstUser = await users.create(
-      { name: "First", email: "first@cal.com" },
+      { name: "First" },
       {
         hasTeam: true,
         teamRole: MembershipRole.ADMIN,
       }
     );
     const teamId = (await firstUser.getFirstTeamMembership()).teamId;
-    const secondUser = await users.create({ name: "Second", email: "second@cal.com" });
-    const thirdUser = await users.create({ name: "Third", email: "third@cal.com" });
+    const secondUser = await users.create({ name: "Second" });
+    const thirdUser = await users.create({ name: "Third" });
     // Add teammates to the team
     await prisma.membership.createMany({
       data: [
