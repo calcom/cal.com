@@ -1,14 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck
+// TODO: Bring this test back with the correct setup (no illegal imports)
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
-
-import {
-  createBookingScenario,
-  TestData,
-  getOrganizer,
-  getScenarioData,
-  Timezones,
-  createOrganization,
-} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
-import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, test, expect } from "vitest";
 
