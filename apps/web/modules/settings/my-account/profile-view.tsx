@@ -362,7 +362,8 @@ const ProfileView = () => {
               <Button
                 color="primary"
                 data-testid="delete-account-confirm"
-                onClick={(e) => onConfirmButton(e)}>
+                onClick={(e) => onConfirmButton(e)}
+                loading={deleteMeMutation.isPending}>
                 {t("delete_my_account")}
               </Button>
             </DialogFooter>

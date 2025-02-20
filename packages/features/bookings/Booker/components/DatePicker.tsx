@@ -77,8 +77,8 @@ export const DatePicker = ({
       }}
       className={classNames?.datePickerContainer}
       isPending={schedule.isPending}
-      onChange={(date: Dayjs | null) => {
-        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+      onChange={(date: Dayjs | null, omitUpdatingParams?: boolean) => {
+        setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"), omitUpdatingParams);
       }}
       onMonthChange={onMonthChange}
       includedDates={nonEmptyScheduleDays}

@@ -43,8 +43,8 @@ export function ScheduleListItem({
 
   return (
     <li key={schedule.id}>
-      <div className="hover:bg-muted flex items-center justify-between py-5 transition ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
-        <div className="group flex w-full items-center justify-between sm:px-6">
+      <div className="hover:bg-muted flex items-center justify-between px-3 py-5 transition sm:px-4">
+        <div className="group flex w-full items-center justify-between ">
           <Link
             href={`/availability/${schedule.id}`}
             className="flex-grow truncate text-sm"
@@ -87,7 +87,6 @@ export function ScheduleListItem({
           <DropdownMenuTrigger asChild>
             <Button
               data-testid="schedule-more"
-              className="mx-5"
               type="button"
               variant="icon"
               color="secondary"
@@ -96,8 +95,8 @@ export function ScheduleListItem({
           </DropdownMenuTrigger>
           {!isPending && data && (
             <DropdownMenuContent>
-              <DropdownMenuItem className="min-w-40 focus:ring-muted">
-                {!schedule.isDefault && (
+              {!schedule.isDefault && (
+                <DropdownMenuItem className="min-w-40 focus:ring-muted">
                   <DropdownItem
                     type="button"
                     StartIcon="star"
@@ -109,8 +108,8 @@ export function ScheduleListItem({
                     }}>
                     {t("set_as_default")}
                   </DropdownItem>
-                )}
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem className="outline-none">
                 <DropdownItem
                   type="button"

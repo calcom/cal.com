@@ -133,6 +133,7 @@ export class OutputBookingsService_2024_08_13 {
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
+      rating: databaseBooking.rating,
     };
 
     const bookingTransformed = plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -227,6 +228,7 @@ export class OutputBookingsService_2024_08_13 {
       bookingFieldsResponses: databaseBooking.responses,
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
+      rating: databaseBooking.rating,
     };
 
     const bookingTransformed = plainToClass(RecurringBookingOutput_2024_08_13, booking, {
@@ -274,6 +276,7 @@ export class OutputBookingsService_2024_08_13 {
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
+      rating: databaseBooking.rating,
     };
 
     const parsed = plainToClass(GetSeatedBookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
@@ -283,7 +286,8 @@ export class OutputBookingsService_2024_08_13 {
       const { responses } = safeParse(
         seatedBookingDataSchema,
         attendee.bookingSeat?.data,
-        defaultSeatedBookingData
+        defaultSeatedBookingData,
+        false
       );
 
       const attendeeData = {
@@ -300,7 +304,8 @@ export class OutputBookingsService_2024_08_13 {
       attendeeParsed.metadata = safeParse(
         seatedBookingMetadataSchema,
         attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata
+        defaultSeatedBookingMetadata,
+        false
       );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;
@@ -380,6 +385,7 @@ export class OutputBookingsService_2024_08_13 {
       absentHost: !!databaseBooking.noShowHost,
       createdAt: databaseBooking.createdAt,
       updatedAt: databaseBooking.updatedAt,
+      rating: databaseBooking.rating,
     };
 
     const parsed = plainToClass(GetRecurringSeatedBookingOutput_2024_08_13, booking, {
@@ -391,7 +397,8 @@ export class OutputBookingsService_2024_08_13 {
       const { responses } = safeParse(
         seatedBookingDataSchema,
         attendee.bookingSeat?.data,
-        defaultSeatedBookingData
+        defaultSeatedBookingData,
+        false
       );
 
       const attendeeData = {
@@ -408,7 +415,8 @@ export class OutputBookingsService_2024_08_13 {
       attendeeParsed.metadata = safeParse(
         seatedBookingMetadataSchema,
         attendee.bookingSeat?.metadata,
-        defaultSeatedBookingMetadata
+        defaultSeatedBookingMetadata,
+        false
       );
       // note(Lauris): as of now email is not returned for privacy
       delete attendeeParsed.bookingFieldsResponses.email;

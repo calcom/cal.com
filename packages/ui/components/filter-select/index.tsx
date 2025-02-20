@@ -1,4 +1,5 @@
 import { classNames } from "@calcom/lib";
+import type { IconName } from "@calcom/ui";
 import {
   Button,
   Popover,
@@ -26,7 +27,7 @@ interface FilterSelectProps {
   options: FilterOption[];
   selectedValue?: string | number | null;
   onChange: (value: string | number | null) => void;
-  buttonIcon?: React.ReactNode;
+  buttonIcon?: IconName;
   placeholder?: string;
   emptyText?: string;
   testId?: string;
@@ -47,8 +48,7 @@ export function FilterSelect({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button color="secondary" className="border-subtle rounded-md" data-testid={`${testId}-button`}>
-          {buttonIcon}
+        <Button color="secondary" data-testid={`${testId}-button`} StartIcon={buttonIcon}>
           {title}
           {selectedValue && (
             <div className="ml-2 hidden space-x-1 md:flex">

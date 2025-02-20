@@ -332,7 +332,9 @@ function MassAssignAttributesBulkActionComponent({ table, filters }: Props) {
         }
       }}>
       <PopoverTrigger asChild>
-        <DataTableSelectionBar.Button icon="tags">{t("add_attributes")}</DataTableSelectionBar.Button>
+        <DataTableSelectionBar.Button icon="tags" color="secondary">
+          {t("add_attributes")}
+        </DataTableSelectionBar.Button>
       </PopoverTrigger>
       {/* We dont really use shadows much - but its needed here  */}
       <PopoverContent className="p-0 shadow-md" align="start" sideOffset={12}>

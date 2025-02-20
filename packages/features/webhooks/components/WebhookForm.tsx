@@ -146,7 +146,7 @@ const WebhookForm = (props: {
     <Form
       form={formMethods}
       handleSubmit={(values) => props.onSubmit({ ...values, changeSecret, newSecret })}>
-      <div className="border-subtle border-x p-6">
+      <div className="border-subtle rounded-t-lg border p-6">
         <Controller
           name="subscriberUrl"
           control={formMethods.control}
@@ -199,6 +199,7 @@ const WebhookForm = (props: {
                   <>{t("event_triggers")}</>
                 </Label>
                 <Select
+                  grow
                   options={translatedTriggerOptions}
                   isMulti
                   value={selectValue}
@@ -353,7 +354,7 @@ const WebhookForm = (props: {
         </Button>
       </SectionBottomActions>
 
-      <div className="mt-6 rounded-md">
+      <div className="mb-4 mt-6 rounded-md">
         <WebhookTestDisclosure />
       </div>
     </Form>

@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname, useRouter } from "next/navigation";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -77,6 +79,7 @@ export function CreateButton(props: CreateBtnProps) {
     <>
       {!hasTeams && !platform ? (
         <Button
+          size="sm"
           onClick={() =>
             !!CreateDialog
               ? openModal(options[0])
@@ -97,6 +100,7 @@ export function CreateButton(props: CreateBtnProps) {
             <Button
               variant={disableMobileButton ? "button" : "fab"}
               StartIcon="plus"
+              size="sm"
               data-testid="create-button-dropdown"
               loading={isPending}
               {...restProps}>

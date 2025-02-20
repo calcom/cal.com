@@ -20,45 +20,53 @@ const Switch = (
     fitToHeight?: boolean;
     disabled?: boolean;
     tooltip?: string;
-    small?: boolean;
     labelOnLeading?: boolean;
+    size?: "base" | "sm";
     classNames?: {
       container?: string;
       thumb?: string;
     };
     LockedIcon?: React.ReactNode;
+    padding?: boolean;
   }
 ) => {
-  const { label, fitToHeight, classNames, small, labelOnLeading, LockedIcon, ...primitiveProps } = props;
+  const {
+    label,
+    fitToHeight,
+    classNames,
+    labelOnLeading,
+    LockedIcon,
+    padding,
+    size = "base",
+    ...primitiveProps
+  } = props;
   const id = useId();
-  const isChecked = props.checked || props.defaultChecked;
   return (
     <Wrapper tooltip={props.tooltip}>
       <div
         className={cx(
-          "flex h-auto w-auto flex-row items-center",
+          "flex h-auto w-fit flex-row items-center",
           fitToHeight && "h-fit",
           labelOnLeading && "flex-row-reverse",
+          padding && "hover:bg-subtle rounded-md p-1.5",
           classNames?.container
         )}>
         {LockedIcon && <div className="mr-2">{LockedIcon}</div>}
         <PrimitiveSwitch.Root
+          {...primitiveProps}
+          id={id}
           className={cx(
-            isChecked ? "bg-brand-default dark:bg-brand-emphasis" : "bg-emphasis",
-            primitiveProps.disabled && "cursor-not-allowed",
-            small ? "h-4 w-[27px]" : "h-5 w-[34px]",
-            "focus:ring-brand-default rounded-full shadow-none transition focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
-            props.className
-          )}
-          {...primitiveProps}>
+            size === "sm" ? "h-3 w-[20px]" : "h-4 w-[28px]",
+            "focus:ring-brand-default data-[state=checked]:bg-brand-default dark:data-[state=checked]:bg-brand-emphasis data-[state=unchecked]:bg-emphasis peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent shadow-inner transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            size === "sm" ? "h-4 w-7" : "h-6 w-11",
+            classNames?.container
+          )}>
           <PrimitiveSwitch.Thumb
-            id={id}
             className={cx(
-              small
-                ? "h-[10px] w-[10px] ltr:translate-x-[2px] rtl:-translate-x-[2px] ltr:[&[data-state='checked']]:translate-x-[13px] rtl:[&[data-state='checked']]:-translate-x-[13px]"
-                : "h-[14px] w-[14px] ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
-              "block rounded-full transition will-change-transform",
-              isChecked ? "bg-brand-accent shadow-inner" : "bg-default",
+              "bg-default data-[state=checked]:bg-brand-accent shadow-switch-thumb pointer-events-none block rounded-full shadow-lg ring-0 transition-transform",
+              size === "sm"
+                ? "h-3 w-3 data-[state=checked]:translate-x-3 data-[state=unchecked]:translate-x-0"
+                : "h-5 w-5 data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
               classNames?.thumb
             )}
           />
@@ -67,7 +75,8 @@ const Switch = (
           <Label.Root
             htmlFor={id}
             className={cx(
-              "text-emphasis ms-2 align-text-top text-sm font-medium",
+              "text-emphasis align-text-top font-medium",
+              size === "sm" ? "m-1 text-xs" : "m-2 text-sm",
               primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer",
               labelOnLeading && "flex-1"
             )}>

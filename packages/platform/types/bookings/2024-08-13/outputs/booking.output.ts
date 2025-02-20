@@ -249,6 +249,12 @@ class BaseBookingOutput_2024_08_13 {
   @IsOptional()
   @Expose()
   metadata?: Record<string, string>;
+
+  @ApiPropertyOptional({ type: Number, example: 4 })
+  @IsInt()
+  @IsOptional()
+  @Expose()
+  rating?: number;
 }
 
 export class BookingOutput_2024_08_13 extends BaseBookingOutput_2024_08_13 {

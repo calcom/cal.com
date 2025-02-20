@@ -7,11 +7,7 @@ import { InputEventTransformed_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class EventTypesRepository_2024_06_14 {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private usersService: UsersService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createUserEventType(
     userId: number,
@@ -44,6 +40,13 @@ export class EventTypesRepository_2024_06_14 {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
       select: { metadata: true },
+    });
+  }
+
+  async getEventTypeWithHosts(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { hosts: true },
     });
   }
 

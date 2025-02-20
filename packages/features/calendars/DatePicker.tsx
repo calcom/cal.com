@@ -17,7 +17,7 @@ export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
   /** Fires whenever a selected date is changed. */
-  onChange: (date: Dayjs | null) => void;
+  onChange: (date: Dayjs | null, omitUpdatingParams?: boolean) => void;
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date or dates are currently selected (not tracked from here) */
@@ -236,10 +236,11 @@ const Days = ({
 
     if (!isSelectedDateAvailable && firstAvailableDateOfTheMonth) {
       // If selected date not available in the month, select the first available date of the month
-      props.onChange(firstAvailableDateOfTheMonth);
+      const shouldOmitUpdatingParams = selected?.isValid() ? false : true; // In case a date is selected and it is not available, then we have to change search params
+      props.onChange(firstAvailableDateOfTheMonth, shouldOmitUpdatingParams);
     }
     if (isSelectedDateAvailable) {
-      props.onChange(dayjs(selected));
+      props.onChange(dayjs(selected), true);
     }
     if (!firstAvailableDateOfTheMonth) {
       props.onChange(null);

@@ -239,7 +239,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                                 workflow?.team.logo,
                                 workflow.team?.name as string
                               )}
-                              size="xxs"
+                              size="xs"
                               className="mt-[3px] inline-flex justify-center"
                             />
                             <div>{workflow.team.name}</div>

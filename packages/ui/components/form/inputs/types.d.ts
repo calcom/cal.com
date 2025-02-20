@@ -1,28 +1,32 @@
-import type { ReactNode } from "react";
+import type { VariantProps } from "class-variance-authority";
 
-import type { Input } from "./TextField";
+import type { inputStyles } from "./TextField";
 
 export type InputFieldProps = {
-  label?: ReactNode;
+  label?: React.ReactNode;
   LockedIcon?: React.ReactNode;
-  hint?: ReactNode;
+  hint?: string;
   hintErrors?: string[];
-  addOnLeading?: ReactNode;
-  addOnSuffix?: ReactNode;
+  addOnLeading?: React.ReactNode;
+  addOnSuffix?: React.ReactNode;
   inputIsFullWidth?: boolean;
-  addOnFilled?: boolean;
   addOnClassname?: string;
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
   showAsteriskIndicator?: boolean;
   t?: (key: string) => string;
+  className?: string;
+  placeholder?: string;
   dataTestid?: string;
   noLabel?: boolean;
   onClickAddon?: () => void;
-} & React.ComponentProps<typeof Input> & {
+} & InputProps & {
     labelProps?: React.ComponentProps<typeof Label>;
     labelClassName?: string;
   };
 
-export type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
+export type InputProps = Omit<JSX.IntrinsicElements["input"], "size" | "ref"> &
+  VariantProps<typeof inputStyles> & {
+    isFullWidth?: boolean;
+  };

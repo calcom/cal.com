@@ -87,7 +87,9 @@ export function TeamListBulkAction({ table }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="users">{t("add_to_team")}</DataTableSelectionBar.Button>
+          <DataTableSelectionBar.Button icon="users" color="secondary">
+            {t("add_to_team")}
+          </DataTableSelectionBar.Button>
         </PopoverTrigger>
         {/* We dont really use shadows much - but its needed here  */}
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>

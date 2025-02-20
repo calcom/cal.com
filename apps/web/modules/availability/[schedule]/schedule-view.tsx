@@ -57,6 +57,7 @@ export const AvailabilitySettingsWebWrapper = ({
     bulkUpdateDefaultAvailabilityMutation.mutate(
       {
         eventTypeIds,
+        selectedDefaultScheduleId: scheduleData?.id,
       },
       {
         onSuccess: () => {

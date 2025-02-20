@@ -10,7 +10,6 @@ import type {
 } from "react-awesome-query-builder";
 import { Builder, Query, Utils as QbUtils } from "react-awesome-query-builder";
 
-import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { downloadAsCsv, sanitizeValue } from "@calcom/lib/csvUtils";
 import { useInViewObserver } from "@calcom/lib/hooks/useInViewObserver";
@@ -291,11 +290,3 @@ export default function ReporterWrapper({
     />
   );
 }
-
-ReporterWrapper.getLayout = (page: React.ReactElement) => {
-  return (
-    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
-      {page}
-    </Shell>
-  );
-};

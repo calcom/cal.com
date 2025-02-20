@@ -65,7 +65,11 @@ export class RouterController {
     const pathNameParams = routingUrl.pathname.split("/");
     const eventTypeSlug = pathNameParams[pathNameParams.length - 1];
     const teamId = Number(routingSearchParams.get("cal.teamId"));
-    const eventTypeData = this.teamsEventTypesRepository.getTeamEventTypeBySlug(teamId, eventTypeSlug, 3);
+    const eventTypeData = await this.teamsEventTypesRepository.getTeamEventTypeBySlug(
+      teamId,
+      eventTypeSlug,
+      3
+    );
 
     // get the salesforce record owner email for the email given as a form response.
     const {

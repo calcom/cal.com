@@ -31,7 +31,9 @@ export default function DeleteBulkTeamMembers({ users, onRemove, isOrg, teamId }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <DataTableSelectionBar.Button icon="ban">{t("Delete")}</DataTableSelectionBar.Button>
+        <DataTableSelectionBar.Button icon="ban" color="destructive">
+          {t("Delete")}
+        </DataTableSelectionBar.Button>
       </DialogTrigger>
       <ConfirmationDialogContent
         variety="danger"

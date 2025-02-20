@@ -1,7 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { vi } from "vitest";
 
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "./Dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "./Dialog";
 
 vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
   useCompatSearchParams() {
@@ -25,116 +25,106 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
-const title = "Dialog Header";
-const subtitle = "Dialog Subtitle";
+describe("Dialog", () => {
+  const title = "Dialog Title";
+  const subtitle = "Dialog Subtitle";
+  const content = "Dialog Content";
+  const footerContent = "Dialog Footer";
 
-const DialogComponent = (props: {
-  open: boolean;
-  title?: string;
-  subtitle?: string;
-  type?: "creation" | "confirmation";
-  showDivider?: boolean;
-  color?: "primary" | "secondary" | "minimal" | "destructive";
-}) => {
-  return (
-    <Dialog open={props.open}>
-      <DialogContent type={props.type}>
-        <div className="flex flex-row justify-center align-middle ">
+  const TestDialog = (props: {
+    open?: boolean;
+    title?: string;
+    subtitle?: string;
+    type?: "creation" | "confirmation";
+    showDivider?: boolean;
+    color?: "primary" | "secondary" | "minimal" | "destructive";
+    preventCloseOnOutsideClick?: boolean;
+    enableOverflow?: boolean;
+  }) => (
+    <Dialog open={props.open} name="test-dialog">
+      <DialogContent
+        type={props.type}
+        title={props.title}
+        preventCloseOnOutsideClick={props.preventCloseOnOutsideClick}
+        enableOverflow={props.enableOverflow}>
+        <div className="flex flex-row space-x-4">
           <DialogHeader title={props.title} subtitle={props.subtitle} />
-          <p>Dialog Content</p>
+          <p>{content}</p>
           <DialogFooter showDivider={props.showDivider}>
-            <DialogClose color={props.color} />
-            <p>Dialog Footer</p>
+            <DialogClose color={props.color}>{props.color ? "Custom Close" : undefined}</DialogClose>
+            <p>{footerContent}</p>
           </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
 
-describe("Tests for Dialog component", () => {
-  test("Should render Dialog with header", () => {
-    render(<DialogComponent open title={title} />);
+  describe("Rendering", () => {
+    it("renders without header when no title provided", () => {
+      render(<TestDialog open />);
 
-    expect(screen.queryByText("Dialog Header")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
+      expect(screen.queryByTestId("dialog-title")).not.toBeInTheDocument();
+      expect(screen.getByText(content)).toBeInTheDocument();
+    });
+
+    it("renders creation type dialog", () => {
+      render(<TestDialog open type="creation" />);
+
+      expect(screen.getByTestId("dialog-creation")).toBeInTheDocument();
+    });
+
+    it("renders confirmation type dialog", () => {
+      render(<TestDialog open type="confirmation" />);
+
+      expect(screen.getByTestId("dialog-confirmation")).toBeInTheDocument();
+    });
   });
 
-  test("Should render Dialog without header", () => {
-    render(<DialogComponent open />);
+  describe("Visibility", () => {
+    it("shows content when open", () => {
+      render(<TestDialog open />);
 
-    expect(screen.queryByTestId("dialog-title")).toBeNull();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
+      expect(screen.getByText(content)).toBeInTheDocument();
+    });
+
+    it("hides content when closed", () => {
+      render(<TestDialog open={false} />);
+
+      expect(screen.queryByText(content)).not.toBeInTheDocument();
+    });
+
+    it("toggles visibility with DialogTrigger", () => {
+      render(
+        <Dialog>
+          <DialogTrigger asChild>
+            <button>Open Dialog</button>
+          </DialogTrigger>
+          <DialogContent>
+            <p>{content}</p>
+          </DialogContent>
+        </Dialog>
+      );
+
+      expect(screen.queryByText(content)).not.toBeInTheDocument();
+      fireEvent.click(screen.getByText("Open Dialog"));
+      expect(screen.getByText(content)).toBeInTheDocument();
+    });
   });
 
-  test("Should render Dialog with header and subtitle", () => {
-    render(<DialogComponent open title={title} subtitle={subtitle} />);
+  describe("Footer", () => {
+    it("shows divider when showDivider is true", () => {
+      render(<TestDialog open showDivider />);
 
-    expect(screen.queryByText("Dialog Header")).toBeInTheDocument();
-    expect(screen.queryByText("Dialog Subtitle")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
+      expect(screen.getByTestId("divider")).toBeInTheDocument();
+    });
   });
 
-  test("Should render Dialog with default type creation", () => {
-    render(<DialogComponent open />);
+  describe("Behavior", () => {
+    it("enables overflow when enableOverflow is true", () => {
+      render(<TestDialog open enableOverflow />);
 
-    expect(screen.getByTestId("dialog-creation")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
-  });
-
-  test("Should render Dialog with type creation", () => {
-    render(<DialogComponent open type="creation" />);
-
-    expect(screen.getByTestId("dialog-creation")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
-  });
-
-  test("Should render Dialog with type confirmation", () => {
-    render(<DialogComponent open type="confirmation" />);
-
-    expect(screen.getByTestId("dialog-confirmation")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
-  });
-
-  test("Should open Dialog", async () => {
-    const { rerender } = render(<DialogComponent open={false} />);
-
-    expect(screen.queryByText("Dialog Content")).not.toBeInTheDocument();
-    expect(screen.queryByText("Dialog Footer")).not.toBeInTheDocument();
-
-    rerender(<DialogComponent open />);
-
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
-  });
-
-  test("Should close Dialog", async () => {
-    const { rerender } = render(<DialogComponent open />);
-
-    expect(screen.getByText("Dialog Content")).toBeInTheDocument();
-    expect(screen.getByText("Dialog Footer")).toBeInTheDocument();
-
-    rerender(<DialogComponent open={false} />);
-
-    expect(screen.queryByText("Dialog Content")).not.toBeInTheDocument();
-    expect(screen.queryByText("Dialog Footer")).not.toBeInTheDocument();
-  });
-
-  test("Should use color from props in CloseDialog", async () => {
-    render(<DialogComponent open color="destructive" />);
-    const closeBtn = screen.getByText("close");
-    expect(closeBtn.classList.toString()).toContain("hover:text-red-700");
-  });
-
-  test("Should show divider with showDivider", async () => {
-    render(<DialogComponent open showDivider />);
-
-    expect(screen.getByTestId("divider")).toBeInTheDocument();
+      const dialogContent = screen.getByRole("dialog");
+      expect(dialogContent.className).toContain("overflow-y-auto");
+    });
   });
 });

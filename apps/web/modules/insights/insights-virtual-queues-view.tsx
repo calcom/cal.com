@@ -38,7 +38,11 @@ export default function InsightsVirtualQueuesPage() {
         value={selectedForm ? { label: selectedForm.name, value: selectedForm.id } : undefined}
       />
       <div className="mt-10">
-        {selectedForm ? <TestForm form={selectedForm} showAllData={false} /> : <></>}
+        {selectedForm ? (
+          <TestForm form={selectedForm} supportsTeamMembersMatchingLogic={true} showAllData={false} />
+        ) : (
+          <></>
+        )}
       </div>
     </>
   );

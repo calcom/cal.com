@@ -1,6 +1,5 @@
 "use client";
 
-import Head from "next/head";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -163,9 +162,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       <div>
         {!customPageMessage ? (
           <>
-            <Head>
-              <title>{`${form.name} | Cal.com Forms`}</title>
-            </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
                 <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
@@ -198,7 +194,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main dark:bg-darkgray-100 sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
                 <div className="text-emphasis">{customPageMessage}</div>
               </div>
             </div>
@@ -212,8 +208,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-RoutingLink.isBookingPage = true;
 
 export { getServerSideProps };
 

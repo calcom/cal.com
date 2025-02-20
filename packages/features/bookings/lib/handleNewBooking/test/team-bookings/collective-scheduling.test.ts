@@ -2193,14 +2193,7 @@ describe("handleNewBooking", () => {
                     },
                   },
                 },
-                users: [
-                  {
-                    id: 101,
-                  },
-                  {
-                    id: 102,
-                  },
-                ],
+                hosts: [{ userId: 101 }, { userId: 102 }],
               },
             ],
             organizer,

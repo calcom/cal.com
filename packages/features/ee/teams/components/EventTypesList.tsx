@@ -94,7 +94,9 @@ export function EventTypesList({ table, teamId }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <DataTableSelectionBar.Button icon="link">{t("add_to_event_type")}</DataTableSelectionBar.Button>
+          <DataTableSelectionBar.Button icon="link" color="secondary">
+            {t("add_to_event_type")}
+          </DataTableSelectionBar.Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>

@@ -55,7 +55,6 @@ export const MultiplePrivateLinksController = ({
                             color="minimal"
                             size="sm"
                             type="button"
-                            className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                             aria-label="copy link"
                             onClick={() => {
                               navigator.clipboard.writeText(singleUseURL);

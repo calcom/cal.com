@@ -115,7 +115,6 @@ const EnterpriseLicense = (
                 placeholder="xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxx"
                 labelSrOnly={true}
                 value={value}
-                addOnFilled={false}
                 addOnClassname={classNames(
                   "hover:border-default",
                   errors.licenseKey === undefined && isDirty && "group-hover:border-emphasis"

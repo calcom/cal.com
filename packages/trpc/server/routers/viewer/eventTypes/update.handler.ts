@@ -260,7 +260,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
   // allows unsetting a schedule through { schedule: null, ... }
-  else if (null === schedule) {
+  else if (null === schedule || schedule === 0) {
     data.schedule = {
       disconnect: true,
     };

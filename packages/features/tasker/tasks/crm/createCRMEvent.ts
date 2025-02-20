@@ -23,7 +23,6 @@ export async function createCRMEvent(payload: string): Promise<void> {
     const booking = await prisma.booking.findUnique({
       where: {
         uid: bookingUid,
-        status: BookingStatus.ACCEPTED,
       },
       include: {
         user: {
@@ -50,6 +49,11 @@ export async function createCRMEvent(payload: string): Promise<void> {
 
     if (!booking) {
       throw new Error(`booking not found for uid: ${bookingUid}`);
+    }
+
+    if (booking.status !== BookingStatus.ACCEPTED) {
+      log.info(`Booking status is not ACCEPTED`);
+      return;
     }
 
     if (!booking.user) {

@@ -65,7 +65,7 @@ export const CreateTeamEventType = () => {
   );
 };
 
-export const GetLayout = (page: React.ReactElement) => {
+export const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const searchParams = useCompatSearchParams();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
@@ -77,7 +77,7 @@ export const GetLayout = (page: React.ReactElement) => {
       isOptionalCallback={() => {
         router.push(`/settings/teams/${teamId}/profile`);
       }}>
-      {page}
+      {children}
     </WizardLayout>
   );
 };

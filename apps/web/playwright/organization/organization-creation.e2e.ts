@@ -135,7 +135,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.getByTestId("field-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
@@ -152,12 +152,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -202,7 +202,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("add_a_team").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard
@@ -269,7 +269,7 @@ test.describe("Organization", () => {
     await test.step("Basic info", async () => {
       // Check required fields
       await page.locator("button[type=submit]").click();
-      await expect(page.locator(".text-red-700")).toHaveCount(3);
+      await expect(page.getByTestId("field-error")).toHaveCount(3);
 
       // Happy path
       await fillAndSubmitFirstStepAsAdmin(page, orgOwnerEmail, orgName, orgSlug);
@@ -319,12 +319,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -369,7 +369,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("add_a_team").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard
@@ -451,12 +451,12 @@ test.describe("Organization", () => {
 
     await test.step("About the organization", async () => {
       // Choosing an avatar
-      await page.locator('button:text("Upload")').click();
+      await page.getByTestId("open-upload-avatar-dialog").click();
       const fileChooserPromise = page.waitForEvent("filechooser");
       await page.getByText("Choose a file...").click();
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(path.join(__dirname, "../../public/apple-touch-icon.png"));
-      await page.locator('button:text("Save")').click();
+      await page.getByTestId("upload-avatar").click();
 
       // About text
       await page.locator('textarea[name="about"]').fill("This is a testing org");
@@ -511,7 +511,7 @@ test.describe("Organization", () => {
       await page.locator('input[name="teams.0.name"]').fill("Marketing");
 
       // Adding another team
-      await page.locator('button:text("Add a team")').click();
+      await page.getByTestId("new-team-dialog-button").click();
       await page.locator('input[name="teams.1.name"]').fill("Sales");
 
       // Finishing the creation wizard

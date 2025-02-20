@@ -15,18 +15,16 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 2) {
+  const appPages = params.pages.slice(1);
+  const formId = appPages[0];
+  if (!formId || appPages.length > 2) {
     return {
       notFound: true,
     };
   }
   const { currentOrgDomain } = orgDomainConfig(context.req);
 
-  const isEmbed = params.appPages[1] === "embed";
-  if (context.query["flag.coep"] === "true") {
-    context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-  }
+  const isEmbed = appPages[1] === "embed";
 
   const form = await prisma.app_RoutingForms_Form.findFirst({
     where: {

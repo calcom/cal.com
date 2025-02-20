@@ -2,6 +2,7 @@
 import { FloatingButton } from "./FloatingButton/FloatingButton";
 import { Inline } from "./Inline/inline";
 import { ModalBox } from "./ModalBox/ModalBox";
+import { addAppCssVars } from "./addAppCssVars";
 import type { InterfaceWithParent, interfaceWithParent, PrefillAndIframeAttrsConfig } from "./embed-iframe";
 import css from "./embed.css";
 import { SdkActionManager } from "./sdk-action-manager";
@@ -1055,6 +1056,8 @@ function initializeGlobalCalProps() {
   // Use if configured by user otherwise set default
   globalCal.config.forwardQueryParams = globalCal.config.forwardQueryParams ?? false;
 }
+
+addAppCssVars();
 
 function log(...args: unknown[]) {
   console.log(...args);

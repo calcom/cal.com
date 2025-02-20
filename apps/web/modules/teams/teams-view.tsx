@@ -4,12 +4,7 @@ import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-
-import type { getServerSideProps } from "@lib/teams/getServerSideProps";
-
-export type PageProps = inferSSRProps<typeof getServerSideProps>;
 
 export const TeamsCTA = () => {
   const { t } = useLocale();
@@ -26,7 +21,7 @@ export const TeamsCTA = () => {
   ) : null;
 };
 
-function Teams(props: PageProps) {
+function Teams() {
   return <TeamsListing />;
 }
 

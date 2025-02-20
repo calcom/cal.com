@@ -140,6 +140,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
         }
       }}>
       <DialogContent
+        enableOverflow
         onOpenAutoFocus={(event) => {
           event.preventDefault();
         }}>
@@ -245,7 +246,7 @@ export const CreateOrEditOutOfOfficeEntryModal = ({
                       onChange={(e) => setSearchText(e.target.value)}
                       value={searchText}
                     />
-                    <div className="scroll-bar flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-md border p-1">
+                    <div className="scroll-bar bg-default mt-2 flex h-[150px] flex-col gap-0.5 overflow-y-scroll rounded-[10px] border p-1">
                       {memberListOptions.map((member) => (
                         <label
                           key={member.value}

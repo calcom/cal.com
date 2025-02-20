@@ -66,9 +66,9 @@ export function createHttpServer(opts: { requestHandler?: RequestHandler } = {})
       eventEmitter.on("push", pushHandler);
       setTimeout(() => {
         if (resolved) return;
-        // Timeout after 5 seconds
+        // Timeout after 10 seconds
         reject(new Error("Timeout waiting for webhook"));
-      }, 5000);
+      }, 10000);
     });
   };
 

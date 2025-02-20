@@ -44,7 +44,7 @@ const Download = () => {
           EndIcon="file-down"
           color="secondary"
           {...(isPending && { loading: isPending })}
-          className="self-end sm:self-baseline">
+          className="h-full self-end sm:self-baseline">
           {t("download")}
         </Button>
       </DropdownMenuTrigger>

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
-import { IsEnum, IsString, ValidateNested } from "class-validator";
+import { IsEnum, IsString, ValidateNested, IsOptional } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -10,8 +10,9 @@ class Data {
   callId!: string;
 
   @IsString()
+  @IsOptional()
   @ApiProperty()
-  agentId!: string;
+  agentId?: string;
 }
 
 export class CreatePhoneCallOutput {

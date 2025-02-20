@@ -120,7 +120,6 @@ export const CreateANewTeamForm = (props: CreateANewTeamFormProps) => {
             rules={{ required: t("team_url_required") }}
             render={({ field: { value } }) => (
               <TextField
-                className="mt-2"
                 name="slug"
                 placeholder="acme"
                 label={t("team_url")}
