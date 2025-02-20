@@ -187,7 +187,6 @@ const nextConfig = {
   i18n: {
     ...i18n,
     defaultLocale: "en",
-    locales: ["en"],
     localeDetection: false,
   },
   productionBrowserSourceMaps: process.env.SENTRY_DISABLE_CLIENT_SOURCE_MAPS === "0",
