@@ -313,6 +313,7 @@ export async function getTeamWithoutMembers(args: {
       isPrivate: true,
       metadata: true,
       bookingLimits: true,
+      rrResetInterval: true,
       includeManagedEventsInLimits: true,
       parent: {
         select: {
