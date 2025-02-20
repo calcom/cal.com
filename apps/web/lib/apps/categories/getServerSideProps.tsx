@@ -3,12 +3,8 @@ import type { GetServerSidePropsContext } from "next";
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 
-import { ssrInit } from "@server/lib/ssr";
-
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { req } = context;
-
-  const ssr = await ssrInit(context);
 
   const session = await getServerSession({ req });
 
@@ -29,7 +25,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
-      trpcState: ssr.dehydrate(),
     },
   };
 };
