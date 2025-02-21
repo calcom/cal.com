@@ -201,7 +201,9 @@ export default function RequiresConfirmationController({
                                           className={
                                             customClassNames?.conditionalConfirmationRadio?.timeUnitSelect
                                           }
-                                          innerClassNames={{ control: "rounded-l-none h-9 px-3 bg-subtle" }}
+                                          innerClassNames={{
+                                            control: "rounded-l-none max-h-4 px-3 bg-subtle",
+                                          }}
                                           onChange={(opt) => {
                                             setRequiresConfirmationSetup({
                                               time:
