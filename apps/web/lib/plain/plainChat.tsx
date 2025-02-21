@@ -34,6 +34,12 @@ interface PlainChatConfig {
   chatButtons: Array<{
     icon: string;
     text: string;
+    threadDetails?: {
+      labelTypeIds: Array<string>;
+      tierIdentifier: {
+        externalId: string;
+      };
+    };
     form?: {
       fields: Array<{
         type: string;
@@ -43,7 +49,11 @@ interface PlainChatConfig {
           text: string;
           threadDetails: {
             labelTypeIds: Array<string>;
+            tierIdentifier: {
+              externalId: string;
+            };
           };
+          onClick?: () => void;
         }>;
       }>;
     };
@@ -150,10 +160,18 @@ const PlainChat = () => {
           {
             icon: "chat",
             text: "Ask a question",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+              tierIdentifier: { externalId: "free" },
+            },
           },
           {
             icon: "bulb",
             text: "Send feedback",
+            threadDetails: {
+              labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+              tierIdentifier: { externalId: "enterprise" },
+            },
           },
           {
             icon: "error",
@@ -169,6 +187,10 @@ const PlainChat = () => {
                       text: "I'm unable to use the app",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
+                        tierIdentifier: { externalId: "enterprise" },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Unable to use app");
                       },
                     },
                     {
@@ -176,6 +198,10 @@ const PlainChat = () => {
                       text: "Major functionality degraded",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
+                        tierIdentifier: { externalId: "enterprise" },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Major functionality degraded");
                       },
                     },
                     {
@@ -183,6 +209,10 @@ const PlainChat = () => {
                       text: "Minor annoyance",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
+                        tierIdentifier: { externalId: "enterprise" },
+                      },
+                      onClick: () => {
+                        console.log("User selected severity: Minor annoyance");
                       },
                     },
                   ],
@@ -207,6 +237,8 @@ const PlainChat = () => {
         },
       };
 
+      console.log("Plain Chat Config:", JSON.stringify(plainChatConfig, null, 2));
+
       if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
         window.__PLAIN_CONFIG__ = plainChatConfig;
       }
@@ -216,6 +248,7 @@ const PlainChat = () => {
       if (shouldOpenPlain) {
         const timer = setTimeout(() => {
           if (window.Plain) {
+            console.log("Opening Plain Chat with config:", window.__PLAIN_CONFIG__);
             window.Plain.open();
           }
         }, 100);
@@ -240,6 +273,7 @@ const PlainChat = () => {
     window.plainScriptLoaded = function() {
       if (window.Plain && ${Boolean(config)}) {
         try {
+          console.log('Initializing Plain Chat with config:', ${config ? JSON.stringify(config) : null});
           Plain.init(${config ? JSON.stringify(config) : null});
         } catch (error) {
           console.error("Failed to initialize Plain:", error);
