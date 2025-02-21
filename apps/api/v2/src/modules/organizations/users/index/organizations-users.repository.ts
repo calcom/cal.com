@@ -37,22 +37,6 @@ export class OrganizationsUsersRepository {
     });
   }
 
-  async getOrganizationUserByUsername(orgId: number, username: string) {
-    return await this.dbRead.prisma.user.findFirst({
-      where: {
-        username,
-        ...this.filterOnOrgMembership(orgId),
-      },
-      include: {
-        profiles: {
-          where: {
-            organizationId: orgId,
-          },
-        },
-      },
-    });
-  }
-
   async getOrganizationUserByEmail(orgId: number, email: string) {
     return await this.dbRead.prisma.user.findFirst({
       where: {
@@ -108,5 +92,20 @@ export class OrganizationsUsersRepository {
         },
       },
     });
+  }
+
+  async getOrganizationUserByUsername(orgId: number, username: string) {
+    const profile = await this.dbRead.prisma.profile.findUnique({
+      where: {
+        username_organizationId: {
+          organizationId: orgId,
+          username,
+        },
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profile?.user;
   }
 }

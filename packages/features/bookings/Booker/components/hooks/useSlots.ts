@@ -4,14 +4,17 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
+import { isBookingDryRun } from "@calcom/features/bookings/Booker/utils/isBookingDryRun";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc";
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
+  const searchParams = useCompatSearchParams();
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
     shallow
@@ -45,6 +48,7 @@ export const useSlots = (event: { data?: Pick<BookerEvent, "id" | "length"> | nu
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
+        _isDryRun: isBookingDryRun(searchParams),
       });
     }
   };

@@ -20,6 +20,8 @@ import { INVALID_ACCESS_TOKEN, X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom
 
 export type ApiAuthGuardUser = UserWithProfile & { isSystemAdmin: boolean };
 export type ApiAuthGuardRequest = Request & { authMethod: AuthMethods; organizationId: number | null };
+export const NO_AUTH_PROVIDED_MESSAGE =
+  "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers";
 @Injectable()
 export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") {
   constructor(
@@ -64,9 +66,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
         return await this.authenticateNextAuth(nextAuthToken, request);
       }
 
-      throw new UnauthorizedException(
-        "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers"
-      );
+      throw new UnauthorizedException(NO_AUTH_PROVIDED_MESSAGE);
     } catch (err) {
       if (err instanceof Error) {
         return this.error(err);
