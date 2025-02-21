@@ -11,6 +11,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { Avatar, ButtonOrLink, Credits, Icon, SkeletonText, Tooltip, Logo, showToast } from "@calcom/ui";
 
 import { KBarTrigger } from "../kbar/Kbar";
@@ -46,11 +47,13 @@ export function SideBarContainer({ bannersHeight, isPlatformUser = false }: Side
 }
 
 export function SideBar({ bannersHeight, user }: SideBarProps) {
+  const session = useSession();
   const { fetchAndCopyToClipboard } = useCopy();
   const { t, isLocaleReady } = useLocale();
   const pathname = usePathname();
   const isPlatformPages = pathname?.startsWith("/settings/platform");
   const [isReferalLoading, setIsReferalLoading] = useState(false);
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
   const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
 
@@ -84,7 +87,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
             setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            // Create an artificial delay to show the loading state so it doesn't flicker if this request is fast
             setTimeout(() => {
               fetchAndCopyToClipboard(
                 fetch("/api/generate-referral-link", {
@@ -102,6 +105,13 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           },
           icon: "gift",
           isLoading: isReferalLoading,
+        }
+      : null,
+    isAdmin
+      ? {
+          name: "impersonation",
+          href: "/settings/admin/impersonation",
+          icon: "lock",
         }
       : null,
     {

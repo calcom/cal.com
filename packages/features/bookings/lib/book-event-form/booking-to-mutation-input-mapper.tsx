@@ -95,7 +95,7 @@ export const mapBookingToMutationInput = ({
 
 // This method is here to ensure that the types are correct (recurring count is required),
 // as well as generate a unique ID for the recurring bookings and turn one single booking
-// into an array of mutiple bookings based on the recurring count.
+// into an array of multiple bookings based on the recurring count.
 // Other than that it forwards the mapping to mapBookingToMutationInput.
 export const mapRecurringBookingToMutationInput = (
   booking: BookingOptions,
