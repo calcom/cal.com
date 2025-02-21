@@ -21,6 +21,7 @@
     "../types/@wojtekmaj__react-daterange-picker.d.ts",
     "../types/business-days-plugin.d.ts",
     "../types/next-auth.d.ts",
+    "../types/tanstack-table.d.ts",
     "../types/next.d.ts",
     "../types/window.d.ts",
     "client",
@@ -28,6 +29,7 @@
     "react",
     "server"
   ],
+  "exclude": ["**/node_modules/**", "types/router.d.ts"],
   "compilerOptions": {
     "isolatedModules": false,
     "noEmit": false,

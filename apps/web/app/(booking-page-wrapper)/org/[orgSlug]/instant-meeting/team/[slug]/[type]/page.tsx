@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/instant-meeting/team/[slug]/[type]/getServerSideProps";
 
 import type { Props } from "~/org/[orgSlug]/instant-meeting/team/[slug]/[type]/instant-meeting-view";
@@ -29,12 +29,14 @@ export const generateMetadata = async ({ params, searchParams }: _PageProps) => 
       })),
     ],
   };
+  const decodedParams = decodeParams(params);
   const metadata = await generateMeetingMetadata(
     meeting,
     () => `${title} | ${profileName}`,
     () => `${title}`,
     isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
+    getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
+    `/instant-meeting/team/${decodedParams.slug}/${decodedParams.type}`
   );
 
   return {

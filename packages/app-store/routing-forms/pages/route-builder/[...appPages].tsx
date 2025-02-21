@@ -8,11 +8,11 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 import type { ImmutableTree, BuilderProps, Config } from "react-awesome-query-builder";
 import type { JsonTree } from "react-awesome-query-builder";
 import type { UseFormReturn } from "react-hook-form";
+import type { z } from "zod";
 
 import { areTheySiblingEntitites } from "@calcom/lib/entityPermissionUtils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildEmptyQueryValue, raqbQueryValueUtils } from "@calcom/lib/raqb/raqbUtils";
-import type { App_RoutingForms_Form } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -49,7 +49,6 @@ import {
   isDynamicOperandField,
 } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import type { SerializableForm } from "../../types/types";
 import type {
   GlobalRoute,
   LocalRoute,
@@ -58,6 +57,7 @@ import type {
   EditFormRoute,
   AttributeRoutingConfig,
 } from "../../types/types";
+import type { zodRoutes } from "../../zod";
 import { RouteActionType } from "../../zod";
 
 type EventTypesByGroup = RouterOutputs["viewer"]["eventTypes"]["getByViewer"];
@@ -912,7 +912,7 @@ const Routes = ({
 
   const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
 
-  const notHaveAttributesQuery = ({ form }: { form: SerializableForm<App_RoutingForms_Form> }) => {
+  const notHaveAttributesQuery = ({ form }: { form: { routes: z.infer<typeof zodRoutes> } }) => {
     return form.routes?.every((route) => {
       if (isRouter(route)) {
         return true;

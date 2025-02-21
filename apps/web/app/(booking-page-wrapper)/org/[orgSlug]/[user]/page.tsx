@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/org/[orgSlug]/[user]/getServerSideProps";
 
 import type { PageProps as TeamPageProps } from "~/team/team-view";
@@ -30,14 +30,15 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
         image: getOrgOrTeamAvatar(team),
       },
     };
-
+    const decodedParams = decodeParams(params);
     return {
       ...(await generateMeetingMetadata(
         meeting,
         (t) => team.name ?? t("nameless_team"),
         (t) => team.name ?? t("nameless_team"),
         false,
-        getOrgFullOrigin(currentOrgDomain ?? null)
+        getOrgFullOrigin(currentOrgDomain ?? null),
+        `/${decodedParams.user}`
       )),
       robots: {
         index: isSEOIndexable,
