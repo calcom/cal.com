@@ -482,7 +482,7 @@ export default class SalesforceCRMService implements CRM {
     organizerEmail?: string,
     calEventResponses?: CalEventResponses | null
   ) {
-    const log = logger.getSubLogger({ prefix: [`[getContacts]:${emails}`] });
+    const log = logger.getSubLogger({ prefix: [`[getContacts]`] });
     const conn = await this.conn;
     const appOptions = this.getAppOptions();
     const createEventOn = appOptions.createEventOn ?? SalesforceRecordEnum.CONTACT;
