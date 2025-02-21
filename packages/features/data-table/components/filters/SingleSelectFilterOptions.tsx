@@ -38,7 +38,7 @@ export function SingleSelectFilterOptions({ column }: SingleSelectFilterOptionsP
             label: optionLabel,
             value: optionValue,
             section,
-          } = typeof option === "string" ? { label: option, value: option } : option;
+          } = typeof option === "string" ? { label: option, value: option, section: undefined } : option;
 
           return (
             <>
