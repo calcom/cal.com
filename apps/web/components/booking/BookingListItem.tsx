@@ -803,7 +803,7 @@ const BookingItemBadges = ({
         </Badge>
       ) : null}
       {recurringDates !== undefined && (
-        <div className="text-muted mt-2 text-sm">
+        <div className="text-muted -mt-1 text-sm">
           <RecurringBookingsTooltip
             userTimeFormat={userTimeFormat}
             userTimeZone={userTimeZone}
