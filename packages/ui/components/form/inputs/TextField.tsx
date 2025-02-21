@@ -1,7 +1,7 @@
 "use client";
 
 import { cva } from "class-variance-authority";
-import React, { forwardRef, useId, useState } from "react";
+import React, { forwardRef, useId, useState, useCallback } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -123,25 +123,28 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const name = props.name || "";
   const [inputValue, setInputValue] = useState<string>("");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (props.type === "number") {
-      const formattedValue = formatNumberByLocale(value, i18n?.language || "en");
-      setInputValue(formattedValue);
+  const handleChange = useCallback(
+    () => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      if (props.type === "number") {
+        const formattedValue = formatNumberByLocale(value, i18n?.language || "en");
+        setInputValue(formattedValue);
 
-      const syntheticEvent = {
-        ...e,
-        target: {
-          ...e.target,
-          value: getRawValue(value),
-        },
-      };
-      props.onChange?.(syntheticEvent as React.ChangeEvent<HTMLInputElement>);
-    } else {
-      setInputValue(value);
-      props.onChange?.(e);
-    }
-  };
+        const syntheticEvent = {
+          ...e,
+          target: {
+            ...e.target,
+            value: getRawValue(value),
+          },
+        };
+        props.onChange?.(syntheticEvent as React.ChangeEvent<HTMLInputElement>);
+      } else {
+        setInputValue(value);
+        props.onChange?.(e);
+      }
+    },
+    [props, i18n?.language]
+  );
 
   const {
     label = t(name),
