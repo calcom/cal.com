@@ -1,6 +1,6 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsUsersRepository } from "@/modules/organizations/users/index/organizations-users.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { DateTime } from "luxon";

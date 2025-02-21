@@ -25,4 +25,12 @@ export class ApiKeysRepositoryFixture {
 
     return { apiKey, keyString };
   }
+
+  async getTeamApiKeys(teamId: number) {
+    return await this.prismaReadClient.apiKey.findMany({
+      where: {
+        teamId,
+      },
+    });
+  }
 }

@@ -1,7 +1,7 @@
 import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { ApiAuthGuardUser } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { PlatformPlanType } from "@/modules/billing/types";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";

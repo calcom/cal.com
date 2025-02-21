@@ -1,5 +1,5 @@
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/teams/index/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RoutingFormsResponsesModule } from "@/modules/routing-forms-responses/routing-forms-responses.module";

@@ -277,4 +277,8 @@ export class StripeService {
 
     return customerId;
   }
+
+  async getSubscription(subscriptionId: string) {
+    return await this.stripe.subscriptions.retrieve(subscriptionId);
+  }
 }

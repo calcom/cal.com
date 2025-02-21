@@ -10,7 +10,7 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
-import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
+import { OrganizationsTeamsService } from "@/modules/organizations/teams/index/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";

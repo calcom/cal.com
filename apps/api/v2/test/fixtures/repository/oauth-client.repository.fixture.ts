@@ -18,6 +18,10 @@ export class OAuthClientRepositoryFixture {
     return this.prismaReadClient.platformOAuthClient.findFirst({ where: { id: clientId } });
   }
 
+  async getByOrgId(orgId: PlatformOAuthClient["organizationId"]) {
+    return this.prismaReadClient.platformOAuthClient.findMany({ where: { organizationId: orgId } });
+  }
+
   async getUsers(clientId: PlatformOAuthClient["id"]) {
     const response = await this.prismaReadClient.platformOAuthClient.findFirst({
       where: { id: clientId },

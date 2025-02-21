@@ -1,8 +1,7 @@
-import { getEnv } from "@/env";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
+import { GetOrgId } from "@/modules/auth/decorators/get-org-id/get-org-id.decorator";
 import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
-import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
@@ -12,9 +11,7 @@ import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/
 import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
-import { UsersService } from "@/modules/users/services/users.service";
-import { UserWithProfile } from "@/modules/users/users.repository";
+import { OrganizationsRepository } from "@/modules/organizations/index/organizations.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
 import {
   Body,
@@ -33,10 +30,9 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import {
-  ApiTags as DocsTags,
-  ApiExcludeController as DocsExcludeController,
   ApiOperation as DocsOperation,
   ApiCreatedResponse as DocsCreatedResponse,
+  ApiTags,
 } from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 
@@ -51,15 +47,15 @@ Second, make sure that the logged in user has organizationId set to pass the Org
   path: "/v2/oauth-clients",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(NextAuthGuard, OrganizationRolesGuard)
+@ApiTags("OAuth Clients")
+@UseGuards(ApiAuthGuard, OrganizationRolesGuard)
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");
 
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly userRepository: UsersRepository,
-    private readonly teamsRepository: OrganizationsRepository,
-    private usersService: UsersService
+    private readonly teamsRepository: OrganizationsRepository
   ) {}
 
   @Post("/")
@@ -71,10 +67,9 @@ export class OAuthClientsController {
     type: CreateOAuthClientResponseDto,
   })
   async createOAuthClient(
-    @GetUser() user: UserWithProfile,
+    @GetOrgId() organizationId: number,
     @Body() body: CreateOAuthClientInput
   ): Promise<CreateOAuthClientResponseDto> {
-    const organizationId = this.usersService.getUserMainOrgId(user) as number;
     this.logger.log(
       `For organisation ${organizationId} creating OAuth Client with data: ${JSON.stringify(body)}`
     );
@@ -99,9 +94,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
-  async getOAuthClients(@GetUser() user: UserWithProfile): Promise<GetOAuthClientsResponseDto> {
-    const organizationId = this.usersService.getUserMainOrgId(user) as number;
-
+  async getOAuthClients(@GetOrgId() organizationId: number): Promise<GetOAuthClientsResponseDto> {
     const clients = await this.oauthClientRepository.getOrganizationOAuthClients(organizationId);
     return { status: SUCCESS_STATUS, data: clients };
   }

@@ -3,7 +3,7 @@ import { AppModule } from "@/app.module";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { AuthModule } from "@/modules/auth/auth.module";
-import { NextAuthStrategy } from "@/modules/auth/strategies/next-auth/next-auth.strategy";
+import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientModule } from "@/modules/oauth-clients/oauth-client.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
@@ -17,9 +17,9 @@ import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billi
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
+import { ApiAuthMockStrategy } from "test/mocks/api-auth-mock.strategy";
 import { randomString } from "test/utils/randomString";
-import { withNextAuth } from "test/utils/withNextAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { CreateOAuthClientInput } from "@calcom/platform-types";
@@ -72,15 +72,15 @@ describe("OAuth Clients Endpoints", () => {
     const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
-      const moduleRef = await withNextAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
           imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
         })
       ).compile();
-      const strategy = moduleRef.get(NextAuthStrategy);
-      expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
+      const strategy = moduleRef.get(ApiAuthStrategy);
+      expect(strategy).toBeInstanceOf(ApiAuthMockStrategy);
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
@@ -130,15 +130,15 @@ describe("OAuth Clients Endpoints", () => {
     const userEmail = `oauth-clients-user-${randomString()}@api.com`;
 
     beforeAll(async () => {
-      const moduleRef = await withNextAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
           imports: [AppModule, OAuthClientModule, UsersModule, AuthModule, PrismaModule],
         })
       ).compile();
-      const strategy = moduleRef.get(NextAuthStrategy);
-      expect(strategy).toBeInstanceOf(NextAuthMockStrategy);
+      const strategy = moduleRef.get(ApiAuthStrategy);
+      expect(strategy).toBeInstanceOf(ApiAuthMockStrategy);
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);

@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { BillingService } from "@/modules/billing/services/billing.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { TokensModule } from "@/modules/tokens/tokens.module";
@@ -114,6 +115,10 @@ describe("Platform Billing Controller (e2e)", () => {
         } as unknown as Stripe)
     );
 
+    jest
+      .spyOn(BillingService.prototype, "getTeamIdFromStripeInvoice")
+      .mockImplementation(() => Promise.resolve(organization.id));
+
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
       .expect(200)
@@ -141,6 +146,10 @@ describe("Platform Billing Controller (e2e)", () => {
           },
         } as unknown as Stripe)
     );
+
+    jest
+      .spyOn(BillingService.prototype, "getTeamIdFromStripeInvoice")
+      .mockImplementation(() => Promise.resolve(organization.id));
 
     return request(app.getHttpServer())
       .post("/v2/billing/webhook")
