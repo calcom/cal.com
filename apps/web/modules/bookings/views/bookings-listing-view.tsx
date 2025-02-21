@@ -7,8 +7,9 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import type { ReactElement } from "react";
-import { useMemo, useState } from "react";
+// eslint-disable-next-line no-restricted-imports
+import { debounce } from "lodash";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import type { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -18,7 +19,6 @@ import { FiltersContainer } from "@calcom/features/bookings/components/FiltersCo
 import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { DataTableProvider, DataTableWrapper } from "@calcom/features/data-table";
-import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -46,22 +46,27 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
+    "data-testid": "upcoming",
   },
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
+    "data-testid": "unconfirmed",
   },
   {
     name: "recurring",
     href: "/bookings/recurring",
+    "data-testid": "recurring",
   },
   {
     name: "past",
     href: "/bookings/past",
+    "data-testid": "past",
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
+    "data-testid": "cancelled",
   },
 ];
 
@@ -97,11 +102,20 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
-  const { data: filterQuery } = useFilterQuery();
+  const { data: filterQuery, pushItemToKey } = useFilterQuery();
 
   const { t } = useLocale();
   const user = useMeQuery().data;
   const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  useProperHeightForMobile(tableContainerRef);
+
+  useEffect(() => {
+    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
+      setIsFiltersVisible(true);
+      pushItemToKey("userIds", user?.id);
+    }
+  }, [user, filterQuery.status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
@@ -201,7 +215,7 @@ function BookingsContent({ status }: BookingsProps) {
 
   const bookingsToday = useMemo<RowData[]>(() => {
     return (
-      query.data?.pages.map((page) =>
+      query.data?.pages.flatMap((page) =>
         page.bookings
           .filter(
             (booking: BookingOutput) =>
@@ -216,22 +230,22 @@ function BookingsContent({ status }: BookingsProps) {
             ),
             isToday: true,
           }))
-      )[0] || []
+      ) || []
     );
   }, [query.data]);
 
   const finalData = useMemo<RowData[]>(() => {
-    if (bookingsToday.length > 0 && status === "upcoming") {
-      const merged: RowData[] = [
-        { type: "today" as const },
-        ...bookingsToday,
-        { type: "next" as const },
-        ...flatData,
-      ];
-      return merged;
-    } else {
+    if (status !== "upcoming") {
       return flatData;
     }
+    const merged: RowData[] = [];
+    if (bookingsToday.length > 0) {
+      merged.push({ type: "today" as const }, ...bookingsToday);
+    }
+    if (flatData.length > 0) {
+      merged.push({ type: "next" as const }, ...flatData);
+    }
+    return merged;
   }, [bookingsToday, flatData, status]);
 
   const table = useReactTable<RowData>({
@@ -245,7 +259,12 @@ function BookingsContent({ status }: BookingsProps) {
   return (
     <div className="flex flex-col">
       <div className="flex flex-row flex-wrap justify-between">
-        <HorizontalTabs tabs={tabs} />
+        <HorizontalTabs
+          tabs={tabs.map((tab) => ({
+            ...tab,
+            name: t(tab.name),
+          }))}
+        />
         <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
       <FiltersContainer isFiltersVisible={isFiltersVisible} />
@@ -261,6 +280,7 @@ function BookingsContent({ status }: BookingsProps) {
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
               )}
               <DataTableWrapper
+                tableContainerRef={tableContainerRef}
                 table={table}
                 testId={`${status}-bookings`}
                 bodyTestId="bookings"
@@ -291,20 +311,38 @@ function BookingsContent({ status }: BookingsProps) {
   );
 }
 
-function BookingsStatusLayout({ children }: { children: React.ReactNode }) {
-  const { t } = useLocale();
-  return (
-    <Shell
-      withoutMain={false}
-      withoutSeo={true}
-      hideHeadingOnMobile
-      heading={t("bookings")}
-      subtitle={t("bookings_description")}
-      title={t("bookings")}
-      description={t("bookings_description")}>
-      {children}
-    </Shell>
-  );
-}
+// Dynamically adjusts DataTable height on mobile to prevent nested scrolling
+// and ensure the table fits within the viewport without overflowing (hacky)
+function useProperHeightForMobile(ref: React.RefObject<HTMLDivElement>) {
+  const lastOffsetY = useRef<number>();
+  const lastWindowHeight = useRef<number>();
+  const BOTTOM_NAV_HEIGHT = 64;
+  const BUFFER = 32;
 
-export const getLayout = (page: ReactElement) => <BookingsStatusLayout>{page}</BookingsStatusLayout>;
+  const updateHeight = useCallback(
+    debounce(() => {
+      if (!ref.current || window.innerWidth >= 640) return;
+      const rect = ref.current.getBoundingClientRect();
+      if (rect.top !== lastOffsetY.current || window.innerHeight !== lastWindowHeight.current) {
+        lastOffsetY.current = rect.top;
+        lastWindowHeight.current = window.innerHeight;
+        const height = window.innerHeight - lastOffsetY.current - BOTTOM_NAV_HEIGHT - BUFFER;
+        ref.current.style.height = `${height}px`;
+      }
+    }, 200),
+    [ref.current]
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      updateHeight();
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [updateHeight]);
+
+  updateHeight();
+}

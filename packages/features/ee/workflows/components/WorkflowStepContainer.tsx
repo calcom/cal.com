@@ -91,7 +91,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
-  const { hasActiveTeamPlan } = useHasActiveTeamPlan(teamId);
+  const { hasActiveTeamPlan } = useHasActiveTeamPlan();
 
   const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
 
@@ -917,7 +917,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubjectFormRef?.(e);
                         refEmailSubject.current = e;
                       }}
-                      rows={1}
+                      rows={2}
                       disabled={props.readOnly || !hasActiveTeamPlan}
                       className="my-0 focus:ring-transparent"
                       required
