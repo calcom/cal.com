@@ -104,7 +104,6 @@ type RowData =
     }
   | {
       type: "today" | "next";
-      booking: undefined;
     };
 
 function BookingsContent({ status }: BookingsProps) {
@@ -141,7 +140,7 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row.booking, {
+      columnHelper.accessor((row) => row, {
         id: "eventTypeId",
         header: t("event_type"),
         enableColumnFilter: true,
@@ -153,7 +152,7 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.booking, {
+      columnHelper.accessor((row) => row, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,
@@ -165,7 +164,7 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
-      columnHelper.accessor((row) => row.booking, {
+      columnHelper.accessor((row) => row, {
         id: "userId",
         header: t("people"),
         enableColumnFilter: true,
