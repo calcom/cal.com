@@ -32,7 +32,7 @@ type TimezoneBuddyState = TimezoneBuddyProps & {
 export type TimezoneBuddyStore = ReturnType<typeof createTimezoneBuddyStore>;
 
 /**
- * Differnt type of zustand store compared to what we are used to
+ * Different type of zustand store compared to what we are used to
  * This is a function that returns a store instead of a hook. This allows us to properly set the initial state of the store
  * from the props passed in to the component.
  */
