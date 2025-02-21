@@ -104,6 +104,7 @@ type RowData =
     }
   | {
       type: "today" | "next";
+      booking: undefined;
     };
 
 function BookingsContent({ status }: BookingsProps) {
@@ -140,9 +141,21 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => ("booking" in row ? row.booking.eventType.id : row.type), {
+      columnHelper.accessor((row) => row.booking, {
         id: "eventTypeId",
         header: t("event_type"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.booking, {
+        id: "teamId",
+        header: t("team"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
