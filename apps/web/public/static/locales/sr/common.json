@@ -1987,7 +1987,7 @@
   "a_routing_form": "Obrazac za usmeravanje",
   "form_description_placeholder": "Opis formulara",
   "keep_me_connected_with_form": "Držite me povezanim sa formularom",
-  "fields_in_form_duplicated": "Bilo koje promene rutera i polja u formularu koje su duplirane, pokazaće se u duplikatu.",
+  "fields_in_form_duplicated": "Sve promene napravljene na ruteru ili poljima formulara koji se duplicira biće odražene u duplikatu. Međutim, brisanje polja neće ga ukloniti iz duplikata.",
   "form_deleted": "Formular je izbrisan",
   "delete_form": "Da li ste sigurni da želite da izbrišete ovaj obrazac?",
   "delete_form_action": "Da, izbriši formular",
