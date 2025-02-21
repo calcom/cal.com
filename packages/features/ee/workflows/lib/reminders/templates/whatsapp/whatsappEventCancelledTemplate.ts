@@ -39,3 +39,6 @@ export const whatsappEventCancelledTemplate = (
 
   return null;
 };
+
+export const plainTextTemplate =
+  "Hi {ATTENDEE}, your meeting (*{EVENT_NAME}*) with {ORGANIZER} on {EVENT_DATE_ddd, MMM D, YYYY h:mma} at {START_TIME_h:mma} {TIMEZONE} has been canceled.";

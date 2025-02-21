@@ -43,18 +43,15 @@ import {
 } from "@calcom/ui";
 
 import {
-  getWhatsappTemplateForAction,
-  isAttendeeAction,
   isSMSAction,
-  isSMSOrWhatsappAction,
   isWhatsappAction,
+  getTemplateBodyForAction,
+  shouldScheduleEmailReminder,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import emailRatingTemplate from "../lib/reminders/templates/emailRatingTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
-import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
-import { whatsappReminderTemplate } from "../lib/reminders/templates/whatsapp";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -133,37 +130,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t, step?.action, hasActiveTeamPlan);
+  if (step && !form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+    const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
+    const template = getTemplateBodyForAction({
+      action,
+      locale: i18n.language,
+      template: step.template ?? WorkflowTemplates.REMINDER,
+      timeFormat,
+    });
+    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+  }
 
-  if (step && form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.REMINDER) {
-    if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
-      const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-      if (isSMSAction(action)) {
-        form.setValue(
-          `steps.${step.stepNumber - 1}.reminderBody`,
-          smsReminderTemplate(true, i18n.language, action, timeFormat)
-        );
-      } else if (isWhatsappAction(action)) {
-        form.setValue(
-          `steps.${step.stepNumber - 1}.reminderBody`,
-          whatsappReminderTemplate(true, i18n.language, action, timeFormat)
-        );
-      } else {
-        const reminderBodyTemplate = emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody;
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, reminderBodyTemplate);
-      }
-    }
-    if (!form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
-      const subjectTemplate = emailReminderTemplate(
-        true,
-        i18n.language,
-        form.getValues(`steps.${step.stepNumber - 1}.action`),
-        timeFormat
-      ).emailSubject;
-      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
-    }
-  } else if (step && isWhatsappAction(step.action)) {
-    const templateBody = getWhatsappTemplateForAction(step.action, i18n.language, step.template, timeFormat);
-    form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, templateBody);
+  if (step && !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)) {
+    const subjectTemplate = emailReminderTemplate({
+      isEditingMode: true,
+      locale: i18n.language,
+      action: form.getValues(`steps.${step.stepNumber - 1}.action`),
+      timeFormat,
+    }).emailSubject;
+    form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectTemplate);
   }
 
   const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
@@ -457,6 +442,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
 
+                            const template = getTemplateBodyForAction({
+                              action: val.value,
+                              locale: i18n.language,
+                              template: WorkflowTemplates.REMINDER,
+                              timeFormat,
+                            });
+
+                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
                             const setNumberRequiredConfigs = (
                               phoneNumberIsNeeded: boolean,
                               senderNeeded = true
@@ -471,7 +465,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setNumberRequiredConfigs(val.value === WorkflowActions.SMS_NUMBER);
                               // email action changes to sms action
                               if (!isSMSAction(oldValue)) {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
 
@@ -480,7 +473,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setNumberRequiredConfigs(val.value === WorkflowActions.WHATSAPP_NUMBER, false);
 
                               if (!isWhatsappAction(oldValue)) {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, "");
                               }
 
@@ -492,65 +484,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (
-                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
-                              WorkflowTemplates.REMINDER
-                            ) {
-                              if (isSMSOrWhatsappAction(val.value) === isSMSOrWhatsappAction(oldValue)) {
-                                if (isAttendeeAction(oldValue) !== isAttendeeAction(val.value)) {
-                                  const currentReminderBody =
-                                    form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                                  const newReminderBody = currentReminderBody
-                                    .replaceAll("{ORGANIZER}", "{PLACEHOLDER}")
-                                    .replaceAll("{ATTENDEE}", "{ORGANIZER}")
-                                    .replaceAll("{PLACEHOLDER}", "{ATTENDEE}");
-                                  form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, newReminderBody);
-
-                                  if (!isSMSOrWhatsappAction(val.value)) {
-                                    const currentEmailSubject =
-                                      form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "";
-                                    const newEmailSubject = isAttendeeAction(val.value)
-                                      ? currentEmailSubject.replace("{ORGANIZER}", "{ATTENDEE}")
-                                      : currentEmailSubject.replace("{ATTENDEE}", "{ORGANIZER}");
-
-                                    form.setValue(
-                                      `steps.${step.stepNumber - 1}.emailSubject`,
-                                      newEmailSubject || ""
-                                    );
-                                  }
-                                }
-                              } else {
-                                if (isSMSAction(val.value)) {
-                                  form.setValue(
-                                    `steps.${step.stepNumber - 1}.reminderBody`,
-                                    smsReminderTemplate(true, i18n.language, val.value, timeFormat)
-                                  );
-                                } else if (isWhatsappAction(val.value)) {
-                                  form.setValue(
-                                    `steps.${step.stepNumber - 1}.reminderBody`,
-                                    whatsappReminderTemplate(true, i18n.language, val.value, timeFormat)
-                                  );
-                                } else {
-                                  const emailReminderBody = emailReminderTemplate(
-                                    true,
-                                    i18n.language,
-                                    val.value,
-                                    timeFormat
-                                  );
-                                  form.setValue(
-                                    `steps.${step.stepNumber - 1}.reminderBody`,
-                                    emailReminderBody.emailBody
-                                  );
-                                  form.setValue(
-                                    `steps.${step.stepNumber - 1}.emailSubject`,
-                                    emailReminderBody.emailSubject
-                                  );
-                                }
-                              }
-                            } else {
-                              const template = isWhatsappAction(val.value) ? "REMINDER" : "CUSTOM";
-                              template && form.setValue(`steps.${step.stepNumber - 1}.template`, template);
-                            }
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
@@ -827,55 +760,37 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             const action = form.getValues(`steps.${step.stepNumber - 1}.action`);
-                            if (val.value === WorkflowTemplates.REMINDER) {
-                              if (isWhatsappAction(action)) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  whatsappReminderTemplate(true, i18n.language, action, timeFormat)
-                                );
-                              } else if (isSMSAction(action)) {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  smsReminderTemplate(true, i18n.language, action, timeFormat)
-                                );
-                              } else {
-                                form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailBody
-                                );
+
+                            const template = getTemplateBodyForAction({
+                              action,
+                              locale: i18n.language,
+                              template: val.value ?? WorkflowTemplates.REMINDER,
+                              timeFormat,
+                            });
+
+                            form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, template);
+
+                            if (shouldScheduleEmailReminder(action)) {
+                              if (val.value === WorkflowTemplates.REMINDER) {
                                 form.setValue(
                                   `steps.${step.stepNumber - 1}.emailSubject`,
-                                  emailReminderTemplate(true, i18n.language, action, timeFormat).emailSubject
+                                  emailReminderTemplate({
+                                    isEditingMode: true,
+                                    locale: i18n.language,
+                                    action,
+                                    timeFormat,
+                                  }).emailSubject
                                 );
-                              }
-                            } else if (val.value === WorkflowTemplates.RATING) {
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.reminderBody`,
-                                emailRatingTemplate({
-                                  isEditingMode: true,
-                                  locale: i18n.language,
-                                  action,
-                                  timeFormat,
-                                }).emailBody
-                              );
-                              form.setValue(
-                                `steps.${step.stepNumber - 1}.emailSubject`,
-                                emailRatingTemplate({
-                                  isEditingMode: true,
-                                  locale: i18n.language,
-                                  action,
-                                  timeFormat,
-                                }).emailSubject
-                              );
-                            } else {
-                              if (isWhatsappAction(action)) {
+                              } else if (val.value === WorkflowTemplates.RATING) {
                                 form.setValue(
-                                  `steps.${step.stepNumber - 1}.reminderBody`,
-                                  getWhatsappTemplateForAction(action, i18n.language, val.value, timeFormat)
+                                  `steps.${step.stepNumber - 1}.emailSubject`,
+                                  emailRatingTemplate({
+                                    isEditingMode: true,
+                                    locale: i18n.language,
+                                    action,
+                                    timeFormat,
+                                  }).emailSubject
                                 );
-                              } else {
-                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
-                                form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, "");
                               }
                             }
                             field.onChange(val.value);

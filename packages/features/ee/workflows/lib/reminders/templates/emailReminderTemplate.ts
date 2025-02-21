@@ -4,21 +4,35 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-const emailReminderTemplate = (
-  isEditingMode: boolean,
-  locale: string,
-  action?: WorkflowActions,
-  timeFormat?: TimeFormat,
-  startTime?: string,
-  endTime?: string,
-  eventName?: string,
-  timeZone?: string,
-  location?: string,
-  meetingUrl?: string,
-  otherPerson?: string,
-  name?: string,
-  isBrandingDisabled?: boolean
-) => {
+const emailReminderTemplate = ({
+  isEditingMode,
+  locale,
+  action,
+  timeFormat,
+  startTime,
+  endTime,
+  eventName,
+  timeZone,
+  location,
+  meetingUrl,
+  otherPerson,
+  name,
+  isBrandingDisabled,
+}: {
+  isEditingMode: boolean;
+  locale: string;
+  action?: WorkflowActions;
+  timeFormat?: TimeFormat;
+  startTime?: string;
+  endTime?: string;
+  eventName?: string;
+  timeZone?: string;
+  location?: string;
+  meetingUrl?: string;
+  otherPerson?: string;
+  name?: string;
+  isBrandingDisabled?: boolean;
+}) => {
   const currentTimeFormat = timeFormat || TimeFormat.TWELVE_HOUR;
   const dateTimeFormat = `ddd, MMM D, YYYY ${currentTimeFormat}`;
 
@@ -63,3 +77,6 @@ const emailReminderTemplate = (
 };
 
 export default emailReminderTemplate;
+
+export const plainTextTemplate =
+  "Hi {ORGANIZER},This is a reminder about your upcoming event.Event: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ATTENDEE}Location: {LOCATION} {MEETING_URL}This reminder was triggered by a Workflow in Cal.";

@@ -79,3 +79,6 @@ const emailRatingTemplate = ({
 };
 
 export default emailRatingTemplate;
+
+export const plainTextTemplate =
+  "Hi {ORGANIZER},We're always looking to improve our customer's experience. How satisfied were you with your recent meeting?😠  🙁  😐  😄  😍{ORGANIZER} didn't join the meeting? Reschedule hereEvent: {EVENT_NAME}Date & Time: {EVENT_DATE_ddd, MMM D, YYYY h:mma} - {EVENT_END_TIME} ({TIMEZONE})Attendees: You & {ORGANIZER}This survey was triggered by a Workflow in Cal.";
