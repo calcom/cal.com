@@ -9,6 +9,7 @@ import { useEventTypes } from "./useEventTypes";
 export function useFacetedUniqueValues() {
   const eventTypes = useEventTypes();
   const { data: teams } = trpc.viewer.teams.list.useQuery();
+  const { data: members } = trpc.viewer.teams.listSimpleMembers.useQuery({});
 
   return useCallback(
     (_: Table<any>, columnId: string) => (): Map<FacetedValue, number> => {
@@ -21,9 +22,16 @@ export function useFacetedUniqueValues() {
             value: team.id,
           }))
         );
+      } else if (columnId === "userId") {
+        return convertFacetedValuesToMap(
+          (members || []).map((member) => ({
+            label: member.name,
+            value: member.id,
+          }))
+        );
       }
       return new Map<FacetedValue, number>();
     },
-    [eventTypes, teams]
+    [eventTypes, teams, members]
   );
 }

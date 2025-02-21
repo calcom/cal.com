@@ -19,6 +19,7 @@ import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.sch
 import { ZLegacyListMembersInputSchema } from "./legacyListMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
+import { ZListSimpleMembersInputSchema } from "./listSimpleMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
@@ -121,6 +122,13 @@ export const viewerTeamsRouter = router({
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
+    return handler(opts);
+  }),
+  listSimpleMembers: authedProcedure.input(ZListSimpleMembersInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("listSimpleMembers"),
+      () => import("./listSimpleMembers.handler")
+    );
     return handler(opts);
   }),
   legacyListMembers: authedProcedure.input(ZLegacyListMembersInputSchema).query(async (opts) => {

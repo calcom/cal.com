@@ -165,8 +165,20 @@ function BookingsContent({ status }: BookingsProps) {
           },
         },
       }),
+      columnHelper.accessor((row) => row.booking, {
+        id: "userId",
+        header: t("people"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
       columnHelper.display({
-        id: "custom-view",
+        id: "customView",
         cell: (props) => {
           if (props.row.original.type === "data") {
             const { booking, recurringInfo, isToday } = props.row.original;
@@ -286,6 +298,8 @@ function BookingsContent({ status }: BookingsProps) {
     initialState: {
       columnVisibility: {
         eventTypeId: false,
+        teamId: false,
+        userId: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
