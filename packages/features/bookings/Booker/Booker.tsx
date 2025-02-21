@@ -211,69 +211,28 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
-        isPlatform={isPlatform}>
-        <>
-          {verifyCode && formEmail ? (
-            <VerifyCodeDialog
-              isOpenDialog={isEmailVerificationModalVisible}
-              setIsOpenDialog={setEmailVerificationModalVisible}
-              email={formEmail}
-              isUserSessionRequiredToVerify={false}
-              verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
-              verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
-              error={verifyCode.error}
-              resetErrors={verifyCode.resetErrors}
-              isPending={verifyCode.isPending}
-              setIsPending={verifyCode.setIsPending}
-            />
-          ) : (
-            <></>
-          )}
-          {!isPlatform && (
-            <RedirectToInstantMeetingModal
-              expiryTime={expiryTime}
-              bookingId={parseInt(getQueryParam("bookingId") || "0")}
-              instantVideoMeetingUrl={instantVideoMeetingUrl}
-              onGoBack={() => {
-                onGoBackInstantMeeting();
-              }}
-              orgName={event.data?.entity?.name}
-            />
-          )}
-        </>
-      </BookEventForm>
+        isPlatform={isPlatform}
+      />
     ) : (
       <></>
     );
   }, [
     bookerFormErrorRef,
-    instantVideoMeetingUrl,
     bookerState,
     bookingForm,
     errors,
     event,
-    expiryTime,
     extraOptions,
-    formEmail,
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
-    isEmailVerificationModalVisible,
     key,
     loadingStates,
-    onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
     rescheduleUid,
     seatedEventData,
-    setEmailVerificationModalVisible,
     setSeatedEventData,
     setSelectedTimeslot,
-    verifyCode?.error,
-    verifyCode?.isPending,
-    verifyCode?.resetErrors,
-    verifyCode?.setIsPending,
-    verifyCode?.verifyCodeWithSessionNotRequired,
-    verifyCode?.verifyCodeWithSessionRequired,
     isPlatform,
     shouldRenderCaptcha,
     isVerificationCodeSending,
@@ -532,6 +491,36 @@ const BookerComponent = ({
           </m.span>
         )}
       </div>
+
+      <>
+        {verifyCode && formEmail ? (
+          <VerifyCodeDialog
+            isOpenDialog={isEmailVerificationModalVisible}
+            setIsOpenDialog={setEmailVerificationModalVisible}
+            email={formEmail}
+            isUserSessionRequiredToVerify={false}
+            verifyCodeWithSessionNotRequired={verifyCode.verifyCodeWithSessionNotRequired}
+            verifyCodeWithSessionRequired={verifyCode.verifyCodeWithSessionRequired}
+            error={verifyCode.error}
+            resetErrors={verifyCode.resetErrors}
+            isPending={verifyCode.isPending}
+            setIsPending={verifyCode.setIsPending}
+          />
+        ) : (
+          <></>
+        )}
+        {!isPlatform && (
+          <RedirectToInstantMeetingModal
+            expiryTime={expiryTime}
+            bookingId={parseInt(getQueryParam("bookingId") || "0")}
+            instantVideoMeetingUrl={instantVideoMeetingUrl}
+            onGoBack={() => {
+              onGoBackInstantMeeting();
+            }}
+            orgName={event.data?.entity?.name}
+          />
+        )}
+      </>
 
       <BookFormAsModal
         onCancel={() => setSelectedTimeslot(null)}
