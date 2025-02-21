@@ -1987,7 +1987,7 @@
   "a_routing_form": "Yönləndirmə Forması",
   "form_description_placeholder": "Formanın təsviri",
   "keep_me_connected_with_form": "Məni forma ilə əlaqədə saxla",
-  "fields_in_form_duplicated": "Formanın Router və Sahələrində edilən hər hansı dəyişikliklər dublikatda əks olunacaq.",
+  "fields_in_form_duplicated": "Dublikat edilən formanın marşrutlayıcısında və ya sahələrində edilən hər hansı dəyişiklik dublikatda öz əksini tapacaq. Lakin, sahənin silinməsi onu dublikatdan silməyəcək.",
   "form_deleted": "Forma silindi",
   "delete_form": "Bu formu silmək istədiyinizə əminsinizmi?",
   "delete_form_action": "Bəli, Formu sil",
