@@ -1,7 +1,6 @@
 "use client";
 
 import { type DehydratedState } from "@tanstack/react-query";
-import { HydrateClient } from "app/_trpc/HydrateClient";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { SessionProvider } from "next-auth/react";
 import CacheProvider from "react-inlinesvg/provider";
@@ -18,12 +17,10 @@ export function Providers({ children, dehydratedState }: ProvidersProps) {
 
   return (
     <SessionProvider>
-      <TrpcProvider>
-        <HydrateClient state={dehydratedState}>
-          {!isBookingPage ? <PlainChat /> : null}
-          {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
-          <CacheProvider>{children}</CacheProvider>
-        </HydrateClient>
+      <TrpcProvider dehydratedState={dehydratedState}>
+        {!isBookingPage ? <PlainChat /> : null}
+        {/* @ts-expect-error FIXME remove this comment when upgrading typescript to v5 */}
+        <CacheProvider>{children}</CacheProvider>
       </TrpcProvider>
     </SessionProvider>
   );
