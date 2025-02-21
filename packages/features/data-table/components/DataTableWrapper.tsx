@@ -25,6 +25,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
+  EmptyView?: React.ReactNode;
   className?: string;
   containerClassName?: string;
   children?: React.ReactNode;
@@ -44,6 +45,7 @@ export function DataTableWrapper<TData, TValue>({
   hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  EmptyView,
   className,
   containerClassName,
   children,
@@ -78,6 +80,12 @@ export function DataTableWrapper<TData, TValue>({
       onColumnVisibilityChange: setColumnVisibility,
     }));
   }, [table, sorting, columnFilters, columnVisibility]);
+
+  const isEmpty = table.getRowCount() === 0;
+
+  if (isEmpty && EmptyView) {
+    return EmptyView;
+  }
 
   return (
     <DataTable

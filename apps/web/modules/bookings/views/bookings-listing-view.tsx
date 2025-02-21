@@ -7,20 +7,19 @@ import {
   getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { useMemo, useState, useRef, useEffect } from "react";
-import type { z } from "zod";
+import { useMemo, useRef, useEffect } from "react";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import dayjs from "@calcom/dayjs";
-import { FilterToggle } from "@calcom/features/bookings/components/FilterToggle";
-import { FiltersContainer } from "@calcom/features/bookings/components/FiltersContainer";
-import type { filterQuerySchema } from "@calcom/features/bookings/lib/useFilterQuery";
-import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import {
   DataTableProvider,
   DataTableWrapper,
   DataTableFilters,
   ColumnFilterType,
+  useFilterValue,
+  useDataTable,
+  ZMultiSelectFilterValue,
+  ZDateRangeFilterValue,
 } from "@calcom/features/data-table";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -37,7 +36,7 @@ import { useFacetedUniqueValues } from "~/bookings/hooks/useFacetedUniqueValues"
 import { useProperHeightForMobile } from "~/bookings/hooks/useProperHeightForMobile";
 import type { validStatuses } from "~/bookings/lib/validStatuses";
 
-type BookingListingStatus = z.infer<NonNullable<typeof filterQuerySchema>>["status"];
+type BookingListingStatus = (typeof validStatuses)[number];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
@@ -75,7 +74,7 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   },
 ];
 
-const descriptionByStatus: Record<NonNullable<BookingListingStatus>, string> = {
+const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
@@ -107,31 +106,39 @@ type RowData =
     };
 
 function BookingsContent({ status }: BookingsProps) {
-  const { data: filterQuery, pushItemToKey } = useFilterQuery();
-
   const { t } = useLocale();
   const user = useMeQuery().data;
-  const [isFiltersVisible, setIsFiltersVisible] = useState<boolean>(false);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   useProperHeightForMobile(tableContainerRef);
 
+  const { updateFilter } = useDataTable();
+
+  const eventTypeIds = useFilterValue("eventTypeId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const teamIds = useFilterValue("teamId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const userIds = useFilterValue("userId", ZMultiSelectFilterValue)?.data as number[] | undefined;
+  const dateRange = useFilterValue("time", ZDateRangeFilterValue)?.data;
+
   useEffect(() => {
-    if (user?.isTeamAdminOrOwner && !filterQuery.userIds?.length) {
-      setIsFiltersVisible(true);
-      pushItemToKey("userIds", user?.id);
+    // For team admins/owners, initialize the userId filter to their own ID
+    // This only happens once on initial load if no userIds are already selected
+    if (user && user.isTeamAdminOrOwner && !userIds?.length) {
+      updateFilter("userId", { type: ColumnFilterType.MULTI_SELECT, data: [user.id] });
     }
-  }, [user, filterQuery.status]);
+  }, [user, status]);
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
     {
       limit: 10,
       filters: {
-        ...filterQuery,
-        status: filterQuery.status ?? status,
+        status,
+        eventTypeIds,
+        teamIds,
+        userIds,
+        afterStartDate: dateRange?.startDate ?? undefined,
+        beforeEndDate: dateRange?.endDate ?? undefined,
       },
     },
     {
-      enabled: true,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
@@ -140,24 +147,39 @@ function BookingsContent({ status }: BookingsProps) {
     const columnHelper = createColumnHelper<RowData>();
 
     return [
-      columnHelper.accessor((row) => row, {
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.id, {
         id: "eventTypeId",
         header: t("event_type"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
+        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
           },
         },
       }),
-      columnHelper.accessor((row) => row, {
+      columnHelper.accessor((row) => row.type === "data" && row.booking.eventType.team?.id, {
         id: "teamId",
         header: t("team"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
+        filterFn: () => true,
+        meta: {
+          filter: {
+            type: ColumnFilterType.MULTI_SELECT,
+          },
+        },
+      }),
+      columnHelper.accessor((row) => row.type === "data" && row.booking.user?.id, {
+        id: "userId",
+        header: t("people"),
+        enableColumnFilter: true,
+        enableSorting: false,
+        cell: () => null,
+        filterFn: () => true,
         meta: {
           filter: {
             type: ColumnFilterType.MULTI_SELECT,
@@ -165,14 +187,15 @@ function BookingsContent({ status }: BookingsProps) {
         },
       }),
       columnHelper.accessor((row) => row, {
-        id: "userId",
-        header: t("people"),
+        id: "time",
+        header: t("date_range"),
         enableColumnFilter: true,
         enableSorting: false,
         cell: () => null,
+        filterFn: () => true,
         meta: {
           filter: {
-            type: ColumnFilterType.MULTI_SELECT,
+            type: ColumnFilterType.DATE_RANGE,
           },
         },
       }),
@@ -299,6 +322,7 @@ function BookingsContent({ status }: BookingsProps) {
         eventTypeId: false,
         teamId: false,
         userId: false,
+        time: false,
       },
     },
     getCoreRowModel: getCoreRowModel(),
@@ -316,16 +340,14 @@ function BookingsContent({ status }: BookingsProps) {
             name: t(tab.name),
           }))}
         />
-        <FilterToggle setIsFiltersVisible={setIsFiltersVisible} />
       </div>
-      <FiltersContainer isFiltersVisible={isFiltersVisible} />
       <main className="w-full">
         <div className="flex w-full flex-col">
           {query.status === "error" && (
             <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
           )}
           {(query.status === "pending" || query.isPaused) && <SkeletonLoader />}
-          {query.status === "success" && !isEmpty && (
+          {query.status === "success" && (
             <>
               {!!bookingsToday.length && status === "upcoming" && (
                 <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -348,20 +370,20 @@ function BookingsContent({ status }: BookingsProps) {
                     <DataTableFilters.ClearFiltersButton />
                   </>
                 }
+                EmptyView={
+                  <div className="flex items-center justify-center pt-2 xl:pt-0">
+                    <EmptyScreen
+                      Icon="calendar"
+                      headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+                      description={t("no_status_bookings_yet_description", {
+                        status: t(status).toLowerCase(),
+                        description: t(descriptionByStatus[status]),
+                      })}
+                    />
+                  </div>
+                }
               />
             </>
-          )}
-          {query.status === "success" && isEmpty && (
-            <div className="flex items-center justify-center pt-2 xl:pt-0">
-              <EmptyScreen
-                Icon="calendar"
-                headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                description={t("no_status_bookings_yet_description", {
-                  status: t(status).toLowerCase(),
-                  description: t(descriptionByStatus[status]),
-                })}
-              />
-            </div>
           )}
         </div>
       </main>
