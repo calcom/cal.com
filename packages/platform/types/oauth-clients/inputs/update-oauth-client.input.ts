@@ -1,6 +1,8 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
 import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
+import { ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS } from "./create-oauth-client.input";
+
 export class UpdateOAuthClientInput {
   @IsOptional()
   @IsString()
@@ -37,4 +39,12 @@ export class UpdateOAuthClientInput {
   @IsBoolean()
   @ApiPropertyOptional()
   areEmailsEnabled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiPropertyOptional({
+    type: Boolean,
+    description: ARE_DEFAULT_EVENT_TYPES_ENABLED_DOCS,
+  })
+  areDefaultEventTypesEnabled?: boolean;
 }

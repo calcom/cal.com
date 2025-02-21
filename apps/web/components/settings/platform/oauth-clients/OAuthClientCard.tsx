@@ -16,6 +16,7 @@ type OAuthClientCardProps = {
   bookingCancelRedirectUri: string | null;
   bookingRescheduleRedirectUri: string | null;
   areEmailsEnabled: boolean;
+  areDefaultEventTypesEnabled: boolean;
   permissions: number;
   lastItem: boolean;
   id: string;
@@ -39,6 +40,7 @@ export const OAuthClientCard = ({
   onDelete,
   isLoading,
   areEmailsEnabled,
+  areDefaultEventTypesEnabled,
   organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
@@ -155,6 +157,10 @@ export const OAuthClientCard = ({
         )}
         <div className="flex gap-1 text-sm">
           <span className="text-sm font-semibold">Emails enabled:</span> {areEmailsEnabled ? "Yes" : "No"}
+        </div>
+        <div className="flex gap-1 text-sm">
+          <span className="text-sm font-semibold">Default event types enabled:</span>{" "}
+          {areDefaultEventTypesEnabled ? "Yes" : "No"}
         </div>
       </div>
       <div className="flex items-start gap-4">

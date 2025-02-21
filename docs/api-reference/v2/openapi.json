@@ -6741,11 +6741,16 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         },
         "required": ["name", "redirectUris", "permissions"]
       },
-      "DataDto": {
+      "CreateOAuthClientOutput": {
         "type": "object",
         "properties": {
           "clientId": {
@@ -6774,7 +6779,7 @@
             },
             "allOf": [
               {
-                "$ref": "#/components/schemas/DataDto"
+                "$ref": "#/components/schemas/CreateOAuthClientOutput"
               }
             ]
           }
@@ -6801,8 +6806,7 @@
             "example": 3
           },
           "logo": {
-            "type": "string",
-            "nullable": true,
+            "type": "object",
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -6820,9 +6824,28 @@
             "format": "date-time",
             "type": "string",
             "example": "2024-03-23T08:33:21.851Z"
+          },
+          "areEmailsEnabled": {
+            "type": "boolean",
+            "example": true
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "example": true,
+            "description": "If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user."
           }
         },
-        "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "secret",
+          "permissions",
+          "redirectUris",
+          "organizationId",
+          "createdAt",
+          "areEmailsEnabled",
+          "areDefaultEventTypesEnabled"
+        ]
       },
       "GetOAuthClientsResponseDto": {
         "type": "object",
@@ -6881,6 +6904,10 @@
           },
           "areEmailsEnabled": {
             "type": "boolean"
+          },
+          "areDefaultEventTypesEnabled": {
+            "type": "boolean",
+            "description": "If true, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Set this as false if you want to create a managed user and then manually create event types for the user."
           }
         }
       },

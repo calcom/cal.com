@@ -3,7 +3,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
-import { TextField, Tooltip, Button, Label } from "@calcom/ui";
+import { TextField, Tooltip, Button, Label, Icon } from "@calcom/ui";
 
 type OAuthClientFormProps = {
   defaultValues?: Partial<FormValues>;
@@ -33,6 +33,7 @@ export type FormValues = {
   bookingCancelRedirectUri?: string;
   bookingRescheduleRedirectUri?: string;
   areEmailsEnabled?: boolean;
+  areDefaultEventTypesEnabled?: boolean;
 };
 
 export const OAuthClientForm = ({
@@ -231,6 +232,29 @@ export const OAuthClientForm = ({
           <label htmlFor="areEmailsEnabled" className="cursor-pointer px-2 text-base font-semibold">
             Enable emails
           </label>
+        </div>
+        <div className="mt-6">
+          <div className="flex items-center">
+            <input
+              {...register("areDefaultEventTypesEnabled")}
+              id="areDefaultEventTypesEnabled"
+              className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+              type="checkbox"
+              disabled={isFormDisabled}
+            />
+            <label
+              htmlFor="areDefaultEventTypesEnabled"
+              className="cursor-pointer px-2 text-base font-semibold">
+              Enable managed user default event types
+            </label>
+            <Tooltip
+              className="max-w-[400px] whitespace-normal"
+              content="If enabled, when creating a managed user the managed user will have 4 default event types: 30 and 60 minutes without Cal video, 30 and 60 minutes with Cal video. Leave this disabled if you want to create a managed user and then manually create event types for the user.">
+              <div className="ml-1">
+                <Icon name="info" className="h-4 w-4 text-gray-500" aria-hidden="true" />
+              </div>
+            </Tooltip>
+          </div>
         </div>
         <div className="mt-6">
           <div className="flex justify-between">
