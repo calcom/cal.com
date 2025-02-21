@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Slots, Slot } from "./types";
 
 /**
- * Get's slots for a specific date from the schedule cache.
+ * Gets slots for a specific date from the schedule cache.
  * @param date Format YYYY-MM-DD
  * @param scheduleCache Instance of useScheduleWithCache
  */
