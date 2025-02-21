@@ -25,7 +25,7 @@ export function useFacetedUniqueValues() {
       } else if (columnId === "userId") {
         return convertFacetedValuesToMap(
           (members || [])
-            .filter((member) => member.name)
+            .filter((member): member is FacetedValue => Boolean(member.name))
             .map((member) => ({
               label: member.name,
               value: member.id,
