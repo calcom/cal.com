@@ -1987,7 +1987,7 @@
   "a_routing_form": "Yönlendirme Formu",
   "form_description_placeholder": "Form Açıklaması",
   "keep_me_connected_with_form": "Formla bağlantımı sürdür",
-  "fields_in_form_duplicated": "Kopyalanan formun Yönlendirici ve Alanlarındaki tüm değişiklikler de kopyaya yansıtılır.",
+  "fields_in_form_duplicated": "Kopyalanan formun yönlendiricisinde veya alanlarında yapılan herhangi bir değişiklik, kopyada da yansıtılacaktır. Ancak, bir alanın silinmesi onu kopyadan kaldırmayacaktır.",
   "form_deleted": "Form silindi",
   "delete_form": "Bu formu silmek istediğinizden emin misiniz?",
   "delete_form_action": "Evet, Formu sil",
