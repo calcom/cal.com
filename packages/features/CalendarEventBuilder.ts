@@ -7,8 +7,12 @@ import type { CalendarEvent, Person, CalEventResponses } from "@calcom/types/Cal
 export class CalendarEventBuilder {
   private event: Partial<CalendarEvent>;
 
-  constructor() {
-    this.event = {};
+  constructor(existingEvent?: Partial<CalendarEvent>) {
+    this.event = existingEvent || {};
+  }
+
+  static fromEvent(event: Partial<CalendarEvent>) {
+    return new CalendarEventBuilder(event);
   }
 
   withBasicDetails({
@@ -144,8 +148,8 @@ export class CalendarEventBuilder {
   withIdentifiers({ iCalUID, iCalSequence }: { iCalUID?: string; iCalSequence?: number }) {
     this.event = {
       ...this.event,
-      iCalUID,
-      iCalSequence,
+      iCalUID: iCalUID ?? this.event.iCalUID,
+      iCalSequence: iCalSequence ?? this.event.iCalSequence,
     };
     return this;
   }
@@ -182,6 +186,62 @@ export class CalendarEventBuilder {
       platformRescheduleUrl,
       platformCancelUrl,
       platformBookingUrl,
+    };
+    return this;
+  }
+
+  withAppsStatus(appsStatus?: AppsStatus[]) {
+    this.event = {
+      ...this.event,
+      appsStatus,
+    };
+    return this;
+  }
+
+  withVideoCallData(videoCallData?: VideoCallData) {
+    this.event = {
+      ...this.event,
+      videoCallData,
+    };
+    return this;
+  }
+
+  withTeam(team?: { name: string; members: Person[]; id: number }) {
+    this.event = {
+      ...this.event,
+      team,
+    };
+    return this;
+  }
+
+  withRecurring(recurringEvent?: { count: number; freq: number; interval: number }) {
+    this.event = {
+      ...this.event,
+      recurringEvent,
+    };
+    return this;
+  }
+
+  withAttendeeSeatId(attendeeSeatId?: string) {
+    this.event = {
+      ...this.event,
+      attendeeSeatId,
+    };
+    return this;
+  }
+
+  withUid(uid: string | null) {
+    this.event = {
+      ...this.event,
+      uid,
+    };
+    return this;
+  }
+
+  withRecurringEventId(recurringEventId?: string) {
+    this.event = {
+      ...this.event,
+      recurringEventId,
     };
     return this;
   }

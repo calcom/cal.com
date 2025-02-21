@@ -1041,13 +1041,15 @@ async function handler(
     .build();
 
   if (req.body.thirdPartyRecurringEventId) {
-    evt.existingRecurringEvent = {
-      recurringEventId: req.body.thirdPartyRecurringEventId,
-    };
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withRecurringEventId(req.body.thirdPartyRecurringEventId)
+      .build();
   }
 
   if (isTeamEventType && eventType.schedulingType === "COLLECTIVE") {
-    evt.destinationCalendar?.push(...teamDestinationCalendars);
+    evt = CalendarEventBuilder.fromEvent(evt)
+      .withDestinationCalendar([...(evt.destinationCalendar ?? []), ...teamDestinationCalendars])
+      .build();
   }
 
   // data needed for triggering webhooks
@@ -1174,9 +1176,13 @@ async function handler(
       // Rescheduling logic for the original seated event was handled in handleSeats
       // We want to use new booking logic for the new time slot
       originalRescheduledBooking = null;
-      evt.iCalUID = getICalUID({
-        attendeeId: bookingSeat?.attendeeId,
-      });
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withIdentifiers({
+          iCalUID: getICalUID({
+            attendeeId: bookingSeat?.attendeeId,
+          }),
+        })
+        .build();
     }
   }
 
@@ -1265,7 +1271,10 @@ async function handler(
         }
       }
 
-      evt.uid = booking.uid ?? null;
+      evt = CalendarEventBuilder.fromEvent(evt)
+        .withUid(booking.uid ?? null)
+        .build();
+
       evt.oneTimePassword = booking.oneTimePassword ?? null;
       if (booking && booking.id && eventType.seatsPerTimeSlot) {
         const currentAttendee = booking.attendees.find(
