@@ -1987,7 +1987,7 @@
   "a_routing_form": "Ett omdirigeringsformulär",
   "form_description_placeholder": "Formulärbeskrivning",
   "keep_me_connected_with_form": "Håll mig ansluten med formuläret",
-  "fields_in_form_duplicated": "Alla ändringar i omdirigering och fält i formuläret som dupliceras återspeglas i dubbletten.",
+  "fields_in_form_duplicated": "Alla ändringar som görs i routern eller fälten i formuläret som dupliceras kommer att återspeglas i kopian. Att radera ett fält kommer dock inte att ta bort det från kopian.",
   "form_deleted": "Formulär borttaget",
   "delete_form": "Vill du verkligen ta bort formuläret?",
   "delete_form_action": "Ja, ta bort formulär",
