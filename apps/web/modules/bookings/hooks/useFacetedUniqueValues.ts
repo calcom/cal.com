@@ -23,13 +23,14 @@ export function useFacetedUniqueValues() {
           }))
         );
       } else if (columnId === "userId") {
-        const options: FacetedValue[] = (members || [])
-          .map((member) => ({
-            label: member.name,
-            value: member.id,
-          }))
-          .filter((option): option is FacetedValue => Boolean(option.label));
-        return convertFacetedValuesToMap(options);
+        return convertFacetedValuesToMap(
+          (members || [])
+            .map((member) => ({
+              label: member.name,
+              value: member.id,
+            }))
+            .filter((option): option is { label: string; value: number } => Boolean(option.label))
+        );
       }
       return new Map<FacetedValue, number>();
     },
