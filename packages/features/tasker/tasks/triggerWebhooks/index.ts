@@ -1,9 +1,12 @@
 import { handleWebhookTrigger } from "bookings/lib/handleWebhookTrigger";
 
 import monitorCallbackAsync from "@calcom/core/sentryWrapper";
+import dayjs from "@calcom/dayjs";
+import { getOriginalRescheduledBooking } from "@calcom/features/bookings/lib/handleNewBooking/getOriginalRescheduledBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -24,7 +27,7 @@ const getBooking = async (bookingId: number) => {
   return booking;
 };
 
-const generateWebhookData = async (bookingId: number) => {
+const generateWebhookData = async (bookingId: number): Promise<EventPayloadType> => {
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { id: bookingId },
     select: {
@@ -55,6 +58,8 @@ const generateWebhookData = async (bookingId: number) => {
           },
         },
       },
+      rescheduled: true,
+      fromReschedule: true,
       metadata: true,
       smsReminderNumber: true,
       userId: true,
@@ -80,18 +85,22 @@ const generateWebhookData = async (bookingId: number) => {
 
   const tOrganizer = await getTranslation(booking.user?.locale ?? "en", "common");
 
+  const originalRescheduledBooking = booking.fromReschedule
+    ? await getOriginalRescheduledBooking(booking.fromReschedule, !!booking.eventType?.seatsPerTimeSlot)
+    : null;
+
   const evt: CalendarEvent = {
-    type: booking?.eventType?.slug,
+    type: booking?.eventType?.slug ?? "",
     title: booking.title,
     description: booking.description,
     customInputs: isPrismaObjOrUndefined(booking.customInputs),
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      email: booking.userPrimaryEmail ?? booking.user?.email,
+      email: booking.userPrimaryEmail ?? booking.user?.email ?? "",
       name: booking.user?.name || "Unnamed",
       username: booking.user?.username || undefined,
-      timeZone: booking.user?.timeZone,
+      timeZone: booking.user?.timeZone ?? "Europe/London",
       timeFormat: getTimeFormatStringFromUserTimeFormat(booking.user?.timeFormat),
       language: { translate: tOrganizer, locale: booking.user?.locale ?? "en" },
     },
@@ -105,9 +114,26 @@ const generateWebhookData = async (bookingId: number) => {
       : undefined,
   };
 
-  return {
-    booking,
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: booking.eventType?.title ?? "",
+    eventDescription: booking.eventType?.description ?? "",
+    // price: booking.payment?.price ?? 0,
+    currency: booking.eventType?.currency ?? "USD",
+    length: booking.eventType?.length ?? 0,
   };
+
+  const webhookData: EventPayloadType = {
+    ...evt,
+    ...eventTypeInfo,
+    bookingId: booking?.id,
+    rescheduleId: originalRescheduledBooking?.id || undefined,
+    rescheduleUid: booking.fromReschedule ?? undefined,
+    rescheduleStartTime: originalRescheduledBooking?.startTime
+      ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+      : undefined,
+  };
+
+  return webhookData;
 };
 
 export const triggerWebhooks = async (payload: string) => {
@@ -116,7 +142,6 @@ export const triggerWebhooks = async (payload: string) => {
 
   const booking = await getBooking(bookingId);
 
-  // TODO: tough to generate webhookData
   const webhookData = generateWebhookData(bookingId);
 
   if (isConfirmedByDefault) {
