@@ -1987,7 +1987,7 @@
   "a_routing_form": "Formularz przekierowania",
   "form_description_placeholder": "Opis formularza",
   "keep_me_connected_with_form": "Zachowaj połączenie z formularzem",
-  "fields_in_form_duplicated": "Duplikowanie zmian w formularzu przekierowania i jego polach zostanie odzwierciedlone w duplikacie.",
+  "fields_in_form_duplicated": "Wszelkie zmiany wprowadzone w routerze lub polach duplikowanego formularza zostaną odzwierciedlone w duplikacie. Jednak usunięcie pola nie spowoduje jego usunięcia z duplikatu.",
   "form_deleted": "Formularz usunięty",
   "delete_form": "Czy na pewno chcesz usunąć ten formularz?",
   "delete_form_action": "Tak, usuń formularz",

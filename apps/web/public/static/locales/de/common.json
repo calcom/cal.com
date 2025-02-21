@@ -1987,7 +1987,7 @@
   "a_routing_form": "Ein Weiterleitungsformular",
   "form_description_placeholder": "Formularbeschreibung",
   "keep_me_connected_with_form": "Verbindung mit dem Formular beibehalten",
-  "fields_in_form_duplicated": "Alle Änderungen an Weiterleitungsformularen und in den Feldern des Formulars, die dupliziert werden, werden auch im Duplikat wiedergegeben.",
+  "fields_in_form_duplicated": "Alle Änderungen, die am Router oder an den Feldern des zu duplizierenden Formulars vorgenommen werden, spiegeln sich im Duplikat wider. Das Löschen eines Feldes entfernt es jedoch nicht aus dem Duplikat.",
   "form_deleted": "Formular gelöscht",
   "delete_form": "Möchten Sie dieses Formular wirklich löschen?",
   "delete_form_action": "Ja, Formular löschen",
