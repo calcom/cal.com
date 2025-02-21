@@ -2734,6 +2734,37 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams/{teamId}/routing-forms/{routingFormId}/responses": {
+      "get": {
+        "operationId": "OrganizationsTeamsRoutingFormsResponsesController_getRoutingFormResponses",
+        "summary": "Get routing form responses",
+        "parameters": [
+          {
+            "name": "routingFormId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetRoutingFormResponsesOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Orgs / Teams / Routing forms / Responses"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams/{teamId}/users/{userId}/schedules": {
       "get": {
         "operationId": "OrganizationsTeamsSchedulesController_getUserSchedules",
@@ -3393,6 +3424,49 @@
         },
         "tags": [
           "Orgs / Webhooks"
+        ]
+      }
+    },
+    "/v2/api-keys/refresh": {
+      "post": {
+        "operationId": "ApiKeysController_refresh",
+        "summary": "Refresh API Key",
+        "description": "Generate a new API key and delete the current one. Provide API key to refresh as a Bearer token in the Authorization header (e.g. \"Authorization: Bearer <apiKey>\").",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "description": "Bearer <apiKey>",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshApiKeyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshApiKeyOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Api Keys"
         ]
       }
     },
@@ -14714,6 +14788,67 @@
             "type": "string"
           }
         }
+      },
+      "RoutingFormResponseOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "formId": {
+            "type": "string"
+          },
+          "formFillerId": {
+            "type": "string"
+          },
+          "routedToBookingUid": {
+            "type": "string"
+          },
+          "response": {
+            "type": "object",
+            "example": {
+              "f00b26df-f54b-4985-8d98-17c5482c6a24": {
+                "label": "participant",
+                "value": "mamut"
+              }
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "formId",
+          "formFillerId",
+          "routedToBookingUid",
+          "response",
+          "createdAt"
+        ]
+      },
+      "GetRoutingFormResponsesOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoutingFormResponseOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "ProviderVerifyClientData": {
         "type": "object",
