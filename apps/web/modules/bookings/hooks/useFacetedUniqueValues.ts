@@ -24,10 +24,12 @@ export function useFacetedUniqueValues() {
         );
       } else if (columnId === "userId") {
         return convertFacetedValuesToMap(
-          (members || []).map((member) => ({
-            label: member.name,
-            value: member.id,
-          }))
+          (members || [])
+            .filter((member) => member.name)
+            .map((member) => ({
+              label: member.name,
+              value: member.id,
+            }))
         );
       }
       return new Map<FacetedValue, number>();
