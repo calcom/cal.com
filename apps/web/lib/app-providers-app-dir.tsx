@@ -1,5 +1,4 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
-import { HydrateClient } from "app/_trpc/HydrateClient";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -281,20 +280,15 @@ const AppProviders = (props: PageWrapperProps) => {
       </CustomI18nextProvider>
     </EventCollectionProvider>
   );
-  const Hydrated = props.dehydratedState ? (
-    <HydrateClient state={props.dehydratedState}>{RemainingProviders}</HydrateClient>
-  ) : (
-    RemainingProviders
-  );
 
   if (isBookingPage) {
-    return Hydrated;
+    return RemainingProviders;
   }
 
   return (
     <>
       <DynamicHelpscoutProvider>
-        <DynamicPostHogProvider>{Hydrated}</DynamicPostHogProvider>
+        <DynamicPostHogProvider>{RemainingProviders}</DynamicPostHogProvider>
       </DynamicHelpscoutProvider>
     </>
   );
