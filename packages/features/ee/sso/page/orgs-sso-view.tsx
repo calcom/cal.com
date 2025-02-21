@@ -14,8 +14,7 @@ const SAMLSSO = () => {
   const { data, status } = useSession();
   const org = data?.user.org;
 
-  if (status === "loading")
-    <SkeletonLoader title={t("sso_saml_heading")} description={t("sso_configuration_description_orgs")} />;
+  if (status === "loading") <SkeletonLoader />;
 
   if (!org) {
     return null;
