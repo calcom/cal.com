@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { randomString } from "@calcom/lib/random";
 import prisma from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 import { test } from "./lib/fixtures";
 import { submitAndWaitForResponse, localize } from "./lib/testUtils";
@@ -417,7 +418,7 @@ test.describe("Out of office", () => {
 
     //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
     await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "3", "member-1");
+    await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
     await expect(
       page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
     ).toBeVisible();
@@ -430,7 +431,7 @@ test.describe("Out of office", () => {
     await addOOOButton.click();
     await reasonListRespPromise;
     await dateButton.click();
-    await selectDateAndCreateOOO(page, "4", "5", "owner");
+    await selectDateAndCreateOOO(page, "4", "5", owner.id);
     await expect(page.locator(`data-testid=table-redirect-${owner.username ?? "n-a"}`).nth(0)).toBeVisible();
   });
 
@@ -461,26 +462,111 @@ test.describe("Out of office", () => {
     const reasonListRespPromise = page.waitForResponse(
       (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
     );
-    await addOOOButton.click();
-    await reasonListRespPromise;
+    await test.step("As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'", async () => {
+      await addOOOButton.click();
+      await reasonListRespPromise;
+      await dateButton.click();
+      await selectDateAndCreateOOO(page, "1", "3", member1User?.id);
+      await expect(
+        page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
+      ).toBeVisible();
+    });
 
-    //As owner,OOO is created on Next month 1st - 3rd, forwarding to 'member-1'
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "1", "3", "member-1");
-    await expect(
-      page.locator(`data-testid=table-redirect-${member1User?.username ?? "n-a"}`).nth(0)
-    ).toBeVisible();
+    await test.step("As member1, expect error while OOO is created on Next month 4th - 5th, forwarding to 'owner'", async () => {
+      await member1User?.apiLogin();
+      await page.goto("/settings/my-account/out-of-office");
+      await page.waitForLoadState("domcontentloaded");
+      await entriesListRespPromise;
+      await addOOOButton.click();
+      await reasonListRespPromise;
+      await dateButton.click();
+      await selectDateAndCreateOOO(page, "2", "5", owner.id, 400);
+      await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
+    });
+  });
 
-    //As member1, expect error while OOO is created on Next month 2nd - 5th, forwarding to 'owner'
-    await member1User?.apiLogin();
-    await page.goto("/settings/my-account/out-of-office");
-    await page.waitForLoadState("domcontentloaded");
-    await entriesListRespPromise;
-    await addOOOButton.click();
-    await reasonListRespPromise;
-    await dateButton.click();
-    await selectDateAndCreateOOO(page, "2", "5", "owner", 400);
-    await expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
+  test.describe("Team OOO", () => {
+    test("Create, edit and delete", async ({ page, users }) => {
+      const t = await localize("en");
+      const teamMatesObj = [{ name: "member-1" }, { name: "member-2" }, { name: "member-3" }];
+      const teamAdmin = await users.create(
+        { name: `team-owner-${Date.now()}` },
+        {
+          hasTeam: true,
+          isOrg: true,
+          teamRole: MembershipRole.ADMIN,
+          teammates: teamMatesObj,
+        }
+      );
+      const member1User = users.get().find((user) => user.name === "member-1");
+      const member2User = users.get().find((user) => user.name === "member-2");
+      const member3User = users.get().find((user) => user.name === "member-3");
+      await teamAdmin.apiLogin();
+
+      const entriesListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeEntriesList") && response.status() === 200
+      );
+      await page.goto("/settings/my-account/out-of-office?type=team");
+      await page.waitForLoadState("domcontentloaded");
+      await entriesListRespPromise;
+
+      const addOOOButton = page.getByTestId("add_entry_ooo");
+      const dateButton = page.locator('[data-testid="date-range"]');
+      const reasonListRespPromise = page.waitForResponse(
+        (response) => response.url().includes("outOfOfficeReasonList?batch=1") && response.status() === 200
+      );
+      const legacyListMembersRespPromise = page.waitForResponse(
+        (response) => response.url().includes("legacyListMembers") && response.status() === 200
+      );
+      await addOOOButton.click();
+      await reasonListRespPromise;
+      await legacyListMembersRespPromise;
+      await legacyListMembersRespPromise;
+
+      await test.step("Admin can create OOO for team member and add redirect", async () => {
+        //OOO is created for 'member-1' on Next month 1st - 3rd, forwarding to 'member-2'
+        await page.getByTestId(`ooofor_username_select_${member1User?.id}`).click();
+        await dateButton.click();
+
+        await selectDateAndCreateOOO(page, "1", "3", member2User?.id, 200, true);
+        await expect(
+          page.locator(`data-testid=table-redirect-${member2User?.username ?? "n-a"}`).nth(0)
+        ).toBeVisible();
+      });
+
+      await test.step("Reverse redirect not allowed for team member", async () => {
+        //Try to create OOO for 'member-2' on Next month 1st - 3rd, forwarding to 'member-1'
+        await page.getByTestId("add_entry_ooo").click();
+        await reasonListRespPromise;
+        await legacyListMembersRespPromise;
+        await legacyListMembersRespPromise;
+
+        await page.getByTestId(`ooofor_username_select_${member2User?.id}`).click();
+        await dateButton.click();
+        await selectDateAndCreateOOO(page, "1", "3", member1User?.id, 400, true);
+        expect(page.locator(`text=${t("booking_redirect_infinite_not_allowed")}`)).toBeTruthy();
+        await page.locator(`text=${t("cancel")}`).click();
+      });
+
+      await test.step("Edit OOO and change redirect member", async () => {
+        //Change redirect member to 'member-3' for OOO created in step 1
+        await page.getByTestId(`ooo-edit-${member2User?.username}`).click();
+        await reasonListRespPromise;
+        await legacyListMembersRespPromise;
+        await legacyListMembersRespPromise;
+
+        await page.getByTestId(`team_username_select_${member3User?.id}`).click();
+        await saveAndWaitForResponse(page);
+        await expect(
+          page.locator(`data-testid=table-redirect-${member3User?.username ?? "n-a"}`).nth(0)
+        ).toBeVisible();
+      });
+
+      await test.step("Delete OOO successfully", async () => {
+        await page.getByTestId(`ooo-delete-${member3User?.username}`).click();
+        expect(page.locator(`text=${t("success_deleted_entry_out_of_office")}`)).toBeTruthy();
+      });
+    });
   });
 });
 
@@ -504,21 +590,28 @@ async function selectDateAndCreateOOO(
   page: Page,
   fromDate: string,
   toDate: string,
-  redirectToUser?: string,
-  expectedStatusCode = 200
+  redirectToUserId?: number,
+  expectedStatusCode = 200,
+  forTeamMember = false,
+  month: "previous-month" | "next-month" = "next-month",
+  editMode = false
 ) {
   const t = await localize("en");
-  await page.locator(`button[name="next-month"]`).click();
+  await page.locator(`button[name="${month}"]`).click();
   await page.locator(`button[name="day"]:text-is("${fromDate}")`).nth(0).click();
   await page.locator(`button[name="day"]:text-is("${toDate}")`).nth(0).click();
-  await page.locator(`text=${t("create_an_out_of_office")}`).click();
+  editMode
+    ? await page.locator(`text=${t("edit_an_out_of_office")}`).click()
+    : forTeamMember
+    ? await page.locator(`text=${t("create_ooo_dialog_team_title")}`).click()
+    : await page.locator(`text=${t("create_an_out_of_office")}`).click();
   await page.getByTestId("reason_select").click();
   await page.getByTestId("select-option-4").click();
   await page.getByTestId("notes_input").click();
   await page.getByTestId("notes_input").fill("Demo notes");
-  if (redirectToUser) {
+  if (redirectToUserId) {
     await page.getByTestId("profile-redirect-switch").click();
-    await page.locator(`text=${redirectToUser}`).click();
+    await page.getByTestId(`team_username_select_${redirectToUserId}`).click();
   }
   await saveAndWaitForResponse(page, expectedStatusCode);
 }
