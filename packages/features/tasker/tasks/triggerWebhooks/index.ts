@@ -27,13 +27,20 @@ const getBooking = async (bookingId: number) => {
   return booking;
 };
 
-const generateWebhookData = async (bookingId: number): Promise<EventPayloadType> => {
+const generateWebhookData = async (
+  bookingId: number,
+  isConfirmedByDefault: boolean
+): Promise<EventPayloadType> => {
   const booking = await prisma.booking.findUniqueOrThrow({
     where: { id: bookingId },
     select: {
       ...bookingMinimalSelect,
       eventType: {
         select: {
+          seatsPerTimeSlot: true,
+          seatsShowAttendees: true,
+          seatsShowAvailabilityCount: true,
+          schedulingType: true,
           currency: true,
           description: true,
           id: true,
@@ -58,6 +65,7 @@ const generateWebhookData = async (bookingId: number): Promise<EventPayloadType>
           },
         },
       },
+      responses: true,
       rescheduled: true,
       fromReschedule: true,
       metadata: true,
@@ -112,6 +120,29 @@ const generateWebhookData = async (bookingId: number): Promise<EventPayloadType>
           members: [],
         }
       : undefined,
+    // responses: booking.responses || null,
+    // attendees: attendeesList,
+    // location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
+    // conferenceCredentialId,
+    // destinationCalendar,
+    // hideCalendarNotes: booking.eventType.hideCalendarNotes,
+    // hideCalendarEventDetails: booking.eventType.hideCalendarEventDetails,
+    // requiresConfirmation: !isConfirmedByDefault,
+    // eventTypeId: booking.eventType?.id,
+    // // if seats are not enabled we should default true
+    // seatsShowAttendees: booking.eventType?.seatsPerTimeSlot ? booking.eventType?.seatsShowAttendees : true,
+    // seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
+    // seatsShowAvailabilityCount: booking.eventType?.seatsPerTimeSlot
+    //   ? booking.eventType?.seatsShowAvailabilityCount
+    //   : true,
+    // schedulingType: booking.eventType?.schedulingType,
+    // iCalUID,
+    // iCalSequence,
+    // platformClientId,
+    // platformRescheduleUrl,
+    // platformCancelUrl,
+    // platformBookingUrl,
+    oneTimePassword: isConfirmedByDefault ? null : undefined,
   };
 
   const eventTypeInfo: EventTypeInfo = {
@@ -142,7 +173,7 @@ export const triggerWebhooks = async (payload: string) => {
 
   const booking = await getBooking(bookingId);
 
-  const webhookData = generateWebhookData(bookingId);
+  const webhookData = generateWebhookData(bookingId, isConfirmedByDefault);
 
   if (isConfirmedByDefault) {
     if (booking && booking.status === BookingStatus.ACCEPTED) {
