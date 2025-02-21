@@ -1,34 +1,30 @@
-import { ApiProperty as DocsProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { Expose } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString, Length } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, Length, ValidateNested } from "class-validator";
 
 export class ManagedOrganizationOutput {
   @IsInt()
   @Expose()
-  @DocsProperty()
+  @ApiProperty()
   readonly id!: number;
 
   @IsString()
   @Length(1)
   @Expose()
-  @DocsProperty()
+  @ApiProperty()
   readonly name!: string;
 
-  @IsString()
-  @Expose()
-  @DocsProperty()
-  readonly slug!: string;
-
   @IsOptional()
-  @IsString()
+  @IsObject()
   @Expose()
-  @ApiPropertyOptional()
-  readonly metadata?: string;
+  @ApiPropertyOptional({ type: Object })
+  @Type(() => Object)
+  readonly metadata?: Record<string, unknown>;
 }
 
 export class ManagedOrganizationWithApiKeyOutput extends ManagedOrganizationOutput {
   @IsString()
   @Expose()
-  @DocsProperty()
+  @ApiProperty()
   readonly apiKey!: string;
 }

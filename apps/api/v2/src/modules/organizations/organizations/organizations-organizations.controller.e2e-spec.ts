@@ -124,27 +124,23 @@ describe("Organizations Organizations Endpoints", () => {
   it("should create managed organization", async () => {
     const suffix = randomString();
 
-    const orgName = `organizations organizations org ${suffix}`;
-    const orgSlug = `organization-organizations-org-created-via-api-${suffix}`;
-    const orgMetadata = JSON.stringify({ key: "value" });
+    const body: CreateOrganizationInput = {
+      name: `organizations organizations org ${suffix}`,
+      metadata: { key: "value" },
+    };
 
     return request(app.getHttpServer())
       .post(`/v2/organizations/${managerOrg.id}/organizations`)
       .set("Authorization", `Bearer ${managerOrgAdminApiKey}`)
-      .send({
-        name: orgName,
-        slug: orgSlug,
-        metadata: orgMetadata,
-      } satisfies CreateOrganizationInput)
+      .send(body)
       .expect(201)
       .then(async (response) => {
         const responseBody: ApiSuccessResponse<ManagedOrganizationWithApiKeyOutput> = response.body;
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         managedOrg = responseBody.data;
         expect(managedOrg?.id).toBeDefined();
-        expect(managedOrg?.name).toEqual(orgName);
-        expect(managedOrg?.slug).toEqual(orgSlug);
-        expect(managedOrg?.metadata).toEqual(orgMetadata);
+        expect(managedOrg?.name).toEqual(body.name);
+        expect(managedOrg?.metadata).toEqual(body.metadata);
         expect(managedOrg?.apiKey).toBeDefined();
 
         // note(Lauris): check that managed organization is correctly setup in database
@@ -241,7 +237,6 @@ describe("Organizations Organizations Endpoints", () => {
         const responseManagedOrg = responseBody.data;
         expect(responseManagedOrg?.id).toBeDefined();
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
-        expect(responseManagedOrg?.slug).toEqual(managedOrg.slug);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
       });
   });
@@ -259,7 +254,6 @@ describe("Organizations Organizations Endpoints", () => {
         const responseManagedOrg = responseManagedOrgs[0];
         expect(responseManagedOrg?.id).toBeDefined();
         expect(responseManagedOrg?.name).toEqual(managedOrg.name);
-        expect(responseManagedOrg?.slug).toEqual(managedOrg.slug);
         expect(responseManagedOrg?.metadata).toEqual(managedOrg.metadata);
       });
   });

@@ -5,7 +5,8 @@ import { OrganizationsMembershipService } from "@/modules/organizations/membersh
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
 export class ManagedOrganizationsService {
@@ -14,7 +15,8 @@ export class ManagedOrganizationsService {
     private readonly organizationsRepository: OrganizationsRepository,
     private readonly managedOrganizationsBillingService: ManagedOrganizationsBillingService,
     private readonly organizationsMembershipService: OrganizationsMembershipService,
-    private readonly apiKeysService: ApiKeysService
+    private readonly apiKeysService: ApiKeysService,
+    private readonly managedOrganizationsOutputService: ManagedOrganizationsOutputService
   ) {}
 
   async createManagedOrganization(
@@ -29,9 +31,16 @@ export class ManagedOrganizationsService {
       );
     }
 
+    const { apiKeyDaysValid, apiKeyNeverExpires, ...organizationData } = organizationInput;
+
     const organization = await this.managedOrganizationsRepository.createManagedOrganization(
       managerOrganizationId,
-      { ...organizationInput, isOrganization: true, isPlatform: true }
+      {
+        ...organizationData,
+        isOrganization: true,
+        isPlatform: true,
+        metadata: JSON.stringify(organizationData.metadata || {}),
+      }
     );
 
     await this.organizationsMembershipService.createOrgMembership(organization.id, {
@@ -46,14 +55,17 @@ export class ManagedOrganizationsService {
     );
 
     const apiKey = await this.apiKeysService.createApiKey(authUserId, {
-      apiKeyDaysValid: organizationInput.apiKeyDaysValid,
-      apiKeyNeverExpires: organizationInput.apiKeyNeverExpires,
+      apiKeyDaysValid,
+      apiKeyNeverExpires,
       note: `Managed organization API key. ManagerOrgId: ${managerOrganizationId}. ManagedOrgId: ${organization.id}`,
       teamId: organization.id,
     });
 
+    const outputOrganization =
+      this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
+
     return {
-      ...organization,
+      ...outputOrganization,
       apiKey,
     };
   }
@@ -68,7 +80,7 @@ export class ManagedOrganizationsService {
     if (!organization) {
       throw new NotFoundException(`Managed organization with id=${managedOrganizationId} does not exist.`);
     }
-    return organization;
+    return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 
   async getManagedOrganizations(managerOrganizationId: number) {
@@ -79,14 +91,19 @@ export class ManagedOrganizationsService {
       (managedOrganization) => managedOrganization.managedOrganizationId
     );
 
-    return await this.organizationsRepository.findByIds(managedOrganizationsIds);
+    const organizations = await this.organizationsRepository.findByIds(managedOrganizationsIds);
+    return organizations.map((organization) =>
+      this.managedOrganizationsOutputService.getOutputManagedOrganization(organization)
+    );
   }
 
   async updateManagedOrganization(managedOrganizationId: number, body: UpdateOrganizationInput) {
-    return await this.organizationsRepository.update(managedOrganizationId, body);
+    const organization = await this.organizationsRepository.update(managedOrganizationId, body);
+    return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 
   async deleteManagedOrganization(managedOrganizationId: number) {
-    return await this.organizationsRepository.delete(managedOrganizationId);
+    const organization = await this.organizationsRepository.delete(managedOrganizationId);
+    return this.managedOrganizationsOutputService.getOutputManagedOrganization(organization);
   }
 }

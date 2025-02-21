@@ -7,6 +7,7 @@ import { OrganizationsMembershipRepository } from "@/modules/organizations/membe
 import { OrganizationsMembershipService } from "@/modules/organizations/memberships/services/organizations-membership.service";
 import { ManagedOrganizationsRepository } from "@/modules/organizations/organizations/managed-organizations.repository";
 import { OrganizationsOrganizationsController } from "@/modules/organizations/organizations/organizations-organizations.controller";
+import { ManagedOrganizationsOutputService } from "@/modules/organizations/organizations/services/managed-organizations-output.service";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
@@ -22,6 +23,7 @@ import { Module } from "@nestjs/common";
     OrganizationsRepository,
     OrganizationsMembershipService,
     OrganizationsMembershipRepository,
+    ManagedOrganizationsOutputService,
   ],
   controllers: [OrganizationsOrganizationsController],
 })

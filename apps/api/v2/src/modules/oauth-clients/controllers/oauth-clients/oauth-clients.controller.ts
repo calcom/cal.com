@@ -29,7 +29,11 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { ApiOperation as DocsOperation, ApiCreatedResponse as DocsCreatedResponse } from "@nestjs/swagger";
+import {
+  ApiOperation as DocsOperation,
+  ApiCreatedResponse as DocsCreatedResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -43,6 +47,7 @@ Second, make sure that the logged in user has organizationId set to pass the Org
   path: "/v2/oauth-clients",
   version: API_VERSIONS_VALUES,
 })
+@ApiTags("OAuth Clients")
 @UseGuards(ApiAuthGuard, OrganizationRolesGuard)
 export class OAuthClientsController {
   private readonly logger = new Logger("OAuthClientController");

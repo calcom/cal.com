@@ -13,10 +13,6 @@ import { UpdateOrganizationInput } from "@/modules/organizations/organizations/i
 import { CreateManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/create-managed-organization.output";
 import { GetManagedOrganizationOutput } from "@/modules/organizations/organizations/outputs/get-managed-organization.output";
 import { GetManagedOrganizationsOutput } from "@/modules/organizations/organizations/outputs/get-managed-organizations.output";
-import {
-  ManagedOrganizationOutput,
-  ManagedOrganizationWithApiKeyOutput,
-} from "@/modules/organizations/organizations/outputs/managed-organization.output";
 import { ManagedOrganizationsService } from "@/modules/organizations/organizations/services/managed-organizations.service";
 import {
   Controller,
@@ -32,7 +28,6 @@ import {
   Delete,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
-import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -64,7 +59,7 @@ export class OrganizationsOrganizationsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationWithApiKeyOutput, organization, { strategy: "excludeAll" }),
+      data: organization,
     };
   }
 
@@ -79,7 +74,7 @@ export class OrganizationsOrganizationsController {
     const organization = await this.managedOrganizationsService.getManagedOrganization(managedOrganizationId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+      data: organization,
     };
   }
 
@@ -90,12 +85,12 @@ export class OrganizationsOrganizationsController {
   async getOrganizations(
     @Param("orgId", ParseIntPipe) managerOrganizationId: number
   ): Promise<GetManagedOrganizationsOutput> {
-    const organization = await this.managedOrganizationsService.getManagedOrganizations(
+    const organizations = await this.managedOrganizationsService.getManagedOrganizations(
       managerOrganizationId
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+      data: organizations,
     };
   }
 
@@ -116,7 +111,7 @@ export class OrganizationsOrganizationsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+      data: organization,
     };
   }
 
@@ -133,7 +128,7 @@ export class OrganizationsOrganizationsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(ManagedOrganizationOutput, organization, { strategy: "excludeAll" }),
+      data: organization,
     };
   }
 }
