@@ -1987,7 +1987,7 @@
   "a_routing_form": "Formulário de roteamento",
   "form_description_placeholder": "Descrição do formulário",
   "keep_me_connected_with_form": "Mantenha minha conexão com o formulário",
-  "fields_in_form_duplicated": "Qualquer alteração no formulário de roteamento e nos campos do formulário a ser duplicado afetará a cópia duplicada.",
+  "fields_in_form_duplicated": "Quaisquer alterações feitas no roteador ou nos campos do formulário que está sendo duplicado serão refletidas na cópia. No entanto, excluir um campo não o removerá da cópia.",
   "form_deleted": "Formulário excluído",
   "delete_form": "Tem certeza de que deseja excluir este formulário?",
   "delete_form_action": "Sim, excluir formulário",

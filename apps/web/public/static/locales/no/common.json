@@ -1987,7 +1987,7 @@
   "a_routing_form": "Et rutingsskjema",
   "form_description_placeholder": "Skjema beskrivelse",
   "keep_me_connected_with_form": "Hold meg tilkoblet med skjemaet",
-  "fields_in_form_duplicated": "Eventuelle endringer i Router og feltene i skjemaet som blir duplisert, vil gjenspeiles i duplikatet.",
+  "fields_in_form_duplicated": "Eventuelle endringer gjort i ruteren eller feltene i skjemaet som blir duplisert, vil gjenspeiles i duplikatet. Imidlertid vil sletting av et felt ikke fjerne det fra duplikatet.",
   "form_deleted": "Skjema slettet",
   "delete_form": "Er du sikker på at du vil slette dette skjemaet?",
   "delete_form_action": "Ja, slett skjema",
