@@ -161,7 +161,12 @@ const BookerComponent = ({
     }
   };
 
-  const skipConfirmStep = useSkipConfirmStep(bookingForm, bookerState, event?.data?.bookingFields);
+  const skipConfirmStep = useSkipConfirmStep(
+    bookingForm,
+    bookerState,
+    isInstantMeeting,
+    event?.data?.bookingFields
+  );
 
   // Cloudflare Turnstile Captcha
   const shouldRenderCaptcha = !!(
@@ -176,7 +181,7 @@ const BookerComponent = ({
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
     if (!selectedTimeslot) return setBookerState("selecting_time");
-    if (selectedTimeslot && skipConfirmStep) return setBookerState("selecting_time");
+    if (selectedTimeslot && skipConfirmStep && !isInstantMeeting) return setBookerState("selecting_time");
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState, skipConfirmStep]);
 
@@ -211,23 +216,39 @@ const BookerComponent = ({
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
         isVerificationCodeSending={isVerificationCodeSending}
-        isPlatform={isPlatform}
-      />
+        isPlatform={isPlatform}>
+        <>
+          {!isPlatform && (
+            <RedirectToInstantMeetingModal
+              expiryTime={expiryTime}
+              bookingId={parseInt(getQueryParam("bookingId") || "0")}
+              instantVideoMeetingUrl={instantVideoMeetingUrl}
+              onGoBack={() => {
+                onGoBackInstantMeeting();
+              }}
+              orgName={event.data?.entity?.name}
+            />
+          )}
+        </>
+      </BookEventForm>
     ) : (
       <></>
     );
   }, [
     bookerFormErrorRef,
+    instantVideoMeetingUrl,
     bookerState,
     bookingForm,
     errors,
     event,
+    expiryTime,
     extraOptions,
     formErrors,
     handleBookEvent,
     handleVerifyEmail,
     key,
     loadingStates,
+    onGoBackInstantMeeting,
     renderConfirmNotVerifyEmailButtonCond,
     rescheduleUid,
     seatedEventData,
@@ -508,17 +529,6 @@ const BookerComponent = ({
           />
         ) : (
           <></>
-        )}
-        {!isPlatform && (
-          <RedirectToInstantMeetingModal
-            expiryTime={expiryTime}
-            bookingId={parseInt(getQueryParam("bookingId") || "0")}
-            instantVideoMeetingUrl={instantVideoMeetingUrl}
-            onGoBack={() => {
-              onGoBackInstantMeeting();
-            }}
-            orgName={event.data?.entity?.name}
-          />
         )}
       </>
 

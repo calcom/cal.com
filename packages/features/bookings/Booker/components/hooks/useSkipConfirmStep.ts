@@ -10,6 +10,7 @@ import type { BookerState } from "../../types";
 const useSkipConfirmStep = (
   bookingForm: UseBookingFormReturnType["bookingForm"],
   bookerState: BookerState,
+  isInstantMeeting: boolean,
   bookingFields?: BookerEvent["bookingFields"]
 ) => {
   const bookingFormValues = bookingForm.getValues();
@@ -37,7 +38,7 @@ const useSkipConfirmStep = (
       }
     };
 
-    bookerState === "selecting_time" && checkSkipStep();
+    bookerState === "selecting_time" && !isInstantMeeting && checkSkipStep();
   }, [bookingFormValues, bookingFields, rescheduleUid, bookerState]);
 
   return canSkip;
