@@ -297,16 +297,15 @@ export function AddMembersWithSwitch({
     case AssignmentState.TEAM_MEMBERS_IN_SEGMENT_ENABLED:
       return (
         <>
-          <AssignAllTeamMembers
-            assignAllTeamMembers={assignAllTeamMembers}
-            setAssignAllTeamMembers={setAssignAllTeamMembers}
-            onActive={() => {
-              onActive();
-            }}
-            onInactive={onAssignAllTeamMembersInactive}
-            customClassNames={customClassNames?.assingAllTeamMembers}
-          />
-
+          {!isFixed && (
+            <AssignAllTeamMembers
+              assignAllTeamMembers={assignAllTeamMembers}
+              setAssignAllTeamMembers={setAssignAllTeamMembers}
+              onActive={onActive}
+              onInactive={onAssignAllTeamMembersInactive}
+              customClassNames={customClassNames?.assingAllTeamMembers}
+            />
+          )}
           {assignmentState !== AssignmentState.ALL_TEAM_MEMBERS_ENABLED_AND_SEGMENT_NOT_APPLICABLE && (
             <div className="mt-2">
               <MembersSegmentWithToggle
