@@ -4,7 +4,7 @@ import { formatNumberByLocale } from "./TextField";
 import { getRawValue } from "./TextField";
 
 describe("formatNumberByLocale", () => {
-  it("should format numbers correctly for en-US locale", () => {
+  it("should format numbers correctly for en locale", () => {
     expect(formatNumberByLocale("1234567", "en")).toBe("1,234,567");
     expect(formatNumberByLocale("1000", "en")).toBe("1,000");
     expect(formatNumberByLocale("100", "en")).toBe("100");
