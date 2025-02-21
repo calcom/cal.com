@@ -1987,7 +1987,7 @@
   "a_routing_form": "ルーティングフォーム",
   "form_description_placeholder": "フォームの説明",
   "keep_me_connected_with_form": "フォームに接続したままにする",
-  "fields_in_form_duplicated": "ルーティングフォームとフォームフィールドの変更内容は複製され、複製に反映されます。",
+  "fields_in_form_duplicated": "複製されるフォームのルーターやフィールドに加えられた変更は、複製にも反映されます。ただし、フィールドを削除しても、複製からは削除されません。",
   "form_deleted": "フォームを削除しました",
   "delete_form": "このフォームを削除してもよろしいですか？",
   "delete_form_action": "はい。フォームを削除します",

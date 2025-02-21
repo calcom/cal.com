@@ -1987,7 +1987,7 @@
   "a_routing_form": "Un formulari de redirecció",
   "form_description_placeholder": "Descripció del formulari",
   "keep_me_connected_with_form": "Mantén-me connectat amb el formulari",
-  "fields_in_form_duplicated": "Qualsevol canvi en el router i els camps del formulari que s'està duplicant es reflectirà en el duplicat.",
+  "fields_in_form_duplicated": "Qualsevol canvi fet al router o als camps del formulari que s'està duplicant es reflectirà en el duplicat. No obstant això, eliminar un camp no l'eliminarà del duplicat.",
   "form_deleted": "Formulari eliminat",
   "delete_form": "Estàs segur que vols eliminar aquest formulari?",
   "delete_form_action": "Sí, elimina el formulari",
