@@ -80,6 +80,9 @@ interface GetLuckyUserParams<T extends PartialUser> {
 // === dayjs.utc().startOf("month").toDate();
 const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
+const startOfToday = () =>
+  new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
 
@@ -143,13 +146,13 @@ function leastRecentlyBookedUser<T extends PartialUser>({
 
 function getHostsWithCalibration({
   hosts,
-  allRRHostsBookingsOfThisMonth,
-  allRRHostsCreatedThisMonth,
+  allRRHostsBookingsOfInterval,
+  allRRHostsCreatedInInterval,
   oooData,
 }: {
   hosts: { userId: number; email: string; createdAt: Date }[];
-  allRRHostsBookingsOfThisMonth: PartialBooking[];
-  allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
+  allRRHostsBookingsOfInterval: PartialBooking[];
+  allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
   oooData: OOODataType;
 }) {
   // Helper function to calculate calibration for a new host
@@ -177,7 +180,7 @@ function getHostsWithCalibration({
     return calibration;
   }
 
-  const existingBookings = allRRHostsBookingsOfThisMonth;
+  const existingBookings = allRRHostsBookingsOfInterval;
 
   const oooCalibration = new Map<number, number>();
 
@@ -208,10 +211,10 @@ function getHostsWithCalibration({
     }
   > = new Map();
 
-  if (allRRHostsCreatedThisMonth.length && existingBookings.length) {
+  if (allRRHostsCreatedInInterval.length && existingBookings.length) {
     // Calculate calibration for each new host and store in a Map
     newHostsWithCalibration = new Map(
-      allRRHostsCreatedThisMonth.map((newHost) => [
+      allRRHostsCreatedInInterval.map((newHost) => [
         newHost.userId,
         { ...newHost, calibration: calculateNewHostCalibration(newHost) },
       ])
@@ -256,24 +259,24 @@ function filterUsersBasedOnWeights<
   }
 >({
   availableUsers,
-  currentMonthBookingsOfAvailableUsers,
-  bookingsOfNotAvailableUsersOfThisMonth,
+  bookingsOfAvailableUsersOfInterval,
+  bookingsOfNotAvailableUsersOfInterval,
   allRRHosts,
-  allRRHostsBookingsOfThisMonth,
-  allRRHostsCreatedThisMonth,
+  allRRHostsBookingsOfInterval,
+  allRRHostsCreatedInInterval,
   attributeWeights,
   oooData,
 }: GetLuckyUserParams<T> & FetchedData) {
   //get all bookings of all other RR hosts that are not available
 
-  const allBookings = currentMonthBookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsersOfThisMonth);
+  const allBookings = bookingsOfAvailableUsersOfInterval.concat(bookingsOfNotAvailableUsersOfInterval);
 
   const allHostsWithCalibration = getHostsWithCalibration({
     hosts: allRRHosts.map((host) => {
       return { email: host.user.email, userId: host.user.id, createdAt: host.createdAt };
     }),
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     oooData,
   });
 
@@ -304,7 +307,7 @@ function filterUsersBasedOnWeights<
       userWeight = attributeWeights.find((userWeight) => userWeight.userId === user.id)?.weight ?? 100;
     }
     const targetPercentage = userWeight / totalWeight;
-    const userBookings = currentMonthBookingsOfAvailableUsers.filter(
+    const userBookings = bookingsOfAvailableUsersOfInterval.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
@@ -377,7 +380,7 @@ function filterUsersBasedOnWeights<
   };
 }
 
-async function getCurrentMonthCalendarBusyTimes(
+async function getCalendarBusyTimesOfInterval(
   usersWithCredentials: {
     id: number;
     email: string;
@@ -401,7 +404,7 @@ async function getCurrentMonthCalendarBusyTimes(
   );
 }
 
-async function getCurrentMonthsBookings({
+async function getBookingsOfInterval({
   eventTypeId,
   users,
   virtualQueuesData,
@@ -426,10 +429,10 @@ export async function getLuckyUser<
   }
 >(getLuckyUserParams: GetLuckyUserParams<T>) {
   const {
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
@@ -438,10 +441,10 @@ export async function getLuckyUser<
 
   const { luckyUser } = getLuckyUser_requiresDataToBePreFetched({
     ...getLuckyUserParams,
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
@@ -452,10 +455,10 @@ export async function getLuckyUser<
 }
 
 type FetchedData = {
-  bookingsOfNotAvailableUsersOfThisMonth: PartialBooking[];
-  currentMonthBookingsOfAvailableUsers: PartialBooking[];
-  allRRHostsBookingsOfThisMonth: PartialBooking[];
-  allRRHostsCreatedThisMonth: { userId: number; createdAt: Date }[];
+  bookingsOfNotAvailableUsersOfInterval: PartialBooking[];
+  bookingsOfAvailableUsersOfInterval: PartialBooking[];
+  allRRHostsBookingsOfInterval: PartialBooking[];
+  allRRHostsCreatedInInterval: { userId: number; createdAt: Date }[];
   organizersWithLastCreated: { id: number; bookings: { createdAt: Date }[] }[];
   attributeWeights?:
     | {
@@ -475,10 +478,10 @@ export function getLuckyUser_requiresDataToBePreFetched<
 >({ availableUsers, ...getLuckyUserParams }: GetLuckyUserParams<T> & FetchedData) {
   const {
     eventType,
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     organizersWithLastCreated,
     oooData,
   } = getLuckyUserParams;
@@ -501,10 +504,10 @@ export function getLuckyUser_requiresDataToBePreFetched<
     } = filterUsersBasedOnWeights({
       ...getLuckyUserParams,
       availableUsers,
-      currentMonthBookingsOfAvailableUsers,
-      bookingsOfNotAvailableUsersOfThisMonth,
-      allRRHostsBookingsOfThisMonth,
-      allRRHostsCreatedThisMonth,
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
       oooData,
     });
     availableUsers = remainingUsersAfterWeightFilter;
@@ -524,7 +527,7 @@ export function getLuckyUser_requiresDataToBePreFetched<
     luckyUser: leastRecentlyBookedUser({
       ...getLuckyUserParams,
       availableUsers: highestPriorityUsers,
-      bookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers,
+      bookingsOfAvailableUsers: bookingsOfAvailableUsersOfInterval,
       organizersWithLastCreated,
     }),
     usersAndTheirBookingShortfalls,
@@ -572,15 +575,15 @@ async function fetchAllDataNeededForCalculations<
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
   const [
-    currentMonthUserBusyTimes,
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
-    organizersWithLastCreated,
+    userBusyTimesOfInterval, //todo
+    bookingsOfAvailableUsersOfInterval, //todo
+    bookingsOfNotAvailableUsersOfInterval, //todo
+    allRRHostsBookingsOfInterval, //todo
+    allRRHostsCreatedInInterval, //todo
+    organizersWithLastCreated, //todo
   ] = await Promise.all([
-    getCurrentMonthCalendarBusyTimes(allRRHosts.map((host) => host.user)),
-    getCurrentMonthsBookings({
+    getCalendarBusyTimesOfInterval(allRRHosts.map((host) => host.user)),
+    getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: availableUsers.map((user) => {
         return { id: user.id, email: user.email };
@@ -588,13 +591,13 @@ async function fetchAllDataNeededForCalculations<
       virtualQueuesData: virtualQueuesData ?? null,
     }),
 
-    getCurrentMonthsBookings({
+    getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: notAvailableHosts,
       virtualQueuesData: virtualQueuesData ?? null,
     }),
 
-    getCurrentMonthsBookings({
+    getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: allRRHosts.map((host) => {
         return { id: host.user.id, email: host.user.email };
@@ -657,7 +660,7 @@ async function fetchAllDataNeededForCalculations<
 
   const userFullDayBusyTimes = new Map<number, { start: Date; end: Date }[]>();
 
-  currentMonthUserBusyTimes.forEach((userBusyTime) => {
+  userBusyTimesOfInterval.forEach((userBusyTime) => {
     const fullDayBusyTimes = userBusyTime.busyTimes
       .filter((busyTime) => {
         //timeZone is always defined when calling getBusyCalendarTimes with includeTimeZone true
@@ -725,10 +728,10 @@ async function fetchAllDataNeededForCalculations<
   log.debug(
     "fetchAllDataNeededForCalculations",
     safeStringify({
-      currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfAvailableUsers.length,
-      bookingsOfNotAvailableUsersOfThisMonth: bookingsOfNotAvailableUsersOfThisMonth.length,
-      allRRHostsBookingsOfThisMonth: allRRHostsBookingsOfThisMonth.length,
-      allRRHostsCreatedThisMonth: allRRHostsCreatedThisMonth.length,
+      bookingsOfAvailableUsersOfInterval: bookingsOfAvailableUsersOfInterval.length,
+      bookingsOfNotAvailableUsersOfInterval: bookingsOfNotAvailableUsersOfInterval.length,
+      allRRHostsBookingsOfInterval: allRRHostsBookingsOfInterval.length,
+      allRRHostsCreatedInInterval: allRRHostsCreatedInInterval.length,
       virtualQueuesData,
       attributeWeights,
       oooData,
@@ -736,10 +739,10 @@ async function fetchAllDataNeededForCalculations<
   );
 
   return {
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
@@ -758,10 +761,10 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
   const { availableUsers, eventType } = getLuckyUserParams;
 
   const {
-    currentMonthBookingsOfAvailableUsers,
-    bookingsOfNotAvailableUsersOfThisMonth,
-    allRRHostsBookingsOfThisMonth,
-    allRRHostsCreatedThisMonth,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
     organizersWithLastCreated,
     attributeWeights,
     virtualQueuesData,
@@ -774,16 +777,16 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
       availableUsers: availableUsers.map((user) => {
         return { id: user.id, email: user.email, priority: user.priority, weight: user.weight };
       }),
-      currentMonthBookingsOfAvailableUsers,
-      bookingsOfNotAvailableUsersOfThisMonth,
-      allRRHostsBookingsOfThisMonth,
-      allRRHostsCreatedThisMonth,
+      bookingsOfAvailableUsersOfInterval,
+      bookingsOfNotAvailableUsersOfInterval,
+      allRRHostsBookingsOfInterval,
+      allRRHostsCreatedInInterval,
       organizersWithLastCreated,
     })
   );
 
   let remainingAvailableUsers = [...availableUsers];
-  let currentMonthBookingsOfRemainingAvailableUsers = [...currentMonthBookingsOfAvailableUsers];
+  let bookingsOfRemainingAvailableUsersOfInterval = [...bookingsOfAvailableUsersOfInterval];
   const orderedUsersSet = new Set<AvailableUser>();
   const perUserBookingsCount: Record<number, number> = {};
 
@@ -801,10 +804,10 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
         ...getLuckyUserParams,
         eventType,
         availableUsers: remainingAvailableUsers as [AvailableUser, ...AvailableUser[]],
-        currentMonthBookingsOfAvailableUsers: currentMonthBookingsOfRemainingAvailableUsers,
-        bookingsOfNotAvailableUsersOfThisMonth,
-        allRRHostsBookingsOfThisMonth,
-        allRRHostsCreatedThisMonth,
+        bookingsOfAvailableUsersOfInterval: bookingsOfRemainingAvailableUsersOfInterval,
+        bookingsOfNotAvailableUsersOfInterval,
+        allRRHostsBookingsOfInterval,
+        allRRHostsCreatedInInterval,
         organizersWithLastCreated,
         attributeWeights,
         virtualQueuesData,
@@ -824,11 +827,11 @@ export async function getOrderedListOfLuckyUsers<AvailableUser extends Available
     }
 
     orderedUsersSet.add(luckyUser);
-    perUserBookingsCount[luckyUser.id] = currentMonthBookingsOfAvailableUsers.filter(
+    perUserBookingsCount[luckyUser.id] = bookingsOfAvailableUsersOfInterval.filter(
       (booking) => booking.userId === luckyUser.id
     ).length;
     remainingAvailableUsers = remainingAvailableUsers.filter((user) => user.id !== luckyUser.id);
-    currentMonthBookingsOfRemainingAvailableUsers = currentMonthBookingsOfRemainingAvailableUsers.filter(
+    bookingsOfRemainingAvailableUsersOfInterval = bookingsOfRemainingAvailableUsersOfInterval.filter(
       (booking) => remainingAvailableUsers.map((user) => user.id).includes(booking.userId ?? 0)
     );
   }
