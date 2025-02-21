@@ -20,7 +20,7 @@ export class OrganizationRolesGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user: UserWithProfile = request.user;
-    const organizationId = user ? this.usersService.getUserMainOrgId(user) : null;
+    const organizationId = this.getOrganizationId(context);
 
     if (!user || !organizationId) {
       throw new ForbiddenException("No organization associated with the user.");
@@ -42,6 +42,16 @@ export class OrganizationRolesGuard implements CanActivate {
     if (!isPlatform) {
       throw new ForbiddenException("Organization is not a platform (SHP).");
     }
+  }
+
+  getOrganizationId(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest();
+    const user: UserWithProfile = request.user;
+    const authMethodOrganizationId = request.organizationId;
+    if (authMethodOrganizationId) return authMethodOrganizationId;
+
+    const userOrganizationId = user ? this.usersService.getUserMainOrgId(user) : null;
+    return userOrganizationId;
   }
 
   isMembershipAccepted(accepted: boolean) {

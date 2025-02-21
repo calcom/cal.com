@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { getEnv } from "@/env";
 import { hashAPIKey, stripApiKey } from "@/lib/api-key";
 import { RefreshApiKeyOutput } from "@/modules/api-keys/outputs/refresh-api-key.output";
+import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { CreateOrganizationInput } from "@/modules/organizations/organizations/inputs/create-managed-organization.input";
 import { UpdateOrganizationInput } from "@/modules/organizations/organizations/inputs/update-managed-organization.input";
 import {
@@ -23,13 +24,15 @@ import { ApiKeysRepositoryFixture } from "test/fixtures/repository/api-keys.repo
 import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { ManagedOrganizationsRepositoryFixture } from "test/fixtures/repository/managed-organizations.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { randomString } from "test/utils/randomString";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import { ApiSuccessResponse, CreateOAuthClientInput } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Organizations Endpoints", () => {
@@ -42,6 +45,8 @@ describe("Organizations Organizations Endpoints", () => {
   let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
   let managedOrganizationsRepositoryFixture: ManagedOrganizationsRepositoryFixture;
   let apiKeysRepositoryFixture: ApiKeysRepositoryFixture;
+  let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
+  let profilesRepositoryFixture: ProfileRepositoryFixture;
 
   let managerOrg: Team;
   let managedOrg: ManagedOrganizationWithApiKeyOutput;
@@ -66,6 +71,8 @@ describe("Organizations Organizations Endpoints", () => {
     platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
     managedOrganizationsRepositoryFixture = new ManagedOrganizationsRepositoryFixture(moduleRef);
     apiKeysRepositoryFixture = new ApiKeysRepositoryFixture(moduleRef);
+    oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+    profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
     managerOrgAdmin = await userRepositoryFixture.create({
       email: managerOrgAdminEmail,
@@ -78,12 +85,21 @@ describe("Organizations Organizations Endpoints", () => {
       isPlatform: true,
     });
 
+    await profilesRepositoryFixture.create({
+      uid: "asd-asd",
+      username: managerOrgAdminEmail,
+      user: { connect: { id: managerOrgAdmin.id } },
+      organization: { connect: { id: managerOrg.id } },
+      movedFromUser: { connect: { id: managerOrgAdmin.id } },
+    });
+
     managerOrgBilling = await platformBillingRepositoryFixture.create(managerOrg.id, "SCALE");
 
     await membershipsRepositoryFixture.create({
       role: "ADMIN",
       user: { connect: { id: managerOrgAdmin.id } },
       team: { connect: { id: managerOrg.id } },
+      accepted: true,
     });
 
     const { keyString } = await apiKeysRepositoryFixture.createApiKey(
@@ -302,6 +318,38 @@ describe("Organizations Organizations Endpoints", () => {
           `Managed organization API key. ManagerOrgId: ${managerOrg.id}. ManagedOrgId: ${managedOrg.id}`
         );
         managedOrgApiKey = newApiKey;
+      });
+  });
+
+  it("should create OAuth client for managed organization", async () => {
+    const body: CreateOAuthClientInput = {
+      name: "OAuth client for managed organization",
+      redirectUris: ["http://localhost:4321"],
+      permissions: 64,
+    };
+
+    return request(app.getHttpServer())
+      .post(`/v2/oauth-clients`)
+      .send(body)
+      .set("Authorization", `Bearer ${managedOrgApiKey}`)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: CreateOAuthClientResponseDto = response.body;
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        const responseData = responseBody.data;
+        const clientId = responseData?.clientId;
+        const clientSecret = responseData?.clientSecret;
+        expect(clientId).toBeDefined();
+        expect(clientSecret).toBeDefined();
+
+        const managedOrgOAuthClients = await oAuthClientsRepositoryFixture.getByOrgId(managedOrg.id);
+        expect(managedOrgOAuthClients?.length).toEqual(1);
+        expect(managedOrgOAuthClients?.[0]?.id).toBeDefined();
+        expect(managedOrgOAuthClients?.[0]?.id).toEqual(clientId);
+        expect(managedOrgOAuthClients?.[0]?.secret).toEqual(clientSecret);
+        expect(managedOrgOAuthClients?.[0]?.name).toEqual(body.name);
+        expect(managedOrgOAuthClients?.[0]?.redirectUris).toEqual(body.redirectUris);
+        expect(managedOrgOAuthClients?.[0]?.permissions).toEqual(body.permissions);
       });
   });
 
