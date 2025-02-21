@@ -1987,7 +1987,7 @@
   "a_routing_form": "Smerovací formulár",
   "form_description_placeholder": "Popis formulára",
   "keep_me_connected_with_form": "Zostať pripojený k formuláru",
-  "fields_in_form_duplicated": "Akékoľvek zmeny v smerovaní a poliach duplikovaného formulára sa prejavia v kópii.",
+  "fields_in_form_duplicated": "Akékoľvek zmeny vykonané v smerovači alebo poliach formulára, ktorý sa duplikuje, sa prejavia v duplikáte. Avšak odstránenie poľa neodstráni toto pole z duplikátu.",
   "form_deleted": "Formulár bol vymazaný",
   "delete_form": "Naozaj chcete vymazať tento formulár?",
   "delete_form_action": "Áno, vymazať formulár",

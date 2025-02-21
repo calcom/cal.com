@@ -1987,7 +1987,7 @@
   "a_routing_form": "Un formulaire de routage",
   "form_description_placeholder": "Description du formulaire",
   "keep_me_connected_with_form": "Rester connecté avec le formulaire",
-  "fields_in_form_duplicated": "Toute modification du routeur et des champs du formulaire dupliqué se répercutera dans la duplication.",
+  "fields_in_form_duplicated": "Toute modification apportée au routeur ou aux champs du formulaire en cours de duplication sera reflétée dans le duplicata. Cependant, la suppression d'un champ ne l'enlèvera pas du duplicata.",
   "form_deleted": "Formulaire supprimé",
   "delete_form": "Voulez-vous vraiment supprimer ce formulaire ?",
   "delete_form_action": "Oui, supprimer le formulaire",

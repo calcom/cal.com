@@ -1987,7 +1987,7 @@
   "a_routing_form": "Směrovací formulář",
   "form_description_placeholder": "Popis formuláře",
   "keep_me_connected_with_form": "Udržujte se mnou spojení pomocí formuláře",
-  "fields_in_form_duplicated": "Veškeré změny ve směrování a polích duplikovaného formuláře se promítnou v duplicitě.",
+  "fields_in_form_duplicated": "Jakékoli změny provedené ve směrovači nebo polích formuláře, který je duplikován, se projeví v duplikátu. Smazání pole však neodstraní toto pole z duplikátu.",
   "form_deleted": "Formulář odstraněn",
   "delete_form": "Opravdu chcete tento formulář odstranit?",
   "delete_form_action": "Ano, odstranit formulář",
