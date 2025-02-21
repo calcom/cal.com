@@ -5,7 +5,7 @@ import { headers, cookies } from "next/headers";
 
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 
-import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+import { buildLegacyCtx, decodeParams } from "@lib/buildLegacyCtx";
 
 import { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
 
@@ -31,12 +31,14 @@ export const generateMetadata = async ({ params, searchParams }: PageProps) => {
       })),
     ],
   };
+  const decodedParams = decodeParams(params);
   const metadata = await generateMeetingMetadata(
     meeting,
     (t) => `${rescheduleUid && !!booking ? t("reschedule") : ""} ${title} | ${profileName}`,
     (t) => `${rescheduleUid ? t("reschedule") : ""} ${title}`,
     isBrandingHidden,
-    getOrgFullOrigin(eventData?.entity.orgSlug ?? null)
+    getOrgFullOrigin(eventData?.entity.orgSlug ?? null),
+    `/${decodedParams.user}/${decodedParams.type}`
   );
 
   return {
