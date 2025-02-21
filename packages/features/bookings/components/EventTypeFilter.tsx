@@ -51,7 +51,7 @@ export const EventTypeFilter = () => {
       (item) => item?.team?.name || ""
     ); // Add the team name
     const individualEvents = data.filter((el) => !el.team);
-    // push indivdual events to the start of grouped array
+    // push individual events to the start of grouped array
     return individualEvents.length > 0 ? { user_own_event_types: individualEvents, ...grouped } : grouped;
   }, [eventTypes.data]);
 

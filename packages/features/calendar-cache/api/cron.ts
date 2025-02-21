@@ -91,7 +91,7 @@ const handleCalendarsToWatch = async () => {
   return result;
 };
 
-// This cron is used to activate and renew calendar subcriptions
+// This cron is used to activate and renew calendar subscriptions
 const handler = defaultResponder(async (request: NextApiRequest) => {
   validateRequest(request);
   await Promise.allSettled([handleCalendarsToWatch(), handleCalendarsToUnwatch()]);

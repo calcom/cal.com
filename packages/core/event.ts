@@ -81,21 +81,25 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   });
 
   customInputvariables?.forEach((variable) => {
-    if (eventNameObj.bookingFields) {
-      Object.keys(eventNameObj.bookingFields).forEach((bookingField) => {
-        if (variable === bookingField) {
-          let fieldValue;
-          if (eventNameObj.bookingFields) {
-            const field = eventNameObj.bookingFields[bookingField as keyof typeof eventNameObj.bookingFields];
-            if (field && typeof field === "object" && "value" in field) {
-              fieldValue = field?.value?.toString();
-            } else {
-              fieldValue = field?.toString();
-            }
-          }
-          dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
+    if (!eventNameObj.bookingFields) return;
+
+    const bookingFieldValue = eventNameObj.bookingFields[variable as keyof typeof eventNameObj.bookingFields];
+
+    if (bookingFieldValue) {
+      let fieldValue;
+
+      if (typeof bookingFieldValue === "object") {
+        if ("value" in bookingFieldValue) {
+          fieldValue = bookingFieldValue.value?.toString();
+        } else if (variable === "name" && "firstName" in bookingFieldValue) {
+          const lastName = "lastName" in bookingFieldValue ? bookingFieldValue.lastName : "";
+          fieldValue = `${bookingFieldValue.firstName} ${lastName}`.trim();
         }
-      });
+      } else {
+        fieldValue = bookingFieldValue.toString();
+      }
+
+      dynamicEventName = dynamicEventName.replace(`{${variable}}`, fieldValue || "");
     }
   });
 

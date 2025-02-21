@@ -546,4 +546,4 @@ export const Components: Record<FieldType, Component> = {
     },
   },
 } as const;
-// Should use `statisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config
+// Should use `satisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config
