@@ -1987,7 +1987,7 @@
   "a_routing_form": "A Routing Form",
   "form_description_placeholder": "Form Description",
   "keep_me_connected_with_form": "Keep me connected with the form",
-  "fields_in_form_duplicated": "Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate.",
+  "fields_in_form_duplicated": "Any changes made to the router or fields of the form being duplicated will be reflected in the duplicate. However, deleting a field will not remove it from the duplicate.",
   "form_deleted": "Form deleted",
   "delete_form": "Are you sure you want to delete this form?",
   "delete_form_action": "Yes, delete Form",
