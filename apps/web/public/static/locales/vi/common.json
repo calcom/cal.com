@@ -1987,7 +1987,7 @@
   "a_routing_form": "Một biểu mẫu định hướng",
   "form_description_placeholder": "Mô tả biểu mẫu",
   "keep_me_connected_with_form": "Duy trì trạng thái kết nối của tôi với biểu mẫu",
-  "fields_in_form_duplicated": "Mọi thay đổi trong Định hướng và Trường của biểu mẫu được sao chép đều sẽ được thể hiện trong bản sao.",
+  "fields_in_form_duplicated": "Bất kỳ thay đổi nào được thực hiện đối với bộ định tuyến hoặc các trường của biểu mẫu đang được sao chép sẽ được phản ánh trong bản sao. Tuy nhiên, việc xóa một trường sẽ không loại bỏ nó khỏi bản sao.",
   "form_deleted": "Biểu mẫu đã xoá",
   "delete_form": "Bạn có chắc bạn muốn xóa biểu mẫu này?",
   "delete_form_action": "Có, xoá Biểu mẫu",

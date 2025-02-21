@@ -1987,7 +1987,7 @@
   "a_routing_form": "Een routeringsformulier",
   "form_description_placeholder": "Formulierbeschrijving",
   "keep_me_connected_with_form": "Houd me verbonden met het formulier",
-  "fields_in_form_duplicated": "Wijzigingen in router en velden van het formulier die worden gedupliceerd, worden in het duplicaat verwerkt.",
+  "fields_in_form_duplicated": "Alle wijzigingen die worden aangebracht in de router of velden van het formulier dat wordt gedupliceerd, worden weergegeven in het duplicaat. Het verwijderen van een veld zal het echter niet uit het duplicaat verwijderen.",
   "form_deleted": "Formulier verwijderd",
   "delete_form": "Weet u zeker dat u dit formulier wilt verwijderen?",
   "delete_form_action": "Ja, verwijder het formulier",
