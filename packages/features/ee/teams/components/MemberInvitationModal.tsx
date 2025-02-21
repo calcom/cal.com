@@ -433,8 +433,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     }
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
+                  StartIcon="link"
                   data-testid="copy-invite-link-button">
-                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
