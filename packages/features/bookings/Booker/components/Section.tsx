@@ -38,7 +38,7 @@ const gridAreaClassNameMap: { [key in BookerAreas]: string } = {
 };
 
 /**
- * Small helper compnent that renders a booker section in a specific grid area.
+ * Small helper component that renders a booker section in a specific grid area.
  */
 export const BookerSection = forwardRef<HTMLDivElement, BookerSectionProps>(function BookerSection(
   { children, area, visible, className, ...props },

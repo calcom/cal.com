@@ -201,7 +201,10 @@ export default function RoutingForms({
                 SkeletonLoader={SkeletonLoaderTeamList}>
                 <div className="bg-default mb-16 overflow-hidden">
                   <List data-testid="routing-forms-list" ref={parent}>
-                    {forms?.map(({ form, readOnly }, index) => {
+                    {forms?.map(({ form, readOnly, hasError }, index) => {
+                      // Make the form read only if it has an error
+                      // TODO: Consider showing error in UI so user can report and get it fixed.
+                      readOnly = readOnly || hasError;
                       if (!form) {
                         return null;
                       }

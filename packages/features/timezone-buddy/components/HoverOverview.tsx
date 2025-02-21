@@ -140,7 +140,7 @@ export function HoverOverview() {
   );
 
   return (
-    <div ref={el} className="absoulte inset-0 w-full">
+    <div ref={el} className="absolute inset-0 w-full">
       <div className="bg-default/80 absolute" style={leftWhiteout} />
       <div className="bg-default/80 absolute" style={rightWhiteout} />
       <div className="border-emphasis border border-dashed" style={position} />
