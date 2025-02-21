@@ -88,7 +88,11 @@ export const DateRangeFilter = ({ column, showClearButton = false }: DateRangeFi
   const [endDate, setEndDate] = useState<Dayjs | undefined>(
     filterValue?.data.endDate ? dayjs(filterValue.data.endDate) : getDefaultEndDate()
   );
-  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(DEFAULT_PRESET);
+  const [selectedPreset, setSelectedPreset] = useState<PresetOption>(
+    filterValue?.data.preset
+      ? PRESET_OPTIONS.find((o) => o.value === filterValue.data.preset) ?? DEFAULT_PRESET
+      : DEFAULT_PRESET
+  );
 
   const updateValues = ({
     preset,
