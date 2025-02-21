@@ -87,7 +87,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
           onClick: (e: { preventDefault: () => void }) => {
             e.preventDefault();
             setIsReferalLoading(true);
-            // Create an artificial delay to show the loading state so it doesnt flicker if this request is fast
+            // Create an artificial delay to show the loading state so it doesn't flicker if this request is fast
             setTimeout(() => {
               fetchAndCopyToClipboard(
                 fetch("/api/generate-referral-link", {
@@ -110,7 +110,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
     isAdmin
       ? {
           name: "impersonation",
-          href: "/settings/security/impersonation",
+          href: "/settings/admin/impersonation",
           icon: "lock",
         }
       : null,
