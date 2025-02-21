@@ -13,7 +13,7 @@ import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import type { SelectedCalendar } from "@calcom/prisma/client";
 import type { AttributeType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, RRResetInterval } from "@calcom/prisma/enums";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -63,7 +63,11 @@ type VirtualQueuesDataType = {
 
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: [T, ...T[]]; // ensure contains at least 1
-  eventType: { id: number; isRRWeightsEnabled: boolean; team: { parentId?: number | null } | null };
+  eventType: {
+    id: number;
+    isRRWeightsEnabled: boolean;
+    team: { parentId?: number | null; rrResetInterval: RRResetInterval } | null;
+  };
   // all routedTeamMemberIds or all hosts of event types
   allRRHosts: {
     user: {
@@ -77,11 +81,18 @@ interface GetLuckyUserParams<T extends PartialUser> {
   }[];
   routingFormResponse: RoutingFormResponse | null;
 }
-// === dayjs.utc().startOf("month").toDate();
+
 const startOfMonth = () => new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1));
 
 const startOfToday = () =>
   new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()));
+
+const getIntervalStartDate = (interval: RRResetInterval) => {
+  if (interval === RRResetInterval.DAY) {
+    return startOfToday();
+  }
+  return startOfMonth();
+};
 
 // TS helper function.
 const isNonEmptyArray = <T>(arr: T[]): arr is [T, ...T[]] => arr.length > 0;
@@ -386,13 +397,14 @@ async function getCalendarBusyTimesOfInterval(
     email: string;
     credentials: CredentialPayload[];
     userLevelSelectedCalendars: SelectedCalendar[];
-  }[]
+  }[],
+  interval: RRResetInterval
 ): Promise<{ userId: number; busyTimes: (EventBusyDate & { timeZone?: string })[] }[]> {
   return Promise.all(
     usersWithCredentials.map((user) =>
       getBusyCalendarTimes(
         user.credentials,
-        startOfMonth().toISOString(),
+        getIntervalStartDate(interval).toISOString(),
         new Date().toISOString(),
         user.userLevelSelectedCalendars,
         true
@@ -408,15 +420,17 @@ async function getBookingsOfInterval({
   eventTypeId,
   users,
   virtualQueuesData,
+  interval,
 }: {
   eventTypeId: number;
   users: { id: number; email: string }[];
   virtualQueuesData: VirtualQueuesDataType | null;
+  interval: RRResetInterval;
 }) {
   return await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventTypeId,
     users,
-    startDate: startOfMonth(),
+    startDate: getIntervalStartDate(interval),
     endDate: new Date(),
     virtualQueuesData,
   });
@@ -574,27 +588,34 @@ async function fetchAllDataNeededForCalculations<
 
   const { attributeWeights, virtualQueuesData } = await prepareQueuesAndAttributesData(getLuckyUserParams);
 
+  const interval = getLuckyUserParams.eventType.team?.rrResetInterval ?? RRResetInterval.MONTH;
+
   const [
-    userBusyTimesOfInterval, //todo
-    bookingsOfAvailableUsersOfInterval, //todo
-    bookingsOfNotAvailableUsersOfInterval, //todo
-    allRRHostsBookingsOfInterval, //todo
-    allRRHostsCreatedInInterval, //todo
-    organizersWithLastCreated, //todo
+    userBusyTimesOfInterval,
+    bookingsOfAvailableUsersOfInterval,
+    bookingsOfNotAvailableUsersOfInterval,
+    allRRHostsBookingsOfInterval,
+    allRRHostsCreatedInInterval,
+    organizersWithLastCreated,
   ] = await Promise.all([
-    getCalendarBusyTimesOfInterval(allRRHosts.map((host) => host.user)),
+    getCalendarBusyTimesOfInterval(
+      allRRHosts.map((host) => host.user),
+      interval
+    ),
     getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: availableUsers.map((user) => {
         return { id: user.id, email: user.email };
       }),
       virtualQueuesData: virtualQueuesData ?? null,
+      interval,
     }),
 
     getBookingsOfInterval({
       eventTypeId: eventType.id,
       users: notAvailableHosts,
       virtualQueuesData: virtualQueuesData ?? null,
+      interval,
     }),
 
     getBookingsOfInterval({
@@ -603,6 +624,7 @@ async function fetchAllDataNeededForCalculations<
         return { id: host.user.id, email: host.user.email };
       }),
       virtualQueuesData: virtualQueuesData ?? null,
+      interval,
     }),
 
     prisma.host.findMany({
