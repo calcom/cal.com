@@ -1987,7 +1987,7 @@
   "a_routing_form": "Marsruutimisvorm",
   "form_description_placeholder": "Vormi kirjeldus",
   "keep_me_connected_with_form": "Hoidke mind vormiga ühenduses",
-  "fields_in_form_duplicated": "Kõik muudatused ruuteris ja dubleeritava vormi väljades kajastuvad duplikaadis.",
+  "fields_in_form_duplicated": "Kõik muudatused, mis tehakse dubleeritava vormi marsruuterile või väljadele, kajastuvad ka duplikaadis. Kuid välja kustutamine ei eemalda seda duplikaadist.",
   "form_deleted": "Vorm kustutatud",
   "delete_form": "Kas olete kindel, et soovite selle vormi kustutada?",
   "delete_form_action": "Jah, kustuta vorm",
