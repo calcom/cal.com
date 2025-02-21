@@ -500,6 +500,7 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
     await page.click('[data-testid="new_webhook"]');
 
     await page.fill('[name="subscriberUrl"]', "https://www.example.com");
+    await page.fill('[data-testid="time-unit-input"]', "5");
 
     await Promise.all([
       page.click("[type=submit]"),

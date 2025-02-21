@@ -13,6 +13,7 @@ export function createWebhookPageFixture(page: Page) {
       const url = page.url();
       const teamId = Number(new URL(url).searchParams.get("teamId")) as number;
       await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+      await page.fill('[data-testid="time-unit-input"]', "5");
       await page.fill('[name="secret"]', "secret");
       await expect(page.locator('[data-testid="create_webhook"]')).toBeEnabled();
       await Promise.all([
@@ -27,6 +28,7 @@ export function createWebhookPageFixture(page: Page) {
       await page.goto(`/settings/developer/webhooks`);
       await page.click('[data-testid="new_webhook"]');
       await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+      await page.fill('[data-testid="time-unit-input"]', "5");
       await page.fill('[name="secret"]', "secret");
       await expect(page.locator('[data-testid="create_webhook"]')).toBeEnabled();
       await Promise.all([

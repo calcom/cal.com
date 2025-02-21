@@ -65,6 +65,7 @@ export const TimeTimeUnitInput = (props: Props) => {
           disabled={props.disabled}
           defaultValue={form.getValues("time") ?? props.defaultTime ?? 24}
           className="rounded-r-none text-sm focus:ring-0"
+          data-testid="time-unit-input"
           {...form.register("time", { valueAsNumber: true })}
           addOnSuffix={
             <TimeUnitAddonSuffix
