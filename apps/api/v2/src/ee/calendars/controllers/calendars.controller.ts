@@ -34,7 +34,7 @@ import {
   Post,
   Body,
 } from "@nestjs/common";
-import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
+import { ApiOperation, ApiParam, ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 import { Request } from "express";
@@ -123,10 +123,15 @@ export class CalendarsController {
     };
   }
 
+  @ApiParam({
+    enum: [OFFICE_365_CALENDAR, GOOGLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get connect URL" })
+  @ApiOperation({ summary: "Get oAuth connect URL" })
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
@@ -146,10 +151,15 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [OFFICE_365_CALENDAR, GOOGLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @Get("/:calendar/save")
   @HttpCode(HttpStatus.OK)
   @Redirect(undefined, 301)
-  @ApiOperation({ summary: "Save a calendar" })
+  @ApiOperation({ summary: "Save an oAuth calendar credentials" })
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
@@ -177,6 +187,11 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
   @Post("/:calendar/credentials")
   @ApiOperation({ summary: "Sync credentials" })
@@ -198,6 +213,11 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR, GOOGLE_CALENDAR, OFFICE_365_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
@@ -219,6 +239,11 @@ export class CalendarsController {
     }
   }
 
+  @ApiParam({
+    enum: [APPLE_CALENDAR, GOOGLE_CALENDAR, OFFICE_365_CALENDAR],
+    type: String,
+    name: "calendar",
+  })
   @UseGuards(ApiAuthGuard)
   @Post("/:calendar/disconnect")
   @HttpCode(HttpStatus.OK)
