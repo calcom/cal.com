@@ -162,7 +162,7 @@ const PlainChat = () => {
             text: "Ask a question",
             threadDetails: {
               labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-              tierIdentifier: { externalId: "free" },
+              tierIdentifier: { externalId: data.userTier },
             },
           },
           {
@@ -170,7 +170,7 @@ const PlainChat = () => {
             text: "Send feedback",
             threadDetails: {
               labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-              tierIdentifier: { externalId: "enterprise" },
+              tierIdentifier: { externalId: data.userTier },
             },
           },
           {
@@ -187,7 +187,7 @@ const PlainChat = () => {
                       text: "I'm unable to use the app",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWNWAC464N8DZ6YE71YJRF"],
-                        tierIdentifier: { externalId: "enterprise" },
+                        tierIdentifier: { externalId: data.userTier },
                       },
                       onClick: () => {
                         console.log("User selected severity: Unable to use app");
@@ -198,7 +198,7 @@ const PlainChat = () => {
                       text: "Major functionality degraded",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWP3KECF1YQES6XF212RFW"],
-                        tierIdentifier: { externalId: "enterprise" },
+                        tierIdentifier: { externalId: data.userTier },
                       },
                       onClick: () => {
                         console.log("User selected severity: Major functionality degraded");
@@ -209,7 +209,7 @@ const PlainChat = () => {
                       text: "Minor annoyance",
                       threadDetails: {
                         labelTypeIds: ["lt_01JFJWPC8ADW0PK28JHMJR6NSS"],
-                        tierIdentifier: { externalId: "enterprise" },
+                        tierIdentifier: { externalId: data.userTier },
                       },
                       onClick: () => {
                         console.log("User selected severity: Minor annoyance");
