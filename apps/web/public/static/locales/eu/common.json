@@ -1987,7 +1987,7 @@
   "a_routing_form": "Bideratze-formulario bat",
   "form_description_placeholder": "Formularioaren deskribapena",
   "keep_me_connected_with_form": "Mantendu konektatuta formularioarekin",
-  "fields_in_form_duplicated": "Bikoiztutako formularioaren bideratzaile eta eremuetan egindako edozein aldaketa bikoiztuan islatuko da",
+  "fields_in_form_duplicated": "Bikoizten ari den inprimakiaren bideratzailean edo eremuetan egindako edozein aldaketa bikoiztuan islatuko da. Hala ere, eremu bat ezabatzeak ez du bikoiztutik kenduko.",
   "form_deleted": "Formularioa ezabatuta",
   "delete_form": "Ziur zaude formulario hau ezabatu nahi duzula?",
   "delete_form_action": "Bai, ezabatu formularioa",
