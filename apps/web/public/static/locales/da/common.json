@@ -1987,7 +1987,7 @@
   "a_routing_form": "En Routing Formular",
   "form_description_placeholder": "Formular Beskrivelse",
   "keep_me_connected_with_form": "Hold mig i forbindelse med formularen",
-  "fields_in_form_duplicated": "Eventuelle ændringer i Router og Fields i den form, der er ved at blive duplikeret, vil afspejles i duplikatet.",
+  "fields_in_form_duplicated": "Eventuelle ændringer foretaget i routeren eller felterne i den formular, der duplikeres, vil blive afspejlet i duplikatet. Dog vil sletning af et felt ikke fjerne det fra duplikatet.",
   "form_deleted": "Formular slettet",
   "delete_form": "Slet Formular",
   "delete_form_action": "Ja, slet formular",
