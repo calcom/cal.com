@@ -1,3 +1,7 @@
+/**
+ * Simplified version of legacyListMembers.handler.ts that returns basic member info.
+ * Used for filtering people on /bookings.
+ */
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
