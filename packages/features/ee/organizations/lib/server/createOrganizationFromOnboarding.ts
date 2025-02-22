@@ -497,10 +497,15 @@ export const createOrganizationFromOnboarding = async ({
     organization.id
   );
 
-  await OrganizationRepository.setSlug({
-    id: organization.id,
-    slug: organizationOnboarding.slug,
-  });
+  // If the organization was created with slug=null, then set the slug now, assuming that the team having the same slug is migrated now
+  // If the team wasn't owned by the orgOwner, then org creation would have failed and we wouldn't be here
+  if (!organization.slug) {
+    const { slug } = await OrganizationRepository.setSlug({
+      id: organization.id,
+      slug: organizationOnboarding.slug,
+    });
+    organization.slug = slug;
+  }
 
   return { organization, owner };
 };

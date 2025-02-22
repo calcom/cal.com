@@ -40,8 +40,6 @@ const useCheckout = () => {
     onSuccess: (data) => {
       if (data.checkoutUrl) {
         window.location.href = data.checkoutUrl;
-      } else {
-        data.organizationOnboarding.id;
       }
     },
     onError: (error) => {

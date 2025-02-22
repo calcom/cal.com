@@ -1,23 +1,9 @@
-import { z } from "zod";
-
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import type { BillingPeriod } from "@calcom/prisma/enums";
 
 type OnboardingId = string;
-// Zod schemas for validation
-const invitedMemberSchema = z.object({
-  email: z.string().email(),
-  name: z.string().optional(),
-});
-
-const teamSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  isBeingMigrated: z.boolean(),
-  slug: z.string(),
-});
 
 export type CreateOrganizationOnboardingInput = {
   createdById: number;
@@ -42,14 +28,6 @@ export type CreateOrganizationOnboardingInput = {
 export class OrganizationOnboardingRepository {
   static async create(data: CreateOrganizationOnboardingInput) {
     logger.debug("Creating organization onboarding", safeStringify(data));
-
-    // Validate invitedMembers and teams if they exist
-    if (data.invitedMembers) {
-      z.array(invitedMemberSchema).parse(data.invitedMembers);
-    }
-    if (data.teams) {
-      z.array(teamSchema).parse(data.teams);
-    }
 
     return await prisma.organizationOnboarding.create({
       // HEKOP
@@ -117,14 +95,6 @@ export class OrganizationOnboardingRepository {
 
   static async update(id: OnboardingId, data: Partial<CreateOrganizationOnboardingInput>) {
     logger.debug("Updating organization onboarding", safeStringify({ id, data }));
-
-    // Validate invitedMembers and teams if they exist
-    if (data.invitedMembers) {
-      z.array(invitedMemberSchema).parse(data.invitedMembers);
-    }
-    if (data.teams) {
-      z.array(teamSchema).parse(data.teams);
-    }
 
     return await prisma.organizationOnboarding.update({
       where: {
