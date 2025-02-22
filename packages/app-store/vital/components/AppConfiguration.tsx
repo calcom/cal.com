@@ -154,7 +154,7 @@ const AppConfiguration = (props: IAppConfigurationProps) => {
               await saveSettings({ parameter: selectedParam, sleepValue: sleepValue });
               showToast("Success saving your Vital Configurations", "success");
             } catch (error) {
-              showToast("An error ocurred saving your Vital Configurations", "error");
+              showToast("An error occurred saving your Vital Configurations", "error");
               setSaveLoading(false);
             }
             setTouchedForm(false);
