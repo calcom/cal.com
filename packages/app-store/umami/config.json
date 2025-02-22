@@ -14,7 +14,7 @@
     "tag": {
       "scripts": [
         {
-          "src": "https://us.umami.is/script.js",
+          "src": "{SCRIPT_URL}",
           "attrs": {
             "data-website-id": "{SITE_ID}"
           }

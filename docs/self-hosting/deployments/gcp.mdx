@@ -1,0 +1,117 @@
+---
+title: "GCP"
+icon: "google"
+---
+
+Deploying Cal.com on Google Cloud Platform (GCP)
+
+In this guide, we will go over the steps to deploy cal.com on Google Cloud Platform (GCP). We will cover how to create a virtual machine, configure it, install Docker, and finally deploy the cal.com application.
+
+## One Click Deployment
+
+<a href="https://deploy.cloud.run/?git_repo=https://github.com/calcom/docker" target="_blank">
+  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/run_on_google_cloud.max-300x300.png" noZoom alt="Deploy on Google Cloud" />
+</a>
+
+## Manual Deployment
+
+<Steps>
+    <Step title="Creating a Virtual Machine">
+        ### Go to the GCP Console
+
+        First, open the Google Cloud Platform console by visiting the [https://console.cloud.google.com/](https://console.cloud.google.com/) website.
+
+        ### Create a New Project
+
+        If you haven't already, create a new project by clicking on the "Select a project" dropdown menu and selecting "New Project". Enter a name for your project and click on the "Create" button.
+
+        <img src="https://github.com/sriyachalla/cal.com/assets/30791239/949881fb-c659-4952-9c51-1d956a19cc36"/>
+
+
+        ### Create a New VM Instance
+
+        Click on the navigation menu icon (three horizontal lines) and select "Compute Engine" from the list. Then, click on "VM instances" in the sub-menu.
+
+        Click on the "Create" button to create a new virtual machine.
+
+        <img src="https://github.com/sriyachalla/cal.com/assets/30791239/bfa28fb3-a08e-4dd8-867a-1951ca11e0f2" />
+
+
+        ### Select the Machine Type
+
+        Choose the machine type that best suits your needs. Ideally, 2 vCPUs and 2-4GB RAM is enough.
+
+        ### Set Up Networking
+
+        Make sure the "Networking" tab is selected and click on the "Add network" button. Choose the "Default" network and click on the "Add" button.
+
+
+        ### Create the Instance
+
+        Review the details of your virtual machine and click on the "Create" button to create the instance.
+
+        <img src="https://github.com/sriyachalla/cal.com/assets/30791239/05e34917-8be4-4d72-8bcf-aff8cbf537c3" />
+        Note the public IP of the VM.
+    </Step>
+    <Step title="Configuring the Virtual Machine">
+        Once your virtual machine is created, you need to configure it to allow traffic on port 80.
+
+        ### Open Port 80
+
+        Click on the navigation menu icon (three horizontal lines) and select "Compute Engine" from the list. Then, click on "VM instances" in the sub-menu. Find your newly created instance and click on its name to enter its details page.
+
+        Click on the "Firewalls" tab and then click on the "Add firewall rule" button. Select "Allow all" as the source and destination, set the protocol to "tcp" and the ports to "80". Click on the "Add" button to save the changes.
+    </Step>
+    <Step title="Installing Docker">
+        Now that your virtual machine is configured, you need to install Docker on it.
+
+        ### Connect to Your Instance
+
+        Open a terminal window on your local machine and use SSH to connect to your virtual machine. You can find the external IP address or DNS name of your instance in the GCP console. Use the following command to connect to your instance:
+        ```bash
+        gcloud ssh --project=[PROJECT_ID] --zone=[ZONE] [INSTANCE_NAME]
+        ```
+        Replace `[PROJECT_ID]` with your project ID, `[ZONE]` with the zone where your instance is located, and `[INSTANCE_NAME]` with the name of your instance.
+        You can also use web based SSH.
+
+        <img src="https://github.com/sriyachalla/cal.com/assets/30791239/89577c7e-0de6-4b31-b235-fcb33ed70de9" />
+
+
+        ### Install Docker
+
+        Once connected, update the package list and install Docker using the following commands:
+        ```bash
+        sudo apt-get update
+        sudo apt-get install docker.io
+        ```
+        ### Start the Docker Service
+
+        Start the Docker service using the following command:
+        ```bash
+        sudo systemctl start docker
+        ```
+    </Step>
+    <Step title="Deploying Cal.com">
+        Now that Docker is installed and running, you can deploy cal.com on your virtual machine.
+
+        ### Pull the Docker Image
+
+        Use the following command to pull the cal.com Docker image from Docker Hub:
+        ```bash
+        docker pull cal/calcom
+        ```
+        ### Run the Docker Container
+
+        Run the Docker container using the following command:
+        ```bash
+        docker run -d -p 80:80 cal/cal.com
+        ```
+        This command maps port 80 on your local machine to port 80 inside the container, so you can access cal.com from outside the container.
+
+        ### Access Cal.com
+
+        Open a web browser and navigate to `http://localhost`. You should now be able to access the cal.com homepage.
+    </Step>
+</Steps>
+
+Congratulations! You have successfully deployed cal.com on Google Cloud Platform.

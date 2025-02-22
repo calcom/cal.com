@@ -1,5 +1,4 @@
 # Starts mailhog SMTP server on port 1025, web interface on port 8025
-version: "3.6"
 services:
   mailhog:
     image: "mailhog/mailhog:latest"

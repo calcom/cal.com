@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect } from "react";
 
 type CssVariables = Record<string, string>;
@@ -6,6 +8,10 @@ type CssVariables = Record<string, string>;
 const useCalcomTheme = (theme: Record<string, CssVariables>) => {
   useEffect(() => {
     Object.entries(theme).forEach(([key, value]) => {
+      if (!value) {
+        // should not be reached
+        return;
+      }
       if (key === "root") {
         const root = document.documentElement;
         Object.entries(value).forEach(([key, value]) => {

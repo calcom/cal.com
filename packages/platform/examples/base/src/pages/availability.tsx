@@ -16,6 +16,7 @@ export default function Availability(props: { calUsername: string; calEmail: str
             subtitlesClassName: "text-red-500",
             ctaClassName: "border p-4 rounded-md",
             editableHeadingClassName: "underline font-semibold",
+            hiddenSwitchClassname: { thumb: "bg-red-500" },
           }}
           onUpdateSuccess={() => {
             console.log("Updated successfully");

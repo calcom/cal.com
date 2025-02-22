@@ -34,7 +34,7 @@ import getCalLink from "../_utils/getCalLink";
  *     tags:
  *     - event-types
  *     externalDocs:
- *        url: https://docs.cal.com/core-features/event-types
+ *        url: https://docs.cal.com/docs/core-features/event-types
  *     responses:
  *       200:
  *         description: OK
@@ -51,6 +51,7 @@ export async function getHandler(req: NextApiRequest) {
     where: { id },
     include: {
       customInputs: true,
+      hashedLink: { select: { link: true } },
       team: { select: { slug: true } },
       hosts: { select: { userId: true, isFixed: true } },
       owner: { select: { username: true, id: true } },

@@ -22,11 +22,6 @@ export async function isFormCreateEditAllowed({
     select: {
       userId: true,
       teamId: true,
-      team: {
-        select: {
-          members: true,
-        },
-      },
     },
   });
 
@@ -37,5 +32,5 @@ export async function isFormCreateEditAllowed({
     });
   }
 
-  return canEditEntity(form, userId);
+  return await canEditEntity(form, userId);
 }

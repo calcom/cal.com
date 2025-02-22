@@ -1,30 +1,67 @@
-import type { BookerProps } from "@calcom/features/bookings/Booker";
-import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
-import type { CommonField, OptionsField, SystemField } from "@calcom/lib/event-types/transformers";
+import type { SystemField } from "@calcom/lib/event-types/transformers";
 import {
-  transformApiEventTypeLocations,
-  transformApiEventTypeBookingFields,
+  transformLocationsApiToInternal,
+  transformBookingFieldsApiToInternal,
+  systemBeforeFieldName,
+  systemBeforeFieldEmail,
+  systemBeforeFieldLocation,
+  systemAfterFieldRescheduleReason,
+  transformRecurrenceApiToInternal,
+  transformIntervalLimitsApiToInternal,
+  transformSeatsApiToInternal,
+  transformEventColorsApiToInternal,
+  transformConfirmationPolicyApiToInternal,
+  transformFutureBookingLimitsApiToInternal,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import type { EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import type {
+  EmailDefaultFieldOutput_2024_06_14,
+  EventTypeOutput_2024_06_14,
+  InputLocation_2024_06_14,
+  KnownBookingField_2024_06_14,
+  NameDefaultFieldOutput_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 import {
   bookerLayoutOptions,
   BookerLayouts,
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
   eventTypeBookingFields,
+  EventTypeMetaDataSchema,
 } from "@calcom/prisma/zod-utils";
 
+import type { BookerPlatformWrapperAtomProps } from "../../booker/BookerPlatformWrapper";
+
 export function transformApiEventTypeForAtom(
-  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId">,
-  entity: BookerProps["entity"] | undefined
+  eventType: Omit<EventTypeOutput_2024_06_14, "ownerId"> & { bannerUrl?: string },
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
-  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    bookingFields,
+    users,
+    recurrence,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
   const user = users[0];
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -33,12 +70,32 @@ export function transformApiEventTypeForAtom(
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  const usersTransformed = users.map((user) => ({
+    ...user,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
+    profile: {
+      username: user.username || "",
+      name: user.name,
+      weekStart: user.weekStart,
+      image: "",
+      brandColor: user.brandColor,
+      darkBrandColor: user.darkBrandColor,
+      theme: null,
+      organization: null,
+      id: user.id,
+      organizationId: null,
+      userId: user.id,
+      upId: `usr-${user.id}`,
+    },
+  }));
 
   return {
     ...rest,
     length: lengthInMinutes,
     locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
     isDefault,
     isDynamic: false,
     profile: {
@@ -69,36 +126,64 @@ export function transformApiEventTypeForAtom(
           logoUrl: undefined,
         },
     hosts: [],
-    users: users.map((user) => ({
-      ...user,
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: user.username || "",
-        name: user.name,
-        weekStart: user.weekStart,
-        image: "",
-        brandColor: user.brandColor,
-        darkBrandColor: user.darkBrandColor,
-        theme: null,
-        organization: null,
-        id: user.id,
-        organizationId: null,
-        userId: user.id,
-        upId: `usr-${user.id}`,
-      },
-    })),
+    subsetOfHosts: [],
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      ...metadata,
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
 export function transformApiTeamEventTypeForAtom(
   eventType: TeamEventTypeOutput_2024_06_14,
-  entity: BookerProps["entity"] | undefined
+  entity: BookerPlatformWrapperAtomProps["entity"] | undefined,
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined,
+  limitHosts = false
 ) {
-  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+  const {
+    lengthInMinutes,
+    lengthInMinutesOptions,
+    locations,
+    hosts,
+    bookingFields,
+    recurrence,
+    team,
+    bookingLimitsCount,
+    bookingLimitsDuration,
+    seats,
+    color,
+    confirmationPolicy,
+    customName,
+    useDestinationCalendarEmail,
+    bookingWindow,
+    ...rest
+  } = eventType;
+
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
   const isDefault = isDefaultEvent(rest.title);
 
+  const confirmationPolicyTransformed = transformConfirmationPolicyApiToInternal(confirmationPolicy);
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
@@ -108,23 +193,58 @@ export function transformApiTeamEventTypeForAtom(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
 
-  return {
-    ...rest,
-    length: lengthInMinutes,
-    locations: getLocations(locations),
-    bookingFields: getBookingFields(bookingFields),
-    isDefault,
-    isDynamic: false,
+  const hostTransformed = hosts.map((host) => ({
+    user: {
+      id: host.userId,
+      avatarUrl: null,
+      name: host.name,
+      username: "",
+      metadata: {},
+      darkBrandColor: null,
+      brandColor: null,
+      theme: null,
+      weekStart: "Sunday",
+    },
+  }));
+
+  const usersTransformed = hosts.map((host) => ({
+    ...host,
+    metadata: undefined,
+    bookerUrl: getBookerBaseUrlSync(null),
     profile: {
-      username: "team",
-      name: "team",
+      username: "",
+      name: host.name,
       weekStart: "Sunday",
       image: "",
       brandColor: null,
       darkBrandColor: null,
       theme: null,
+      organization: null,
+      id: host.userId,
+      organizationId: null,
+      userId: host.userId,
+      upId: `usr-${host.userId}`,
+    },
+  }));
+
+  return {
+    ...rest,
+    length: lengthInMinutes,
+    locations: getLocations(locations),
+    bookingFields: getBookingFields(bookingFields, defaultFormValues),
+    isDefault,
+    isDynamic: false,
+    profile: {
+      username: team?.slug ?? "team",
+      name: team?.name,
+      weekStart: team?.weekStart ?? "Sunday",
+      image: team?.logoUrl,
+      brandColor: team?.brandColor ?? null,
+      darkBrandColor: team?.darkBrandColor ?? null,
+      theme: team?.theme ?? null,
       bookerLayouts,
     },
+    bannerUrl: team?.bannerUrl,
     entity: entity
       ? {
           ...entity,
@@ -138,41 +258,36 @@ export function transformApiTeamEventTypeForAtom(
           fromRedirectOfNonOrgLink: true,
           considerUnpublished: false,
           orgSlug: null,
-          teamSlug: null,
-          name: null,
-          logoUrl: undefined,
+          teamSlug: team?.slug,
+          name: team?.name,
+          logoUrl: team?.logoUrl,
         },
-    hosts: hosts.map((host) => ({
-      user: {
-        id: host.userId,
-        avatarUrl: null,
-        name: host.name,
-        username: "",
-        metadata: {},
-        darkBrandColor: null,
-        brandColor: null,
-        theme: null,
-        weekStart: "Sunday",
-      },
-    })),
-    users: hosts.map((host) => ({
-      metadata: undefined,
-      bookerUrl: getBookerBaseUrlSync(null),
-      profile: {
-        username: "",
-        name: host.name,
-        weekStart: "Sunday",
-        image: "",
-        brandColor: null,
-        darkBrandColor: null,
-        theme: null,
-        organization: null,
-        id: host.userId,
-        organizationId: null,
-        userId: host.userId,
-        upId: `usr-${host.userId}`,
-      },
-    })),
+    hosts: !limitHosts ? hostTransformed : undefined,
+    subsetOfHosts: hostTransformed,
+    users: !limitHosts ? usersTransformed : undefined,
+    subsetOfUsers: usersTransformed,
+    recurringEvent: recurrence ? transformRecurrenceApiToInternal(recurrence) : null,
+    bookingLimits: bookingLimitsCount ? transformIntervalLimitsApiToInternal(bookingLimitsCount) : undefined,
+    durationLimits: bookingLimitsDuration
+      ? transformIntervalLimitsApiToInternal(bookingLimitsDuration)
+      : undefined,
+
+    metadata: {
+      ...metadata,
+      requiresConfirmationThreshold:
+        confirmationPolicyTransformed?.requiresConfirmationThreshold ?? undefined,
+      multipleDuration: lengthInMinutesOptions,
+    },
+
+    requiresConfirmation: confirmationPolicyTransformed?.requiresConfirmation ?? undefined,
+    requiresConfirmationWillBlockSlot:
+      confirmationPolicyTransformed?.requiresConfirmationWillBlockSlot ?? undefined,
+
+    eventTypeColor: transformEventColorsApiToInternal(color),
+    ...transformSeatsApiToInternal(seats),
+    eventName: customName,
+    useEventTypeDestinationCalendarEmail: useDestinationCalendarEmail,
+    ...getBookingWindow(bookingWindow),
   };
 }
 
@@ -184,17 +299,19 @@ function isDefaultEvent(eventSlug: string) {
 }
 
 function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
-  const transformed = transformApiEventTypeLocations(locations);
+  const transformed = transformLocationsApiToInternal(
+    locations.filter((location) => isAtomSupportedLocation(location))
+  );
 
   const withPrivateHidden = transformed.map((location) => {
     const { displayLocationPublicly, type } = location;
 
     switch (type) {
-      case "address":
+      case "inPerson":
         return displayLocationPublicly ? location : { ...location, address: "" };
       case "link":
         return displayLocationPublicly ? location : { ...location, link: "" };
-      case "phone":
+      case "userPhone":
         return displayLocationPublicly
           ? location
           : {
@@ -209,134 +326,81 @@ function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
   return withPrivateHidden;
 }
 
-function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
-  const transformedBookingFields: (CommonField | SystemField | OptionsField)[] =
-    transformApiEventTypeBookingFields(bookingFields);
+function isAtomSupportedLocation(
+  location: EventTypeOutput_2024_06_14["locations"][number]
+): location is InputLocation_2024_06_14 {
+  const supportedIntegrations = ["cal-video", "google-meet"];
 
-  // These fields should be added before other user fields
-  const systemBeforeFields: SystemField[] = [
-    {
-      type: "name",
-      // This is the `name` of the main field
-      name: "name",
-      editable: "system",
-      // This Label is used in Email only as of now.
-      defaultLabel: "your_name",
-      required: true,
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "email_address",
-      type: "email",
-      name: "email",
-      required: true,
-      editable: "system",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "location",
-      type: "radioInput",
-      name: "location",
-      editable: "system",
-      hideWhenJustOneOption: true,
-      required: false,
-      getOptionsAt: "locations",
-      optionsInputs: {
-        attendeeInPerson: {
-          type: "address",
-          required: true,
-          placeholder: "",
-        },
-        phone: {
-          type: "phone",
-          required: true,
-          placeholder: "",
-        },
-      },
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-  ];
+  return (
+    location.type === "address" ||
+    location.type === "attendeeAddress" ||
+    location.type === "link" ||
+    location.type === "phone" ||
+    location.type === "attendeePhone" ||
+    location.type === "attendeeDefined" ||
+    (location.type === "integration" && supportedIntegrations.includes(location.integration))
+  );
+}
 
-  // These fields should be added after other user fields
-  const systemAfterFields: SystemField[] = [
-    {
-      defaultLabel: "reason_for_reschedule",
-      type: "textarea",
-      editable: "system-but-optional",
-      name: "rescheduleReason",
-      defaultPlaceholder: "reschedule_placeholder",
-      required: false,
-      views: [
-        {
-          id: "reschedule",
-          label: "Reschedule View",
-        },
-      ],
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-  ];
+function getBookingFields(
+  bookingFields: EventTypeOutput_2024_06_14["bookingFields"],
+  defaultFormValues: BookerPlatformWrapperAtomProps["defaultFormValues"] | undefined
+) {
+  const transformedBookingFields = transformBookingFieldsApiToInternal(
+    bookingFields.filter((field) => isKnownField(field))
+  );
 
-  const missingSystemBeforeFields: SystemField[] = [];
+  const hasNameField = transformedBookingFields.some((field) => field.name === "name");
+  const hasEmailField = transformedBookingFields.some((field) => field.name === "email");
+  const hasLocationField = transformedBookingFields.some((field) => field.name === "location");
+  const hasRescheduleReasonField = transformedBookingFields.some(
+    (field) => field.name === "rescheduleReason"
+  );
 
-  for (const field of systemBeforeFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemBeforeFields.push(field);
-    } else {
-      // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-      transformedBookingFields[existingBookingFieldIndex] = {
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
+  const systemBeforeFields: SystemField[] = [];
+  if (!hasNameField) {
+    systemBeforeFields.push(systemBeforeFieldName);
+  }
+  if (!hasEmailField) {
+    systemBeforeFields.push(systemBeforeFieldEmail);
+  }
+  if (!hasLocationField) {
+    systemBeforeFields.push(systemBeforeFieldLocation);
+  }
+  const systemAfterFields: SystemField[] = [];
+  if (!hasRescheduleReasonField) {
+    systemAfterFields.push(systemAfterFieldRescheduleReason);
+  }
+
+  const fieldsWithSystem = [...systemBeforeFields, ...transformedBookingFields, ...systemAfterFields];
+
+  // note(Lauris): in web app booking form values can be passed as url query params, but booker atom does not accept booking field values via url,
+  // so defaultFormValues act as a way to prefill booking form fields, and if the field in database has disableOnPrefill=true and value passed then its read only.
+  const defaultFormValuesKeys = defaultFormValues ? Object.keys(defaultFormValues) : [];
+  if (defaultFormValuesKeys.length) {
+    for (const field of fieldsWithSystem) {
+      if (defaultFormValuesKeys.includes(field.name) && field.disableOnPrefill) {
+        field.editable = "user-readonly";
+      }
     }
   }
 
-  transformedBookingFields.push(...missingSystemBeforeFields);
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(fieldsWithSystem);
+}
 
-  const missingSystemAfterFields: SystemField[] = [];
-  for (const field of systemAfterFields) {
-    const existingBookingFieldIndex = transformedBookingFields.findIndex(
-      (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
-    );
-    // Only do a push, we must not update existing system fields as user could have modified any property in it,
-    if (existingBookingFieldIndex === -1) {
-      missingSystemAfterFields.push(field);
-    } else {
-      transformedBookingFields[existingBookingFieldIndex] = {
-        // Adding the fields from Code first and then fields from DB. Allows, the code to push new properties to the field
-        ...field,
-        ...transformedBookingFields[existingBookingFieldIndex],
-      };
-    }
-  }
+function isKnownField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is KnownBookingField_2024_06_14 {
+  return field.type !== "unknown";
+}
 
-  transformedBookingFields.push(...missingSystemAfterFields);
-  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
+function getBookingWindow(inputBookingWindow: EventTypeOutput_2024_06_14["bookingWindow"]) {
+  const res = transformFutureBookingLimitsApiToInternal(inputBookingWindow);
+  return !!res ? res : {};
+}
+
+function isDefaultEditableField(
+  field: EventTypeOutput_2024_06_14["bookingFields"][number]
+): field is NameDefaultFieldOutput_2024_06_14 | EmailDefaultFieldOutput_2024_06_14 {
+  return field.type === "name" || field.type === "email";
 }

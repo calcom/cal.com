@@ -25,12 +25,14 @@ export interface BookerProps {
    * Whether is a team or org, we gather basic info from both
    */
   entity: {
+    fromRedirectOfNonOrgLink?: boolean;
     considerUnpublished: boolean;
     isUnpublished?: boolean;
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
     logoUrl?: string | null;
+    eventTypeId?: number | null;
   };
 
   /**
@@ -85,11 +87,18 @@ export interface BookerProps {
    */
   hashedLink?: string | null;
   isInstantMeeting?: boolean;
+  teamMemberEmail?: string | null;
+  crmOwnerRecordType?: string | null;
+  crmAppSlug?: string | null;
+  areInstantMeetingParametersSet?: boolean | null;
+  userLocale?: string | null;
+  hasValidLicense?: boolean;
 }
 
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
+  rescheduledBy: string | null;
   bookingUid: string | null;
   isRedirect: boolean;
   fromUserNameRedirected: string;
@@ -109,6 +118,8 @@ export type WrappedBookerPropsMain = {
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;
   customClassNames?: CustomClassNames;
+  isBookingDryRun?: boolean;
+  renderCaptcha?: boolean;
 };
 
 export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
@@ -128,6 +139,7 @@ export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
 
 export type CustomClassNames = {
+  bookerWrapper?: string;
   bookerContainer?: string;
   eventMetaCustomClassNames?: {
     eventMetaContainer?: string;
@@ -149,4 +161,5 @@ export type CustomClassNames = {
     availableTimeSlotsTimeFormatToggle?: string;
     availableTimes?: string;
   };
+  atomsWrapper?: string;
 };

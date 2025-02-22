@@ -4,13 +4,18 @@ import type { createUsersFixture } from "playwright/fixtures/users";
 import { uuid } from "short-uuid";
 
 import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+import { md } from "@calcom/lib/markdownIt";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { test } from "./lib/fixtures";
-import { createNewEventType } from "./lib/testUtils";
-import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  createHttpServer,
+  createNewEventType,
+  selectFirstAvailableTimeSlotNextMonth,
+  submitAndWaitForResponse,
+} from "./lib/testUtils";
 
 function getLabelLocator(field: Locator) {
   // There are 2 labels right now. Will be one in future. The second one is hidden
@@ -65,7 +70,7 @@ test.describe("Manage Booking Questions", () => {
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
-        await page.click('[href$="tabName=advanced"]');
+        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
       });
 
       await test.step("Add Question and see that it's shown on Booking Page at appropriate position", async () => {
@@ -80,8 +85,8 @@ test.describe("Manage Booking Questions", () => {
         });
 
         await doOnFreshPreview(page, context, async (page) => {
-          const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
-          const userFieldLocator = allFieldsLocator.nth(5);
+          await expectSystemFieldsToBeThereOnBookingPage({ page });
+          const userFieldLocator = page.locator('[data-fob-field-name="agree-to-terms"]');
 
           await expect(userFieldLocator.locator('[name="agree-to-terms"]')).toBeVisible();
           expect(await getLabelText(userFieldLocator)).toBe("Agree to terms");
@@ -111,7 +116,7 @@ test.describe("Manage Booking Questions", () => {
       });
 
       await test.step("Open the 'Name' field dialog", async () => {
-        await page.click('[href$="tabName=advanced"]');
+        await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
         await page.locator('[data-testid="field-name"] [data-testid="edit-field-action"]').click();
       });
 
@@ -130,9 +135,7 @@ test.describe("Manage Booking Questions", () => {
             email: "booker@example.com",
           });
           await expect(page.locator("[data-testid=success-page]")).toBeVisible();
-          expect(await page.locator('[data-testid="attendee-name-John Doe"]').nth(0).textContent()).toBe(
-            "John Doe"
-          );
+          await expect(page.locator('[data-testid="attendee-name-John Doe"]').first()).toHaveText("John Doe");
           await expectWebhookToBeCalled(webhookReceiver, {
             triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
             payload: {
@@ -169,7 +172,6 @@ test.describe("Manage Booking Questions", () => {
           prefillUrl.searchParams.append("email", "john@example.com");
           prefillUrl.searchParams.append("guests", "guest1@example.com");
           prefillUrl.searchParams.append("guests", "guest2@example.com");
-          prefillUrl.searchParams.append("notes", "This is an additional note");
           await page.goto(prefillUrl.toString());
           await bookTimeSlot({ page, skipSubmission: true });
           await expectSystemFieldsToBeThereOnBookingPage({
@@ -182,7 +184,6 @@ test.describe("Manage Booking Questions", () => {
               },
               email: "john@example.com",
               guests: ["guest1@example.com", "guest2@example.com"],
-              notes: "This is an additional note",
             },
           });
         });
@@ -228,6 +229,7 @@ test.describe("Manage Booking Questions", () => {
   });
 
   test.describe("For Team EventType", () => {
+    // eslint-disable-next-line playwright/no-skipped-test
     test("Do a booking with a user added question and verify a few thing in b/w", async ({
       page,
       users,
@@ -246,6 +248,7 @@ test.describe("Manage Booking Questions", () => {
         },
         select: {
           id: true,
+          name: true,
         },
       });
 
@@ -253,7 +256,10 @@ test.describe("Manage Booking Questions", () => {
       const webhookReceiver = await addWebhook(undefined, teamId);
 
       await test.step("Go to First Team Event", async () => {
-        const $eventTypes = page.locator("[data-testid=event-types]").nth(1).locator("li a");
+        const locator = page.getByTestId(`horizontal-tab-${team?.name}`);
+        await locator.click();
+        await expect(locator).toHaveAttribute("aria-current", "page");
+        const $eventTypes = page.locator("[data-testid=event-types]").locator("li a");
         const firstEventTypeElement = $eventTypes.first();
 
         await firstEventTypeElement.click();
@@ -294,8 +300,8 @@ async function runTestStepsCommonForTeamAndUserEventType(
     });
 
     await doOnFreshPreview(page, context, async (page) => {
-      const allFieldsLocator = await expectSystemFieldsToBeThereOnBookingPage({ page });
-      const userFieldLocator = allFieldsLocator.nth(5);
+      await expectSystemFieldsToBeThereOnBookingPage({ page });
+      const userFieldLocator = page.locator('[data-fob-field-name="how-are-you"]');
 
       await expect(userFieldLocator.locator('[name="how-are-you"]')).toBeVisible();
       expect(await getLabelText(userFieldLocator)).toBe("How are you?");
@@ -419,13 +425,12 @@ async function expectSystemFieldsToBeThereOnBookingPage({
     guests: string[];
   }>;
 }) {
-  const allFieldsLocator = page.locator("[data-fob-field-name]:not(.hidden)");
-  const nameLocator = allFieldsLocator.nth(0);
-  const emailLocator = allFieldsLocator.nth(1);
+  const nameLocator = page.locator('[data-fob-field-name="name"]');
+  const emailLocator = page.locator('[data-fob-field-name="email"]');
   // Location isn't rendered unless explicitly set which isn't the case here
   // const locationLocator = allFieldsLocator.nth(2);
-  const additionalNotes = allFieldsLocator.nth(3);
-  const guestsLocator = allFieldsLocator.nth(4);
+  const additionalNotes = page.locator('[data-fob-field-name="notes"]');
+  const guestsLocator = page.locator('[data-fob-field-name="guests"]');
 
   if (isFirstAndLastNameVariant) {
     if (values?.name) {
@@ -465,7 +470,6 @@ async function expectSystemFieldsToBeThereOnBookingPage({
   } else {
     await expect(guestsLocator.locator("[data-testid='add-guests']")).toBeVisible();
   }
-  return allFieldsLocator;
 }
 
 //TODO: Add one question for each type and see they are rendering labels and only once and are showing appropriate native component
@@ -549,7 +553,12 @@ async function addQuestionAndSave({
   }
 
   if (question.label !== undefined) {
-    await page.fill('[name="label"]', question.label);
+    if (question.type === "Checkbox") {
+      const editorInput = page.locator('[data-testid="editor-input"]');
+      await editorInput.fill(md.render(question.label));
+    } else {
+      await page.fill('[name="label"]', question.label);
+    }
   }
 
   if (question.placeholder !== undefined) {
@@ -653,7 +662,7 @@ async function rescheduleFromTheLinkOnPage({ page }: { page: Page }) {
   await page.locator('[data-testid="reschedule-link"]').click();
   await page.waitForLoadState();
   await selectFirstAvailableTimeSlotNextMonth(page);
-  await page.click('[data-testid="confirm-reschedule-button"]');
+  await page.locator('[data-testid="confirm-reschedule-button"]').click();
 }
 
 async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"], page: Page) {
@@ -666,7 +675,9 @@ async function openBookingFormInPreviewTab(context: PlaywrightTestArgs["context"
 }
 
 async function saveEventType(page: Page) {
-  await page.locator("[data-testid=update-eventtype]").click();
+  await submitAndWaitForResponse(page, "/api/trpc/eventTypes/update?batch=1", {
+    action: () => page.locator("[data-testid=update-eventtype]").click(),
+  });
 }
 
 async function addWebhook(
@@ -734,16 +745,11 @@ test.describe("Text area min and max characters text", () => {
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
     await createNewEventType(page, { eventTitle });
-    await page.waitForSelector(`text=${eventTitle}`);
-
-    // Click on the event type
-    await page.click(`text=${eventTitle}`);
-    await page.waitForSelector(`text=${eventTitle}`);
-
-    // goto the advanced tab
-    await page.click('[href$="tabName=advanced"]');
+    await page.waitForSelector('[data-testid="event-title"]');
+    await page.getByTestId("vertical-tab-event_advanced_tab_title").click();
     const insertQuestion = async (questionName: string) => {
-      await page.click('[data-testid="add-field"]');
+      const element = page.locator('[data-testid="add-field"]');
+      await element.click();
       const locatorForSelect = page.locator("[id=test-field-type]").nth(0);
       await locatorForSelect.click();
       await locatorForSelect.locator(`text="Long Text"`).click();
@@ -808,6 +814,7 @@ test.describe("Text area min and max characters text", () => {
       // Expect the native <input> element to show an error message
 
       let validationMessage = await minInput?.evaluate((input: any) => input?.validationMessage as string);
+      // FIXME: This error message will be localized depending on the browser locale.
       expect(validationMessage?.toString()).toBe("Value must be less than or equal to 5.");
 
       await page.fill(minLengthSelector, "0");
@@ -855,14 +862,14 @@ test.describe("Text area min and max characters text", () => {
       await textAreaWithMin5Max10.fill("1234");
       await submitForm();
       // Expect the text: Min. 5 characters to be visible
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(true);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeVisible();
 
       // update the text area with min 5 to have 5 characters
       await textAreaWithMin5.fill("12345");
       await submitForm();
 
       // Expect the text: Min. 5 characters to still be visible because textAreaWithMin5Max10 has less than 5 characters
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(true);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeVisible();
 
       // Expect the text: Max. 10 characters to be visible and have value 1234567890
       expect(await textAreaWithMax10.inputValue()).toBe("1234567890");
@@ -873,7 +880,7 @@ test.describe("Text area min and max characters text", () => {
       await submitForm();
 
       // Expect the text: Max. 5 characters to be hidden
-      expect(await page.locator(`text=Min. 5 characters required`).isVisible()).toBe(false);
+      await expect(page.locator(`text=Min. 5 characters required`)).toBeHidden();
 
       await expect(page.locator('text="This meeting is scheduled"')).toBeVisible();
     });

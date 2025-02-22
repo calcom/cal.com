@@ -11,6 +11,10 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
+import {
+  useShouldBeDisabledDueToPrefill,
+  getFieldNameFromErrorMessage,
+} from "./useShouldBeDisabledDueToPrefill";
 import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
@@ -59,6 +63,7 @@ export const FormBuilderField = ({
     t
   );
 
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
@@ -71,7 +76,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly}
+                readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
@@ -84,7 +89,7 @@ export const FormBuilderField = ({
                 render={({ message }: { message: string | undefined }) => {
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
-                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const name = getFieldNameFromErrorMessage(message);
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {
@@ -125,12 +130,14 @@ const WithLabel = ({
   field,
   children,
   readOnly,
+  htmlFor,
   noLabel = false,
 }: {
   field: Partial<RhfFormField>;
   readOnly: boolean;
   children: React.ReactNode;
   noLabel?: boolean;
+  htmlFor: string;
 }) => {
   const { t } = useLocale();
 
@@ -145,7 +152,7 @@ const WithLabel = ({
           field.type !== "multiemail" &&
           field.label && (
             <div className="mb-2 flex items-center">
-              <Label className="!mb-0 flex">
+              <Label className="!mb-0 flex items-center" htmlFor={htmlFor}>
                 <span>{field.label}</span>
                 <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}
@@ -242,9 +249,10 @@ export const ComponentForField = ({
       `Value ${value} is not valid for type ${componentConfig.propsType} for field ${field.name}`
     );
   }
+
   if (componentConfig.propsType === "text") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           minLength={field.minLength}
@@ -261,7 +269,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "boolean") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           name={field.name}
           label={field.label}
@@ -276,7 +284,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "textList") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -295,7 +303,7 @@ export const ComponentForField = ({
     }
 
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
@@ -313,7 +321,7 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -337,7 +345,7 @@ export const ComponentForField = ({
     const options = field.options;
 
     return field.options.length ? (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}

@@ -16,6 +16,7 @@ const appStore = {
   jellyconferencing: () => import("./jelly"),
   jitsivideo: () => import("./jitsivideo"),
   larkcalendar: () => import("./larkcalendar"),
+  nextcloudtalkvideo: () => import("./nextcloudtalk"),
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
@@ -43,6 +44,7 @@ const appStore = {
   basecamp3: () => import("./basecamp3"),
   telegramvideo: () => import("./telegram"),
   shimmervideo: () => import("./shimmervideo"),
+  hitpay: () => import("./hitpay"),
 };
 
 const exportedAppStore: typeof appStore & {

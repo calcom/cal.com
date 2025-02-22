@@ -30,6 +30,7 @@ export const getEventTypesFromDB = async (id: number) => {
       eventName: true,
       recurringEvent: true,
       requiresConfirmation: true,
+      canSendCalVideoTranscriptionEmails: true,
       userId: true,
       successRedirectUrl: true,
       customInputs: true,
@@ -37,8 +38,14 @@ export const getEventTypesFromDB = async (id: number) => {
       price: true,
       currency: true,
       bookingFields: true,
+      allowReschedulingPastBookings: true,
       disableGuests: true,
       timeZone: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       teamId: true,
       owner: {
         select: userSelect,
@@ -55,6 +62,7 @@ export const getEventTypesFromDB = async (id: number) => {
       },
       team: {
         select: {
+          id: true,
           slug: true,
           name: true,
           hideBranding: true,
@@ -74,6 +82,11 @@ export const getEventTypesFromDB = async (id: number) => {
       schedulingType: true,
       periodStartDate: true,
       periodEndDate: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
     },
   });
 
@@ -82,11 +95,13 @@ export const getEventTypesFromDB = async (id: number) => {
   }
 
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  const { profile, ...restEventType } = eventType;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
   return {
     isDynamic: false,
-    ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    ...restEventType,
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
     metadata,
   };
 };
@@ -101,7 +116,7 @@ export const handleSeatsEventTypeOnBooking = async (
   bookingInfo: Partial<
     Prisma.BookingGetPayload<{
       include: {
-        attendees: { select: { name: true; email: true } };
+        attendees: { select: { name: true; email: true; phoneNumber: true } };
         seatsReferences: { select: { referenceUid: true } };
         user: {
           select: {
@@ -123,6 +138,7 @@ export const handleSeatsEventTypeOnBooking = async (
     attendee: {
       email: string;
       name: string;
+      phoneNumber: string | null;
     };
     id: number;
     data: Prisma.JsonValue;
@@ -141,6 +157,7 @@ export const handleSeatsEventTypeOnBooking = async (
           select: {
             name: true,
             email: true,
+            phoneNumber: true,
           },
         },
       },
@@ -158,7 +175,10 @@ export const handleSeatsEventTypeOnBooking = async (
   if (!eventType.seatsShowAttendees && !isHost) {
     if (seatAttendee) {
       const attendee = bookingInfo?.attendees?.find((a) => {
-        return a.email === seatAttendee?.attendee?.email;
+        return (
+          a.email === seatAttendee?.attendee?.email ||
+          (a.phoneNumber && a.phoneNumber === seatAttendee?.attendee?.phoneNumber)
+        );
       });
       bookingInfo["attendees"] = attendee ? [attendee] : [];
     } else {
@@ -178,7 +198,9 @@ export async function getRecurringBookings(recurringEventId: string | null) {
   const recurringBookings = await prisma.booking.findMany({
     where: {
       recurringEventId,
-      status: BookingStatus.ACCEPTED,
+      status: {
+        in: [BookingStatus.ACCEPTED, BookingStatus.PENDING],
+      },
     },
     select: {
       startTime: true,

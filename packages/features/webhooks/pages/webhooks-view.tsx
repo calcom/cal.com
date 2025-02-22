@@ -1,6 +1,9 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
+import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -8,30 +11,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
-import {
-  Avatar,
-  CreateButtonWithTeamsList,
-  EmptyScreen,
-  Meta,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { Avatar, EmptyScreen, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
-import { getLayout } from "../../settings/layouts/SettingsLayout";
-import { WebhookListItem } from "../components";
+import { WebhookListItem, CreateNewWebhookButton } from "../components";
 
-const SkeletonLoader = ({
-  title,
-  description,
-  borderInShellHeader,
-}: {
-  title: string;
-  description: string;
-  borderInShellHeader: boolean;
-}) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={borderInShellHeader} />
       <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -42,7 +28,6 @@ const SkeletonLoader = ({
 
 const WebhooksView = () => {
   const { t } = useLocale();
-  const router = useRouter();
   const session = useSession();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
@@ -50,63 +35,32 @@ const WebhooksView = () => {
     enabled: session.status === "authenticated",
   });
 
-  const createFunction = (teamId?: number, platform?: boolean) => {
-    if (platform) {
-      router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
-    } else {
-      router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-    }
-  };
   if (isPending || !data) {
-    return (
-      <SkeletonLoader
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        borderInShellHeader={true}
-      />
-    );
+    return <SkeletonLoader />;
   }
 
   return (
-    <>
-      <Meta
-        title={t("webhooks")}
-        description={t("add_webhook_description", { appName: APP_NAME })}
-        CTA={
-          data && data.webhookGroups.length > 0 ? (
-            <CreateButtonWithTeamsList
-              color="secondary"
-              subtitle={t("create_for").toUpperCase()}
-              isAdmin={isAdmin}
-              createFunction={createFunction}
-              data-testid="new_webhook"
-              includeOrg={true}
-            />
-          ) : (
-            <></>
-          )
-        }
-        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
-      />
+    <SettingsHeader
+      title={t("webhooks")}
+      description={t("add_webhook_description", { appName: APP_NAME })}
+      CTA={data && data.webhookGroups.length > 0 ? <CreateNewWebhookButton isAdmin={isAdmin} /> : null}
+      borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}>
       <div>
-        <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} createFunction={createFunction} />
+        <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} />
       </div>
-    </>
+    </SettingsHeader>
   );
 };
 
 const WebhooksList = ({
   webhooksByViewer,
   isAdmin,
-  createFunction,
 }: {
   webhooksByViewer: WebhooksByViewer;
   isAdmin: boolean;
-  createFunction: (teamId?: number, platform?: boolean) => void;
 }) => {
   const { t } = useLocale();
   const router = useRouter();
-
   const { profiles, webhookGroups } = webhooksByViewer;
   const bookerUrl = useBookerUrl();
 
@@ -146,7 +100,7 @@ const WebhooksList = ({
                           readOnly={group.metadata?.readOnly ?? false}
                           lastItem={group.webhooks.length === index + 1}
                           onEditWebhook={() =>
-                            router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)
+                            router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id}`)
                           }
                         />
                       ))}
@@ -162,15 +116,8 @@ const WebhooksList = ({
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"
-              buttonRaw={
-                <CreateButtonWithTeamsList
-                  subtitle={t("create_for").toUpperCase()}
-                  isAdmin={isAdmin}
-                  createFunction={createFunction}
-                  data-testid="new_webhook"
-                  includeOrg={true}
-                />
-              }
+              buttonRaw={<CreateNewWebhookButton isAdmin={isAdmin} />}
+              border={true}
             />
           )}
         </>
@@ -178,7 +125,5 @@ const WebhooksList = ({
     </>
   );
 };
-
-WebhooksView.getLayout = getLayout;
 
 export default WebhooksView;

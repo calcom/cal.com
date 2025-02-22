@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -35,7 +37,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           onClick: () => {
             mutation.mutate({ type: props.type });
           },
-          loading: mutation.isPending,
+          loading: mutation.data?.setupPending,
         })}
       </>
     );

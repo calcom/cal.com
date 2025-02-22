@@ -21,8 +21,5 @@ export const withAppDirSsr =
       ...("trpcState" in props && {
         dehydratedState: props.trpcState,
       }),
-      ...("isInfiniteScrollEnabled" in props && {
-        isInfiniteScrollEnabled: props.isInfiniteScrollEnabled,
-      }),
     };
   };

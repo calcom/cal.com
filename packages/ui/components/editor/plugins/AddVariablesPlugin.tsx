@@ -1,3 +1,5 @@
+"use client";
+
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import {
   LexicalTypeaheadMenuPlugin,
@@ -132,7 +134,7 @@ export default function AddVariablesPlugin({ variables }: AddVariablesPluginProp
                       key={option.key}
                       aria-selected={selectedIndex === index}
                       tabIndex={-1}
-                      className="focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default aria-selected:bg-subtle aria-selected:text-emphasis cursor-pointer px-4 py-2 text-sm outline-none ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1"
+                      className="focus:ring-brand-800 hover:bg-subtle hover:text-emphasis text-default aria-selected:bg-subtle aria-selected:text-emphasis cursor-pointer px-4 py-2 text-sm outline-none ring-inset transition first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] focus:outline-none focus:ring-1"
                       ref={option.setRefElement}
                       role="option"
                       onClick={() => {

@@ -35,7 +35,6 @@ import {
   ImageUploader,
   Label,
   LinkIconButton,
-  Meta,
   showToast,
   SkeletonAvatar,
   SkeletonButton,
@@ -43,8 +42,6 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
-
-import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -62,10 +59,9 @@ const teamProfileFormSchema = z.object({
 
 type FormValues = z.infer<typeof teamProfileFormSchema>;
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="border-subtle space-y-6 rounded-b-xl border border-t-0 px-4 py-8">
         <div className="flex items-center">
           <SkeletonAvatar className="me-4 mt-0 h-16 w-16 px-4" />
@@ -127,6 +123,7 @@ const ProfileView = () => {
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
       await utils.viewer.teams.list.invalidate();
+      await utils.viewer.eventTypes.getByViewer.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
       trackFormbricksAction("team_disbanded");
@@ -158,13 +155,11 @@ const ProfileView = () => {
   }
 
   if (isPending) {
-    return <SkeletonLoader title={t("profile")} description={t("profile_team_description")} />;
+    return <SkeletonLoader />;
   }
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_team_description")} borderInShellHeader={true} />
-
       {isAdmin ? (
         <TeamProfileForm team={team} />
       ) : (
@@ -179,7 +174,8 @@ const ProfileView = () => {
                 <Label className="text-emphasis mt-5">{t("about")}</Label>
                 <div
                   className="  text-subtle break-words text-sm [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-600"
-                  dangerouslySetInnerHTML={{ __html: md.render(markdownToSafeHTML(team.bio)) }}
+                  // eslint-disable-next-line react/no-danger
+                  dangerouslySetInnerHTML={{ __html: markdownToSafeHTML(team.bio ?? null) }}
                 />
               </>
             )}
@@ -436,7 +432,5 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     </Form>
   );
 };
-
-ProfileView.getLayout = getLayout;
 
 export default ProfileView;

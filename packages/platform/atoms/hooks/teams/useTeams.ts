@@ -18,12 +18,16 @@ export const useTeams = () => {
   const event = useQuery({
     queryKey: [QUERY_KEY, organizationId],
     queryFn: async () => {
-      return http?.get<ApiResponse<OrgTeamOutputDto[]>>(pathname).then((res) => {
-        if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<OrgTeamOutputDto[]>).data;
-        }
-        throw new Error(res.data.error.message);
-      });
+      return http
+        ?.get<ApiResponse<(OrgTeamOutputDto & { accepted: boolean; role: string })[]>>(pathname)
+        .then((res) => {
+          if (res.data.status === SUCCESS_STATUS) {
+            return (
+              res.data as ApiSuccessResponse<(OrgTeamOutputDto & { accepted: boolean; role: string })[]>
+            ).data;
+          }
+          throw new Error(res.data.error.message);
+        });
     },
     enabled: !!organizationId,
   });

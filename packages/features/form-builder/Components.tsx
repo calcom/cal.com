@@ -97,16 +97,16 @@ type Component =
 export const Components: Record<FieldType, Component> = {
   text: {
     propsType: propsTypes.text,
-    factory: (props) => <Widgets.TextWidget noLabel={true} {...props} />,
+    factory: (props) => <Widgets.TextWidget id={props.name} noLabel={true} {...props} />,
   },
   textarea: {
     propsType: propsTypes.textarea,
     // TODO: Make rows configurable in the form builder
-    factory: (props) => <Widgets.TextAreaWidget rows={3} {...props} />,
+    factory: (props) => <Widgets.TextAreaWidget id={props.name} rows={3} {...props} />,
   },
   number: {
     propsType: propsTypes.number,
-    factory: (props) => <Widgets.NumberWidget noLabel={true} {...props} />,
+    factory: (props) => <Widgets.NumberWidget id={props.name} noLabel={true} {...props} />,
   },
   name: {
     propsType: propsTypes.name,
@@ -211,7 +211,7 @@ export const Components: Record<FieldType, Component> = {
       if (!props) {
         return <div />;
       }
-      return <Widgets.TextWidget type="email" noLabel={true} {...props} />;
+      return <Widgets.TextWidget type="email" id={props.name} noLabel={true} {...props} />;
     },
   },
   address: {
@@ -219,10 +219,12 @@ export const Components: Record<FieldType, Component> = {
     factory: (props) => {
       return (
         <AddressInput
+          id={props.name}
           onChange={(val) => {
             props.setValue(val);
           }}
           {...props}
+          disabled={props.readOnly}
         />
       );
     },
@@ -234,8 +236,6 @@ export const Components: Record<FieldType, Component> = {
       const placeholder = props.placeholder;
       const { t } = useLocale();
       value = value || [];
-      const inputClassName =
-        "dark:placeholder:text-muted focus:border-emphasis border-subtle block w-full rounded-md border-default text-sm focus:ring-black disabled:bg-emphasis disabled:hover:cursor-not-allowed dark:selection:bg-green-500 disabled:dark:text-subtle bg-default";
       return (
         <>
           {value.length ? (
@@ -247,11 +247,11 @@ export const Components: Record<FieldType, Component> = {
                 {value.map((field, index) => (
                   <li key={index}>
                     <EmailField
+                      id={`${props.name}.${index}`}
                       disabled={readOnly}
                       value={value[index]}
-                      className={inputClassName}
                       onChange={(e) => {
-                        value[index] = e.target.value;
+                        value[index] = e.target.value.toLowerCase();
                         setValue(value);
                       }}
                       placeholder={placeholder}
@@ -303,8 +303,8 @@ export const Components: Record<FieldType, Component> = {
                 value.push("");
                 setValue(value);
               }}
-              className="mr-auto">
-              {label}
+              className="mr-auto h-fit whitespace-normal text-left">
+              <span className="flex-1">{label}</span>
             </Button>
           )}
         </>
@@ -318,7 +318,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.MultiSelectWidget {...newProps} />;
+      return <Widgets.MultiSelectWidget id={props.name} {...newProps} />;
     },
   },
   select: {
@@ -328,7 +328,7 @@ export const Components: Record<FieldType, Component> = {
         ...props,
         listValues: props.options.map((o) => ({ title: o.label, value: o.value })),
       };
-      return <Widgets.SelectWidget {...newProps} />;
+      return <Widgets.SelectWidget id={props.name} {...newProps} />;
     },
   },
   checkbox: {
@@ -350,7 +350,7 @@ export const Components: Record<FieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -364,9 +364,10 @@ export const Components: Record<FieldType, Component> = {
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options }) => {
+    factory: ({ setValue, name, value, options, readOnly }) => {
       return (
         <Group
+          disabled={readOnly}
           value={value}
           onValueChange={(e) => {
             setValue(e);
@@ -441,7 +442,7 @@ export const Components: Record<FieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
@@ -452,7 +453,9 @@ export const Components: Record<FieldType, Component> = {
                         checked={value?.value === option.value}
                       />
                       <span className="text-emphasis me-2 ms-2 text-sm">
-                        {getCleanLabel(option.label) ?? ""}
+                        {option.value === "somewhereElse"
+                          ? t("somewhere_else")
+                          : getCleanLabel(option.label) ?? ""}
                       </span>
                       <span>
                         {option.value === "phone" && (
@@ -465,13 +468,15 @@ export const Components: Record<FieldType, Component> = {
               ) : (
                 // Use the only option itself to determine if the field is required or not.
                 <>
-                  <Label className="flex">
+                  <Label className="flex items-center">
                     {/* We still want to show the label of the field if it is changed by the user otherwise the best label would be the option label */}
-                    {getCleanLabel(
-                      didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
-                    )}
+                    {options[0].value === "somewhereElse"
+                      ? translatedDefaultLabel
+                      : getCleanLabel(
+                          didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                        )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
-                      <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
+                      <span className="text-default -mb-2 ml-1 text-sm font-medium">*</span>
                     ) : null}
                     {options[0].value === "phone" && (
                       <InfoBadge content={t("number_in_international_format")} />
@@ -541,4 +546,4 @@ export const Components: Record<FieldType, Component> = {
     },
   },
 } as const;
-// Should use `statisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config
+// Should use `satisfies` to check if the `type` is from supported types. But satisfies doesn't work with Next.js config

@@ -31,6 +31,7 @@ export function transformApiScheduleForAtom(
       scheduleId: schedule.id,
       days: "days" in entry ? entry.days : [],
       date: "date" in entry ? entry.date : null,
+      id: schedule.id,
     };
   });
 

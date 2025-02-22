@@ -36,6 +36,26 @@ export const EditableSchema = z.enum([
   "user-readonly", // All fields are readOnly.
 ]);
 
+export const excludeOrRequireEmailSchema = z.string().superRefine((val, ctx) => {
+  const allDomains = val.split(",").map((dom) => dom.trim());
+
+  const regex = /^(?:@?[a-z0-9-]+(?:\.[a-z]{2,})?)?(?:@[a-z0-9-]+\.[a-z]{2,})?$/;
+
+  /*
+  Valid patterns - [ example, example.anything, anyone@example.anything ]
+  Invalid patterns - Patterns involving capital letter [ Example, Example.anything, Anyone@example.anything ]
+*/
+
+  const isValid = !allDomains.some((domain) => !regex.test(domain));
+
+  if (!isValid) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Enter valid domain or email",
+    });
+  }
+});
+
 const baseFieldSchema = z.object({
   name: z.string().transform(getValidRhfFieldName),
   type: fieldTypeEnum,
@@ -99,6 +119,11 @@ const baseFieldSchema = z.object({
    * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
+
+  // Emails that needs to be excluded
+  excludeEmails: excludeOrRequireEmailSchema.optional(),
+  // Emails that need to be required
+  requireEmails: excludeOrRequireEmailSchema.optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -238,6 +263,7 @@ export const fieldSchema = baseFieldSchema.merge(
         })
       )
       .optional(),
+    disableOnPrefill: z.boolean().default(false).optional(),
   })
 );
 
@@ -329,12 +355,12 @@ export const fieldTypesSchemaMap: Partial<
         }
         const valueIdentified = response as unknown as Record<string, string>;
         if (subField.required) {
+          if (!isPartialSchema && !valueIdentified[subField.name])
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
           if (!schema.safeParse(valueIdentified[subField.name]).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
             return;
           }
-          if (!isPartialSchema && !valueIdentified[subField.name])
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
     },

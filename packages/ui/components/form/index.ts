@@ -34,20 +34,4 @@ export { DatePicker } from "./datepicker";
 export { FormStep, Steps, Stepper } from "./step";
 export { WizardForm } from "./wizard";
 export { default as ColorPicker } from "./color-picker/colorpicker";
-export {
-  Dropdown,
-  ButtonOrLink,
-  DropdownItem,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuTriggerItem,
-} from "./dropdown";
 export { SettingsToggle, Switch } from "./switch";

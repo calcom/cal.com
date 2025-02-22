@@ -1,23 +1,25 @@
 // We do not need to worry about importing framer-motion here as it is lazy imported in Booker.
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { AnimatePresence, m } from "framer-motion";
-import { useCallback, useState } from "react";
+import { useMemo } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
+import type { IUseBookingLoadingStates } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { Slots } from "@calcom/features/schedules";
+import type { Slot } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
+import { getPaymentAppData } from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
+import { useBookerTime } from "../Booker/components/hooks/useBookerTime";
 import { useBookerStore } from "../Booker/store";
 import { getQueryParam } from "../Booker/utils/query-param";
-import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
 import { SeatsAvailabilityText } from "./SeatsAvailabilityText";
 
@@ -28,18 +30,29 @@ type TOnTimeSelect = (
   bookingUid?: string
 ) => void;
 
-type AvailableTimesProps = {
+export type AvailableTimesProps = {
   slots: IGetAvailableSlots["slots"][string];
-  onTimeSelect: TOnTimeSelect;
-  seatsPerTimeSlot?: number | null;
-  showAvailableSeatsCount?: boolean | null;
   showTimeFormatToggle?: boolean;
   className?: string;
+} & Omit<SlotItemProps, "slot">;
+
+type SlotItemProps = {
+  slot: Slot;
+  seatsPerTimeSlot?: number | null;
   selectedSlots?: string[];
+  onTimeSelect: TOnTimeSelect;
+  showAvailableSeatsCount?: boolean | null;
   event: {
-    data?: Pick<BookerEvent, "length"> | null;
+    data?: Pick<BookerEvent, "length" | "bookingFields" | "price" | "currency" | "metadata"> | null;
   };
   customClassNames?: string;
+  loadingStates?: IUseBookingLoadingStates;
+  isVerificationCodeSending?: boolean;
+  renderConfirmNotVerifyEmailButtonCond?: boolean;
+  skipConfirmStep?: boolean;
+  shouldRenderCaptcha?: boolean;
+  watchedCfToken?: string;
+  handleSlotClick?: (slot: Slot, isOverlapping: boolean) => void;
 };
 
 const SlotItem = ({
@@ -50,25 +63,30 @@ const SlotItem = ({
   showAvailableSeatsCount,
   event,
   customClassNames,
-}: {
-  slot: Slots[string][number];
-  seatsPerTimeSlot?: number | null;
-  selectedSlots?: string[];
-  onTimeSelect: TOnTimeSelect;
-  showAvailableSeatsCount?: boolean | null;
-  event: {
-    data?: Pick<BookerEvent, "length"> | null;
-  };
-  customClassNames?: string;
-}) => {
+  loadingStates,
+  renderConfirmNotVerifyEmailButtonCond,
+  isVerificationCodeSending,
+  skipConfirmStep,
+  shouldRenderCaptcha,
+  watchedCfToken,
+  handleSlotClick,
+}: SlotItemProps) => {
   const { t } = useLocale();
+
+  const { data: eventData } = event;
+
+  const isPaidEvent = useMemo(() => {
+    if (!eventData?.price) return false;
+    const paymentAppData = getPaymentAppData(eventData);
+    return eventData?.price > 0 && !Number.isNaN(paymentAppData.price) && paymentAppData.price > 0;
+  }, [eventData]);
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+
+  const { timeFormat, timezone } = useBookerTime();
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
-  const { data: eventData } = event;
   const hasTimeSlots = !!seatsPerTimeSlot;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
@@ -82,52 +100,32 @@ const SlotItem = ({
 
   const offset = (usersTimezoneDate.utcOffset() - nowDate.utcOffset()) / 60;
 
+  const selectedTimeslot = useBookerStore((state) => state.selectedTimeslot);
+
   const { isOverlapping, overlappingTimeEnd, overlappingTimeStart } = useCheckOverlapWithOverlay({
     start: computedDateWithUsersTimezone,
     selectedDuration: eventData?.length ?? 0,
     offset,
   });
 
-  const [overlapConfirm, setOverlapConfirm] = useState(false);
-
-  const onButtonClick = useCallback(() => {
-    if (!overlayCalendarToggled) {
-      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-      return;
-    }
-    if (isOverlapping && overlapConfirm) {
-      setOverlapConfirm(false);
-      return;
-    }
-
-    if (isOverlapping && !overlapConfirm) {
-      setOverlapConfirm(true);
-      return;
-    }
-    if (!overlapConfirm) {
-      onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid);
-    }
-  }, [
-    overlayCalendarToggled,
-    isOverlapping,
-    overlapConfirm,
-    onTimeSelect,
-    slot.time,
-    slot?.attendees,
-    slot.bookingUid,
-    seatsPerTimeSlot,
-  ]);
-
   return (
     <AnimatePresence>
       <div className="flex gap-2">
         <Button
           key={slot.time}
-          disabled={bookingFull || !!(slot.bookingUid && slot.bookingUid === bookingData?.uid)}
+          disabled={
+            bookingFull ||
+            !!(slot.bookingUid && slot.bookingUid === bookingData?.uid) ||
+            loadingStates?.creatingBooking ||
+            loadingStates?.creatingRecurringBooking ||
+            isVerificationCodeSending ||
+            loadingStates?.creatingInstantBooking ||
+            (skipConfirmStep && !!shouldRenderCaptcha && !watchedCfToken)
+          }
           data-testid="time"
           data-disabled={bookingFull}
           data-time={slot.time}
-          onClick={onButtonClick}
+          onClick={() => handleSlotClick && handleSlotClick(slot, isOverlapping)}
           className={classNames(
             `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
@@ -160,32 +158,56 @@ const SlotItem = ({
             </p>
           )}
         </Button>
-        {overlapConfirm && isOverlapping && (
+        {!!slot.showConfirmButton && (
           <HoverCard.Root>
             <HoverCard.Trigger asChild>
-              <m.div initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
+              <m.div key={slot.time} initial={{ width: 0 }} animate={{ width: "auto" }} exit={{ width: 0 }}>
                 <Button
                   variant={layout === "column_view" ? "icon" : "button"}
                   StartIcon={layout === "column_view" ? "chevron-right" : undefined}
+                  type="button"
                   onClick={() =>
                     onTimeSelect(slot.time, slot?.attendees || 0, seatsPerTimeSlot, slot.bookingUid)
+                  }
+                  data-testid="skip-confirm-book-button"
+                  disabled={
+                    (!!shouldRenderCaptcha && !watchedCfToken) ||
+                    loadingStates?.creatingBooking ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking
+                  }
+                  color="primary"
+                  loading={
+                    (selectedTimeslot === slot.time && loadingStates?.creatingBooking) ||
+                    loadingStates?.creatingRecurringBooking ||
+                    isVerificationCodeSending ||
+                    loadingStates?.creatingInstantBooking
                   }>
-                  {layout !== "column_view" && t("confirm")}
+                  {layout == "column_view"
+                    ? ""
+                    : renderConfirmNotVerifyEmailButtonCond
+                    ? isPaidEvent
+                      ? t("pay_and_book")
+                      : t("confirm")
+                    : t("verify_email_email_button")}
                 </Button>
               </m.div>
             </HoverCard.Trigger>
-            <HoverCard.Portal>
-              <HoverCard.Content side="top" align="end" sideOffset={2}>
-                <div className="text-emphasis bg-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
-                  <div className="flex items-center gap-2">
-                    <p>Busy</p>
+            {isOverlapping && (
+              <HoverCard.Portal>
+                <HoverCard.Content side="top" align="end" sideOffset={2}>
+                  <div className="text-emphasis bg-inverted w-[var(--booker-timeslots-width)] rounded-md p-3">
+                    <div className="flex items-center gap-2">
+                      <p>Busy</p>
+                    </div>
+                    <p className="text-muted">
+                      {overlappingTimeStart} - {overlappingTimeEnd}
+                    </p>
                   </div>
-                  <p className="text-muted">
-                    {overlappingTimeStart} - {overlappingTimeEnd}
-                  </p>
-                </div>
-              </HoverCard.Content>
-            </HoverCard.Portal>
+                </HoverCard.Content>
+              </HoverCard.Portal>
+            )}
           </HoverCard.Root>
         )}
       </div>
@@ -195,14 +217,9 @@ const SlotItem = ({
 
 export const AvailableTimes = ({
   slots,
-  onTimeSelect,
-  seatsPerTimeSlot,
-  showAvailableSeatsCount,
   showTimeFormatToggle = true,
   className,
-  selectedSlots,
-  event,
-  customClassNames,
+  ...props
 }: AvailableTimesProps) => {
   const { t } = useLocale();
 
@@ -231,18 +248,7 @@ export const AvailableTimes = ({
         {oooBeforeSlots && !oooAfterSlots && <OOOSlot {...slots[0]} />}
         {slots.map((slot) => {
           if (slot.away) return null;
-          return (
-            <SlotItem
-              customClassNames={customClassNames}
-              key={slot.time}
-              onTimeSelect={onTimeSelect}
-              slot={slot}
-              selectedSlots={selectedSlots}
-              seatsPerTimeSlot={seatsPerTimeSlot}
-              showAvailableSeatsCount={showAvailableSeatsCount}
-              event={event}
-            />
-          );
+          return <SlotItem key={slot.time} slot={slot} {...props} />;
         })}
         {oooAfterSlots && !oooBeforeSlots && <OOOSlot {...slots[slots.length - 1]} className="pb-0" />}
       </div>

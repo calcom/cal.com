@@ -1,5 +1,4 @@
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
-import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -28,7 +27,8 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
 
   const targetMembership = memberships.find((m) => m.userId === input.memberId);
   const myMembership = memberships.find((m) => m.userId === ctx.user.id);
-  const teamHasMoreThanOneOwner = memberships.some((m) => m.role === MembershipRole.OWNER);
+  const teamOwners = memberships.filter((m) => m.role === MembershipRole.OWNER);
+  const teamHasMoreThanOneOwner = teamOwners.length > 1;
 
   if (myMembership?.role === MembershipRole.ADMIN && targetMembership?.role === MembershipRole.OWNER) {
     throw new TRPCError({
@@ -37,7 +37,7 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
     });
   }
 
-  if (!teamHasMoreThanOneOwner) {
+  if (targetMembership?.role === MembershipRole.OWNER && !teamHasMoreThanOneOwner) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not change the role of the only owner of a team.",
@@ -67,9 +67,6 @@ export const changeMemberRoleHandler = async ({ ctx, input }: ChangeMemberRoleOp
       user: true,
     },
   });
-
-  // Sync Services: Close.com
-  closeComUpsertTeamUser(membership.team, membership.user, membership.role);
 };
 
 export default changeMemberRoleHandler;

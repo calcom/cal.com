@@ -11,6 +11,7 @@ import {
   expectSMSWorkflowToBeTriggered,
   expectSMSWorkflowToBeNotTriggered,
 } from "@calcom/web/test/utils/bookingScenario/expects";
+import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
 import { describe, expect, beforeAll, vi } from "vitest";
 
@@ -85,18 +86,18 @@ const mockBookings = [
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-22T04:00:00.000Z`,
-    endTime: `2024-05-22T04:30:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    startTime: `2024-05-20T14:00:00.000Z`,
+    endTime: `2024-05-20T14:30:00.000Z`,
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-23T04:00:00.000Z`,
-    endTime: `2024-05-23T04:30:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    startTime: `2024-05-20T14:30:00.000Z`,
+    endTime: `2024-05-20T15:00:00.000Z`,
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
@@ -105,7 +106,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-01T04:30:00.000Z`,
     endTime: `2024-06-01T05:00:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
   {
     uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
@@ -114,7 +115,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-02T04:30:00.000Z`,
     endTime: `2024-06-02T05:00:00.000Z`,
-    attendees: [{ email: "attendee@example.com" }],
+    attendees: [{ email: "attendee@example.com", locale: "en" }],
   },
 ];
 
@@ -325,7 +326,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
     let removedActiveOnIds = [1];
     const activeOnIds = [2];
 
-    //workflow removed from team 2, but still acitve on team 3 --> so reminder should not be removed
+    //workflow removed from team 2, but still active on team 3 --> so reminder should not be removed
     await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
       workflowSteps: workflow?.steps || [],
@@ -366,6 +367,8 @@ describe("deleteRemindersOfActiveOnIds", () => {
 });
 
 describe("scheduleBookingReminders", () => {
+  setupAndTeardown();
+
   test("schedules workflow notifications with before event trigger and email to host action", async ({}) => {
     // organizer is part of org and two teams
     const organizer = getOrganizer({
@@ -433,14 +436,14 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-22T03:00:00.000"),
-      new Date("2024-05-23T03:00:00.000Z"),
+      new Date("2024-05-20T13:00:00.000"),
+      new Date("2024-05-20T13:30:00.000Z"),
       new Date("2024-06-01T03:30:00.000Z"),
       new Date("2024-06-02T03:30:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
       if (index < 2) {
         expect(reminder.scheduled).toBe(true);
@@ -517,20 +520,16 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-22T05:30:00.000"),
-      new Date("2024-05-23T05:30:00.000Z"),
+      new Date("2024-05-20T15:30:00.000"),
+      new Date("2024-05-20T16:00:00.000Z"),
       new Date("2024-06-01T06:00:00.000Z"),
       new Date("2024-06-02T06:00:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.EMAIL);
-      if (index < 2) {
-        expect(reminder.scheduled).toBe(true);
-      } else {
-        expect(reminder.scheduled).toBe(false);
-      }
+      expect(reminder.scheduled).toBe(false); // all are more than 2 hours in advance
     });
   });
 
@@ -550,7 +549,7 @@ describe("scheduleBookingReminders", () => {
           {
             name: "Workflow",
             userId: 101,
-            trigger: "BEFORE_EVENT",
+            trigger: "AFTER_EVENT",
             action: "SMS_NUMBER",
             template: "REMINDER",
             activeOn: [],
@@ -614,17 +613,17 @@ describe("scheduleBookingReminders", () => {
       null //teamId
     );
 
-    // two sms schould be scheduled
+    // two sms should be scheduled
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 22 at 9:30am Asia/Kolkata",
+      includedString: "2024 May 20 at 7:30pm Asia/Kolkata",
     });
 
     expectSMSWorkflowToBeTriggered({
       sms,
       toNumber: "000",
-      includedString: "2024 May 23 at 9:30am Asia/Kolkata",
+      includedString: "2024 May 20 at 8:00pm Asia/Kolkata",
     });
 
     // sms are too far in future
@@ -652,14 +651,14 @@ describe("scheduleBookingReminders", () => {
     );
 
     const expectedScheduledDates = [
-      new Date("2024-05-22T01:00:00.000"),
-      new Date("2024-05-23T01:00:00.000Z"),
-      new Date("2024-06-01T01:30:00.000Z"),
-      new Date("2024-06-02T01:30:00.000Z"),
+      new Date("2024-05-20T17:30:00.000"),
+      new Date("2024-05-20T18:00:00.000Z"),
+      new Date("2024-06-01T08:00:00.000Z"),
+      new Date("2024-06-02T08:00:00.000Z"),
     ];
 
     scheduledWorkflowReminders.forEach((reminder, index) => {
-      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(expectedScheduledDates[index].toISOString()).toStrictEqual(reminder.scheduledDate.toISOString());
       expect(reminder.method).toBe(WorkflowMethods.SMS);
       if (index < 2) {
         expect(reminder.scheduled).toBe(true);

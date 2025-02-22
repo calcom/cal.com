@@ -33,6 +33,16 @@ export class MembershipsRepository {
     return membership;
   }
 
+  async findUserMemberships(userId: number) {
+    const memberships = await this.dbRead.prisma.membership.findMany({
+      where: {
+        userId,
+      },
+    });
+
+    return memberships;
+  }
+
   async findMembershipByOrgId(orgId: number, userId: number) {
     return this.findMembershipByTeamId(orgId, userId);
   }

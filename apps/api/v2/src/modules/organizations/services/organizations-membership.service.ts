@@ -16,6 +16,14 @@ export class OrganizationsMembershipService {
     return membership;
   }
 
+  async getOrgMembershipByUserId(organizationId: number, userId: number) {
+    const membership = await this.organizationsMembershipRepository.findOrgMembershipByUserId(
+      organizationId,
+      userId
+    );
+    return membership;
+  }
+
   async getPaginatedOrgMemberships(organizationId: number, skip = 0, take = 250) {
     const memberships = await this.organizationsMembershipRepository.findOrgMembershipsPaginated(
       organizationId,

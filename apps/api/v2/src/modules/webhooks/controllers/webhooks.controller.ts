@@ -15,7 +15,7 @@ import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
@@ -27,7 +27,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard)
-@ApiTags("Users' Webhooks")
+@DocsTags("Webhooks")
 export class WebhooksController {
   constructor(
     private readonly webhooksService: WebhooksService,
@@ -82,7 +82,10 @@ export class WebhooksController {
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all user webhooks paginated" })
+  @ApiOperation({
+    summary: "Get all webooks",
+    description: "Gets a paginated list of webhooks for the authenticated user.",
+  })
   async getWebhooks(
     @GetUser() user: UserWithProfile,
     @Query() query: SkipTakePagination

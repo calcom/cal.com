@@ -1,6 +1,5 @@
 "use client";
 
-import Head from "next/head";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
@@ -19,13 +18,14 @@ import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
-import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
+import { getAbsoluteEventTypeRedirectUrlWithEmbedSupport } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { processRoute } from "../../lib/processRoute";
+import { findMatchingRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
-import transformResponse from "../../lib/transformResponse";
-import type { NonRouterRoute, Response } from "../../types/types";
+import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
+import type { NonRouterRoute, FormResponse } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
+import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
@@ -53,31 +53,38 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   });
 
   const [response, setResponse] = usePrefilledResponse(form);
+  const pageSearchParams = useCompatSearchParams();
+  const isBookingDryRun = pageSearchParams?.get("cal.isBookingDryRun") === "true";
 
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{ action: NonRouterRoute["action"]; response: Response }>();
+  const chosenRouteWithFormResponseRef = useRef<{
+    route: NonRouterRoute;
+    response: FormResponse;
+  }>();
   const router = useRouter();
 
-  const onSubmit = (response: Response) => {
-    const decidedAction = processRoute({ form, response });
+  const onSubmit = (response: FormResponse) => {
+    const chosenRoute = findMatchingRoute({ form, response });
 
-    if (!decidedAction) {
-      // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
-      alert("Define atleast 1 route");
-      return;
+    if (!chosenRoute) {
+      // This error should never happen as we ensure that fallback route is always there that matches always
+      throw new Error("No matching route found");
     }
 
     responseMutation.mutate({
       formId: form.id,
       formFillerId,
       response: response,
+      chosenRouteId: chosenRoute.id,
+      isPreview: isBookingDryRun,
     });
-    decidedActionWithFormResponseRef.current = {
-      action: decidedAction,
+
+    chosenRouteWithFormResponseRef.current = {
+      route: chosenRoute,
       response,
     };
   };
@@ -87,18 +94,27 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
-  const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
-    onSuccess: async () => {
-      const decidedActionWithFormResponse = decidedActionWithFormResponseRef.current;
-      if (!decidedActionWithFormResponse) {
+  const responseMutation = trpc.viewer.routingForms.public.response.useMutation({
+    onSuccess: async (data) => {
+      const { teamMembersMatchingAttributeLogic, formResponse, attributeRoutingConfig } = data;
+      const chosenRouteWithFormResponse = chosenRouteWithFormResponseRef.current;
+      if (!chosenRouteWithFormResponse) {
         return;
       }
       const fields = form.fields;
       if (!fields) {
         throw new Error("Routing Form fields must exist here");
       }
-      const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
-      const decidedAction = decidedActionWithFormResponse.action;
+      const allURLSearchParams = getUrlSearchParamsToForward({
+        formResponse: chosenRouteWithFormResponse.response,
+        formResponseId: formResponse.id,
+        fields,
+        searchParams: new URLSearchParams(window.location.search),
+        teamMembersMatchingAttributeLogic,
+        attributeRoutingConfig: attributeRoutingConfig ?? null,
+      });
+      const chosenRoute = chosenRouteWithFormResponse.route;
+      const decidedAction = chosenRoute.action;
       sdkActionManager?.fire("routed", {
         actionType: decidedAction.type,
         actionValue: decidedAction.value,
@@ -109,10 +125,11 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
         const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
         router.push(
-          getAbsoluteEventTypeRedirectUrl({
+          getAbsoluteEventTypeRedirectUrlWithEmbedSupport({
             form,
             eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
             allURLSearchParams,
+            isEmbed: !!isEmbed,
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {
@@ -145,9 +162,6 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       <div>
         {!customPageMessage ? (
           <>
-            <Head>
-              <title>{`${form.name} | Cal.com Forms`}</title>
-            </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
                 <div className="main border-booker md:border-booker-width dark:bg-muted bg-default mx-0 rounded-md p-4 py-6 sm:-mx-4 sm:px-8 ">
@@ -180,7 +194,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="main dark:bg-darkgray-100 sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main sm:border-subtle bg-default -mx-4 rounded-md border border-neutral-200 p-4 py-6 sm:mx-0 sm:px-8">
                 <div className="text-emphasis">{customPageMessage}</div>
               </div>
             </div>
@@ -191,66 +205,15 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   );
 }
 
-function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Props["form"]["fields"]>) {
-  type Params = Record<string, string | string[]>;
-  const paramsFromResponse: Params = {};
-  const paramsFromCurrentUrl: Params = {};
-
-  // Build query params from response
-  Object.entries(response).forEach(([key, fieldResponse]) => {
-    const foundField = fields.find((f) => f.id === key);
-    if (!foundField) {
-      // If for some reason, the field isn't there, let's just
-      return;
-    }
-    const valueAsStringOrStringArray =
-      typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
-    paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
-      valueAsStringOrStringArray;
-  });
-
-  // Build query params from current URL. It excludes route params
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  for (const [name, value] of new URLSearchParams(window.location.search).entries()) {
-    const target = paramsFromCurrentUrl[name];
-    if (target instanceof Array) {
-      target.push(value);
-    } else {
-      paramsFromCurrentUrl[name] = [value];
-    }
-  }
-
-  const allQueryParams: Params = {
-    ...paramsFromCurrentUrl,
-    // In case of conflict b/w paramsFromResponse and paramsFromCurrentUrl, paramsFromResponse should win as the booker probably improved upon the prefilled value.
-    ...paramsFromResponse,
-  };
-
-  const allQueryURLSearchParams = new URLSearchParams();
-
-  // Make serializable URLSearchParams instance
-  Object.entries(allQueryParams).forEach(([param, value]) => {
-    const valueArray = value instanceof Array ? value : [value];
-    valueArray.forEach((v) => {
-      allQueryURLSearchParams.append(param, v);
-    });
-  });
-
-  return allQueryURLSearchParams;
-}
-
 export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm {...props} />;
 }
-
-RoutingLink.isBookingPage = true;
 
 export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
   const searchParams = useCompatSearchParams();
-  const prefillResponse: Response = {};
+  const prefillResponse: FormResponse = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
@@ -259,10 +222,10 @@ const usePrefilledResponse = (form: Props["form"]) => {
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 
     prefillResponse[field.id] = {
-      value: transformResponse({ field, value }),
+      value: getFieldResponseForJsonLogic({ field, value }),
       label: field.label,
     };
   });
-  const [response, setResponse] = useState<Response>(prefillResponse);
+  const [response, setResponse] = useState<FormResponse>(prefillResponse);
   return [response, setResponse] as const;
 };

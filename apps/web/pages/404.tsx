@@ -33,7 +33,7 @@ export default function Custom404() {
 
   const links = [
     {
-      title: "Enterprise",
+      title: t("enterprise"),
       description: "Learn more about organizations and subdomains in our enterprise plan.",
       icon: "shield" as const,
       href: `${WEBSITE_URL}/enterprise`,
@@ -155,7 +155,7 @@ export default function Custom404() {
             ) : (
               <span className="mt-2 inline-block text-lg">
                 {t(`404_the_${currentPageType.toLowerCase()}`)}{" "}
-                <strong className="text-lgtext-green-500 mt-2 inline-block">{username}</strong>{" "}
+                <strong className="mt-2 inline-block text-lg text-green-500">{username}</strong>{" "}
                 {t("is_still_available")}
               </span>
             )}

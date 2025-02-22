@@ -33,7 +33,7 @@ export class OrganizationsRepository {
   }
 
   async createNewBillingRelation(orgId: number, plan?: PlatformPlan) {
-    const { id } = await this.stripeService.stripe.customers.create({
+    const { id } = await this.stripeService.getStripe().customers.create({
       metadata: {
         createdBy: "oauth_client_no_csid", // mark in case this is needed in the future.
       },
@@ -103,6 +103,24 @@ export class OrganizationsRepository {
     });
   }
 
+  async findOrgTeamUser(organizationId: number, teamId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+        teams: {
+          some: {
+            teamId: teamId,
+          },
+        },
+      },
+    });
+  }
+
   async fetchOrgAdminApiStatus(organizationId: number) {
     return this.dbRead.prisma.organizationSettings.findUnique({
       where: {
@@ -110,6 +128,16 @@ export class OrganizationsRepository {
       },
       select: {
         isAdminAPIEnabled: true,
+      },
+    });
+  }
+
+  async findOrgBySlug(slug: string) {
+    return this.dbRead.prisma.team.findFirst({
+      where: {
+        slug,
+        parentId: null,
+        isOrganization: true,
       },
     });
   }

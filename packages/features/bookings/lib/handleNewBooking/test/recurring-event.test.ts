@@ -160,14 +160,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -508,14 +512,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",
@@ -723,14 +731,18 @@ describe("handleNewBooking", () => {
           expect(createdBookings.length).toBe(numOfSlotsToBeBooked);
           for (const [index, createdBooking] of Object.entries(createdBookings)) {
             logger.debug("Assertion for Booking with index:", index, { createdBooking });
-            expect(createdBooking.responses).toContain({
-              email: booker.email,
-              name: booker.name,
-            });
+            expect(createdBooking.responses).toEqual(
+              expect.objectContaining({
+                email: booker.email,
+                name: booker.name,
+              })
+            );
 
-            expect(createdBooking).toContain({
-              location: "integrations:daily",
-            });
+            expect(createdBooking).toEqual(
+              expect.objectContaining({
+                location: "integrations:daily",
+              })
+            );
 
             await expectBookingToBeInDatabase({
               description: "",

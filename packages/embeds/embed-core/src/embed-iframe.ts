@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 
@@ -552,6 +554,7 @@ function main() {
       document.getElementsByTagName("main")[0] ||
       document.documentElement;
     if (e.target.contains(mainElement)) {
+      // Because the iframe can take the entire width but the actual content could still be smaller and everything beyond that would be considered backdrop
       sdkActionManager?.fire("__closeIframe", {});
     }
   });

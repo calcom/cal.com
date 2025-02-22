@@ -89,8 +89,9 @@ jobs:
       - name: Run Tests
         run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Upload Test Results
-        if: ${{ always() }}
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: test-results-${{ matrix.shard }}_${{ strategy.job-total }}
-          path: test-results
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report
+          retention-days: 30

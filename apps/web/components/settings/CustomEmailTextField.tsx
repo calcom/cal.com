@@ -1,11 +1,9 @@
-import type { FormValues } from "@pages/settings/my-account/profile";
 import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Badge,
-  TextField,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -14,6 +12,8 @@ import {
   Button,
   InputError,
 } from "@calcom/ui";
+
+import type { FormValues } from "~/settings/my-account/profile-view";
 
 type CustomEmailTextFieldProps = {
   formMethods: UseFormReturn<FormValues>;
@@ -44,14 +44,12 @@ const CustomEmailTextField = ({
   return (
     <>
       <div
-        className={`border-default mt-2 flex items-center rounded-md border ${
+        className={`border-default mt-2 flex w-full items-center rounded-[10px] border ${
           inputFocus ? "ring-brand-default border-neutral-300 ring-2" : ""
         }`}>
-        <TextField
+        <input
           {...formMethods.register(formMethodFieldName)}
-          label=""
-          containerClassName="flex flex-1 items-center"
-          className="mb-0 border-none outline-none focus:ring-0"
+          className="flex-1 bg-transparent px-3 py-1 text-sm outline-none"
           data-testid={dataTestId}
           onFocus={() => setInputFocus(true)}
           onBlur={() => setInputFocus(false)}
@@ -72,8 +70,8 @@ const CustomEmailTextField = ({
               <Button
                 StartIcon="ellipsis"
                 variant="icon"
-                size="sm"
-                color="secondary"
+                size="xs"
+                color="minimal"
                 className="ml-2 rounded-md"
                 data-testid="secondary-email-action-group-button"
               />

@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";
@@ -41,7 +43,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
             title={
               <>
                 {t("enterprise_license_locally")} {t("enterprise_license_sales")}{" "}
-                <a className="underline" href="https://cal.com/sales">
+                <a className="underline" href="https://go.cal.com/get-license">
                   {t("contact_sales")}
                 </a>
               </>
@@ -54,7 +56,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           Icon="triangle-alert"
           headline={t("enterprise_license")}
           buttonRaw={
-            <Button color="secondary" href="https://cal.com/sales">
+            <Button color="secondary" href="https://go.cal.com/get-license">
               {t(`contact_sales`)}
             </Button>
           }
@@ -70,9 +72,11 @@ export const withLicenseRequired =
   // eslint-disable-next-line react/display-name
   (hocProps: T) =>
     (
-      <LicenseRequired>
-        <Component {...hocProps} />
-      </LicenseRequired>
+      <div>
+        <LicenseRequired>
+          <Component {...hocProps} />
+        </LicenseRequired>
+      </div>
     );
 
 export default LicenseRequired;

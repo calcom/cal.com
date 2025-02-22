@@ -73,7 +73,9 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
         // adds pretty logs to your console in development and logs errors in production
         loggerLink({
           enabled: (opts) =>
-            !!process.env.NEXT_PUBLIC_DEBUG || (opts.direction === "down" && opts.result instanceof Error),
+            (typeof process.env.NEXT_PUBLIC_LOGGER_LEVEL === "number" &&
+              process.env.NEXT_PUBLIC_LOGGER_LEVEL >= 0) ||
+            (opts.direction === "down" && opts.result instanceof Error),
         }),
         splitLink({
           // check for context property `skipBatch`

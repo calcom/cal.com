@@ -3,24 +3,22 @@ import { Table, TableBody, TableCell, TableRow, Text, Title } from "@tremor/reac
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 
-import { useFilterContext } from "../context/provider";
+import { useInsightsParameters } from "../hooks/useInsightsParameters";
 import { CardInsights } from "./Card";
 import { LoadingInsight } from "./LoadingInsights";
 
 export const PopularEventsTable = () => {
   const { t } = useLocale();
-  const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId, selectedUserId, isAll, initialConfig } = filter;
-  const [startDate, endDate] = dateRange;
-  const { selectedTeamId: teamId } = filter;
+  const { isAll, teamId, userId, memberUserId, startDate, endDate, eventTypeId } = useInsightsParameters();
 
   const { data, isSuccess, isPending } = trpc.viewer.insights.popularEventTypes.useQuery(
     {
-      startDate: startDate.toISOString(),
-      endDate: endDate.toISOString(),
-      teamId: teamId ?? undefined,
-      userId: selectedUserId ?? undefined,
-      memberUserId: selectedMemberUserId ?? undefined,
+      startDate,
+      endDate,
+      teamId,
+      userId,
+      eventTypeId,
+      memberUserId,
       isAll,
     },
     {
@@ -28,29 +26,31 @@ export const PopularEventsTable = () => {
       trpc: {
         context: { skipBatch: true },
       },
-      enabled: !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll),
     }
   );
 
   if (isPending) return <LoadingInsight />;
 
-  if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
+  if (!isSuccess || !data) return null;
 
   return (
     <CardInsights>
       <Title className="text-emphasis">{t("popular_events")}</Title>
       <Table className="mt-5">
         <TableBody>
-          {data.map((item) => (
-            <TableRow key={item.eventTypeId}>
-              <TableCell className="text-default">{item.eventTypeName}</TableCell>
-              <TableCell>
-                <Text className="text-default text-right">
-                  <strong>{item.count}</strong>
-                </Text>
-              </TableCell>
-            </TableRow>
-          ))}
+          {data.map(
+            (item) =>
+              item.eventTypeId && (
+                <TableRow key={item.eventTypeId}>
+                  <TableCell className="text-default">{item.eventTypeName}</TableCell>
+                  <TableCell>
+                    <Text className="text-default text-right">
+                      <strong>{item.count}</strong>
+                    </Text>
+                  </TableCell>
+                </TableRow>
+              )
+          )}
         </TableBody>
       </Table>
       {data.length === 0 && (

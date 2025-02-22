@@ -1,5 +1,5 @@
-import { ImageResponse } from "@vercel/og";
 import type { NextApiRequest } from "next";
+import { ImageResponse } from "next/server";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
@@ -83,9 +83,12 @@ export default async function handler(req: NextApiRequest) {
           />
         ),
         ogConfig
-      ) as { body: Buffer };
+      );
 
-      return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
+      return new Response(img.body, {
+        status: 200,
+        headers: { "Content-Type": "image/png", "cache-control": "max-age=0" },
+      });
     }
     case "app": {
       const { name, description, slug } = appSchema.parse({
@@ -94,9 +97,7 @@ export default async function handler(req: NextApiRequest) {
         slug: searchParams.get("slug"),
         imageType,
       });
-      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig) as {
-        body: Buffer;
-      };
+      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
 
       return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }
@@ -108,9 +109,7 @@ export default async function handler(req: NextApiRequest) {
         imageType,
       });
 
-      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
-        body: Buffer;
-      };
+      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig);
 
       return new Response(img.body, { status: 200, headers: { "Content-Type": "image/png" } });
     }

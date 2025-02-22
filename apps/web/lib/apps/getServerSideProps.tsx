@@ -2,7 +2,6 @@ import type { GetServerSidePropsContext } from "next";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { AppCategories } from "@calcom/prisma/enums";
 
@@ -15,13 +14,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const session = await getServerSession({ req });
 
-  let appStore, userAdminTeams: UserAdminTeams;
+  let appStore, userAdminTeamsIds: number[];
   if (session?.user?.id) {
-    userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
-    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeams);
+    const userAdminTeams = await UserRepository.getUserAdminTeams(session.user.id);
+    userAdminTeamsIds = userAdminTeams?.teams?.map(({ team }) => team.id) ?? [];
+    appStore = await getAppRegistryWithCredentials(session.user.id, userAdminTeamsIds);
   } else {
     appStore = await getAppRegistry();
-    userAdminTeams = [];
+    userAdminTeamsIds = [];
   }
 
   const categoryQuery = appStore.map(({ categories }) => ({
@@ -45,7 +45,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           return b.count - a.count;
         }),
       appStore,
-      userAdminTeams,
+      userAdminTeams: userAdminTeamsIds,
       trpcState: ssr.dehydrate(),
     },
   };

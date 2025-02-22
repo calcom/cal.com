@@ -1,12 +1,16 @@
 "use client";
 
+import type { EmbedProps } from "app/WithEmbedSSR";
 import { useSearchParams } from "next/navigation";
 
 import { Booker } from "@calcom/atoms/monorepo";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
-import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 
-import { type PageProps } from "./users-type-public-view.getServerSideProps";
+import type { inferSSRProps } from "@lib/types/inferSSRProps";
+
+import type { getServerSideProps } from "@server/lib/[user]/[type]/getServerSideProps";
+
+export type PageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export const getMultipleDurationValue = (
   multipleDurationConfig: number[] | undefined,
@@ -18,36 +22,17 @@ export const getMultipleDurationValue = (
   return defaultValue;
 };
 
-export default function Type({
-  slug,
-  user,
-  isEmbed,
-  booking,
-  isBrandingHidden,
-  isSEOIndexable,
-  rescheduleUid,
-  eventData,
-  orgBannerUrl,
-}: PageProps) {
+function Type({ slug, user, isEmbed, booking, isBrandingHidden, eventData, orgBannerUrl }: PageProps) {
   const searchParams = useSearchParams();
 
   return (
     <main className={getBookerWrapperClasses({ isEmbed: !!isEmbed })}>
-      <BookerSeo
-        username={user}
-        eventSlug={slug}
-        rescheduleUid={rescheduleUid ?? undefined}
-        hideBranding={isBrandingHidden}
-        isSEOIndexable={isSEOIndexable ?? true}
-        entity={eventData.entity}
-        bookingData={booking}
-      />
       <Booker
         username={user}
         eventSlug={slug}
         bookingData={booking}
         hideBranding={isBrandingHidden}
-        entity={eventData.entity}
+        entity={{ ...eventData.entity, eventTypeId: eventData?.id }}
         durationConfig={eventData.metadata?.multipleDuration}
         orgBannerUrl={orgBannerUrl}
         /* TODO: Currently unused, evaluate it is needed-
@@ -62,3 +47,7 @@ export default function Type({
     </main>
   );
 }
+
+Type.isBookingPage = true;
+
+export default Type;
