@@ -128,7 +128,13 @@ export class OrganizationPaymentService {
     };
   }
 
-  protected async getUniqueTeamMembersCount(teamIds: number[]) {
+  protected async getUniqueTeamMembersCount({
+    teamIds,
+    invitedMembers,
+  }: {
+    teamIds: number[];
+    invitedMembers?: { email: string }[];
+  }) {
     if (!teamIds.length) return 0;
 
     const memberships = await prisma.membership.findMany({
@@ -148,7 +154,15 @@ export class OrganizationPaymentService {
       distinct: ["userId"],
     });
 
-    return memberships.length;
+    const emailsSet = new Set(memberships.map((membership) => membership.user.email));
+
+    if (invitedMembers) {
+      invitedMembers.forEach((member) => {
+        emailsSet.add(member.email);
+      });
+    }
+
+    return emailsSet.size;
   }
 
   async createOrganizationOnboarding(input: CreateOnboardingInput) {
@@ -311,7 +325,7 @@ export class OrganizationPaymentService {
     };
 
     // Get unique members count from existing teams
-    const uniqueMembersCount = await this.getUniqueTeamMembersCount(teamIds);
+    const uniqueMembersCount = await this.getUniqueTeamMembersCount({ teamIds, invitedMembers });
 
     // Create new config with updated seats if necessary
     const updatedConfig = {

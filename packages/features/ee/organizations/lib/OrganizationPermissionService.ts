@@ -53,17 +53,17 @@ export class OrganizationPermissionService {
     return this.user.role === "ADMIN";
   }
 
-  hasModifiedDefaultPayment(input: SeatsPrice & { billingPeriod?: string }): boolean {
+  hasModifiedDefaultPayment(data: SeatsPrice & { billingPeriod?: string }): boolean {
     const isBillingPeriodModified =
-      input.billingPeriod !== undefined && input.billingPeriod !== null && input.billingPeriod !== "MONTHLY";
+      data.billingPeriod !== undefined && data.billingPeriod !== null && data.billingPeriod !== "MONTHLY";
 
     const isSeatsModified =
-      input.seats !== undefined && input.seats !== null && input.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS;
+      data.seats !== undefined && data.seats !== null && data.seats !== ORGANIZATION_SELF_SERVE_MIN_SEATS;
 
     const isPricePerSeatModified =
-      input.pricePerSeat !== undefined &&
-      input.pricePerSeat !== null &&
-      input.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE;
+      data.pricePerSeat !== undefined &&
+      data.pricePerSeat !== null &&
+      data.pricePerSeat !== ORGANIZATION_SELF_SERVE_PRICE;
 
     log.debug(
       "hasModifiedDefaultPayment",
@@ -74,14 +74,11 @@ export class OrganizationPermissionService {
 
   async hasPermissionToMigrateTeams(teamIds: number[]): Promise<boolean> {
     if (teamIds.length === 0) return true;
-
     const teamMemberships = await prisma.membership.findMany({
       where: {
         userId: this.user.id,
-        team: {
-          id: {
-            in: teamIds,
-          },
+        teamId: {
+          in: teamIds,
         },
         role: {
           in: ["OWNER", "ADMIN"],

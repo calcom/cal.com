@@ -61,7 +61,6 @@ vi.mock("@calcom/lib/domainManager/organization", () => ({
 }));
 
 const mockOrganizationOnboarding = {
-  id: "onboard-id-1",
   name: "Test Org",
   slug: "test-org",
   orgOwnerEmail: "test@example.com",
@@ -120,15 +119,46 @@ async function createTestOrganization(data: {
   });
 }
 
+async function createTestTeam(data: { name: string; slug: string }) {
+  return prismock.team.create({
+    data: {
+      name: data.name,
+      slug: data.slug,
+      isOrganization: false,
+    },
+  });
+}
+
 async function createTestOrganizationOnboarding(
   data?: Partial<typeof mockOrganizationOnboarding> & { organizationId?: number | null }
 ) {
+  console.log("Creating organization onboarding", data);
   return prismock.organizationOnboarding.create({
     data: {
       ...mockOrganizationOnboarding,
       ...data,
     },
   });
+}
+
+async function createOnboardingEligibleUserAndOnboarding(data: {
+  user?: {
+    email: string;
+    name?: string;
+    username?: string;
+  };
+  organizationOnboarding?: Partial<typeof mockOrganizationOnboarding> & { organizationId?: number | null };
+}) {
+  const user = await createTestUser({
+    ...data.user,
+    onboardingCompleted: true,
+    emailVerified: new Date(),
+  });
+  const organizationOnboarding = await createTestOrganizationOnboarding({
+    ...data.organizationOnboarding,
+    createdById: user.id,
+  });
+  return { user, organizationOnboarding };
 }
 
 async function createTestMembership(data: { userId: number; teamId: number; role?: MembershipRole }) {
@@ -149,6 +179,7 @@ describe("createOrganizationFromOnboarding", () => {
     await prismock.reset();
   });
 
+  // Skipped because non-existend user creation support isn't there through onboarding now.
   it.skip("should create an organization with a non-existent user as owner", async () => {
     const organizationOnboarding = await createTestOrganizationOnboarding();
 
@@ -235,18 +266,17 @@ describe("createOrganizationFromOnboarding", () => {
       slug: orgSlug,
     });
 
-    const organizationOnboarding = await createTestOrganizationOnboarding({
-      organizationId: existingOrg.id,
-      name: orgName,
-      slug: orgSlug,
-    });
-
-    await createTestUser({
-      email: organizationOnboarding.orgOwnerEmail,
-      name: "Existing User",
-      username: "existinguser",
-      onboardingCompleted: true,
-      emailVerified: new Date(),
+    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        name: "Existing User",
+        username: "existinguser",
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        organizationId: existingOrg.id,
+        name: orgName,
+        slug: orgSlug,
+      },
     });
 
     const { organization } = await createOrganizationFromOnboarding({
@@ -260,18 +290,18 @@ describe("createOrganizationFromOnboarding", () => {
   });
 
   it("should throw error if organization with same slug exists", async () => {
-    const organizationOnboarding = await createTestOrganizationOnboarding();
-    await createTestOrganization({
-      name: "Existing Org",
-      slug: organizationOnboarding.slug,
+    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        slug: "conflicting-org-with-same-slug",
+      },
     });
 
-    await createTestUser({
-      email: organizationOnboarding.orgOwnerEmail,
-      name: "Existing User",
-      username: "existinguser",
-      onboardingCompleted: true,
-      emailVerified: new Date(),
+    await createTestOrganization({
+      name: "Conflicting Org with same slug",
+      slug: organizationOnboarding.slug,
     });
 
     await expect(
@@ -284,15 +314,15 @@ describe("createOrganizationFromOnboarding", () => {
   });
 
   it("should update stripe customer ID for existing user", async () => {
-    const organizationOnboarding = await createTestOrganizationOnboarding();
-    const existingUser = await createTestUser({
-      email: organizationOnboarding.orgOwnerEmail,
-      name: "Existing User",
-      username: "existinguser",
-      metadata: {},
-      onboardingCompleted: true,
-      emailVerified: new Date(),
+    const { user: existingUser, organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        slug: "conflicting-org-with-same-slug",
+      },
     });
+
     await createOrganizationFromOnboarding({
       organizationOnboarding,
       paymentSubscriptionId: "mock_subscription_id",
@@ -309,5 +339,67 @@ describe("createOrganizationFromOnboarding", () => {
         stripeCustomerId: organizationOnboarding.stripeCustomerId,
       })
     );
+  });
+
+  it("should create organization in with slug set even if there is a team with same slug of which orgOwner(to-be) is a member", async () => {
+    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        slug: "conflicting-org-with-same-slug",
+      },
+    });
+
+    const teamWithConflictingSlug = await createTestTeam({
+      name: "TestTeamWithConflictingSlug",
+      slug: organizationOnboarding.slug,
+    });
+
+    // Make the orgOwner a member of the team
+    await createTestMembership({
+      userId: organizationOnboarding.createdById,
+      teamId: teamWithConflictingSlug.id,
+      role: MembershipRole.ADMIN,
+    });
+
+    const { organization } = await createOrganizationFromOnboarding({
+      organizationOnboarding,
+      paymentSubscriptionId: "mock_subscription_id",
+      paymentSubscriptionItemId: "mock_subscription_item_id",
+    });
+
+    expect(organization.slug).toBe(organizationOnboarding.slug);
+  });
+
+  it("should not create organization if there is a team with same slug of which orgOwner(to-be) is not a member", async () => {
+    const { organizationOnboarding } = await createOnboardingEligibleUserAndOnboarding({
+      user: {
+        email: "test@example.com",
+      },
+      organizationOnboarding: {
+        slug: "conflicting-org-with-same-slug",
+      },
+    });
+
+    await createTestTeam({
+      name: "TestTeamWithConflictingSlugNotOwnedByOrgOwner",
+      slug: organizationOnboarding.slug,
+    });
+
+    // Don't make the orgOwner a member of the team
+    // await createTestMembership({
+    //   userId: organizationOnboarding.createdById,
+    //   teamId: teamWithConflictingSlug.id,
+    //   role: MembershipRole.ADMIN,
+    // });
+
+    await expect(
+      createOrganizationFromOnboarding({
+        organizationOnboarding,
+        paymentSubscriptionId: "mock_subscription_id",
+        paymentSubscriptionItemId: "mock_subscription_item_id",
+      })
+    ).rejects.toThrow("organization_url_taken");
   });
 });

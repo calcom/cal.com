@@ -199,7 +199,7 @@ describe("OrganizationPaymentService", () => {
         stripeCustomerId: "mock_stripe_customer_id",
         pricePerSeat: defaultOrgOnboarding.pricePerSeat,
         billingPeriod: "MONTHLY",
-        seats: 7,
+        seats: 10,
       });
     });
 

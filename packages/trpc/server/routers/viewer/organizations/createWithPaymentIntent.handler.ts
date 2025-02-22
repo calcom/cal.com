@@ -52,7 +52,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     });
   }
 
-  return await paymentService.createPaymentIntent(
+  const paymentIntent = await paymentService.createPaymentIntent(
     {
       ...input,
       logo: input.logo ?? null,
@@ -60,6 +60,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
     organizationOnboarding
   );
+
+  return {
+    checkoutUrl: paymentIntent.checkoutUrl,
+  };
 };
 
 export default createHandler;

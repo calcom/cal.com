@@ -109,8 +109,9 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
-export const ORGANIZATION_SELF_SERVE_MIN_SEATS =
-  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || 5;
+export const ORGANIZATION_SELF_SERVE_MIN_SEATS = parseInt(
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || "5"
+);
 
 export const ORGANIZATION_SELF_SERVE_PRICE = parseFloat(
   process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE_NEW || "37"
