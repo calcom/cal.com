@@ -50,6 +50,7 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     icon: "users",
     onlyDesktop: true,
     badge: <TeamInviteBadge />,
+    moreOnMobile: true,
   },
   {
     name: "apps",
