@@ -3,7 +3,7 @@ import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { UpgradeTeamsBadge } from "../../badge";
+import { UpgradeBadge } from "../../badge";
 import { Icon } from "../../icon";
 import type { SelectProps } from "./Select";
 
@@ -47,7 +47,7 @@ export const OptionComponent = <
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? <UpgradeTeamsBadge /> : <></>}
+        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? <UpgradeBadge /> : <></>}
         {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>

@@ -29,7 +29,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   SettingsToggle,
-  UpgradeTeamsBadge,
+  UpgradeBadge,
   useCalcomTheme,
 } from "@calcom/ui";
 
@@ -422,7 +422,7 @@ const AppearanceView = ({
             disabled={!hasPaidPlan || mutation?.isPending}
             description={t("removes_cal_branding", { appName: APP_NAME })}
             checked={hasPaidPlan ? hideBrandingValue : false}
-            Badge={<UpgradeTeamsBadge />}
+            Badge={<UpgradeBadge />}
             onCheckedChange={(checked) => {
               setHideBrandingValue(checked);
               mutation.mutate({ hideBranding: checked });

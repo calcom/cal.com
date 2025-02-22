@@ -1,7 +1,7 @@
 import { JOIN_COMMUNITY } from "@calcom/lib/constants";
 import { useHasPaidPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon, UpgradeTeamsBadge } from "@calcom/ui";
+import { Icon, UpgradeBadge } from "@calcom/ui";
 
 import FreshChatMenuItem from "../lib/freshchat/FreshChatMenuItem";
 import HelpscoutMenuItem from "../lib/helpscout/HelpscoutMenuItem";
@@ -26,7 +26,7 @@ export default function ContactMenuItem(props: ContactMenuItem) {
       ) : (
         <div className=" hover:text-emphasis text-default flex w-full cursor-not-allowed justify-between px-5 py-2 pr-4 text-sm font-medium">
           {t("premium_support")}
-          <UpgradeTeamsBadge />
+          <UpgradeBadge />
         </div>
       )}
       <a
