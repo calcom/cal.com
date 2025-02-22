@@ -48,7 +48,6 @@ const getNavigationItems = (orgBranding: OrganizationBranding): NavigationItemTy
     name: "teams",
     href: "/teams",
     icon: "users",
-    onlyDesktop: true,
     badge: <TeamInviteBadge />,
     moreOnMobile: true,
   },
