@@ -1987,7 +1987,7 @@
   "a_routing_form": "Un formular de parcurs",
   "form_description_placeholder": "Descriere formular",
   "keep_me_connected_with_form": "Vreau să primesc actualizări privind formularul",
-  "fields_in_form_duplicated": "Orice modificări aduse parcursului și câmpurilor din formularul duplicat se vor reflecta în duplicat.",
+  "fields_in_form_duplicated": "Orice modificări aduse rutei sau câmpurilor formularului care este duplicat vor fi reflectate în duplicat. Cu toate acestea, ștergerea unui câmp nu îl va elimina din duplicat.",
   "form_deleted": "Formular șters",
   "delete_form": "Sigur doriți să ștergeți acest formular?",
   "delete_form_action": "Da, șterg formularul",

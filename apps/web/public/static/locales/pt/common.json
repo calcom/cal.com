@@ -1987,7 +1987,7 @@
   "a_routing_form": "Um formulário de encaminhamento",
   "form_description_placeholder": "Descrição do formulário",
   "keep_me_connected_with_form": "Manter-me associado ao formulário",
-  "fields_in_form_duplicated": "Quaisquer alterações no Encaminhador e Campos do formulário que esteja a ser duplicado, irão refletir-se na duplicação.",
+  "fields_in_form_duplicated": "Quaisquer alterações feitas no roteador ou nos campos do formulário que está sendo duplicado serão refletidas na cópia. No entanto, excluir um campo não o removerá da cópia.",
   "form_deleted": "Formulário eliminado",
   "delete_form": "Eliminar formulário",
   "delete_form_action": "Sim, eliminar formulário",
