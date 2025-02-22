@@ -9,7 +9,7 @@ import { ssrInit } from "@server/lib/ssr";
 export default async function BookingPageWrapperLayout({ children }: { children: React.ReactNode }) {
   const h = headers();
   const nonce = h.get("x-nonce") ?? undefined;
-  const context = buildLegacyCtx(headers(), cookies(), {}, {});
+  const context = buildLegacyCtx(h, cookies(), {}, {});
   const ssr = await ssrInit(context);
 
   return (
