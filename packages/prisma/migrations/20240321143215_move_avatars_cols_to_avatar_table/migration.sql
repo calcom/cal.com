@@ -4,6 +4,7 @@ DECLARE
     rec RECORD;
     objectKey UUID;
 BEGIN
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
     OPEN cur;
 
     LOOP
