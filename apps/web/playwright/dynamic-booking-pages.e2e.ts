@@ -156,7 +156,7 @@ test.describe("Organization:", () => {
     });
 
     const user2 = await users.create({
-      username: "ßenny-Joo", // Special character "ß"
+      username: "ßenny-Joo", // ß is a special character
       organizationId: org.id,
       name: "User 2",
       roleInOrganization: MembershipRole.MEMBER,
