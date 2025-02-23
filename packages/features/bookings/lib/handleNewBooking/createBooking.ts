@@ -194,13 +194,15 @@ function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
   //if attendee is team member, it should fetch their locale not booker's locale
   //perhaps make email fetch request to see if his locale is stored, else
   const teamMembers = evt?.team?.members ?? [];
+  const optionalTeamGuests = evt.team?.optionalGuests ?? [];
 
-  return evt.attendees.concat(teamMembers).map((attendee) => ({
+  return evt.attendees.concat(teamMembers, optionalTeamGuests).map((attendee) => ({
     name: attendee.name,
     email: attendee.email,
     timeZone: attendee.timeZone,
     locale: attendee.language.locale,
     phoneNumber: attendee.phoneNumber,
+    isOptionalTeamGuest: optionalTeamGuests.includes(attendee),
   }));
 }
 

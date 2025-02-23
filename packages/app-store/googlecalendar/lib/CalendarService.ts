@@ -207,7 +207,7 @@ export default class GoogleCalendarService implements Calendar {
 
     if (event.team?.members) {
       // TODO: Check every other CalendarService for team members
-      const teamAttendeesWithoutCurrentUser = event.team.members
+      const teamAttendeesWithoutCurrentUser: typeof attendees = event.team.members
         .filter((member) => member.email !== this.credential.user?.email)
         .map((m) => {
           const teamMemberDestinationCalendar = event.destinationCalendar?.find(
@@ -220,6 +220,24 @@ export default class GoogleCalendarService implements Calendar {
           };
         });
       attendees.push(...teamAttendeesWithoutCurrentUser);
+    }
+
+    if (event.team?.optionalGuests) {
+      // TODO: Check every other CalendarService for team members
+      const optionalTeamGuestsWithoutCurrentUser: typeof attendees = event.team.optionalGuests
+        .filter((guest) => guest.email !== this.credential.user?.email)
+        .map((guest) => {
+          const guestDestinationCalendar = event.destinationCalendar?.find(
+            (cal) => cal.integration === "google_calendar" && cal.userId === guest.id
+          );
+          return {
+            email: guestDestinationCalendar?.externalId ?? guest.email,
+            displayName: guest.name,
+            responseStatus: "needsAction",
+            optional: true,
+          };
+        });
+      attendees.push(...optionalTeamGuestsWithoutCurrentUser);
     }
 
     return attendees;

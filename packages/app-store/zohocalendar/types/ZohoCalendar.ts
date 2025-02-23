@@ -41,3 +41,14 @@ export type ZohoCalendarListResp = {
     }[];
   }[];
 };
+
+export enum ZohoAttendeeAttendance {
+  "Non-participant",
+  "Required participant",
+  "Optional participant",
+}
+
+export type ZohoEventAttendee = {
+  email: string;
+  attendance?: ZohoAttendeeAttendance;
+};

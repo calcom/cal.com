@@ -179,6 +179,7 @@ export interface CalendarEvent {
     name: string;
     members: TeamMember[];
     id: number;
+    optionalGuests: TeamMember[];
   };
   location?: string | null;
   conferenceCredentialId?: number;
