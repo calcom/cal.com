@@ -14,6 +14,7 @@ import {
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { CredentialRepository } from "@calcom/lib/server/repository/credential";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -76,6 +77,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       appId: "google-calendar",
       type: "google_calendar",
     });
+    await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
 
     const gCalService = new GoogleCalendarService({
       ...gcalCredential,
@@ -117,6 +119,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         eventTypeId: null,
         externalId: selectedCalendarWhereUnique.externalId,
       });
+      await BookingReferenceRepository.reconnectWithNewCredential(gcalCredential.id);
     } catch (error) {
       let errorMessage = "something_went_wrong";
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
@@ -167,12 +170,13 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Create a new google meet credential
-  await CredentialRepository.create({
+  const newGoogleMeetCredential = await CredentialRepository.create({
     userId: req.session.user.id,
     type: "google_video",
     key: {},
     appId: "google-meet",
   });
+  await BookingReferenceRepository.reconnectWithNewCredential(newGoogleMeetCredential.id);
   res.redirect(
     getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/conferencing?hl=google-meet`) ??
       getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })

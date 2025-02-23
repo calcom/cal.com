@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { HttpError } from "@calcom/lib/http-error";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import prisma from "@calcom/prisma";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
@@ -54,5 +55,6 @@ export async function createDefaultInstallation({
   if (!installation) {
     throw new Error(`Unable to create user credential for type ${appType}`);
   }
+  await BookingReferenceRepository.reconnectWithNewCredential(installation.id);
   return installation;
 }
