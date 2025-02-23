@@ -2,10 +2,8 @@ import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expi
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { BadRequestException, Injectable, Logger, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { DateTime } from "luxon";
-
-import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
 
 @Injectable()
 export class OAuthFlowService {
@@ -53,10 +51,10 @@ export class OAuthFlowService {
 
     const ownerIdFromDb = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
 
-    if (!ownerIdFromDb) throw new Error("Invalid Access Token, not present in Redis or DB");
+    if (!ownerIdFromDb) return undefined;
 
     // await in case of race conditions, but void it's return since cache writes shouldn't halt execution.
-    void (await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb)); // expires in 1 hour
+    await this.redisService.redis.setex(cacheKey, 3600, ownerIdFromDb); // expires in 1 hour
 
     return ownerIdFromDb;
   }
@@ -73,17 +71,17 @@ export class OAuthFlowService {
     const tokenExpiresAt = await this.tokensRepository.getAccessTokenExpiryDate(secret);
 
     if (!tokenExpiresAt) {
-      throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
+      return false;
     }
 
     if (new Date() > tokenExpiresAt) {
-      throw new TokenExpiredException();
+      return false;
     }
 
     // we can't use a Promise#all or similar here because we care about execution order
     // however we can't allow caches to fail a validation hence the results are voided.
-    void (await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() }));
-    void (await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000)));
+    await this.redisService.redis.hmset(cacheKey, { expiresAt: tokenExpiresAt.toJSON() });
+    await this.redisService.redis.expireat(cacheKey, Math.floor(tokenExpiresAt.getTime() / 1000));
 
     return true;
   }
@@ -125,7 +123,7 @@ export class OAuthFlowService {
       authorizationToken.owner.id
     );
     await this.tokensRepository.invalidateAuthorizationToken(authorizationToken.id);
-    void this.propagateAccessToken(accessToken); // void result, ignored.
+    this.propagateAccessToken(accessToken);
 
     return {
       accessToken,

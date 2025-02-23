@@ -42,6 +42,6 @@ import { Global, Module } from "@nestjs/common";
     OrganizationsTeamsService,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
-  exports: [OAuthClientRepository],
+  exports: [OAuthClientRepository, OAuthFlowService],
 })
 export class OAuthClientModule {}
