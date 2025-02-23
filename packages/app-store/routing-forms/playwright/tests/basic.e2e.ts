@@ -2,11 +2,11 @@ import type { Locator, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
 import { prisma } from "@calcom/prisma";
-import { AttributeType, SchedulingType } from "@calcom/prisma/enums";
+import { AttributeType, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
 import { selectInteractions } from "@calcom/web/playwright/lib/pageObject";
-import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import { getEmailsReceivedByUser, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -612,6 +612,134 @@ test.describe("Routing Forms", () => {
         );
         await page.click('[data-testid="dialog-rejection"]');
       })();
+    });
+  });
+
+  test.describe("Team Routing Form", () => {
+    test.afterEach(async ({ users }) => {
+      await users.deleteAll();
+    });
+
+    const createUserAndTeamRoutingForm = async ({
+      users,
+      page,
+    }: {
+      users: Fixtures["users"];
+      page: Page;
+    }) => {
+      const owner = await users.create(
+        { username: "routing-forms" },
+        {
+          hasTeam: true,
+          isOrg: true,
+          hasSubteam: true,
+        }
+      );
+      const { team } = await owner.getFirstTeamMembership();
+      await owner.apiLogin();
+      const formId = await addForm(page, {
+        forTeam: true,
+      });
+      await addShortTextFieldAndSaveForm({
+        page,
+        formId,
+      });
+      await page.click('[href*="/route-builder/"]');
+      await selectNewRoute(page);
+      await selectOption({
+        selector: {
+          selector: ".data-testid-select-routing-action",
+          nth: 0,
+        },
+        option: 2,
+        page,
+      });
+      await page.fill("[name=externalRedirectUrl]", "https://cal.com");
+      await saveCurrentForm(page);
+      return {
+        formId,
+        teamId: team.id,
+        owner,
+      };
+    };
+
+    const selectSendMailToAllMembers = async ({ page, formId }: { page: Page; formId: string }) => {
+      await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.click('[data-testid="assign-all-team-members-toggle"]');
+      await saveCurrentForm(page);
+    };
+
+    const selectSendMailToUser = async ({
+      page,
+      formId,
+      text,
+    }: {
+      page: Page;
+      formId: string;
+      text: string;
+    }) => {
+      await page.goto(`apps/routing-forms/form-edit/${formId}`);
+      await page.click('[data-testid="routing-form-select-members"]');
+      await page.getByText(text).nth(1).click();
+      await saveCurrentForm(page);
+    };
+
+    const addNewUserToTeam = async ({ users, teamId }: { users: Fixtures["users"]; teamId: number }) => {
+      const newUser = await users.create();
+      await prisma.membership.create({
+        data: {
+          teamId: teamId,
+          userId: newUser.id,
+          role: MembershipRole.MEMBER,
+          accepted: true,
+        },
+      });
+      return newUser;
+    };
+
+    const goToRoutingLinkAndSubmit = async ({ page, formId }: { page: Page; formId: string }) => {
+      await gotoRoutingLink({ page, formId });
+      await page.fill('[data-testid="form-field-short-text"]', "test");
+      await page.click('button[type="submit"]');
+      await page.waitForURL((url) => {
+        return url.hostname.includes("cal.com");
+      });
+    };
+
+    test("newly added team member gets mail updates, when `Add all team members, including future members` switch is selected", async ({
+      page,
+      emails,
+      users,
+    }) => {
+      const { formId, teamId, owner } = await createUserAndTeamRoutingForm({ users, page });
+      await selectSendMailToAllMembers({ page, formId });
+      const newUser = await addNewUserToTeam({ users, teamId });
+      await goToRoutingLinkAndSubmit({ page, formId });
+
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(2000);
+      const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
+      expect(receivedEmailsOwner?.total).toBe(1);
+      const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
+      expect(receivedEmailsNewUser?.total).toBe(1);
+    });
+
+    test("newly added team member Not gets mail updates, when `Add all team members, including future members` switch is Not selected", async ({
+      page,
+      emails,
+      users,
+    }) => {
+      const { formId, teamId, owner } = await createUserAndTeamRoutingForm({ users, page });
+      await selectSendMailToUser({ page, formId, text: owner.email as string });
+      const newUser = await addNewUserToTeam({ users, teamId });
+      await goToRoutingLinkAndSubmit({ page, formId });
+
+      // eslint-disable-next-line playwright/no-wait-for-timeout
+      await page.waitForTimeout(2000);
+      const receivedEmailsOwner = await getEmailsReceivedByUser({ emails, userEmail: owner.email });
+      expect(receivedEmailsOwner?.total).toBe(1);
+      const receivedEmailsNewUser = await getEmailsReceivedByUser({ emails, userEmail: newUser.email });
+      expect(receivedEmailsNewUser?.total).toBe(0);
     });
   });
 });
