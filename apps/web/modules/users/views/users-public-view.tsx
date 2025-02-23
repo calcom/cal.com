@@ -146,5 +146,5 @@ export function UserPage(props: PageProps) {
     </>
   );
 }
-UserPage.isBookingPage = true;
+
 export default UserPage;
