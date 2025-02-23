@@ -1,12 +1,11 @@
 import type { NextApiRequest } from "next";
 import z from "zod";
 
-import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import slugify from "@calcom/lib/slugify";
+import { UserCreationService } from "@calcom/lib/server/service/userCreationService";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { CreationSource } from "@calcom/prisma/enums";
@@ -34,22 +33,19 @@ async function handler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 422, message: parsedQuery.error.message });
   }
 
-  const username = slugify(parsedQuery.data.username.trim());
   const userEmail = parsedQuery.data.email_address.toLowerCase();
 
-  const hashedPassword = await hashPassword(parsedQuery.data.password);
-
-  await prisma.user.create({
+  await UserCreationService.createUser({
     data: {
-      username,
+      username: parsedQuery.data.username.trim(),
       email: userEmail,
-      password: { create: { hash: hashedPassword } },
+      password: parsedQuery.data.password,
       role: "ADMIN",
       name: parsedQuery.data.full_name,
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
       identityProvider: IdentityProvider.CAL,
-      creationSource: CreationSource.WEBAPP,
+      creationSource: CreationSource.SELF_SERVE_ADMIN,
     },
   });
 
