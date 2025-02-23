@@ -1,7 +1,8 @@
+import type { Prisma } from "@prisma/client";
+
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { type InvalidAppCredentialBannerProps } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
 import { prisma } from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/client";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type checkInvalidAppCredentialsOptions = {
@@ -10,33 +11,29 @@ type checkInvalidAppCredentialsOptions = {
   };
 };
 
+type AppType = Prisma.CredentialGetPayload<{
+  select: {
+    id: true;
+    appId: true;
+  };
+}>;
+
 export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredentialsOptions) => {
   const userId = ctx.user.id;
 
-  const apps = await prisma.credential.findMany({
-    where: {
-      OR: [
-        {
-          userId: userId,
-        },
-        {
-          team: {
-            members: {
-              some: {
-                userId: userId,
-                accepted: true,
-                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
-              },
-            },
-          },
-        },
-      ],
-      invalid: true,
-    },
-    select: {
-      appId: true,
-    },
-  });
+  const apps = await prisma.$queryRaw<AppType[]>`
+    SELECT "Credential"."id", "Credential"."appId"
+    FROM "Credential"
+    WHERE "Credential"."userId" = ${userId} AND "Credential"."invalid" = true
+    UNION
+    SELECT "Credential"."id", "Credential"."appId"
+    FROM "Credential"
+    INNER JOIN "Team" AS "t" ON "t"."id" = "Credential"."teamId"
+    INNER JOIN "Membership" AS "m" ON "m"."teamId" = "t"."id"
+    WHERE "m"."userId" = ${userId} AND "m"."accepted" = true AND "m"."role" IN
+          (CAST('ADMIN'::text AS "MembershipRole"),CAST('OWNER'::text AS "MembershipRole"))
+          AND "m"."teamId" IS NOT NULL AND "t"."id" IS NOT NULL
+      AND "Credential"."invalid" = true`;
 
   const appNamesAndSlugs: InvalidAppCredentialBannerProps[] = [];
   for (const app of apps) {
