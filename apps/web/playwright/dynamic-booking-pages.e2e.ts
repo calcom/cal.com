@@ -143,4 +143,33 @@ test.describe("Organization:", () => {
       }
     );
   });
+
+  test("dynamic booking for usernames with special characters", async ({ page, users, orgs }) => {
+    const org = await orgs.create({
+      name: "TestOrg",
+    });
+
+    const user1 = await users.create({
+      organizationId: org.id,
+      name: "User 1",
+      roleInOrganization: MembershipRole.MEMBER,
+    });
+
+    const user2 = await users.create({
+      username: "ßenny-Joo", // Special character "ß"
+      organizationId: org.id,
+      name: "User 2",
+      roleInOrganization: MembershipRole.MEMBER,
+    });
+    await doOnOrgDomain(
+      {
+        orgSlug: org.slug,
+        page,
+      },
+      async () => {
+        const response = await page.goto(`/${user1.username}+${user2.username}`);
+        expect(response?.status()).not.toBe(500);
+      }
+    );
+  });
 });
