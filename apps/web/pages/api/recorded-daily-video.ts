@@ -15,6 +15,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { generateSummary } from "@calcom/web/lib/daily-webhook/generateSummary";
 import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
 import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
 import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
@@ -172,7 +173,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           .json({ message: `No Transcripts found for room name ${room} and meeting id ${meeting_id}` });
 
       const evt = await getCalendarEvent(booking);
-      await sendDailyVideoTranscriptEmails(evt, transcripts);
+      const summaries = await Promise.all(transcripts.map(async (transcript) => generateSummary(transcript)));
+
+      await sendDailyVideoTranscriptEmails(evt, transcripts, summaries);
 
       return res.status(200).json({ message: "Success" });
     } else if (req.body?.type === "batch-processor.job-finished") {
