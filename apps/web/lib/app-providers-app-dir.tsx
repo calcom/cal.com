@@ -281,7 +281,7 @@ const AppProviders = (props: PageWrapperProps) => {
     </EventCollectionProvider>
   );
 
-  if (isBookingPage) {
+  if (props.isBookingPage || isBookingPage) {
     return RemainingProviders;
   }
 

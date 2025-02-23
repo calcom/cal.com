@@ -1984,7 +1984,7 @@ checksums:
     a_routing_form: 0efb0603d4fa8a93c29815addfc5d7b7
     form_description_placeholder: 4527874b1b330670c90509d544656e1c
     keep_me_connected_with_form: 6c4e124876798fa31e95263cfedc6128
-    fields_in_form_duplicated: 141300cdba2154f3d7d4fa2e42560178
+    fields_in_form_duplicated: 21c9d77cb1153c092178b88f271e5626
     form_deleted: 1826f64353f3707dd7ad3b4a5be622b7
     delete_form: 1e565cab4c0ac382e5ea4f6f4b0148ef
     delete_form_action: da5c9924cbeb6409a29e044f7a8577d9
