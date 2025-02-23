@@ -214,12 +214,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             ),
           };
           const emailLocale = locale || "en";
+          const brandingDisabled =
+            !!reminder.booking.eventType?.team?.parentId ||
+            !!reminder.booking.user?.hideBranding ||
+            !!reminder.booking.eventType?.team?.hideBranding;
+
           const emailSubject = customTemplate(
             reminder.workflowStep.emailSubject || "",
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).text;
           emailContent.emailSubject = emailSubject;
           emailContent.emailBody = customTemplate(
@@ -227,7 +232,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             variables,
             emailLocale,
             getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat),
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           ).html;
 
           emailBodyEmpty =
@@ -238,6 +243,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               getTimeFormatStringFromUserTimeFormat(reminder.booking.user?.timeFormat)
             ).text.length === 0;
         } else if (reminder.workflowStep.template === WorkflowTemplates.REMINDER) {
+          const brandingDisabled =
+            !!reminder.booking.eventType?.team?.parentId ||
+            !!reminder.booking.user?.hideBranding ||
+            !!reminder.booking.eventType?.team?.hideBranding;
+
           emailContent = emailReminderTemplate(
             false,
             reminder.booking.user?.locale || "en",
@@ -251,7 +261,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
             attendeeName || "",
             name || "",
-            !!reminder.booking.user?.hideBranding
+            brandingDisabled
           );
         } else if (reminder.workflowStep.template === WorkflowTemplates.RATING) {
           const organizerOrganizationProfile = await prisma.profile.findFirst({
@@ -368,6 +378,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const emailBodyEmpty = false;
 
+        const brandingDisabled =
+          !!reminder.booking.eventType?.team?.parentId ||
+          !!reminder.booking.user?.hideBranding ||
+          !!reminder.booking.eventType?.team?.hideBranding;
+
         emailContent = emailReminderTemplate(
           false,
           reminder.booking.user?.locale || "en",
@@ -381,7 +396,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           bookingMetadataSchema.parse(reminder.booking.metadata || {})?.videoCallUrl || "",
           attendeeName || "",
           name || "",
-          !!reminder.booking.user?.hideBranding
+          brandingDisabled
         );
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();

@@ -32,7 +32,7 @@ type PartialBooking =
       eventType:
         | (Partial<EventType> & {
             slug: string;
-            team: { parentId?: number };
+            team: { parentId?: number; hideBranding?: boolean } | null;
             hosts: { user: { email: string; destinationCalendar?: { primaryEmail: string } } }[] | undefined;
           })
         | null;
@@ -186,6 +186,7 @@ export const select: Prisma.WorkflowReminderSelect = {
           team: {
             select: {
               parentId: true,
+              hideBranding: true,
             },
           },
         },
