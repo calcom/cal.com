@@ -1,5 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { addField } from "routing-forms/playwright/tests/basic.e2e";
+
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 
 export async function addForm(
   page: Page,
@@ -23,6 +26,7 @@ export async function addForm(
   await page.fill("input[name]", name);
   await page.click('[data-testid="add-form"]');
   await page.waitForSelector('[data-testid="add-field"]');
+
   const url = page.url();
   const formId = new URL(url).pathname.split("/").at(-1);
   if (!formId) {
@@ -34,40 +38,46 @@ export async function addForm(
 export async function addOneFieldAndDescriptionAndSaveForm(
   formId: string,
   page: Page,
-  form: { description?: string; field?: { typeIndex: number; label: string } }
+  form: { description?: string; field: { typeIndex: number; label: string } }
 ) {
+  // go to form
   await page.goto(`apps/routing-forms/form-edit/${formId}`);
-  await page.click('[data-testid="add-field"]');
+
+  // add description if provided
   if (form.description) {
     await page.fill('[data-testid="description"]', form.description);
   }
 
-  // Verify all Options of SelectBox
-  const { optionsInUi: types } = await verifySelectOptions(
+  // verify select options
+  await page.click('[data-testid="add-field"]');
+  const { optionsInUi: fieldTypesByValue } = await verifySelectOptions(
     { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "Multiple Selection", "Number", "Phone", "Single Selection", "Short Text"],
     page
   );
-
-  const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
-
-  if (form.field) {
-    await page.fill(`[data-testid="fields.${nextFieldIndex}.label"]`, form.field.label);
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator(".data-testid-field-type")
-      .click();
-    await page
-      .locator('[data-testid="field"]')
-      .nth(nextFieldIndex)
-      .locator('[id*="react-select-"][aria-disabled]')
-      .nth(form.field.typeIndex)
-      .click();
+  if ((await page.locator('[data-testid="dialog-rejection"]').count()) > 0) {
+    await page.locator('[data-testid="dialog-rejection"]').click();
   }
+
+  // add field
+  const label = form.field.label;
+  const fieldTypeTestId = fieldTypesByValue[form.field.typeIndex].toLowerCase();
+  const identifier = fieldTypeTestId;
+
+  await addField({
+    page,
+    label,
+    fieldTypeTestIdLabel: fieldTypeTestId,
+    identifier,
+  });
+
+  // save form
   await saveCurrentForm(page);
+
+  // return field details
   return {
-    types,
+    label,
+    fieldTypeTestId,
+    identifier,
   };
 }
 
@@ -78,9 +88,15 @@ export async function saveCurrentForm(page: Page) {
 
 export async function verifySelectOptions(
   selector: { selector: string; nth: number },
-  expectedOptions: string[],
-  page: Page
+  page: Page,
+  expectedOptions?: string[]
 ) {
+  if (!expectedOptions) {
+    expectedOptions = Object.values(fieldTypesConfigMap)
+      .filter((field) => !field.systemOnly)
+      .map((field) => field.label);
+  }
+
   await page.locator(selector.selector).nth(selector.nth).click();
   const selectOptions = await page
     .locator(selector.selector)
@@ -88,10 +104,20 @@ export async function verifySelectOptions(
     .locator('[id*="react-select-"][aria-disabled]')
     .allInnerTexts();
 
+  // At this point, check that rendered labels are the same as expected labels.
   const sortedSelectOptions = [...selectOptions].sort();
   const sortedExpectedOptions = [...expectedOptions].sort();
   expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
+
+  // Get all fields by value. This is necessary because data-testid of the option
+  // uses values, not label.
+  // i.e [data-testid="select-option-textarea"] not [data-testid="select-option-Long Text]
+  const optionsByValue = Object.values(fieldTypesConfigMap)
+    .filter((field) => !field.systemOnly)
+    .map((field) => field.value);
+
   return {
-    optionsInUi: selectOptions,
+    optionsInUi: optionsByValue,
+    optionsByLabel: selectOptions,
   };
 }

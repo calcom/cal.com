@@ -9,6 +9,10 @@ vi.mock("../lib/processRoute", () => ({
   findMatchingRoute: vi.fn(),
 }));
 
+vi.mock("uuid", () => ({
+  v4: () => "123e4567-e89b-12d3-a456-426614174000",
+}));
+
 function mockMatchingRoute(route: any) {
   (findMatchingRoute as Mock<typeof findMatchingRoute>).mockReturnValue({
     ...route,
