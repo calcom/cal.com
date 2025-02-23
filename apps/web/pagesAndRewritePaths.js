@@ -24,10 +24,8 @@ let pages = (exports.pages = glob
       self.indexOf(v) === i &&
       ![
         "[user]",
-        "future",
         "_trpc",
         "layout",
-        "layoutHOC",
         "WithAppDirSsg",
         "global-error",
         "WithAppDirSsr",

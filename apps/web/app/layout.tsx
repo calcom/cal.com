@@ -10,6 +10,7 @@ import { IconSprites } from "@calcom/ui";
 import { prepareRootMetadata } from "@lib/metadata";
 
 import "../styles/globals.css";
+import { PageStatusScript } from "./PageStatusScript";
 import { SpeculationRules } from "./SpeculationRules";
 import { Providers } from "./providers";
 
@@ -159,6 +160,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             "/insights",
           ]}
         />
+        <PageStatusScript />
         <Providers>{children}</Providers>
       </body>
     </html>

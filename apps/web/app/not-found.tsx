@@ -10,8 +10,6 @@ import {
 import { DOCS_URL, IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
 
-import PageWrapper from "@components/PageWrapperAppDir";
-
 enum PageType {
   ORG = "ORG",
   TEAM = "TEAM",
@@ -244,11 +242,7 @@ export const generateMetadata = async () => {
 const ServerPage = async () => {
   const t = await getTranslate();
   const h = headers();
-  const nonce = h.get("x-nonce") ?? undefined;
-  return (
-    <PageWrapper requiresLicense={false} nonce={nonce} themeBasis={null}>
-      <NotFound t={t} headers={h} />
-    </PageWrapper>
-  );
+
+  return <NotFound t={t} headers={h} />;
 };
 export default ServerPage;
