@@ -561,7 +561,7 @@ function MemberListContent(props: Props) {
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               disabled={!user.accepted}
-                              href={!user.accepted ? undefined : `/${user.username}`}
+                              href={!user.accepted ? undefined : `/${user.profile.username}`}
                               target="_blank"
                               type="button"
                               StartIcon="external-link">

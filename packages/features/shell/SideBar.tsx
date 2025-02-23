@@ -55,7 +55,7 @@ export function SideBar({ bannersHeight, user }: SideBarProps) {
   const [isReferalLoading, setIsReferalLoading] = useState(false);
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.username}`;
+  const publicPageUrl = `${getBookerBaseUrlSync(user?.org?.slug ?? null)}/${user?.profile?.username}`;
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
