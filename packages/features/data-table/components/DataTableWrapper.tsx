@@ -5,12 +5,12 @@ import { useEffect, useRef } from "react";
 
 import {
   DataTable,
-  DataTableToolbar,
   DataTablePagination,
   useFetchMoreOnBottomReached,
   useDataTable,
   useColumnFilters,
 } from "@calcom/features/data-table";
+import { classNames } from "@calcom/lib";
 
 export type DataTableWrapperProps<TData, TValue> = {
   testId?: string;
@@ -25,6 +25,7 @@ export type DataTableWrapperProps<TData, TValue> = {
   totalDBRowCount?: number;
   ToolbarLeft?: React.ReactNode;
   ToolbarRight?: React.ReactNode;
+  EmptyView?: React.ReactNode;
   className?: string;
   containerClassName?: string;
   children?: React.ReactNode;
@@ -44,6 +45,7 @@ export function DataTableWrapper<TData, TValue>({
   hideHeader,
   ToolbarLeft,
   ToolbarRight,
+  EmptyView,
   className,
   containerClassName,
   children,
@@ -79,21 +81,12 @@ export function DataTableWrapper<TData, TValue>({
     }));
   }, [table, sorting, columnFilters, columnVisibility]);
 
+  const showEmptyView = table.getRowCount() === 0 && EmptyView;
+
   return (
-    <DataTable
-      testId={testId}
-      bodyTestId={bodyTestId}
-      table={table}
-      tableContainerRef={tableContainerRef}
-      isPending={isPending}
-      enableColumnResizing={true}
-      hideHeader={hideHeader}
-      variant={variant}
-      className={className}
-      containerClassName={containerClassName}
-      onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+    <>
       {(ToolbarLeft || ToolbarRight || children) && (
-        <DataTableToolbar.Root>
+        <div className={classNames("grid w-full items-center gap-2 py-4", className)}>
           <div className="flex w-full flex-col gap-2">
             <div className="flex w-full flex-wrap justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">{ToolbarLeft}</div>
@@ -102,14 +95,29 @@ export function DataTableWrapper<TData, TValue>({
           </div>
 
           {children}
-        </DataTableToolbar.Root>
-      )}
-
-      {totalDBRowCount && (
-        <div style={{ gridArea: "footer", marginTop: "1rem" }}>
-          <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
         </div>
       )}
-    </DataTable>
+      {showEmptyView && EmptyView}
+      {!showEmptyView && (
+        <DataTable
+          testId={testId}
+          bodyTestId={bodyTestId}
+          table={table}
+          tableContainerRef={tableContainerRef}
+          isPending={isPending}
+          enableColumnResizing={true}
+          hideHeader={hideHeader}
+          variant={variant}
+          className={className}
+          containerClassName={containerClassName}
+          onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}>
+          {totalDBRowCount && (
+            <div style={{ gridArea: "footer", marginTop: "1rem" }}>
+              <DataTablePagination table={table} totalDbDataCount={totalDBRowCount} />
+            </div>
+          )}
+        </DataTable>
+      )}
+    </>
   );
 }
