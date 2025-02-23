@@ -1867,7 +1867,7 @@ checksums:
     minimum_round_robin_hosts_count: 5582ab73362ba09b5366984f6d7df29e
     hosts: e8f8791fcea6024eb21194a643d4dd5a
     upgrade_to_enable_feature: f180480b3c237bebfae046dfd941261a
-    orgs_upgrade_to_enable_feature: e606877ec226f35bb274fb497fd30963
+    upgrade_to_enterprise: e606877ec226f35bb274fb497fd30963
     new_attendee: 818656cd46e446313b8ed670f8361792
     awaiting_approval: 1587287d4d76a03d67940c18540b7e52
     requires_google_calendar: 6d16fbde7f48cba7737ea822ac7f481b

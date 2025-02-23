@@ -1,7 +1,8 @@
 import { getTranslate, _generateMetadata } from "app/_utils";
 
-import { AdminAPIView } from "@calcom/features/ee/organizations/pages/settings/admin-api";
 import SettingsHeader from "@calcom/features/settings/appDir/SettingsHeader";
+
+import EnterprisePage from "@components/EnterprisePage";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -17,7 +18,7 @@ const Page = async () => {
       title={`${t("admin")} ${t("api_reference")}`}
       description={t("leverage_our_api")}
       borderInShellHeader={false}>
-      <AdminAPIView />
+      <EnterprisePage />
     </SettingsHeader>
   );
 };
