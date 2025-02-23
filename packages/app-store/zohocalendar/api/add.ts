@@ -6,13 +6,13 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
-import config from "../config.json";
+import { metadata } from "../metadata.generated";
 import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const appKeys = await getAppKeysFromSlug(config.slug);
+  const appKeys = await getAppKeysFromSlug(metadata.slug);
   const { client_id } = zohoKeysSchema.parse(appKeys);
 
   const state = encodeOAuthState(req);
