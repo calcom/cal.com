@@ -58,6 +58,21 @@ describe("getVideoCallUrl", () => {
 
     expect(getVideoCallUrlFromCalEvent(calEvent)).toEqual(getPublicVideoCallUrl(calEvent));
   });
+
+  it("should return a meeting url for integrations when metadata.videoCallUrl is available", () => {
+    const calEvent = buildCalendarEvent({
+      videoCallData: undefined,
+      location: `integrations:google:meet`,
+    });
+
+    const videoCallUrl = "https://meet.google.com/abc-defg-hij";
+
+    const metadata = {
+      videoCallUrl,
+    };
+
+    expect(getVideoCallUrlFromCalEvent({ ...calEvent, metadata })).toEqual(videoCallUrl);
+  });
 });
 
 describe("getVideoCallPassword", () => {
