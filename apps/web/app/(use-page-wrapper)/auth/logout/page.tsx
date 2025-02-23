@@ -4,6 +4,8 @@ import { cookies, headers } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
+import { ssrInit } from "@server/lib/ssr";
+
 import Logout from "~/auth/logout-view";
 
 export const generateMetadata = async () => {
@@ -17,6 +19,7 @@ const Page = async ({ params, searchParams }: PageProps) => {
   // cookie will be cleared in `/apps/web/middleware.ts`
   const h = headers();
   const context = buildLegacyCtx(h, cookies(), params, searchParams);
+  await ssrInit(context);
 
   return <Logout query={context.query} />;
 };
