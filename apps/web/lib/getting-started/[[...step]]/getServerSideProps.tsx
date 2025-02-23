@@ -32,7 +32,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       ...(await serverSideTranslations(locale || "en", ["common"])),
-      trpcState: ssr.dehydrate(),
       hasPendingInvites: user.teams.find((team) => team.accepted === false) ?? false,
     },
   };
