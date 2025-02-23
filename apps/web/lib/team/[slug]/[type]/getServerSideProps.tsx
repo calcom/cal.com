@@ -63,17 +63,29 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const fromRedirectOfNonOrgLink = context.query.orgRedirection === "true";
   const isUnpublished = team.parent ? !team.parent.slug : !team.slug;
 
-  const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
-    "@calcom/lib/server/getTeamMemberEmailFromCrm"
-  );
-  const {
-    email: teamMemberEmail,
-    recordType: crmOwnerRecordType,
-    crmAppSlug,
-  } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
-    query,
-    eventData,
-  });
+  const crmContactOwnerEmail = query["cal.crmContactOwnerEmail"];
+  const crmContactOwnerRecordType = query["cal.crmContactOwnerRecordType"];
+  let crmAppSlug = query["cal.crmAppSlug"];
+  let teamMemberEmail = crmContactOwnerEmail;
+  let crmOwnerRecordType = crmContactOwnerRecordType;
+
+  if (!teamMemberEmail || !crmOwnerRecordType || !crmAppSlug) {
+    const { getTeamMemberEmailForResponseOrContactUsingUrlQuery } = await import(
+      "@calcom/lib/server/getTeamMemberEmailFromCrm"
+    );
+    const {
+      email,
+      recordType,
+      crmAppSlug: crmAppSlugQuery,
+    } = await getTeamMemberEmailForResponseOrContactUsingUrlQuery({
+      query,
+      eventData,
+    });
+
+    teamMemberEmail = email ?? undefined;
+    crmOwnerRecordType = recordType ?? undefined;
+    crmAppSlug = crmAppSlugQuery ?? undefined;
+  }
 
   const organizationSettings = getOrganizationSEOSettings(team);
   const allowSEOIndexing = organizationSettings?.allowSEOIndexing ?? false;
